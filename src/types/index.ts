@@ -1,3 +1,4 @@
+
 export type UserRole = 'User' | 'Admin' | 'SuperAdmin';
 
 export type UserRank = 
@@ -24,7 +25,7 @@ export interface User {
   role: UserRole;
   rank: UserRank;
   points: number;
-  country?: string;  // For Admins
+  country?: string;  // Keep this as optional
   createdAt: string;
   avatarUrl?: string;
 }
