@@ -91,18 +91,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      // Create a new user with country as undefined, ensuring it matches the User type where country is optional
       const newUser: User = {
         id: (MOCK_USERS.length + 1).toString(),
         username,
         email,
-        role: 'User',
-        rank: 'Newbie',
+        role: 'User' as UserRole,
+        rank: 'Newbie' as UserRank,
         points: 0,
         createdAt: new Date().toISOString(),
         avatarUrl: '/placeholder.svg'
+        // country is intentionally not set here since it's optional
       };
 
       // In a real app, we'd store this in a database
+      // Since we're adding to MOCK_USERS which expects the same shape, we ensure type compatibility
       MOCK_USERS.push(newUser);
       
       setUser(newUser);
