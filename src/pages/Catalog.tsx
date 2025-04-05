@@ -321,8 +321,13 @@ const Catalog = () => {
             </div>
           </div>
           
-          {/* Banknote grid/list */}
+          {/* Banknote grid/list - FIXED: Wrapping TabsContent inside the same Tabs component */}
           <Tabs value={currentTab} className="mt-0">
+            <TabsList className="hidden">
+              <TabsTrigger value="grid">Grid</TabsTrigger>
+              <TabsTrigger value="list">List</TabsTrigger>
+            </TabsList>
+            
             <TabsContent value="grid" className="mt-0">
               {renderGridView()}
             </TabsContent>

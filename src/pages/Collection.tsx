@@ -172,6 +172,103 @@ const Collection = () => {
                   Missing
                 </TabsTrigger>
               </TabsList>
+            
+              {/* FIXED: Move TabsContent inside Tabs component */}
+              {/* Collection Tab */}
+              <TabsContent value="collection">
+                {collectionItems.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {collectionItems.map((item, index) => (
+                      <div
+                        key={item.id}
+                        className="reveal fade-bottom"
+                        style={{ animationDelay: `${index * 100}ms` }}
+                      >
+                        <CollectionCard 
+                          item={item} 
+                          onEdit={handleEditItem}
+                          onToggleSale={handleToggleSale}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20">
+                    <BookOpen className="h-16 w-16 mx-auto text-ottoman-600/30 mb-4" />
+                    <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
+                      Your collection is empty
+                    </h3>
+                    <p className="text-ottoman-400 mb-6">
+                      Start adding items to your collection from the catalog
+                    </p>
+                    <Link to="/catalog">
+                      <Button className="ottoman-button">
+                        Browse Catalog
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </TabsContent>
+              
+              {/* Wishlist Tab */}
+              <TabsContent value="wishlist">
+                {wishlistItems.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {wishlistItems.map((item) => (
+                      <CollectionCard
+                        key={item.id}
+                        item={item}
+                        onEdit={handleEditItem}
+                        onToggleSale={handleToggleSale}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20">
+                    <HeartHandshake className="h-16 w-16 mx-auto text-ottoman-600/30 mb-4" />
+                    <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
+                      Your wishlist is empty
+                    </h3>
+                    <p className="text-ottoman-400 mb-6">
+                      Browse the catalog and add items you want to acquire
+                    </p>
+                    <Link to="/catalog">
+                      <Button className="ottoman-button">
+                        Browse Catalog
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </TabsContent>
+              
+              {/* Missing Tab */}
+              <TabsContent value="missing">
+                {missingItems.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {missingItems.map((item) => (
+                      <CollectionCard
+                        key={item.id}
+                        item={item}
+                        onEdit={handleEditItem}
+                        onToggleSale={handleToggleSale}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20">
+                    <ListChecks className="h-16 w-16 mx-auto text-ottoman-600/30 mb-4" />
+                    <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
+                      Missing list is currently empty
+                    </h3>
+                    <p className="text-ottoman-400 mb-6">
+                      Your missing list will show items from the catalog that are not in your collection
+                    </p>
+                    <Button className="ottoman-button">
+                      Generate Missing List
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
             </Tabs>
             
             <div className="flex items-center gap-3 mt-4 md:mt-0 w-full md:w-auto">
@@ -191,102 +288,6 @@ const Collection = () => {
               </Button>
             </div>
           </div>
-          
-          {/* Collection Tab */}
-          <TabsContent value="collection">
-            {collectionItems.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {collectionItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="reveal fade-bottom"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <CollectionCard 
-                      item={item} 
-                      onEdit={handleEditItem}
-                      onToggleSale={handleToggleSale}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20">
-                <BookOpen className="h-16 w-16 mx-auto text-ottoman-600/30 mb-4" />
-                <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
-                  Your collection is empty
-                </h3>
-                <p className="text-ottoman-400 mb-6">
-                  Start adding items to your collection from the catalog
-                </p>
-                <Link to="/catalog">
-                  <Button className="ottoman-button">
-                    Browse Catalog
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </TabsContent>
-          
-          {/* Wishlist Tab */}
-          <TabsContent value="wishlist">
-            {wishlistItems.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {wishlistItems.map((item) => (
-                  <CollectionCard
-                    key={item.id}
-                    item={item}
-                    onEdit={handleEditItem}
-                    onToggleSale={handleToggleSale}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20">
-                <HeartHandshake className="h-16 w-16 mx-auto text-ottoman-600/30 mb-4" />
-                <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
-                  Your wishlist is empty
-                </h3>
-                <p className="text-ottoman-400 mb-6">
-                  Browse the catalog and add items you want to acquire
-                </p>
-                <Link to="/catalog">
-                  <Button className="ottoman-button">
-                    Browse Catalog
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </TabsContent>
-          
-          {/* Missing Tab */}
-          <TabsContent value="missing">
-            {missingItems.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {missingItems.map((item) => (
-                  <CollectionCard
-                    key={item.id}
-                    item={item}
-                    onEdit={handleEditItem}
-                    onToggleSale={handleToggleSale}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20">
-                <ListChecks className="h-16 w-16 mx-auto text-ottoman-600/30 mb-4" />
-                <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
-                  Missing list is currently empty
-                </h3>
-                <p className="text-ottoman-400 mb-6">
-                  Your missing list will show items from the catalog that are not in your collection
-                </p>
-                <Button className="ottoman-button">
-                  Generate Missing List
-                </Button>
-              </div>
-            )}
-          </TabsContent>
         </div>
       </section>
     </div>
