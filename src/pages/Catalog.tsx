@@ -75,6 +75,100 @@ const Catalog = () => {
     };
   }, []);
 
+  // Function to render grid view content
+  const renderGridView = () => {
+    if (filteredBanknotes.length > 0) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredBanknotes.map((banknote, index) => (
+            <div 
+              key={banknote.id} 
+              className="reveal fade-bottom"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <BanknoteCard banknote={banknote} />
+            </div>
+          ))}
+        </div>
+      );
+    } else {
+      return (
+        <div className="text-center py-20 reveal fade-bottom">
+          <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
+            No banknotes found
+          </h3>
+          <p className="text-ottoman-400">
+            Try adjusting your search criteria or filters
+          </p>
+          <Button 
+            variant="outline" 
+            className="mt-4 border-ottoman-700 text-ottoman-200"
+            onClick={resetFilters}
+          >
+            Clear All Filters
+          </Button>
+        </div>
+      );
+    }
+  };
+
+  // Function to render list view content
+  const renderListView = () => {
+    if (filteredBanknotes.length > 0) {
+      return (
+        <div className="bg-dark-600/50 rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-ottoman-800">
+                <th className="text-left py-4 px-6 text-ottoman-300 font-medium">Catalog ID</th>
+                <th className="text-left py-4 px-6 text-ottoman-300 font-medium">Country</th>
+                <th className="text-left py-4 px-6 text-ottoman-300 font-medium">Denomination</th>
+                <th className="text-left py-4 px-6 text-ottoman-300 font-medium">Year</th>
+                <th className="text-right py-4 px-6 text-ottoman-300 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredBanknotes.map((banknote) => (
+                <tr 
+                  key={banknote.id}
+                  className="border-b border-ottoman-800/50 hover:bg-dark-500/40 transition-colors"
+                >
+                  <td className="py-4 px-6 text-ottoman-200">{banknote.catalogId}</td>
+                  <td className="py-4 px-6 text-ottoman-200">{banknote.country}</td>
+                  <td className="py-4 px-6 text-ottoman-200">{banknote.denomination}</td>
+                  <td className="py-4 px-6 text-ottoman-200">{banknote.year}</td>
+                  <td className="py-4 px-6 text-right">
+                    <Button variant="ghost" size="sm" className="text-ottoman-300 hover:text-ottoman-100 hover:bg-ottoman-700/50">
+                      View
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    } else {
+      return (
+        <div className="text-center py-20 reveal fade-bottom">
+          <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
+            No banknotes found
+          </h3>
+          <p className="text-ottoman-400">
+            Try adjusting your search criteria or filters
+          </p>
+          <Button 
+            variant="outline" 
+            className="mt-4 border-ottoman-700 text-ottoman-200"
+            onClick={resetFilters}
+          >
+            Clear All Filters
+          </Button>
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-dark-500 animate-fade-in">
       {/* Header */}
@@ -228,89 +322,15 @@ const Catalog = () => {
           </div>
           
           {/* Banknote grid/list */}
-          <TabsContent value="grid" className="mt-0">
-            {filteredBanknotes.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredBanknotes.map((banknote, index) => (
-                  <div 
-                    key={banknote.id} 
-                    className="reveal fade-bottom"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <BanknoteCard banknote={banknote} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20 reveal fade-bottom">
-                <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
-                  No banknotes found
-                </h3>
-                <p className="text-ottoman-400">
-                  Try adjusting your search criteria or filters
-                </p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4 border-ottoman-700 text-ottoman-200"
-                  onClick={resetFilters}
-                >
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="list" className="mt-0">
-            {filteredBanknotes.length > 0 ? (
-              <div className="bg-dark-600/50 rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-ottoman-800">
-                      <th className="text-left py-4 px-6 text-ottoman-300 font-medium">Catalog ID</th>
-                      <th className="text-left py-4 px-6 text-ottoman-300 font-medium">Country</th>
-                      <th className="text-left py-4 px-6 text-ottoman-300 font-medium">Denomination</th>
-                      <th className="text-left py-4 px-6 text-ottoman-300 font-medium">Year</th>
-                      <th className="text-right py-4 px-6 text-ottoman-300 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredBanknotes.map((banknote) => (
-                      <tr 
-                        key={banknote.id}
-                        className="border-b border-ottoman-800/50 hover:bg-dark-500/40 transition-colors"
-                      >
-                        <td className="py-4 px-6 text-ottoman-200">{banknote.catalogId}</td>
-                        <td className="py-4 px-6 text-ottoman-200">{banknote.country}</td>
-                        <td className="py-4 px-6 text-ottoman-200">{banknote.denomination}</td>
-                        <td className="py-4 px-6 text-ottoman-200">{banknote.year}</td>
-                        <td className="py-4 px-6 text-right">
-                          <Button variant="ghost" size="sm" className="text-ottoman-300 hover:text-ottoman-100 hover:bg-ottoman-700/50">
-                            View
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-20 reveal fade-bottom">
-                <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
-                  No banknotes found
-                </h3>
-                <p className="text-ottoman-400">
-                  Try adjusting your search criteria or filters
-                </p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4 border-ottoman-700 text-ottoman-200"
-                  onClick={resetFilters}
-                >
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
-          </TabsContent>
+          <Tabs value={currentTab} className="mt-0">
+            <TabsContent value="grid" className="mt-0">
+              {renderGridView()}
+            </TabsContent>
+            
+            <TabsContent value="list" className="mt-0">
+              {renderListView()}
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
     </div>
