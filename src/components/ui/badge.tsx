@@ -1,10 +1,12 @@
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-
 import { cn } from "@/lib/utils"
+import { UserRank } from "@/types"
+import { Shield, Award, Star } from "lucide-react"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
   {
     variants: {
       variant: {
@@ -15,6 +17,16 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        primary:
+          "bg-ottoman-500/10 text-ottoman-300 ring-ottoman-500/30",
+        gold:
+          "bg-gold-500/10 text-gold-500 ring-gold-500/20",
+        user:
+          "bg-ottoman-500/10 text-ottoman-300 ring-ottoman-500/20",
+        admin:
+          "bg-gold-700/10 text-gold-400 ring-gold-700/20",
+        super:
+          "bg-gold-500/10 text-gold-500 ring-gold-500/20",
       },
     },
     defaultVariants: {
@@ -25,11 +37,53 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  rank?: UserRank;
+  showIcon?: boolean;
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+const getUserRankVariant = (
+  rank: UserRank
+): "user" | "admin" | "super" => {
+  if (rank && rank.startsWith("Super Admin")) {
+    return "super";
+  } else if (rank && rank.startsWith("Admin")) {
+    return "admin";
+  } else {
+    return "user";
+  }
+};
+
+function Badge({
+  className,
+  variant,
+  rank,
+  showIcon = true,
+  ...props
+}: BadgeProps) {
+  // If a rank is provided, use it to determine the variant
+  const badgeVariant = rank ? getUserRankVariant(rank) : variant;
+  
+  // Choose icon based on rank
+  const renderIcon = () => {
+    if (!showIcon || !rank) return null;
+    
+    if (rank.startsWith("Super Admin")) {
+      return <Shield className="h-3 w-3 mr-1" />;
+    } else if (rank.startsWith("Admin")) {
+      return <Award className="h-3 w-3 mr-1" />;
+    } else if (rank === "Advance Collector" || rank === "Known Collector") {
+      return <Star className="h-3 w-3 mr-1" />;
+    }
+    
+    return null;
+  };
+  
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <div className={cn(badgeVariants({ variant: badgeVariant }), className)} {...props}>
+      {renderIcon()}
+      {props.children || rank}
+    </div>
   )
 }
 

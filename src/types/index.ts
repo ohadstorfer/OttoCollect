@@ -1,4 +1,3 @@
-
 export type UserRole = 'User' | 'Admin' | 'SuperAdmin';
 
 export type UserRank = 
