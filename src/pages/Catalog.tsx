@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Banknote } from "@/types";
-import { fetchBanknotes, fetchBanknotesByPeriod } from "@/services/banknoteService";
+import { fetchBanknotes, fetchBanknotesByPeriod, checkBanknotesExist } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 
 const Catalog = () => {
@@ -17,14 +17,29 @@ const Catalog = () => {
   const [yearEnd, setYearEnd] = useState<string>("");
   const [banknotes, setBanknotes] = useState<Banknote[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataExists, setDataExists] = useState(true); // Assuming data exists by default
   const { toast } = useToast();
+
+  // First check if any banknotes exist in the database
+  useEffect(() => {
+    const checkForData = async () => {
+      console.log("Checking if banknotes exist in the database...");
+      const exists = await checkBanknotesExist();
+      console.log("Do banknotes exist in the database?", exists);
+      setDataExists(exists);
+    };
+    
+    checkForData();
+  }, []);
 
   // Fetch banknotes on component mount
   useEffect(() => {
     const loadBanknotes = async () => {
+      console.log("Loading banknotes from the database...");
       setLoading(true);
       try {
         const data = await fetchBanknotes();
+        console.log("Banknotes loaded:", data.length);
         setBanknotes(data);
       } catch (error) {
         console.error("Error loading banknotes:", error);
@@ -42,26 +57,32 @@ const Catalog = () => {
   }, [toast]);
 
   const handlePeriodChange = async (periodValue: string) => {
+    console.log("Period changed to:", periodValue);
     setLoading(true);
     try {
       let data: Banknote[] = [];
       
       switch (periodValue) {
         case "early":
+          console.log("Fetching early period banknotes (1863-1914)");
           data = await fetchBanknotesByPeriod(1863, 1914);
           break;
         case "middle":
+          console.log("Fetching middle period banknotes (1915-1923)");
           data = await fetchBanknotesByPeriod(1915, 1923);
           break;
         case "late":
+          console.log("Fetching late period banknotes (1924-1927)");
           data = await fetchBanknotesByPeriod(1924, 1927);
           break;
         case "all":
         default:
+          console.log("Fetching all banknotes");
           data = await fetchBanknotes();
           break;
       }
       
+      console.log(`Received ${data.length} banknotes for period ${periodValue}`);
       setBanknotes(data);
     } catch (error) {
       console.error("Error loading banknotes for period:", error);
@@ -75,6 +96,7 @@ const Catalog = () => {
     }
   };
 
+  // Filter the banknotes based on search query and filters
   const filteredBanknotes = banknotes.filter(banknote => {
     // Only include approved banknotes
     if (!banknote.isApproved || banknote.isPending) return false;
@@ -100,9 +122,18 @@ const Catalog = () => {
     return matchesSearch && matchesRegion && matchesYear;
   });
 
+  console.log("Filtered banknotes count:", filteredBanknotes.length);
+
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6">Ottoman Banknote Catalog</h1>
+
+      {!dataExists ? (
+        <div className="bg-amber-100 text-amber-800 p-4 rounded-lg mb-6">
+          <h3 className="font-medium text-lg">No Banknote Data</h3>
+          <p>The database doesn't have any banknotes yet. If you're an admin, please import the CSV data.</p>
+        </div>
+      ) : null}
 
       <div className="bg-card border rounded-lg p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -170,7 +201,11 @@ const Catalog = () => {
         ) : filteredBanknotes.length === 0 ? (
           <div className="text-center py-8">
             <h3 className="text-xl font-medium mb-4">No banknotes found</h3>
-            <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+            <p className="text-muted-foreground">
+              {dataExists 
+                ? "Try adjusting your filters or search criteria." 
+                : "No banknote data has been imported yet."}
+            </p>
           </div>
         ) : (
           <TabsContent value="all">
