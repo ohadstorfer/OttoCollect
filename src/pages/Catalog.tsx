@@ -1,19 +1,81 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MOCK_BANKNOTES, OTTOMAN_REGIONS } from "@/lib/constants";
+import { OTTOMAN_REGIONS } from "@/lib/constants";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Banknote } from "@/types";
+import { fetchBanknotes, fetchBanknotesByPeriod } from "@/services/banknoteService";
+import { useToast } from "@/hooks/use-toast";
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [region, setRegion] = useState<string>("");
+  const [region, setRegion] = useState<string>("all");
   const [yearStart, setYearStart] = useState<string>("");
   const [yearEnd, setYearEnd] = useState<string>("");
+  const [banknotes, setBanknotes] = useState<Banknote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const filteredBanknotes = MOCK_BANKNOTES.filter(banknote => {
+  // Fetch banknotes on component mount
+  useEffect(() => {
+    const loadBanknotes = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchBanknotes();
+        setBanknotes(data);
+      } catch (error) {
+        console.error("Error loading banknotes:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load banknote catalog. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBanknotes();
+  }, [toast]);
+
+  const handlePeriodChange = async (periodValue: string) => {
+    setLoading(true);
+    try {
+      let data: Banknote[] = [];
+      
+      switch (periodValue) {
+        case "early":
+          data = await fetchBanknotesByPeriod(1863, 1914);
+          break;
+        case "middle":
+          data = await fetchBanknotesByPeriod(1915, 1923);
+          break;
+        case "late":
+          data = await fetchBanknotesByPeriod(1924, 1927);
+          break;
+        case "all":
+        default:
+          data = await fetchBanknotes();
+          break;
+      }
+      
+      setBanknotes(data);
+    } catch (error) {
+      console.error("Error loading banknotes for period:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load banknotes for the selected period.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredBanknotes = banknotes.filter(banknote => {
     // Only include approved banknotes
     if (!banknote.isApproved || banknote.isPending) return false;
 
@@ -27,13 +89,13 @@ const Catalog = () => {
       : true;
 
     // Filter by region
-    const matchesRegion = region ? banknote.country === region : true;
+    const matchesRegion = region && region !== "all" ? banknote.country === region : true;
 
     // Filter by year range
     const year = parseInt(banknote.year);
     const start = yearStart ? parseInt(yearStart) : 0;
     const end = yearEnd ? parseInt(yearEnd) : 9999;
-    const matchesYear = year >= start && year <= end;
+    const matchesYear = !isNaN(year) ? (year >= start && year <= end) : true;
 
     return matchesSearch && matchesRegion && matchesYear;
   });
@@ -93,14 +155,38 @@ const Catalog = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="all">
+      <Tabs defaultValue="all" onValueChange={handlePeriodChange}>
         <TabsList className="mb-4">
           <TabsTrigger value="all">All Banknotes</TabsTrigger>
           <TabsTrigger value="early">Early Period (1863-1914)</TabsTrigger>
           <TabsTrigger value="middle">Middle Period (1915-1923)</TabsTrigger>
           <TabsTrigger value="late">Late Period (1924-1927)</TabsTrigger>
         </TabsList>
-        <TabsContent value="all">
+        
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+          </div>
+        ) : filteredBanknotes.length === 0 ? (
+          <div className="text-center py-8">
+            <h3 className="text-xl font-medium mb-4">No banknotes found</h3>
+            <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+          </div>
+        ) : (
+          <TabsContent value="all">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {filteredBanknotes.map((banknote) => (
+                <BanknoteDetailCard
+                  key={banknote.id}
+                  banknote={banknote}
+                  source="catalog"
+                />
+              ))}
+            </div>
+          </TabsContent>
+        )}
+        
+        <TabsContent value="early">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredBanknotes.map((banknote) => (
               <BanknoteDetailCard
@@ -111,52 +197,28 @@ const Catalog = () => {
             ))}
           </div>
         </TabsContent>
-        <TabsContent value="early">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredBanknotes
-              .filter(banknote => {
-                const year = parseInt(banknote.year);
-                return year >= 1863 && year <= 1914;
-              })
-              .map((banknote) => (
-                <BanknoteDetailCard
-                  key={banknote.id}
-                  banknote={banknote}
-                  source="catalog"
-                />
-              ))}
-          </div>
-        </TabsContent>
+        
         <TabsContent value="middle">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredBanknotes
-              .filter(banknote => {
-                const year = parseInt(banknote.year);
-                return year >= 1915 && year <= 1923;
-              })
-              .map((banknote) => (
-                <BanknoteDetailCard
-                  key={banknote.id}
-                  banknote={banknote}
-                  source="catalog"
-                />
-              ))}
+            {filteredBanknotes.map((banknote) => (
+              <BanknoteDetailCard
+                key={banknote.id}
+                banknote={banknote}
+                source="catalog"
+              />
+            ))}
           </div>
         </TabsContent>
+        
         <TabsContent value="late">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredBanknotes
-              .filter(banknote => {
-                const year = parseInt(banknote.year);
-                return year >= 1924 && year <= 1927;
-              })
-              .map((banknote) => (
-                <BanknoteDetailCard
-                  key={banknote.id}
-                  banknote={banknote}
-                  source="catalog"
-                />
-              ))}
+            {filteredBanknotes.map((banknote) => (
+              <BanknoteDetailCard
+                key={banknote.id}
+                banknote={banknote}
+                source="catalog"
+              />
+            ))}
           </div>
         </TabsContent>
       </Tabs>

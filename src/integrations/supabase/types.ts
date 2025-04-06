@@ -9,6 +9,180 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      banknote_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_year: string | null
+          id: string
+          name: string
+          start_year: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_year?: string | null
+          id?: string
+          name: string
+          start_year?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_year?: string | null
+          id?: string
+          name?: string
+          start_year?: string | null
+        }
+        Relationships: []
+      }
+      banknote_rarity_levels: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      banknote_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      detailed_banknotes: {
+        Row: {
+          back_picture: string | null
+          banknote_description: string | null
+          category: string | null
+          colors: string | null
+          country: string
+          created_at: string | null
+          extended_pick_number: string
+          face_value: string
+          front_picture: string | null
+          gregorian_year: string | null
+          historical_description: string | null
+          id: string
+          is_approved: boolean | null
+          is_pending: boolean | null
+          islamic_year: string | null
+          other_element_pictures: string[] | null
+          pick_number: string
+          printer: string | null
+          rarity: string | null
+          seal_names: string | null
+          seal_pictures: string[] | null
+          security_element: string | null
+          serial_numbering: string | null
+          signature_pictures: string[] | null
+          signatures_back: string | null
+          signatures_front: string | null
+          sultan_name: string | null
+          tughra_picture: string | null
+          turk_catalog_number: string | null
+          type: string | null
+          updated_at: string | null
+          watermark_picture: string | null
+        }
+        Insert: {
+          back_picture?: string | null
+          banknote_description?: string | null
+          category?: string | null
+          colors?: string | null
+          country: string
+          created_at?: string | null
+          extended_pick_number: string
+          face_value: string
+          front_picture?: string | null
+          gregorian_year?: string | null
+          historical_description?: string | null
+          id?: string
+          is_approved?: boolean | null
+          is_pending?: boolean | null
+          islamic_year?: string | null
+          other_element_pictures?: string[] | null
+          pick_number: string
+          printer?: string | null
+          rarity?: string | null
+          seal_names?: string | null
+          seal_pictures?: string[] | null
+          security_element?: string | null
+          serial_numbering?: string | null
+          signature_pictures?: string[] | null
+          signatures_back?: string | null
+          signatures_front?: string | null
+          sultan_name?: string | null
+          tughra_picture?: string | null
+          turk_catalog_number?: string | null
+          type?: string | null
+          updated_at?: string | null
+          watermark_picture?: string | null
+        }
+        Update: {
+          back_picture?: string | null
+          banknote_description?: string | null
+          category?: string | null
+          colors?: string | null
+          country?: string
+          created_at?: string | null
+          extended_pick_number?: string
+          face_value?: string
+          front_picture?: string | null
+          gregorian_year?: string | null
+          historical_description?: string | null
+          id?: string
+          is_approved?: boolean | null
+          is_pending?: boolean | null
+          islamic_year?: string | null
+          other_element_pictures?: string[] | null
+          pick_number?: string
+          printer?: string | null
+          rarity?: string | null
+          seal_names?: string | null
+          seal_pictures?: string[] | null
+          security_element?: string | null
+          serial_numbering?: string | null
+          signature_pictures?: string[] | null
+          signatures_back?: string | null
+          signatures_front?: string | null
+          sultan_name?: string | null
+          tughra_picture?: string | null
+          turk_catalog_number?: string | null
+          type?: string | null
+          updated_at?: string | null
+          watermark_picture?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

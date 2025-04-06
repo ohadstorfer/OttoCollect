@@ -59,6 +59,41 @@ export interface Banknote {
   createdBy: string;
 }
 
+export interface DetailedBanknote {
+  id: string;
+  country: string;
+  extended_pick_number: string;
+  pick_number: string;
+  turk_catalog_number?: string;
+  face_value: string;
+  islamic_year?: string;
+  gregorian_year?: string;
+  signatures_front?: string;
+  signatures_back?: string;
+  signature_pictures?: string[];
+  seal_names?: string;
+  seal_pictures?: string[];
+  watermark_picture?: string;
+  other_element_pictures?: string[];
+  front_picture?: string;
+  back_picture?: string;
+  sultan_name?: string;
+  tughra_picture?: string;
+  printer?: string;
+  type?: string;
+  category?: string;
+  rarity?: string;
+  security_element?: string;
+  colors?: string;
+  serial_numbering?: string;
+  banknote_description?: string;
+  historical_description?: string;
+  is_approved: boolean;
+  is_pending: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CollectionItem {
   id: string;
   userId: string;
