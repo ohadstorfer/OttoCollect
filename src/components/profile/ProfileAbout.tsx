@@ -30,38 +30,39 @@ export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">About</CardTitle>
-          {isOwnProfile && onEditClick && (
-            <Button variant="outline" size="sm" onClick={onEditClick}>
-              <Edit className="h-4 w-4 mr-1" /> Edit Profile
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent>
-          {profile.about ? (
-            <p className="whitespace-pre-wrap">{profile.about}</p>
-          ) : (
-            <p className="text-muted-foreground italic">
-              This user hasn't added any information about themselves yet.
-            </p>
-          )}
-        </CardContent>
-        
-        {!isOwnProfile && user && (
-          <CardFooter className="pt-4 border-t">
-            <Button 
-              variant="default"
-              className="w-full"
-              onClick={handleMessageClick}
-            >
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Send Message
-            </Button>
-          </CardFooter>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg">About</CardTitle>
+        {isOwnProfile && onEditClick && (
+          <Button variant="outline" size="sm" onClick={onEditClick}>
+            <Edit className="h-4 w-4 mr-1" /> Edit Profile
+          </Button>
         )}
-      </Card>
+      </CardHeader>
+      <CardContent>
+        {profile.about ? (
+          <p className="whitespace-pre-wrap">{profile.about}</p>
+        ) : (
+          <p className="text-muted-foreground italic">
+            {isOwnProfile 
+              ? "You haven't added any information about yourself yet. Click 'Edit Profile' to add your bio."
+              : "This user hasn't added any information about themselves yet."
+            }
+          </p>
+        )}
+      </CardContent>
+      
+      {!isOwnProfile && user && (
+        <CardFooter className="pt-4 border-t">
+          <Button 
+            variant="default"
+            className="w-full"
+            onClick={handleMessageClick}
+          >
+            <MessageCircle className="h-4 w-4 mr-2" />
+            Send Message
+          </Button>
+        </CardFooter>
+      )}
       
       {!isOwnProfile && user && (
         <SendMessage

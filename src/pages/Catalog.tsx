@@ -1,23 +1,19 @@
 
 import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OTTOMAN_REGIONS } from "@/lib/constants";
-import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Banknote } from "@/types";
-import { fetchBanknotes, fetchBanknotesByPeriod } from "@/services/banknoteService";
+import { Card, CardContent } from "@/components/ui/card";
+import { fetchBanknotes } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
+import { SearchIcon } from "lucide-react";
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [region, setRegion] = useState<string>("all");
-  const [yearStart, setYearStart] = useState<string>("");
-  const [yearEnd, setYearEnd] = useState<string>("");
-  const [banknotes, setBanknotes] = useState<Banknote[]>([]);
+  const [banknotes, setBanknotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [countries, setCountries] = useState([]);
 
   // Fetch banknotes on component mount
   useEffect(() => {
@@ -26,6 +22,33 @@ const Catalog = () => {
       try {
         const data = await fetchBanknotes();
         setBanknotes(data);
+        
+        // Extract unique countries and count banknotes for each
+        const countryMap = data.reduce((acc, banknote) => {
+          if (!acc[banknote.country]) {
+            acc[banknote.country] = {
+              name: banknote.country,
+              count: 0,
+              imageUrl: null
+            };
+          }
+          
+          acc[banknote.country].count += 1;
+          
+          // Use the first banknote image as the country image if not set yet
+          if (!acc[banknote.country].imageUrl && banknote.imageUrls && banknote.imageUrls.length > 0) {
+            acc[banknote.country].imageUrl = banknote.imageUrls[0];
+          }
+          
+          return acc;
+        }, {});
+        
+        // Convert to array and sort by country name
+        const countriesArray = Object.values(countryMap).sort((a, b) => 
+          a.name.localeCompare(b.name)
+        );
+        
+        setCountries(countriesArray);
       } catch (error) {
         console.error("Error loading banknotes:", error);
         toast({
@@ -41,187 +64,68 @@ const Catalog = () => {
     loadBanknotes();
   }, [toast]);
 
-  const handlePeriodChange = async (periodValue: string) => {
-    setLoading(true);
-    try {
-      let data: Banknote[] = [];
-      
-      switch (periodValue) {
-        case "early":
-          data = await fetchBanknotesByPeriod(1863, 1914);
-          break;
-        case "middle":
-          data = await fetchBanknotesByPeriod(1915, 1923);
-          break;
-        case "late":
-          data = await fetchBanknotesByPeriod(1924, 1927);
-          break;
-        case "all":
-        default:
-          data = await fetchBanknotes();
-          break;
-      }
-      
-      setBanknotes(data);
-    } catch (error) {
-      console.error("Error loading banknotes for period:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load banknotes for the selected period.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredBanknotes = banknotes.filter(banknote => {
-    // Only include approved banknotes
-    if (!banknote.isApproved || banknote.isPending) return false;
-
-    // Filter by search query
-    const matchesSearch = searchQuery
-      ? banknote.catalogId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.denomination.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.year.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-
-    // Filter by region
-    const matchesRegion = region && region !== "all" ? banknote.country === region : true;
-
-    // Filter by year range
-    const year = parseInt(banknote.year);
-    const start = yearStart ? parseInt(yearStart) : 0;
-    const end = yearEnd ? parseInt(yearEnd) : 9999;
-    const matchesYear = !isNaN(year) ? (year >= start && year <= end) : true;
-
-    return matchesSearch && matchesRegion && matchesYear;
-  });
+  const filteredCountries = countries.filter(country => 
+    country.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6">Ottoman Banknote Catalog</h1>
 
       <div className="bg-card border rounded-lg p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <Label htmlFor="search" className="mb-2 block">Search</Label>
+        <div className="max-w-md mx-auto">
+          <Label htmlFor="search" className="mb-2 block">Search Countries</Label>
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               id="search"
-              placeholder="Search by name, country, etc."
+              placeholder="Search by country name"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="region" className="mb-2 block">Region</Label>
-            <Select value={region} onValueChange={setRegion}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Regions" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Regions</SelectItem>
-                {OTTOMAN_REGIONS.map((region) => (
-                  <SelectItem key={region} value={region}>{region}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="yearStart" className="mb-2 block">From Year</Label>
-            <Input
-              id="yearStart"
-              placeholder="From year"
-              value={yearStart}
-              onChange={(e) => setYearStart(e.target.value)}
-              type="number"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="yearEnd" className="mb-2 block">To Year</Label>
-            <Input
-              id="yearEnd"
-              placeholder="To year"
-              value={yearEnd}
-              onChange={(e) => setYearEnd(e.target.value)}
-              type="number"
+              className="pl-10"
             />
           </div>
         </div>
       </div>
 
-      <Tabs defaultValue="all" onValueChange={handlePeriodChange}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="all">All Banknotes</TabsTrigger>
-          <TabsTrigger value="early">Early Period (1863-1914)</TabsTrigger>
-          <TabsTrigger value="middle">Middle Period (1915-1923)</TabsTrigger>
-          <TabsTrigger value="late">Late Period (1924-1927)</TabsTrigger>
-        </TabsList>
-        
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
-          </div>
-        ) : filteredBanknotes.length === 0 ? (
-          <div className="text-center py-8">
-            <h3 className="text-xl font-medium mb-4">No banknotes found</h3>
-            <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
-          </div>
-        ) : (
-          <TabsContent value="all">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredBanknotes.map((banknote) => (
-                <BanknoteDetailCard
-                  key={banknote.id}
-                  banknote={banknote}
-                  source="catalog"
-                />
-              ))}
-            </div>
-          </TabsContent>
-        )}
-        
-        <TabsContent value="early">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredBanknotes.map((banknote) => (
-              <BanknoteDetailCard
-                key={banknote.id}
-                banknote={banknote}
-                source="catalog"
-              />
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="middle">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredBanknotes.map((banknote) => (
-              <BanknoteDetailCard
-                key={banknote.id}
-                banknote={banknote}
-                source="catalog"
-              />
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="late">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredBanknotes.map((banknote) => (
-              <BanknoteDetailCard
-                key={banknote.id}
-                banknote={banknote}
-                source="catalog"
-              />
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+        </div>
+      ) : filteredCountries.length === 0 ? (
+        <div className="text-center py-8">
+          <h3 className="text-xl font-medium mb-4">No countries found</h3>
+          <p className="text-muted-foreground">Try adjusting your search criteria.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredCountries.map((country) => (
+            <Link to={`/catalog/${encodeURIComponent(country.name)}`} key={country.name}>
+              <Card className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                <div className="aspect-[4/3] overflow-hidden relative">
+                  {country.imageUrl ? (
+                    <img
+                      src={country.imageUrl}
+                      alt={country.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-ottoman-100 flex items-center justify-center">
+                      <span className="text-ottoman-500">{country.name}</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                    <div className="p-4 text-white w-full">
+                      <h3 className="text-xl font-bold">{country.name}</h3>
+                      <p className="text-sm opacity-80">{country.count} banknotes</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

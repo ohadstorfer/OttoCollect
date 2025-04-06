@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Catalog from "./pages/Catalog";
+import CountryDetail from "./pages/CountryDetail";
 import Collection from "./pages/Collection";
 import Marketplace from "./pages/Marketplace";
 import Community from "./pages/Community";
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/catalog" element={<Catalog />} />
+                <Route path="/catalog/:countryName" element={<CountryDetail />} />
                 <Route path="/collection" element={<Collection />} />
                 <Route path="/marketplace" element={<Marketplace />} />
                 <Route path="/community" element={<Community />} />

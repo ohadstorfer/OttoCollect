@@ -8,9 +8,9 @@ import { useAuth } from "@/context/AuthContext";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileAbout } from "@/components/profile/ProfileAbout";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
-import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
-import { SendMessage } from "@/components/messages/SendMessage";
+import { ProfileCollection } from "@/components/profile/ProfileCollection";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 export default function Profile() {
@@ -20,7 +20,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("about");
 
   const isOwnProfile = currentUser && profile && currentUser.id === profile.id;
 
@@ -80,58 +80,49 @@ export default function Profile() {
   return (
     <div className="page-container animate-fade-in">
       <div className="max-w-4xl mx-auto">
-        <div className="ottoman-card overflow-hidden shadow-lg">
-          {isOwnProfile && !isEditing && (
-            <div className="absolute top-4 right-4 z-10">
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="bg-ottoman-700/50 text-ottoman-100 border-ottoman-600"
-                onClick={() => setIsEditing(true)}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
-            </div>
-          )}
-
-          {isEditing ? (
+        {/* Profile Header is always visible */}
+        <ProfileHeader 
+          profile={profile} 
+          onEditClick={isOwnProfile ? () => setIsEditing(true) : undefined} 
+        />
+        
+        {isEditing ? (
+          <Card className="mt-6">
             <ProfileEditForm 
               profile={profile} 
               onProfileUpdated={handleProfileUpdated} 
               onCancel={() => setIsEditing(false)}
             />
-          ) : (
-            <>
-              <ProfileHeader profile={profile} />
+          </Card>
+        ) : (
+          <div className="mt-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="mb-6">
+                <TabsTrigger value="about">About</TabsTrigger>
+                <TabsTrigger value="collection">Collection</TabsTrigger>
+              </TabsList>
               
-              <div className="p-6">
-                <ProfileAbout profile={profile} />
-                
-                {!isOwnProfile && currentUser && (
-                  <div className="mt-6 flex justify-center">
-                    <Button 
-                      onClick={() => setShowMessageDialog(true)}
-                      className="w-full max-w-sm"
-                    >
-                      Send Message
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+              <TabsContent value="about">
+                <Card>
+                  <ProfileAbout 
+                    profile={profile} 
+                    onEditClick={isOwnProfile ? () => setIsEditing(true) : undefined} 
+                  />
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="collection">
+                <Card>
+                  <ProfileCollection 
+                    profile={profile} 
+                    isOwnProfile={isOwnProfile} 
+                  />
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
       </div>
-
-      {!isOwnProfile && currentUser && (
-        <SendMessage 
-          receiverId={profile.id} 
-          receiverName={profile.username}
-          isOpen={showMessageDialog}
-          onOpenChange={setShowMessageDialog}
-        />
-      )}
     </div>
   );
 }

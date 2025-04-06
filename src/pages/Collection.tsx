@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BanknoteCondition, CollectionItem, WishlistItem } from "@/types";
+import { BanknoteCondition, CollectionItem, WishlistItem, Banknote } from "@/types";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { fetchUserCollection } from "@/services/collectionService";
 import { fetchUserWishlist } from "@/services/wishlistService";
+import { fetchBanknotes } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -25,6 +26,7 @@ const Collection = () => {
   const [loading, setLoading] = useState(true);
   const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [missingItems, setMissingItems] = useState<Banknote[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [condition, setCondition] = useState<string>("all");
   const [sortBy, setSortBy] = useState("newest");
@@ -38,12 +40,28 @@ const Collection = () => {
           
           const collection = await fetchUserCollection(user.id);
           const wishlist = await fetchUserWishlist(user.id);
+          const allBanknotes = await fetchBanknotes();
           
           console.log("Loaded collection items:", collection.length);
           console.log("Loaded wishlist items:", wishlist.length);
+          console.log("Loaded all banknotes:", allBanknotes.length);
           
           setCollectionItems(collection);
           setWishlistItems(wishlist);
+          
+          // Calculate missing banknotes
+          const collectionBanknoteIds = new Set(collection.map(item => item.banknoteId));
+          const wishlistBanknoteIds = new Set(wishlist.map(item => item.banknoteId));
+          
+          const missingBanknotes = allBanknotes.filter(banknote => 
+            !collectionBanknoteIds.has(banknote.id) && 
+            banknote.isApproved && 
+            !banknote.isPending
+          );
+          
+          setMissingItems(missingBanknotes);
+          console.log("Missing banknotes:", missingBanknotes.length);
+          
         } catch (error) {
           console.error("Error loading user data:", error);
           toast({
@@ -92,6 +110,32 @@ const Collection = () => {
     }
   });
 
+  const filteredMissing = missingItems.filter(banknote => {
+    const matchesSearch = searchQuery
+      ? banknote.catalogId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.denomination.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.year.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+    
+    return matchesSearch;
+  });
+  
+  const sortedMissing = [...filteredMissing].sort((a, b) => {
+    switch (sortBy) {
+      case "oldest":
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case "a-z":
+        return a.denomination.localeCompare(b.denomination);
+      case "z-a":
+        return b.denomination.localeCompare(a.denomination);
+      case "newest":
+      default:
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+  });
+
   const handleTabChange = (value: string) => {
     setSearchParams({ tab: value });
   };
@@ -123,6 +167,7 @@ const Collection = () => {
         <TabsList className="mb-6">
           <TabsTrigger value="collection">My Banknotes</TabsTrigger>
           <TabsTrigger value="wishlist">Wish List</TabsTrigger>
+          <TabsTrigger value="missing">Missing</TabsTrigger>
           <TabsTrigger value="stats">Statistics</TabsTrigger>
         </TabsList>
         
@@ -264,6 +309,64 @@ const Collection = () => {
                     </div>
                   </CardContent>
                 </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="missing">
+          <div className="bg-card border rounded-lg p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="search-missing" className="mb-2 block">Search</Label>
+                <Input
+                  id="search-missing"
+                  placeholder="Search by name, country, etc."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="sortBy-missing" className="mb-2 block">Sort By</Label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="oldest">Oldest First</SelectItem>
+                    <SelectItem value="a-z">A-Z</SelectItem>
+                    <SelectItem value="z-a">Z-A</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+            </div>
+          ) : !user ? (
+            <div className="text-center py-8">
+              <h3 className="text-xl font-medium mb-4">You need to sign in to view missing banknotes</h3>
+              <Button onClick={signIn}>Sign In</Button>
+            </div>
+          ) : sortedMissing.length === 0 ? (
+            <div className="text-center py-8">
+              <h3 className="text-xl font-medium mb-4">You have all available banknotes in your collection!</h3>
+              <p className="text-muted-foreground mb-6">Congratulations! You've collected everything in our catalog.</p>
+              <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {sortedMissing.map((banknote) => (
+                <BanknoteDetailCard
+                  key={banknote.id}
+                  banknote={banknote}
+                  source="missing"
+                />
               ))}
             </div>
           )}
