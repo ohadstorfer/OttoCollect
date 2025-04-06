@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@/types";
+import { User, UserRole, UserRank } from "@/types";
 import { toast } from "sonner";
 
 // Get a user profile by ID
@@ -23,8 +23,8 @@ export async function getUserProfile(userId: string): Promise<User | null> {
       id: data.id,
       username: data.username,
       email: data.email,
-      role: data.role,
-      rank: data.rank,
+      role: data.role as UserRole,
+      rank: data.rank as UserRank,
       points: data.points,
       createdAt: data.created_at,
       avatarUrl: data.avatar_url || '/placeholder.svg',

@@ -5,6 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
+import { getInitials } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 
 interface Conversation {
   otherUserId: string;
@@ -63,33 +65,41 @@ export function MessageList({
     <ScrollArea className="h-full">
       <div className="p-1">
         {conversations.map(conversation => (
-          <button
+          <div 
             key={conversation.otherUserId}
-            onClick={() => onSelectConversation(conversation.otherUserId)}
             className={`w-full flex items-start gap-3 p-3 rounded-md hover:bg-accent/20 transition-colors text-left mb-1
               ${activeConversationId === conversation.otherUserId ? 'bg-accent/30' : conversation.unreadCount > 0 ? 'bg-muted/50' : ''}
             `}
           >
-            <Avatar className="h-10 w-10 border bg-card">
-              <AvatarImage src={conversation.otherUser.avatar_url || ''} />
-              <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                {conversation.otherUser.username?.substring(0, 2).toUpperCase() || '??'}
-              </AvatarFallback>
-            </Avatar>
+            <Link 
+              to={`/profile/${conversation.otherUserId}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex-shrink-0"
+            >
+              <Avatar className="h-10 w-10 border bg-card hover:ring-2 hover:ring-ottoman-500 transition-all">
+                <AvatarImage src={conversation.otherUser.avatar_url || ''} />
+                <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                  {conversation.otherUser.username ? getInitials(conversation.otherUser.username) : '??'}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
             
-            <div className="flex-1 min-w-0">
+            <button
+              onClick={() => onSelectConversation(conversation.otherUserId)}
+              className="flex-1 text-left"
+            >
               <div className="flex items-center justify-between">
                 <span className="font-medium truncate">
                   {conversation.otherUser.username}
                 </span>
                 <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                  {formatDistanceToNow(new Date(conversation.lastMessage.created_at), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(conversation.lastMessage.createdAt), { addSuffix: true })}
                 </span>
               </div>
               
               <div className="flex items-center justify-between mt-1">
                 <p className="text-sm text-muted-foreground truncate max-w-[180px]">
-                  {conversation.lastMessage.sender_id === conversation.otherUserId ? '' : 'You: '}
+                  {conversation.lastMessage.senderId === conversation.otherUserId ? '' : 'You: '}
                   {conversation.lastMessage.content}
                 </p>
                 
@@ -99,8 +109,8 @@ export function MessageList({
                   </Badge>
                 )}
               </div>
-            </div>
-          </button>
+            </button>
+          </div>
         ))}
       </div>
     </ScrollArea>

@@ -12,6 +12,7 @@ import Catalog from "./pages/Catalog";
 import Collection from "./pages/Collection";
 import Marketplace from "./pages/Marketplace";
 import Community from "./pages/Community";
+import Messaging from "./pages/Messaging";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import BanknoteDetail from "./pages/BanknoteDetail";
@@ -37,6 +38,7 @@ const App = () => (
                 <Route path="/collection" element={<Collection />} />
                 <Route path="/marketplace" element={<Marketplace />} />
                 <Route path="/community" element={<Community />} />
+                <Route path="/messaging" element={<Messaging />} />
                 <Route path="/banknote/:id" element={<BanknoteDetail />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/profile" element={<Profile />} />

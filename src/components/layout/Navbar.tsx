@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import { Menu, X, Search, User, LogIn, ShoppingCart, BookOpen } from "lucide-react";
+import { Menu, X, Search, User, LogIn, ShoppingCart, BookOpen, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { MessageIndicator } from "@/components/layout/MessageIndicator";
@@ -74,7 +74,22 @@ const Navbar = () => {
             
             {user ? (
               <div className="flex items-center gap-3">
-                <MessageIndicator />
+                <Link
+                  to="/messaging"
+                  className={cn(
+                    "relative text-ottoman-200 hover:text-ottoman-100",
+                    isActive('/messaging') && "text-ottoman-100"
+                  )}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hover:bg-ottoman-600/20"
+                  >
+                    <MessageCircle className="h-[1.2rem] w-[1.2rem]" />
+                    <MessageIndicator />
+                  </Button>
+                </Link>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -82,7 +97,7 @@ const Navbar = () => {
                 >
                   <ShoppingCart className="h-[1.2rem] w-[1.2rem]" />
                 </Button>
-                <div className="flex items-center gap-2">
+                <Link to={`/profile/${user.id}`} className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-ottoman-700 flex items-center justify-center overflow-hidden">
                     {user.avatarUrl ? (
                       <img 
@@ -105,7 +120,7 @@ const Navbar = () => {
                   >
                     Logout
                   </Button>
-                </div>
+                </Link>
               </div>
             ) : (
               <Link to="/auth">
@@ -149,7 +164,7 @@ const Navbar = () => {
               </Button>
               
               {user ? (
-                <div className="flex items-center gap-2">
+                <Link to={`/profile/${user.id}`} className="flex items-center gap-2" onClick={closeMenu}>
                   <div className="w-8 h-8 rounded-full bg-ottoman-700 flex items-center justify-center overflow-hidden">
                     {user.avatarUrl ? (
                       <img 
@@ -165,7 +180,7 @@ const Navbar = () => {
                     <p className="text-sm font-medium text-ottoman-100">{user.username}</p>
                     <p className="text-xs text-ottoman-300">{user.rank}</p>
                   </div>
-                </div>
+                </Link>
               ) : (
                 <Link to="/auth" onClick={closeMenu}>
                   <Button 
@@ -199,12 +214,13 @@ const Navbar = () => {
               <>
                 <div className="border-t border-ottoman-900/30 my-1 pt-1">
                   <Link
-                    to="/community"
+                    to="/messaging"
                     className="px-3 py-2 rounded-md text-sm transition-colors flex items-center text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
                     onClick={closeMenu}
                   >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    <span className="ml-1">Messages</span>
                     <MessageIndicator />
-                    <span className="ml-2">Messages</span>
                   </Link>
                   <button
                     onClick={() => {

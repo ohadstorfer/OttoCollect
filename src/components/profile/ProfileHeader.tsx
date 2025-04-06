@@ -4,12 +4,31 @@ import { User, UserRank } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getInitials } from "@/lib/utils";
+import { MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { SendMessage } from "@/components/messages/SendMessage";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileHeaderProps {
   profile: User;
 }
 
 export function ProfileHeader({ profile }: ProfileHeaderProps) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [showMessageDialog, setShowMessageDialog] = React.useState(false);
+  
+  const isOwnProfile = user && profile && user.id === profile.id;
+  
+  const handleMessageClick = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    setShowMessageDialog(true);
+  };
+
   return (
     <div className="relative">
       {/* Banner background */}
@@ -44,7 +63,28 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             </span>
           </div>
         </div>
+
+        {!isOwnProfile && user && (
+          <div className="md:self-center flex-shrink-0">
+            <Button 
+              onClick={handleMessageClick}
+              className="flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Message
+            </Button>
+          </div>
+        )}
       </div>
+      
+      {!isOwnProfile && user && (
+        <SendMessage
+          receiverId={profile.id}
+          receiverName={profile.username}
+          isOpen={showMessageDialog}
+          onOpenChange={setShowMessageDialog}
+        />
+      )}
     </div>
   );
 }

@@ -11,11 +11,11 @@ export function MessageIndicator() {
   const location = useLocation();
   
   const handleMessageClick = () => {
-    navigate('/community');
+    navigate('/messaging');
   };
   
-  // Only show if user is logged in and not already on community page
-  if (!user || location.pathname === '/community') {
+  // Only show if user is logged in and not already on messaging page
+  if (!user || location.pathname === '/messaging') {
     return null;
   }
   

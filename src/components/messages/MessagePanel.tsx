@@ -8,11 +8,17 @@ import { Send } from "lucide-react";
 import { formatRelative } from 'date-fns';
 import { Message } from '@/types';
 import { Skeleton } from "@/components/ui/skeleton";
+import { getInitials } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 
 interface MessagePanelProps {
   messages: Message[];
   currentUserId?: string;
   recipientId: string | null;
+  recipientData?: {
+    username?: string;
+    avatarUrl?: string;
+  };
   isLoading: boolean;
   onSendMessage: (receiverId: string, content: string) => Promise<any>;
 }
@@ -21,6 +27,7 @@ export function MessagePanel({
   messages, 
   currentUserId, 
   recipientId, 
+  recipientData,
   isLoading, 
   onSendMessage
 }: MessagePanelProps) {
@@ -134,11 +141,17 @@ export function MessagePanel({
                 >
                   <div className={`flex items-start max-w-[80%] ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
                     {!isCurrentUser && (
-                      <Avatar className="h-8 w-8 mr-2">
-                        <AvatarFallback className="bg-ottoman-700 text-parchment-100 text-xs">
-                          U
-                        </AvatarFallback>
-                      </Avatar>
+                      <Link to={`/profile/${message.senderId}`}>
+                        <Avatar className="h-8 w-8 mr-2 cursor-pointer hover:ring-2 hover:ring-ottoman-500 transition-all">
+                          {recipientData?.avatarUrl ? (
+                            <AvatarImage src={recipientData.avatarUrl} alt={recipientData.username || "User"} />
+                          ) : (
+                            <AvatarFallback className="bg-ottoman-700 text-parchment-100 text-xs">
+                              {recipientData?.username ? getInitials(recipientData.username) : "U"}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                      </Link>
                     )}
                     
                     <div className={`

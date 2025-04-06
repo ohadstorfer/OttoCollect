@@ -37,6 +37,11 @@ export function MessageCenter() {
     setActiveConversation(null);
   };
 
+  // Find active conversation recipient data
+  const activeRecipientData = activeConversation 
+    ? conversations.find(c => c.otherUserId === activeConversation)?.otherUser 
+    : undefined;
+
   return (
     <div className="flex flex-col h-[calc(100vh-200px)] min-h-[500px] w-full rounded-lg border shadow-sm overflow-hidden bg-card">
       <div className="flex items-center justify-between p-4 border-b bg-muted/30">
@@ -72,7 +77,7 @@ export function MessageCenter() {
                   <ChevronLeft size={20} />
                 </Button>
                 <span className="ml-2 font-medium">
-                  {conversations.find(c => c.otherUserId === activeConversation)?.otherUser.username || 'Conversation'}
+                  {activeRecipientData?.username || 'Conversation'}
                 </span>
               </div>
             )}
@@ -81,6 +86,7 @@ export function MessageCenter() {
               messages={currentMessages}
               currentUserId={user?.id}
               recipientId={activeConversation}
+              recipientData={activeRecipientData}
               isLoading={isLoading}
               onSendMessage={sendMessage}
             />
