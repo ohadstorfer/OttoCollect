@@ -2,9 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import { Menu, X, Search, User, LogIn, ShoppingCart, BookOpen, MessageSquare } from "lucide-react";
+import { Menu, X, Search, User, LogIn, ShoppingCart, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { MessageIndicator } from "@/components/layout/MessageIndicator";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,14 +74,7 @@ const Navbar = () => {
             
             {user ? (
               <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative text-ottoman-200 hover:text-ottoman-100 hover:bg-ottoman-600/20"
-                >
-                  <MessageSquare className="h-[1.2rem] w-[1.2rem]" />
-                  <span className="absolute top-0 right-0 h-2 w-2 bg-ottoman-400 rounded-full"></span>
-                </Button>
+                <MessageIndicator />
                 <Button
                   variant="ghost"
                   size="icon"
@@ -205,12 +199,12 @@ const Navbar = () => {
               <>
                 <div className="border-t border-ottoman-900/30 my-1 pt-1">
                   <Link
-                    to="/messages"
+                    to="/community"
                     className="px-3 py-2 rounded-md text-sm transition-colors flex items-center text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
                     onClick={closeMenu}
                   >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Messages
+                    <MessageIndicator />
+                    <span className="ml-2">Messages</span>
                   </Link>
                   <button
                     onClick={() => {

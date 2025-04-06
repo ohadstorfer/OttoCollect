@@ -3,6 +3,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
+// Helper function to convert database message to our Message type
+const mapDbMessageToMessage = (dbMessage: any): Message => {
+  return {
+    id: dbMessage.id,
+    senderId: dbMessage.sender_id,
+    receiverId: dbMessage.receiver_id,
+    content: dbMessage.content,
+    referenceItemId: dbMessage.reference_item_id,
+    isRead: dbMessage.is_read,
+    createdAt: dbMessage.created_at,
+  };
+};
+
 export async function fetchConversations(userId: string): Promise<any[]> {
   try {
     // Get unique conversations (distinct sender/receiver pairs)
@@ -49,19 +62,21 @@ export async function fetchConversations(userId: string): Promise<any[]> {
     
     allMessages.forEach(message => {
       const otherUserId = message.sender_id === userId ? message.receiver_id : message.sender_id;
-      const otherUser = message.sender_id === userId ? message.receiver : message.sender;
+      const otherUser = message.sender_id === userId 
+        ? message.receiver 
+        : message.sender;
       
       if (!conversationsMap.has(otherUserId)) {
         conversationsMap.set(otherUserId, {
           otherUserId,
           otherUser,
-          lastMessage: message,
+          lastMessage: mapDbMessageToMessage(message),
           unreadCount: message.receiver_id === userId && !message.is_read ? 1 : 0
         });
       } else {
         const existing = conversationsMap.get(otherUserId);
-        if (new Date(message.created_at) > new Date(existing.lastMessage.created_at)) {
-          existing.lastMessage = message;
+        if (new Date(message.created_at) > new Date(existing.lastMessage.createdAt)) {
+          existing.lastMessage = mapDbMessageToMessage(message);
         }
         if (message.receiver_id === userId && !message.is_read) {
           existing.unreadCount += 1;
@@ -70,7 +85,7 @@ export async function fetchConversations(userId: string): Promise<any[]> {
     });
     
     return Array.from(conversationsMap.values())
-      .sort((a, b) => new Date(b.lastMessage.created_at).getTime() - new Date(a.lastMessage.created_at).getTime());
+      .sort((a, b) => new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime());
   } catch (error) {
     console.error("Error in fetchConversations:", error);
     return [];
@@ -103,7 +118,8 @@ export async function fetchMessages(userId: string, otherUserId: string): Promis
         .in('id', unreadMessageIds);
     }
     
-    return data || [];
+    // Convert database messages to our Message type
+    return data?.map(mapDbMessageToMessage) || [];
   } catch (error) {
     console.error("Error in fetchMessages:", error);
     return [];
@@ -136,7 +152,7 @@ export async function sendMessage(
       return null;
     }
     
-    return data;
+    return mapDbMessageToMessage(data);
   } catch (error) {
     console.error("Error in sendMessage:", error);
     return null;
@@ -158,7 +174,7 @@ export function subscribeToMessages(
         filter: `receiver_id=eq.${userId}`
       },
       (payload) => {
-        const newMessage = payload.new as Message;
+        const newMessage = mapDbMessageToMessage(payload.new);
         callback(newMessage);
       }
     )

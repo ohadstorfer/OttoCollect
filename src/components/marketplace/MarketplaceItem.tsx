@@ -2,11 +2,12 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
-import { MessageCircle, Eye, Tag } from "lucide-react";
+import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ContactSellerButton } from "@/components/marketplace/ContactSellerButton";
 
 interface MarketplaceItemProps {
   item: MarketplaceItemType;
@@ -22,10 +23,6 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   
   const handleViewDetails = () => {
     navigate(`/marketplace/${item.id}`);
-  };
-  
-  const handleContactSeller = () => {
-    navigate(`/messages/new?seller=${seller.id}&item=${item.id}`);
   };
   
   const getStatusBadge = () => {
@@ -76,7 +73,6 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         
         {/* Price tag */}
         <div className="absolute top-0 left-0 bg-ottoman-600/90 text-white px-3 py-1 flex items-center font-semibold">
-          <Tag className="h-4 w-4 mr-1" />
           ${salePrice}
         </div>
         
@@ -129,16 +125,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           Details
         </Button>
         
-        <Button 
-          variant="primary" 
-          size="sm"
-          className="bg-ottoman-600 hover:bg-ottoman-700 text-white"
-          onClick={handleContactSeller}
-          disabled={status === "Sold"}
-        >
-          <MessageCircle className="h-4 w-4 mr-1" />
-          Contact
-        </Button>
+        <ContactSellerButton item={item} />
       </CardFooter>
     </Card>
   );

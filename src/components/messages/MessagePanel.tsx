@@ -60,7 +60,7 @@ export function MessagePanel({
     let currentDate = '';
     
     messages.forEach(message => {
-      const messageDate = new Date(message.created_at).toDateString();
+      const messageDate = new Date(message.createdAt).toDateString();
       
       if (messageDate !== currentDate) {
         currentDate = messageDate;
@@ -125,7 +125,7 @@ export function MessagePanel({
             
             {/* Messages */}
             {group.messages.map((message, index) => {
-              const isCurrentUser = message.sender_id === currentUserId;
+              const isCurrentUser = message.senderId === currentUserId;
               
               return (
                 <div 
@@ -150,7 +150,7 @@ export function MessagePanel({
                     `}>
                       <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                       <p className="text-[10px] mt-1 opacity-70 text-right">
-                        {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>

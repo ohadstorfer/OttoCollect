@@ -113,7 +113,6 @@ export function useMessages(currentUserId: string | undefined) {
         }
         
         // Update conversations list
-        const now = new Date().toISOString();
         setConversations(prev => {
           const existingConv = prev.find(c => c.otherUserId === receiverId);
           
@@ -124,7 +123,7 @@ export function useMessages(currentUserId: string | undefined) {
                 ? { ...conv, lastMessage: newMessage }
                 : conv
             ).sort((a, b) => 
-              new Date(b.lastMessage.created_at).getTime() - new Date(a.lastMessage.created_at).getTime()
+              new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime()
             );
           } else {
             // Create new conversation if receiver not found
@@ -157,24 +156,24 @@ export function useMessages(currentUserId: string | undefined) {
   // Handle incoming real-time messages
   const handleIncomingMessage = useCallback((message: Message) => {
     // Add to current messages if from active conversation
-    if (activeConversation === message.sender_id) {
+    if (activeConversation === message.senderId) {
       setCurrentMessages(prev => [...prev, message]);
       
       // Mark as read immediately since conversation is open
       sendMessageService(
-        message.sender_id,
-        message.receiver_id,
+        message.senderId,
+        message.receiverId,
         message.content,
-        message.reference_item_id
+        message.referenceItemId
       );
     } else {
       // Update unread count for conversation
       setConversations(prev => {
-        const existingConv = prev.find(c => c.otherUserId === message.sender_id);
+        const existingConv = prev.find(c => c.otherUserId === message.senderId);
         
         if (existingConv) {
           return prev.map(conv => 
-            conv.otherUserId === message.sender_id 
+            conv.otherUserId === message.senderId 
               ? { 
                   ...conv, 
                   lastMessage: message, 
@@ -182,14 +181,14 @@ export function useMessages(currentUserId: string | undefined) {
                 }
               : conv
           ).sort((a, b) => 
-            new Date(b.lastMessage.created_at).getTime() - new Date(a.lastMessage.created_at).getTime()
+            new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime()
           );
         } else {
           // Create new conversation
           return [
             {
-              otherUserId: message.sender_id,
-              otherUser: { id: message.sender_id, username: "User", avatar_url: undefined },
+              otherUserId: message.senderId,
+              otherUser: { id: message.senderId, username: "User", avatar_url: undefined },
               lastMessage: message,
               unreadCount: 1
             },
