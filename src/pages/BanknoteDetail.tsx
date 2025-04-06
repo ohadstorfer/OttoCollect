@@ -346,12 +346,11 @@ export default function BanknoteDetail() {
                       <div className="p-4 rounded-lg bg-muted/30 border space-y-3">
                         <div className="flex items-center gap-2 mb-3">
                           <GalleryVertical className="h-5 w-5 text-primary" />
-                          <h3 className="font-medium">Origin</h3>
+                          <h3 className="font-medium">Origin Country</h3>
                         </div>
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm border-b pb-1">
-                            <span className="text-muted-foreground">Country</span>
-                            <span className="font-medium">{banknote.country}</span>
+                            <span className="text-muted-foreground">{banknote.country}</span>
                           </div>
                           {banknote.islamicYear && (
                             <div className="flex justify-between text-sm border-b pb-1">
