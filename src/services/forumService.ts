@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ForumPost, ForumComment } from "@/types";
+import { ForumPost, ForumComment, UserRank } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
 // Get all forum posts
@@ -15,12 +15,12 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
   // Get comment counts for each post
   const postIds = postsData.map(post => post.id);
   
-  // Get comment counts using a count query
+  // Get comment counts using a count aggregation
   const { data: commentCounts, error: countError } = await supabase
     .from('forum_comments')
     .select('post_id, count')
     .in('post_id', postIds)
-    .group('post_id');
+    .select('post_id, count(*)');
     
   if (countError) {
     console.error("Error fetching comment counts:", countError);
@@ -63,7 +63,7 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
         id: authorProfile.id,
         username: authorProfile.username,
         avatarUrl: authorProfile.avatar_url,
-        rank: authorProfile.rank
+        rank: authorProfile.rank as UserRank
       } : undefined,
       imageUrls: post.image_urls || [],
       commentCount: commentCountMap.get(post.id) || 0,
@@ -134,7 +134,7 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
         id: commentAuthor.id,
         username: commentAuthor.username,
         avatarUrl: commentAuthor.avatar_url,
-        rank: commentAuthor.rank
+        rank: commentAuthor.rank as UserRank
       } : undefined,
       createdAt: comment.created_at,
       updatedAt: comment.updated_at
@@ -150,7 +150,7 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
       id: authorData.id,
       username: authorData.username,
       avatarUrl: authorData.avatar_url,
-      rank: authorData.rank
+      rank: authorData.rank as UserRank
     } : undefined,
     imageUrls: post.image_urls || [],
     comments: mappedComments,

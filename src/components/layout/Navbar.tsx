@@ -4,19 +4,25 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { Menu, X, Search, User, LogIn, ShoppingCart, BookOpen, MessageCircle } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { MessageIndicator } from "@/components/layout/MessageIndicator";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { MessageButton } from "@/components/messages/MessageButton";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
   
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+  
+  const handleMessageClick = () => {
+    navigate('/messaging');
+    closeMenu();
   };
 
   // Navigation links that appear in both desktop and mobile views
@@ -74,22 +80,13 @@ const Navbar = () => {
             
             {user ? (
               <div className="flex items-center gap-3">
-                <Link
-                  to="/messaging"
-                  className={cn(
-                    "relative text-ottoman-200 hover:text-ottoman-100",
-                    isActive('/messaging') && "text-ottoman-100"
-                  )}
-                >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-ottoman-600/20"
-                  >
-                    <MessageCircle className="h-[1.2rem] w-[1.2rem]" />
-                    <MessageIndicator />
-                  </Button>
-                </Link>
+                {location.pathname !== '/messaging' && (
+                  <MessageButton 
+                    userId={user.id} 
+                    onClick={handleMessageClick} 
+                  />
+                )}
+                
                 <Button
                   variant="ghost"
                   size="icon"
@@ -213,15 +210,21 @@ const Navbar = () => {
             {user && (
               <>
                 <div className="border-t border-ottoman-900/30 my-1 pt-1">
-                  <Link
-                    to="/messaging"
-                    className="px-3 py-2 rounded-md text-sm transition-colors flex items-center text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
-                    onClick={closeMenu}
+                  <div
+                    onClick={handleMessageClick}
+                    className="px-3 py-2 rounded-md text-sm transition-colors flex items-center text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100 cursor-pointer"
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
                     <span className="ml-1">Messages</span>
-                    <MessageIndicator />
-                  </Link>
+                    {location.pathname !== '/messaging' && (
+                      <div className="ml-auto">
+                        <MessageButton 
+                          userId={user.id} 
+                          onClick={handleMessageClick} 
+                        />
+                      </div>
+                    )}
+                  </div>
                   <button
                     onClick={() => {
                       logout();
