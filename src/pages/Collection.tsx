@@ -1,295 +1,189 @@
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/context/AuthContext";
 import { MOCK_COLLECTION_ITEMS } from "@/lib/constants";
-import { CollectionItem } from "@/types";
-import { BookOpen, Download, HeartHandshake, ListChecks, Plus } from "lucide-react";
-import CollectionCard from "@/components/collection/CollectionCard";
-import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BanknoteCondition } from "@/types";
+import { useSearchParams } from "react-router-dom";
 
 const Collection = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const [collectionItems, setCollectionItems] = useState<CollectionItem[]>(MOCK_COLLECTION_ITEMS);
-  const [activeTab, setActiveTab] = useState("collection");
+  const initialTab = searchParams.get("tab") || "collection";
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [condition, setCondition] = useState<string>("");
+  const [sortBy, setSortBy] = useState("newest");
 
-  // Placeholder for wishlist and missing list
-  const wishlistItems: CollectionItem[] = [];
-  const missingItems: CollectionItem[] = [];
+  // Get the current user's collection
+  const userCollection = user ? MOCK_COLLECTION_ITEMS.filter(item => item.userId === user.id) : [];
 
-  const handleEditItem = (item: CollectionItem) => {
-    console.log("Edit item:", item);
-    // In a real app, open edit modal/page
+  // Filter the collection based on search parameters
+  const filteredCollection = userCollection.filter(item => {
+    const banknote = item.banknote;
+    
+    // Search filter
+    const matchesSearch = searchQuery
+      ? banknote.catalogId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.denomination.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.year.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+    
+    // Condition filter
+    const matchesCondition = condition ? item.condition === condition : true;
+    
+    return matchesSearch && matchesCondition;
+  });
+  
+  // Sort the collection
+  const sortedCollection = [...filteredCollection].sort((a, b) => {
+    switch (sortBy) {
+      case "oldest":
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case "a-z":
+        return a.banknote.denomination.localeCompare(b.banknote.denomination);
+      case "z-a":
+        return b.banknote.denomination.localeCompare(a.banknote.denomination);
+      case "newest":
+      default:
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+  });
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
   };
-
-  const handleToggleSale = (item: CollectionItem) => {
-    console.log("Toggle sale status for:", item);
-    // In a real app, toggle isForSale and update item
-    
-    // For demo, toggle locally
-    setCollectionItems(items => 
-      items.map(i => 
-        i.id === item.id 
-          ? { ...i, isForSale: !i.isForSale } 
-          : i
-      )
-    );
-  };
-
-  const getCollectionStats = () => {
-    if (!user) return { total: 0, forSale: 0, countries: 0 };
-    
-    const total = collectionItems.length;
-    const forSale = collectionItems.filter(item => item.isForSale).length;
-    const uniqueCountries = new Set(collectionItems.map(item => item.banknote.country)).size;
-    
-    return {
-      total,
-      forSale,
-      countries: uniqueCountries
-    };
-  };
-
-  const stats = getCollectionStats();
-
-  // Animation observer for scroll animations
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('active');
-        }
-      });
-    }, { threshold: 0.1 });
-
-    const hiddenElements = document.querySelectorAll('.reveal');
-    hiddenElements.forEach(el => observer.observe(el));
-    
-    return () => {
-      hiddenElements.forEach(el => observer.unobserve(el));
-    };
-  }, []);
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-dark-500 flex items-center justify-center animate-fade-in">
-        <div className="text-center max-w-md mx-auto p-8">
-          <div className="mb-6 text-ottoman-400">
-            <BookOpen className="h-16 w-16 mx-auto opacity-60" />
-          </div>
-          <h2 className="text-2xl font-serif font-semibold text-ottoman-200 mb-4">
-            Login Required
-          </h2>
-          <p className="text-ottoman-300 mb-8">
-            Please log in to view and manage your collection
-          </p>
-          <Link to="/auth">
-            <Button className="ottoman-button">
-              Login to Continue
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-dark-500 animate-fade-in">
-      {/* Header */}
-      <section className="bg-dark-600 py-12 relative overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <div
-            className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] bg-dark-500/40 shadow-xl shadow-ottoman-900/20 ring-1 ring-inset ring-ottoman-900/10"
-            aria-hidden="true"
-          />
-        </div>
+    <div className="container py-8">
+      <h1 className="text-3xl font-bold mb-6">My Collection</h1>
+
+      <Tabs defaultValue={initialTab} onValueChange={handleTabChange}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="collection">My Banknotes</TabsTrigger>
+          <TabsTrigger value="wishlist">Wish List</TabsTrigger>
+          <TabsTrigger value="stats">Statistics</TabsTrigger>
+        </TabsList>
         
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-center text-parchment-500 reveal fade-bottom">
-            My Collection
-          </h1>
-          <p className="mt-4 text-center text-ottoman-300 max-w-2xl mx-auto reveal fade-bottom" style={{ animationDelay: '100ms' }}>
-            Manage and organize your Ottoman banknote collection
-          </p>
-        </div>
-      </section>
-      
-      {/* Stats Section */}
-      <section className="py-8 bg-dark-600/50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 glass-card flex items-center reveal fade-bottom">
-              <div className="w-12 h-12 rounded-full bg-ottoman-600/30 flex items-center justify-center mr-4">
-                <BookOpen className="h-6 w-6 text-ottoman-300" />
-              </div>
+        <TabsContent value="collection">
+          <div className="bg-card border rounded-lg p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <h3 className="text-lg font-serif text-ottoman-200">{stats.total}</h3>
-                <p className="text-sm text-ottoman-400">Total Items</p>
+                <Label htmlFor="search" className="mb-2 block">Search</Label>
+                <Input
+                  id="search"
+                  placeholder="Search by name, country, etc."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-            </div>
-            
-            <div className="p-4 glass-card flex items-center reveal fade-bottom" style={{ animationDelay: '100ms' }}>
-              <div className="w-12 h-12 rounded-full bg-ottoman-600/30 flex items-center justify-center mr-4">
-                <HeartHandshake className="h-6 w-6 text-ottoman-300" />
-              </div>
+
               <div>
-                <h3 className="text-lg font-serif text-ottoman-200">{stats.forSale}</h3>
-                <p className="text-sm text-ottoman-400">For Sale</p>
+                <Label htmlFor="condition" className="mb-2 block">Condition</Label>
+                <Select value={condition} onValueChange={setCondition}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Conditions" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Conditions</SelectItem>
+                    <SelectItem value="UNC">UNC</SelectItem>
+                    <SelectItem value="AU">AU</SelectItem>
+                    <SelectItem value="XF">XF</SelectItem>
+                    <SelectItem value="VF">VF</SelectItem>
+                    <SelectItem value="F">F</SelectItem>
+                    <SelectItem value="VG">VG</SelectItem>
+                    <SelectItem value="G">G</SelectItem>
+                    <SelectItem value="Fair">Fair</SelectItem>
+                    <SelectItem value="Poor">Poor</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-            
-            <div className="p-4 glass-card flex items-center reveal fade-bottom" style={{ animationDelay: '200ms' }}>
-              <div className="w-12 h-12 rounded-full bg-ottoman-600/30 flex items-center justify-center mr-4">
-                <ListChecks className="h-6 w-6 text-ottoman-300" />
-              </div>
+
               <div>
-                <h3 className="text-lg font-serif text-ottoman-200">{stats.countries}</h3>
-                <p className="text-sm text-ottoman-400">Countries</p>
+                <Label htmlFor="sortBy" className="mb-2 block">Sort By</Label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="oldest">Oldest First</SelectItem>
+                    <SelectItem value="a-z">A-Z</SelectItem>
+                    <SelectItem value="z-a">Z-A</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-      
-      {/* Tabs and Content */}
-      <section className="py-10">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 reveal fade-bottom">
-            <Tabs 
-              value={activeTab} 
-              onValueChange={setActiveTab}
-              className="w-full md:w-auto"
-            >
-              <TabsList className="w-full md:w-auto">
-                <TabsTrigger value="collection" className="flex-1 md:flex-initial">
-                  Collection
-                </TabsTrigger>
-                <TabsTrigger value="wishlist" className="flex-1 md:flex-initial">
-                  Wishlist
-                </TabsTrigger>
-                <TabsTrigger value="missing" className="flex-1 md:flex-initial">
-                  Missing
-                </TabsTrigger>
-              </TabsList>
+
+          {!user ? (
+            <div className="text-center py-8">
+              <h3 className="text-xl font-medium mb-4">You need to sign in to view your collection</h3>
+              <Button>Sign In</Button>
+            </div>
+          ) : sortedCollection.length === 0 ? (
+            <div className="text-center py-8">
+              <h3 className="text-xl font-medium mb-4">Your collection is empty</h3>
+              <p className="text-muted-foreground mb-6">Start adding banknotes to your collection by browsing the catalog.</p>
+              <Button>Browse Catalog</Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {sortedCollection.map((item) => (
+                <BanknoteDetailCard
+                  key={item.id}
+                  banknote={item.banknote}
+                  collectionItem={item}
+                  source="collection"
+                  ownerId={user.id}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="wishlist">
+          <div className="text-center py-8">
+            <h3 className="text-xl font-medium mb-4">Your wishlist is empty</h3>
+            <p className="text-muted-foreground mb-6">Add banknotes to your wishlist while browsing the catalog.</p>
+            <Button>Browse Catalog</Button>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="stats">
+          <div className="bg-card border rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4">Collection Statistics</h2>
             
-              {/* FIXED: Move TabsContent inside Tabs component */}
-              {/* Collection Tab */}
-              <TabsContent value="collection">
-                {collectionItems.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {collectionItems.map((item, index) => (
-                      <div
-                        key={item.id}
-                        className="reveal fade-bottom"
-                        style={{ animationDelay: `${index * 100}ms` }}
-                      >
-                        <CollectionCard 
-                          item={item} 
-                          onEdit={handleEditItem}
-                          onToggleSale={handleToggleSale}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-20">
-                    <BookOpen className="h-16 w-16 mx-auto text-ottoman-600/30 mb-4" />
-                    <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
-                      Your collection is empty
-                    </h3>
-                    <p className="text-ottoman-400 mb-6">
-                      Start adding items to your collection from the catalog
-                    </p>
-                    <Link to="/catalog">
-                      <Button className="ottoman-button">
-                        Browse Catalog
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </TabsContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-muted p-4 rounded-lg">
+                <h3 className="font-medium">Collection Size</h3>
+                <p className="text-2xl font-bold">{userCollection.length}</p>
+              </div>
               
-              {/* Wishlist Tab */}
-              <TabsContent value="wishlist">
-                {wishlistItems.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {wishlistItems.map((item) => (
-                      <CollectionCard
-                        key={item.id}
-                        item={item}
-                        onEdit={handleEditItem}
-                        onToggleSale={handleToggleSale}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-20">
-                    <HeartHandshake className="h-16 w-16 mx-auto text-ottoman-600/30 mb-4" />
-                    <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
-                      Your wishlist is empty
-                    </h3>
-                    <p className="text-ottoman-400 mb-6">
-                      Browse the catalog and add items you want to acquire
-                    </p>
-                    <Link to="/catalog">
-                      <Button className="ottoman-button">
-                        Browse Catalog
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </TabsContent>
+              <div className="bg-muted p-4 rounded-lg">
+                <h3 className="font-medium">Countries</h3>
+                <p className="text-2xl font-bold">
+                  {new Set(userCollection.map(item => item.banknote.country)).size}
+                </p>
+              </div>
               
-              {/* Missing Tab */}
-              <TabsContent value="missing">
-                {missingItems.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {missingItems.map((item) => (
-                      <CollectionCard
-                        key={item.id}
-                        item={item}
-                        onEdit={handleEditItem}
-                        onToggleSale={handleToggleSale}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-20">
-                    <ListChecks className="h-16 w-16 mx-auto text-ottoman-600/30 mb-4" />
-                    <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
-                      Missing list is currently empty
-                    </h3>
-                    <p className="text-ottoman-400 mb-6">
-                      Your missing list will show items from the catalog that are not in your collection
-                    </p>
-                    <Button className="ottoman-button">
-                      Generate Missing List
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-            
-            <div className="flex items-center gap-3 mt-4 md:mt-0 w-full md:w-auto">
-              <Button 
-                variant="outline" 
-                className="border-ottoman-700 text-ottoman-200 w-full md:w-auto"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
-              </Button>
-              
-              <Button 
-                className="ottoman-button w-full md:w-auto"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Item
-              </Button>
+              <div className="bg-muted p-4 rounded-lg">
+                <h3 className="font-medium">Total Value</h3>
+                <p className="text-2xl font-bold">
+                  ${userCollection.reduce((sum, item) => sum + (item.purchasePrice || 0), 0)}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

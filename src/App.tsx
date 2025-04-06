@@ -14,6 +14,7 @@ import Marketplace from "./pages/Marketplace";
 import Community from "./pages/Community";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
+import BanknoteDetail from "./pages/BanknoteDetail";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
                 <Route path="/collection" element={<Collection />} />
                 <Route path="/marketplace" element={<Marketplace />} />
                 <Route path="/community" element={<Community />} />
+                <Route path="/banknote/:id" element={<BanknoteDetail />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
