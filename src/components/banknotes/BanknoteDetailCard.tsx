@@ -1,4 +1,5 @@
-import { Banknote, CollectionItem, BanknoteDetailSource } from "@/types";
+
+import { Banknote, CollectionItem } from "@/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 interface BanknoteDetailCardProps {
   banknote: Banknote;
   collectionItem?: CollectionItem;
-  source: BanknoteDetailSource;
+  source: "catalog" | "collection" | "wishlist" | "missing";
   ownerId?: string;
 }
 

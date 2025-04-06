@@ -41,9 +41,9 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
   // Determine what image to show
   const getDisplayImage = () => {
     if (showReverse) {
-      return item.reverseImage || (banknote.imageUrls && banknote.imageUrls.length > 1 ? banknote.imageUrls[1] : '/placeholder-brown.svg');
+      return item.reverseImage || (banknote.imageUrls && banknote.imageUrls.length > 1 ? banknote.imageUrls[1] : '/placeholder.svg');
     } else {
-      return item.obverseImage || (banknote.imageUrls && banknote.imageUrls.length > 0 ? banknote.imageUrls[0] : '/placeholder-brown.svg');
+      return item.obverseImage || (banknote.imageUrls && banknote.imageUrls.length > 0 ? banknote.imageUrls[0] : '/placeholder.svg');
     }
   };
   

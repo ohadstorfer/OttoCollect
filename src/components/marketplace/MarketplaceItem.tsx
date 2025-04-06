@@ -52,7 +52,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         <div className="aspect-[4/3] overflow-hidden">
           {collectionItem.personalImages && collectionItem.personalImages.length > 0 ? (
             <img
-              src={collectionItem.personalImages[0]}
+              src={collectionItem.personalImages[0] || '/placeholder.svg'}
               alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
               className={cn(
                 "w-full h-full object-cover transition-transform duration-500",

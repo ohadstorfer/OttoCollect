@@ -28,7 +28,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = ({ post }) => {
         {firstImage && (
           <div className="relative w-full aspect-[16/9] overflow-hidden">
             <img 
-              src={firstImage} 
+              src={firstImage || '/placeholder.svg'} 
               alt={post.title}
               className="w-full h-full object-cover"
             />
