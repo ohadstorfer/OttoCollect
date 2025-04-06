@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      badges: {
+        Row: {
+          created_at: string
+          criteria: string
+          description: string
+          icon_url: string
+          id: string
+          is_automatic_award: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          criteria: string
+          description: string
+          icon_url: string
+          id?: string
+          is_automatic_award?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          criteria?: string
+          description?: string
+          icon_url?: string
+          id?: string
+          is_automatic_award?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       banknote_categories: {
         Row: {
           created_at: string | null
@@ -77,6 +107,101 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          excerpt: string
+          id: string
+          main_image_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          excerpt: string
+          id?: string
+          main_image_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          excerpt?: string
+          id?: string
+          main_image_url?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      collection_items: {
+        Row: {
+          banknote_id: string
+          condition: string
+          created_at: string
+          id: string
+          is_for_sale: boolean
+          location: string | null
+          order_index: number
+          personal_images: string[] | null
+          private_note: string | null
+          public_note: string | null
+          purchase_date: string | null
+          purchase_price: number | null
+          sale_price: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          banknote_id: string
+          condition: string
+          created_at?: string
+          id?: string
+          is_for_sale?: boolean
+          location?: string | null
+          order_index?: number
+          personal_images?: string[] | null
+          private_note?: string | null
+          public_note?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          sale_price?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          banknote_id?: string
+          condition?: string
+          created_at?: string
+          id?: string
+          is_for_sale?: boolean
+          location?: string | null
+          order_index?: number
+          personal_images?: string[] | null
+          private_note?: string | null
+          public_note?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          sale_price?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "detailed_banknotes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       detailed_banknotes: {
         Row: {
@@ -183,6 +308,133 @@ export type Database = {
         }
         Relationships: []
       }
+      forum_replies: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          thread_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          thread_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          thread_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_replies_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "forum_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_threads: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      marketplace_items: {
+        Row: {
+          collection_item_id: string
+          created_at: string
+          id: string
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          collection_item_id: string
+          created_at?: string
+          id?: string
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          collection_item_id?: string
+          created_at?: string
+          id?: string
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_items_collection_item_id_fkey"
+            columns: ["collection_item_id"]
+            isOneToOne: false
+            referencedRelation: "collection_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          receiver_id: string
+          reference_item_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          receiver_id: string
+          reference_item_id?: string | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          receiver_id?: string
+          reference_item_id?: string | null
+          sender_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -221,6 +473,70 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      user_badges: {
+        Row: {
+          awarded_at: string
+          badge_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          badge_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string
+          badge_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wishlist_items: {
+        Row: {
+          banknote_id: string
+          created_at: string
+          id: string
+          note: string | null
+          priority: string
+          user_id: string
+        }
+        Insert: {
+          banknote_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          priority: string
+          user_id: string
+        }
+        Update: {
+          banknote_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          priority?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "detailed_banknotes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

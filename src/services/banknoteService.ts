@@ -4,6 +4,7 @@ import { Banknote, DetailedBanknote } from "@/types";
 
 export async function fetchBanknotes(): Promise<Banknote[]> {
   try {
+    console.log("Fetching banknotes from Supabase");
     // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
       .from('detailed_banknotes' as any)
@@ -11,8 +12,12 @@ export async function fetchBanknotes(): Promise<Banknote[]> {
       .eq('is_approved', true)
       .eq('is_pending', false);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching banknotes:", error);
+      throw error;
+    }
 
+    console.log(`Fetched ${data.length} banknotes from Supabase`);
     return data.map(transformDetailedToBanknote);
   } catch (error) {
     console.error('Error fetching banknotes:', error);
@@ -20,8 +25,9 @@ export async function fetchBanknotes(): Promise<Banknote[]> {
   }
 }
 
-export async function fetchDetailedBanknote(id: string): Promise<DetailedBanknote | null> {
+export async function fetchBanknoteById(id: string): Promise<Banknote | null> {
   try {
+    console.log("Fetching banknote by id:", id);
     // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
       .from('detailed_banknotes' as any)
@@ -29,7 +35,35 @@ export async function fetchDetailedBanknote(id: string): Promise<DetailedBanknot
       .eq('id', id)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching banknote by id:", error);
+      throw error;
+    }
+
+    console.log("Fetched banknote:", data);
+    return transformDetailedToBanknote(data);
+  } catch (error) {
+    console.error('Error fetching banknote by id:', error);
+    return null;
+  }
+}
+
+export async function fetchDetailedBanknote(id: string): Promise<DetailedBanknote | null> {
+  try {
+    console.log("Fetching detailed banknote:", id);
+    // Using type assertion to avoid the TypeScript error
+    const { data, error } = await supabase
+      .from('detailed_banknotes' as any)
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching detailed banknote:", error);
+      throw error;
+    }
+
+    console.log("Fetched detailed banknote:", data);
     // Cast the data to DetailedBanknote type
     return data as unknown as DetailedBanknote;
   } catch (error) {

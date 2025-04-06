@@ -1,16 +1,35 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Banknote, DetailedBanknote } from "@/types";
+import { Banknote, DetailedBanknote, BanknoteCondition } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Heart, Plus, MessageCircle, Share2, Trash2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { fetchDetailedBanknote } from "@/services/banknoteService";
-import { MOCK_BANKNOTES } from "@/lib/constants";
+import { fetchDetailedBanknote, fetchBanknoteById } from "@/services/banknoteService";
+import { addToCollection, removeFromCollection } from "@/services/collectionService";
+import { addToWishlist } from "@/services/wishlistService";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'other-collection' | 'wish-list' | 'marketplace';
 
@@ -30,6 +49,19 @@ const BanknoteDetail = () => {
   const [detailedBanknote, setDetailedBanknote] = useState<DetailedBanknote | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isAddToCollectionOpen, setIsAddToCollectionOpen] = useState(false);
+  
+  // Add to collection form state
+  const [condition, setCondition] = useState<BanknoteCondition>('UNC');
+  const [purchasePrice, setPurchasePrice] = useState<string>('');
+  const [purchaseDate, setPurchaseDate] = useState<string>('');
+  const [publicNote, setPublicNote] = useState<string>('');
+  const [privateNote, setPrivateNote] = useState<string>('');
+  
+  // Add to wishlist form state
+  const [isAddToWishlistOpen, setIsAddToWishlistOpen] = useState(false);
+  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
+  const [wishlistNote, setWishlistNote] = useState<string>('');
   
   // Extract source from location state or default to catalog
   const state = location.state as LocationState;
@@ -45,51 +77,27 @@ const BanknoteDetail = () => {
       
       setLoading(true);
       try {
+        console.log("Loading banknote details for:", id);
+        
         // Try to fetch detailed banknote from Supabase
         const detailed = await fetchDetailedBanknote(id);
+        const basic = await fetchBanknoteById(id);
         
         if (detailed) {
           setDetailedBanknote(detailed);
-          
-          // Create a banknote object from detailed data for display purposes
-          const imageUrls: string[] = [];
-          if (detailed.front_picture) imageUrls.push(detailed.front_picture);
-          if (detailed.back_picture) imageUrls.push(detailed.back_picture);
-          if (detailed.seal_pictures && detailed.seal_pictures.length) imageUrls.push(...detailed.seal_pictures);
-          if (detailed.tughra_picture) imageUrls.push(detailed.tughra_picture);
-          
-          const banknoteObj: Banknote = {
-            id: detailed.id,
-            catalogId: detailed.extended_pick_number || detailed.pick_number,
-            country: detailed.country,
-            denomination: detailed.face_value,
-            year: detailed.gregorian_year || detailed.islamic_year || 'Unknown',
-            series: detailed.category,
-            description: detailed.banknote_description || `${detailed.face_value} from ${detailed.gregorian_year || detailed.islamic_year}`,
-            obverseDescription: detailed.banknote_description,
-            reverseDescription: detailed.historical_description,
-            imageUrls: imageUrls.length > 0 ? imageUrls : ['/placeholder.svg'],
-            isApproved: detailed.is_approved,
-            isPending: detailed.is_pending,
-            createdAt: detailed.created_at,
-            updatedAt: detailed.updated_at,
-            createdBy: 'system'
-          };
-          
-          setBanknote(banknoteObj);
+          console.log("Loaded detailed banknote:", detailed);
+        }
+        
+        if (basic) {
+          setBanknote(basic);
+          console.log("Loaded basic banknote:", basic);
         } else {
-          // Fall back to mock data if needed
-          const mockBanknote = MOCK_BANKNOTES.find(b => b.id === id);
-          if (mockBanknote) {
-            setBanknote(mockBanknote);
-          } else {
-            toast({
-              title: "Error",
-              description: "Banknote not found",
-              variant: "destructive",
-            });
-            navigate(-1);
-          }
+          toast({
+            title: "Error",
+            description: "Banknote not found",
+            variant: "destructive",
+          });
+          navigate(-1);
         }
       } catch (error) {
         console.error("Error loading banknote:", error);
@@ -127,25 +135,115 @@ const BanknoteDetail = () => {
     }
   };
   
-  const handleAddToCollection = () => {
-    toast({
-      title: "Success",
-      description: "Banknote added to your collection",
-    });
+  const handleAddToCollectionSubmit = async () => {
+    if (!user || !banknote) return;
+    
+    try {
+      const result = await addToCollection(
+        user.id,
+        banknote.id,
+        condition,
+        purchasePrice ? parseFloat(purchasePrice) : undefined,
+        purchaseDate || undefined,
+        publicNote || undefined,
+        privateNote || undefined
+      );
+      
+      if (result) {
+        toast({
+          title: "Success",
+          description: `${banknote.denomination} added to your collection`,
+        });
+        setIsAddToCollectionOpen(false);
+        
+        // Reset form
+        setCondition('UNC');
+        setPurchasePrice('');
+        setPurchaseDate('');
+        setPublicNote('');
+        setPrivateNote('');
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add banknote to collection",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding to collection:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add banknote to collection",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleAddToWishlist = () => {
-    toast({
-      title: "Success",
-      description: "Banknote added to your wishlist",
-    });
+  const handleAddToWishlistSubmit = async () => {
+    if (!user || !banknote) return;
+    
+    try {
+      const result = await addToWishlist(
+        user.id,
+        banknote.id,
+        priority,
+        wishlistNote || undefined
+      );
+      
+      if (result) {
+        toast({
+          title: "Success",
+          description: `${banknote.denomination} added to your wishlist`,
+        });
+        setIsAddToWishlistOpen(false);
+        
+        // Reset form
+        setPriority('Medium');
+        setWishlistNote('');
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add banknote to wishlist",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add banknote to wishlist",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleRemoveFromCollection = () => {
-    toast({
-      title: "Success",
-      description: "Banknote removed from your collection",
-    });
+  const handleRemoveFromCollection = async (collectionItemId: string) => {
+    if (!user) return;
+    
+    try {
+      const success = await removeFromCollection(collectionItemId);
+      
+      if (success) {
+        toast({
+          title: "Success",
+          description: "Banknote removed from your collection",
+        });
+        navigate(-1);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to remove banknote from collection",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error removing from collection:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove banknote from collection",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleMessageOwner = () => {
@@ -187,23 +285,163 @@ const BanknoteDetail = () => {
         </Button>
         
         <div className="flex gap-2">
-          {source === 'catalog' && (
+          {source === 'catalog' && user && (
             <>
-              <Button variant="outline" size="sm" onClick={handleAddToCollection}>
-                <Plus className="h-4 w-4 mr-2" /> Add to Collection
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleAddToWishlist}>
-                <Heart className="h-4 w-4 mr-2" /> Add to Wishlist
-              </Button>
+              <Dialog open={isAddToCollectionOpen} onOpenChange={setIsAddToCollectionOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-2" /> Add to Collection
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add to Your Collection</DialogTitle>
+                    <DialogDescription>
+                      Add details about this banknote in your collection.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="condition" className="text-right">Condition</Label>
+                      <Select value={condition} onValueChange={(value) => setCondition(value as BanknoteCondition)} className="col-span-3">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select condition" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="UNC">UNC</SelectItem>
+                          <SelectItem value="AU">AU</SelectItem>
+                          <SelectItem value="XF">XF</SelectItem>
+                          <SelectItem value="VF">VF</SelectItem>
+                          <SelectItem value="F">F</SelectItem>
+                          <SelectItem value="VG">VG</SelectItem>
+                          <SelectItem value="G">G</SelectItem>
+                          <SelectItem value="Fair">Fair</SelectItem>
+                          <SelectItem value="Poor">Poor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="purchasePrice" className="text-right">Purchase Price</Label>
+                      <Input
+                        id="purchasePrice"
+                        type="number"
+                        step="0.01"
+                        placeholder="Enter price"
+                        value={purchasePrice}
+                        onChange={(e) => setPurchasePrice(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="purchaseDate" className="text-right">Purchase Date</Label>
+                      <Input
+                        id="purchaseDate"
+                        type="date"
+                        value={purchaseDate}
+                        onChange={(e) => setPurchaseDate(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="publicNote" className="text-right">Public Note</Label>
+                      <Textarea
+                        id="publicNote"
+                        placeholder="Visible to other users"
+                        value={publicNote}
+                        onChange={(e) => setPublicNote(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="privateNote" className="text-right">Private Note</Label>
+                      <Textarea
+                        id="privateNote"
+                        placeholder="Only visible to you"
+                        value={privateNote}
+                        onChange={(e) => setPrivateNote(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end">
+                    <Button onClick={handleAddToCollectionSubmit}>Add to Collection</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog open={isAddToWishlistOpen} onOpenChange={setIsAddToWishlistOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Heart className="h-4 w-4 mr-2" /> Add to Wishlist
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add to Your Wishlist</DialogTitle>
+                    <DialogDescription>
+                      Add this banknote to your wishlist.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="priority" className="text-right">Priority</Label>
+                      <Select 
+                        value={priority} 
+                        onValueChange={(value) => setPriority(value as 'Low' | 'Medium' | 'High')}
+                        className="col-span-3"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Low">Low</SelectItem>
+                          <SelectItem value="Medium">Medium</SelectItem>
+                          <SelectItem value="High">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="note" className="text-right">Note</Label>
+                      <Textarea
+                        id="note"
+                        placeholder="Add a note"
+                        value={wishlistNote}
+                        onChange={(e) => setWishlistNote(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end">
+                    <Button onClick={handleAddToWishlistSubmit}>Add to Wishlist</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </>
           )}
           
-          {source === 'collection' && isOwner && (
+          {source === 'collection' && isOwner && state && (
             <>
-              <Button variant="outline" size="sm" onClick={handleAddToWishlist}>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsAddToWishlistOpen(true)}
+              >
                 <Heart className="h-4 w-4 mr-2" /> Add to Wishlist
               </Button>
-              <Button variant="outline" size="sm" onClick={handleRemoveFromCollection}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleRemoveFromCollection(state.ownerId!)}
+              >
                 <Trash2 className="h-4 w-4 mr-2" /> Remove
               </Button>
               <Button variant="outline" size="sm" onClick={handleShare}>
@@ -217,7 +455,11 @@ const BanknoteDetail = () => {
               <Button variant="outline" size="sm" onClick={handleMessageOwner}>
                 <MessageCircle className="h-4 w-4 mr-2" /> Message Owner
               </Button>
-              <Button variant="outline" size="sm" onClick={handleAddToWishlist}>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsAddToWishlistOpen(true)}
+              >
                 <Heart className="h-4 w-4 mr-2" /> Add to Wishlist
               </Button>
             </>
