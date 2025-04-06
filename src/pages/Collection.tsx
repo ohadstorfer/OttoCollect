@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
@@ -27,10 +26,9 @@ const Collection = () => {
   const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [condition, setCondition] = useState<string>("");
+  const [condition, setCondition] = useState<string>("all");
   const [sortBy, setSortBy] = useState("newest");
 
-  // Fetch collection and wishlist on component mount
   useEffect(() => {
     const loadUserData = async () => {
       if (user) {
@@ -38,7 +36,6 @@ const Collection = () => {
         try {
           console.log("Loading user collection and wishlist");
           
-          // Fetch user's collection and wishlist
           const collection = await fetchUserCollection(user.id);
           const wishlist = await fetchUserWishlist(user.id);
           
@@ -65,11 +62,9 @@ const Collection = () => {
     loadUserData();
   }, [user, toast]);
 
-  // Filter the collection based on search parameters
   const filteredCollection = collectionItems.filter(item => {
     const banknote = item.banknote;
     
-    // Search filter
     const matchesSearch = searchQuery
       ? banknote.catalogId.toLowerCase().includes(searchQuery.toLowerCase()) ||
         banknote.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -78,13 +73,11 @@ const Collection = () => {
         banknote.year.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
     
-    // Condition filter
-    const matchesCondition = condition ? item.condition === condition : true;
+    const matchesCondition = condition !== "all" ? item.condition === condition : true;
     
     return matchesSearch && matchesCondition;
   });
   
-  // Sort the collection
   const sortedCollection = [...filteredCollection].sort((a, b) => {
     switch (sortBy) {
       case "oldest":
@@ -153,7 +146,7 @@ const Collection = () => {
                     <SelectValue placeholder="All Conditions" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Conditions</SelectItem>
+                    <SelectItem value="all">All Conditions</SelectItem>
                     <SelectItem value="UNC">UNC</SelectItem>
                     <SelectItem value="AU">AU</SelectItem>
                     <SelectItem value="XF">XF</SelectItem>

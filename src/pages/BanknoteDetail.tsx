@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Banknote, DetailedBanknote, BanknoteCondition } from "@/types";
@@ -51,19 +50,16 @@ const BanknoteDetail = () => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isAddToCollectionOpen, setIsAddToCollectionOpen] = useState(false);
   
-  // Add to collection form state
   const [condition, setCondition] = useState<BanknoteCondition>('UNC');
   const [purchasePrice, setPurchasePrice] = useState<string>('');
   const [purchaseDate, setPurchaseDate] = useState<string>('');
   const [publicNote, setPublicNote] = useState<string>('');
   const [privateNote, setPrivateNote] = useState<string>('');
   
-  // Add to wishlist form state
   const [isAddToWishlistOpen, setIsAddToWishlistOpen] = useState(false);
   const [priority, setPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
   const [wishlistNote, setWishlistNote] = useState<string>('');
   
-  // Extract source from location state or default to catalog
   const state = location.state as LocationState;
   const source = state?.source || 'catalog';
   const ownerId = state?.ownerId;
@@ -79,7 +75,6 @@ const BanknoteDetail = () => {
       try {
         console.log("Loading banknote details for:", id);
         
-        // Try to fetch detailed banknote from Supabase
         const detailed = await fetchDetailedBanknote(id);
         const basic = await fetchBanknoteById(id);
         
@@ -156,7 +151,6 @@ const BanknoteDetail = () => {
         });
         setIsAddToCollectionOpen(false);
         
-        // Reset form
         setCondition('UNC');
         setPurchasePrice('');
         setPurchaseDate('');
@@ -197,7 +191,6 @@ const BanknoteDetail = () => {
         });
         setIsAddToWishlistOpen(false);
         
-        // Reset form
         setPriority('Medium');
         setWishlistNote('');
       } else {
@@ -304,8 +297,11 @@ const BanknoteDetail = () => {
                   <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="condition" className="text-right">Condition</Label>
-                      <Select value={condition} onValueChange={(value) => setCondition(value as BanknoteCondition)} className="col-span-3">
-                        <SelectTrigger>
+                      <Select 
+                        value={condition} 
+                        onValueChange={(value) => setCondition(value as BanknoteCondition)}
+                      >
+                        <SelectTrigger className="col-span-3">
                           <SelectValue placeholder="Select condition" />
                         </SelectTrigger>
                         <SelectContent>
@@ -395,9 +391,8 @@ const BanknoteDetail = () => {
                       <Select 
                         value={priority} 
                         onValueChange={(value) => setPriority(value as 'Low' | 'Medium' | 'High')}
-                        className="col-span-3"
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="col-span-3">
                           <SelectValue placeholder="Select priority" />
                         </SelectTrigger>
                         <SelectContent>
@@ -468,7 +463,6 @@ const BanknoteDetail = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left column: Images */}
         <div className="lg:col-span-1">
           <div className="mb-4 aspect-square bg-muted rounded-lg overflow-hidden relative">
             <img
@@ -502,7 +496,6 @@ const BanknoteDetail = () => {
           )}
         </div>
         
-        {/* Right column: Info */}
         <div className="lg:col-span-2">
           <div className="flex flex-col md:flex-row md:items-start justify-between mb-4">
             <div>

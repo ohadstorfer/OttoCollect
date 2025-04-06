@@ -150,7 +150,12 @@ export async function updateCollectionItem(
 ): Promise<boolean> {
   try {
     // Convert from our frontend model to database model
-    const dbUpdates: TablesInsert<'collection_items'> = {};
+    const dbUpdates: Partial<TablesInsert<'collection_items'>> = {
+      // Explicitly define default properties so TypeScript doesn't complain
+      banknote_id: undefined,
+      condition: undefined,
+      user_id: undefined
+    };
     
     if (updates.condition) dbUpdates.condition = updates.condition;
     if (updates.salePrice !== undefined) dbUpdates.sale_price = updates.salePrice;
@@ -162,6 +167,13 @@ export async function updateCollectionItem(
     if (updates.location !== undefined) dbUpdates.location = updates.location;
     if (updates.personalImages !== undefined) dbUpdates.personal_images = updates.personalImages;
     if (updates.orderIndex !== undefined) dbUpdates.order_index = updates.orderIndex;
+    
+    // Remove undefined fields
+    Object.keys(dbUpdates).forEach(key => {
+      if (dbUpdates[key as keyof typeof dbUpdates] === undefined) {
+        delete dbUpdates[key as keyof typeof dbUpdates];
+      }
+    });
     
     const { error } = await supabase
       .from('collection_items')
