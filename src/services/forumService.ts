@@ -9,8 +9,8 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
     .from('forum_posts')
     .select(`
       *,
-      author:profiles!forum_posts_author_id_fkey(id, username, avatar_url, rank),
-      comments:forum_comments(count)
+      profiles!forum_posts_author_id_fkey (id, username, avatar_url, rank),
+      forum_comments (count)
     `)
     .order('created_at', { ascending: false });
 
@@ -21,14 +21,14 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
     title: post.title,
     content: post.content,
     authorId: post.author_id,
-    author: post.author ? {
-      id: post.author.id,
-      username: post.author.username,
-      avatarUrl: post.author.avatar_url,
-      rank: post.author.rank
+    author: post.profiles ? {
+      id: post.profiles.id,
+      username: post.profiles.username,
+      avatarUrl: post.profiles.avatar_url,
+      rank: post.profiles.rank
     } : undefined,
     imageUrls: post.image_urls || [],
-    commentCount: post.comments[0]?.count || 0,
+    commentCount: post.forum_comments[0]?.count || 0,
     createdAt: post.created_at,
     updatedAt: post.updated_at
   }));
@@ -40,7 +40,7 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
     .from('forum_posts')
     .select(`
       *,
-      author:profiles!forum_posts_author_id_fkey(id, username, avatar_url, rank)
+      profiles!forum_posts_author_id_fkey (id, username, avatar_url, rank)
     `)
     .eq('id', postId)
     .single();
@@ -51,7 +51,7 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
     .from('forum_comments')
     .select(`
       *,
-      author:profiles!forum_comments_author_id_fkey(id, username, avatar_url, rank)
+      profiles!forum_comments_author_id_fkey (id, username, avatar_url, rank)
     `)
     .eq('post_id', postId)
     .order('created_at', { ascending: true });
@@ -63,11 +63,11 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
     title: post.title,
     content: post.content,
     authorId: post.author_id,
-    author: post.author ? {
-      id: post.author.id,
-      username: post.author.username,
-      avatarUrl: post.author.avatar_url,
-      rank: post.author.rank
+    author: post.profiles ? {
+      id: post.profiles.id,
+      username: post.profiles.username,
+      avatarUrl: post.profiles.avatar_url,
+      rank: post.profiles.rank
     } : undefined,
     imageUrls: post.image_urls || [],
     comments: comments.map(comment => ({
@@ -75,11 +75,11 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
       postId: comment.post_id,
       content: comment.content,
       authorId: comment.author_id,
-      author: comment.author ? {
-        id: comment.author.id,
-        username: comment.author.username,
-        avatarUrl: comment.author.avatar_url,
-        rank: comment.author.rank
+      author: comment.profiles ? {
+        id: comment.profiles.id,
+        username: comment.profiles.username,
+        avatarUrl: comment.profiles.avatar_url,
+        rank: comment.profiles.rank
       } : undefined,
       createdAt: comment.created_at,
       updatedAt: comment.updated_at
@@ -91,8 +91,11 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
 
 // Create a new forum post
 export const createForumPost = async (title: string, content: string, imageUrls: string[] = []): Promise<string> => {
-  const user = supabase.auth.getUser();
-  if (!user) throw new Error('You must be logged in to create a post');
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !userData.user) {
+    throw new Error('You must be logged in to create a post');
+  }
 
   const { data, error } = await supabase
     .from('forum_posts')
@@ -100,11 +103,12 @@ export const createForumPost = async (title: string, content: string, imageUrls:
       title,
       content,
       image_urls: imageUrls,
-      author_id: (await user).data.user?.id
+      author_id: userData.user.id
     })
     .select();
 
   if (error) throw error;
+  
   return data[0].id;
 };
 
@@ -135,15 +139,18 @@ export const deleteForumPost = async (postId: string): Promise<void> => {
 
 // Create a comment
 export const createForumComment = async (postId: string, content: string): Promise<string> => {
-  const user = supabase.auth.getUser();
-  if (!user) throw new Error('You must be logged in to comment');
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !userData.user) {
+    throw new Error('You must be logged in to comment');
+  }
 
   const { data, error } = await supabase
     .from('forum_comments')
     .insert({
       post_id: postId,
       content,
-      author_id: (await user).data.user?.id
+      author_id: userData.user.id
     })
     .select();
 
@@ -176,10 +183,13 @@ export const deleteForumComment = async (commentId: string): Promise<void> => {
 
 // Upload an image for a forum post
 export const uploadForumImage = async (file: File): Promise<string> => {
-  const user = supabase.auth.getUser();
-  if (!user) throw new Error('You must be logged in to upload images');
+  const { data: userData, error: userError } = await supabase.auth.getUser();
   
-  const userId = (await user).data.user?.id;
+  if (userError || !userData.user) {
+    throw new Error('You must be logged in to upload images');
+  }
+  
+  const userId = userData.user.id;
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}/${uuidv4()}.${fileExt}`;
   const filePath = fileName;

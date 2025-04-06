@@ -1,4 +1,3 @@
-
 import { supabase, TablesInsert } from "@/integrations/supabase/client";
 import { MarketplaceItem, UserRank } from "@/types";
 import { fetchBanknoteById } from "./banknoteService";
@@ -55,10 +54,13 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
             purchasePrice: collectionItem.purchase_price,
             purchaseDate: collectionItem.purchase_date,
             location: collectionItem.location,
-            personalImages: collectionItem.personal_images || [],
             orderIndex: collectionItem.order_index,
             createdAt: collectionItem.created_at,
-            updatedAt: collectionItem.updated_at
+            updatedAt: collectionItem.updated_at,
+            personalImages: [
+              collectionItem.obverse_image,
+              collectionItem.reverse_image
+            ].filter(Boolean) as string[]
           },
           sellerId: item.seller_id,
           seller: seller,

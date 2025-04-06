@@ -32,7 +32,10 @@ export const CreatePostForm = () => {
     setIsSubmitting(true);
 
     try {
+      console.log("Creating forum post with:", { title, content, images });
       const postId = await createForumPost(title, content, images);
+      console.log("Post created with ID:", postId);
+      
       toast({
         description: "Post created successfully!",
       });
