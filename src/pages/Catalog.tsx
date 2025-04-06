@@ -7,11 +7,11 @@ import { fetchBanknotes } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { SearchIcon } from "lucide-react";
-import { CountryData } from "@/types";
+import { CountryData, Banknote } from "@/types";
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [banknotes, setBanknotes] = useState([]);
+  const [banknotes, setBanknotes] = useState<Banknote[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [countries, setCountries] = useState<CountryData[]>([]);
@@ -25,7 +25,7 @@ const Catalog = () => {
         setBanknotes(data);
         
         // Extract unique countries and count banknotes for each
-        const countryMap = data.reduce((acc: Record<string, CountryData>, banknote: any) => {
+        const countryMap = data.reduce((acc: Record<string, CountryData>, banknote: Banknote) => {
           if (!acc[banknote.country]) {
             acc[banknote.country] = {
               name: banknote.country,

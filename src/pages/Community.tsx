@@ -31,9 +31,9 @@ export default function Community() {
       title: "Forum",
       description: "Discuss banknotes and collecting strategies",
       icon: <BookOpen className="h-8 w-8 text-ottoman-500" />,
-      action: () => {},
+      action: () => navigate('/community/forum'),
       buttonText: "Visit Forum",
-      comingSoon: true
+      comingSoon: false
     },
     {
       title: "Badges",

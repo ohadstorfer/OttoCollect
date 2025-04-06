@@ -100,6 +100,7 @@ export interface CollectionItem {
   orderIndex: number;
   createdAt: string;
   updatedAt: string;
+  personalImages?: string[];
 }
 
 // Wishlist related types
@@ -189,4 +190,4 @@ export type BanknoteDetailSource =
   | 'marketplace' 
   | 'search' 
   | 'country-detail'
-  | 'missing'; // adding 'missing' to fix ProfileCollection.tsx error
+  | 'missing';
