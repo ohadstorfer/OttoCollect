@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,13 +7,14 @@ import { fetchBanknotes } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { SearchIcon } from "lucide-react";
+import { CountryData } from "@/types";
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [banknotes, setBanknotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [countries, setCountries] = useState([]);
+  const [countries, setCountries] = useState<CountryData[]>([]);
 
   // Fetch banknotes on component mount
   useEffect(() => {
@@ -23,7 +25,7 @@ const Catalog = () => {
         setBanknotes(data);
         
         // Extract unique countries and count banknotes for each
-        const countryMap = data.reduce((acc, banknote) => {
+        const countryMap = data.reduce((acc: Record<string, CountryData>, banknote: any) => {
           if (!acc[banknote.country]) {
             acc[banknote.country] = {
               name: banknote.country,
@@ -37,6 +39,15 @@ const Catalog = () => {
           // Use the first banknote image as the country image if not set yet
           if (!acc[banknote.country].imageUrl && banknote.imageUrls && banknote.imageUrls.length > 0) {
             acc[banknote.country].imageUrl = banknote.imageUrls[0];
+          }
+          
+          // Manually set special images for specific countries
+          if (banknote.country === "Ottoman Empire" && !acc[banknote.country].imageUrl) {
+            acc[banknote.country].imageUrl = "/images/ottoman-empire.jpg";
+          }
+          
+          if (banknote.country === "Palestine" && !acc[banknote.country].imageUrl) {
+            acc[banknote.country].imageUrl = "/images/palestine-mandate.jpg";
           }
           
           return acc;
