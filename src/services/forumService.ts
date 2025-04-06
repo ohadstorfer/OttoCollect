@@ -9,7 +9,7 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
     .from('forum_posts')
     .select(`
       *,
-      author:author_id(id, username, avatar_url, rank),
+      author:profiles!forum_posts_author_id_fkey(id, username, avatar_url, rank),
       comments:forum_comments(count)
     `)
     .order('created_at', { ascending: false });
@@ -40,7 +40,7 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
     .from('forum_posts')
     .select(`
       *,
-      author:author_id(id, username, avatar_url, rank)
+      author:profiles!forum_posts_author_id_fkey(id, username, avatar_url, rank)
     `)
     .eq('id', postId)
     .single();
@@ -51,7 +51,7 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
     .from('forum_comments')
     .select(`
       *,
-      author:author_id(id, username, avatar_url, rank)
+      author:profiles!forum_comments_author_id_fkey(id, username, avatar_url, rank)
     `)
     .eq('post_id', postId)
     .order('created_at', { ascending: true });
