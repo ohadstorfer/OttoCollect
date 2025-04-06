@@ -5,85 +5,155 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Get all forum posts
 export const fetchForumPosts = async (): Promise<ForumPost[]> => {
-  const { data, error } = await supabase
+  const { data: postsData, error: postsError } = await supabase
     .from('forum_posts')
-    .select(`
-      *,
-      profiles (id, username, avatar_url, rank),
-      forum_comments (count)
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
 
-  if (error) throw error;
+  if (postsError) throw postsError;
 
-  return data.map(post => ({
-    id: post.id,
-    title: post.title,
-    content: post.content,
-    authorId: post.author_id,
-    author: post.profiles ? {
-      id: post.profiles.id,
-      username: post.profiles.username,
-      avatarUrl: post.profiles.avatar_url,
-      rank: post.profiles.rank
-    } : undefined,
-    imageUrls: post.image_urls || [],
-    commentCount: post.forum_comments[0]?.count || 0,
-    createdAt: post.created_at,
-    updatedAt: post.updated_at
-  }));
+  // Get comment counts for each post
+  const postIds = postsData.map(post => post.id);
+  
+  // Get comment counts using a count query
+  const { data: commentCounts, error: countError } = await supabase
+    .from('forum_comments')
+    .select('post_id, count')
+    .in('post_id', postIds)
+    .group('post_id');
+    
+  if (countError) {
+    console.error("Error fetching comment counts:", countError);
+  }
+  
+  // Create a map of postId -> comment count
+  const commentCountMap = new Map();
+  commentCounts?.forEach(item => {
+    commentCountMap.set(item.post_id, parseInt(item.count));
+  });
+
+  // Fetch author profiles separately
+  const authorIds = [...new Set(postsData.map(post => post.author_id))];
+  
+  const { data: authorsData, error: authorsError } = await supabase
+    .from('profiles')
+    .select('*')
+    .in('id', authorIds);
+    
+  if (authorsError) {
+    console.error("Error fetching author profiles:", authorsError);
+  }
+  
+  // Create a map of authorId -> profile
+  const authorsMap = new Map();
+  authorsData?.forEach(author => {
+    authorsMap.set(author.id, author);
+  });
+
+  // Map the posts with authors and comment counts
+  return postsData.map(post => {
+    const authorProfile = authorsMap.get(post.author_id);
+    
+    return {
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      authorId: post.author_id,
+      author: authorProfile ? {
+        id: authorProfile.id,
+        username: authorProfile.username,
+        avatarUrl: authorProfile.avatar_url,
+        rank: authorProfile.rank
+      } : undefined,
+      imageUrls: post.image_urls || [],
+      commentCount: commentCountMap.get(post.id) || 0,
+      createdAt: post.created_at,
+      updatedAt: post.updated_at
+    };
+  });
 };
 
 // Get a specific post with comments
 export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
   const { data: post, error: postError } = await supabase
     .from('forum_posts')
-    .select(`
-      *,
-      profiles (id, username, avatar_url, rank)
-    `)
+    .select('*')
     .eq('id', postId)
     .single();
 
   if (postError) throw postError;
 
-  const { data: comments, error: commentsError } = await supabase
+  // Fetch the post author
+  const { data: authorData, error: authorError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', post.author_id)
+    .single();
+
+  if (authorError) {
+    console.error("Error fetching post author:", authorError);
+  }
+
+  // Fetch comments
+  const { data: commentsData, error: commentsError } = await supabase
     .from('forum_comments')
-    .select(`
-      *,
-      profiles (id, username, avatar_url, rank)
-    `)
+    .select('*')
     .eq('post_id', postId)
     .order('created_at', { ascending: true });
 
   if (commentsError) throw commentsError;
+
+  // Get comment authors
+  const commentAuthorIds = [...new Set(commentsData.map(comment => comment.author_id))];
+  
+  const { data: commentAuthorsData, error: commentAuthorsError } = await supabase
+    .from('profiles')
+    .select('*')
+    .in('id', commentAuthorIds);
+    
+  if (commentAuthorsError) {
+    console.error("Error fetching comment authors:", commentAuthorsError);
+  }
+  
+  // Create a map of authorId -> profile
+  const commentAuthorsMap = new Map();
+  commentAuthorsData?.forEach(author => {
+    commentAuthorsMap.set(author.id, author);
+  });
+
+  // Map the comments with authors
+  const mappedComments = commentsData.map(comment => {
+    const commentAuthor = commentAuthorsMap.get(comment.author_id);
+    
+    return {
+      id: comment.id,
+      postId: comment.post_id,
+      content: comment.content,
+      authorId: comment.author_id,
+      author: commentAuthor ? {
+        id: commentAuthor.id,
+        username: commentAuthor.username,
+        avatarUrl: commentAuthor.avatar_url,
+        rank: commentAuthor.rank
+      } : undefined,
+      createdAt: comment.created_at,
+      updatedAt: comment.updated_at
+    };
+  });
 
   return {
     id: post.id,
     title: post.title,
     content: post.content,
     authorId: post.author_id,
-    author: post.profiles ? {
-      id: post.profiles.id,
-      username: post.profiles.username,
-      avatarUrl: post.profiles.avatar_url,
-      rank: post.profiles.rank
+    author: authorData ? {
+      id: authorData.id,
+      username: authorData.username,
+      avatarUrl: authorData.avatar_url,
+      rank: authorData.rank
     } : undefined,
     imageUrls: post.image_urls || [],
-    comments: comments.map(comment => ({
-      id: comment.id,
-      postId: comment.post_id,
-      content: comment.content,
-      authorId: comment.author_id,
-      author: comment.profiles ? {
-        id: comment.profiles.id,
-        username: comment.profiles.username,
-        avatarUrl: comment.profiles.avatar_url,
-        rank: comment.profiles.rank
-      } : undefined,
-      createdAt: comment.created_at,
-      updatedAt: comment.updated_at
-    })),
+    comments: mappedComments,
     createdAt: post.created_at,
     updatedAt: post.updated_at
   };
