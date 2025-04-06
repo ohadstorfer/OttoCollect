@@ -72,7 +72,7 @@ const Catalog = () => {
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6">Ottoman Banknote Catalog</h1>
 
-      <div className="bg-card border rounded-lg p-6 mb-6">
+      
         <div className="max-w-md mx-auto">
           <Label htmlFor="search" className="mb-2 block">Search Countries</Label>
           <div className="relative">
@@ -86,7 +86,7 @@ const Catalog = () => {
             />
           </div>
         </div>
-      </div>
+      
 
       {loading ? (
         <div className="flex justify-center py-12">
