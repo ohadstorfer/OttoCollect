@@ -63,24 +63,24 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
     title: post.title,
     content: post.content,
     authorId: post.author_id,
-    author: {
-      id: post.author?.id,
-      username: post.author?.username,
-      avatarUrl: post.author?.avatar_url,
-      rank: post.author?.rank
-    },
+    author: post.author ? {
+      id: post.author.id,
+      username: post.author.username,
+      avatarUrl: post.author.avatar_url,
+      rank: post.author.rank
+    } : undefined,
     imageUrls: post.image_urls || [],
     comments: comments.map(comment => ({
       id: comment.id,
       postId: comment.post_id,
       content: comment.content,
       authorId: comment.author_id,
-      author: {
-        id: comment.author?.id,
-        username: comment.author?.username,
-        avatarUrl: comment.author?.avatar_url,
-        rank: comment.author?.rank
-      },
+      author: comment.author ? {
+        id: comment.author.id,
+        username: comment.author.username,
+        avatarUrl: comment.author.avatar_url,
+        rank: comment.author.rank
+      } : undefined,
       createdAt: comment.created_at,
       updatedAt: comment.updated_at
     })),

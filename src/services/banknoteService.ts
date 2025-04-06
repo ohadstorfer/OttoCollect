@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Banknote, DetailedBanknote } from "@/types";
 
@@ -70,6 +69,10 @@ export async function fetchDetailedBanknote(id: string): Promise<DetailedBanknot
     console.error('Error fetching detailed banknote:', error);
     return null;
   }
+}
+
+export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote | null> {
+  return fetchDetailedBanknote(id);
 }
 
 export async function fetchBanknotesByCategory(category: string): Promise<Banknote[]> {

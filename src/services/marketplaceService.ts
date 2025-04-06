@@ -55,7 +55,7 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
             purchasePrice: collectionItem.purchase_price,
             purchaseDate: collectionItem.purchase_date,
             location: collectionItem.location,
-            personalImages: collectionItem.personal_images,
+            personalImages: collectionItem.personal_images || [],
             orderIndex: collectionItem.order_index,
             createdAt: collectionItem.created_at,
             updatedAt: collectionItem.updated_at

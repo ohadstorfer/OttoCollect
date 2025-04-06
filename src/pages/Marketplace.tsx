@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -319,11 +318,11 @@ const Marketplace = () => {
           {/* Marketplace items grid */}
           {filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredItems.map((item, index) => (
+              {filteredItems.map((item) => (
                 <div 
                   key={item.id} 
                   className="reveal fade-bottom"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  style={{ animationDelay: `100ms` }}
                 >
                   <MarketplaceItem item={item} />
                 </div>
