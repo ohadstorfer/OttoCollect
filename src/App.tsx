@@ -16,6 +16,7 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import BanknoteDetail from "./pages/BanknoteDetail";
 import Admin from "./pages/Admin";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,8 @@ const App = () => (
                 <Route path="/community" element={<Community />} />
                 <Route path="/banknote/:id" element={<BanknoteDetail />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/:id" element={<Profile />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

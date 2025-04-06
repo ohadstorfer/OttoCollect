@@ -437,6 +437,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          about: string | null
           avatar_url: string | null
           country: string | null
           created_at: string
@@ -449,6 +450,7 @@ export type Database = {
           username: string
         }
         Insert: {
+          about?: string | null
           avatar_url?: string | null
           country?: string | null
           created_at?: string
@@ -461,6 +463,7 @@ export type Database = {
           username: string
         }
         Update: {
+          about?: string | null
           avatar_url?: string | null
           country?: string | null
           created_at?: string
@@ -546,6 +549,7 @@ export type Database = {
       get_current_user: {
         Args: Record<PropertyKey, never>
         Returns: {
+          about: string | null
           avatar_url: string | null
           country: string | null
           created_at: string

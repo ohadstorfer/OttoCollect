@@ -1,4 +1,3 @@
-
 export type UserRole = 'User' | 'Admin' | 'SuperAdmin';
 
 export type UserRank = 
@@ -28,6 +27,7 @@ export interface User {
   country?: string;  // Keep this as optional
   createdAt: string;
   avatarUrl?: string;
+  about?: string;    // Add about field for user bio
 }
 
 export type BanknoteCondition = 

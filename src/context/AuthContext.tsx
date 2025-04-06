@@ -1,4 +1,3 @@
-
 import { User, UserRank, UserRole } from "@/types";
 import { MOCK_USERS } from "@/lib/constants";
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -13,6 +12,7 @@ type AuthContextType = {
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   getUserRankFromPoints: (points: number, role: UserRole) => UserRank;
+  updateUserState: (updates: Partial<User>) => void;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -82,7 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           points: data.points,
           createdAt: data.created_at,
           avatarUrl: data.avatar_url || '/placeholder.svg',
-          ...(data.country && { country: data.country })
+          ...(data.country && { country: data.country }),
+          ...(data.about && { about: data.about })
         };
         setUser(userProfile);
       }
@@ -91,6 +92,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Update user state with new values
+  const updateUserState = (updates: Partial<User>) => {
+    if (user) {
+      setUser({...user, ...updates});
     }
   };
 
@@ -182,6 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     getUserRankFromPoints,
+    updateUserState,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -28,7 +28,7 @@ export async function fetchConversations(userId: string): Promise<any[]> {
         content,
         is_read,
         created_at,
-        receiver:receiver_id (id, username, avatar_url),
+        profiles:receiver_id (id, username, avatar_url),
         reference_item_id
       `)
       .eq('sender_id', userId)
@@ -43,7 +43,7 @@ export async function fetchConversations(userId: string): Promise<any[]> {
         content,
         is_read,
         created_at,
-        sender:sender_id (id, username, avatar_url),
+        profiles:sender_id (id, username, avatar_url),
         reference_item_id
       `)
       .eq('receiver_id', userId)
@@ -63,8 +63,8 @@ export async function fetchConversations(userId: string): Promise<any[]> {
     allMessages.forEach(message => {
       const otherUserId = message.sender_id === userId ? message.receiver_id : message.sender_id;
       const otherUser = message.sender_id === userId 
-        ? message.receiver 
-        : message.sender;
+        ? message.profiles 
+        : message.profiles;
       
       if (!conversationsMap.has(otherUserId)) {
         conversationsMap.set(otherUserId, {
