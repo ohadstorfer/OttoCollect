@@ -1,5 +1,5 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, TablesInsert, TablesRow } from "@/integrations/supabase/client";
 import { WishlistItem } from "@/types";
 import { fetchBanknoteById } from "./banknoteService";
 
@@ -51,14 +51,16 @@ export async function addToWishlist(
   try {
     console.log("Adding banknote to wishlist:", { userId, banknoteId, priority });
     
-    const { data: newItem, error } = await supabase
+    const newItem: TablesInsert<'wishlist_items'> = {
+      user_id: userId,
+      banknote_id: banknoteId,
+      priority: priority,
+      note: note
+    };
+
+    const { data: insertedItem, error } = await supabase
       .from('wishlist_items')
-      .insert({
-        user_id: userId,
-        banknote_id: banknoteId,
-        priority: priority,
-        note: note
-      })
+      .insert(newItem)
       .select('*')
       .single();
     
@@ -68,16 +70,16 @@ export async function addToWishlist(
     }
 
     // Fetch the banknote details
-    const banknote = await fetchBanknoteById(newItem.banknote_id);
+    const banknote = await fetchBanknoteById(insertedItem.banknote_id);
     
     const wishlistItem: WishlistItem = {
-      id: newItem.id,
-      userId: newItem.user_id,
-      banknoteId: newItem.banknote_id,
+      id: insertedItem.id,
+      userId: insertedItem.user_id,
+      banknoteId: insertedItem.banknote_id,
       banknote: banknote!,
-      priority: newItem.priority as 'Low' | 'Medium' | 'High',
-      note: newItem.note,
-      createdAt: newItem.created_at
+      priority: insertedItem.priority as 'Low' | 'Medium' | 'High',
+      note: insertedItem.note,
+      createdAt: insertedItem.created_at
     };
 
     return wishlistItem;

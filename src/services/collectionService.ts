@@ -1,5 +1,5 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, TablesInsert, TablesRow } from "@/integrations/supabase/client";
 import { BanknoteCondition, CollectionItem } from "@/types";
 import { fetchBanknoteById } from "./banknoteService";
 
@@ -74,18 +74,20 @@ export async function addToCollection(
     
     const orderIndex = highestItem && highestItem.length > 0 ? highestItem[0].order_index + 1 : 0;
     
-    const { data: newItem, error } = await supabase
+    const newItem: TablesInsert<'collection_items'> = {
+      user_id: userId,
+      banknote_id: banknoteId,
+      condition: condition,
+      purchase_price: purchasePrice,
+      purchase_date: purchaseDate,
+      public_note: publicNote,
+      private_note: privateNote,
+      order_index: orderIndex
+    };
+
+    const { data: insertedItem, error } = await supabase
       .from('collection_items')
-      .insert({
-        user_id: userId,
-        banknote_id: banknoteId,
-        condition: condition,
-        purchase_price: purchasePrice,
-        purchase_date: purchaseDate,
-        public_note: publicNote,
-        private_note: privateNote,
-        order_index: orderIndex
-      })
+      .insert(newItem)
       .select('*')
       .single();
     
@@ -95,25 +97,25 @@ export async function addToCollection(
     }
 
     // Fetch the banknote details
-    const banknote = await fetchBanknoteById(newItem.banknote_id);
+    const banknote = await fetchBanknoteById(insertedItem.banknote_id);
     
     const collectionItem: CollectionItem = {
-      id: newItem.id,
-      userId: newItem.user_id,
-      banknoteId: newItem.banknote_id,
+      id: insertedItem.id,
+      userId: insertedItem.user_id,
+      banknoteId: insertedItem.banknote_id,
       banknote: banknote!,
-      condition: newItem.condition as BanknoteCondition,
-      salePrice: newItem.sale_price,
-      isForSale: newItem.is_for_sale,
-      publicNote: newItem.public_note,
-      privateNote: newItem.private_note,
-      purchasePrice: newItem.purchase_price,
-      purchaseDate: newItem.purchase_date,
-      location: newItem.location,
-      personalImages: newItem.personal_images,
-      orderIndex: newItem.order_index,
-      createdAt: newItem.created_at,
-      updatedAt: newItem.updated_at
+      condition: insertedItem.condition as BanknoteCondition,
+      salePrice: insertedItem.sale_price,
+      isForSale: insertedItem.is_for_sale,
+      publicNote: insertedItem.public_note,
+      privateNote: insertedItem.private_note,
+      purchasePrice: insertedItem.purchase_price,
+      purchaseDate: insertedItem.purchase_date,
+      location: insertedItem.location,
+      personalImages: insertedItem.personal_images,
+      orderIndex: insertedItem.order_index,
+      createdAt: insertedItem.created_at,
+      updatedAt: insertedItem.updated_at
     };
 
     return collectionItem;
@@ -148,7 +150,7 @@ export async function updateCollectionItem(
 ): Promise<boolean> {
   try {
     // Convert from our frontend model to database model
-    const dbUpdates: any = {};
+    const dbUpdates: TablesInsert<'collection_items'> = {};
     
     if (updates.condition) dbUpdates.condition = updates.condition;
     if (updates.salePrice !== undefined) dbUpdates.sale_price = updates.salePrice;
