@@ -61,7 +61,7 @@ const Catalog = () => {
                 <SelectValue placeholder="All Regions" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Regions</SelectItem>
+                <SelectItem value="all">All Regions</SelectItem>
                 {OTTOMAN_REGIONS.map((region) => (
                   <SelectItem key={region} value={region}>{region}</SelectItem>
                 ))}

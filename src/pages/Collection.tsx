@@ -92,7 +92,7 @@ const Collection = () => {
                     <SelectValue placeholder="All Conditions" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Conditions</SelectItem>
+                    <SelectItem value="all">All Conditions</SelectItem>
                     <SelectItem value="UNC">UNC</SelectItem>
                     <SelectItem value="AU">AU</SelectItem>
                     <SelectItem value="XF">XF</SelectItem>
