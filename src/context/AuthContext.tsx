@@ -1,6 +1,4 @@
-
 import { User, UserRank, UserRole } from "@/types";
-import { MOCK_USERS } from "@/lib/constants";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,14 +29,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize user session on load
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, sessionData) => {
         setSession(sessionData);
         
-        // When the session changes, fetch the user profile
         if (sessionData?.user) {
           fetchUserProfile(sessionData.user.id);
         } else {
@@ -47,7 +42,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       if (currentSession?.user) {
@@ -60,7 +54,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch user profile from profiles table
   const fetchUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -73,7 +66,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error("Error fetching user profile:", error);
         setUser(null);
       } else if (data) {
-        // Transform database user to our User type
         const userProfile: User = {
           id: data.id,
           username: data.username,
@@ -96,7 +88,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Update user state with new values
   const updateUserState = (updates: Partial<User>) => {
     if (user) {
       setUser({...user, ...updates});

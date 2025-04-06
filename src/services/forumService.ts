@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ForumPost, ForumComment } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
@@ -63,24 +62,24 @@ export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
     title: post.title,
     content: post.content,
     authorId: post.author_id,
-    author: post.author ? {
-      id: post.author.id,
-      username: post.author.username,
-      avatarUrl: post.author.avatar_url,
-      rank: post.author.rank
-    } : undefined,
+    author: {
+      id: post.author?.id,
+      username: post.author?.username,
+      avatarUrl: post.author?.avatar_url,
+      rank: post.author?.rank
+    },
     imageUrls: post.image_urls || [],
     comments: comments.map(comment => ({
       id: comment.id,
       postId: comment.post_id,
       content: comment.content,
       authorId: comment.author_id,
-      author: comment.author ? {
-        id: comment.author.id,
-        username: comment.author.username,
-        avatarUrl: comment.author.avatar_url,
-        rank: comment.author.rank
-      } : undefined,
+      author: {
+        id: comment.author?.id,
+        username: comment.author?.username,
+        avatarUrl: comment.author?.avatar_url,
+        rank: comment.author?.rank
+      },
       createdAt: comment.created_at,
       updatedAt: comment.updated_at
     })),
