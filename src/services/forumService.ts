@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Get all forum posts
 export const fetchForumPosts = async (): Promise<ForumPost[]> => {
+  // First fetch all posts
   const { data: postsData, error: postsError } = await supabase
     .from('forum_posts')
     .select('*')
@@ -12,26 +13,26 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
 
   if (postsError) throw postsError;
 
-  // Get comment counts for each post
+  // Get comment counts for each post using a separate query
   const postIds = postsData.map(post => post.id);
   
-  // Get comment counts using a count aggregation
-  const { data: commentCounts, error: countError } = await supabase
-    .from('forum_comments')
-    .select('post_id, count')
-    .in('post_id', postIds)
-    .select('post_id, count(*)');
-    
-  if (countError) {
-    console.error("Error fetching comment counts:", countError);
+  // Get comment counts by counting comments for each post
+  let commentCounts: { [postId: string]: number } = {};
+  
+  // For each post, count its comments
+  for (const postId of postIds) {
+    const { count, error } = await supabase
+      .from('forum_comments')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId);
+      
+    if (error) {
+      console.error("Error counting comments for post", postId, error);
+    } else {
+      commentCounts[postId] = count || 0;
+    }
   }
   
-  // Create a map of postId -> comment count
-  const commentCountMap = new Map();
-  commentCounts?.forEach(item => {
-    commentCountMap.set(item.post_id, parseInt(item.count));
-  });
-
   // Fetch author profiles separately
   const authorIds = [...new Set(postsData.map(post => post.author_id))];
   
@@ -66,7 +67,7 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
         rank: authorProfile.rank as UserRank
       } : undefined,
       imageUrls: post.image_urls || [],
-      commentCount: commentCountMap.get(post.id) || 0,
+      commentCount: commentCounts[post.id] || 0,
       createdAt: post.created_at,
       updatedAt: post.updated_at
     };

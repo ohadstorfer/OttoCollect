@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { ForumComment as ForumCommentType } from "@/types";
 import { formatDistanceToNow } from "date-fns";
@@ -72,7 +73,7 @@ export const ForumCommentComponent: React.FC<ForumCommentProps> = ({
       setIsSubmitting(false);
     }
   };
-  return <div className="flex gap-3 py-0 border-b last:border-0">
+  return <div className="flex gap-3 py-4 border-b last:border-0 my-2">
       <Avatar className="h-8 w-8">
         <AvatarImage src={comment.author?.avatarUrl} />
         <AvatarFallback>{comment.author?.username?.charAt(0).toUpperCase()}</AvatarFallback>
