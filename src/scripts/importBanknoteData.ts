@@ -36,19 +36,25 @@ export async function importBanknoteData(csvData: string) {
   
   // Insert data in batches
   const batchSize = 50;
+  let importedCount = 0;
+  
   for (let i = 0; i < banknotes.length; i += batchSize) {
     const batch = banknotes.slice(i, i + batchSize);
-    const { error } = await supabase.from("detailed_banknotes").insert(batch);
+    // Using `from` with a type assertion to handle the TypeScript errors
+    const { error } = await supabase
+      .from('detailed_banknotes' as any)
+      .insert(batch);
     
     if (error) {
       console.error(`Error inserting batch ${i / batchSize}:`, error);
     } else {
       console.log(`Successfully inserted batch ${i / batchSize + 1}`);
+      importedCount += batch.length;
     }
   }
   
-  console.log(`Import complete, processed ${banknotes.length} banknotes`);
-  return banknotes.length;
+  console.log(`Import complete, processed ${importedCount} banknotes`);
+  return importedCount;
 }
 
 // Helper function to correctly parse CSV lines that might contain commas within quotes

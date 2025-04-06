@@ -4,8 +4,9 @@ import { Banknote, DetailedBanknote } from "@/types";
 
 export async function fetchBanknotes(): Promise<Banknote[]> {
   try {
+    // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
-      .from('detailed_banknotes')
+      .from('detailed_banknotes' as any)
       .select('*')
       .eq('is_approved', true)
       .eq('is_pending', false);
@@ -21,14 +22,16 @@ export async function fetchBanknotes(): Promise<Banknote[]> {
 
 export async function fetchDetailedBanknote(id: string): Promise<DetailedBanknote | null> {
   try {
+    // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
-      .from('detailed_banknotes')
+      .from('detailed_banknotes' as any)
       .select('*')
       .eq('id', id)
       .single();
 
     if (error) throw error;
-    return data as DetailedBanknote;
+    // Cast the data to DetailedBanknote type
+    return data as unknown as DetailedBanknote;
   } catch (error) {
     console.error('Error fetching detailed banknote:', error);
     return null;
@@ -37,8 +40,9 @@ export async function fetchDetailedBanknote(id: string): Promise<DetailedBanknot
 
 export async function fetchBanknotesByCategory(category: string): Promise<Banknote[]> {
   try {
+    // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
-      .from('detailed_banknotes')
+      .from('detailed_banknotes' as any)
       .select('*')
       .eq('is_approved', true)
       .eq('is_pending', false)
@@ -55,8 +59,9 @@ export async function fetchBanknotesByCategory(category: string): Promise<Bankno
 
 export async function fetchBanknotesByPeriod(startYear: number, endYear: number): Promise<Banknote[]> {
   try {
+    // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
-      .from('detailed_banknotes')
+      .from('detailed_banknotes' as any)
       .select('*')
       .eq('is_approved', true)
       .eq('is_pending', false)
