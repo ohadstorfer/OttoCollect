@@ -136,6 +136,9 @@ export default function BanknoteDetail() {
     setSelectedImage(imageUrl);
   };
   
+  // Make sure imageUrls is an array, provide default if it's not
+  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
+  
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
       {/* Header Section */}
@@ -179,27 +182,35 @@ export default function BanknoteDetail() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
-                  {banknote.imageUrls.slice(0, 4).map((url, index) => (
-                    <div 
-                      key={index} 
-                      className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={() => openImageViewer(url)}
-                    >
-                      <div className="absolute inset-0 rounded-md overflow-hidden border">
-                        <img
-                          src={url}
-                          alt={`Banknote Image ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                  {imageUrls.length > 0 ? (
+                    // Display images if available
+                    imageUrls.slice(0, 4).map((url, index) => (
+                      <div 
+                        key={index} 
+                        className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => openImageViewer(url)}
+                      >
+                        <div className="absolute inset-0 rounded-md overflow-hidden border">
+                          <img
+                            src={url}
+                            alt={`Banknote Image ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    // Display placeholder if no images
+                    <div className="col-span-2 p-6 text-center bg-muted rounded-md">
+                      <p className="text-muted-foreground">No images available</p>
                     </div>
-                  ))}
+                  )}
                   
-                  {banknote.imageUrls.length > 4 && (
+                  {imageUrls.length > 4 && (
                     <Sheet>
                       <SheetTrigger asChild>
                         <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
-                          <span className="text-lg font-medium">+{banknote.imageUrls.length - 4} more</span>
+                          <span className="text-lg font-medium">+{imageUrls.length - 4} more</span>
                         </div>
                       </SheetTrigger>
                       <SheetContent className="w-[90%] sm:max-w-lg">
@@ -210,7 +221,7 @@ export default function BanknoteDetail() {
                           </SheetDescription>
                         </SheetHeader>
                         <div className="grid grid-cols-2 gap-4 mt-8">
-                          {banknote.imageUrls.map((url, index) => (
+                          {imageUrls.map((url, index) => (
                             <div 
                               key={index} 
                               className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
