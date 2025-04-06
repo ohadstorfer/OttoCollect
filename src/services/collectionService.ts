@@ -37,7 +37,8 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
           purchasePrice: item.purchase_price,
           purchaseDate: item.purchase_date,
           location: item.location,
-          personalImages: item.personal_images,
+          obverseImage: item.obverse_image,
+          reverseImage: item.reverse_image,
           orderIndex: item.order_index,
           createdAt: item.created_at,
           updatedAt: item.updated_at
@@ -112,7 +113,8 @@ export async function addToCollection(
       purchasePrice: insertedItem.purchase_price,
       purchaseDate: insertedItem.purchase_date,
       location: insertedItem.location,
-      personalImages: insertedItem.personal_images,
+      obverseImage: insertedItem.obverse_image,
+      reverseImage: insertedItem.reverse_image,
       orderIndex: insertedItem.order_index,
       createdAt: insertedItem.created_at,
       updatedAt: insertedItem.updated_at
@@ -165,7 +167,8 @@ export async function updateCollectionItem(
     if (updates.purchasePrice !== undefined) dbUpdates.purchase_price = updates.purchasePrice;
     if (updates.purchaseDate !== undefined) dbUpdates.purchase_date = updates.purchaseDate;
     if (updates.location !== undefined) dbUpdates.location = updates.location;
-    if (updates.personalImages !== undefined) dbUpdates.personal_images = updates.personalImages;
+    if (updates.obverseImage !== undefined) dbUpdates.obverse_image = updates.obverseImage;
+    if (updates.reverseImage !== undefined) dbUpdates.reverse_image = updates.reverseImage;
     if (updates.orderIndex !== undefined) dbUpdates.order_index = updates.orderIndex;
     
     // Remove undefined fields
@@ -188,6 +191,36 @@ export async function updateCollectionItem(
     return true;
   } catch (error) {
     console.error("Error in updateCollectionItem:", error);
+    return false;
+  }
+}
+
+// Add function to update collection item images
+export async function updateCollectionItemImages(
+  collectionItemId: string,
+  obverseImage?: string,
+  reverseImage?: string
+): Promise<boolean> {
+  try {
+    const updates: any = {};
+    if (obverseImage !== undefined) updates.obverse_image = obverseImage;
+    if (reverseImage !== undefined) updates.reverse_image = reverseImage;
+    
+    if (Object.keys(updates).length === 0) return true; // Nothing to update
+    
+    const { error } = await supabase
+      .from('collection_items')
+      .update(updates)
+      .eq('id', collectionItemId);
+    
+    if (error) {
+      console.error("Error updating collection item images:", error);
+      throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error in updateCollectionItemImages:", error);
     return false;
   }
 }

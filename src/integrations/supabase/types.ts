@@ -149,12 +149,13 @@ export type Database = {
           id: string
           is_for_sale: boolean
           location: string | null
+          obverse_image: string | null
           order_index: number
-          personal_images: string[] | null
           private_note: string | null
           public_note: string | null
           purchase_date: string | null
           purchase_price: number | null
+          reverse_image: string | null
           sale_price: number | null
           updated_at: string
           user_id: string
@@ -166,12 +167,13 @@ export type Database = {
           id?: string
           is_for_sale?: boolean
           location?: string | null
+          obverse_image?: string | null
           order_index?: number
-          personal_images?: string[] | null
           private_note?: string | null
           public_note?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
+          reverse_image?: string | null
           sale_price?: number | null
           updated_at?: string
           user_id: string
@@ -183,12 +185,13 @@ export type Database = {
           id?: string
           is_for_sale?: boolean
           location?: string | null
+          obverse_image?: string | null
           order_index?: number
-          personal_images?: string[] | null
           private_note?: string | null
           public_note?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
+          reverse_image?: string | null
           sale_price?: number | null
           updated_at?: string
           user_id?: string

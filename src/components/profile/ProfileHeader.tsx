@@ -1,6 +1,6 @@
 
 import React from "react";
-import { User, UserRank } from "@/types";
+import { User } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getInitials } from "@/lib/utils";

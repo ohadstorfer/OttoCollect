@@ -12,6 +12,7 @@ import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export default function Profile() {
   const { id } = useParams<{ id: string }>();
@@ -81,10 +82,7 @@ export default function Profile() {
     <div className="page-container animate-fade-in">
       <div className="max-w-4xl mx-auto">
         {/* Profile Header is always visible */}
-        <ProfileHeader 
-          profile={profile} 
-          onEditClick={isOwnProfile ? () => setIsEditing(true) : undefined} 
-        />
+        <ProfileHeader profile={profile} />
         
         {isEditing ? (
           <Card className="mt-6">

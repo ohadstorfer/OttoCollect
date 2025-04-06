@@ -17,6 +17,7 @@ interface CollectionCardProps {
 
 const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCardProps) => {
   const [isHovering, setIsHovering] = useState(false);
+  const [showReverse, setShowReverse] = useState(false);
   const navigate = useNavigate();
   
   const { banknote, condition, salePrice, isForSale } = item;
@@ -37,6 +38,15 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
     }
   };
   
+  // Determine what image to show
+  const getDisplayImage = () => {
+    if (showReverse) {
+      return item.reverseImage || (banknote.imageUrls && banknote.imageUrls.length > 1 ? banknote.imageUrls[1] : '/placeholder-brown.svg');
+    } else {
+      return item.obverseImage || (banknote.imageUrls && banknote.imageUrls.length > 0 ? banknote.imageUrls[0] : '/placeholder-brown.svg');
+    }
+  };
+  
   return (
     <Card 
       className={cn(
@@ -48,25 +58,22 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
       onMouseLeave={() => setIsHovering(false)}
     >
       <div className="relative">
-        <div className="aspect-[4/3] overflow-hidden">
-          {item.personalImages && item.personalImages.length > 0 ? (
-            <img
-              src={item.personalImages[0]}
-              alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-              className={cn(
-                "w-full h-full object-cover transition-transform duration-500",
-                isHovering ? "scale-110" : "scale-100"
-              )}
-            />
-          ) : (
-            <img
-              src={banknote.imageUrls[0] || '/placeholder.svg'}
-              alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-              className={cn(
-                "w-full h-full object-cover transition-transform duration-500",
-                isHovering ? "scale-110" : "scale-100"
-              )}
-            />
+        <div 
+          className="aspect-[4/3] overflow-hidden cursor-pointer"
+          onClick={() => setShowReverse(!showReverse)}
+        >
+          <img
+            src={getDisplayImage()}
+            alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) ${showReverse ? 'Reverse' : 'Obverse'}`}
+            className={cn(
+              "w-full h-full object-cover transition-transform duration-500",
+              isHovering ? "scale-110" : "scale-100"
+            )}
+          />
+          {(item.obverseImage || item.reverseImage) && (
+            <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+              {showReverse ? 'Reverse' : 'Obverse'} (Click to flip)
+            </div>
           )}
         </div>
         

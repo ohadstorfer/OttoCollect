@@ -142,7 +142,7 @@ export function ProfileCollection({ profile, isOwnProfile }: ProfileCollectionPr
                       <BanknoteDetailCard
                         key={item.id}
                         banknote={item.banknote}
-                        source="wishlist"
+                        source="wish-list"
                       />
                     ))}
                   </div>

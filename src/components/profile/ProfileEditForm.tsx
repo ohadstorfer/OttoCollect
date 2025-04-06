@@ -9,6 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { updateUserProfile, uploadAvatar } from "@/services/profileService";
 import { Camera } from "lucide-react";
 import { getInitials } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ProfileEditFormProps {
   profile: User;
@@ -36,13 +37,13 @@ export function ProfileEditForm({ profile, onProfileUpdated, onCancel }: Profile
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast.error('Please select an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
+      toast.error('Image size should be less than 5MB');
       return;
     }
 
@@ -51,7 +52,11 @@ export function ProfileEditForm({ profile, onProfileUpdated, onCancel }: Profile
       const newAvatarUrl = await uploadAvatar(profile.id, file);
       if (newAvatarUrl) {
         setAvatarUrl(newAvatarUrl);
+        toast.success('Profile picture updated successfully');
       }
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast.error('Failed to upload profile picture');
     } finally {
       setUploading(false);
     }
@@ -74,7 +79,11 @@ export function ProfileEditForm({ profile, onProfileUpdated, onCancel }: Profile
           about: about.trim() || undefined,
           avatarUrl: avatarUrl || profile.avatarUrl
         });
+        toast.success('Profile updated successfully');
       }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error('Failed to update profile');
     } finally {
       setSaving(false);
     }

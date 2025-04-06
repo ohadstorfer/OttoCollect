@@ -27,7 +27,7 @@ export async function getUserProfile(userId: string): Promise<User | null> {
       rank: data.rank as UserRank,
       points: data.points,
       createdAt: data.created_at,
-      avatarUrl: data.avatar_url || '/placeholder.svg',
+      avatarUrl: data.avatar_url || '/placeholder-brown.svg',
       ...(data.country && { country: data.country }),
       ...(data.about && { about: data.about }),
     };
@@ -42,7 +42,7 @@ export async function getUserProfile(userId: string): Promise<User | null> {
 // Update a user's profile
 export async function updateUserProfile(
   userId: string,
-  updates: { about?: string; username?: string }
+  updates: { about?: string | null; username?: string }
 ): Promise<boolean> {
   try {
     const { error } = await supabase
@@ -73,13 +73,15 @@ export async function uploadAvatar(
   try {
     // Create a unique file name
     const fileExt = file.name.split('.').pop();
-    const fileName = `${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${fileName}`;
+    const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
     // Upload the file to Supabase storage
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, file);
+    const { error: uploadError, data } = await supabase.storage
+      .from('profile_pictures')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
     if (uploadError) {
       console.error("Error uploading avatar:", uploadError);
@@ -88,11 +90,11 @@ export async function uploadAvatar(
     }
 
     // Get the public URL
-    const { data } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath);
+    const { data: urlData } = supabase.storage
+      .from('profile_pictures')
+      .getPublicUrl(fileName);
 
-    const avatarUrl = data.publicUrl;
+    const avatarUrl = urlData.publicUrl;
 
     // Update the user's profile with the new avatar URL
     const { error: updateError } = await supabase
@@ -106,7 +108,6 @@ export async function uploadAvatar(
       return null;
     }
 
-    toast.success("Avatar updated successfully");
     return avatarUrl;
   } catch (error) {
     console.error("Error in uploadAvatar:", error);
