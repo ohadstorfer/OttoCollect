@@ -73,7 +73,7 @@ const Catalog = () => {
       <h1 className="text-3xl font-bold mb-6">Ottoman Banknote Catalog</h1>
 
       
-        <div className="max-w-md mx-auto">
+        <div className="max-w-md mx-auto mb-4">
           <Label htmlFor="search" className="mb-2 block">Search Countries</Label>
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
