@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,24 +7,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { SearchIcon } from "lucide-react";
 
-interface CountryData {
-  name: string;
-  count: number;
-  imageUrl: string | null;
-}
-
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [banknotes, setBanknotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [countries, setCountries] = useState<CountryData[]>([]);
-
-  // Catalog images for specific countries
-  const countryImages = {
-    'Ottoman Empire': '/images/ottoman-empire.jpg',
-    'Palestine': '/images/palestine-mandate.jpg'
-  };
+  const [countries, setCountries] = useState([]);
 
   // Fetch banknotes on component mount
   useEffect(() => {
@@ -36,18 +23,18 @@ const Catalog = () => {
         setBanknotes(data);
         
         // Extract unique countries and count banknotes for each
-        const countryMap = data.reduce((acc: Record<string, CountryData>, banknote: any) => {
+        const countryMap = data.reduce((acc, banknote) => {
           if (!acc[banknote.country]) {
             acc[banknote.country] = {
               name: banknote.country,
               count: 0,
-              imageUrl: countryImages[banknote.country as keyof typeof countryImages] || null
+              imageUrl: null
             };
           }
           
           acc[banknote.country].count += 1;
           
-          // Use the first banknote image as the country image if not set yet and no specific image is defined
+          // Use the first banknote image as the country image if not set yet
           if (!acc[banknote.country].imageUrl && banknote.imageUrls && banknote.imageUrls.length > 0) {
             acc[banknote.country].imageUrl = banknote.imageUrls[0];
           }
