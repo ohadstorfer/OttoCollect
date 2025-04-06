@@ -13,6 +13,16 @@ import { ForumCommentComponent } from "@/components/forum/ForumComment";
 import { AddCommentForm } from "@/components/forum/AddCommentForm";
 import { formatDistanceToNow, format } from "date-fns";
 import { ArrowLeft, Calendar, Pencil, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ForumPostDetail() {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +32,7 @@ export default function ForumPostDetail() {
   const [post, setPost] = useState<ForumPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     const loadPost = async () => {
@@ -48,9 +59,7 @@ export default function ForumPostDetail() {
   }, [id, navigate, toast]);
 
   const handleDeletePost = async () => {
-    if (!post || !confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
-      return;
-    }
+    if (!post) return;
     
     setDeleting(true);
     try {
@@ -153,7 +162,7 @@ export default function ForumPostDetail() {
             </Button>
             <Button 
               variant="destructive"
-              onClick={handleDeletePost}
+              onClick={() => setShowDeleteDialog(true)}
               disabled={deleting}
             >
               <Trash2 className="mr-2 h-4 w-4" />
@@ -162,6 +171,28 @@ export default function ForumPostDetail() {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your post and all associated comments.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeletePost}
+              disabled={deleting} 
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? "Deleting..." : "Delete Post"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Post header */}
       <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
