@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@/types";
+import { User, UserRole } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,12 +29,12 @@ export default function Members() {
         
         if (error) throw error;
         
-        // Map Supabase database fields to our User type
+        // Map Supabase database fields to our User type with proper type casting
         const mappedData: User[] = (data || []).map(profile => ({
           id: profile.id,
           username: profile.username,
           email: profile.email,
-          role: profile.role,
+          role: profile.role as UserRole, // Cast to UserRole type
           rank: profile.rank,
           points: profile.points,
           createdAt: profile.created_at,

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchForumPosts } from "@/services/forumService";
@@ -41,7 +40,6 @@ export default function Forum() {
     loadPosts();
   }, [toast]);
 
-  // Filter and sort posts
   const filteredPosts = posts
     .filter(post => 
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

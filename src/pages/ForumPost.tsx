@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { AddCommentForm } from "@/components/forum/AddCommentForm";
 import ForumComment from "@/components/forum/ForumComment";
 import { fetchForumPost, deleteForumPost } from "@/services/forumService";
-import { ForumPost as ForumPostType } from "@/types";
+import { ForumPost as ForumPostType, ForumComment as ForumCommentType } from "@/types";
 import { ArrowLeft, Calendar, Trash2, Edit, AlertTriangle, Users } from "lucide-react";
 import { format } from "date-fns";
 import { useAuth } from "@/context/AuthContext";
@@ -58,6 +58,11 @@ export default function ForumPost() {
       console.error("Error deleting post:", error);
       toast.error("Failed to delete post");
     }
+  };
+
+  // Handler for adding comments that's compatible with the AddCommentForm component
+  const handleCommentAdded = (comment: ForumCommentType) => {
+    refetch();
   };
 
   if (isLoading) {
@@ -192,7 +197,7 @@ export default function ForumPost() {
           <h2 className="text-xl font-bold mb-4">Comments ({post.comments?.length || 0})</h2>
           
           {user ? (
-            <AddCommentForm postId={post.id} onCommentAdded={refetch} />
+            <AddCommentForm postId={post.id} onCommentAdded={handleCommentAdded} />
           ) : (
             <Card className="mb-6">
               <CardContent className="py-4">
