@@ -1,7 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceItem, UserRank } from "@/types";
-import { fetchBanknoteById } from "./banknoteService";
+import { fetchCollectionItem } from "./collectionService";
 
 export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
   try {
@@ -25,17 +24,10 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
     const enrichedItems = await Promise.all(
       (marketplaceItems || []).map(async (item) => {
         try {
-          // Get banknote details for the collection item
-          const collectionItem = item.collection_item;
-          if (!collectionItem || !collectionItem.banknote_id) {
-            console.log(`Skipping item ${item.id} - missing collection item or banknote id`);
-            return null;
-          }
-          
-          console.log(`Fetching banknote for collection item: ${collectionItem.banknote_id}`);
-          const banknote = await fetchBanknoteById(collectionItem.banknote_id);
-          if (!banknote) {
-            console.log(`Banknote not found for collection item: ${collectionItem.banknote_id}`);
+          // Get collection item details
+          const collectionItem = await fetchCollectionItem(item.collection_item_id);
+          if (!collectionItem) {
+            console.log(`Collection item not found: ${item.collection_item_id}`);
             return null;
           }
           
@@ -56,29 +48,7 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           return {
             id: item.id,
             collectionItemId: item.collection_item_id,
-            collectionItem: {
-              id: collectionItem.id,
-              userId: collectionItem.user_id,
-              banknoteId: collectionItem.banknote_id,
-              banknote: banknote,
-              condition: collectionItem.condition,
-              salePrice: collectionItem.sale_price,
-              isForSale: collectionItem.is_for_sale,
-              publicNote: collectionItem.public_note,
-              privateNote: collectionItem.private_note,
-              purchasePrice: collectionItem.purchase_price,
-              purchaseDate: collectionItem.purchase_date,
-              location: collectionItem.location,
-              orderIndex: collectionItem.order_index,
-              createdAt: collectionItem.created_at,
-              updatedAt: collectionItem.updated_at,
-              obverseImage: collectionItem.obverse_image,
-              reverseImage: collectionItem.reverse_image,
-              personalImages: [
-                collectionItem.obverse_image,
-                collectionItem.reverse_image
-              ].filter(Boolean) as string[]
-            },
+            collectionItem: collectionItem,
             sellerId: item.seller_id,
             seller,
             status: item.status,
@@ -248,9 +218,12 @@ export async function getMarketplaceItemForCollectionItem(
     
     if (!data) return null;
     
-    // Get banknote details
-    const collectionItem = data.collection_item;
-    const banknote = await fetchBanknoteById(collectionItem.banknote_id);
+    // Get collection item details
+    const collectionItem = await fetchCollectionItem(collectionItemId);
+    if (!collectionItem) {
+      console.log(`Collection item not found: ${collectionItemId}`);
+      return null;
+    }
     
     // Get seller info
     const { data: sellerData } = await supabase
@@ -268,29 +241,7 @@ export async function getMarketplaceItemForCollectionItem(
     return {
       id: data.id,
       collectionItemId: data.collection_item_id,
-      collectionItem: {
-        id: collectionItem.id,
-        userId: collectionItem.user_id,
-        banknoteId: collectionItem.banknote_id,
-        banknote: banknote!,
-        condition: collectionItem.condition,
-        salePrice: collectionItem.sale_price,
-        isForSale: collectionItem.is_for_sale,
-        publicNote: collectionItem.public_note,
-        privateNote: collectionItem.private_note,
-        purchasePrice: collectionItem.purchase_price,
-        purchaseDate: collectionItem.purchase_date,
-        location: collectionItem.location,
-        orderIndex: collectionItem.order_index,
-        createdAt: collectionItem.created_at,
-        updatedAt: collectionItem.updated_at,
-        obverseImage: collectionItem.obverse_image,
-        reverseImage: collectionItem.reverse_image,
-        personalImages: [
-          collectionItem.obverse_image,
-          collectionItem.reverse_image
-        ].filter(Boolean) as string[]
-      },
+      collectionItem: collectionItem,
       sellerId: data.seller_id,
       seller,
       status: data.status,

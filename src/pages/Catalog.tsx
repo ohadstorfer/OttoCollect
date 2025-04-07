@@ -79,14 +79,38 @@ const Catalog = () => {
   );
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-6">Ottoman Banknote Catalog</h1>
+    <div className=" min-h-screen animate-fade-in">
+      
+
+
+
+      <section className="bg-dark-600 py-20 mb-4 relative overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <div
+            className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] bg-dark-500/40 shadow-xl shadow-ottoman-900/20 ring-1 ring-inset ring-ottoman-900/10"
+            aria-hidden="true"
+          />
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-center text-parchment-500  fade-bottom">
+          Ottoman Banknote Catalog
+          </h1>
+          <p className="mt-4 text-center text-ottoman-300 max-w-2xl mx-auto  fade-bottom">
+          Explore these notable Ottoman Empire banknotes from our extensive catalog
+          </p>
+          
+         
+        </div>
+      </section>
+
+
 
       
         <div className="max-w-md mx-auto mb-4">
-          <Label htmlFor="search" className="mb-2 block">Search Countries</Label>
-          <div className="relative">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          
+          <div className="relative ">
+            <SearchIcon className="mb-2 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               id="search"
               placeholder="Search by country name"

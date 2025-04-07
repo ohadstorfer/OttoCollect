@@ -1,4 +1,3 @@
-
 import { supabase, TablesInsert, TablesRow } from "@/integrations/supabase/client";
 import { BanknoteCondition, CollectionItem } from "@/types";
 import { fetchBanknoteById } from "./banknoteService";
@@ -55,27 +54,52 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
 
 export async function fetchCollectionItem(itemId: string): Promise<CollectionItem | null> {
   try {
+    // First check if the item exists
     const { data: item, error } = await supabase
       .from('collection_items')
-      .select('*')
+      .select(`
+        id,
+        user_id,
+        banknote_id,
+        condition,
+        sale_price,
+        is_for_sale,
+        public_note,
+        private_note,
+        purchase_price,
+        purchase_date,
+        location,
+        obverse_image,
+        reverse_image,
+        order_index,
+        created_at,
+        updated_at
+      `)
       .eq('id', itemId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching collection item:", error);
-      throw error;
+      return null;
     }
 
-    if (!item) return null;
+    if (!item) {
+      console.log(`Collection item not found: ${itemId}`);
+      return null;
+    }
 
     // Fetch the banknote details
     const banknote = await fetchBanknoteById(item.banknote_id);
+    if (!banknote) {
+      console.error(`Banknote not found for collection item: ${item.banknote_id}`);
+      return null;
+    }
     
     return {
       id: item.id,
       userId: item.user_id,
       banknoteId: item.banknote_id,
-      banknote: banknote!,
+      banknote: banknote,
       condition: item.condition as BanknoteCondition,
       salePrice: item.sale_price,
       isForSale: item.is_for_sale,
