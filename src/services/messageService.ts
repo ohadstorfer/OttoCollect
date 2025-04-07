@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Message, Conversation } from "@/types/message";
+import { Message } from "@/types/message";
+import { Conversation } from "@/types/message";
 
 // Helper function to convert database message to our Message type
 const mapDbMessageToMessage = (dbMessage: any): Message => {
@@ -129,10 +130,12 @@ export async function fetchMessages(userId: string, otherUserId: string): Promis
     
     // Mark unread messages as read
     try {
-      await supabase.rpc('mark_messages_as_read', {
-        from_user_id: otherUserId,
-        to_user_id: userId
-      });
+      await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('sender_id', otherUserId)
+        .eq('receiver_id', userId)
+        .eq('is_read', false);
     } catch (markError) {
       console.error("Error marking messages as read:", markError);
     }

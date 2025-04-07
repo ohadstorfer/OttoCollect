@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AddCommentForm } from "@/components/forum/AddCommentForm";
-import ForumComment from "@/components/forum/ForumComment";
+import { Comment } from "@/components/forum/ForumComment";
 import { fetchForumPost, deleteForumPost } from "@/services/forumService";
-import { ForumPost as ForumPostType, ForumComment as ForumCommentType } from "@/types";
+import { ForumPost as ForumPostType, ForumComment as ForumCommentType } from "@/types/forum";
 import { ArrowLeft, Calendar, Trash2, Edit, AlertTriangle, Users } from "lucide-react";
 import { format } from "date-fns";
 import { useAuth } from "@/context/AuthContext";
@@ -250,7 +250,7 @@ export default function ForumPost() {
           <div className="space-y-4 mt-8">
             {localPost.comments && localPost.comments.length > 0 ? (
               localPost.comments.map((comment) => (
-                <ForumComment 
+                <Comment 
                   key={comment.id} 
                   comment={comment} 
                   onUpdate={handleCommentUpdated}

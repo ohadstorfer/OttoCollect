@@ -18,18 +18,18 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
-import { UserProfileLink } from "@/components/common/UserProfileLink";
+import UserProfileLink from "@/components/common/UserProfileLink";
 import { Edit2, Trash2 } from "lucide-react";
 import { updateForumComment, deleteForumComment } from "@/services/forumService";
 import { getInitials } from '@/lib/utils';
 
 interface CommentProps {
   comment: ForumComment;
-  onCommentUpdated: (updatedComment: ForumComment) => void;
-  onCommentDeleted: (commentId: string) => void;
+  onUpdate: (commentId: string, content: string) => void;
+  onDelete: (commentId: string) => void;
 }
 
-export function Comment({ comment, onCommentUpdated, onCommentDeleted }: CommentProps) {
+export function Comment({ comment, onUpdate, onDelete }: CommentProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -50,7 +50,7 @@ export function Comment({ comment, onCommentUpdated, onCommentDeleted }: Comment
       const updatedComment = await updateForumComment(comment.id, user.id, editedContent);
       
       if (updatedComment) {
-        onCommentUpdated(updatedComment);
+        onUpdate(comment.id, editedContent);
         setIsEditing(false);
         toast({
           title: "Comment updated",
@@ -74,10 +74,10 @@ export function Comment({ comment, onCommentUpdated, onCommentDeleted }: Comment
     
     setIsSubmitting(true);
     try {
-      const success = await deleteForumComment(comment.id, user.id);
+      const success = await deleteForumComment(comment.id);
       
       if (success) {
-        onCommentDeleted(comment.id);
+        onDelete(comment.id);
         toast({
           title: "Comment deleted",
           description: "Your comment has been deleted successfully.",
@@ -97,7 +97,12 @@ export function Comment({ comment, onCommentUpdated, onCommentDeleted }: Comment
   return (
     <div className="py-4 border-b last:border-b-0">
       <div className="flex gap-3">
-        <UserProfileLink userId={comment.authorId}>
+        <UserProfileLink 
+          userId={comment.authorId}
+          username={comment.author?.username || "Unknown User"}
+          avatarUrl={comment.author?.avatarUrl}
+          rank={comment.author?.rank}
+        >
           <Avatar className="h-10 w-10 border">
             <AvatarImage src={comment.author?.avatarUrl} />
             <AvatarFallback className="bg-ottoman-700 text-parchment-100">
@@ -108,7 +113,12 @@ export function Comment({ comment, onCommentUpdated, onCommentDeleted }: Comment
         
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <UserProfileLink userId={comment.authorId}>
+            <UserProfileLink 
+              userId={comment.authorId}
+              username={comment.author?.username || 'Unknown User'}
+              avatarUrl={comment.author?.avatarUrl}
+              rank={comment.author?.rank}
+            >
               <span className="font-semibold">{comment.author?.username || 'Unknown User'}</span>
             </UserProfileLink>
             <span className="text-xs text-muted-foreground">{formattedDate}</span>
@@ -186,3 +196,5 @@ export function Comment({ comment, onCommentUpdated, onCommentDeleted }: Comment
     </div>
   );
 }
+
+export default Comment;
