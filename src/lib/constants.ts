@@ -1,36 +1,154 @@
 
-import { BanknoteCondition } from '@/types';
+import { BanknoteCondition, UserRank, Banknote, MarketplaceItem } from "@/types";
 
-// Add condition labels for display
-export const CONDITION_LABELS: Record<BanknoteCondition, string> = {
-  "UNC": "Uncirculated",
-  "AU": "About Uncirculated",
-  "XF": "Extremely Fine",
-  "VF": "Very Fine",
-  "F": "Fine",
-  "VG": "Very Good",
-  "G": "Good",
-  "Fair": "Fair",
-  "Poor": "Poor"
+// Update the RANK_POINTS object to use the correct UserRank values
+export const RANK_POINTS: Record<UserRank, number> = {
+  'Newbie': 0,
+  'Beginner Collector': 50,
+  'Casual Collector': 200,
+  'Known Collector': 500,
+  'Advance Collector': 1000,
+  'Admin': 0,
+  'Super Admin': 0
 };
 
-// Update marketplace fixtures if needed
-export const MARKETPLACE_FIXTURES = [
+// Update the CONDITION_DESCRIPTIONS to use the correct BanknoteCondition values
+export const CONDITION_DESCRIPTIONS: Record<BanknoteCondition, string> = {
+  'UNC': 'Uncirculated - Brand new condition with no signs of handling, wear, or deterioration.',
+  'AU': 'About Uncirculated - Very light handling with some slight imperfections.',
+  'XF': 'Extremely Fine - Light circulation with minor creases or folds.',
+  'VF': 'Very Fine - Some circulation with creases, folds, and minor soiling.',
+  'F': 'Fine - Significant circulation with multiple creases and folds.',
+  'VG': 'Very Good - Heavy circulation with multiple heavy creases and some minor damage.',
+  'G': 'Good - Heavily used with considerable wear and potentially some minor damage.'
+};
+
+// Mock data for development
+export const MOCK_BANKNOTES: Banknote[] = [
   {
-    id: "m1",
-    collectionItemId: "c1",
-    sellerId: "u1",
-    status: "Available",
-    createdAt: "2023-01-01T00:00:00Z",
-    updatedAt: "2023-01-01T00:00:00Z",
+    id: "1",
+    catalogId: "C123",
+    country: "Ottoman Empire",
+    denomination: "50 Kurush",
+    year: "1916",
+    series: "Series 1",
+    description: "A beautiful banknote from the Ottoman Empire.",
+    obverseDescription: "Features Sultan Mehmed V.",
+    reverseDescription: "Depicts the Ottoman coat of arms.",
+    imageUrls: ["/images/ottoman-empire.jpg", "/images/placeholder-brown.svg"],
+    isApproved: true,
+    isPending: false,
+    createdAt: "2023-01-01T00:00:00.000Z",
+    updatedAt: "2023-01-01T00:00:00.000Z",
+    createdBy: "admin"
+  },
+  {
+    id: "2",
+    catalogId: "C124",
+    country: "Ottoman Empire",
+    denomination: "100 Kurush",
+    year: "1917",
+    series: "Series 1",
+    description: "A rare banknote from the Ottoman Empire.",
+    imageUrls: ["/placeholder-brown.svg"],
+    isApproved: true,
+    isPending: false,
+    createdAt: "2023-02-01T00:00:00.000Z",
+    updatedAt: "2023-02-01T00:00:00.000Z",
+    createdBy: "admin"
+  },
+  {
+    id: "3",
+    catalogId: "C125",
+    country: "Palestine Mandate",
+    denomination: "1 Pound",
+    year: "1939",
+    series: "Series A",
+    description: "A Palestine Mandate period banknote.",
+    imageUrls: ["/images/palestine-mandate.jpg"],
+    isApproved: true,
+    isPending: false,
+    createdAt: "2023-03-01T00:00:00.000Z",
+    updatedAt: "2023-03-01T00:00:00.000Z",
+    createdBy: "admin"
+  },
+  {
+    id: "4",
+    catalogId: "C126",
+    country: "Ottoman Empire",
+    denomination: "5 Kurush",
+    year: "1915",
+    series: "Emergency Issue",
+    description: "An emergency issue banknote from WWI period.",
+    imageUrls: ["/placeholder-brown.svg"],
+    isApproved: true,
+    isPending: false,
+    createdAt: "2023-04-01T00:00:00.000Z",
+    updatedAt: "2023-04-01T00:00:00.000Z",
+    createdBy: "admin"
   }
 ];
 
-// Add mock data for the homepage
-export const MOCK_BANKNOTES = [
-  // Add some mock banknote data here
-];
-
-export const MOCK_MARKETPLACE_ITEMS = [
-  // Add some mock marketplace items here
+export const MOCK_MARKETPLACE_ITEMS: MarketplaceItem[] = [
+  {
+    id: "1",
+    collectionItemId: "1",
+    collectionItem: {
+      id: "1",
+      userId: "1",
+      banknoteId: "1",
+      banknote: MOCK_BANKNOTES[0],
+      condition: "UNC",
+      salePrice: 100,
+      isForSale: true,
+      publicNote: "Mint condition",
+      privateNote: "Stored in a safe",
+      purchasePrice: 50,
+      purchaseDate: "2023-01-01T00:00:00.000Z",
+      location: "Safe",
+      orderIndex: 1,
+      createdAt: "2023-01-01T00:00:00.000Z",
+      updatedAt: "2023-01-01T00:00:00.000Z",
+      personalImages: [
+        "/images/ottoman-empire.jpg",
+        "/images/palestine-mandate.jpg",
+      ]
+    },
+    sellerId: "1",
+    seller: {
+      id: "1",
+      username: "OttomanCollector",
+      rank: "Advance Collector"
+    },
+    status: "Available",
+    createdAt: "2023-01-01T00:00:00.000Z",
+    updatedAt: "2023-01-01T00:00:00.000Z"
+  },
+  {
+    id: "2",
+    collectionItemId: "2",
+    collectionItem: {
+      id: "2",
+      userId: "2",
+      banknoteId: "2",
+      banknote: MOCK_BANKNOTES[1],
+      condition: "XF",
+      salePrice: 75,
+      isForSale: true,
+      publicNote: "Great condition",
+      orderIndex: 1,
+      createdAt: "2023-02-01T00:00:00.000Z",
+      updatedAt: "2023-02-01T00:00:00.000Z",
+      personalImages: []
+    },
+    sellerId: "2",
+    seller: {
+      id: "2",
+      username: "HistoryCollector",
+      rank: "Casual Collector"
+    },
+    status: "Available",
+    createdAt: "2023-02-01T00:00:00.000Z",
+    updatedAt: "2023-02-01T00:00:00.000Z"
+  }
 ];

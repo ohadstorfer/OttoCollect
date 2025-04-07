@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { useAuth } from '@/context/AuthContext';
-import { addForumComment } from '@/services/forumService';
-import { useToast } from '@/hooks/use-toast';
-import { ForumComment } from '@/types/forum';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/context/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { createForumComment } from "@/services/forumService";
+import { useToast } from "@/hooks/use-toast";
+import { ForumComment } from "@/types";
 
 interface AddCommentFormProps {
   postId: string;
@@ -33,8 +34,9 @@ export const AddCommentForm: React.FC<AddCommentFormProps> = ({ postId, onCommen
     
     setIsSubmitting(true);
     try {
-      const commentId = await addForumComment(postId, content);
+      const commentId = await createForumComment(postId, content);
       
+      // Create a new comment object to add to the UI
       const newComment: ForumComment = {
         id: commentId,
         postId,
@@ -47,8 +49,7 @@ export const AddCommentForm: React.FC<AddCommentFormProps> = ({ postId, onCommen
           rank: user.rank
         },
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isEdited: false
+        updatedAt: new Date().toISOString()
       };
       
       onCommentAdded(newComment);
@@ -74,7 +75,7 @@ export const AddCommentForm: React.FC<AddCommentFormProps> = ({ postId, onCommen
     <form onSubmit={handleSubmit} className="mt-6">
       <div className="flex gap-3">
         <Avatar className="h-8 w-8">
-          <AvatarImage src={user?.avatarUrl || undefined} />
+          <AvatarImage src={user?.avatarUrl} />
           <AvatarFallback>{user?.username?.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
         

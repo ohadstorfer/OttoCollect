@@ -1,6 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { Message, Conversation } from "@/types/message";
-import { User } from "@/types/user";
+import { Message } from "@/types/message";
+import { Conversation } from "@/types/message";
 
 // Helper function to convert database message to our Message type
 const mapDbMessageToMessage = (dbMessage: any): Message => {

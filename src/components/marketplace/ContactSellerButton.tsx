@@ -1,20 +1,15 @@
 
 import React from 'react';
 import { ContactSeller } from '@/components/messages/ContactSeller';
-import { MarketplaceItem } from '@/types/marketplace';
+import { MarketplaceItem } from '@/types';
 
 interface ContactSellerButtonProps {
   item: MarketplaceItem;
 }
 
 export function ContactSellerButton({ item }: ContactSellerButtonProps) {
-  // Check if collectionItem and seller are available
-  if (!item.collectionItem || !item.seller) {
-    return null;
-  }
-  
   // Create a descriptive name for the banknote
-  const itemName = `${item.collectionItem.banknote?.country || ''} ${item.collectionItem.banknote?.denomination || ''} (${item.collectionItem.banknote?.year || ''})`;
+  const itemName = `${item.collectionItem.banknote.country} ${item.collectionItem.banknote.denomination} (${item.collectionItem.banknote.year})`;
   
   return (
     <ContactSeller 

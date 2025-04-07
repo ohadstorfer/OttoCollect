@@ -1,162 +1,193 @@
-export interface DetailedBanknote {
+
+// User related types
+export interface User {
   id: string;
-  extendedPickNumber: string;
-  country: string;
-  faceValue: string;
-  frontPicture: string | null;
-  backPicture: string | null;
-  category: string | null;
-  type: string | null;
-  printer: string | null;
-  colors: string | null;
-  signaturesFront: string | null;
-  signaturesBack: string | null;
-  sultanName: string | null;
-  gregorianYear: string | null;
-  islamicYear: string | null;
-  pickNumber: string;
-  turkCatalogNumber: string | null;
-  rarity: string | null;
-  securityElement: string | null;
-  watermarkPicture: string | null;
-  sealPictures: string[] | null;
-  signaturePictures: string[] | null;
-  otherElementPictures: string[] | null;
-  sealNames: string | null;
-  banknoteDescription: string | null;
-  historicalDescription: string | null;
-  isApproved: boolean | null;
-  isPending: boolean | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-  // Properties mapped from Banknote interface for compatibility
-  catalogId?: string;
-  denomination?: string;
-  year?: string;
-  series?: string;
-  imageUrls?: string[];
-  serialNumbering?: string;
-  createdBy?: string;
-  // Add description fields for compatibility
-  description?: string;
-  obverseDescription?: string;
-  reverseDescription?: string;
+  username: string;
+  email: string;
+  role: UserRole;
+  rank: UserRank;
+  points: number;
+  createdAt: string;
+  avatarUrl?: string;
+  country?: string;
+  about?: string;
 }
 
+export type UserRole = 'User' | 'Admin' | 'Super Admin';
+
+export type UserRank = 
+  | 'Newbie'
+  | 'Beginner Collector'
+  | 'Casual Collector'
+  | 'Known Collector'
+  | 'Advance Collector'
+  | 'Admin'
+  | 'Super Admin';
+
+// Banknote related types
+export interface Banknote {
+  id: string;
+  catalogId: string;
+  country: string;
+  denomination: string;
+  year: string;
+  series?: string;
+  description: string;
+  obverseDescription?: string;
+  reverseDescription?: string;
+  imageUrls: string[];
+  isApproved: boolean;
+  isPending: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}
+
+export interface DetailedBanknote extends Banknote {
+  extendedPickNumber?: string;
+  pickNumber?: string;
+  turkCatalogNumber?: string;
+  islamicYear?: string;
+  gregorianYear?: string;
+  faceValue?: string;
+  signaturesFront?: string;
+  signaturesBack?: string;
+  sealNames?: string;
+  sealPictures?: string[];
+  signaturePictures?: string[];
+  watermarkPicture?: string;
+  otherElementPictures?: string[];
+  frontPicture?: string;
+  backPicture?: string;
+  sultanName?: string;
+  tughraPicture?: string;
+  printer?: string;
+  type?: string;
+  category?: string;
+  rarity?: string;
+  securityElement?: string;
+  colors?: string;
+  serialNumbering?: string;
+  banknoteDescription?: string;
+  historicalDescription?: string;
+}
+
+export type BanknoteCondition = 
+  | 'UNC' 
+  | 'AU' 
+  | 'XF' 
+  | 'VF' 
+  | 'F' 
+  | 'VG' 
+  | 'G';
+
+// Collection related types
 export interface CollectionItem {
   id: string;
-  banknoteId: string;
   userId: string;
+  banknoteId: string;
+  banknote: Banknote;
   condition: BanknoteCondition;
-  purchaseDate?: string;
-  purchasePrice?: number;
-  privateNote?: string;
-  publicNote?: string;
+  salePrice: number | null;
   isForSale: boolean;
-  salePrice?: number;
+  publicNote?: string;
+  privateNote?: string;
+  purchasePrice?: number;
+  purchaseDate?: string;
   location?: string;
   obverseImage?: string;
   reverseImage?: string;
   orderIndex: number;
   createdAt: string;
   updatedAt: string;
-  banknote?: DetailedBanknote;
   personalImages?: string[];
 }
 
-export type BanknoteCondition = "UNC" | "AU" | "XF" | "VF" | "F" | "VG" | "G" | "Fair" | "Poor";
-
+// Wishlist related types
 export interface WishlistItem {
   id: string;
-  banknoteId: string;
   userId: string;
-  priority: "High" | "Medium" | "Low";
+  banknoteId: string;
+  banknote: Banknote;
+  priority: 'Low' | 'Medium' | 'High';
   note?: string;
   createdAt: string;
-  banknote?: DetailedBanknote;
 }
 
-export interface UserProfile {
+// Marketplace related types
+export interface MarketplaceItem {
   id: string;
-  username: string;
-  email: string;
-  avatarUrl: string | null;
-  country: string | null;
-  about: string | null;
-  role: string;
-  rank: UserRank;
-  points: number;
+  collectionItemId: string;
+  collectionItem: CollectionItem;
+  sellerId: string;
+  seller: {
+    id: string;
+    username: string;
+    rank: UserRank;
+  };
+  status: 'Available' | 'Sold' | 'Reserved';
   createdAt: string;
   updatedAt: string;
 }
 
-// Add a string type to UserRank to allow values from the database
-export type UserRank = 'Newbie' | 'Collector' | 'Expert' | 'Master' | string;
-
-export interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  iconUrl: string;
-  criteria: string;
-  isAutomaticAward: boolean;
-  createdAt: string;
-}
-
-export interface UserBadge {
-  id: string;
-  userId: string;
-  badgeId: string;
-  awardedAt: string;
-}
-
+// Messaging related types
 export interface Message {
   id: string;
   senderId: string;
   receiverId: string;
   content: string;
+  referenceItemId?: string;
   isRead: boolean;
-  referenceItemId: string | null;
   createdAt: string;
 }
 
-export interface BanknoteCategory {
+// Forum/Blog related types
+export interface ForumPost {
   id: string;
-  name: string;
-  description: string | null;
-  startYear: string | null;
-  endYear: string | null;
-  createdAt: string | null;
-}
-
-export interface BanknoteType {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: string | null;
-}
-
-export interface BanknoteRarityLevel {
-  id: string;
-  code: string;
-  description: string | null;
-  createdAt: string | null;
-}
-
-export interface BlogPost {
-  id: string;
-  authorId: string;
   title: string;
-  excerpt: string;
   content: string;
-  mainImageUrl: string;
+  authorId: string;
+  author?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank: UserRank;
+  };
+  imageUrls: string[];
+  comments?: ForumComment[];
+  commentCount?: number;
   createdAt: string;
   updatedAt: string;
 }
 
-// Re-export types from other files
-export * from './forum';
-export * from './user';
-export * from './banknote';
-export * from './marketplace';
-export * from './message';
+export interface ForumComment {
+  id: string;
+  postId: string;
+  content: string;
+  authorId: string;
+  author?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank: UserRank;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Define the CountryData interface needed in Catalog.tsx
+export interface CountryData {
+  name: string;
+  count: number;
+  imageUrl: string | null;
+}
+
+// Define BanknoteDetailSource for components that need it
+export type BanknoteDetailSource = 
+  | 'collection' 
+  | 'catalog' 
+  | 'wish-list' 
+  | 'marketplace' 
+  | 'search' 
+  | 'country-detail'
+  | 'missing';

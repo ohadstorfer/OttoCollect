@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
@@ -42,6 +43,7 @@ export default function CollectionItemForm({ collectionItem, onUpdate }: Collect
   const [reverseImage, setReverseImage] = useState<string | null>(collectionItem.reverseImage || null);
   const [loading, setLoading] = useState(false);
 
+  // If the item's "forSale" status changes, we need to make sure the form reflects this
   useEffect(() => {
     setIsForSale(collectionItem.isForSale);
   }, [collectionItem.isForSale]);
@@ -55,6 +57,7 @@ export default function CollectionItemForm({ collectionItem, onUpdate }: Collect
     
     setLoading(true);
     try {
+      // Update main collection item details
       const updates = {
         condition,
         purchaseDate: purchaseDate ? purchaseDate.toISOString() : undefined,
@@ -73,6 +76,7 @@ export default function CollectionItemForm({ collectionItem, onUpdate }: Collect
         return;
       }
       
+      // Update images separately if they changed
       if (obverseImage !== collectionItem.obverseImage || 
           reverseImage !== collectionItem.reverseImage) {
         await updateCollectionItemImages(
@@ -82,12 +86,18 @@ export default function CollectionItemForm({ collectionItem, onUpdate }: Collect
         );
       }
       
+      // Handle marketplace listing
       if (isForSale && !collectionItem.isForSale) {
+        // Item wasn't for sale before but now is
         await addToMarketplace(collectionItem.id, user.id);
       } else if (!isForSale && collectionItem.isForSale) {
+        // Item was for sale before but now isn't
+        // We need to find the marketplace item and remove it
+        // This is simplified and would need to be expanded with actual marketplace item lookups
         await removeFromMarketplace(collectionItem.id, collectionItem.id);
       }
 
+      // Update the local state in the parent component
       if (onUpdate) {
         onUpdate({
           ...collectionItem,

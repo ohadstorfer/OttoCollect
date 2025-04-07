@@ -4,8 +4,8 @@ export interface Message {
   senderId: string;
   receiverId: string;
   content: string;
+  referenceItemId?: string;
   isRead: boolean;
-  referenceItemId?: string | null;
   createdAt: string;
 }
 
@@ -14,10 +14,9 @@ export interface Conversation {
   otherUser: {
     id: string;
     username: string;
-    avatarUrl?: string | null;
+    avatarUrl?: string;
     rank: string;
   };
   lastMessage: Message;
-  messages: Message[];
   unreadCount: number;
 }

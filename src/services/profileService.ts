@@ -1,34 +1,40 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { User, UserRole } from "@/types";
+import { User, UserRole, UserRank } from "@/types";
 import { toast } from "sonner";
 
 // Get a user profile by ID
-export async function fetchUserProfile(userId: string): Promise<User | null> {
+export async function getUserProfile(userId: string): Promise<User | null> {
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
+    }
+
     if (!data) return null;
 
-    return {
+    const userProfile: User = {
       id: data.id,
       username: data.username,
       email: data.email,
-      avatarUrl: data.avatar_url,
-      country: data.country,
-      about: data.about,
       role: data.role as UserRole,
-      rank: data.rank,
+      rank: data.rank as UserRank,
       points: data.points,
       createdAt: data.created_at,
-      updatedAt: data.updated_at
+      avatarUrl: data.avatar_url || '/placeholder-brown.svg',
+      ...(data.country && { country: data.country }),
+      ...(data.about && { about: data.about }),
     };
+
+    return userProfile;
   } catch (error) {
-    console.error("Error fetching user profile:", error);
+    console.error("Error in getUserProfile:", error);
     return null;
   }
 }

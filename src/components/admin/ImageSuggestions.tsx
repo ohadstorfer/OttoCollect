@@ -10,17 +10,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Search, Check, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Pagination } from '@/components/ui/pagination';
 import { getInitials } from '@/lib/utils';
 import { ImageSuggestion } from '@/types/forum';
-import { 
-  countPendingImageSuggestions, 
-  getImageSuggestions, 
-  approveImageSuggestion,
-  rejectImageSuggestion
-} from '@/services/imageService';
 
 const ImageSuggestions = () => {
   const [suggestions, setSuggestions] = useState<ImageSuggestion[]>([]);
@@ -39,19 +34,53 @@ const ImageSuggestions = () => {
   const fetchSuggestions = async () => {
     setLoading(true);
     try {
-      // Get the total count of pending suggestions
-      const count = await countPendingImageSuggestions();
-      setTotalSuggestions(count);
+      // We'll use RPC to fetch the suggestions since the table is not in the TypeScript types
+      const { data: countData, error: countError } = await supabase.rpc(
+        'count_pending_image_suggestions'
+      );
+
+      if (countError) {
+        console.error("Error counting suggestions:", countError);
+        throw countError;
+      }
       
-      // Fetch the suggestions with pagination
-      const data = await getImageSuggestions('pending');
-      
-      // Apply pagination manually since we're using RPC
-      const startIndex = (currentPage - 1) * PAGE_SIZE;
-      const endIndex = startIndex + PAGE_SIZE;
-      const paginatedData = data.slice(startIndex, endIndex);
-      
-      setSuggestions(paginatedData);
+      setTotalSuggestions(countData || 0);
+
+      // Fetch the suggestions with pagination using RPC
+      const { data, error } = await supabase.rpc(
+        'get_image_suggestions',
+        {
+          p_limit: PAGE_SIZE,
+          p_offset: (currentPage - 1) * PAGE_SIZE
+        }
+      );
+
+      if (error) {
+        console.error("Error fetching suggestions:", error);
+        throw error;
+      }
+
+      // Map the data to our ImageSuggestion type
+      const mappedSuggestions: ImageSuggestion[] = data.map((item: any) => ({
+        id: item.id,
+        banknoteId: item.banknote_id,
+        userId: item.user_id,
+        banknote: {
+          catalogId: item.catalogId,
+          country: item.country,
+          denomination: item.denomination
+        },
+        user: {
+          username: item.username || 'Unknown User',
+          avatarUrl: item.avatar_url
+        },
+        imageUrl: item.image_url,
+        type: item.type,
+        status: item.status,
+        createdAt: item.created_at
+      }));
+
+      setSuggestions(mappedSuggestions);
     } catch (error) {
       console.error('Error fetching image suggestions:', error);
       toast.error('Failed to load image suggestions');
@@ -68,16 +97,17 @@ const ImageSuggestions = () => {
     setProcessingIds(prev => ({ ...prev, [suggestion.id]: true }));
     
     try {
-      // We need to pass all required parameters
-      const success = await approveImageSuggestion(
-        suggestion.id,
-        suggestion.banknoteId,
-        suggestion.imageUrl,
-        suggestion.type
+      // Use RPC to approve the suggestion
+      const { error } = await supabase.rpc(
+        'approve_image_suggestion',
+        { 
+          p_suggestion_id: suggestion.id
+        }
       );
       
-      if (!success) {
-        throw new Error('Failed to approve suggestion');
+      if (error) {
+        console.error("Error approving suggestion:", error);
+        throw error;
       }
       
       // Update local state
@@ -96,10 +126,17 @@ const ImageSuggestions = () => {
     setProcessingIds(prev => ({ ...prev, [suggestion.id]: true }));
     
     try {
-      const success = await rejectImageSuggestion(suggestion.id);
+      // Use RPC to reject the suggestion
+      const { error } = await supabase.rpc(
+        'reject_image_suggestion',
+        { 
+          p_suggestion_id: suggestion.id
+        }
+      );
       
-      if (!success) {
-        throw new Error('Failed to reject suggestion');
+      if (error) {
+        console.error("Error rejecting suggestion:", error);
+        throw error;
       }
       
       // Update local state

@@ -438,47 +438,6 @@ export type Database = {
         }
         Relationships: []
       }
-      image_suggestions: {
-        Row: {
-          banknote_id: string
-          created_at: string
-          id: string
-          image_url: string
-          status: string
-          type: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          banknote_id: string
-          created_at?: string
-          id?: string
-          image_url: string
-          status?: string
-          type: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          banknote_id?: string
-          created_at?: string
-          id?: string
-          image_url?: string
-          status?: string
-          type?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "image_suggestions_banknote_id_fkey"
-            columns: ["banknote_id"]
-            isOneToOne: false
-            referencedRelation: "detailed_banknotes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       marketplace_items: {
         Row: {
           collection_item_id: string
