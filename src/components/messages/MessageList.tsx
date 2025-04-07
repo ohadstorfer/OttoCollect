@@ -7,17 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
 import { getInitials } from '@/lib/utils';
 import { Link } from 'react-router-dom';
-
-interface Conversation {
-  otherUserId: string;
-  otherUser: {
-    id: string;
-    username: string;
-    avatar_url?: string;
-  };
-  lastMessage: any;
-  unreadCount: number;
-}
+import { Conversation } from '@/types/message';
 
 interface MessageListProps {
   conversations: Conversation[];
@@ -77,7 +67,7 @@ export function MessageList({
               className="flex-shrink-0"
             >
               <Avatar className="h-10 w-10 border bg-card hover:ring-2 hover:ring-ottoman-500 transition-all">
-                <AvatarImage src={conversation.otherUser.avatar_url || ''} />
+                <AvatarImage src={conversation.otherUser.avatarUrl || ''} />
                 <AvatarFallback className="bg-ottoman-700 text-parchment-100">
                   {conversation.otherUser.username ? getInitials(conversation.otherUser.username) : '??'}
                 </AvatarFallback>

@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { Message, Conversation } from "@/types";
+import { Message, Conversation } from "@/types/message";
 
 // Helper function to convert database message to our Message type
 const mapDbMessageToMessage = (dbMessage: any): Message => {
@@ -61,8 +62,8 @@ export async function fetchConversations(userId: string): Promise<Conversation[]
     allMessages.forEach(message => {
       const otherUserId = message.sender_id === userId ? message.receiver_id : message.sender_id;
       const otherUser = message.sender_id === userId 
-        ? message.receiver 
-        : message.sender;
+        ? (message.receiver || { id: otherUserId, username: "Unknown", avatar_url: undefined, rank: "Newbie" })
+        : (message.sender || { id: otherUserId, username: "Unknown", avatar_url: undefined, rank: "Newbie" });
       
       if (!conversationsMap.has(otherUserId)) {
         conversationsMap.set(otherUserId, {

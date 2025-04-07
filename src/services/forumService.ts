@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ForumPost, ForumComment } from "@/types";
 
@@ -37,7 +36,6 @@ export async function uploadForumImage(file: File): Promise<string> {
 
 // Create a new forum post
 export async function createForumPost(title: string, content: string, imageUrls: string[] = []): Promise<string> {
-  // Get the current user
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) throw new Error("User not authenticated");
@@ -88,7 +86,6 @@ export async function updateForumPost(id: string, title: string, content: string
 
 // Delete a forum post
 export async function deleteForumPost(id: string): Promise<void> {
-  // Delete the post (Row Level Security will ensure only the author can delete)
   const { error } = await supabase
     .from('forum_posts')
     .delete()
@@ -102,35 +99,104 @@ export async function deleteForumPost(id: string): Promise<void> {
 
 // Fetch all forum posts
 export async function fetchForumPosts(): Promise<ForumPost[]> {
-  // First, get all posts
-  const { data: postsData, error: postsError } = await supabase
-    .from('forum_posts')
-    .select(`
-      *,
-      author:profiles(
-        id, 
-        username, 
-        avatar_url,
-        rank
-      )
-    `)
-    .order('created_at', { ascending: false });
+  try {
+    // First, get all posts
+    const { data: postsData, error: postsError } = await supabase
+      .from('forum_posts')
+      .select(`
+        *,
+        author:profiles(
+          id, 
+          username, 
+          avatar_url,
+          rank
+        )
+      `)
+      .order('created_at', { ascending: false });
 
-  if (postsError) {
-    console.error("Error fetching forum posts:", postsError);
-    throw postsError;
+    if (postsError) {
+      console.error("Error fetching forum posts:", postsError);
+      throw postsError;
+    }
+
+    // For each post, get the comment count
+    const posts = await Promise.all((postsData || []).map(async (post) => {
+      // Get comment count
+      const { count: commentCount, error: countError } = await supabase
+        .from('forum_comments')
+        .select('*', { count: 'exact', head: true })
+        .eq('post_id', post.id);
+
+      if (countError) {
+        console.error(`Error fetching comment count for post ${post.id}:`, countError);
+      }
+
+      return {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        authorId: post.author_id,
+        author: post.author ? {
+          id: post.author.id || '',
+          username: post.author.username || '',
+          avatarUrl: post.author.avatar_url || undefined,
+          rank: post.author.rank || 'Newbie'
+        } : undefined,
+        imageUrls: post.image_urls || [],
+        createdAt: post.created_at,
+        updatedAt: post.updated_at,
+        commentCount: commentCount || 0
+      } as ForumPost;
+    }));
+
+    return posts;
+  } catch (error) {
+    console.error("Error in fetchForumPosts:", error);
+    return [];
   }
+}
 
-  // For each post, get the comment count
-  const posts = await Promise.all((postsData || []).map(async (post) => {
-    // Get comment count
-    const { count: commentCount, error: countError } = await supabase
+// Fetch a single forum post with comments
+export async function fetchForumPost(id: string): Promise<ForumPost> {
+  try {
+    // Get the post
+    const { data: post, error: postError } = await supabase
+      .from('forum_posts')
+      .select(`
+        *,
+        author:profiles(
+          id, 
+          username, 
+          avatar_url,
+          rank
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (postError) {
+      console.error("Error fetching forum post:", postError);
+      throw postError;
+    }
+
+    // Get the comments
+    const { data: comments, error: commentsError } = await supabase
       .from('forum_comments')
-      .select('*', { count: 'exact', head: true })
-      .eq('post_id', post.id);
+      .select(`
+        *,
+        author:profiles(
+          id, 
+          username, 
+          avatar_url,
+          rank
+        )
+      `)
+      .eq('post_id', id)
+      .order('created_at', { ascending: true });
 
-    if (countError) {
-      console.error(`Error fetching comment count for post ${post.id}:`, countError);
+    if (commentsError) {
+      console.error("Error fetching forum comments:", commentsError);
+      throw commentsError;
     }
 
     return {
@@ -139,93 +205,34 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
       content: post.content,
       authorId: post.author_id,
       author: post.author ? {
-        id: post.author.id,
-        username: post.author.username,
-        avatarUrl: post.author.avatar_url,
-        rank: post.author.rank
+        id: post.author.id || '',
+        username: post.author.username || '',
+        avatarUrl: post.author.avatar_url || undefined,
+        rank: post.author.rank || 'Newbie'
       } : undefined,
       imageUrls: post.image_urls || [],
       createdAt: post.created_at,
       updatedAt: post.updated_at,
-      commentCount: commentCount || 0
-    } as ForumPost;
-  }));
-
-  return posts;
-}
-
-// Fetch a single forum post with comments
-export async function fetchForumPost(id: string): Promise<ForumPost> {
-  // Get the post
-  const { data: post, error: postError } = await supabase
-    .from('forum_posts')
-    .select(`
-      *,
-      author:profiles(
-        id, 
-        username, 
-        avatar_url,
-        rank
-      )
-    `)
-    .eq('id', id)
-    .single();
-
-  if (postError) {
-    console.error("Error fetching forum post:", postError);
-    throw postError;
+      comments: comments.map(comment => ({
+        id: comment.id,
+        postId: comment.post_id,
+        content: comment.content,
+        authorId: comment.author_id,
+        author: comment.author ? {
+          id: comment.author.id || '',
+          username: comment.author.username || '',
+          avatarUrl: comment.author.avatar_url || undefined,
+          rank: comment.author.rank || 'Newbie'
+        } : undefined,
+        createdAt: comment.created_at,
+        updatedAt: comment.updated_at,
+        isEdited: comment.is_edited || false
+      }))
+    };
+  } catch (error) {
+    console.error("Error in fetchForumPost:", error);
+    throw error;
   }
-
-  // Get the comments
-  const { data: comments, error: commentsError } = await supabase
-    .from('forum_comments')
-    .select(`
-      *,
-      author:profiles(
-        id, 
-        username, 
-        avatar_url,
-        rank
-      )
-    `)
-    .eq('post_id', id)
-    .order('created_at', { ascending: true });
-
-  if (commentsError) {
-    console.error("Error fetching forum comments:", commentsError);
-    throw commentsError;
-  }
-
-  return {
-    id: post.id,
-    title: post.title,
-    content: post.content,
-    authorId: post.author_id,
-    author: post.author ? {
-      id: post.author.id,
-      username: post.author.username,
-      avatarUrl: post.author.avatar_url,
-      rank: post.author.rank
-    } : undefined,
-    imageUrls: post.image_urls || [],
-    createdAt: post.created_at,
-    updatedAt: post.updated_at,
-    comments: comments.map(comment => ({
-      id: comment.id,
-      postId: comment.post_id,
-      content: comment.content,
-      authorId: comment.author_id,
-      author: comment.author ? {
-        id: comment.author.id,
-        username: comment.author.username,
-        avatarUrl: comment.author.avatar_url,
-        rank: comment.author.rank
-      } : undefined,
-      createdAt: comment.created_at,
-      updatedAt: comment.updated_at,
-      isEdited: comment.is_edited || false
-    }))
-  };
 }
 
 // Create a comment on a forum post

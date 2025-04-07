@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Message, Conversation } from '@/types';
+import { Message } from '@/types';
+import { Conversation } from '@/types/message';
 import { 
   fetchConversations, 
   fetchMessages, 
