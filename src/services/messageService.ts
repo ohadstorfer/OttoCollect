@@ -17,8 +17,8 @@ const mapDbMessageToMessage = (dbMessage: any): Message => {
 
 export async function fetchConversations(userId: string): Promise<Conversation[]> {
   try {
-    // Get unique conversations (distinct sender/receiver pairs)
-    const { data: sentMessages, error: sentError } = await supabase
+    // First fetch all messages involving this user
+    const { data: messages, error } = await supabase
       .from('messages')
       .select(`
         id,
@@ -27,60 +27,77 @@ export async function fetchConversations(userId: string): Promise<Conversation[]
         content,
         is_read,
         created_at,
-        receiver:profiles!receiver_id(id, username, avatar_url, rank),
         reference_item_id
       `)
-      .eq('sender_id', userId)
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       .order('created_at', { ascending: false });
 
-    const { data: receivedMessages, error: receivedError } = await supabase
-      .from('messages')
-      .select(`
-        id,
-        sender_id,
-        receiver_id,
-        content,
-        is_read,
-        created_at,
-        sender:profiles!sender_id(id, username, avatar_url, rank),
-        reference_item_id
-      `)
-      .eq('receiver_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (sentError || receivedError) {
-      console.error("Error fetching conversations:", sentError || receivedError);
+    if (error) {
+      console.error("Error fetching messages:", error);
       return [];
     }
-
-    // Combine and deduplicate conversations
-    const allMessages = [...(sentMessages || []), ...(receivedMessages || [])];
     
-    // Group messages by conversation
+    // Now separately fetch user profiles for all other participants
+    // We can't rely on foreign key relationships in the query
+    // so we'll extract participant IDs and fetch their profiles
+    const participantIds = new Set<string>();
+    
+    messages.forEach(message => {
+      if (message.sender_id !== userId) {
+        participantIds.add(message.sender_id);
+      }
+      if (message.receiver_id !== userId) {
+        participantIds.add(message.receiver_id);
+      }
+    });
+    
+    // Fetch profiles for all participants
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .in('id', Array.from(participantIds));
+      
+    if (profilesError) {
+      console.error("Error fetching user profiles:", profilesError);
+      return [];
+    }
+    
+    const profilesMap = new Map();
+    profiles?.forEach(profile => {
+      profilesMap.set(profile.id, {
+        id: profile.id,
+        username: profile.username,
+        avatarUrl: profile.avatar_url,
+        rank: profile.rank,
+      });
+    });
+    
+    // Group messages by conversation (other user)
     const conversationsMap = new Map<string, Conversation>();
     
-    allMessages.forEach(message => {
+    messages.forEach(message => {
       const otherUserId = message.sender_id === userId ? message.receiver_id : message.sender_id;
-      const otherUser = message.sender_id === userId 
-        ? (message.receiver || { id: otherUserId, username: "Unknown", avatar_url: undefined, rank: "Newbie" })
-        : (message.sender || { id: otherUserId, username: "Unknown", avatar_url: undefined, rank: "Newbie" });
+      const mappedMessage = mapDbMessageToMessage(message);
       
       if (!conversationsMap.has(otherUserId)) {
+        // Get the profile data from our map
+        const otherUser = profilesMap.get(otherUserId) || {
+          id: otherUserId,
+          username: "Unknown User",
+          avatarUrl: undefined,
+          rank: "Newbie"
+        };
+        
         conversationsMap.set(otherUserId, {
           otherUserId,
-          otherUser: {
-            id: otherUser.id,
-            username: otherUser.username,
-            avatarUrl: otherUser.avatar_url,
-            rank: otherUser.rank
-          },
-          lastMessage: mapDbMessageToMessage(message),
+          otherUser,
+          lastMessage: mappedMessage,
           unreadCount: message.receiver_id === userId && !message.is_read ? 1 : 0
         });
       } else {
         const existing = conversationsMap.get(otherUserId)!;
         if (new Date(message.created_at) > new Date(existing.lastMessage.createdAt)) {
-          existing.lastMessage = mapDbMessageToMessage(message);
+          existing.lastMessage = mappedMessage;
         }
         if (message.receiver_id === userId && !message.is_read) {
           existing.unreadCount += 1;

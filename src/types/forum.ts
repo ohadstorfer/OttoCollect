@@ -1,11 +1,20 @@
 
-import { UserRank } from "@/types";
-
-export interface ForumPostAuthor {
+export interface ForumPost {
   id: string;
-  username: string;
-  avatarUrl?: string;
-  rank: UserRank;
+  title: string;
+  content: string;
+  authorId: string;
+  author?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank: string;
+  };
+  imageUrls: string[];
+  comments?: ForumComment[];
+  commentCount?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ForumComment {
@@ -17,22 +26,9 @@ export interface ForumComment {
     id: string;
     username: string;
     avatarUrl?: string;
-    rank: UserRank;
+    rank: string;
   };
   createdAt: string;
   updatedAt: string;
-  isEdited?: boolean;
-}
-
-export interface ForumPost {
-  id: string;
-  title: string;
-  content: string;
-  authorId: string;
-  author?: ForumPostAuthor;
-  imageUrls: string[];
-  createdAt: string;
-  updatedAt: string;
-  commentCount?: number;
-  comments?: ForumComment[];
+  isEdited: boolean;
 }
