@@ -173,6 +173,7 @@ export interface ForumComment {
   };
   createdAt: string;
   updatedAt: string;
+  isEdited?: boolean;
 }
 
 // Define the CountryData interface needed in Catalog.tsx

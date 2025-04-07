@@ -63,8 +63,7 @@ export async function fetchDetailedBanknote(id: string): Promise<DetailedBanknot
     }
 
     console.log("Fetched detailed banknote:", data);
-    // Cast the data to DetailedBanknote type and ensure all fields are included
-    return data as unknown as DetailedBanknote;
+    return transformToDetailedBanknote(data);
   } catch (error) {
     console.error('Error fetching detailed banknote:', error);
     return null;
@@ -114,7 +113,7 @@ export async function fetchBanknotesByPeriod(startYear: number, endYear: number)
   }
 }
 
-// Helper function to transform a DetailedBanknote to the Banknote format
+// Helper function to transform a database object to the Banknote format
 function transformDetailedToBanknote(detailed: any): Banknote {
   const imageUrls: string[] = [];
   
@@ -141,5 +140,63 @@ function transformDetailedToBanknote(detailed: any): Banknote {
     createdAt: detailed.created_at || new Date().toISOString(),
     updatedAt: detailed.updated_at || new Date().toISOString(),
     createdBy: detailed.created_by || 'system'
+  };
+}
+
+// Helper function to transform database object to detailed banknote format
+function transformToDetailedBanknote(data: any): DetailedBanknote {
+  const imageUrls: string[] = [];
+  
+  if (data.front_picture) imageUrls.push(data.front_picture);
+  if (data.back_picture) imageUrls.push(data.back_picture);
+  if (data.seal_pictures && data.seal_pictures.length) imageUrls.push(...data.seal_pictures);
+  if (data.tughra_picture) imageUrls.push(data.tughra_picture);
+  if (data.watermark_picture) imageUrls.push(data.watermark_picture);
+  if (data.other_element_pictures && data.other_element_pictures.length) imageUrls.push(...data.other_element_pictures);
+  
+  return {
+    id: data.id,
+    catalogId: data.extended_pick_number || data.pick_number || 'Unknown',
+    country: data.country || 'Unknown',
+    denomination: data.face_value || 'Unknown',
+    year: data.gregorian_year || data.islamic_year || 'Unknown',
+    series: data.category,
+    description: data.banknote_description || `${data.face_value || 'Unknown'} from ${data.gregorian_year || data.islamic_year || 'Unknown'}`,
+    obverseDescription: data.banknote_description,
+    reverseDescription: data.historical_description,
+    imageUrls: imageUrls.length > 0 ? imageUrls : ['/placeholder.svg'],
+    isApproved: data.is_approved !== false,
+    isPending: data.is_pending === true,
+    createdAt: data.created_at || new Date().toISOString(),
+    updatedAt: data.updated_at || new Date().toISOString(),
+    createdBy: data.created_by || 'system',
+    
+    // Additional DetailedBanknote fields
+    extendedPickNumber: data.extended_pick_number,
+    pickNumber: data.pick_number,
+    turkCatalogNumber: data.turk_catalog_number,
+    islamicYear: data.islamic_year,
+    gregorianYear: data.gregorian_year,
+    faceValue: data.face_value,
+    signaturesFront: data.signatures_front,
+    signaturesBack: data.signatures_back,
+    sealNames: data.seal_names,
+    sealPictures: data.seal_pictures,
+    signaturePictures: data.signature_pictures,
+    watermarkPicture: data.watermark_picture,
+    otherElementPictures: data.other_element_pictures,
+    frontPicture: data.front_picture,
+    backPicture: data.back_picture,
+    sultanName: data.sultan_name,
+    tughraPicture: data.tughra_picture,
+    printer: data.printer,
+    type: data.type,
+    category: data.category,
+    rarity: data.rarity,
+    securityElement: data.security_element,
+    colors: data.colors,
+    serialNumbering: data.serial_numbering,
+    banknoteDescription: data.banknote_description,
+    historicalDescription: data.historical_description
   };
 }

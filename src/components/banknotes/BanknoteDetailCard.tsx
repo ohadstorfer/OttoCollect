@@ -1,5 +1,5 @@
 
-import { Banknote, CollectionItem } from "@/types";
+import { Banknote, CollectionItem, DetailedBanknote } from "@/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 interface BanknoteDetailCardProps {
-  banknote: Banknote;
+  banknote: Banknote | DetailedBanknote;
   collectionItem?: CollectionItem;
   source: "catalog" | "collection" | "wishlist" | "missing";
   ownerId?: string;
@@ -47,6 +47,9 @@ const BanknoteDetailCard = ({
       }
     });
   };
+
+  // Cast banknote to DetailedBanknote to access extended properties
+  const detailedBanknote = banknote as DetailedBanknote;
 
   // Detail items to display in the card
   const detailItems = [
@@ -75,12 +78,12 @@ const BanknoteDetailCard = ({
     // Extended catalog info
     { icon: <Hash className="h-4 w-4 text-muted-foreground" />, 
       label: "Pick Number", 
-      value: banknote.pickNumber,
+      value: detailedBanknote.pickNumber,
       category: "catalog" 
     },
     { icon: <Tag className="h-4 w-4 text-muted-foreground" />, 
       label: "Ext. Pick", 
-      value: banknote.extendedPickNumber,
+      value: detailedBanknote.extendedPickNumber,
       category: "catalog" 
     },
     { icon: <PencilRuler className="h-4 w-4 text-muted-foreground" />, 
@@ -92,34 +95,34 @@ const BanknoteDetailCard = ({
     // Production details
     { icon: <Printer className="h-4 w-4 text-muted-foreground" />, 
       label: "Printer", 
-      value: banknote.printer,
+      value: detailedBanknote.printer,
       category: "production" 
     },
     { icon: <Palette className="h-4 w-4 text-muted-foreground" />, 
       label: "Colors", 
-      value: banknote.colors,
+      value: detailedBanknote.colors,
       category: "production" 
     },
     { icon: <Shield className="h-4 w-4 text-muted-foreground" />, 
       label: "Security", 
-      value: banknote.securityElement,
+      value: detailedBanknote.securityElement,
       category: "production" 
     },
     
     // Additional details
     { icon: <Info className="h-4 w-4 text-muted-foreground" />, 
       label: "Type", 
-      value: banknote.type,
+      value: detailedBanknote.type,
       category: "additional" 
     },
     { icon: <Star className="h-4 w-4 text-muted-foreground" />, 
       label: "Rarity", 
-      value: banknote.rarity,
+      value: detailedBanknote.rarity,
       category: "additional" 
     },
     { icon: <BadgeCheck className="h-4 w-4 text-muted-foreground" />, 
       label: "Category", 
-      value: banknote.category,
+      value: detailedBanknote.category,
       category: "additional" 
     }
   ];
@@ -147,7 +150,7 @@ const BanknoteDetailCard = ({
     }
   ] : [];
 
-  // Combine all details
+  // Combine all details and filter out those without values
   const allDetails = [...detailItems, ...collectionDetails].filter(item => item.value);
 
   return (
