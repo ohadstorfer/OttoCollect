@@ -35,10 +35,7 @@ export function MessagePanel({
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  
 
   // Handle sending a new message
   const handleSendMessage = async () => {
