@@ -1,12 +1,21 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera, X } from 'lucide-react';
+import { Camera, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface CollectionImageUploadProps {
   userId: string;
+  banknoteId: string; // Added this prop
   imageUrl: string | null;
   side: 'obverse' | 'reverse';
   onImageUploaded: (url: string) => void;
@@ -14,11 +23,14 @@ interface CollectionImageUploadProps {
 
 export default function CollectionImageUpload({ 
   userId, 
+  banknoteId,
   imageUrl, 
   side, 
   onImageUploaded 
 }: CollectionImageUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleImageClick = () => {
@@ -45,6 +57,22 @@ export default function CollectionImageUpload({
 
     setUploading(true);
     try {
+      // Check if storage bucket exists, if not create it
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const banknoteImagesBucketExists = buckets?.some(bucket => bucket.name === 'banknote_images');
+      
+      if (!banknoteImagesBucketExists) {
+        const { error: bucketError } = await supabase.storage.createBucket('banknote_images', {
+          public: true
+        });
+        
+        if (bucketError) {
+          console.error("Error creating bucket:", bucketError);
+          toast.error("Failed to create storage bucket");
+          return;
+        }
+      }
+
       // Create a unique file name
       const fileExt = file.name.split('.').pop();
       const fileName = `${userId}/${Date.now()}-${side}.${fileExt}`;
@@ -83,6 +111,61 @@ export default function CollectionImageUpload({
     onImageUploaded('');
   };
 
+  const handleSuggestImage = async () => {
+    if (!imageUrl || !banknoteId) return;
+    
+    setSuggesting(true);
+    try {
+      // Check if a suggestion already exists
+      const { data: existingSuggestion, error: checkError } = await supabase
+        .from('image_suggestions')
+        .select('*')
+        .eq('banknote_id', banknoteId)
+        .eq('user_id', userId)
+        .eq('type', side)
+        .eq('status', 'pending');
+        
+      if (checkError) throw checkError;
+      
+      if (existingSuggestion && existingSuggestion.length > 0) {
+        // Update existing suggestion
+        const { error: updateError } = await supabase
+          .from('image_suggestions')
+          .update({
+            image_url: imageUrl,
+            created_at: new Date().toISOString()
+          })
+          .eq('id', existingSuggestion[0].id);
+          
+        if (updateError) throw updateError;
+        
+        toast.success('Your image suggestion has been updated and will be reviewed by admins');
+      } else {
+        // Create new suggestion
+        const { error: insertError } = await supabase
+          .from('image_suggestions')
+          .insert([{
+            banknote_id: banknoteId,
+            user_id: userId,
+            image_url: imageUrl,
+            type: side,
+            status: 'pending'
+          }]);
+          
+        if (insertError) throw insertError;
+        
+        toast.success('Your image suggestion has been submitted and will be reviewed by admins');
+      }
+      
+      setShowConfirmDialog(false);
+    } catch (error) {
+      console.error("Error suggesting image:", error);
+      toast.error("Failed to suggest image");
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
   return (
     <div className="relative">
       {!imageUrl ? (
@@ -105,20 +188,31 @@ export default function CollectionImageUpload({
             alt={`${side} banknote`} 
             className="w-full aspect-[4/3] object-cover rounded-md"
           />
-          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              onClick={handleImageClick}
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="secondary" 
+                onClick={handleImageClick}
+              >
+                <Camera className="h-4 w-4 mr-1" /> Change
+              </Button>
+              <Button 
+                size="sm" 
+                variant="destructive"
+                onClick={handleRemoveImage}
+              >
+                <X className="h-4 w-4 mr-1" /> Remove
+              </Button>
+            </div>
+            
+            <Button
+              size="sm"
+              variant="outline"
+              className="bg-white/10 mt-2"
+              onClick={() => setShowConfirmDialog(true)}
             >
-              <Camera className="h-4 w-4 mr-1" /> Change
-            </Button>
-            <Button 
-              size="sm" 
-              variant="destructive"
-              onClick={handleRemoveImage}
-            >
-              <X className="h-4 w-4 mr-1" /> Remove
+              <Check className="h-4 w-4 mr-1" /> Suggest for Catalog
             </Button>
           </div>
         </div>
@@ -138,6 +232,35 @@ export default function CollectionImageUpload({
           <div className="animate-spin h-8 w-8 border-4 border-ottoman-300 border-t-ottoman-600 rounded-full" />
         </div>
       )}
+      
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suggest Image for Catalog</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to suggest this {side === 'obverse' ? 'obverse (front)' : 'reverse (back)'} image 
+              to be used as the official catalog image for this banknote? Administrators will review your suggestion.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="mt-2 border rounded p-2">
+            <img
+              src={imageUrl || ''}
+              alt={`${side} image preview`}
+              className="w-full h-auto max-h-48 object-contain"
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} disabled={suggesting}>
+              Cancel
+            </Button>
+            <Button onClick={handleSuggestImage} disabled={suggesting}>
+              {suggesting ? 'Submitting...' : 'Submit Suggestion'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

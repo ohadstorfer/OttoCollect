@@ -1,4 +1,20 @@
 
+export interface ForumComment {
+  id: string;
+  postId: string;
+  content: string;
+  authorId: string;
+  author?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  isEdited: boolean;
+}
+
 export interface ForumPost {
   id: string;
   title: string;
@@ -15,20 +31,4 @@ export interface ForumPost {
   commentCount?: number;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface ForumComment {
-  id: string;
-  postId: string;
-  content: string;
-  authorId: string;
-  author?: {
-    id: string;
-    username: string;
-    avatarUrl?: string;
-    rank: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-  isEdited: boolean;
 }

@@ -1,100 +1,132 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { CollectionItem } from '@/types';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import CollectionImageUpload from './CollectionImageUpload';
-import { updateCollectionItemImages } from '@/services/collectionService';
-import { toast } from 'sonner';
+import { Image, Save } from 'lucide-react';
 
 interface EditCollectionImagesProps {
-  isOpen: boolean;
-  onClose: () => void;
   collectionItem: CollectionItem;
-  onImagesUpdated: (obverseImage?: string, reverseImage?: string) => void;
+  onImagesUpdated: () => void;
 }
 
-export default function EditCollectionImages({
-  isOpen,
-  onClose,
-  collectionItem,
-  onImagesUpdated
-}: EditCollectionImagesProps) {
+const EditCollectionImages = ({ collectionItem, onImagesUpdated }: EditCollectionImagesProps) => {
   const { user } = useAuth();
-  const [obverseImage, setObverseImage] = useState<string | undefined>(collectionItem.obverseImage);
-  const [reverseImage, setReverseImage] = useState<string | undefined>(collectionItem.reverseImage);
-  const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
+  const [isOpen, setIsOpen] = useState(false);
+  const [obverseImage, setObverseImage] = useState<string>(collectionItem.obverseImage || '');
+  const [reverseImage, setReverseImage] = useState<string>(collectionItem.reverseImage || '');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = async () => {
-    if (!user) {
-      toast.error('You must be logged in to update images');
-      return;
-    }
-
-    setSaving(true);
+  const handleSaveImages = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
     try {
-      const success = await updateCollectionItemImages(
-        collectionItem.id,
-        obverseImage,
-        reverseImage
-      );
+      const { error } = await supabase
+        .from('collection_items')
+        .update({
+          obverse_image: obverseImage || null,
+          reverse_image: reverseImage || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', collectionItem.id)
+        .eq('user_id', user.id);
 
-      if (success) {
-        toast.success('Collection images updated successfully');
-        onImagesUpdated(obverseImage, reverseImage);
-        onClose();
-      } else {
-        toast.error('Failed to update collection images');
+      if (error) {
+        throw error;
       }
+
+      toast({
+        title: "Images updated",
+        description: "Your banknote images have been updated successfully.",
+      });
+      onImagesUpdated();
+      setIsOpen(false);
     } catch (error) {
-      console.error('Error updating collection images:', error);
-      toast.error('An error occurred while updating images');
+      console.error("Error updating images:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update images. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setSaving(false);
+      setIsSaving(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Image className="h-4 w-4 mr-1.5" />
+          Edit Images
+        </Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Upload Banknote Images</DialogTitle>
+          <DialogTitle>Edit Images</DialogTitle>
+          <DialogDescription>
+            Upload or update your own images of this banknote.
+          </DialogDescription>
         </DialogHeader>
         
-        {user && (
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-sm font-medium mb-2">Obverse (Front)</h4>
-              <CollectionImageUpload
-                userId={user.id}
-                imageUrl={obverseImage || null}
-                side="obverse"
-                onImageUploaded={(url) => setObverseImage(url || undefined)}
-              />
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium mb-2">Reverse (Back)</h4>
-              <CollectionImageUpload
-                userId={user.id}
-                imageUrl={reverseImage || null}
-                side="reverse"
-                onImageUploaded={(url) => setReverseImage(url || undefined)}
-              />
-            </div>
-            
-            <div className="flex justify-end gap-2 mt-4">
-              <Button variant="outline" onClick={onClose} disabled={saving}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Images'}
-              </Button>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm font-medium mb-2">Obverse (Front)</p>
+            <CollectionImageUpload
+              userId={user?.id || ''}
+              banknoteId={collectionItem.banknoteId}
+              imageUrl={obverseImage}
+              side="obverse"
+              onImageUploaded={setObverseImage}
+            />
           </div>
-        )}
+          
+          <div>
+            <p className="text-sm font-medium mb-2">Reverse (Back)</p>
+            <CollectionImageUpload
+              userId={user?.id || ''}
+              banknoteId={collectionItem.banknoteId}
+              imageUrl={reverseImage}
+              side="reverse"
+              onImageUploaded={setReverseImage}
+            />
+          </div>
+        </div>
+        
+        <DialogFooter className="mt-4">
+          <Button
+            type="button"
+            variant="default"
+            onClick={handleSaveImages}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>Saving...</>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-1.5" />
+                Save Images
+              </>
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default EditCollectionImages;
