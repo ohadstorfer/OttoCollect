@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -36,9 +35,8 @@ import {
   GalleryVertical,
   Image,
   User,
-  Money,
   Tag,
-  Banknote,
+  Banknote as BanknoteIcon,
   Map,
   History,
   Building,
@@ -48,7 +46,8 @@ import {
   Palette,
   Fingerprint,
   CircleDashed,
-  Signature
+  Signature,
+  CircleDollarSign
 } from "lucide-react";
 
 interface LabelValuePairProps {
@@ -142,7 +141,6 @@ export default function BanknoteDetail() {
     );
   }
 
-  // Check for pending banknote approval
   if (user?.role !== 'Super Admin' && user?.role !== 'Admin' && !isInCollection && banknote?.isPending) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
@@ -163,24 +161,22 @@ export default function BanknoteDetail() {
     setSelectedImage(imageUrl);
   };
 
-  // Prepare images for display
   const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
   const displayImages = viewMode === 'collection' && collectionItem ? 
     [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[] : 
     imageUrls;
 
-  // Group all banknote details into categories for better organization
   const detailGroups = [
     {
       title: "Basic Information",
       icon: <Info className="h-5 w-5" />,
       fields: [
-        { label: "Denomination", value: banknote.denomination, icon: <Money className="h-4 w-4" /> },
+        { label: "Denomination", value: banknote.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
         { label: "Country", value: banknote.country, icon: <Map className="h-4 w-4" /> },
         { label: "Islamic Year", value: banknote.islamicYear, icon: <Calendar className="h-4 w-4" /> },
         { label: "Gregorian Year", value: banknote.gregorianYear, icon: <Calendar className="h-4 w-4" /> },
         { label: "Category", value: banknote.category, icon: <Tag className="h-4 w-4" /> },
-        { label: "Type", value: banknote.type, icon: <Banknote className="h-4 w-4" /> },
+        { label: "Type", value: banknote.type, icon: <BanknoteIcon className="h-4 w-4" /> },
         { label: "Sultan", value: banknote.sultanName, icon: <Users className="h-4 w-4" /> }
       ]
     },
@@ -461,7 +457,6 @@ export default function BanknoteDetail() {
                     ))}
                   </Accordion>
                   
-                  {/* Description sections */}
                   {(banknote.banknoteDescription || banknote.historicalDescription) && (
                     <div className="mt-6 space-y-4">
                       {banknote.banknoteDescription && (
