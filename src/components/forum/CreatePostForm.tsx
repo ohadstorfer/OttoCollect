@@ -1,108 +1,97 @@
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { createForumPost } from "@/services/forumService";
-import { ImageUploader } from "./ImageUploader";
+import { ImageUploader } from '@/components/forum/ImageUploader';
+import { createForumPost } from '@/services/forumService';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
-export const CreatePostForm = () => {
+export function CreatePostForm() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!title.trim() || !content.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Invalid form",
-        description: "Please provide both title and content for your post.",
-      });
+    
+    if (!user || !title.trim() || !content.trim()) {
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      console.log("Creating forum post with:", { title, content, images });
-      const postId = await createForumPost(title, content, images);
-      console.log("Post created with ID:", postId);
+      const newPost = await createForumPost(title, content, user.id, images);
       
-      toast({
-        description: "Post created successfully!",
-      });
-      navigate(`/community/forum/${postId}`);
+      if (newPost) {
+        toast({
+          title: "Success",
+          description: "Your post has been published successfully.",
+        });
+        navigate(`/community/forum/${newPost.id}`);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to create post. Please try again.",
+        });
+      }
     } catch (error) {
-      console.error('Error creating post:', error);
+      console.error("Error creating post:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to create post. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
       });
+    } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Card className="max-w-3xl mx-auto">
-      <CardHeader>
-        <CardTitle>Create a New Post</CardTitle>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-6">
+    <form onSubmit={handleSubmit}>
+      <Card>
+        <CardContent className="p-6 space-y-6">
           <div className="space-y-2">
-            <label htmlFor="title" className="block text-sm font-medium">
-              Title
-            </label>
+            <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              placeholder="Enter your post title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              placeholder="Add a descriptive title for your post"
               required
-              disabled={isSubmitting}
               maxLength={100}
             />
           </div>
-
+          
           <div className="space-y-2">
-            <label htmlFor="content" className="block text-sm font-medium">
-              Content
-            </label>
+            <Label htmlFor="content">Content</Label>
             <Textarea
               id="content"
-              placeholder="Share your thoughts..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              placeholder="Share your thoughts, questions, or insights..."
               required
-              disabled={isSubmitting}
               className="min-h-[200px]"
             />
           </div>
-
+          
           <div className="space-y-2">
-            <label className="block text-sm font-medium">
-              Images (optional)
-            </label>
-            <ImageUploader 
-              images={images} 
-              onChange={setImages} 
-            />
-            <p className="text-xs text-muted-foreground">
-              You can upload up to 10 images. Supported formats: JPG, PNG, GIF
-            </p>
+            <Label>Images (Optional)</Label>
+            <ImageUploader images={images} onChange={setImages} />
           </div>
         </CardContent>
-
-        <CardFooter className="flex justify-end gap-3">
+        
+        <CardFooter className="px-6 py-4 border-t flex justify-between">
           <Button 
             type="button" 
             variant="outline" 
@@ -115,10 +104,17 @@ export const CreatePostForm = () => {
             type="submit"
             disabled={isSubmitting || !title.trim() || !content.trim()}
           >
-            {isSubmitting ? 'Creating...' : 'Create Post'}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              'Publish Post'
+            )}
           </Button>
         </CardFooter>
-      </form>
-    </Card>
+      </Card>
+    </form>
   );
-};
+}

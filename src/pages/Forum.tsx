@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchForumPosts } from "@/services/forumService";
@@ -24,7 +25,7 @@ export default function Forum() {
       try {
         setLoading(true);
         const fetchedPosts = await fetchForumPosts();
-        setPosts(data as any);
+        setPosts(fetchedPosts);
       } catch (error) {
         console.error("Error loading forum posts:", error);
         toast({

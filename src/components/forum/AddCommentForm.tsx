@@ -1,105 +1,78 @@
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { createForumComment } from "@/services/forumService";
+import { User } from "@/types";
+import { ForumComment } from "@/types/forum";
+import { addForumComment } from '@/services/forumService';
 import { useToast } from "@/hooks/use-toast";
-import { ForumComment } from "@/types";
+import { getInitials } from "@/lib/utils";
 
 interface AddCommentFormProps {
   postId: string;
+  user: User;
   onCommentAdded: (comment: ForumComment) => void;
 }
 
-export const AddCommentForm: React.FC<AddCommentFormProps> = ({ postId, onCommentAdded }) => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [content, setContent] = useState("");
+export default function AddCommentForm({ postId, user, onCommentAdded }: AddCommentFormProps) {
+  const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!content.trim()) return;
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Authentication required",
-        description: "You must be logged in to comment.",
-      });
-      return;
-    }
+  const handleSubmit = async () => {
+    if (content.trim() === '') return;
     
     setIsSubmitting(true);
     try {
-      const commentId = await createForumComment(postId, content);
+      const comment = await addForumComment(postId, content, user.id);
       
-      // Create a new comment object to add to the UI
-      const newComment: ForumComment = {
-        id: commentId,
-        postId,
-        content,
-        authorId: user.id,
-        author: {
-          id: user.id,
-          username: user.username,
-          avatarUrl: user.avatarUrl,
-          rank: user.rank
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      onCommentAdded(newComment);
-      setContent("");
-      toast({
-        description: "Comment added successfully",
-      });
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to add comment. Please try again.",
-      });
+      if (comment) {
+        onCommentAdded(comment);
+        setContent('');
+        toast({
+          title: "Comment added",
+          description: "Your comment has been added successfully.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add comment. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!user) return null;
-
   return (
-    <form onSubmit={handleSubmit} className="mt-6">
-      <div className="flex gap-3">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={user?.avatarUrl} />
-          <AvatarFallback>{user?.username?.charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
+    <div className="flex gap-3">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={user.avatarUrl} />
+        <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+          {getInitials(user.username)}
+        </AvatarFallback>
+      </Avatar>
+      
+      <div className="flex-1 space-y-2">
+        <Textarea 
+          placeholder="Write your comment..."
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="resize-none"
+        />
         
-        <div className="flex-1 space-y-3">
-          <Textarea
-            placeholder="Add a comment..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            disabled={isSubmitting}
-            className="min-h-[100px]"
-          />
-          
-          <div className="flex justify-end">
-            <Button 
-              type="submit" 
-              disabled={isSubmitting || !content.trim()}
-            >
-              Post Comment
-            </Button>
-          </div>
+        <div className="flex justify-end">
+          <Button 
+            onClick={handleSubmit}
+            disabled={isSubmitting || content.trim() === ''}
+            size="sm"
+          >
+            {isSubmitting ? 'Posting...' : 'Post Comment'}
+          </Button>
         </div>
       </div>
-    </form>
+    </div>
   );
-};
-
-export default AddCommentForm;
+}

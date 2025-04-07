@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ForumPost, ForumComment as ForumCommentType } from "@/types/forum";
+import { ForumPost as ForumPostType, ForumComment as ForumCommentType } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
 import { addForumComment, fetchForumPostById } from "@/services/forumService";
@@ -16,7 +16,7 @@ import { getInitials } from '@/lib/utils';
 const ForumPostPage = () => {
   const { id: postId } = useParams();
   const { user } = useAuth();
-  const [post, setPost] = useState<ForumPost | null>(null);
+  const [post, setPost] = useState<ForumPostType | null>(null);
   const [comments, setComments] = useState<ForumCommentType[]>([]);
   const [commentContent, setCommentContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -36,11 +36,7 @@ const ForumPostPage = () => {
         setPost(fetchedPost);
         setComments(fetchedPost.comments || []);
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to load post.",
-          variant: "destructive",
-        });
+        toast.error("Failed to load post.");
       }
     } finally {
       setIsLoading(false);
@@ -57,16 +53,9 @@ const ForumPostPage = () => {
       if (newComment) {
         onAddComment(newComment);
         setCommentContent('');
-        toast({
-          title: "Comment added",
-          description: "Your comment has been added successfully.",
-        });
+        toast.success("Your comment has been added successfully.");
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to add comment. Please try again.",
-          variant: "destructive",
-        });
+        toast.error("Failed to add comment. Please try again.");
       }
     } finally {
       setIsSubmitting(false);

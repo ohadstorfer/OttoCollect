@@ -1,5 +1,38 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ForumPost, ForumComment } from "@/types/forum";
+import { v4 as uuidv4 } from 'uuid';
+
+// Upload forum image to Supabase storage
+export async function uploadForumImage(file: File): Promise<string> {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data.user) throw new Error("User not authenticated");
+
+    const userId = user.data.user.id;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from('forum_images')
+      .upload(filePath, file);
+
+    if (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
+
+    const { data } = supabase.storage
+      .from('forum_images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  } catch (error) {
+    console.error("Error in uploadForumImage:", error);
+    throw error;
+  }
+}
 
 // Fetch all forum posts
 export async function fetchForumPosts(): Promise<ForumPost[]> {
@@ -13,7 +46,8 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
           username,
           avatar_url,
           rank
-        )
+        ),
+        comment_count:forum_comments(count)
       `)
       .order('created_at', { ascending: false });
 
@@ -27,14 +61,14 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
       title: post.title,
       content: post.content,
       authorId: post.author_id,
-      author: {
-        id: post.author?.id || post.author_id,
-        username: post.author?.username || 'Unknown User',
-        avatarUrl: post.author?.avatar_url,
-        rank: post.author?.rank || 'User',
-      },
+      author: post.author ? {
+        id: post.author.id || post.author_id,
+        username: post.author.username || 'Unknown User',
+        avatarUrl: post.author.avatar_url,
+        rank: post.author.rank || 'User',
+      } : undefined,
       imageUrls: post.image_urls || [],
-      commentCount: post.comment_count || 0,
+      commentCount: post.comment_count?.[0]?.count || 0,
       createdAt: post.created_at,
       updatedAt: post.updated_at,
     }));
@@ -73,7 +107,8 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
             avatar_url,
             rank
           )
-        )
+        ),
+        comment_count:forum_comments(count)
       `)
       .eq('id', postId)
       .single();
@@ -90,29 +125,29 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
       title: data.title,
       content: data.content,
       authorId: data.author_id,
-      author: {
-        id: data.author?.id || data.author_id,
-        username: data.author?.username || 'Unknown User',
-        avatarUrl: data.author?.avatar_url,
-        rank: data.author?.rank || 'User',
-      },
+      author: data.author ? {
+        id: data.author.id || data.author_id,
+        username: data.author.username || 'Unknown User',
+        avatarUrl: data.author.avatar_url,
+        rank: data.author.rank || 'User',
+      } : undefined,
       imageUrls: data.image_urls || [],
       comments: data.comments?.map(comment => ({
         id: comment.id,
         postId: comment.post_id,
         content: comment.content,
         authorId: comment.author_id,
-        author: {
-          id: comment.author?.id || comment.author_id,
-          username: comment.author?.username || 'Unknown User',
-          avatarUrl: comment.author?.avatar_url,
-          rank: comment.author?.rank || 'User',
-        },
+        author: comment.author ? {
+          id: comment.author.id || comment.author_id,
+          username: comment.author.username || 'Unknown User',
+          avatarUrl: comment.author.avatar_url,
+          rank: comment.author.rank || 'User',
+        } : undefined,
         createdAt: comment.created_at,
         updatedAt: comment.updated_at,
-        isEdited: comment.is_edited,
+        isEdited: !!comment.is_edited,
       })) || [],
-      commentCount: data.comment_count || 0,
+      commentCount: data.comment_count?.[0]?.count || 0,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     };
@@ -129,7 +164,7 @@ export async function createForumPost(
   title: string,
   content: string,
   authorId: string,
-  imageUrls: string[]
+  imageUrls: string[] = []
 ): Promise<ForumPost | null> {
   try {
     const { data, error } = await supabase
@@ -149,7 +184,8 @@ export async function createForumPost(
           username,
           avatar_url,
           rank
-        )
+        ),
+        comment_count:forum_comments(count)
       `)
       .single();
 
@@ -163,14 +199,14 @@ export async function createForumPost(
       title: data.title,
       content: data.content,
       authorId: data.author_id,
-      author: {
-        id: data.author?.id || data.author_id,
-        username: data.author?.username || 'Unknown User',
-        avatarUrl: data.author?.avatar_url,
-        rank: data.author?.rank || 'User',
-      },
+      author: data.author ? {
+        id: data.author.id || data.author_id,
+        username: data.author.username || 'Unknown User',
+        avatarUrl: data.author.avatar_url,
+        rank: data.author.rank || 'User',
+      } : undefined,
       imageUrls: data.image_urls || [],
-      commentCount: data.comment_count || 0,
+      commentCount: data.comment_count?.[0]?.count || 0,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     };
@@ -203,7 +239,8 @@ export async function updateForumPost(
           username,
           avatar_url,
           rank
-        )
+        ),
+        comment_count:forum_comments(count)
       `)
       .single();
 
@@ -217,14 +254,14 @@ export async function updateForumPost(
       title: data.title,
       content: data.content,
       authorId: data.author_id,
-      author: {
-        id: data.author?.id || data.author_id,
-        username: data.author?.username || 'Unknown User',
-        avatarUrl: data.author?.avatar_url,
-        rank: data.author?.rank || 'User',
-      },
+      author: data.author ? {
+        id: data.author.id || data.author_id,
+        username: data.author.username || 'Unknown User',
+        avatarUrl: data.author.avatar_url,
+        rank: data.author.rank || 'User',
+      } : undefined,
       imageUrls: data.image_urls || [],
-      commentCount: data.comment_count || 0,
+      commentCount: data.comment_count?.[0]?.count || 0,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     };
@@ -271,6 +308,7 @@ export async function addForumComment(
           post_id: postId,
           content,
           author_id: authorId,
+          is_edited: false,
         },
       ])
       .select(`
@@ -294,15 +332,15 @@ export async function addForumComment(
       postId: data.post_id,
       content: data.content,
       authorId: data.author_id,
-      author: {
-        id: data.author?.id || data.author_id,
-        username: data.author?.username || 'Unknown User',
-        avatarUrl: data.author?.avatar_url,
-        rank: data.author?.rank || 'User',
-      },
+      author: data.author ? {
+        id: data.author.id || data.author_id,
+        username: data.author.username || 'Unknown User',
+        avatarUrl: data.author.avatar_url,
+        rank: data.author.rank || 'User',
+      } : undefined,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      isEdited: data.is_edited,
+      isEdited: !!data.is_edited,
     };
 
     return forumComment;
@@ -345,15 +383,15 @@ export async function updateForumComment(
       postId: data.post_id,
       content: data.content,
       authorId: data.author_id,
-      author: {
-        id: data.author?.id || data.author_id,
-        username: data.author?.username || 'Unknown User',
-        avatarUrl: data.author?.avatar_url,
-        rank: data.author?.rank || 'User',
-      },
+      author: data.author ? {
+        id: data.author.id || data.author_id,
+        username: data.author.username || 'Unknown User',
+        avatarUrl: data.author.avatar_url,
+        rank: data.author.rank || 'User',
+      } : undefined,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      isEdited: data.is_edited,
+      isEdited: !!data.is_edited,
     };
 
     return forumComment;
