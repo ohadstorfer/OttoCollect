@@ -6,7 +6,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import AddCommentForm from "@/components/forum/AddCommentForm";
+import { AddCommentForm } from "@/components/forum/AddCommentForm";
 import ForumComment from "@/components/forum/ForumComment";
 import { fetchForumPost, deleteForumPost } from "@/services/forumService";
 import { ForumPost as ForumPostType } from "@/types";

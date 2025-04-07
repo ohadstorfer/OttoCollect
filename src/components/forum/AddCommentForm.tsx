@@ -101,3 +101,5 @@ export const AddCommentForm: React.FC<AddCommentFormProps> = ({ postId, onCommen
     </form>
   );
 };
+
+export default AddCommentForm;

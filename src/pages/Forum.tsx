@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchForumPosts } from "@/services/forumService";
-import { ForumPostCard } from "@/components/forum/ForumPostCard";
+import ForumPostCard from "@/components/forum/ForumPostCard";
 import { ForumPost } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

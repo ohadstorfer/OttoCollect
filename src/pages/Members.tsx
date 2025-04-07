@@ -29,8 +29,22 @@ export default function Members() {
         
         if (error) throw error;
         
-        setMembers(data || []);
-        setFilteredMembers(data || []);
+        // Map Supabase database fields to our User type
+        const mappedData: User[] = (data || []).map(profile => ({
+          id: profile.id,
+          username: profile.username,
+          email: profile.email,
+          role: profile.role,
+          rank: profile.rank,
+          points: profile.points,
+          createdAt: profile.created_at,
+          avatarUrl: profile.avatar_url,
+          country: profile.country,
+          about: profile.about
+        }));
+        
+        setMembers(mappedData);
+        setFilteredMembers(mappedData);
       } catch (error) {
         console.error("Error fetching members:", error);
       } finally {
