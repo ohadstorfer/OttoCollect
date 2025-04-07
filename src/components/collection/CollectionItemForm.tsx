@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -144,6 +143,7 @@ export default function CollectionItemForm({ collectionItem, onUpdate }: Collect
             <Label className="mb-2 block">Obverse (Front)</Label>
             <CollectionImageUpload 
               userId={user?.id || ''} 
+              banknoteId={collectionItem.banknoteId}
               imageUrl={obverseImage} 
               side="obverse" 
               onImageUploaded={(url) => handleImageUploaded('obverse', url)}
@@ -153,6 +153,7 @@ export default function CollectionItemForm({ collectionItem, onUpdate }: Collect
             <Label className="mb-2 block">Reverse (Back)</Label>
             <CollectionImageUpload 
               userId={user?.id || ''} 
+              banknoteId={collectionItem.banknoteId}
               imageUrl={reverseImage} 
               side="reverse" 
               onImageUploaded={(url) => handleImageUploaded('reverse', url)}

@@ -32,3 +32,24 @@ export interface ForumPost {
   createdAt: string;
   updatedAt: string;
 }
+
+// Add this interface for image suggestions
+export interface ImageSuggestion {
+  id: string;
+  banknoteId: string;
+  userId: string;
+  imageUrl: string;
+  type: 'obverse' | 'reverse';
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  updatedAt?: string;
+  banknote?: {
+    catalogId: string;
+    country: string;
+    denomination: string;
+  };
+  user?: {
+    username: string;
+    avatarUrl?: string;
+  };
+}

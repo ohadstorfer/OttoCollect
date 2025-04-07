@@ -12,10 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ImageSuggestion } from '@/types/forum';
 
 interface CollectionImageUploadProps {
   userId: string;
-  banknoteId: string; // Added this prop
+  banknoteId: string; // Required prop
   imageUrl: string | null;
   side: 'obverse' | 'reverse';
   onImageUploaded: (url: string) => void;
@@ -116,43 +117,57 @@ export default function CollectionImageUpload({
     
     setSuggesting(true);
     try {
-      // Check if a suggestion already exists
-      const { data: existingSuggestion, error: checkError } = await supabase
-        .from('image_suggestions')
-        .select('*')
-        .eq('banknote_id', banknoteId)
-        .eq('user_id', userId)
-        .eq('type', side)
-        .eq('status', 'pending');
+      // We'll use raw SQL to interact with the image_suggestions table
+      // since it's not yet reflected in the TypeScript types
+      const { data: existingData, error: checkError } = await supabase.rpc(
+        'check_image_suggestion',
+        { 
+          p_banknote_id: banknoteId,
+          p_user_id: userId,
+          p_type: side
+        }
+      );
         
-      if (checkError) throw checkError;
+      if (checkError) {
+        console.error("Error checking for existing suggestion:", checkError);
+        toast.error("Failed to check existing suggestions");
+        return;
+      }
       
-      if (existingSuggestion && existingSuggestion.length > 0) {
-        // Update existing suggestion
-        const { error: updateError } = await supabase
-          .from('image_suggestions')
-          .update({
-            image_url: imageUrl,
-            created_at: new Date().toISOString()
-          })
-          .eq('id', existingSuggestion[0].id);
+      if (existingData && existingData.length > 0) {
+        // Update existing suggestion using RPC
+        const { error: updateError } = await supabase.rpc(
+          'update_image_suggestion',
+          {
+            p_suggestion_id: existingData[0].id,
+            p_image_url: imageUrl
+          }
+        );
           
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error("Error updating suggestion:", updateError);
+          toast.error("Failed to update your suggestion");
+          return;
+        }
         
         toast.success('Your image suggestion has been updated and will be reviewed by admins');
       } else {
-        // Create new suggestion
-        const { error: insertError } = await supabase
-          .from('image_suggestions')
-          .insert([{
-            banknote_id: banknoteId,
-            user_id: userId,
-            image_url: imageUrl,
-            type: side,
-            status: 'pending'
-          }]);
+        // Create new suggestion using RPC
+        const { error: insertError } = await supabase.rpc(
+          'create_image_suggestion',
+          {
+            p_banknote_id: banknoteId,
+            p_user_id: userId,
+            p_image_url: imageUrl,
+            p_type: side
+          }
+        );
           
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error("Error creating suggestion:", insertError);
+          toast.error("Failed to submit your suggestion");
+          return;
+        }
         
         toast.success('Your image suggestion has been submitted and will be reviewed by admins');
       }

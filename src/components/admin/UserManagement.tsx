@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Table, 
@@ -15,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserRole } from '@/types';
-import { Search, Loader2, UserCheck } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 
 interface UserManagementProps {
   isSuperAdmin: boolean;
@@ -48,7 +47,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         username: profile.username,
         email: profile.email,
         role: profile.role as UserRole,
-        rank: profile.rank,
+        rank: profile.rank as any,
         points: profile.points,
         createdAt: profile.created_at,
         avatarUrl: profile.avatar_url,
@@ -56,7 +55,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         about: profile.about,
       }));
 
-      setUsers(fetchedUsers);
+      setUsers(fetchedUsers as User[]);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');
@@ -77,7 +76,6 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         throw error;
       }
 
-      // Update local state
       setUsers(prevUsers =>
         prevUsers.map(user =>
           user.id === userId ? { ...user, role: newRole } : user

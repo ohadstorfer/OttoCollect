@@ -18,7 +18,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
-import UserProfileLink from "@/components/common/UserProfileLink";
 import { Edit2, Trash2 } from "lucide-react";
 import { updateForumComment, deleteForumComment } from "@/services/forumService";
 import { getInitials } from '@/lib/utils';
@@ -97,30 +96,18 @@ export function Comment({ comment, onUpdate, onDelete }: CommentProps) {
   return (
     <div className="py-4 border-b last:border-b-0">
       <div className="flex gap-3">
-        <UserProfileLink 
-          userId={comment.authorId}
-          username={comment.author?.username || "Unknown User"}
-          avatarUrl={comment.author?.avatarUrl}
-          rank={comment.author?.rank}
-        >
+        <div className="flex-shrink-0">
           <Avatar className="h-10 w-10 border">
             <AvatarImage src={comment.author?.avatarUrl} />
             <AvatarFallback className="bg-ottoman-700 text-parchment-100">
               {comment.author?.username ? getInitials(comment.author.username) : '??'}
             </AvatarFallback>
           </Avatar>
-        </UserProfileLink>
+        </div>
         
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <UserProfileLink 
-              userId={comment.authorId}
-              username={comment.author?.username || 'Unknown User'}
-              avatarUrl={comment.author?.avatarUrl}
-              rank={comment.author?.rank}
-            >
-              <span className="font-semibold">{comment.author?.username || 'Unknown User'}</span>
-            </UserProfileLink>
+            <span className="font-semibold">{comment.author?.username || 'Unknown User'}</span>
             <span className="text-xs text-muted-foreground">{formattedDate}</span>
             {comment.isEdited && <span className="text-xs italic text-muted-foreground">(edited)</span>}
           </div>

@@ -15,25 +15,7 @@ import { Loader2, Search, Check, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Pagination } from '@/components/ui/pagination';
 import { getInitials } from '@/lib/utils';
-
-interface ImageSuggestion {
-  id: string;
-  banknoteId: string;
-  userId: string;
-  banknote: {
-    catalogId: string;
-    country: string;
-    denomination: string;
-  };
-  user: {
-    username: string;
-    avatarUrl?: string;
-  };
-  imageUrl: string;
-  type: 'obverse' | 'reverse';
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
-}
+import { ImageSuggestion } from '@/types/forum';
 
 const ImageSuggestions = () => {
   const [suggestions, setSuggestions] = useState<ImageSuggestion[]>([]);
@@ -52,54 +34,45 @@ const ImageSuggestions = () => {
   const fetchSuggestions = async () => {
     setLoading(true);
     try {
-      // First get count for pagination
-      const { count, error: countError } = await supabase
-        .from('image_suggestions')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
+      // We'll use RPC to fetch the suggestions since the table is not in the TypeScript types
+      const { data: countData, error: countError } = await supabase.rpc(
+        'count_pending_image_suggestions'
+      );
 
-      if (countError) throw countError;
-      setTotalSuggestions(count || 0);
+      if (countError) {
+        console.error("Error counting suggestions:", countError);
+        throw countError;
+      }
+      
+      setTotalSuggestions(countData || 0);
 
-      // Fetch the suggestions with pagination
-      const { data, error } = await supabase
-        .from('image_suggestions')
-        .select(`
-          id,
-          banknote_id,
-          user_id,
-          image_url,
-          type,
-          status,
-          created_at,
-          banknotes:banknote_id (
-            extended_pick_number,
-            country,
-            face_value
-          ),
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1);
+      // Fetch the suggestions with pagination using RPC
+      const { data, error } = await supabase.rpc(
+        'get_image_suggestions',
+        {
+          p_limit: PAGE_SIZE,
+          p_offset: (currentPage - 1) * PAGE_SIZE
+        }
+      );
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching suggestions:", error);
+        throw error;
+      }
 
-      const mappedSuggestions = data.map((item: any) => ({
+      // Map the data to our ImageSuggestion type
+      const mappedSuggestions: ImageSuggestion[] = data.map((item: any) => ({
         id: item.id,
         banknoteId: item.banknote_id,
         userId: item.user_id,
         banknote: {
-          catalogId: item.banknotes?.extended_pick_number,
-          country: item.banknotes?.country,
-          denomination: item.banknotes?.face_value
+          catalogId: item.catalogId,
+          country: item.country,
+          denomination: item.denomination
         },
         user: {
-          username: item.profiles?.username || 'Unknown User',
-          avatarUrl: item.profiles?.avatar_url
+          username: item.username || 'Unknown User',
+          avatarUrl: item.avatar_url
         },
         imageUrl: item.image_url,
         type: item.type,
@@ -124,23 +97,18 @@ const ImageSuggestions = () => {
     setProcessingIds(prev => ({ ...prev, [suggestion.id]: true }));
     
     try {
-      // Update the suggestion status
-      const { error: updateSuggestionError } = await supabase
-        .from('image_suggestions')
-        .update({ status: 'approved' })
-        .eq('id', suggestion.id);
+      // Use RPC to approve the suggestion
+      const { error } = await supabase.rpc(
+        'approve_image_suggestion',
+        { 
+          p_suggestion_id: suggestion.id
+        }
+      );
       
-      if (updateSuggestionError) throw updateSuggestionError;
-      
-      // Update the banknote with the new image
-      const imageField = suggestion.type === 'obverse' ? 'front_picture' : 'back_picture';
-      
-      const { error: updateBanknoteError } = await supabase
-        .from('detailed_banknotes')
-        .update({ [imageField]: suggestion.imageUrl })
-        .eq('id', suggestion.banknoteId);
-      
-      if (updateBanknoteError) throw updateBanknoteError;
+      if (error) {
+        console.error("Error approving suggestion:", error);
+        throw error;
+      }
       
       // Update local state
       setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
@@ -158,13 +126,18 @@ const ImageSuggestions = () => {
     setProcessingIds(prev => ({ ...prev, [suggestion.id]: true }));
     
     try {
-      // Update the suggestion status
-      const { error } = await supabase
-        .from('image_suggestions')
-        .update({ status: 'rejected' })
-        .eq('id', suggestion.id);
+      // Use RPC to reject the suggestion
+      const { error } = await supabase.rpc(
+        'reject_image_suggestion',
+        { 
+          p_suggestion_id: suggestion.id
+        }
+      );
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error rejecting suggestion:", error);
+        throw error;
+      }
       
       // Update local state
       setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
@@ -223,9 +196,9 @@ const ImageSuggestions = () => {
                   <CardHeader className="p-4">
                     <CardTitle className="text-lg flex items-center justify-between">
                       <div className="flex items-center">
-                        <span className="font-medium">{suggestion.banknote.catalogId}</span>
+                        <span className="font-medium">{suggestion.banknote?.catalogId}</span>
                         <span className="mx-2 text-muted-foreground">•</span>
-                        <span>{suggestion.banknote.country}</span>
+                        <span>{suggestion.banknote?.country}</span>
                       </div>
                       <span className={`px-2 py-1 text-xs rounded-full ${
                         suggestion.type === 'obverse' 
@@ -241,7 +214,7 @@ const ImageSuggestions = () => {
                     <div className="aspect-[3/2] bg-muted rounded overflow-hidden">
                       <img
                         src={suggestion.imageUrl}
-                        alt={`${suggestion.banknote.denomination} ${suggestion.type === 'obverse' ? 'obverse' : 'reverse'}`}
+                        alt={`${suggestion.banknote?.denomination} ${suggestion.type === 'obverse' ? 'obverse' : 'reverse'}`}
                         className="w-full h-full object-contain"
                         onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.svg'}
                       />
@@ -251,13 +224,13 @@ const ImageSuggestions = () => {
                   <CardFooter className="p-4 pt-0 flex flex-col">
                     <div className="flex items-center mb-3 w-full">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={suggestion.user.avatarUrl} />
+                        <AvatarImage src={suggestion.user?.avatarUrl} />
                         <AvatarFallback>
-                          {getInitials(suggestion.user.username)}
+                          {getInitials(suggestion.user?.username || 'Unknown')}
                         </AvatarFallback>
                       </Avatar>
                       <div className="ml-2 flex-1">
-                        <p className="text-sm font-medium">{suggestion.user.username}</p>
+                        <p className="text-sm font-medium">{suggestion.user?.username}</p>
                         <p className="text-xs text-muted-foreground">
                           Submitted {new Date(suggestion.createdAt).toLocaleDateString()}
                         </p>
