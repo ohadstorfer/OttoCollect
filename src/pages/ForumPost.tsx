@@ -1,22 +1,21 @@
+
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ForumPost, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
 import { createForumComment, getForumPostById } from "@/services/forumService";
 import UserProfileLink from "@/components/common/UserProfileLink";
-import { Comment } from "@/components/forum/ForumComment";
+import ForumComment from "@/components/forum/ForumComment";
 import { getInitials } from '@/lib/utils';
 
 const ForumPostPage = () => {
-  const router = useRouter();
-  const { postId } = router.query;
+  const { id: postId } = useParams();
   const { user } = useAuth();
-  const { toast } = useToast();
   const [post, setPost] = useState<ForumPost | null>(null);
   const [comments, setComments] = useState<ForumComment[]>([]);
   const [commentContent, setCommentContent] = useState('');
@@ -25,7 +24,7 @@ const ForumPostPage = () => {
 
   useEffect(() => {
     if (postId) {
-      loadPost(postId as string);
+      loadPost(postId);
     }
   }, [postId]);
 
@@ -53,11 +52,7 @@ const ForumPostPage = () => {
 
     setIsSubmitting(true);
     try {
-      const newComment = await createForumComment(
-        post.id,
-        user.id,
-        commentContent
-      );
+      const newComment = await createForumComment(post.id, commentContent, user.id);
 
       if (newComment) {
         onAddComment(newComment);
@@ -109,7 +104,7 @@ const ForumPostPage = () => {
     addSuffix: true,
   });
 
-  const onAddComment = (comment: any) => {
+  const onAddComment = (comment: ForumComment) => {
     if (!post) return;
     setComments((prev) => [comment, ...prev]);
     setPost({
@@ -186,9 +181,10 @@ const ForumPostPage = () => {
         <div>
           {comments.length > 0 ? (
             comments.map((comment) => (
-              <Comment
+              <ForumComment
                 key={comment.id}
                 comment={comment}
+                currentUserId={user?.id || ''}
                 onUpdate={onUpdateComment}
                 onDelete={onDeleteComment}
               />
