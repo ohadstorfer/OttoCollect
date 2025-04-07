@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Image, X, Loader2 } from 'lucide-react';
@@ -54,6 +55,7 @@ interface ImageUploaderProps {
 
 const ImageUploader = ({ onImageUpload, onError }: ImageUploaderProps) => {
   const [uploading, setUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageClick = () => {
@@ -73,6 +75,7 @@ const ImageUploader = ({ onImageUpload, onError }: ImageUploaderProps) => {
           uploadForumImage(file, user.id)
             .then(url => {
               if (url) {
+                setImageUrl(url);
                 onImageUpload(url);
                 toast.success('Image uploaded successfully!');
               } else {
@@ -99,6 +102,7 @@ const ImageUploader = ({ onImageUpload, onError }: ImageUploaderProps) => {
   };
 
   const handleRemoveImage = () => {
+    setImageUrl('');
     onImageUpload('');
   };
 
@@ -108,9 +112,9 @@ const ImageUploader = ({ onImageUpload, onError }: ImageUploaderProps) => {
         className="w-full aspect-square bg-muted rounded-md border-2 border-dashed border-muted-foreground/25 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/70 transition-colors"
         onClick={handleImageClick}
       >
-        {onImageUpload ? (
+        {imageUrl ? (
           <img
-            src={onImageUpload}
+            src={imageUrl}
             alt="Uploaded"
             className="w-full h-full object-cover rounded-md"
           />
@@ -127,7 +131,7 @@ const ImageUploader = ({ onImageUpload, onError }: ImageUploaderProps) => {
         )}
       </div>
 
-      {onImageUpload && (
+      {imageUrl && (
         <Button
           variant="destructive"
           size="sm"

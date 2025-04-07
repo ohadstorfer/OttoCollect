@@ -4,19 +4,7 @@ export interface Message {
   senderId: string;
   receiverId: string;
   content: string;
-  referenceItemId?: string;
   isRead: boolean;
+  referenceItemId?: string | null;
   createdAt: string;
-}
-
-export interface Conversation {
-  otherUserId: string;
-  otherUser: {
-    id: string;
-    username: string;
-    avatarUrl?: string;
-    rank: string;
-  };
-  lastMessage: Message;
-  unreadCount: number;
 }

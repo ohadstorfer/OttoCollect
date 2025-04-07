@@ -1,198 +1,232 @@
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getInitials } from '@/lib/utils';
-import { ForumComment } from '@/components/forum/ForumComment';
-import { AddCommentForm } from '@/components/forum/AddCommentForm';
-import { fetchForumPostById, addForumComment } from '@/services/forumService';
+import { ArrowLeft, MessageSquare, Trash2, Edit, Send } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { fetchForumPostById, deleteForumPost, addForumComment } from '@/services/forumService';
+import ForumComment from '@/components/forum/ForumComment';
+import AddCommentForm from '@/components/forum/AddCommentForm';
 import { ForumPost as ForumPostType, ForumComment as ForumCommentType } from '@/types/forum';
+import { formatDistanceToNow } from 'date-fns';
+import { Textarea } from '@/components/ui/textarea';
+import UserProfileLink from '@/components/common/UserProfileLink';
+import { toast } from 'sonner';
 
 const ForumPost = () => {
-  const { postId } = useParams();
+  const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [post, setPost] = useState<ForumPostType | null>(null);
   const [comments, setComments] = useState<ForumCommentType[]>([]);
-  const [commentContent, setCommentContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   useEffect(() => {
-    if (postId) {
-      loadPost(postId);
-    }
-  }, [postId]);
+    if (!postId) return;
 
-  const loadPost = async (postId: string) => {
-    setIsLoading(true);
-    try {
-      const fetchedPost = await fetchForumPostById(postId);
-      if (fetchedPost) {
-        setPost(fetchedPost);
-        setComments(fetchedPost.comments || []);
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to load post.",
-          variant: "destructive",
-        });
+    const loadPost = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchForumPostById(postId);
+        if (data) {
+          setPost(data.post);
+          setComments(data.comments || []);
+        } else {
+          toast.error("Post not found");
+          navigate('/community/forum');
+        }
+      } catch (error) {
+        console.error("Error loading post:", error);
+        toast.error("Error loading post");
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  const handleAddComment = async () => {
-    if (!user || !post || commentContent.trim() === '') return;
+    loadPost();
+  }, [postId, navigate]);
 
-    setIsSubmitting(true);
+  const handleDeletePost = async () => {
+    if (!post || !window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) return;
+
+    setIsDeleting(true);
     try {
-      const newComment = await addForumComment(
-        post.id,
-        user.id,
-        commentContent
-      );
-
-      if (newComment) {
-        onAddComment(newComment);
-        setCommentContent('');
-        toast({
-          title: "Comment added",
-          description: "Your comment has been added successfully.",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to add comment. Please try again.",
-          variant: "destructive",
-        });
-      }
+      await deleteForumPost(post.id);
+      toast.success("Post deleted successfully");
+      navigate('/community/forum');
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast.error("Failed to delete post");
     } finally {
-      setIsSubmitting(false);
+      setIsDeleting(false);
     }
   };
 
-  const onUpdateComment = (commentId: string, content: string) => {
-    setComments((prevComments) =>
-      prevComments.map((comment) =>
-        comment.id === commentId ? { ...comment, content, isEdited: true } : comment
-      )
-    );
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim() || !user || !post) return;
+
+    setIsSubmittingComment(true);
+    try {
+      const commentId = await addForumComment(post.id, newComment, user.id);
+      const newCommentObj: ForumCommentType = {
+        id: commentId,
+        postId: post.id,
+        content: newComment,
+        authorId: user.id,
+        author: {
+          id: user.id,
+          username: user.username,
+          avatarUrl: user.avatarUrl || '',
+          rank: user.rank
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isEdited: false
+      };
+      setComments([newCommentObj, ...comments]);
+      setNewComment('');
+      toast.success("Comment added successfully");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast.error("Failed to add comment");
+    } finally {
+      setIsSubmittingComment(false);
+    }
   };
 
-  const onDeleteComment = (commentId: string) => {
-    setComments((prevComments) =>
-      prevComments.filter((comment) => comment.id !== commentId)
-    );
-    if (post) {
-      setPost({ ...post, commentCount: (post.commentCount || 1) - 1 });
-    }
+  const handleCommentAdded = (comment: ForumCommentType) => {
+    setComments(prev => [comment, ...prev]);
   };
 
   if (isLoading) {
-    return <div className="text-center py-10">Loading post...</div>;
+    return (
+      <div className="container py-8">
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
   }
 
   if (!post) {
-    return <div className="text-center py-10">Post not found.</div>;
+    return (
+      <div className="container py-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Post not found</h2>
+          <Button onClick={() => navigate('/community/forum')} className="mt-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Forum
+          </Button>
+        </div>
+      </div>
+    );
   }
 
-  const authorRank = post?.author?.rank || 'User';
-
-  const formattedDate = formatDistanceToNow(new Date(post.createdAt), {
-    addSuffix: true,
-  });
-
-  const onAddComment = (comment: any) => {
-    if (!post) return;
-    setComments((prev) => [comment, ...prev]);
-    setPost({
-      ...post,
-      commentCount: (post.commentCount || 0) + 1,
-    });
-  };
+  const timeAgo = formatDistanceToNow(new Date(post.createdAt), { addSuffix: true });
 
   return (
-    <div className="page-container">
-      <h1 className="page-title">{post.title}</h1>
+    <div className="container py-8">
+      <Button variant="ghost" onClick={() => navigate('/community/forum')} className="mb-6">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Forum
+      </Button>
 
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-parchment-50 p-6 rounded-md shadow-md mb-6">
-          <div className="flex items-start gap-4">
-            <UserProfileLink
-              userId={post.authorId}
-              username={post.author?.username || "Unknown User"}
-              avatarUrl={post.author?.avatarUrl}
-              rank={authorRank}
-            >
-              <Avatar className="h-12 w-12 border">
-                <AvatarImage src={post.author?.avatarUrl} />
-                <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                  {post.author?.username ? getInitials(post.author.username) : '??'}
-                </AvatarFallback>
-              </Avatar>
-            </UserProfileLink>
-
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <UserProfileLink
-                  userId={post.authorId}
-                  username={post.author?.username || "Unknown User"}
-                  avatarUrl={post.author?.avatarUrl}
-                  rank={authorRank}
-                >
-                  <span className="font-semibold">{post.author?.username || 'Unknown User'}</span>
-                </UserProfileLink>
-                <span className="text-sm text-muted-foreground">{formattedDate}</span>
-              </div>
-              <div className="whitespace-pre-line">{post.content}</div>
+      <div className="bg-card rounded-lg border shadow-sm p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">{post.title}</h1>
+            <div className="flex items-center text-muted-foreground text-sm">
+              <UserProfileLink
+                userId={post.author?.id || ''}
+                username={post.author?.username || 'Unknown'}
+                avatarUrl={post.author?.avatarUrl}
+                size="sm"
+              />
+              <span className="mx-2">•</span>
+              <span>{timeAgo}</span>
             </div>
           </div>
-        </div>
 
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold mb-2">Comments</h2>
-          {user ? (
+          {user && post.authorId === user.id && (
             <div className="flex gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatarUrl} />
-                <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                  {getInitials(user.username)}
-                </AvatarFallback>
-              </Avatar>
-              <Textarea
-                value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
-                placeholder="Add your comment..."
-                className="flex-grow"
-              />
-              <Button onClick={handleAddComment} disabled={isSubmitting}>
-                Post
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/community/forum/${post.id}/edit`)}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeletePost}
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                {isDeleting ? 'Deleting...' : 'Delete'}
               </Button>
             </div>
-          ) : (
-            <p className="text-muted-foreground">
-              Please log in to add a comment.
-            </p>
           )}
         </div>
 
-        <div>
+        <div className="mt-6 prose max-w-none dark:prose-invert">
+          {post.content.split('\n').map((paragraph, idx) => (
+            <p key={idx}>{paragraph}</p>
+          ))}
+        </div>
+
+        {post.imageUrls && post.imageUrls.length > 0 && (
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {post.imageUrls.map((imgUrl, idx) => (
+              <div key={idx} className="rounded-md overflow-hidden border">
+                <img
+                  src={imgUrl}
+                  alt={`Post image ${idx + 1}`}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-xl font-bold mb-6 flex items-center">
+          <MessageSquare className="h-5 w-5 mr-2" />
+          Comments ({comments.length})
+        </h3>
+
+        {user ? (
+          <AddCommentForm postId={post.id} onCommentAdded={handleCommentAdded} />
+        ) : (
+          <div className="bg-muted/50 rounded-md p-4 text-center">
+            <p className="text-sm text-muted-foreground mb-2">
+              Please sign in to leave a comment
+            </p>
+            <Button onClick={() => navigate('/auth')}>
+              Sign In
+            </Button>
+          </div>
+        )}
+
+        <div className="mt-8 space-y-6">
           {comments.length > 0 ? (
-            comments.map((comment) => (
-              <Comment
+            comments.map(comment => (
+              <ForumComment
                 key={comment.id}
                 comment={comment}
-                onUpdate={onUpdateComment}
-                onDelete={onDeleteComment}
+                currentUserId={user?.id}
               />
             ))
           ) : (
-            <p className="text-muted-foreground">No comments yet.</p>
+            <p className="text-center text-muted-foreground py-6">
+              No comments yet. Be the first to comment!
+            </p>
           )}
         </div>
       </div>

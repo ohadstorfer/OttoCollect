@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { createForumPost } from "@/services/forumService";
-import { ImageUploader } from "./ImageUploader";
+import ImageUploader from "./ImageUploader";
 
 export const CreatePostForm = () => {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ export const CreatePostForm = () => {
 
     try {
       console.log("Creating forum post with:", { title, content, images });
-      const postId = await createForumPost(title, content, images);
+      const postId = await createForumPost(title, content, images.length > 0 ? images : []);
       console.log("Post created with ID:", postId);
       
       toast({
@@ -93,8 +93,11 @@ export const CreatePostForm = () => {
               Images (optional)
             </label>
             <ImageUploader 
-              images={images} 
-              onChange={setImages} 
+              onImageUpload={(url) => setImages([...images, url])}
+              onError={(message) => toast({ 
+                variant: "destructive", 
+                description: message 
+              })}
             />
             <p className="text-xs text-muted-foreground">
               You can upload up to 10 images. Supported formats: JPG, PNG, GIF
@@ -122,3 +125,5 @@ export const CreatePostForm = () => {
     </Card>
   );
 };
+
+export default CreatePostForm;

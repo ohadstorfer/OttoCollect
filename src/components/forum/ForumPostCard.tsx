@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { MessageSquare, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
-import { ForumPost } from '@/types';
+import { ForumPost } from '@/types/forum';
 import UserProfileLink from '@/components/common/UserProfileLink';
 
 interface ForumPostCardProps {

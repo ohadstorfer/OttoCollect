@@ -1,3 +1,4 @@
+
 export interface DetailedBanknote {
   id: string;
   extendedPickNumber: string;
@@ -29,6 +30,14 @@ export interface DetailedBanknote {
   isPending: boolean | null;
   createdAt: string | null;
   updatedAt: string | null;
+  // Properties mapped from Banknote interface for compatibility
+  catalogId?: string;
+  denomination?: string;
+  year?: string;
+  series?: string;
+  imageUrls?: string[];
+  serialNumbering?: string;
+  createdBy?: string;
 }
 
 export interface CollectionItem {
@@ -48,6 +57,7 @@ export interface CollectionItem {
   orderIndex: number;
   createdAt: string;
   updatedAt: string;
+  banknote?: DetailedBanknote; // Add the banknote reference
 }
 
 export type BanknoteCondition = "UNC" | "AU" | "XF" | "VF" | "F" | "VG" | "G" | "Fair" | "Poor";
@@ -59,6 +69,7 @@ export interface WishlistItem {
   priority: "High" | "Medium" | "Low";
   note?: string;
   createdAt: string;
+  banknote?: DetailedBanknote; // Add the banknote reference
 }
 
 export interface UserProfile {
@@ -139,11 +150,9 @@ export interface BlogPost {
   updatedAt: string;
 }
 
-export interface MarketplaceItem {
-  id: string;
-  collectionItemId: string;
-  sellerId: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Re-export types from other files
+export * from './forum';
+export * from './user';
+export * from './banknote';
+export * from './marketplace';
+export * from './message';
