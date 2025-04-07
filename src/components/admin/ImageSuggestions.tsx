@@ -34,10 +34,8 @@ const ImageSuggestions = () => {
   const fetchSuggestions = async () => {
     setLoading(true);
     try {
-      // We'll use RPC to fetch the suggestions since the table is not in the TypeScript types
-      const { data: countData, error: countError } = await supabase.rpc(
-        'count_pending_image_suggestions'
-      );
+      // We'll count pending image suggestions
+      const { data: countData, error: countError } = await supabase.rpc('count_pending_image_suggestions');
 
       if (countError) {
         console.error("Error counting suggestions:", countError);
@@ -60,30 +58,36 @@ const ImageSuggestions = () => {
         throw error;
       }
 
-      // Map the data to our ImageSuggestion type
-      const mappedSuggestions: ImageSuggestion[] = data.map((item: any) => ({
-        id: item.id,
-        banknoteId: item.banknote_id,
-        userId: item.user_id,
-        banknote: {
-          catalogId: item.catalogId,
-          country: item.country,
-          denomination: item.denomination
-        },
-        user: {
-          username: item.username || 'Unknown User',
-          avatarUrl: item.avatar_url
-        },
-        imageUrl: item.image_url,
-        type: item.type,
-        status: item.status,
-        createdAt: item.created_at
-      }));
+      if (Array.isArray(data)) {
+        // Map the data to our ImageSuggestion type
+        const mappedSuggestions: ImageSuggestion[] = data.map((item: any) => ({
+          id: item.id,
+          banknoteId: item.banknote_id,
+          userId: item.user_id,
+          banknote: {
+            catalogId: item.catalogId,
+            country: item.country,
+            denomination: item.denomination
+          },
+          user: {
+            username: item.username || 'Unknown User',
+            avatarUrl: item.avatar_url
+          },
+          imageUrl: item.image_url,
+          type: item.type,
+          status: item.status,
+          createdAt: item.created_at
+        }));
 
-      setSuggestions(mappedSuggestions);
+        setSuggestions(mappedSuggestions);
+      } else {
+        console.error("Unexpected data format:", data);
+        setSuggestions([]);
+      }
     } catch (error) {
       console.error('Error fetching image suggestions:', error);
       toast.error('Failed to load image suggestions');
+      setSuggestions([]);
     } finally {
       setLoading(false);
     }

@@ -12,7 +12,15 @@ import {
   Printer,
   Palette,
   CircleDollarSign,
-  Award
+  Award,
+  Hash,
+  Star,
+  Tag,
+  Clock,
+  Info,
+  Shield,
+  PencilRuler,
+  BadgeCheck
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -42,21 +50,77 @@ const BanknoteDetailCard = ({
 
   // Detail items to display in the card
   const detailItems = [
+    // Basic info
     { icon: <Calendar className="h-4 w-4 text-muted-foreground" />, 
       label: "Year", 
-      value: banknote.year 
+      value: banknote.year,
+      category: "basic"
     },
     { icon: <MapPin className="h-4 w-4 text-muted-foreground" />, 
       label: "Country", 
-      value: banknote.country 
+      value: banknote.country,
+      category: "basic" 
     },
     { icon: <BookOpen className="h-4 w-4 text-muted-foreground" />, 
       label: "Series", 
-      value: banknote.series 
+      value: banknote.series,
+      category: "basic" 
     },
     { icon: <CircleDollarSign className="h-4 w-4 text-muted-foreground" />, 
       label: "Denomination", 
-      value: banknote.denomination 
+      value: banknote.denomination,
+      category: "basic" 
+    },
+    
+    // Extended catalog info
+    { icon: <Hash className="h-4 w-4 text-muted-foreground" />, 
+      label: "Pick Number", 
+      value: banknote.pickNumber,
+      category: "catalog" 
+    },
+    { icon: <Tag className="h-4 w-4 text-muted-foreground" />, 
+      label: "Ext. Pick", 
+      value: banknote.extendedPickNumber,
+      category: "catalog" 
+    },
+    { icon: <PencilRuler className="h-4 w-4 text-muted-foreground" />, 
+      label: "Catalog ID", 
+      value: banknote.catalogId,
+      category: "catalog" 
+    },
+    
+    // Production details
+    { icon: <Printer className="h-4 w-4 text-muted-foreground" />, 
+      label: "Printer", 
+      value: banknote.printer,
+      category: "production" 
+    },
+    { icon: <Palette className="h-4 w-4 text-muted-foreground" />, 
+      label: "Colors", 
+      value: banknote.colors,
+      category: "production" 
+    },
+    { icon: <Shield className="h-4 w-4 text-muted-foreground" />, 
+      label: "Security", 
+      value: banknote.securityElement,
+      category: "production" 
+    },
+    
+    // Additional details
+    { icon: <Info className="h-4 w-4 text-muted-foreground" />, 
+      label: "Type", 
+      value: banknote.type,
+      category: "additional" 
+    },
+    { icon: <Star className="h-4 w-4 text-muted-foreground" />, 
+      label: "Rarity", 
+      value: banknote.rarity,
+      category: "additional" 
+    },
+    { icon: <BadgeCheck className="h-4 w-4 text-muted-foreground" />, 
+      label: "Category", 
+      value: banknote.category,
+      category: "additional" 
     }
   ];
 
@@ -64,15 +128,27 @@ const BanknoteDetailCard = ({
   const collectionDetails = collectionItem ? [
     { icon: <Award className="h-4 w-4 text-muted-foreground" />, 
       label: "Condition", 
-      value: collectionItem.condition 
+      value: collectionItem.condition,
+      category: "collection" 
     },
     { icon: <BarChart3 className="h-4 w-4 text-muted-foreground" />, 
       label: "Price", 
       value: collectionItem.isForSale && collectionItem.salePrice ? 
              `$${collectionItem.salePrice}` : 
-             null
+             null,
+      category: "collection"
+    },
+    { icon: <Clock className="h-4 w-4 text-muted-foreground" />, 
+      label: "Purchased", 
+      value: collectionItem.purchaseDate ? 
+             new Date(collectionItem.purchaseDate).toLocaleDateString() : 
+             null,
+      category: "collection"
     }
   ] : [];
+
+  // Combine all details
+  const allDetails = [...detailItems, ...collectionDetails].filter(item => item.value);
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
@@ -100,28 +176,14 @@ const BanknoteDetailCard = ({
         </div>
 
         <div className="space-y-2 text-sm divide-y divide-gray-100">
-          {detailItems.map((item, index) => (
-            item.value && (
-              <div key={index} className={`flex justify-between items-center ${index > 0 ? 'pt-2' : ''}`}>
-                <div className="flex items-center gap-2">
-                  {item.icon}
-                  <span className="text-muted-foreground">{item.label}:</span>
-                </div>
-                <span className="font-medium">{item.value}</span>
+          {allDetails.map((item, index) => (
+            <div key={index} className={`flex justify-between items-center ${index > 0 ? 'pt-2' : ''}`}>
+              <div className="flex items-center gap-2">
+                {item.icon}
+                <span className="text-muted-foreground">{item.label}:</span>
               </div>
-            )
-          ))}
-          
-          {collectionDetails.map((item, index) => (
-            item.value && (
-              <div key={`coll-${index}`} className="flex justify-between items-center pt-2">
-                <div className="flex items-center gap-2">
-                  {item.icon}
-                  <span className="text-muted-foreground">{item.label}:</span>
-                </div>
-                <span className="font-medium">{item.value}</span>
-              </div>
-            )
+              <span className="font-medium">{item.value}</span>
+            </div>
           ))}
         </div>
       </CardContent>

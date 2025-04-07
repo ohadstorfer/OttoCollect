@@ -1,4 +1,6 @@
 
+import { UserRank } from './index';
+
 export interface ForumComment {
   id: string;
   postId: string;

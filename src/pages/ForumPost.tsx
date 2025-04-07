@@ -12,6 +12,7 @@ import { addForumComment, fetchForumPostById } from "@/services/forumService";
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumComment from "@/components/forum/ForumComment";
 import { getInitials } from '@/lib/utils';
+import { UserRank } from '@/types';
 
 const ForumPostPage = () => {
   const { id: postId } = useParams();
@@ -87,7 +88,24 @@ const ForumPostPage = () => {
     return <div className="text-center py-10">Post not found.</div>;
   }
 
-  const authorRank = post?.author?.rank || 'User';
+  // Convert string rank to UserRank type
+  const getRankAsUserRank = (rank: string): UserRank => {
+    const validRanks: UserRank[] = [
+      'Newbie',
+      'Beginner Collector',
+      'Casual Collector',
+      'Known Collector',
+      'Advance Collector',
+      'Admin',
+      'Super Admin'
+    ];
+    
+    return validRanks.includes(rank as UserRank) 
+      ? (rank as UserRank) 
+      : 'Newbie';
+  };
+
+  const authorRank = getRankAsUserRank(post.author?.rank || 'User');
 
   const formattedDate = formatDistanceToNow(new Date(post.createdAt), {
     addSuffix: true,

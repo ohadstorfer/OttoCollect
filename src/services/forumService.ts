@@ -41,12 +41,7 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
       .from('forum_posts')
       .select(`
         *,
-        author:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        ),
+        author:profiles(id, username, avatar_url, rank),
         comment_count:forum_comments(count)
       `)
       .order('created_at', { ascending: false });
@@ -61,12 +56,12 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
       title: post.title,
       content: post.content,
       authorId: post.author_id,
-      author: post.author ? {
-        id: post.author.id || post.author_id,
-        username: post.author.username || 'Unknown User',
-        avatarUrl: post.author.avatar_url,
-        rank: post.author.rank || 'User',
-      } : undefined,
+      author: {
+        id: post.author?.id || post.author_id,
+        username: post.author?.username || 'Unknown User',
+        avatarUrl: post.author?.avatar_url,
+        rank: post.author?.rank || 'User',
+      },
       imageUrls: post.image_urls || [],
       commentCount: post.comment_count?.[0]?.count || 0,
       createdAt: post.created_at,
@@ -83,16 +78,14 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
 // Fetch a single forum post by ID
 export async function fetchForumPostById(postId: string): Promise<ForumPost | null> {
   try {
+    // First, make sure the is_edited column exists
+    await ensureIsEditedColumnExists();
+    
     const { data, error } = await supabase
       .from('forum_posts')
       .select(`
         *,
-        author:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        ),
+        author:profiles(id, username, avatar_url, rank),
         comments:forum_comments (
           id,
           post_id,
@@ -101,12 +94,7 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
           created_at,
           updated_at,
           is_edited,
-          author:author_id (
-            id,
-            username,
-            avatar_url,
-            rank
-          )
+          author:profiles(id, username, avatar_url, rank)
         ),
         comment_count:forum_comments(count)
       `)
@@ -125,24 +113,24 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
       title: data.title,
       content: data.content,
       authorId: data.author_id,
-      author: data.author ? {
-        id: data.author.id || data.author_id,
-        username: data.author.username || 'Unknown User',
-        avatarUrl: data.author.avatar_url,
-        rank: data.author.rank || 'User',
-      } : undefined,
+      author: {
+        id: data.author?.id || data.author_id,
+        username: data.author?.username || 'Unknown User',
+        avatarUrl: data.author?.avatar_url,
+        rank: data.author?.rank || 'User',
+      },
       imageUrls: data.image_urls || [],
       comments: data.comments?.map(comment => ({
         id: comment.id,
         postId: comment.post_id,
         content: comment.content,
         authorId: comment.author_id,
-        author: comment.author ? {
-          id: comment.author.id || comment.author_id,
-          username: comment.author.username || 'Unknown User',
-          avatarUrl: comment.author.avatar_url,
-          rank: comment.author.rank || 'User',
-        } : undefined,
+        author: {
+          id: comment.author?.id || comment.author_id,
+          username: comment.author?.username || 'Unknown User',
+          avatarUrl: comment.author?.avatar_url,
+          rank: comment.author?.rank || 'User',
+        },
         createdAt: comment.created_at,
         updatedAt: comment.updated_at,
         isEdited: !!comment.is_edited,
@@ -179,12 +167,7 @@ export async function createForumPost(
       ])
       .select(`
         *,
-        author:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        ),
+        author:profiles(id, username, avatar_url, rank),
         comment_count:forum_comments(count)
       `)
       .single();
@@ -199,12 +182,12 @@ export async function createForumPost(
       title: data.title,
       content: data.content,
       authorId: data.author_id,
-      author: data.author ? {
-        id: data.author.id || data.author_id,
-        username: data.author.username || 'Unknown User',
-        avatarUrl: data.author.avatar_url,
-        rank: data.author.rank || 'User',
-      } : undefined,
+      author: {
+        id: data.author?.id || data.author_id,
+        username: data.author?.username || 'Unknown User',
+        avatarUrl: data.author?.avatar_url,
+        rank: data.author?.rank || 'User',
+      },
       imageUrls: data.image_urls || [],
       commentCount: data.comment_count?.[0]?.count || 0,
       createdAt: data.created_at,
@@ -234,12 +217,7 @@ export async function updateForumPost(
       .eq('author_id', userId)
       .select(`
         *,
-        author:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        ),
+        author:profiles(id, username, avatar_url, rank),
         comment_count:forum_comments(count)
       `)
       .single();
@@ -254,12 +232,12 @@ export async function updateForumPost(
       title: data.title,
       content: data.content,
       authorId: data.author_id,
-      author: data.author ? {
-        id: data.author.id || data.author_id,
-        username: data.author.username || 'Unknown User',
-        avatarUrl: data.author.avatar_url,
-        rank: data.author.rank || 'User',
-      } : undefined,
+      author: {
+        id: data.author?.id || data.author_id,
+        username: data.author?.username || 'Unknown User',
+        avatarUrl: data.author?.avatar_url,
+        rank: data.author?.rank || 'User',
+      },
       imageUrls: data.image_urls || [],
       commentCount: data.comment_count?.[0]?.count || 0,
       createdAt: data.created_at,
@@ -301,6 +279,8 @@ export async function addForumComment(
   authorId: string
 ): Promise<ForumComment | null> {
   try {
+    await ensureIsEditedColumnExists();
+    
     const { data, error } = await supabase
       .from('forum_comments')
       .insert([
@@ -313,12 +293,7 @@ export async function addForumComment(
       ])
       .select(`
         *,
-        author:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        )
+        author:profiles(id, username, avatar_url, rank)
       `)
       .single();
 
@@ -332,12 +307,12 @@ export async function addForumComment(
       postId: data.post_id,
       content: data.content,
       authorId: data.author_id,
-      author: data.author ? {
-        id: data.author.id || data.author_id,
-        username: data.author.username || 'Unknown User',
-        avatarUrl: data.author.avatar_url,
-        rank: data.author.rank || 'User',
-      } : undefined,
+      author: {
+        id: data.author?.id || data.author_id,
+        username: data.author?.username || 'Unknown User',
+        avatarUrl: data.author?.avatar_url,
+        rank: data.author?.rank || 'User',
+      },
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       isEdited: !!data.is_edited,
@@ -357,6 +332,8 @@ export async function updateForumComment(
   content: string
 ): Promise<ForumComment | null> {
   try {
+    await ensureIsEditedColumnExists();
+    
     const { data, error } = await supabase
       .from('forum_comments')
       .update({ content, is_edited: true })
@@ -364,12 +341,7 @@ export async function updateForumComment(
       .eq('author_id', userId)
       .select(`
         *,
-        author:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        )
+        author:profiles(id, username, avatar_url, rank)
       `)
       .single();
 
@@ -383,12 +355,12 @@ export async function updateForumComment(
       postId: data.post_id,
       content: data.content,
       authorId: data.author_id,
-      author: data.author ? {
-        id: data.author.id || data.author_id,
-        username: data.author.username || 'Unknown User',
-        avatarUrl: data.author.avatar_url,
-        rank: data.author.rank || 'User',
-      } : undefined,
+      author: {
+        id: data.author?.id || data.author_id,
+        username: data.author?.username || 'Unknown User',
+        avatarUrl: data.author?.avatar_url,
+        rank: data.author?.rank || 'User',
+      },
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       isEdited: !!data.is_edited,
@@ -418,5 +390,24 @@ export async function deleteForumComment(commentId: string): Promise<boolean> {
   } catch (error) {
     console.error("Error in deleteForumComment:", error);
     return false;
+  }
+}
+
+// Helper function to make sure the is_edited column exists
+async function ensureIsEditedColumnExists() {
+  try {
+    // First check if the column already exists to avoid errors
+    const { data: columnExists } = await supabase.rpc('column_exists', {
+      p_table: 'forum_comments',
+      p_column: 'is_edited'
+    });
+    
+    if (!columnExists) {
+      // If the column doesn't exist, add it
+      await supabase.rpc('add_is_edited_column');
+    }
+  } catch (error) {
+    console.error("Error checking for is_edited column:", error);
+    // Continue anyway as the column might exist despite the error
   }
 }
