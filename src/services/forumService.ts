@@ -2,6 +2,39 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ForumPost, ForumComment } from "@/types";
 
+// Upload a forum post image
+export async function uploadForumImage(file: File): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) throw new Error("User not authenticated");
+
+  // Create a unique file name to prevent collisions
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Math.random().toString(36).substring(2, 15)}-${Date.now()}.${fileExt}`;
+  const filePath = `${user.id}/${fileName}`;
+  
+  const { data, error } = await supabase
+    .storage
+    .from('forum_images')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+
+  if (error) {
+    console.error("Error uploading forum image:", error);
+    throw error;
+  }
+
+  // Get the public URL
+  const { data: { publicUrl } } = supabase
+    .storage
+    .from('forum_images')
+    .getPublicUrl(data.path);
+
+  return publicUrl;
+}
+
 // Create a new forum post
 export async function createForumPost(title: string, content: string, imageUrls: string[] = []): Promise<string> {
   // Get the current user
@@ -74,7 +107,7 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
     .from('forum_posts')
     .select(`
       *,
-      author:author_id (
+      author:profiles(
         id, 
         username, 
         avatar_url,
@@ -128,7 +161,7 @@ export async function fetchForumPost(id: string): Promise<ForumPost> {
     .from('forum_posts')
     .select(`
       *,
-      author:author_id (
+      author:profiles(
         id, 
         username, 
         avatar_url,
@@ -148,7 +181,7 @@ export async function fetchForumPost(id: string): Promise<ForumPost> {
     .from('forum_comments')
     .select(`
       *,
-      author:author_id (
+      author:profiles(
         id, 
         username, 
         avatar_url,

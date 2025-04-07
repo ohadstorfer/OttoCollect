@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Edit2, Trash2, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ForumComment as ForumCommentType } from '@/types';

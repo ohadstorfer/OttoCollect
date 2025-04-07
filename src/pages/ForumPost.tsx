@@ -34,6 +34,7 @@ export default function ForumPost() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [localPost, setLocalPost] = useState<ForumPostType | null>(null);
 
+  // Use query to fetch the post
   const {
     data: post,
     isLoading,
@@ -52,9 +53,11 @@ export default function ForumPost() {
     }
   }, [post]);
 
+  // Check if user can edit or delete the post
   const canEditOrDelete = user && localPost?.author && 
     (user.id === localPost.author.id || ['Admin', 'Super Admin'].includes(user.role || ''));
 
+  // Handler for deleting a post
   const handleDeletePost = async () => {
     if (!localPost) return;
     

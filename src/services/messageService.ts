@@ -1,7 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Message, Conversation } from "@/types";
-import { useToast } from "@/hooks/use-toast";
 
 // Helper function to convert database message to our Message type
 const mapDbMessageToMessage = (dbMessage: any): Message => {
@@ -28,7 +26,7 @@ export async function fetchConversations(userId: string): Promise<Conversation[]
         content,
         is_read,
         created_at,
-        profiles:receiver_id (id, username, avatar_url, rank),
+        receiver:profiles!receiver_id(id, username, avatar_url, rank),
         reference_item_id
       `)
       .eq('sender_id', userId)
@@ -43,7 +41,7 @@ export async function fetchConversations(userId: string): Promise<Conversation[]
         content,
         is_read,
         created_at,
-        profiles:sender_id (id, username, avatar_url, rank),
+        sender:profiles!sender_id(id, username, avatar_url, rank),
         reference_item_id
       `)
       .eq('receiver_id', userId)
@@ -63,8 +61,8 @@ export async function fetchConversations(userId: string): Promise<Conversation[]
     allMessages.forEach(message => {
       const otherUserId = message.sender_id === userId ? message.receiver_id : message.sender_id;
       const otherUser = message.sender_id === userId 
-        ? message.profiles 
-        : message.profiles;
+        ? message.receiver 
+        : message.sender;
       
       if (!conversationsMap.has(otherUserId)) {
         conversationsMap.set(otherUserId, {

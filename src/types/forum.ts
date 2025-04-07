@@ -1,5 +1,5 @@
 
-import { UserRank } from "./profile";
+import { UserRank } from "@/types";
 
 export interface ForumPostAuthor {
   id: string;
