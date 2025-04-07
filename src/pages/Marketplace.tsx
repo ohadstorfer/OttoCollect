@@ -22,6 +22,7 @@ const Marketplace = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Filters
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
@@ -33,16 +34,25 @@ const Marketplace = () => {
   useEffect(() => {
     const loadMarketplaceItems = async () => {
       setLoading(true);
+      setError(null);
       try {
+        console.log("Starting to fetch marketplace items");
         const items = await fetchMarketplaceItems();
+        console.log("Fetched marketplace items:", items);
+        
+        if (items.length === 0) {
+          console.log("No marketplace items found");
+        }
+        
         setMarketplaceItems(items);
         
         // Set initial price range based on actual items
         const maxItemPrice = Math.max(...items.map(item => item.collectionItem.salePrice || 0), 100);
         setPriceRange([0, maxItemPrice]);
         
-      } catch (error) {
-        console.error("Error loading marketplace items:", error);
+      } catch (err) {
+        console.error("Error loading marketplace items:", err);
+        setError("Failed to load marketplace items. Please try again later.");
         toast({
           title: "Error",
           description: "Failed to load marketplace items. Please try again later.",
@@ -137,6 +147,7 @@ const Marketplace = () => {
         break;
     }
     
+    console.log(`Filtering marketplace items: ${results.length} items match filters`);
     setFilteredItems(results);
   }, [searchTerm, selectedCountry, selectedCondition, priceRange, sortBy, marketplaceItems]);
 
@@ -333,6 +344,22 @@ const Marketplace = () => {
           {loading ? (
             <div className="flex justify-center items-center py-20">
               <Spinner size="lg" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-20 reveal fade-bottom">
+              <h3 className="text-2xl font-serif font-semibold text-ottoman-200 mb-2">
+                Error Loading Marketplace
+              </h3>
+              <p className="text-ottoman-400 mb-4">
+                {error}
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-4 border-ottoman-700 text-ottoman-200"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </Button>
             </div>
           ) : filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

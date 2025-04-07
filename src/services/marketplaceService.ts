@@ -1,9 +1,11 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceItem, UserRank } from "@/types";
 import { fetchBanknoteById } from "./banknoteService";
 
 export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
   try {
+    console.log("Fetching marketplace items from Supabase");
     const { data: marketplaceItems, error } = await supabase
       .from('marketplace_items')
       .select(`
@@ -17,63 +19,82 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
       throw error;
     }
     
+    console.log(`Found ${marketplaceItems.length} marketplace items`);
+    
     // Process the marketplace items
     const enrichedItems = await Promise.all(
       (marketplaceItems || []).map(async (item) => {
-        // Get banknote details for the collection item
-        const collectionItem = item.collection_item;
-        const banknote = await fetchBanknoteById(collectionItem.banknote_id);
-        
-        // Get basic seller info
-        const { data: sellerData } = await supabase
-          .from('profiles')
-          .select('id, username, rank')
-          .eq('id', item.seller_id)
-          .single();
-        
-        // Fallback seller data if we can't find the profile
-        const seller = sellerData || {
-          id: item.seller_id,
-          username: "Unknown User",
-          rank: "Newbie" as UserRank
-        };
-        
-        return {
-          id: item.id,
-          collectionItemId: item.collection_item_id,
-          collectionItem: {
-            id: collectionItem.id,
-            userId: collectionItem.user_id,
-            banknoteId: collectionItem.banknote_id,
-            banknote: banknote!,
-            condition: collectionItem.condition,
-            salePrice: collectionItem.sale_price,
-            isForSale: collectionItem.is_for_sale,
-            publicNote: collectionItem.public_note,
-            privateNote: collectionItem.private_note,
-            purchasePrice: collectionItem.purchase_price,
-            purchaseDate: collectionItem.purchase_date,
-            location: collectionItem.location,
-            orderIndex: collectionItem.order_index,
-            createdAt: collectionItem.created_at,
-            updatedAt: collectionItem.updated_at,
-            obverseImage: collectionItem.obverse_image,
-            reverseImage: collectionItem.reverse_image,
-            personalImages: [
-              collectionItem.obverse_image,
-              collectionItem.reverse_image
-            ].filter(Boolean) as string[]
-          },
-          sellerId: item.seller_id,
-          seller,
-          status: item.status,
-          createdAt: item.created_at,
-          updatedAt: item.updated_at
-        } as MarketplaceItem;
+        try {
+          // Get banknote details for the collection item
+          const collectionItem = item.collection_item;
+          if (!collectionItem || !collectionItem.banknote_id) {
+            console.log(`Skipping item ${item.id} - missing collection item or banknote id`);
+            return null;
+          }
+          
+          console.log(`Fetching banknote for collection item: ${collectionItem.banknote_id}`);
+          const banknote = await fetchBanknoteById(collectionItem.banknote_id);
+          if (!banknote) {
+            console.log(`Banknote not found for collection item: ${collectionItem.banknote_id}`);
+            return null;
+          }
+          
+          // Get basic seller info
+          const { data: sellerData } = await supabase
+            .from('profiles')
+            .select('id, username, rank')
+            .eq('id', item.seller_id)
+            .single();
+          
+          // Fallback seller data if we can't find the profile
+          const seller = sellerData || {
+            id: item.seller_id,
+            username: "Unknown User",
+            rank: "Newbie" as UserRank
+          };
+          
+          return {
+            id: item.id,
+            collectionItemId: item.collection_item_id,
+            collectionItem: {
+              id: collectionItem.id,
+              userId: collectionItem.user_id,
+              banknoteId: collectionItem.banknote_id,
+              banknote: banknote,
+              condition: collectionItem.condition,
+              salePrice: collectionItem.sale_price,
+              isForSale: collectionItem.is_for_sale,
+              publicNote: collectionItem.public_note,
+              privateNote: collectionItem.private_note,
+              purchasePrice: collectionItem.purchase_price,
+              purchaseDate: collectionItem.purchase_date,
+              location: collectionItem.location,
+              orderIndex: collectionItem.order_index,
+              createdAt: collectionItem.created_at,
+              updatedAt: collectionItem.updated_at,
+              obverseImage: collectionItem.obverse_image,
+              reverseImage: collectionItem.reverse_image,
+              personalImages: [
+                collectionItem.obverse_image,
+                collectionItem.reverse_image
+              ].filter(Boolean) as string[]
+            },
+            sellerId: item.seller_id,
+            seller,
+            status: item.status,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at
+          } as MarketplaceItem;
+        } catch (error) {
+          console.error(`Error processing marketplace item ${item.id}:`, error);
+          return null;
+        }
       })
     );
     
-    return enrichedItems;
+    const validItems = enrichedItems.filter(item => item !== null) as MarketplaceItem[];
+    console.log(`Processed ${validItems.length} valid marketplace items`);
+    return validItems;
   } catch (error) {
     console.error("Error in fetchMarketplaceItems:", error);
     return [];

@@ -3,7 +3,17 @@ import { Banknote, CollectionItem } from "@/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye } from "lucide-react";
+import { 
+  Eye, 
+  Calendar, 
+  MapPin, 
+  BarChart3,
+  BookOpen,
+  Printer,
+  Palette,
+  CircleDollarSign,
+  Award
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface BanknoteDetailCardProps {
@@ -30,6 +40,40 @@ const BanknoteDetailCard = ({
     });
   };
 
+  // Detail items to display in the card
+  const detailItems = [
+    { icon: <Calendar className="h-4 w-4 text-muted-foreground" />, 
+      label: "Year", 
+      value: banknote.year 
+    },
+    { icon: <MapPin className="h-4 w-4 text-muted-foreground" />, 
+      label: "Country", 
+      value: banknote.country 
+    },
+    { icon: <BookOpen className="h-4 w-4 text-muted-foreground" />, 
+      label: "Series", 
+      value: banknote.series 
+    },
+    { icon: <CircleDollarSign className="h-4 w-4 text-muted-foreground" />, 
+      label: "Denomination", 
+      value: banknote.denomination 
+    }
+  ];
+
+  // For collection items only
+  const collectionDetails = collectionItem ? [
+    { icon: <Award className="h-4 w-4 text-muted-foreground" />, 
+      label: "Condition", 
+      value: collectionItem.condition 
+    },
+    { icon: <BarChart3 className="h-4 w-4 text-muted-foreground" />, 
+      label: "Price", 
+      value: collectionItem.isForSale && collectionItem.salePrice ? 
+             `$${collectionItem.salePrice}` : 
+             null
+    }
+  ] : [];
+
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <div className="aspect-[3/2] relative">
@@ -48,17 +92,38 @@ const BanknoteDetailCard = ({
         )}
       </div>
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="font-semibold truncate">{banknote.denomination}</h3>
             <p className="text-sm text-muted-foreground">{banknote.country}, {banknote.year}</p>
           </div>
         </div>
-        {collectionItem && (
-          <div className="text-sm">
-            <p>Condition: {collectionItem.condition}</p>
-          </div>
-        )}
+
+        <div className="space-y-2 text-sm divide-y divide-gray-100">
+          {detailItems.map((item, index) => (
+            item.value && (
+              <div key={index} className={`flex justify-between items-center ${index > 0 ? 'pt-2' : ''}`}>
+                <div className="flex items-center gap-2">
+                  {item.icon}
+                  <span className="text-muted-foreground">{item.label}:</span>
+                </div>
+                <span className="font-medium">{item.value}</span>
+              </div>
+            )
+          ))}
+          
+          {collectionDetails.map((item, index) => (
+            item.value && (
+              <div key={`coll-${index}`} className="flex justify-between items-center pt-2">
+                <div className="flex items-center gap-2">
+                  {item.icon}
+                  <span className="text-muted-foreground">{item.label}:</span>
+                </div>
+                <span className="font-medium">{item.value}</span>
+              </div>
+            )
+          ))}
+        </div>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-end">
         <Button variant="outline" size="sm" onClick={handleViewDetail}>
