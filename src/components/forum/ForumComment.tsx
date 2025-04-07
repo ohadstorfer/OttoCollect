@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from 'date-fns';
@@ -24,18 +23,19 @@ import { getInitials } from '@/lib/utils';
 
 interface CommentProps {
   comment: ForumComment;
+  currentUserId: string;
   onUpdate: (commentId: string, content: string) => void;
   onDelete: (commentId: string) => void;
 }
 
-export function Comment({ comment, onUpdate, onDelete }: CommentProps) {
+function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const isAuthor = user?.id === comment.authorId;
+  const isAuthor = currentUserId === comment.authorId;
   
   // Format date for display
   const formattedDate = formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true });

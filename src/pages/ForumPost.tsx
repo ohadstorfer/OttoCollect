@@ -5,10 +5,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ForumPost, ForumComment } from "@/types/forum";
+import { ForumPost, ForumComment as ForumCommentType } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
-import { createForumComment, getForumPostById } from "@/services/forumService";
+import { addForumComment, fetchForumPostById } from "@/services/forumService";
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumComment from "@/components/forum/ForumComment";
 import { getInitials } from '@/lib/utils';
@@ -17,7 +17,7 @@ const ForumPostPage = () => {
   const { id: postId } = useParams();
   const { user } = useAuth();
   const [post, setPost] = useState<ForumPost | null>(null);
-  const [comments, setComments] = useState<ForumComment[]>([]);
+  const [comments, setComments] = useState<ForumCommentType[]>([]);
   const [commentContent, setCommentContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +31,7 @@ const ForumPostPage = () => {
   const loadPost = async (postId: string) => {
     setIsLoading(true);
     try {
-      const fetchedPost = await getForumPostById(postId);
+      const fetchedPost = await fetchForumPostById(postId);
       if (fetchedPost) {
         setPost(fetchedPost);
         setComments(fetchedPost.comments || []);
@@ -52,7 +52,7 @@ const ForumPostPage = () => {
 
     setIsSubmitting(true);
     try {
-      const newComment = await createForumComment(post.id, commentContent, user.id);
+      const newComment = await addForumComment(post.id, commentContent, user.id);
 
       if (newComment) {
         onAddComment(newComment);
@@ -104,7 +104,7 @@ const ForumPostPage = () => {
     addSuffix: true,
   });
 
-  const onAddComment = (comment: ForumComment) => {
+  const onAddComment = (comment: ForumCommentType) => {
     if (!post) return;
     setComments((prev) => [comment, ...prev]);
     setPost({

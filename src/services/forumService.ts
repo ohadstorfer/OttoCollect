@@ -289,9 +289,6 @@ export async function addForumComment(
       return null;
     }
 
-    // Fetch the user's profile to get the username and avatar URL
-    // const userProfile = await getUserProfile(authorId);
-
     const forumComment: ForumComment = {
       id: data.id,
       postId: data.post_id,
