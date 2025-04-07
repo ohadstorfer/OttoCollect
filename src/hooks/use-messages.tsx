@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Message } from '@/types';
+import { Message, Conversation } from '@/types';
 import { 
   fetchConversations, 
   fetchMessages, 
@@ -9,17 +9,6 @@ import {
   getUnreadMessagesCount
 } from '@/services/messageService';
 import { useToast } from '@/hooks/use-toast';
-
-interface Conversation {
-  otherUserId: string;
-  otherUser: {
-    id: string;
-    username: string;
-    avatar_url?: string;
-  };
-  lastMessage: Message;
-  unreadCount: number;
-}
 
 export function useMessages(currentUserId: string | undefined) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -130,7 +119,7 @@ export function useMessages(currentUserId: string | undefined) {
             return [
               {
                 otherUserId: receiverId,
-                otherUser: { id: receiverId, username: "User", avatar_url: undefined },
+                otherUser: { id: receiverId, username: "User", avatarUrl: undefined, rank: "Newbie" },
                 lastMessage: newMessage,
                 unreadCount: 0
               },
@@ -158,14 +147,6 @@ export function useMessages(currentUserId: string | undefined) {
     // Add to current messages if from active conversation
     if (activeConversation === message.senderId) {
       setCurrentMessages(prev => [...prev, message]);
-      
-      // Mark as read immediately since conversation is open
-      sendMessageService(
-        message.senderId,
-        message.receiverId,
-        message.content,
-        message.referenceItemId
-      );
     } else {
       // Update unread count for conversation
       setConversations(prev => {
@@ -188,7 +169,7 @@ export function useMessages(currentUserId: string | undefined) {
           return [
             {
               otherUserId: message.senderId,
-              otherUser: { id: message.senderId, username: "User", avatar_url: undefined },
+              otherUser: { id: message.senderId, username: "User", avatarUrl: undefined, rank: "Newbie" },
               lastMessage: message,
               unreadCount: 1
             },

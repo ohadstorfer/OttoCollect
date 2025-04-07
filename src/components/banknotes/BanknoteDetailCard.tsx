@@ -43,7 +43,7 @@ const BanknoteDetailCard = ({
         </div>
         {collectionItem?.isForSale && (
           <div className="absolute bottom-2 right-2">
-            <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">For Sale</Badge>
+            <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">For Sale</Badge>
           </div>
         )}
       </div>

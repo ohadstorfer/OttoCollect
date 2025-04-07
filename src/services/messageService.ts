@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Message } from "@/types";
+import { Message, Conversation } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
 // Helper function to convert database message to our Message type
@@ -16,7 +16,7 @@ const mapDbMessageToMessage = (dbMessage: any): Message => {
   };
 };
 
-export async function fetchConversations(userId: string): Promise<any[]> {
+export async function fetchConversations(userId: string): Promise<Conversation[]> {
   try {
     // Get unique conversations (distinct sender/receiver pairs)
     const { data: sentMessages, error: sentError } = await supabase
@@ -28,7 +28,7 @@ export async function fetchConversations(userId: string): Promise<any[]> {
         content,
         is_read,
         created_at,
-        profiles:receiver_id (id, username, avatar_url),
+        profiles:receiver_id (id, username, avatar_url, rank),
         reference_item_id
       `)
       .eq('sender_id', userId)
@@ -43,7 +43,7 @@ export async function fetchConversations(userId: string): Promise<any[]> {
         content,
         is_read,
         created_at,
-        profiles:sender_id (id, username, avatar_url),
+        profiles:sender_id (id, username, avatar_url, rank),
         reference_item_id
       `)
       .eq('receiver_id', userId)
@@ -58,7 +58,7 @@ export async function fetchConversations(userId: string): Promise<any[]> {
     const allMessages = [...(sentMessages || []), ...(receivedMessages || [])];
     
     // Group messages by conversation
-    const conversationsMap = new Map();
+    const conversationsMap = new Map<string, Conversation>();
     
     allMessages.forEach(message => {
       const otherUserId = message.sender_id === userId ? message.receiver_id : message.sender_id;
@@ -69,12 +69,17 @@ export async function fetchConversations(userId: string): Promise<any[]> {
       if (!conversationsMap.has(otherUserId)) {
         conversationsMap.set(otherUserId, {
           otherUserId,
-          otherUser,
+          otherUser: {
+            id: otherUser.id,
+            username: otherUser.username,
+            avatarUrl: otherUser.avatar_url,
+            rank: otherUser.rank
+          },
           lastMessage: mapDbMessageToMessage(message),
           unreadCount: message.receiver_id === userId && !message.is_read ? 1 : 0
         });
       } else {
-        const existing = conversationsMap.get(otherUserId);
+        const existing = conversationsMap.get(otherUserId)!;
         if (new Date(message.created_at) > new Date(existing.lastMessage.createdAt)) {
           existing.lastMessage = mapDbMessageToMessage(message);
         }
@@ -106,16 +111,14 @@ export async function fetchMessages(userId: string, otherUserId: string): Promis
       return [];
     }
     
-    // Mark received messages as read
-    const unreadMessageIds = data
-      ?.filter(msg => msg.receiver_id === userId && !msg.is_read)
-      .map(msg => msg.id);
-      
-    if (unreadMessageIds && unreadMessageIds.length > 0) {
-      await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .in('id', unreadMessageIds);
+    // Mark unread messages as read
+    try {
+      await supabase.rpc('mark_messages_as_read', {
+        from_user_id: otherUserId,
+        to_user_id: userId
+      });
+    } catch (markError) {
+      console.error("Error marking messages as read:", markError);
     }
     
     // Convert database messages to our Message type

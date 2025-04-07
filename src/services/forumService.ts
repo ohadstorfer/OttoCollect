@@ -1,281 +1,252 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ForumPost, ForumComment, UserRank } from "@/types";
-import { v4 as uuidv4 } from 'uuid';
+import { ForumPost, ForumComment } from "@/types";
 
-// Get all forum posts
-export const fetchForumPosts = async (): Promise<ForumPost[]> => {
-  // First fetch all posts
+// Create a new forum post
+export async function createForumPost(title: string, content: string, imageUrls: string[] = []): Promise<string> {
+  // Get the current user
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) throw new Error("User not authenticated");
+
+  const post = {
+    title,
+    content,
+    author_id: user.id,
+    image_urls: imageUrls
+  };
+
+  const { data, error } = await supabase
+    .from('forum_posts')
+    .insert(post)
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error("Error creating forum post:", error);
+    throw error;
+  }
+
+  return data.id;
+}
+
+// Update a forum post
+export async function updateForumPost(id: string, title: string, content: string, imageUrls: string[] = []): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) throw new Error("User not authenticated");
+
+  const { error } = await supabase
+    .from('forum_posts')
+    .update({
+      title,
+      content,
+      image_urls: imageUrls,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .eq('author_id', user.id);
+
+  if (error) {
+    console.error("Error updating forum post:", error);
+    throw error;
+  }
+}
+
+// Delete a forum post
+export async function deleteForumPost(id: string): Promise<void> {
+  // Delete the post (Row Level Security will ensure only the author can delete)
+  const { error } = await supabase
+    .from('forum_posts')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error("Error deleting forum post:", error);
+    throw error;
+  }
+}
+
+// Fetch all forum posts
+export async function fetchForumPosts(): Promise<ForumPost[]> {
+  // First, get all posts
   const { data: postsData, error: postsError } = await supabase
     .from('forum_posts')
-    .select('*')
+    .select(`
+      *,
+      author:author_id (
+        id, 
+        username, 
+        avatar_url,
+        rank
+      )
+    `)
     .order('created_at', { ascending: false });
 
-  if (postsError) throw postsError;
+  if (postsError) {
+    console.error("Error fetching forum posts:", postsError);
+    throw postsError;
+  }
 
-  // Get comment counts for each post using a separate query
-  const postIds = postsData.map(post => post.id);
-  
-  // Get comment counts by counting comments for each post
-  let commentCounts: { [postId: string]: number } = {};
-  
-  // For each post, count its comments
-  for (const postId of postIds) {
-    const { count, error } = await supabase
+  // For each post, get the comment count
+  const posts = await Promise.all((postsData || []).map(async (post) => {
+    // Get comment count
+    const { count: commentCount, error: countError } = await supabase
       .from('forum_comments')
       .select('*', { count: 'exact', head: true })
-      .eq('post_id', postId);
-      
-    if (error) {
-      console.error("Error counting comments for post", postId, error);
-    } else {
-      commentCounts[postId] = count || 0;
-    }
-  }
-  
-  // Fetch author profiles separately
-  const authorIds = [...new Set(postsData.map(post => post.author_id))];
-  
-  const { data: authorsData, error: authorsError } = await supabase
-    .from('profiles')
-    .select('*')
-    .in('id', authorIds);
-    
-  if (authorsError) {
-    console.error("Error fetching author profiles:", authorsError);
-  }
-  
-  // Create a map of authorId -> profile
-  const authorsMap = new Map();
-  authorsData?.forEach(author => {
-    authorsMap.set(author.id, author);
-  });
+      .eq('post_id', post.id);
 
-  // Map the posts with authors and comment counts
-  return postsData.map(post => {
-    const authorProfile = authorsMap.get(post.author_id);
-    
+    if (countError) {
+      console.error(`Error fetching comment count for post ${post.id}:`, countError);
+    }
+
     return {
       id: post.id,
       title: post.title,
       content: post.content,
       authorId: post.author_id,
-      author: authorProfile ? {
-        id: authorProfile.id,
-        username: authorProfile.username,
-        avatarUrl: authorProfile.avatar_url,
-        rank: authorProfile.rank as UserRank
+      author: post.author ? {
+        id: post.author.id,
+        username: post.author.username,
+        avatarUrl: post.author.avatar_url,
+        rank: post.author.rank
       } : undefined,
       imageUrls: post.image_urls || [],
-      commentCount: commentCounts[post.id] || 0,
       createdAt: post.created_at,
-      updatedAt: post.updated_at
-    };
-  });
-};
+      updatedAt: post.updated_at,
+      commentCount: commentCount || 0
+    } as ForumPost;
+  }));
 
-// Get a specific post with comments
-export const fetchForumPost = async (postId: string): Promise<ForumPost> => {
+  return posts;
+}
+
+// Fetch a single forum post with comments
+export async function fetchForumPost(id: string): Promise<ForumPost> {
+  // Get the post
   const { data: post, error: postError } = await supabase
     .from('forum_posts')
-    .select('*')
-    .eq('id', postId)
+    .select(`
+      *,
+      author:author_id (
+        id, 
+        username, 
+        avatar_url,
+        rank
+      )
+    `)
+    .eq('id', id)
     .single();
 
-  if (postError) throw postError;
-
-  // Fetch the post author
-  const { data: authorData, error: authorError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', post.author_id)
-    .single();
-
-  if (authorError) {
-    console.error("Error fetching post author:", authorError);
+  if (postError) {
+    console.error("Error fetching forum post:", postError);
+    throw postError;
   }
 
-  // Fetch comments
-  const { data: commentsData, error: commentsError } = await supabase
+  // Get the comments
+  const { data: comments, error: commentsError } = await supabase
     .from('forum_comments')
-    .select('*')
-    .eq('post_id', postId)
+    .select(`
+      *,
+      author:author_id (
+        id, 
+        username, 
+        avatar_url,
+        rank
+      )
+    `)
+    .eq('post_id', id)
     .order('created_at', { ascending: true });
 
-  if (commentsError) throw commentsError;
-
-  // Get comment authors
-  const commentAuthorIds = [...new Set(commentsData.map(comment => comment.author_id))];
-  
-  const { data: commentAuthorsData, error: commentAuthorsError } = await supabase
-    .from('profiles')
-    .select('*')
-    .in('id', commentAuthorIds);
-    
-  if (commentAuthorsError) {
-    console.error("Error fetching comment authors:", commentAuthorsError);
+  if (commentsError) {
+    console.error("Error fetching forum comments:", commentsError);
+    throw commentsError;
   }
-  
-  // Create a map of authorId -> profile
-  const commentAuthorsMap = new Map();
-  commentAuthorsData?.forEach(author => {
-    commentAuthorsMap.set(author.id, author);
-  });
-
-  // Map the comments with authors
-  const mappedComments = commentsData.map(comment => {
-    const commentAuthor = commentAuthorsMap.get(comment.author_id);
-    
-    return {
-      id: comment.id,
-      postId: comment.post_id,
-      content: comment.content,
-      authorId: comment.author_id,
-      author: commentAuthor ? {
-        id: commentAuthor.id,
-        username: commentAuthor.username,
-        avatarUrl: commentAuthor.avatar_url,
-        rank: commentAuthor.rank as UserRank
-      } : undefined,
-      createdAt: comment.created_at,
-      updatedAt: comment.updated_at
-    };
-  });
 
   return {
     id: post.id,
     title: post.title,
     content: post.content,
     authorId: post.author_id,
-    author: authorData ? {
-      id: authorData.id,
-      username: authorData.username,
-      avatarUrl: authorData.avatar_url,
-      rank: authorData.rank as UserRank
+    author: post.author ? {
+      id: post.author.id,
+      username: post.author.username,
+      avatarUrl: post.author.avatar_url,
+      rank: post.author.rank
     } : undefined,
     imageUrls: post.image_urls || [],
-    comments: mappedComments,
     createdAt: post.created_at,
-    updatedAt: post.updated_at
+    updatedAt: post.updated_at,
+    comments: comments.map(comment => ({
+      id: comment.id,
+      postId: comment.post_id,
+      content: comment.content,
+      authorId: comment.author_id,
+      author: comment.author ? {
+        id: comment.author.id,
+        username: comment.author.username,
+        avatarUrl: comment.author.avatar_url,
+        rank: comment.author.rank
+      } : undefined,
+      createdAt: comment.created_at,
+      updatedAt: comment.updated_at,
+      isEdited: comment.is_edited || false
+    }))
   };
-};
+}
 
-// Create a new forum post
-export const createForumPost = async (title: string, content: string, imageUrls: string[] = []): Promise<string> => {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
+// Create a comment on a forum post
+export async function createForumComment(postId: string, content: string): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
   
-  if (userError || !userData.user) {
-    throw new Error('You must be logged in to create a post');
-  }
+  if (!user) throw new Error("User not authenticated");
 
-  const { data, error } = await supabase
-    .from('forum_posts')
-    .insert({
-      title,
-      content,
-      image_urls: imageUrls,
-      author_id: userData.user.id
-    })
-    .select();
-
-  if (error) throw error;
-  
-  return data[0].id;
-};
-
-// Update a forum post
-export const updateForumPost = async (postId: string, title: string, content: string, imageUrls: string[] = []): Promise<void> => {
-  const { error } = await supabase
-    .from('forum_posts')
-    .update({
-      title,
-      content,
-      image_urls: imageUrls,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', postId);
-
-  if (error) throw error;
-};
-
-// Delete a forum post
-export const deleteForumPost = async (postId: string): Promise<void> => {
-  const { error } = await supabase
-    .from('forum_posts')
-    .delete()
-    .eq('id', postId);
-
-  if (error) throw error;
-};
-
-// Create a comment
-export const createForumComment = async (postId: string, content: string): Promise<string> => {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  
-  if (userError || !userData.user) {
-    throw new Error('You must be logged in to comment');
-  }
+  const comment = {
+    post_id: postId,
+    content,
+    author_id: user.id
+  };
 
   const { data, error } = await supabase
     .from('forum_comments')
-    .insert({
-      post_id: postId,
-      content,
-      author_id: userData.user.id
-    })
-    .select();
+    .insert(comment)
+    .select('id')
+    .single();
 
-  if (error) throw error;
-  return data[0].id;
-};
+  if (error) {
+    console.error("Error creating forum comment:", error);
+    throw error;
+  }
+
+  return data.id;
+}
 
 // Update a comment
-export const updateForumComment = async (commentId: string, content: string): Promise<void> => {
+export async function updateForumComment(commentId: string, content: string): Promise<void> {
   const { error } = await supabase
     .from('forum_comments')
     .update({
       content,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      is_edited: true
     })
     .eq('id', commentId);
 
-  if (error) throw error;
-};
+  if (error) {
+    console.error("Error updating forum comment:", error);
+    throw error;
+  }
+}
 
 // Delete a comment
-export const deleteForumComment = async (commentId: string): Promise<void> => {
+export async function deleteForumComment(commentId: string): Promise<void> {
   const { error } = await supabase
     .from('forum_comments')
     .delete()
     .eq('id', commentId);
 
-  if (error) throw error;
-};
-
-// Upload an image for a forum post
-export const uploadForumImage = async (file: File): Promise<string> => {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  
-  if (userError || !userData.user) {
-    throw new Error('You must be logged in to upload images');
+  if (error) {
+    console.error("Error deleting forum comment:", error);
+    throw error;
   }
-  
-  const userId = userData.user.id;
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${userId}/${uuidv4()}.${fileExt}`;
-  const filePath = fileName;
-
-  const { error } = await supabase
-    .storage
-    .from('forum_images')
-    .upload(filePath, file);
-
-  if (error) throw error;
-
-  const { data } = supabase
-    .storage
-    .from('forum_images')
-    .getPublicUrl(filePath);
-
-  return data.publicUrl;
-};
+}

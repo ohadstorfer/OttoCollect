@@ -1,4 +1,4 @@
-import { supabase, TablesInsert } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceItem, UserRank } from "@/types";
 import { fetchBanknoteById } from "./banknoteService";
 
@@ -65,7 +65,7 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
             ].filter(Boolean) as string[]
           },
           sellerId: item.seller_id,
-          seller: seller,
+          seller,
           status: item.status,
           createdAt: item.created_at,
           updatedAt: item.updated_at
@@ -155,7 +155,7 @@ export async function removeFromMarketplace(
     if (marketplaceItemId) {
       const { error } = await supabase
         .from('marketplace_items')
-        .delete()
+        .update({ status: 'Removed' })
         .eq('id', marketplaceItemId);
         
       if (error) {
@@ -178,7 +178,7 @@ export async function removeFromMarketplace(
       if (marketplaceItem) {
         const { error } = await supabase
           .from('marketplace_items')
-          .delete()
+          .update({ status: 'Removed' })
           .eq('id', marketplaceItem.id);
           
         if (error) {
@@ -271,7 +271,7 @@ export async function getMarketplaceItemForCollectionItem(
         ].filter(Boolean) as string[]
       },
       sellerId: data.seller_id,
-      seller: seller,
+      seller,
       status: data.status,
       createdAt: data.created_at,
       updatedAt: data.updated_at

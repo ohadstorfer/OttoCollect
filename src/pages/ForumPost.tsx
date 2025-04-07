@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AddCommentForm } from "@/components/forum/AddCommentForm";
 import ForumComment from "@/components/forum/ForumComment";
@@ -32,6 +32,7 @@ export default function ForumPost() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [localPost, setLocalPost] = useState<ForumPostType | null>(null);
 
   const {
     data: post,
@@ -41,17 +42,24 @@ export default function ForumPost() {
   } = useQuery({
     queryKey: ["forumPost", id],
     queryFn: () => fetchForumPost(id!),
-    enabled: !!id,
+    enabled: !!id
   });
 
-  const canEditOrDelete = user && post?.author && 
-    (user.id === post.author.id || ['Admin', 'Super Admin'].includes(user.role));
+  // Use the fetched data to initialize local state
+  useEffect(() => {
+    if (post) {
+      setLocalPost(post);
+    }
+  }, [post]);
+
+  const canEditOrDelete = user && localPost?.author && 
+    (user.id === localPost.author.id || ['Admin', 'Super Admin'].includes(user.role || ''));
 
   const handleDeletePost = async () => {
-    if (!post) return;
+    if (!localPost) return;
     
     try {
-      await deleteForumPost(post.id);
+      await deleteForumPost(localPost.id);
       toast.success("Post deleted successfully");
       navigate("/community/forum");
     } catch (error) {
@@ -60,9 +68,38 @@ export default function ForumPost() {
     }
   };
 
-  // Handler for adding comments that's compatible with the AddCommentForm component
+  // Handler for adding comments
   const handleCommentAdded = (comment: ForumCommentType) => {
-    refetch();
+    if (localPost) {
+      setLocalPost({
+        ...localPost,
+        comments: [...(localPost.comments || []), comment]
+      });
+    }
+  };
+
+  // Handler for updating comments
+  const handleCommentUpdated = (commentId: string, content: string) => {
+    if (localPost && localPost.comments) {
+      setLocalPost({
+        ...localPost,
+        comments: localPost.comments.map(comment =>
+          comment.id === commentId
+            ? { ...comment, content, isEdited: true }
+            : comment
+        )
+      });
+    }
+  };
+
+  // Handler for deleting comments
+  const handleCommentDeleted = (commentId: string) => {
+    if (localPost && localPost.comments) {
+      setLocalPost({
+        ...localPost,
+        comments: localPost.comments.filter(comment => comment.id !== commentId)
+      });
+    }
   };
 
   if (isLoading) {
@@ -73,7 +110,7 @@ export default function ForumPost() {
     );
   }
 
-  if (error || !post) {
+  if (error || !localPost) {
     return (
       <div className="page-container max-w-4xl mx-auto">
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
@@ -110,7 +147,7 @@ export default function ForumPost() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => navigate(`/community/forum/edit/${post.id}`)}
+                onClick={() => navigate(`/community/forum/edit/${localPost.id}`)}
                 className="gap-1"
               >
                 <Edit className="h-4 w-4" />
@@ -144,42 +181,41 @@ export default function ForumPost() {
         </div>
         
         <Card className="mb-6">
-          <CardHeader className="pb-4">
-            <h1 className="text-3xl font-bold mb-2">{post.title}</h1>
-            <div className="flex items-center justify-between text-muted-foreground">
+          <CardContent className="pt-6 pb-8">
+            <h1 className="text-3xl font-bold mb-4">{localPost.title}</h1>
+            <div className="flex items-center justify-between text-muted-foreground mb-4">
               <div className="flex items-center gap-6">
-                {post.author && (
+                {localPost.author && (
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     <UserProfileLink 
-                      userId={post.author.id}
-                      username={post.author.username}
-                      avatarUrl={post.author.avatarUrl}
-                      rank={post.author.rank}
+                      userId={localPost.author.id}
+                      username={localPost.author.username}
+                      avatarUrl={localPost.author.avatarUrl}
+                      rank={localPost.author.rank}
                       showRank={true}
                     />
                   </div>
                 )}
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  <span className="text-sm">{format(new Date(post.createdAt), 'PPP')}</span>
+                  <span className="text-sm">{format(new Date(localPost.createdAt), 'PPP')}</span>
                 </div>
               </div>
             </div>
-          </CardHeader>
-          <Separator />
-          <CardContent className="pt-6 pb-8">
+            <Separator className="mb-6" />
+
             <div className="prose prose-gray dark:prose-invert max-w-none">
-              {post.content.split('\n').map((paragraph, index) => (
+              {localPost.content.split('\n').map((paragraph, index) => (
                 <p key={index} className={index > 0 ? "mt-4" : ""}>
                   {paragraph}
                 </p>
               ))}
             </div>
             
-            {post.imageUrls && post.imageUrls.length > 0 && (
+            {localPost.imageUrls && localPost.imageUrls.length > 0 && (
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {post.imageUrls.map((url, index) => (
+                {localPost.imageUrls.map((url, index) => (
                   <div key={index} className="border rounded-md overflow-hidden">
                     <img
                       src={url}
@@ -194,10 +230,10 @@ export default function ForumPost() {
         </Card>
         
         <div className="mb-6">
-          <h2 className="text-xl font-bold mb-4">Comments ({post.comments?.length || 0})</h2>
+          <h2 className="text-xl font-bold mb-4">Comments ({localPost.comments?.length || 0})</h2>
           
           {user ? (
-            <AddCommentForm postId={post.id} onCommentAdded={handleCommentAdded} />
+            <AddCommentForm postId={localPost.id} onCommentAdded={handleCommentAdded} />
           ) : (
             <Card className="mb-6">
               <CardContent className="py-4">
@@ -209,9 +245,14 @@ export default function ForumPost() {
           )}
           
           <div className="space-y-4 mt-8">
-            {post.comments && post.comments.length > 0 ? (
-              post.comments.map((comment) => (
-                <ForumComment key={comment.id} comment={comment} />
+            {localPost.comments && localPost.comments.length > 0 ? (
+              localPost.comments.map((comment) => (
+                <ForumComment 
+                  key={comment.id} 
+                  comment={comment} 
+                  onUpdate={handleCommentUpdated}
+                  onDelete={handleCommentDeleted}
+                />
               ))
             ) : (
               <p className="text-center text-muted-foreground py-6">

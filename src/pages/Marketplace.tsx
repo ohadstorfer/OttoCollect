@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MOCK_MARKETPLACE_ITEMS } from "@/lib/constants";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
 import { Filter, Search, SortAsc, X } from "lucide-react";
 import MarketplaceItem from "@/components/marketplace/MarketplaceItem";
@@ -10,13 +10,18 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { fetchMarketplaceItems } from "@/services/marketplaceService";
+import { Spinner } from "@/components/ui/spinner";
+import { useToast } from "@/hooks/use-toast";
 
 const Marketplace = () => {
   const { user } = useAuth();
-  const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItemType[]>(MOCK_MARKETPLACE_ITEMS);
-  const [filteredItems, setFilteredItems] = useState<MarketplaceItemType[]>(MOCK_MARKETPLACE_ITEMS);
+  const { toast } = useToast();
+  const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItemType[]>([]);
+  const [filteredItems, setFilteredItems] = useState<MarketplaceItemType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   // Filters
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
@@ -24,17 +29,44 @@ const Marketplace = () => {
   const [priceRange, setPriceRange] = useState<number[]>([0, 1000]);
   const [sortBy, setSortBy] = useState<string>("newest");
   
+  // Load real marketplace data
+  useEffect(() => {
+    const loadMarketplaceItems = async () => {
+      setLoading(true);
+      try {
+        const items = await fetchMarketplaceItems();
+        setMarketplaceItems(items);
+        
+        // Set initial price range based on actual items
+        const maxItemPrice = Math.max(...items.map(item => item.collectionItem.salePrice || 0), 100);
+        setPriceRange([0, maxItemPrice]);
+        
+      } catch (error) {
+        console.error("Error loading marketplace items:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load marketplace items. Please try again later.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadMarketplaceItems();
+  }, [toast]);
+  
   // Get unique countries from the marketplace items
   const countries = Array.from(
-    new Set(MOCK_MARKETPLACE_ITEMS.map(item => item.collectionItem.banknote.country))
-  );
-
+    new Set(marketplaceItems.map(item => item.collectionItem.banknote.country))
+  ).sort();
+  
   // Get max price for range slider
   const maxPrice = Math.max(
-    ...MOCK_MARKETPLACE_ITEMS.map(item => item.collectionItem.salePrice || 0),
+    ...marketplaceItems.map(item => item.collectionItem.salePrice || 0),
     1000
   );
-
+  
   // Filter items when search or filters change
   useEffect(() => {
     let results = marketplaceItems;
@@ -116,26 +148,8 @@ const Marketplace = () => {
     setSortBy("newest");
   };
 
-  // Animation observer for scroll animations
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('active');
-        }
-      });
-    }, { threshold: 0.1 });
-
-    const hiddenElements = document.querySelectorAll('.reveal');
-    hiddenElements.forEach(el => observer.observe(el));
-    
-    return () => {
-      hiddenElements.forEach(el => observer.unobserve(el));
-    };
-  }, []);
-
   return (
-    <div className="min-h-screen bg-dark-500 animate-fade-in">
+    <div className="min-h-screen animate-fade-in">
       {/* Header */}
       <section className="bg-dark-600 py-12 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
@@ -149,12 +163,12 @@ const Marketplace = () => {
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-center text-parchment-500 reveal fade-bottom">
             Marketplace
           </h1>
-          <p className="mt-4 text-center text-ottoman-300 max-w-2xl mx-auto reveal fade-bottom" style={{ animationDelay: '100ms' }}>
+          <p className="mt-4 text-center text-ottoman-300 max-w-2xl mx-auto reveal fade-bottom">
             Browse and purchase Ottoman banknotes from fellow collectors
           </p>
           
           {/* Search bar */}
-          <div className="mt-8 max-w-2xl mx-auto reveal fade-bottom" style={{ animationDelay: '200ms' }}>
+          <div className="mt-8 max-w-2xl mx-auto reveal fade-bottom">
             <div className="relative">
               <Input
                 type="text"
@@ -316,7 +330,11 @@ const Marketplace = () => {
           </div>
           
           {/* Marketplace items grid */}
-          {filteredItems.length > 0 ? (
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <Spinner size="lg" />
+            </div>
+          ) : filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredItems.map((item) => (
                 <div 
