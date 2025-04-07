@@ -1,131 +1,160 @@
+import { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Image, X, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { uploadForumImage } from '@/services/forumService';
-import { useToast } from "@/hooks/use-toast";
-import { XCircle, Upload, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+// Let's create a utility function to upload forum images
+const uploadForumImage = async (file: File, userId: string): Promise<string | null> => {
+  try {
+    // Check file type and size
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return null;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return null;
+    }
+
+    // Create a unique file name
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}/${Date.now()}.${fileExt}`;
+
+    // Upload the file to Supabase storage
+    const { error: uploadError } = await supabase.storage
+      .from('forum_images')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error("Error uploading forum image:", uploadError);
+      throw uploadError;
+    }
+
+    // Get the public URL
+    const { data: urlData } = supabase.storage
+      .from('forum_images')
+      .getPublicUrl(fileName);
+
+    return urlData.publicUrl;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    return null;
+  }
+};
 
 interface ImageUploaderProps {
-  images: string[];
-  onChange: (images: string[]) => void;
+  onImageUpload: (url: string) => void;
+  onError?: (message: string) => void;
 }
 
-export const ImageUploader = ({ images, onChange }: ImageUploaderProps) => {
-  const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+const ImageUploader = ({ onImageUpload, onError }: ImageUploaderProps) => {
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    setIsUploading(true);
-    setUploadProgress(0);
-    
-    try {
-      // Filter for image files
-      const imageFiles = Array.from(files).filter(file => 
-        file.type.startsWith('image/')
-      );
-      
-      if (imageFiles.length === 0) {
-        toast({
-          variant: "destructive",
-          title: "Invalid files",
-          description: "Please select image files only.",
-        });
-        return;
-      }
-      
-      const uploadedUrls: string[] = [];
-      
-      // Upload each file
-      for (let i = 0; i < imageFiles.length; i++) {
-        const file = imageFiles[i];
-        const url = await uploadForumImage(file);
-        uploadedUrls.push(url);
-        
-        // Update progress
-        setUploadProgress(Math.round(((i + 1) / imageFiles.length) * 100));
-      }
-      
-      // Add new images to the existing ones
-      onChange([...images, ...uploadedUrls]);
-      
-      toast({
-        description: `Successfully uploaded ${uploadedUrls.length} image${uploadedUrls.length !== 1 ? 's' : ''}`,
-      });
-      
-    } catch (error) {
-      console.error('Error uploading images:', error);
-      toast({
-        variant: "destructive",
-        title: "Upload failed",
-        description: "There was an error uploading your images. Please try again.",
-      });
-    } finally {
-      setIsUploading(false);
-      // Reset the file input
-      if (fileInputRef.current) fileInputRef.current.value = '';
+  const handleImageClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
-  
-  const handleRemoveImage = (indexToRemove: number) => {
-    onChange(images.filter((_, index) => index !== indexToRemove));
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const userId = supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          uploadForumImage(file, user.id)
+            .then(url => {
+              if (url) {
+                onImageUpload(url);
+                toast.success('Image uploaded successfully!');
+              } else {
+                onError?.('Failed to upload image.');
+              }
+            })
+            .catch(err => {
+              console.error('Upload error:', err);
+              onError?.('Failed to upload image.');
+            })
+            .finally(() => setUploading(false));
+        } else {
+          console.error('No user found.');
+          onError?.('No user session found.');
+          setUploading(false);
+        }
+      });
+    } catch (error) {
+      console.error('Error during upload:', error);
+      onError?.('Failed to upload image.');
+    } finally {
+      setUploading(false);
+    }
   };
-  
+
+  const handleRemoveImage = () => {
+    onImageUpload('');
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {images.map((imageUrl, index) => (
-          <Card key={index} className="group relative aspect-square overflow-hidden">
-            <img 
-              src={imageUrl} 
-              alt={`Uploaded ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              className="absolute top-1 right-1 h-6 w-6 opacity-90 transition-opacity"
-              onClick={() => handleRemoveImage(index)}
-            >
-              <XCircle className="h-4 w-4" />
-            </Button>
-          </Card>
-        ))}
-        
-        <Card 
-          className="flex flex-col items-center justify-center aspect-square cursor-pointer border-dashed"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {isUploading ? (
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="h-8 w-8 animate-spin text-ottoman-600" />
-              <div className="text-sm font-medium">{uploadProgress}%</div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <Upload className="h-8 w-8" />
-              <div className="text-sm font-medium">Upload</div>
-            </div>
-          )}
-        </Card>
+    <div className="relative">
+      <div
+        className="w-full aspect-square bg-muted rounded-md border-2 border-dashed border-muted-foreground/25 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/70 transition-colors"
+        onClick={handleImageClick}
+      >
+        {onImageUpload ? (
+          <img
+            src={onImageUpload}
+            alt="Uploaded"
+            className="w-full h-full object-cover rounded-md"
+          />
+        ) : (
+          <>
+            <Image className="h-10 w-10 text-muted-foreground/50 mb-2" />
+            <p className="text-sm text-muted-foreground font-medium">
+              Upload Image
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              Click to browse
+            </p>
+          </>
+        )}
       </div>
-      
-      <Input 
+
+      {onImageUpload && (
+        <Button
+          variant="destructive"
+          size="sm"
+          className="absolute top-2 right-2"
+          onClick={handleRemoveImage}
+        >
+          <X className="h-4 w-4 mr-1" />
+          Remove
+        </Button>
+      )}
+
+      <input
         type="file"
-        accept="image/*"
-        multiple
         ref={fileInputRef}
         onChange={handleFileChange}
-        disabled={isUploading}
+        accept="image/*"
         className="hidden"
+        disabled={uploading}
       />
+
+      {uploading && (
+        <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-md">
+          <div className="animate-spin h-8 w-8 border-4 border-ottoman-300 border-t-ottoman-600 rounded-full" />
+        </div>
+      )}
     </div>
   );
 };
+
+export default ImageUploader;

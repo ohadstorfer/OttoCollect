@@ -1,38 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { ForumPost, ForumComment } from "@/types/forum";
-import { useAuth } from "@/context/AuthContext";
-import { formatDistanceToNow } from 'date-fns';
-import { createForumComment, getForumPostById } from "@/services/forumService";
-import UserProfileLink from "@/components/common/UserProfileLink";
-import { Comment } from "@/components/forum/ForumComment";
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getInitials } from '@/lib/utils';
+import { ForumComment } from '@/components/forum/ForumComment';
+import { AddCommentForm } from '@/components/forum/AddCommentForm';
+import { fetchForumPostById, addForumComment } from '@/services/forumService';
+import { useAuth } from '@/context/AuthContext';
+import { ForumPost as ForumPostType, ForumComment as ForumCommentType } from '@/types/forum';
 
-const ForumPostPage = () => {
-  const router = useRouter();
-  const { postId } = router.query;
+const ForumPost = () => {
+  const { postId } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [post, setPost] = useState<ForumPost | null>(null);
-  const [comments, setComments] = useState<ForumComment[]>([]);
+  const [post, setPost] = useState<ForumPostType | null>(null);
+  const [comments, setComments] = useState<ForumCommentType[]>([]);
   const [commentContent, setCommentContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (postId) {
-      loadPost(postId as string);
+      loadPost(postId);
     }
   }, [postId]);
 
   const loadPost = async (postId: string) => {
     setIsLoading(true);
     try {
-      const fetchedPost = await getForumPostById(postId);
+      const fetchedPost = await fetchForumPostById(postId);
       if (fetchedPost) {
         setPost(fetchedPost);
         setComments(fetchedPost.comments || []);
@@ -53,7 +51,7 @@ const ForumPostPage = () => {
 
     setIsSubmitting(true);
     try {
-      const newComment = await createForumComment(
+      const newComment = await addForumComment(
         post.id,
         user.id,
         commentContent
@@ -202,4 +200,4 @@ const ForumPostPage = () => {
   );
 };
 
-export default ForumPostPage;
+export default ForumPost;

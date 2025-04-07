@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ForumPost, ForumComment } from "@/types/forum";
 
@@ -8,7 +9,7 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
       .from('forum_posts')
       .select(`
         *,
-        author:author_id (
+        author:profiles!forum_posts_author_id_fkey (
           id,
           username,
           avatar_url,
@@ -49,72 +50,79 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
 // Fetch a single forum post by ID
 export async function fetchForumPostById(postId: string): Promise<ForumPost | null> {
   try {
-    const { data, error } = await supabase
+    // First, get the forum post
+    const { data: postData, error: postError } = await supabase
       .from('forum_posts')
       .select(`
         *,
-        author:author_id (
+        author:profiles!forum_posts_author_id_fkey (
           id,
           username,
           avatar_url,
           rank
-        ),
-        comments:forum_comments (
-          id,
-          post_id,
-          content,
-          author_id,
-          created_at,
-          updated_at,
-          is_edited,
-          author:author_id (
-            id,
-            username,
-            avatar_url,
-            rank
-          )
         )
       `)
       .eq('id', postId)
       .single();
 
-    if (error) {
-      console.error("Error fetching forum post:", error);
+    if (postError || !postData) {
+      console.error("Error fetching forum post:", postError);
       return null;
     }
 
-    if (!data) return null;
+    // Get the comments separately
+    const { data: commentsData, error: commentsError } = await supabase
+      .from('forum_comments')
+      .select(`
+        *,
+        author:profiles!forum_comments_author_id_fkey (
+          id,
+          username,
+          avatar_url,
+          rank
+        )
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true });
+
+    if (commentsError) {
+      console.error("Error fetching forum comments:", commentsError);
+      return null;
+    }
+
+    // Map the data to our types
+    const comments: ForumComment[] = (commentsData || []).map(comment => ({
+      id: comment.id,
+      postId: comment.post_id,
+      content: comment.content,
+      authorId: comment.author_id,
+      author: {
+        id: comment.author?.id || comment.author_id,
+        username: comment.author?.username || 'Unknown User',
+        avatarUrl: comment.author?.avatar_url,
+        rank: comment.author?.rank || 'User',
+      },
+      createdAt: comment.created_at,
+      updatedAt: comment.updated_at,
+      isEdited: comment.is_edited || false, // Add default value if not present in DB
+    }));
 
     const forumPost: ForumPost = {
-      id: data.id,
-      title: data.title,
-      content: data.content,
-      authorId: data.author_id,
+      id: postData.id,
+      title: postData.title,
+      content: postData.content,
+      authorId: postData.author_id,
       author: {
-        id: data.author?.id || data.author_id,
-        username: data.author?.username || 'Unknown User',
-        avatarUrl: data.author?.avatar_url,
-        rank: data.author?.rank || 'User',
+        id: postData.author?.id || postData.author_id,
+        username: postData.author?.username || 'Unknown User',
+        avatarUrl: postData.author?.avatar_url,
+        rank: postData.author?.rank || 'User',
       },
-      imageUrls: data.image_urls || [],
-      comments: data.comments?.map(comment => ({
-        id: comment.id,
-        postId: comment.post_id,
-        content: comment.content,
-        authorId: comment.author_id,
-        author: {
-          id: comment.author?.id || comment.author_id,
-          username: comment.author?.username || 'Unknown User',
-          avatarUrl: comment.author?.avatar_url,
-          rank: comment.author?.rank || 'User',
-        },
-        createdAt: comment.created_at,
-        updatedAt: comment.updated_at,
-        isEdited: comment.is_edited,
-      })) || [],
-      commentCount: data.comment_count || 0,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      imageUrls: postData.image_urls || [],
+      comments,
+      commentCount: comments.length,
+      createdAt: postData.created_at,
+      updatedAt: postData.updated_at,
     };
 
     return forumPost;
@@ -129,7 +137,7 @@ export async function createForumPost(
   title: string,
   content: string,
   authorId: string,
-  imageUrls: string[]
+  imageUrls: string[] = []
 ): Promise<ForumPost | null> {
   try {
     const { data, error } = await supabase
@@ -144,7 +152,7 @@ export async function createForumPost(
       ])
       .select(`
         *,
-        author:author_id (
+        author:profiles!forum_posts_author_id_fkey (
           id,
           username,
           avatar_url,
@@ -198,7 +206,7 @@ export async function updateForumPost(
       .eq('author_id', userId)
       .select(`
         *,
-        author:author_id (
+        author:profiles!forum_posts_author_id_fkey (
           id,
           username,
           avatar_url,
@@ -271,11 +279,12 @@ export async function addForumComment(
           post_id: postId,
           content,
           author_id: authorId,
+          is_edited: false // Add this field explicitly
         },
       ])
       .select(`
         *,
-        author:author_id (
+        author:profiles!forum_comments_author_id_fkey (
           id,
           username,
           avatar_url,
@@ -288,9 +297,6 @@ export async function addForumComment(
       console.error("Error adding forum comment:", error);
       return null;
     }
-
-    // Fetch the user's profile to get the username and avatar URL
-    // const userProfile = await getUserProfile(authorId);
 
     const forumComment: ForumComment = {
       id: data.id,
@@ -305,7 +311,7 @@ export async function addForumComment(
       },
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      isEdited: data.is_edited,
+      isEdited: data.is_edited || false,
     };
 
     return forumComment;
@@ -329,7 +335,7 @@ export async function updateForumComment(
       .eq('author_id', userId)
       .select(`
         *,
-        author:author_id (
+        author:profiles!forum_comments_author_id_fkey (
           id,
           username,
           avatar_url,
@@ -356,7 +362,7 @@ export async function updateForumComment(
       },
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      isEdited: data.is_edited,
+      isEdited: data.is_edited || false,
     };
 
     return forumComment;

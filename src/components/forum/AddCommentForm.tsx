@@ -1,12 +1,10 @@
-
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/context/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { createForumComment } from "@/services/forumService";
-import { useToast } from "@/hooks/use-toast";
-import { ForumComment } from "@/types";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/context/AuthContext';
+import { addForumComment } from '@/services/forumService';
+import { useToast } from '@/hooks/use-toast';
+import { ForumComment } from '@/types/forum';
 
 interface AddCommentFormProps {
   postId: string;
@@ -34,9 +32,8 @@ export const AddCommentForm: React.FC<AddCommentFormProps> = ({ postId, onCommen
     
     setIsSubmitting(true);
     try {
-      const commentId = await createForumComment(postId, content);
+      const commentId = await addForumComment(postId, content);
       
-      // Create a new comment object to add to the UI
       const newComment: ForumComment = {
         id: commentId,
         postId,

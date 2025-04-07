@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Camera, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,7 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ImageSuggestion } from '@/types/forum';
+import { 
+  checkImageSuggestion, 
+  updateImageSuggestion, 
+  createImageSuggestion 
+} from '@/services/imageService';
 
 interface CollectionImageUploadProps {
   userId: string;
@@ -117,54 +121,24 @@ export default function CollectionImageUpload({
     
     setSuggesting(true);
     try {
-      // We'll use raw SQL to interact with the image_suggestions table
-      // since it's not yet reflected in the TypeScript types
-      const { data: existingData, error: checkError } = await supabase.rpc(
-        'check_image_suggestion',
-        { 
-          p_banknote_id: banknoteId,
-          p_user_id: userId,
-          p_type: side
-        }
-      );
-        
-      if (checkError) {
-        console.error("Error checking for existing suggestion:", checkError);
-        toast.error("Failed to check existing suggestions");
-        return;
-      }
+      // Check if there's an existing suggestion
+      const existingSuggestion = await checkImageSuggestion(banknoteId, userId, side);
       
-      if (existingData && existingData.length > 0) {
-        // Update existing suggestion using RPC
-        const { error: updateError } = await supabase.rpc(
-          'update_image_suggestion',
-          {
-            p_suggestion_id: existingData[0].id,
-            p_image_url: imageUrl
-          }
-        );
-          
-        if (updateError) {
-          console.error("Error updating suggestion:", updateError);
+      if (existingSuggestion) {
+        // Update existing suggestion
+        const success = await updateImageSuggestion(existingSuggestion.id, imageUrl);
+        
+        if (!success) {
           toast.error("Failed to update your suggestion");
           return;
         }
         
         toast.success('Your image suggestion has been updated and will be reviewed by admins');
       } else {
-        // Create new suggestion using RPC
-        const { error: insertError } = await supabase.rpc(
-          'create_image_suggestion',
-          {
-            p_banknote_id: banknoteId,
-            p_user_id: userId,
-            p_image_url: imageUrl,
-            p_type: side
-          }
-        );
-          
-        if (insertError) {
-          console.error("Error creating suggestion:", insertError);
+        // Create new suggestion
+        const success = await createImageSuggestion(banknoteId, userId, imageUrl, side);
+        
+        if (!success) {
           toast.error("Failed to submit your suggestion");
           return;
         }
