@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User, UserRole } from "@/types";
+import { User, UserRole, UserRank } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -35,7 +35,7 @@ export default function Members() {
           username: profile.username,
           email: profile.email,
           role: profile.role as UserRole, // Cast to UserRole type
-          rank: profile.rank,
+          rank: profile.rank as UserRank, // Cast to UserRank type
           points: profile.points,
           createdAt: profile.created_at,
           avatarUrl: profile.avatar_url,

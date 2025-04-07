@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Banknote, DetailedBanknote } from "@/types";
 
@@ -8,7 +9,6 @@ export async function fetchBanknotes(): Promise<Banknote[]> {
     const { data, error } = await supabase
       .from('detailed_banknotes' as any)
       .select('*')
-      .eq('is_approved', true)
       .eq('is_pending', false);
 
     if (error) {
@@ -63,7 +63,7 @@ export async function fetchDetailedBanknote(id: string): Promise<DetailedBanknot
     }
 
     console.log("Fetched detailed banknote:", data);
-    // Cast the data to DetailedBanknote type
+    // Cast the data to DetailedBanknote type and ensure all fields are included
     return data as unknown as DetailedBanknote;
   } catch (error) {
     console.error('Error fetching detailed banknote:', error);
@@ -127,19 +127,19 @@ function transformDetailedToBanknote(detailed: any): Banknote {
   
   return {
     id: detailed.id,
-    catalogId: detailed.extended_pick_number || detailed.pick_number,
-    country: detailed.country,
-    denomination: detailed.face_value,
+    catalogId: detailed.extended_pick_number || detailed.pick_number || 'Unknown',
+    country: detailed.country || 'Unknown',
+    denomination: detailed.face_value || 'Unknown',
     year: detailed.gregorian_year || detailed.islamic_year || 'Unknown',
     series: detailed.category,
-    description: detailed.banknote_description || `${detailed.face_value} from ${detailed.gregorian_year || detailed.islamic_year}`,
+    description: detailed.banknote_description || `${detailed.face_value || 'Unknown'} from ${detailed.gregorian_year || detailed.islamic_year || 'Unknown'}`,
     obverseDescription: detailed.banknote_description,
     reverseDescription: detailed.historical_description,
     imageUrls: imageUrls.length > 0 ? imageUrls : ['/placeholder.svg'],
-    isApproved: detailed.is_approved,
-    isPending: detailed.is_pending,
-    createdAt: detailed.created_at,
-    updatedAt: detailed.updated_at,
-    createdBy: 'system'
+    isApproved: detailed.is_approved !== false, // Default to true if not specified
+    isPending: detailed.is_pending === true,    // Default to false if not specified
+    createdAt: detailed.created_at || new Date().toISOString(),
+    updatedAt: detailed.updated_at || new Date().toISOString(),
+    createdBy: detailed.created_by || 'system'
   };
 }

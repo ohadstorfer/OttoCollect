@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -39,7 +38,6 @@ import {
   User
 } from "lucide-react";
 
-// Define a functional component called LabelValuePair
 interface LabelValuePairProps {
   label: string;
   value?: string | null;
@@ -48,7 +46,7 @@ interface LabelValuePairProps {
 }
 
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
-  if (!value) return null; // Don't render if no value
+  if (!value) return null;
   
   return (
     <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1.5 py-1.5 border-b border-gray-100 last:border-0">
@@ -70,28 +68,24 @@ export default function BanknoteDetail() {
   const [viewMode, setViewMode] = useState<'catalog' | 'collection'>('catalog');
   const [collectionItem, setCollectionItem] = useState<CollectionItem | null>(null);
 
-  // Fetch banknote detail using react-query
   const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
     queryFn: () => fetchBanknoteDetail(id || ""),
     enabled: !!id,
   });
 
-  // Fetch user's collection to check if this banknote is in it
   const { data: userCollection, isLoading: collectionLoading } = useQuery({
     queryKey: ["userCollection", user?.id],
     queryFn: () => user ? fetchUserCollection(user.id) : Promise.resolve([]),
     enabled: !!user,
   });
 
-  // Check if the banknote is in the user's collection
   useEffect(() => {
     if (user && userCollection && banknote) {
       const foundItem = userCollection.find(item => item.banknoteId === banknote.id);
       if (foundItem) {
         setCollectionItem(foundItem);
         
-        // If we came from the collection or if the URL has the source param
         const sourceParam = new URLSearchParams(location.search).get('source');
         if (sourceParam === 'collection' || location.state?.source === 'collection') {
           setViewMode('collection');
@@ -103,7 +97,6 @@ export default function BanknoteDetail() {
   const isLoading = banknoteLoading || collectionLoading;
   const isInCollection = !!collectionItem;
   
-  // Helper function to toggle between catalog and collection view
   const toggleViewMode = () => {
     setViewMode(viewMode === 'catalog' ? 'collection' : 'catalog');
   };
@@ -136,7 +129,6 @@ export default function BanknoteDetail() {
     );
   }
 
-  // Update the role comparison check
   if (user?.role !== 'Super Admin' && user?.role !== 'Admin' && !isInCollection && banknote?.isPending) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
@@ -153,22 +145,17 @@ export default function BanknoteDetail() {
     );
   }
   
-  // Helper function to open image viewer
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);
   };
-  
-  // Make sure imageUrls is an array, provide default if it's not
-  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
 
-  // Determine which images to show based on view mode
+  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
   const displayImages = viewMode === 'collection' && collectionItem ? 
     [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[] : 
     imageUrls;
-  
+
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
-      {/* Header Section */}
       <div className="flex justify-between items-center mb-6">
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
           <ArrowLeft className="h-4 w-4" /> Back
@@ -187,7 +174,6 @@ export default function BanknoteDetail() {
       </div>
       
       <div className="flex flex-col space-y-6">
-        {/* Title and basic info */}
         <div className="space-y-1">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             {banknote.denomination}
@@ -208,9 +194,7 @@ export default function BanknoteDetail() {
           </div>
         </div>
 
-        {/* Main content grid - Images and details side by side */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Images Gallery - Left side */}
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardHeader className="pb-2">
@@ -222,7 +206,6 @@ export default function BanknoteDetail() {
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
                   {displayImages.length > 0 ? (
-                    // Display images if available
                     displayImages.slice(0, 4).map((url, index) => (
                       <div 
                         key={index} 
@@ -239,7 +222,6 @@ export default function BanknoteDetail() {
                       </div>
                     ))
                   ) : (
-                    // Display placeholder if no images
                     <div className="col-span-2 p-6 text-center bg-muted rounded-md">
                       <p className="text-muted-foreground">No images available</p>
                     </div>
@@ -283,7 +265,6 @@ export default function BanknoteDetail() {
               </CardContent>
             </Card>
             
-            {/* Collection Item Details - will only show if user has this in collection */}
             {isInCollection && viewMode === 'catalog' && (
               <Card>
                 <CardHeader className="pb-2">
@@ -328,7 +309,6 @@ export default function BanknoteDetail() {
               </Card>
             )}
 
-            {/* Creator Information (shown only on catalog view) */}
             {viewMode === 'catalog' && banknote.createdBy && (
               <Card>
                 <CardHeader className="pb-2">
@@ -355,10 +335,8 @@ export default function BanknoteDetail() {
             )}
           </div>
           
-          {/* Details Section - Right side */}
           <div className="lg:col-span-3">
             {viewMode === 'collection' && isInCollection ? (
-              // Collection View - Edit Collection Item
               <Card className="border-t-4 border-t-primary shadow-md">
                 <CardHeader className="border-b bg-muted/20">
                   <CardTitle className="text-xl">My Collection Copy</CardTitle>
@@ -372,18 +350,15 @@ export default function BanknoteDetail() {
                 </CardContent>
               </Card>
             ) : (
-              // Catalog View - Banknote Details - UPDATED VERSION
               <Card className="border-t-4 border-t-primary shadow-md">
                 <CardHeader className="border-b bg-muted/20">
                   <CardTitle className="text-xl">Banknote Details</CardTitle>
                   <CardDescription>Complete information about this banknote</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="space-y-6">
-                    {/* Details Section with clean presentation */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                      {/* Origin and Dating Info */}
-                      <div className="space-y-2">
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                      <div className="space-y-3">
                         <h3 className="text-lg font-medium flex items-center gap-2 pb-2 border-b">
                           <Calendar className="h-5 w-5 text-primary" />
                           Dating & Origin
@@ -416,8 +391,7 @@ export default function BanknoteDetail() {
                         </div>
                       </div>
 
-                      {/* Identification Info */}
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <h3 className="text-lg font-medium flex items-center gap-2 pb-2 border-b">
                           <BookOpen className="h-5 w-5 text-primary" />
                           Identification
@@ -450,8 +424,7 @@ export default function BanknoteDetail() {
                         </div>
                       </div>
                       
-                      {/* Appearance & Production */}
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <h3 className="text-lg font-medium flex items-center gap-2 pb-2 border-b">
                           <GalleryHorizontal className="h-5 w-5 text-primary" />
                           Appearance & Production
@@ -484,8 +457,7 @@ export default function BanknoteDetail() {
                         </div>
                       </div>
                       
-                      {/* Historical Context */}
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <h3 className="text-lg font-medium flex items-center gap-2 pb-2 border-b">
                           <Users className="h-5 w-5 text-primary" />
                           Historical Context
@@ -513,7 +485,6 @@ export default function BanknoteDetail() {
                       </div>
                     </div>
                     
-                    {/* Additional Security & Technical Features */}
                     {(banknote.sealNames || banknote.securityElement || banknote.serialNumbering || 
                      banknote.signaturesFront || banknote.signaturesBack) && (
                       <div className="mt-6 pt-4 border-t">
@@ -559,7 +530,6 @@ export default function BanknoteDetail() {
                       </div>
                     )}
                     
-                    {/* Historical Description */}
                     {banknote.historicalDescription && (
                       <div className="mt-6 pt-4 border-t">
                         <h3 className="text-lg font-medium flex items-center gap-2 mb-3">
@@ -578,7 +548,6 @@ export default function BanknoteDetail() {
           </div>
         </div>
         
-        {/* Action Buttons */}
         <div className="flex justify-between items-center">
           <Button variant="outline" onClick={() => navigate(-1)}>
             Back
@@ -607,7 +576,6 @@ export default function BanknoteDetail() {
         </div>
       </div>
       
-      {/* Full Image Viewer Dialog */}
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContent className="sm:max-w-[800px] p-1">
