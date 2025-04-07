@@ -22,6 +22,7 @@ import Profile from "./pages/Profile";
 import Forum from "./pages/Forum";
 import ForumPost from "./pages/ForumPost";
 import CreateForumPost from "./pages/CreateForumPost";
+import Members from "./pages/Members";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
                 <Route path="/community/forum" element={<Forum />} />
                 <Route path="/community/forum/:id" element={<ForumPost />} />
                 <Route path="/community/forum/new" element={<CreateForumPost />} />
+                <Route path="/community/members" element={<Members />} />
                 <Route path="/messaging" element={<Messaging />} />
                 <Route path="/banknote/:id" element={<BanknoteDetail />} />
                 <Route path="/admin" element={<Admin />} />

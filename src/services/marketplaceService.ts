@@ -57,6 +57,8 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
             orderIndex: collectionItem.order_index,
             createdAt: collectionItem.created_at,
             updatedAt: collectionItem.updated_at,
+            obverseImage: collectionItem.obverse_image,
+            reverseImage: collectionItem.reverse_image,
             personalImages: [
               collectionItem.obverse_image,
               collectionItem.reverse_image
@@ -94,6 +96,28 @@ export async function addToMarketplace(
       throw updateError;
     }
     
+    // Check if the item is already in the marketplace
+    const { data: existingItem } = await supabase
+      .from('marketplace_items')
+      .select('id')
+      .eq('collection_item_id', collectionItemId)
+      .single();
+      
+    if (existingItem) {
+      // Item is already in marketplace, update its status
+      const { error } = await supabase
+        .from('marketplace_items')
+        .update({ status: 'Available' })
+        .eq('id', existingItem.id);
+        
+      if (error) {
+        console.error("Error updating existing marketplace item:", error);
+        throw error;
+      }
+      
+      return true;
+    }
+    
     // Add the item to marketplace
     const newItem = {
       collection_item_id: collectionItemId,
@@ -123,19 +147,45 @@ export async function addToMarketplace(
 }
 
 export async function removeFromMarketplace(
-  marketplaceItemId: string,
-  collectionItemId: string
+  collectionItemId: string,
+  marketplaceItemId?: string
 ): Promise<boolean> {
   try {
-    // First, remove from marketplace
-    const { error } = await supabase
-      .from('marketplace_items')
-      .delete()
-      .eq('id', marketplaceItemId);
+    // If marketplaceItemId is provided, use it directly
+    if (marketplaceItemId) {
+      const { error } = await supabase
+        .from('marketplace_items')
+        .delete()
+        .eq('id', marketplaceItemId);
+        
+      if (error) {
+        console.error("Error removing from marketplace:", error);
+        throw error;
+      }
+    } else {
+      // Otherwise, look up the marketplace item by collection_item_id
+      const { data: marketplaceItem, error: findError } = await supabase
+        .from('marketplace_items')
+        .select('id')
+        .eq('collection_item_id', collectionItemId)
+        .single();
       
-    if (error) {
-      console.error("Error removing from marketplace:", error);
-      throw error;
+      if (findError && findError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error("Error finding marketplace item:", findError);
+        throw findError;
+      }
+      
+      if (marketplaceItem) {
+        const { error } = await supabase
+          .from('marketplace_items')
+          .delete()
+          .eq('id', marketplaceItem.id);
+          
+        if (error) {
+          console.error("Error removing from marketplace:", error);
+          throw error;
+        }
+      }
     }
     
     // Update the collection item to mark as not for sale
@@ -152,5 +202,82 @@ export async function removeFromMarketplace(
   } catch (error) {
     console.error("Error in removeFromMarketplace:", error);
     return false;
+  }
+}
+
+export async function getMarketplaceItemForCollectionItem(
+  collectionItemId: string
+): Promise<MarketplaceItem | null> {
+  try {
+    const { data, error } = await supabase
+      .from('marketplace_items')
+      .select(`
+        *,
+        collection_item:collection_item_id (*)
+      `)
+      .eq('collection_item_id', collectionItemId)
+      .single();
+      
+    if (error) {
+      if (error.code === 'PGRST116') { // No rows returned
+        return null;
+      }
+      throw error;
+    }
+    
+    if (!data) return null;
+    
+    // Get banknote details
+    const collectionItem = data.collection_item;
+    const banknote = await fetchBanknoteById(collectionItem.banknote_id);
+    
+    // Get seller info
+    const { data: sellerData } = await supabase
+      .from('profiles')
+      .select('id, username, rank')
+      .eq('id', data.seller_id)
+      .single();
+      
+    const seller = sellerData || {
+      id: data.seller_id,
+      username: "Unknown User",
+      rank: "Newbie" as UserRank
+    };
+    
+    return {
+      id: data.id,
+      collectionItemId: data.collection_item_id,
+      collectionItem: {
+        id: collectionItem.id,
+        userId: collectionItem.user_id,
+        banknoteId: collectionItem.banknote_id,
+        banknote: banknote!,
+        condition: collectionItem.condition,
+        salePrice: collectionItem.sale_price,
+        isForSale: collectionItem.is_for_sale,
+        publicNote: collectionItem.public_note,
+        privateNote: collectionItem.private_note,
+        purchasePrice: collectionItem.purchase_price,
+        purchaseDate: collectionItem.purchase_date,
+        location: collectionItem.location,
+        orderIndex: collectionItem.order_index,
+        createdAt: collectionItem.created_at,
+        updatedAt: collectionItem.updated_at,
+        obverseImage: collectionItem.obverse_image,
+        reverseImage: collectionItem.reverse_image,
+        personalImages: [
+          collectionItem.obverse_image,
+          collectionItem.reverse_image
+        ].filter(Boolean) as string[]
+      },
+      sellerId: data.seller_id,
+      seller: seller,
+      status: data.status,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    } as MarketplaceItem;
+  } catch (error) {
+    console.error("Error in getMarketplaceItemForCollectionItem:", error);
+    return null;
   }
 }

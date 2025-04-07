@@ -53,6 +53,49 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
   }
 }
 
+export async function fetchCollectionItem(itemId: string): Promise<CollectionItem | null> {
+  try {
+    const { data: item, error } = await supabase
+      .from('collection_items')
+      .select('*')
+      .eq('id', itemId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching collection item:", error);
+      throw error;
+    }
+
+    if (!item) return null;
+
+    // Fetch the banknote details
+    const banknote = await fetchBanknoteById(item.banknote_id);
+    
+    return {
+      id: item.id,
+      userId: item.user_id,
+      banknoteId: item.banknote_id,
+      banknote: banknote!,
+      condition: item.condition as BanknoteCondition,
+      salePrice: item.sale_price,
+      isForSale: item.is_for_sale,
+      publicNote: item.public_note,
+      privateNote: item.private_note,
+      purchasePrice: item.purchase_price,
+      purchaseDate: item.purchase_date,
+      location: item.location,
+      obverseImage: item.obverse_image,
+      reverseImage: item.reverse_image,
+      orderIndex: item.order_index,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at
+    } as CollectionItem;
+  } catch (error) {
+    console.error("Error in fetchCollectionItem:", error);
+    return null;
+  }
+}
+
 export async function addToCollection(
   userId: string, 
   banknoteId: string, 

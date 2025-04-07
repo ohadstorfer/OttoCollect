@@ -23,9 +23,9 @@ export default function Community() {
       title: "Members",
       description: "Browse other collectors and view their profiles",
       icon: <Users className="h-8 w-8 text-ottoman-500" />,
-      action: () => {},
+      action: () => navigate('/community/members'),
       buttonText: "Browse Members",
-      comingSoon: true
+      comingSoon: false
     },
     {
       title: "Forum",

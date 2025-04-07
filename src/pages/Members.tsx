@@ -1,0 +1,201 @@
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { User } from "@/types";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Search, Users, Award } from "lucide-react";
+
+export default function Members() {
+  const [members, setMembers] = useState<User[]>([]);
+  const [filteredMembers, setFilteredMembers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        setMembers(data || []);
+        setFilteredMembers(data || []);
+      } catch (error) {
+        console.error("Error fetching members:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, []);
+
+  useEffect(() => {
+    // Apply search filter
+    const filtered = members.filter(member => 
+      member.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (member.country && member.country.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'a-z':
+          return a.username.localeCompare(b.username);
+        case 'z-a':
+          return b.username.localeCompare(a.username);
+        case 'rank':
+          return b.points - a.points;
+        case 'oldest':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'newest':
+        default:
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
+
+    setFilteredMembers(sorted);
+  }, [members, searchQuery, sortBy]);
+
+  const handleUserClick = (userId: string) => {
+    navigate(`/profile/${userId}`);
+  };
+
+  const getRankColor = (rank: string) => {
+    switch (rank) {
+      case 'Newbie':
+        return 'bg-gray-100 text-gray-800';
+      case 'Beginner Collector':
+        return 'bg-green-100 text-green-800';
+      case 'Casual Collector':
+        return 'bg-blue-100 text-blue-800';
+      case 'Known Collector':
+        return 'bg-purple-100 text-purple-800';
+      case 'Advance Collector':
+        return 'bg-indigo-100 text-indigo-800';
+      case 'Admin':
+      case 'Super Admin':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <div className="page-container">
+      <h1 className="page-title">Community Members</h1>
+      
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <p className="text-muted-foreground mb-6">
+            Connect with other collectors, view their profiles and collections, and expand your collecting network.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-card border rounded-lg p-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">Search</span>
+              </div>
+              <Input
+                placeholder="Search by username or country"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">Sort By</span>
+              </div>
+              <Select
+                value={sortBy}
+                onValueChange={setSortBy}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest Members</SelectItem>
+                  <SelectItem value="oldest">Oldest Members</SelectItem>
+                  <SelectItem value="a-z">A-Z</SelectItem>
+                  <SelectItem value="z-a">Z-A</SelectItem>
+                  <SelectItem value="rank">By Rank</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+        
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Spinner size="lg" />
+          </div>
+        ) : filteredMembers.length === 0 ? (
+          <div className="text-center py-8">
+            <h3 className="text-xl font-medium mb-4">No members found</h3>
+            <p className="text-muted-foreground">Try adjusting your search criteria</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredMembers.map((member) => (
+              <Card 
+                key={member.id} 
+                className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => handleUserClick(member.id)}
+              >
+                <CardContent className="p-0">
+                  <div className="p-4 flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                      {member.avatarUrl ? (
+                        <img 
+                          src={member.avatarUrl} 
+                          alt={member.username} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Users className="h-6 w-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-lg">{member.username}</h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Award className="h-4 w-4" />
+                        <span className={`px-2 py-0.5 rounded-full text-xs ${getRankColor(member.rank)}`}>
+                          {member.rank}
+                        </span>
+                      </div>
+                      {member.country && (
+                        <p className="text-sm text-muted-foreground mt-1">{member.country}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="border-t p-3 bg-muted/20 flex justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Member since {new Date(member.createdAt).toLocaleDateString()}
+                    </span>
+                    <Button variant="ghost" size="sm" className="h-auto py-0 px-2">View Profile</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

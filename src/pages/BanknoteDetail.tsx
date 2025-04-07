@@ -1,11 +1,10 @@
 
-import React, { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-
 import { fetchBanknoteDetail } from "@/services/banknoteService";
 import { useAuth } from "@/context/AuthContext";
-import { BanknoteDetailSource } from "@/types";
+import { BanknoteDetailSource, CollectionItem } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,11 +13,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
+import { fetchUserCollection } from "@/services/collectionService";
+import CollectionItemForm from "@/components/collection/CollectionItemForm";
 
 import { 
   Calendar, 
@@ -36,7 +36,8 @@ import {
   FileText,
   GalleryHorizontal,
   GalleryVertical,
-  Image
+  Image,
+  User
 } from "lucide-react";
 
 // Define a functional component called LabelValuePair
@@ -64,47 +65,49 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 export default function BanknoteDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
-
-  // State for the dialog
-  const [open, setOpen] = useState(false);
-
-  // State for the note text
-  const [note, setNote] = useState("");
-  
-  // State for currently selected image
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'catalog' | 'collection'>('catalog');
+  const [collectionItem, setCollectionItem] = useState<CollectionItem | null>(null);
 
   // Fetch banknote detail using react-query
-  const { data: banknote, isLoading, isError } = useQuery({
+  const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
     queryFn: () => fetchBanknoteDetail(id || ""),
     enabled: !!id,
   });
 
-  // Mock data for collection item - in a real app would be fetched
-  const collectionItem = {
-    id: "1",
-    userId: "1",
-    banknoteId: "1",
-    condition: "UNC",
-    salePrice: 100,
-    isForSale: false,
-    publicNote: "Mint condition",
-    privateNote: "Stored in a safe",
-    purchasePrice: 50,
-    purchaseDate: "2023-01-01",
-    location: "Safe",
-    obverseImage: banknote?.imageUrls?.[0] || "/placeholder.svg",
-    reverseImage: banknote?.imageUrls?.[1] || "/placeholder.svg",
-    orderIndex: 1,
-    createdAt: "2023-01-01T00:00:00.000Z",
-    updatedAt: "2023-01-01T00:00:00.000Z",
-    personalImages: [],
-  };
+  // Fetch user's collection to check if this banknote is in it
+  const { data: userCollection, isLoading: collectionLoading } = useQuery({
+    queryKey: ["userCollection", user?.id],
+    queryFn: () => user ? fetchUserCollection(user.id) : Promise.resolve([]),
+    enabled: !!user,
+  });
 
-  const isInCollection = false; // Would be determined by a query in real app
-  const source: BanknoteDetailSource = "catalog";
+  // Check if the banknote is in the user's collection
+  useEffect(() => {
+    if (user && userCollection && banknote) {
+      const foundItem = userCollection.find(item => item.banknoteId === banknote.id);
+      if (foundItem) {
+        setCollectionItem(foundItem);
+        
+        // If we came from the collection or if the URL has the source param
+        const sourceParam = new URLSearchParams(location.search).get('source');
+        if (sourceParam === 'collection' || location.state?.source === 'collection') {
+          setViewMode('collection');
+        }
+      }
+    }
+  }, [user, userCollection, banknote, location]);
+
+  const isLoading = banknoteLoading || collectionLoading;
+  const isInCollection = !!collectionItem;
+  
+  // Helper function to toggle between catalog and collection view
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'catalog' ? 'collection' : 'catalog');
+  };
 
   if (isLoading) {
     return (
@@ -120,7 +123,7 @@ export default function BanknoteDetail() {
     );
   }
 
-  if (isError || !banknote) {
+  if (banknoteError || !banknote) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
@@ -158,6 +161,11 @@ export default function BanknoteDetail() {
   
   // Make sure imageUrls is an array, provide default if it's not
   const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
+
+  // Determine which images to show based on view mode
+  const displayImages = viewMode === 'collection' && collectionItem ? 
+    [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[] : 
+    imageUrls;
   
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
@@ -171,7 +179,7 @@ export default function BanknoteDetail() {
           <Badge variant="outline" className="text-sm font-medium px-3 py-1">
             {banknote.catalogId}
           </Badge>
-          {collectionItem?.isForSale && (
+          {isInCollection && collectionItem?.isForSale && (
             <Badge variant="destructive" className="text-sm font-medium px-3 py-1">
               For Sale
             </Badge>
@@ -186,7 +194,19 @@ export default function BanknoteDetail() {
             {banknote.denomination}
             {isInCollection && <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />}
           </h1>
-          <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
+            {isInCollection && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleViewMode} 
+                className="gap-2"
+              >
+                {viewMode === 'catalog' ? 'View My Copy' : 'View Catalog Entry'}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Main content grid - Images and details side by side */}
@@ -197,14 +217,14 @@ export default function BanknoteDetail() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
                   <ImagePlus className="h-5 w-5 mr-2" />
-                  Banknote Images
+                  {viewMode === 'collection' ? 'My Banknote Images' : 'Banknote Images'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
-                  {imageUrls.length > 0 ? (
+                  {displayImages.length > 0 ? (
                     // Display images if available
-                    imageUrls.slice(0, 4).map((url, index) => (
+                    displayImages.slice(0, 4).map((url, index) => (
                       <div 
                         key={index} 
                         className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
@@ -226,11 +246,11 @@ export default function BanknoteDetail() {
                     </div>
                   )}
                   
-                  {imageUrls.length > 4 && (
+                  {displayImages.length > 4 && (
                     <Sheet>
                       <SheetTrigger asChild>
                         <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
-                          <span className="text-lg font-medium">+{imageUrls.length - 4} more</span>
+                          <span className="text-lg font-medium">+{displayImages.length - 4} more</span>
                         </div>
                       </SheetTrigger>
                       <SheetContent className="w-[90%] sm:max-w-lg">
@@ -241,7 +261,7 @@ export default function BanknoteDetail() {
                           </SheetDescription>
                         </SheetHeader>
                         <div className="grid grid-cols-2 gap-4 mt-8">
-                          {imageUrls.map((url, index) => (
+                          {displayImages.map((url, index) => (
                             <div 
                               key={index} 
                               className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
@@ -264,33 +284,8 @@ export default function BanknoteDetail() {
               </CardContent>
             </Card>
             
-            {/* Description Card */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  Description
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {banknote.description && <p>{banknote.description}</p>}
-                {banknote.obverseDescription && (
-                  <div>
-                    <p className="font-medium">Obverse:</p>
-                    <p className="text-sm">{banknote.obverseDescription}</p>
-                  </div>
-                )}
-                {banknote.reverseDescription && (
-                  <div>
-                    <p className="font-medium">Reverse:</p>
-                    <p className="text-sm">{banknote.reverseDescription}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
             {/* Collection Item Details - will only show if user has this in collection */}
-            {isInCollection && (
+            {isInCollection && viewMode === 'catalog' && (
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center">
@@ -312,7 +307,7 @@ export default function BanknoteDetail() {
                   )}
                   <LabelValuePair 
                     label="Acquired" 
-                    value={collectionItem?.purchaseDate} 
+                    value={collectionItem?.purchaseDate ? new Date(collectionItem.purchaseDate).toLocaleDateString() : undefined} 
                     icon={<Calendar className="h-4 w-4" />}
                   />
                   {collectionItem?.publicNote && (
@@ -320,6 +315,42 @@ export default function BanknoteDetail() {
                       <p className="text-sm italic">{collectionItem.publicNote}</p>
                     </div>
                   )}
+                  <div className="mt-4">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={toggleViewMode} 
+                      className="w-full"
+                    >
+                      Switch to Collection View
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Creator Information (shown only on catalog view) */}
+            {viewMode === 'catalog' && banknote.createdBy && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center">
+                    <User className="h-5 w-5 mr-2" />
+                    Added By
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Link 
+                    to={`/profile/${banknote.createdBy}`}
+                    className="flex items-center gap-3 hover:bg-muted/50 p-2 rounded-md transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <User className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-medium">View Profile</p>
+                      <p className="text-sm text-muted-foreground">See this collector's other contributions</p>
+                    </div>
+                  </Link>
                 </CardContent>
               </Card>
             )}
@@ -327,290 +358,308 @@ export default function BanknoteDetail() {
           
           {/* Details Section - Right side */}
           <div className="lg:col-span-3">
-            <Card className="border-t-4 border-t-primary shadow-md">
-              <CardHeader className="border-b bg-muted/20">
-                <CardTitle className="text-xl">Banknote Details</CardTitle>
-                <CardDescription>Complete information about this banknote</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="w-full grid grid-cols-3 rounded-none">
-                    <TabsTrigger value="basic" className="rounded-none">Basic Info</TabsTrigger>
-                    <TabsTrigger value="details" className="rounded-none">Details</TabsTrigger>
-                    <TabsTrigger value="technical" className="rounded-none">Technical</TabsTrigger>
-                  </TabsList>
-                  
-                  {/* Basic Information Tab */}
-                  <TabsContent value="basic" className="p-5 pt-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="p-4 rounded-lg bg-muted/30 border space-y-3">
-                        <div className="flex items-center gap-2 mb-3">
-                          <GalleryVertical className="h-5 w-5 text-primary" />
-                          <h3 className="font-medium">Origin Country</h3>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm border-b pb-1">
-                            <span className="text-muted-foreground">{banknote.country}</span>
-                          </div>
-                          {banknote.islamicYear && (
-                            <div className="flex justify-between text-sm border-b pb-1">
-                              <span className="text-muted-foreground">Islamic Year</span>
-                              <span className="font-medium">{banknote.islamicYear}</span>
-                            </div>
-                          )}
-                          {banknote.gregorianYear && (
-                            <div className="flex justify-between text-sm border-b pb-1">
-                              <span className="text-muted-foreground">Gregorian Year</span>
-                              <span className="font-medium">{banknote.gregorianYear}</span>
-                            </div>
-                          )}
-                          {banknote.year && (
-                            <div className="flex justify-between text-sm border-b pb-1">
-                              <span className="text-muted-foreground">Year</span>
-                              <span className="font-medium">{banknote.year}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="p-4 rounded-lg bg-muted/30 border space-y-3">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Image className="h-5 w-5 text-primary" />
-                          <h3 className="font-medium">Identification</h3>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm border-b pb-1">
-                            <span className="text-muted-foreground">Denomination</span>
-                            <span className="font-medium">{banknote.denomination}</span>
-                          </div>
-                          {banknote.series && (
-                            <div className="flex justify-between text-sm border-b pb-1">
-                              <span className="text-muted-foreground">Series</span>
-                              <span className="font-medium">{banknote.series}</span>
-                            </div>
-                          )}
-                          {banknote.catalogId && (
-                            <div className="flex justify-between text-sm border-b pb-1">
-                              <span className="text-muted-foreground">Catalog ID</span>
-                              <span className="font-medium">{banknote.catalogId}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="p-4 rounded-lg bg-muted/30 border space-y-3">
-                        <div className="flex items-center gap-2 mb-3">
-                          <BookOpen className="h-5 w-5 text-primary" />
-                          <h3 className="font-medium">Catalog References</h3>
-                        </div>
-                        <div className="space-y-2">
-                          {banknote.pickNumber && (
-                            <div className="flex justify-between text-sm border-b pb-1">
-                              <span className="text-muted-foreground">Pick Number</span>
-                              <span className="font-medium">{banknote.pickNumber}</span>
-                            </div>
-                          )}
-                          {banknote.turkCatalogNumber && (
-                            <div className="flex justify-between text-sm border-b pb-1">
-                              <span className="text-muted-foreground">Turkish Cat #</span>
-                              <span className="font-medium">{banknote.turkCatalogNumber}</span>
-                            </div>
-                          )}
-                          {banknote.extendedPickNumber && (
-                            <div className="flex justify-between text-sm border-b pb-1">
-                              <span className="text-muted-foreground">Extended Pick</span>
-                              <span className="font-medium">{banknote.extendedPickNumber}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+            {viewMode === 'collection' && isInCollection ? (
+              // Collection View - Edit Collection Item
+              <Card className="border-t-4 border-t-primary shadow-md">
+                <CardHeader className="border-b bg-muted/20">
+                  <CardTitle className="text-xl">My Collection Copy</CardTitle>
+                  <CardDescription>Details about your copy of this banknote</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <CollectionItemForm 
+                    collectionItem={collectionItem} 
+                    onUpdate={(updatedItem) => setCollectionItem(updatedItem)}
+                  />
+                </CardContent>
+              </Card>
+            ) : (
+              // Catalog View - Banknote Details
+              <Card className="border-t-4 border-t-primary shadow-md">
+                <CardHeader className="border-b bg-muted/20">
+                  <CardTitle className="text-xl">Banknote Details</CardTitle>
+                  <CardDescription>Complete information about this banknote</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Tabs defaultValue="basic" className="w-full">
+                    <TabsList className="w-full grid grid-cols-3 rounded-none">
+                      <TabsTrigger value="basic" className="rounded-none">Basic Info</TabsTrigger>
+                      <TabsTrigger value="details" className="rounded-none">Details</TabsTrigger>
+                      <TabsTrigger value="technical" className="rounded-none">Technical</TabsTrigger>
+                    </TabsList>
                     
-                    {banknote.sultanName && (
-                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 flex items-center gap-3">
-                        <Users className="h-5 w-5 text-primary" />
-                        <div>
-                          <p className="font-medium">Sultan</p>
-                          <p className="text-sm">{banknote.sultanName}</p>
+                    {/* Basic Information Tab */}
+                    <TabsContent value="basic" className="p-5 pt-6 space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="p-4 rounded-lg bg-muted/30 border space-y-3">
+                          <div className="flex items-center gap-2 mb-3">
+                            <GalleryVertical className="h-5 w-5 text-primary" />
+                            <h3 className="font-medium">Origin Country</h3>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm border-b pb-1">
+                              <span className="text-muted-foreground">Country</span>
+                              <span className="font-medium">{banknote.country}</span>
+                            </div>
+                            {banknote.islamicYear && (
+                              <div className="flex justify-between text-sm border-b pb-1">
+                                <span className="text-muted-foreground">Islamic Year</span>
+                                <span className="font-medium">{banknote.islamicYear}</span>
+                              </div>
+                            )}
+                            {banknote.gregorianYear && (
+                              <div className="flex justify-between text-sm border-b pb-1">
+                                <span className="text-muted-foreground">Gregorian Year</span>
+                                <span className="font-medium">{banknote.gregorianYear}</span>
+                              </div>
+                            )}
+                            {banknote.year && (
+                              <div className="flex justify-between text-sm border-b pb-1">
+                                <span className="text-muted-foreground">Year</span>
+                                <span className="font-medium">{banknote.year}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 rounded-lg bg-muted/30 border space-y-3">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Image className="h-5 w-5 text-primary" />
+                            <h3 className="font-medium">Identification</h3>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm border-b pb-1">
+                              <span className="text-muted-foreground">Denomination</span>
+                              <span className="font-medium">{banknote.denomination}</span>
+                            </div>
+                            {banknote.series && (
+                              <div className="flex justify-between text-sm border-b pb-1">
+                                <span className="text-muted-foreground">Series</span>
+                                <span className="font-medium">{banknote.series}</span>
+                              </div>
+                            )}
+                            {banknote.catalogId && (
+                              <div className="flex justify-between text-sm border-b pb-1">
+                                <span className="text-muted-foreground">Catalog ID</span>
+                                <span className="font-medium">{banknote.catalogId}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 rounded-lg bg-muted/30 border space-y-3">
+                          <div className="flex items-center gap-2 mb-3">
+                            <BookOpen className="h-5 w-5 text-primary" />
+                            <h3 className="font-medium">Catalog References</h3>
+                          </div>
+                          <div className="space-y-2">
+                            {banknote.pickNumber && (
+                              <div className="flex justify-between text-sm border-b pb-1">
+                                <span className="text-muted-foreground">Pick Number</span>
+                                <span className="font-medium">{banknote.pickNumber}</span>
+                              </div>
+                            )}
+                            {banknote.turkCatalogNumber && (
+                              <div className="flex justify-between text-sm border-b pb-1">
+                                <span className="text-muted-foreground">Turkish Cat #</span>
+                                <span className="font-medium">{banknote.turkCatalogNumber}</span>
+                              </div>
+                            )}
+                            {banknote.extendedPickNumber && (
+                              <div className="flex justify-between text-sm border-b pb-1">
+                                <span className="text-muted-foreground">Extended Pick</span>
+                                <span className="font-medium">{banknote.extendedPickNumber}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </TabsContent>
-                  
-                  {/* Detailed Information Tab */}
-                  <TabsContent value="details" className="p-5 pt-6 space-y-4">
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="history">
-                        <AccordionTrigger className="text-base font-medium">
-                          <div className="flex items-center gap-2">
-                            <BookOpen className="h-4 w-4" />
-                            Historical Information
+                      
+                      {banknote.sultanName && (
+                        <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 flex items-center gap-3">
+                          <Users className="h-5 w-5 text-primary" />
+                          <div>
+                            <p className="font-medium">Sultan</p>
+                            <p className="text-sm">{banknote.sultanName}</p>
                           </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="p-3 bg-muted/20 rounded-md">
-                          {banknote.historicalDescription ? (
-                            <p>{banknote.historicalDescription}</p>
+                        </div>
+                      )}
+                    </TabsContent>
+                    
+                    {/* Detailed Information Tab */}
+                    <TabsContent value="details" className="p-5 pt-6 space-y-4">
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="history">
+                          <AccordionTrigger className="text-base font-medium">
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="h-4 w-4" />
+                              Historical Information
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="p-3 bg-muted/20 rounded-md">
+                            {banknote.historicalDescription ? (
+                              <p>{banknote.historicalDescription}</p>
+                            ) : (
+                              <p className="text-muted-foreground text-sm">No historical information available.</p>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="design">
+                          <AccordionTrigger className="text-base font-medium">
+                            <div className="flex items-center gap-2">
+                              <GalleryHorizontal className="h-4 w-4" />
+                              Design & Appearance
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-3 p-3 bg-muted/20 rounded-md">
+                              {banknote.colors && (
+                                <div className="flex gap-2">
+                                  <span className="font-medium min-w-[90px]">Colors:</span>
+                                  <span>{banknote.colors}</span>
+                                </div>
+                              )}
+                              {banknote.printer && (
+                                <div className="flex gap-2">
+                                  <span className="font-medium min-w-[90px]">Printer:</span>
+                                  <span>{banknote.printer}</span>
+                                </div>
+                              )}
+                              {banknote.type && (
+                                <div className="flex gap-2">
+                                  <span className="font-medium min-w-[90px]">Type:</span>
+                                  <span>{banknote.type}</span>
+                                </div>
+                              )}
+                              {banknote.category && (
+                                <div className="flex gap-2">
+                                  <span className="font-medium min-w-[90px]">Category:</span>
+                                  <span>{banknote.category}</span>
+                                </div>
+                              )}
+                              {banknote.rarity && (
+                                <div className="flex gap-2">
+                                  <span className="font-medium min-w-[90px]">Rarity:</span>
+                                  <span>{banknote.rarity}</span>
+                                </div>
+                              )}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                      
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-medium mb-3 flex items-center gap-2">
+                          <Info className="h-4 w-4 text-primary" />
+                          Additional Information
+                        </h3>
+                        <Table>
+                          <TableBody>
+                            {banknote.faceValue && (
+                              <TableRow>
+                                <TableCell className="text-muted-foreground font-medium">Face Value</TableCell>
+                                <TableCell>{banknote.faceValue}</TableCell>
+                              </TableRow>
+                            )}
+                            {banknote.watermarkPicture && (
+                              <TableRow>
+                                <TableCell className="text-muted-foreground font-medium">Watermark</TableCell>
+                                <TableCell>Available</TableCell>
+                              </TableRow>
+                            )}
+                            {banknote.tughraPicture && (
+                              <TableRow>
+                                <TableCell className="text-muted-foreground font-medium">Tughra</TableCell>
+                                <TableCell>Available</TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </TabsContent>
+                    
+                    {/* Technical Tab */}
+                    <TabsContent value="technical" className="p-5 pt-6 space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2 border-b pb-2">
+                            <PenTool className="h-5 w-5 text-primary" />
+                            <h3 className="text-lg font-medium">Signatures</h3>
+                          </div>
+                          
+                          {(banknote.signaturesFront || banknote.signaturesBack) ? (
+                            <div className="space-y-3">
+                              {banknote.signaturesFront && (
+                                <div className="bg-muted/20 p-3 rounded-md">
+                                  <p className="text-sm font-medium mb-1">Front Signatures:</p>
+                                  <p className="text-sm">{banknote.signaturesFront}</p>
+                                </div>
+                              )}
+                              {banknote.signaturesBack && (
+                                <div className="bg-muted/20 p-3 rounded-md">
+                                  <p className="text-sm font-medium mb-1">Back Signatures:</p>
+                                  <p className="text-sm">{banknote.signaturesBack}</p>
+                                </div>
+                              )}
+                              {banknote.signaturePictures?.length > 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                  Signature images available in the gallery
+                                </p>
+                              )}
+                            </div>
                           ) : (
-                            <p className="text-muted-foreground text-sm">No historical information available.</p>
+                            <p className="text-sm text-muted-foreground">No signature information available</p>
                           )}
-                        </AccordionContent>
-                      </AccordionItem>
-                      <AccordionItem value="design">
-                        <AccordionTrigger className="text-base font-medium">
-                          <div className="flex items-center gap-2">
-                            <GalleryHorizontal className="h-4 w-4" />
-                            Design & Appearance
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-3 p-3 bg-muted/20 rounded-md">
-                            {banknote.colors && (
-                              <div className="flex gap-2">
-                                <span className="font-medium min-w-[90px]">Colors:</span>
-                                <span>{banknote.colors}</span>
-                              </div>
-                            )}
-                            {banknote.printer && (
-                              <div className="flex gap-2">
-                                <span className="font-medium min-w-[90px]">Printer:</span>
-                                <span>{banknote.printer}</span>
-                              </div>
-                            )}
-                            {banknote.type && (
-                              <div className="flex gap-2">
-                                <span className="font-medium min-w-[90px]">Type:</span>
-                                <span>{banknote.type}</span>
-                              </div>
-                            )}
-                            {banknote.category && (
-                              <div className="flex gap-2">
-                                <span className="font-medium min-w-[90px]">Category:</span>
-                                <span>{banknote.category}</span>
-                              </div>
-                            )}
-                            {banknote.rarity && (
-                              <div className="flex gap-2">
-                                <span className="font-medium min-w-[90px]">Rarity:</span>
-                                <span>{banknote.rarity}</span>
-                              </div>
-                            )}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                    
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-medium mb-3 flex items-center gap-2">
-                        <Info className="h-4 w-4 text-primary" />
-                        Additional Information
-                      </h3>
-                      <Table>
-                        <TableBody>
-                          {banknote.faceValue && (
-                            <TableRow>
-                              <TableCell className="text-muted-foreground font-medium">Face Value</TableCell>
-                              <TableCell>{banknote.faceValue}</TableCell>
-                            </TableRow>
-                          )}
-                          {banknote.watermarkPicture && (
-                            <TableRow>
-                              <TableCell className="text-muted-foreground font-medium">Watermark</TableCell>
-                              <TableCell>Available</TableCell>
-                            </TableRow>
-                          )}
-                          {banknote.tughraPicture && (
-                            <TableRow>
-                              <TableCell className="text-muted-foreground font-medium">Tughra</TableCell>
-                              <TableCell>Available</TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </TabsContent>
-                  
-                  {/* Technical Tab */}
-                  <TabsContent value="technical" className="p-5 pt-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 border-b pb-2">
-                          <PenTool className="h-5 w-5 text-primary" />
-                          <h3 className="text-lg font-medium">Signatures</h3>
                         </div>
                         
-                        {(banknote.signaturesFront || banknote.signaturesBack) ? (
-                          <div className="space-y-3">
-                            {banknote.signaturesFront && (
-                              <div className="bg-muted/20 p-3 rounded-md">
-                                <p className="text-sm font-medium mb-1">Front Signatures:</p>
-                                <p className="text-sm">{banknote.signaturesFront}</p>
-                              </div>
-                            )}
-                            {banknote.signaturesBack && (
-                              <div className="bg-muted/20 p-3 rounded-md">
-                                <p className="text-sm font-medium mb-1">Back Signatures:</p>
-                                <p className="text-sm">{banknote.signaturesBack}</p>
-                              </div>
-                            )}
-                            {banknote.signaturePictures?.length > 0 && (
-                              <p className="text-xs text-muted-foreground">
-                                Signature images available in the gallery
-                              </p>
-                            )}
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2 border-b pb-2">
+                            <Stamp className="h-5 w-5 text-primary" />
+                            <h3 className="text-lg font-medium">Seals</h3>
                           </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">No signature information available</p>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 border-b pb-2">
-                          <Stamp className="h-5 w-5 text-primary" />
-                          <h3 className="text-lg font-medium">Seals</h3>
-                        </div>
-                        
-                        {banknote.sealNames ? (
-                          <div className="space-y-3">
-                            <div className="bg-muted/20 p-3 rounded-md">
-                              <p className="text-sm">{banknote.sealNames}</p>
+                          
+                          {banknote.sealNames ? (
+                            <div className="space-y-3">
+                              <div className="bg-muted/20 p-3 rounded-md">
+                                <p className="text-sm">{banknote.sealNames}</p>
+                              </div>
+                              {banknote.sealPictures?.length > 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                  Seal images available in the gallery
+                                </p>
+                              )}
                             </div>
-                            {banknote.sealPictures?.length > 0 && (
-                              <p className="text-xs text-muted-foreground">
-                                Seal images available in the gallery
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">No seal information available</p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4 border-t pt-4">
-                      <div className="flex items-center gap-2">
-                        <Shield className="h-5 w-5 text-primary" />
-                        <h3 className="text-lg font-medium">Security Features</h3>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">No seal information available</p>
+                          )}
+                        </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {banknote.securityElement && (
-                          <div className="bg-muted/20 p-3 rounded-md">
-                            <p className="text-sm font-medium mb-1">Security Elements:</p>
-                            <p className="text-sm">{banknote.securityElement}</p>
-                          </div>
-                        )}
-                        {banknote.serialNumbering && (
-                          <div className="bg-muted/20 p-3 rounded-md">
-                            <p className="text-sm font-medium mb-1">Serial Numbering:</p>
-                            <p className="text-sm">{banknote.serialNumbering}</p>
-                          </div>
-                        )}
+                      <div className="space-y-4 border-t pt-4">
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-5 w-5 text-primary" />
+                          <h3 className="text-lg font-medium">Security Features</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {banknote.securityElement && (
+                            <div className="bg-muted/20 p-3 rounded-md">
+                              <p className="text-sm font-medium mb-1">Security Elements:</p>
+                              <p className="text-sm">{banknote.securityElement}</p>
+                            </div>
+                          )}
+                          {banknote.serialNumbering && (
+                            <div className="bg-muted/20 p-3 rounded-md">
+                              <p className="text-sm font-medium mb-1">Serial Numbering:</p>
+                              <p className="text-sm">{banknote.serialNumbering}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
         
@@ -620,42 +669,25 @@ export default function BanknoteDetail() {
             Back
           </Button>
           <div className="flex gap-3">
-            {isInCollection ? (
-              <Button variant="secondary">View in Collection</Button>
-            ) : (
-              <Button>Add to Collection</Button>
+            {viewMode === 'catalog' && (
+              isInCollection ? (
+                <Button 
+                  variant="secondary" 
+                  onClick={toggleViewMode}
+                >
+                  View in Collection
+                </Button>
+              ) : user ? (
+                <Button>Add to Collection</Button>
+              ) : (
+                <Button onClick={() => navigate('/auth')}>Sign in to collect</Button>
+              )
             )}
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">Add Note</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add a Note</DialogTitle>
-                  <DialogDescription>
-                    Write any additional information about this banknote.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <Textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="Type your note here."
-                    className="min-h-[120px]"
-                  />
-                </div>
-                <DialogFooter>
-                  <Button 
-                    onClick={() => {
-                      toast("Note saved successfully");
-                      setOpen(false);
-                    }}
-                  >
-                    Save Note
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            {viewMode === 'collection' && (
+              <Button variant="secondary" onClick={toggleViewMode}>
+                View Catalog Entry
+              </Button>
+            )}
           </div>
         </div>
       </div>
