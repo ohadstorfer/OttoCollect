@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchUserProfile } from "@/services/profileService";
+import { getUserProfile } from "@/services/profileService";
 import { Spinner } from "@/components/ui/spinner";
 import { User } from "@/types";
 import { useAuth } from "@/context/AuthContext";
@@ -38,7 +38,7 @@ export default function Profile() {
       }
 
       setLoading(true);
-      const profileData = await fetchUserProfile(id);
+      const profileData = await getUserProfile(id);
       
       if (profileData) {
         setProfile(profileData);
