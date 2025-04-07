@@ -8,3 +8,16 @@ export interface Message {
   referenceItemId?: string | null;
   createdAt: string;
 }
+
+export interface Conversation {
+  otherUserId: string;
+  otherUser: {
+    id: string;
+    username: string;
+    avatarUrl?: string | null;
+    rank: string;
+  };
+  lastMessage: Message;
+  messages: Message[];
+  unreadCount: number;
+}

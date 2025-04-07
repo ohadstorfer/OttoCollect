@@ -1,4 +1,3 @@
-
 export interface DetailedBanknote {
   id: string;
   extendedPickNumber: string;
@@ -38,6 +37,10 @@ export interface DetailedBanknote {
   imageUrls?: string[];
   serialNumbering?: string;
   createdBy?: string;
+  // Add description fields for compatibility
+  description?: string;
+  obverseDescription?: string;
+  reverseDescription?: string;
 }
 
 export interface CollectionItem {
@@ -57,7 +60,8 @@ export interface CollectionItem {
   orderIndex: number;
   createdAt: string;
   updatedAt: string;
-  banknote?: DetailedBanknote; // Add the banknote reference
+  banknote?: DetailedBanknote;
+  personalImages?: string[];
 }
 
 export type BanknoteCondition = "UNC" | "AU" | "XF" | "VF" | "F" | "VG" | "G" | "Fair" | "Poor";
@@ -69,7 +73,7 @@ export interface WishlistItem {
   priority: "High" | "Medium" | "Low";
   note?: string;
   createdAt: string;
-  banknote?: DetailedBanknote; // Add the banknote reference
+  banknote?: DetailedBanknote;
 }
 
 export interface UserProfile {

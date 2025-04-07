@@ -66,18 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error("Error fetching user profile:", error);
         setUser(null);
       } else if (data) {
-        const userProfile: User = {
-          id: data.id,
-          username: data.username,
-          email: data.email,
-          role: data.role as UserRole,
-          rank: data.rank as UserRank,
-          points: data.points,
-          createdAt: data.created_at,
-          avatarUrl: data.avatar_url || '/placeholder.svg',
-          ...(data.country && { country: data.country }),
-          ...(data.about && { about: data.about })
-        };
+        const userProfile: User = mapUserData(data);
         setUser(userProfile);
       }
     } catch (error) {
@@ -87,6 +76,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }
   };
+
+  const mapUserData = (data): User => ({
+    id: data.id,
+    username: data.username,
+    email: data.email,
+    avatarUrl: data.avatar_url,
+    country: data.country,
+    about: data.about,
+    role: data.role as UserRole,
+    rank: data.rank as UserRank,
+    points: data.points,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at
+  });
 
   const updateUserState = (updates: Partial<User>) => {
     if (user) {

@@ -33,7 +33,8 @@ export const CreatePostForm = () => {
 
     try {
       console.log("Creating forum post with:", { title, content, images });
-      const postId = await createForumPost(title, content, images.length > 0 ? images : []);
+      // Fix the function call to accept an array of strings as third parameter
+      const postId = await createForumPost(title, content, images);
       console.log("Post created with ID:", postId);
       
       toast({

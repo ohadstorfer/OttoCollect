@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,7 @@ const ForumPost = () => {
       try {
         const data = await fetchForumPostById(postId);
         if (data) {
-          setPost(data.post);
+          setPost(data);
           setComments(data.comments || []);
         } else {
           toast.error("Post not found");
@@ -71,7 +70,7 @@ const ForumPost = () => {
 
     setIsSubmittingComment(true);
     try {
-      const commentId = await addForumComment(post.id, newComment, user.id);
+      const commentId = await addForumComment(post.id, newComment);
       const newCommentObj: ForumCommentType = {
         id: commentId,
         postId: post.id,
@@ -220,7 +219,14 @@ const ForumPost = () => {
               <ForumComment
                 key={comment.id}
                 comment={comment}
-                currentUserId={user?.id}
+                onUpdate={(commentId, content) => {
+                  setComments(prev => 
+                    prev.map(c => c.id === commentId ? { ...c, content, isEdited: true } : c)
+                  );
+                }}
+                onDelete={(commentId) => {
+                  setComments(prev => prev.filter(c => c.id !== commentId));
+                }}
               />
             ))
           ) : (

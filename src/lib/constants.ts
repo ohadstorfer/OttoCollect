@@ -25,3 +25,12 @@ export const MARKETPLACE_FIXTURES = [
     updatedAt: "2023-01-01T00:00:00Z",
   }
 ];
+
+// Add mock data for the homepage
+export const MOCK_BANKNOTES = [
+  // Add some mock banknote data here
+];
+
+export const MOCK_MARKETPLACE_ITEMS = [
+  // Add some mock marketplace items here
+];

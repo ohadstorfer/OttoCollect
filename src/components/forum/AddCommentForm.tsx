@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,7 +33,7 @@ export const AddCommentForm: React.FC<AddCommentFormProps> = ({ postId, onCommen
     
     setIsSubmitting(true);
     try {
-      const commentId = await addForumComment(postId, content, user.id);
+      const commentId = await addForumComment(postId, content);
       
       const newComment: ForumComment = {
         id: commentId,

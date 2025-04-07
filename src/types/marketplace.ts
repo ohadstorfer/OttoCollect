@@ -12,6 +12,7 @@ export interface MarketplaceItem {
   // Extended properties for UI convenience
   collectionItem?: CollectionItem & {
     banknote?: any;
+    personalImages?: string[];
   };
   seller?: User;
 }

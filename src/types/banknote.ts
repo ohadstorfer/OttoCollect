@@ -26,4 +26,6 @@ export interface CountryData {
   name: string;
   code: string;
   banknotes: Banknote[];
+  count?: number;
+  imageUrl?: string;
 }

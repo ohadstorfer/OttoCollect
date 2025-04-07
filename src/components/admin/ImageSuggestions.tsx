@@ -17,7 +17,7 @@ import { getInitials } from '@/lib/utils';
 import { ImageSuggestion } from '@/types/forum';
 import { 
   countPendingImageSuggestions, 
-  fetchImageSuggestions, 
+  getImageSuggestions, 
   approveImageSuggestion,
   rejectImageSuggestion
 } from '@/services/imageService';
@@ -44,12 +44,14 @@ const ImageSuggestions = () => {
       setTotalSuggestions(count);
       
       // Fetch the suggestions with pagination
-      const data = await fetchImageSuggestions(
-        PAGE_SIZE,
-        (currentPage - 1) * PAGE_SIZE
-      );
+      const data = await getImageSuggestions('pending');
       
-      setSuggestions(data);
+      // Apply pagination manually since we're using RPC
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const endIndex = startIndex + PAGE_SIZE;
+      const paginatedData = data.slice(startIndex, endIndex);
+      
+      setSuggestions(paginatedData);
     } catch (error) {
       console.error('Error fetching image suggestions:', error);
       toast.error('Failed to load image suggestions');
@@ -66,7 +68,13 @@ const ImageSuggestions = () => {
     setProcessingIds(prev => ({ ...prev, [suggestion.id]: true }));
     
     try {
-      const success = await approveImageSuggestion(suggestion.id);
+      // We need to pass all required parameters
+      const success = await approveImageSuggestion(
+        suggestion.id,
+        suggestion.banknoteId,
+        suggestion.imageUrl,
+        suggestion.type
+      );
       
       if (!success) {
         throw new Error('Failed to approve suggestion');
