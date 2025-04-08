@@ -191,4 +191,5 @@ export type BanknoteDetailSource =
   | 'marketplace' 
   | 'search' 
   | 'country-detail'
-  | 'missing';
+  | 'missing'
+  | 'wishlist';

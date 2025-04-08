@@ -8,11 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getMarketplaceItemForCollectionItem } from "@/services/marketplaceService";
-import { MarketplaceItem, CollectionItem } from "@/types";
+import { getMarketplaceItemById } from "@/services/marketplaceService";
+import { MarketplaceItem } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { fetchCollectionItem } from "@/services/collectionService";
 import { ContactSeller } from "@/components/messages/ContactSeller";
 
 const MarketplaceItemDetail = () => {
@@ -30,8 +29,8 @@ const MarketplaceItemDetail = () => {
       
       setLoading(true);
       try {
-        // We're getting the marketplace item by its ID
-        const fetchedItem = await getMarketplaceItemForCollectionItem(id);
+        // We're getting the marketplace item by its ID directly
+        const fetchedItem = await getMarketplaceItemById(id);
         
         if (!fetchedItem) {
           setError("Item not found or no longer available");
@@ -201,19 +200,16 @@ const MarketplaceItemDetail = () => {
                 </div>
                 
                 <div>
-                  <p className="text-sm text-ottoman-400">Type</p>
-                  <p className="font-medium">{banknote.type || "Standard"}</p>
+                  <p className="text-sm text-ottoman-400">Series</p>
+                  <p className="font-medium">{banknote.series || "Standard"}</p>
                 </div>
                 
-                <div>
-                  <p className="text-sm text-ottoman-400">Printer</p>
-                  <p className="font-medium">{banknote.printer || "Unknown"}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-ottoman-400">Rarity</p>
-                  <p className="font-medium">{banknote.rarity || "Common"}</p>
-                </div>
+                {banknote.series && (
+                  <div>
+                    <p className="text-sm text-ottoman-400">Series</p>
+                    <p className="font-medium">{banknote.series}</p>
+                  </div>
+                )}
               </div>
               
               {publicNote && (
