@@ -313,6 +313,11 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                   Seal Names: {banknote.sealNames}
                 </p>
               )}
+              {banknote.turkCatalogNumber && (
+                <p className="text-sm text-muted-foreground">
+                  Turk Catalog Number: {banknote.turkCatalogNumber}
+                </p>
+              )}
               {banknote.rarity && (
                 <p className="text-sm text-muted-foreground">
                   Rarity: {banknote.rarity}
