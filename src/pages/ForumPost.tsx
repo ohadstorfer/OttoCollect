@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { ForumPost as ForumPostType, ForumComment as ForumCommentType } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
-import { addForumComment, fetchForumPostById } from "@/services/forumService";
+import { addCommentToPost, fetchForumPostById } from "@/services/forumService";
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumComment from "@/components/forum/ForumComment";
 import ImageGallery from "@/components/forum/ImageGallery";
@@ -35,8 +35,9 @@ const ForumPostPage = () => {
     try {
       const fetchedPost = await fetchForumPostById(postId);
       if (fetchedPost) {
-        setPost(fetchedPost);
-        setComments(fetchedPost.comments || []);
+        // Type cast to ensure compatibility
+        setPost(fetchedPost as unknown as ForumPostType);
+        setComments((fetchedPost.comments || []) as unknown as ForumCommentType[]);
       } else {
         toast.error("Failed to load post.");
       }
@@ -50,10 +51,10 @@ const ForumPostPage = () => {
 
     setIsSubmitting(true);
     try {
-      const newComment = await addForumComment(post.id, commentContent, user.id);
+      const newComment = await addCommentToPost(post.id, commentContent, user.id);
 
       if (newComment) {
-        onAddComment(newComment);
+        onAddComment(newComment as unknown as ForumCommentType);
         setCommentContent('');
         toast.success("Your comment has been added successfully.");
       } else {

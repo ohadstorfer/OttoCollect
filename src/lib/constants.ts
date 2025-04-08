@@ -27,6 +27,7 @@ export const CONDITION_DESCRIPTIONS: Record<BanknoteCondition, string> = {
 export const MOCK_BANKNOTES: Banknote[] = [
   {
     id: "1",
+    pick_number: "123",
     catalogId: "C123",
     country: "Ottoman Empire",
     denomination: "50 Kurush",
@@ -40,10 +41,15 @@ export const MOCK_BANKNOTES: Banknote[] = [
     isPending: false,
     createdAt: "2023-01-01T00:00:00.000Z",
     updatedAt: "2023-01-01T00:00:00.000Z",
-    createdBy: "admin"
+    createdBy: "admin",
+    turkCatalogNumber: "TK123",
+    sealNames: "Mehmed V",
+    sultanName: "Mehmed V",
+    type: "Regular Issue"
   },
   {
     id: "2",
+    pick_number: "124",
     catalogId: "C124",
     country: "Ottoman Empire",
     denomination: "100 Kurush",
@@ -55,10 +61,14 @@ export const MOCK_BANKNOTES: Banknote[] = [
     isPending: false,
     createdAt: "2023-02-01T00:00:00.000Z",
     updatedAt: "2023-02-01T00:00:00.000Z",
-    createdBy: "admin"
+    createdBy: "admin",
+    turkCatalogNumber: "TK124",
+    sealNames: "Mehmed V",
+    sultanName: "Mehmed V"
   },
   {
     id: "3",
+    pick_number: "125",
     catalogId: "C125",
     country: "Palestine Mandate",
     denomination: "1 Pound",
@@ -70,10 +80,14 @@ export const MOCK_BANKNOTES: Banknote[] = [
     isPending: false,
     createdAt: "2023-03-01T00:00:00.000Z",
     updatedAt: "2023-03-01T00:00:00.000Z",
-    createdBy: "admin"
+    createdBy: "admin",
+    turkCatalogNumber: null,
+    sealNames: null,
+    sultanName: null
   },
   {
     id: "4",
+    pick_number: "126",
     catalogId: "C126",
     country: "Ottoman Empire",
     denomination: "5 Kurush",
@@ -85,7 +99,10 @@ export const MOCK_BANKNOTES: Banknote[] = [
     isPending: false,
     createdAt: "2023-04-01T00:00:00.000Z",
     updatedAt: "2023-04-01T00:00:00.000Z",
-    createdBy: "admin"
+    createdBy: "admin",
+    turkCatalogNumber: "TK126",
+    sealNames: "Mehmed V",
+    sultanName: "Mehmed V"
   }
 ];
 

@@ -1,197 +1,193 @@
 
-import React, { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, CollectionItem, WishlistItem, Banknote } from "@/types";
-import { fetchUserCollection } from "@/services/collectionService";
-import { fetchUserWishlist } from "@/services/wishlistService";
-import { fetchBanknotes } from "@/services/banknoteService";
-import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchUserCollection } from '@/services/collectionService';
+import { User, CollectionItem, BanknoteDetailSource } from '@/types';
+import { Button } from '@/components/ui/button';
+import CollectionItemCard from '@/components/collection/CollectionItemCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Grid3X3, List } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Spinner } from '@/components/ui/spinner';
 
 interface ProfileCollectionProps {
-  profile: User;
+  user: User;
   isOwnProfile: boolean;
 }
 
-export function ProfileCollection({ profile, isOwnProfile }: ProfileCollectionProps) {
+const ProfileCollection: React.FC<ProfileCollectionProps> = ({ user, isOwnProfile }) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("collection");
-  const [loading, setLoading] = useState(true);
-  const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [missingItems, setMissingItems] = useState<Banknote[]>([]);
-
+  const { toast } = useToast();
+  const [collection, setCollection] = useState<CollectionItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [activeTab, setActiveTab] = useState('all');
+  
   useEffect(() => {
-    const loadUserCollectionData = async () => {
-      setLoading(true);
+    const loadCollection = async () => {
+      setIsLoading(true);
       try {
-        const collection = await fetchUserCollection(profile.id);
-        setCollectionItems(collection);
-        
-        if (isOwnProfile) {
-          const wishlist = await fetchUserWishlist(profile.id);
-          setWishlistItems(wishlist);
-          
-          const allBanknotes = await fetchBanknotes();
-          
-          // Calculate missing banknotes
-          const collectionBanknoteIds = new Set(collection.map(item => item.banknoteId));
-          const wishlistBanknoteIds = new Set(wishlist.map(item => item.banknoteId));
-          
-          const missingBanknotes = allBanknotes.filter(banknote => 
-            !collectionBanknoteIds.has(banknote.id) && 
-            banknote.isApproved && 
-            !banknote.isPending
-          );
-          
-          setMissingItems(missingBanknotes);
+        if (user && user.id) {
+          const userCollection = await fetchUserCollection(user.id);
+          setCollection(userCollection);
         }
       } catch (error) {
-        console.error("Error loading user collection data:", error);
+        console.error('Error fetching collection:', error);
+        toast({
+          variant: "destructive",
+          title: "Error loading collection",
+          description: "There was a problem loading the collection. Please try again later."
+        });
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    loadUserCollectionData();
-  }, [profile.id, isOwnProfile]);
-  
-  const handleViewAllCollection = () => {
-    if (isOwnProfile) {
-      navigate('/collection?tab=collection');
+    loadCollection();
+  }, [user, toast]);
+
+  const filteredCollection = () => {
+    switch (activeTab) {
+      case 'forsale':
+        return collection.filter(item => item.isForSale);
+      case 'notsale':
+        return collection.filter(item => !item.isForSale);
+      default:
+        return collection;
     }
   };
 
-  const handleViewAllWishlist = () => {
-    if (isOwnProfile) {
-      navigate('/collection?tab=wishlist');
-    }
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  const handleAddItem = () => {
+    navigate('/collection/add');
   };
 
-  const handleViewAllMissing = () => {
-    if (isOwnProfile) {
-      navigate('/collection?tab=missing');
-    }
+  const handleItemClick = (itemId: string) => {
+    navigate(`/collection/${itemId}`);
   };
+
+  if (collection.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <h3 className="text-xl font-semibold mb-4">
+          {isOwnProfile ? "You don't have any banknotes in your collection yet." : `${user.username} doesn't have any banknotes in their collection yet.`}
+        </h3>
+        {isOwnProfile && (
+          <Button onClick={handleAddItem}>
+            Add Your First Banknote
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">{isOwnProfile ? "My Collection" : `${profile.username}'s Collection`}</h2>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="collection">Collection</TabsTrigger>
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-semibold">
+          {isOwnProfile ? "My Collection" : `${user.username}'s Collection`}
+        </h3>
+        <div className="flex items-center space-x-2">
           {isOwnProfile && (
-            <>
-              <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
-              <TabsTrigger value="missing">Missing</TabsTrigger>
-            </>
+            <Button 
+              onClick={handleAddItem}
+              variant="outline" 
+              size="sm"
+              className="mr-2"
+            >
+              Add Item
+            </Button>
           )}
+          <Button 
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => setViewMode('grid')}
+            className="h-8 w-8"
+          >
+            <Grid3X3 size={16} />
+          </Button>
+          <Button 
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => setViewMode('list')}
+            className="h-8 w-8"
+          >
+            <List size={16} />
+          </Button>
+        </div>
+      </div>
+
+      <Tabs defaultValue="all" className="mb-6" onValueChange={(value) => setActiveTab(value)}>
+        <TabsList>
+          <TabsTrigger value="all">All ({collection.length})</TabsTrigger>
+          <TabsTrigger value="forsale">For Sale ({collection.filter(item => item.isForSale).length})</TabsTrigger>
+          <TabsTrigger value="notsale">Not for Sale ({collection.filter(item => !item.isForSale).length})</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="collection">
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
-            </div>
-          ) : collectionItems.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No banknotes in collection yet.</p>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {collectionItems.slice(0, 6).map((item) => (
-                  <BanknoteDetailCard
-                    key={item.id}
-                    banknote={item.banknote}
-                    collectionItem={item}
-                    source="collection"
-                    ownerId={profile.id}
-                  />
-                ))}
-              </div>
-              
-              {collectionItems.length > 6 && isOwnProfile && (
-                <div className="flex justify-center mt-6">
-                  <Button onClick={handleViewAllCollection}>
-                    View All ({collectionItems.length})
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
+
+        <TabsContent value="all">
+          <CollectionGrid 
+            items={filteredCollection()} 
+            viewMode={viewMode} 
+            onClick={handleItemClick} 
+            source={isOwnProfile ? "collection" : "catalog"}
+          />
         </TabsContent>
-        
-        {isOwnProfile && (
-          <>
-            <TabsContent value="wishlist">
-              {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
-                </div>
-              ) : wishlistItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No items in wishlist yet.</p>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {wishlistItems.slice(0, 6).map((item) => (
-                      <BanknoteDetailCard
-                        key={item.id}
-                        banknote={item.banknote}
-                        source="wishlist"
-                      />
-                    ))}
-                  </div>
-                  
-                  {wishlistItems.length > 6 && (
-                    <div className="flex justify-center mt-6">
-                      <Button onClick={handleViewAllWishlist}>
-                        View All ({wishlistItems.length})
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="missing">
-              {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
-                </div>
-              ) : missingItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">You've collected all available banknotes!</p>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {missingItems.slice(0, 6).map((banknote) => (
-                      <BanknoteDetailCard
-                        key={banknote.id}
-                        banknote={banknote}
-                        source="missing"
-                      />
-                    ))}
-                  </div>
-                  
-                  {missingItems.length > 6 && (
-                    <div className="flex justify-center mt-6">
-                      <Button onClick={handleViewAllMissing}>
-                        View All ({missingItems.length})
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </TabsContent>
-          </>
-        )}
+        <TabsContent value="forsale">
+          <CollectionGrid 
+            items={filteredCollection()} 
+            viewMode={viewMode} 
+            onClick={handleItemClick} 
+            source={isOwnProfile ? "collection" : "catalog"}
+          />
+        </TabsContent>
+        <TabsContent value="notsale">
+          <CollectionGrid 
+            items={filteredCollection()} 
+            viewMode={viewMode} 
+            onClick={handleItemClick} 
+            source={isOwnProfile ? "collection" : "catalog"}
+          />
+        </TabsContent>
       </Tabs>
     </div>
   );
+};
+
+interface CollectionGridProps {
+  items: CollectionItem[];
+  viewMode: 'grid' | 'list';
+  onClick: (id: string) => void;
+  source: BanknoteDetailSource;
 }
+
+const CollectionGrid: React.FC<CollectionGridProps> = ({ items, viewMode, onClick, source }) => {
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No items in this category.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" : "space-y-4"}>
+      {items.map((item) => (
+        <CollectionItemCard 
+          key={item.id} 
+          item={item} 
+          onClick={() => onClick(item.id)}
+          source="collection"
+        />
+      ))}
+    </div>
+  );
+};
+
+export default ProfileCollection;

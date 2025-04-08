@@ -23,8 +23,9 @@ const Forum = () => {
       setLoading(true);
       try {
         const fetchedPosts = await fetchForumPosts();
-        setPosts(fetchedPosts);
-        setFilteredPosts(fetchedPosts);
+        // Type cast to ensure compatibility
+        setPosts(fetchedPosts as unknown as ForumPost[]);
+        setFilteredPosts(fetchedPosts as unknown as ForumPost[]);
       } catch (error) {
         console.error('Error fetching forum posts:', error);
       } finally {

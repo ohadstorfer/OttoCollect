@@ -2,10 +2,15 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { uploadForumImage } from '@/services/forumService';
 import { useToast } from "@/hooks/use-toast";
 import { XCircle, Upload, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+
+// Mock function for image uploading
+const uploadForumImage = async (file: File): Promise<string> => {
+  // This is a mock implementation - in a real app, we would upload to storage
+  return URL.createObjectURL(file);
+};
 
 interface ImageUploaderProps {
   images: string[];

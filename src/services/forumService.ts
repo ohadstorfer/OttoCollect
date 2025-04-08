@@ -7,17 +7,8 @@ import { ForumPost, ForumComment } from "@/types";
 // Check if the is_edited column exists in forum_comments table
 const checkIsEditedColumnExists = async (): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('column_exists', {
-      table_name: 'forum_comments',
-      column_name: 'is_edited'
-    });
-    
-    if (error) {
-      console.error("Error checking if is_edited column exists:", error);
-      return false;
-    }
-    
-    return !!data;
+    // We'll use a simpler approach - just assume it exists after our migration
+    return true;
   } catch (error) {
     console.error("Error in checkIsEditedColumnExists:", error);
     return false;
@@ -133,6 +124,7 @@ export const createForumPost = async (
 // Fetch a single forum post by ID with comments
 export const fetchForumPostById = async (postId: string): Promise<ForumPost | null> => {
   try {
+    console.log("Fetching forum post by id:", postId);
     const { data: post, error } = await supabase
       .from('forum_posts')
       .select(`
@@ -147,19 +139,11 @@ export const fetchForumPostById = async (postId: string): Promise<ForumPost | nu
       return null;
     }
 
-    // Check if is_edited column exists in forum_comments
-    const isEditedExists = await checkIsEditedColumnExists();
-    
-    // Build the select statement dynamically based on whether is_edited exists
-    const selectStatement = isEditedExists 
-      ? '*' 
-      : 'id, post_id, content, author_id, created_at, updated_at';
-    
     // Fetch comments for this post
     const { data: comments, error: commentsError } = await supabase
       .from('forum_comments')
       .select(`
-        ${selectStatement},
+        *,
         author:author_id(id, username, avatar_url, rank)
       `)
       .eq('post_id', postId)
@@ -186,21 +170,24 @@ export const fetchForumPostById = async (postId: string): Promise<ForumPost | nu
     }
 
     // Map comments to the expected format
-    const formattedComments: ForumComment[] = comments.map(comment => ({
-      id: comment.id,
-      postId: comment.post_id,
-      content: comment.content,
-      authorId: comment.author_id,
-      author: comment.author ? {
-        id: comment.author.id,
-        username: comment.author.username,
-        avatarUrl: comment.author.avatar_url,
-        rank: comment.author.rank
-      } : undefined,
-      createdAt: comment.created_at,
-      updatedAt: comment.updated_at,
-      isEdited: isEditedExists ? comment.is_edited || false : false
-    }));
+    const formattedComments: ForumComment[] = comments.map(comment => {
+      if (!comment) return null as any;
+      return {
+        id: comment.id,
+        postId: comment.post_id,
+        content: comment.content,
+        authorId: comment.author_id,
+        author: comment.author ? {
+          id: comment.author.id,
+          username: comment.author.username,
+          avatarUrl: comment.author.avatar_url,
+          rank: comment.author.rank
+        } : undefined,
+        createdAt: comment.created_at,
+        updatedAt: comment.updated_at,
+        isEdited: comment.is_edited || false
+      };
+    });
 
     return {
       id: post.id,
@@ -239,7 +226,8 @@ export const addCommentToPost = async (
         {
           post_id: postId,
           content,
-          author_id: authorId
+          author_id: authorId,
+          is_edited: false
         }
       ])
       .select(`
@@ -252,9 +240,6 @@ export const addCommentToPost = async (
       console.error("Error adding comment:", error);
       return null;
     }
-
-    // Check if is_edited column exists
-    const isEditedExists = await checkIsEditedColumnExists();
 
     return {
       id: data.id,
@@ -269,7 +254,7 @@ export const addCommentToPost = async (
       } : undefined,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      isEdited: isEditedExists && data.is_edited ? data.is_edited : false
+      isEdited: data.is_edited || false
     };
   } catch (error) {
     console.error("Error in addCommentToPost:", error);
@@ -277,31 +262,31 @@ export const addCommentToPost = async (
   }
 };
 
-// Edit a comment
+// Edit a comment - alias for updateForumComment
 export const editComment = async (
   commentId: string,
   content: string,
   authorId: string
 ): Promise<ForumComment | null> => {
+  return updateForumComment(commentId, authorId, content);
+};
+
+// Export these functions with the new expected names
+export const addForumComment = addCommentToPost;
+export const updateForumComment = async (
+  commentId: string,
+  authorId: string,
+  content: string
+): Promise<ForumComment | null> => {
   try {
-    // Check if is_edited column exists
-    const isEditedExists = await checkIsEditedColumnExists();
-    
-    // Prepare update data
-    const updateData: any = {
-      content,
-      updated_at: new Date().toISOString()
-    };
-    
-    // Add is_edited flag if the column exists
-    if (isEditedExists) {
-      updateData.is_edited = true;
-    }
-    
     // Update the comment
     const { data, error } = await supabase
       .from('forum_comments')
-      .update(updateData)
+      .update({
+        content,
+        is_edited: true,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', commentId)
       .eq('author_id', authorId) // Ensure only the author can edit
       .select(`
@@ -328,10 +313,10 @@ export const editComment = async (
       } : undefined,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      isEdited: isEditedExists && data.is_edited ? data.is_edited : false
+      isEdited: data.is_edited || false
     };
   } catch (error) {
-    console.error("Error in editComment:", error);
+    console.error("Error in updateForumComment:", error);
     return null;
   }
 };
@@ -360,21 +345,16 @@ export const deleteComment = async (
   }
 };
 
+// Alias for deleteForumComment
+export const deleteForumComment = deleteComment;
+
 // Fetch comments for a post
 export const fetchCommentsForPost = async (postId: string): Promise<ForumComment[]> => {
   try {
-    // Check if is_edited column exists
-    const isEditedExists = await checkIsEditedColumnExists();
-    
-    // Build the select statement dynamically based on whether is_edited exists
-    const selectStatement = isEditedExists 
-      ? '*' 
-      : 'id, post_id, content, author_id, created_at, updated_at';
-    
     const { data, error } = await supabase
       .from('forum_comments')
       .select(`
-        ${selectStatement},
+        *,
         author:author_id(id, username, avatar_url, rank)
       `)
       .eq('post_id', postId)
@@ -399,10 +379,22 @@ export const fetchCommentsForPost = async (postId: string): Promise<ForumComment
       } : undefined,
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
-      isEdited: isEditedExists && comment.is_edited ? comment.is_edited : false
+      isEdited: comment.is_edited || false
     }));
   } catch (error) {
     console.error("Error in fetchCommentsForPost:", error);
     return [];
+  }
+};
+
+// Mock function for image uploading - replace with actual implementation
+export const uploadForumImage = async (file: File): Promise<string> => {
+  try {
+    // Here we'd normally upload the image to storage
+    // But for now, we'll return a mock URL
+    return URL.createObjectURL(file);
+  } catch (error) {
+    console.error("Error uploading forum image:", error);
+    throw new Error("Failed to upload image");
   }
 };
