@@ -2,6 +2,8 @@ import { supabase, TablesInsert, TablesRow } from "@/integrations/supabase/clien
 import { BanknoteCondition, CollectionItem } from "@/types";
 import { fetchBanknoteById } from "./banknoteService";
 
+export type { CollectionItem };
+
 export async function fetchUserCollection(userId: string): Promise<CollectionItem[]> {
   try {
     console.log("Fetching collection for user:", userId);

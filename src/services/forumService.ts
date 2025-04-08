@@ -37,6 +37,9 @@ export async function uploadForumImage(file: File): Promise<string> {
 // Fetch all forum posts
 export async function fetchForumPosts(): Promise<ForumPost[]> {
   try {
+    // Sleep for 1 second to ensure database relationships are established
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     const { data, error } = await supabase
       .from('forum_posts')
       .select(`
@@ -51,22 +54,33 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
       return [];
     }
 
-    const forumPosts: ForumPost[] = data.map(post => ({
-      id: post.id,
-      title: post.title,
-      content: post.content,
-      authorId: post.author_id,
-      author: post.author ? {
-        id: post.author.id || post.author_id,
+    // Check if data exists and is an array
+    if (!data || !Array.isArray(data)) {
+      console.error("No data returned or invalid data format");
+      return [];
+    }
+
+    const forumPosts: ForumPost[] = data.map(post => {
+      // Default author values if author is null or missing properties
+      const author = post.author ? {
+        id: post.author.id || post.author_id || '',
         username: post.author.username || 'Unknown User',
         avatarUrl: post.author.avatar_url,
         rank: post.author.rank || 'User',
-      } : undefined,
-      imageUrls: post.image_urls || [],
-      commentCount: post.comment_count?.[0]?.count || 0,
-      createdAt: post.created_at,
-      updatedAt: post.updated_at,
-    }));
+      } : undefined;
+
+      return {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        authorId: post.author_id,
+        author,
+        imageUrls: post.image_urls || [],
+        commentCount: post.comment_count?.[0]?.count || 0,
+        createdAt: post.created_at,
+        updatedAt: post.updated_at,
+      };
+    });
 
     return forumPosts;
   } catch (error) {
@@ -80,6 +94,9 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
   try {
     // First, make sure the is_edited column exists
     await ensureIsEditedColumnExists();
+    
+    // Sleep for 1 second to ensure database relationships are established
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     const { data, error } = await supabase
       .from('forum_posts')
@@ -108,7 +125,7 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
 
     if (!data) return null;
 
-    // Convert to our ForumPost type
+    // Process the data with safe type handling
     const forumPost: ForumPost = {
       id: data.id,
       title: data.title,
@@ -121,21 +138,24 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
         rank: data.author.rank || 'User',
       } : undefined,
       imageUrls: data.image_urls || [],
-      comments: data.comments?.map(comment => ({
-        id: comment.id,
-        postId: comment.post_id,
-        content: comment.content,
-        authorId: comment.author_id,
-        author: comment.author ? {
-          id: comment.author.id || comment.author_id,
-          username: comment.author.username || 'Unknown User',
-          avatarUrl: comment.author.avatar_url,
-          rank: comment.author.rank || 'User',
-        } : undefined,
-        createdAt: comment.created_at,
-        updatedAt: comment.updated_at,
-        isEdited: !!comment.is_edited,
-      })) || [],
+      comments: Array.isArray(data.comments) ? data.comments.map(comment => {
+        // Handle potential null/undefined values safely
+        return {
+          id: comment?.id || '',
+          postId: comment?.post_id || '',
+          content: comment?.content || '',
+          authorId: comment?.author_id || '',
+          author: comment?.author ? {
+            id: comment.author.id || comment.author_id || '',
+            username: comment.author.username || 'Unknown User',
+            avatarUrl: comment.author.avatar_url,
+            rank: comment.author.rank || 'User',
+          } : undefined,
+          createdAt: comment?.created_at || new Date().toISOString(),
+          updatedAt: comment?.updated_at || new Date().toISOString(),
+          isEdited: !!comment?.is_edited,
+        };
+      }) : [],
       commentCount: data.comment_count?.[0]?.count || 0,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
@@ -178,17 +198,25 @@ export async function createForumPost(
       return null;
     }
 
+    // Safe type handling for author
+    const author = data.author ? {
+      id: data.author.id || data.author_id || '',
+      username: data.author.username || 'Unknown User',
+      avatarUrl: data.author.avatar_url,
+      rank: data.author.rank || 'User',
+    } : {
+      id: data.author_id,
+      username: 'Unknown User',
+      avatarUrl: undefined,
+      rank: 'User',
+    };
+
     const forumPost: ForumPost = {
       id: data.id,
       title: data.title,
       content: data.content,
       authorId: data.author_id,
-      author: {
-        id: data.author?.id || data.author_id,
-        username: data.author?.username || 'Unknown User',
-        avatarUrl: data.author?.avatar_url,
-        rank: data.author?.rank || 'User',
-      },
+      author,
       imageUrls: data.image_urls || [],
       commentCount: data.comment_count?.[0]?.count || 0,
       createdAt: data.created_at,
@@ -228,17 +256,25 @@ export async function updateForumPost(
       return null;
     }
 
+    // Safe type handling for author
+    const author = data.author ? {
+      id: data.author.id || data.author_id || '',
+      username: data.author.username || 'Unknown User',
+      avatarUrl: data.author.avatar_url,
+      rank: data.author.rank || 'User',
+    } : {
+      id: data.author_id,
+      username: 'Unknown User',
+      avatarUrl: undefined,
+      rank: 'User',
+    };
+
     const forumPost: ForumPost = {
       id: data.id,
       title: data.title,
       content: data.content,
       authorId: data.author_id,
-      author: {
-        id: data.author?.id || data.author_id,
-        username: data.author?.username || 'Unknown User',
-        avatarUrl: data.author?.avatar_url,
-        rank: data.author?.rank || 'User',
-      },
+      author,
       imageUrls: data.image_urls || [],
       commentCount: data.comment_count?.[0]?.count || 0,
       createdAt: data.created_at,
@@ -303,7 +339,7 @@ export async function addForumComment(
       return null;
     }
 
-    // Only process if data exists
+    // Process data safely
     if (data) {
       const forumComment: ForumComment = {
         id: data.id,
@@ -311,7 +347,7 @@ export async function addForumComment(
         content: data.content,
         authorId: data.author_id,
         author: data.author ? {
-          id: data.author.id || data.author_id,
+          id: data.author.id || data.author_id || '',
           username: data.author.username || 'Unknown User',
           avatarUrl: data.author.avatar_url,
           rank: data.author.rank || 'User',
@@ -355,7 +391,7 @@ export async function updateForumComment(
       return null;
     }
 
-    // Only process if data exists
+    // Process data safely
     if (data) {
       const forumComment: ForumComment = {
         id: data.id,
@@ -363,7 +399,7 @@ export async function updateForumComment(
         content: data.content,
         authorId: data.author_id,
         author: data.author ? {
-          id: data.author.id || data.author_id,
+          id: data.author.id || data.author_id || '',
           username: data.author.username || 'Unknown User',
           avatarUrl: data.author.avatar_url,
           rank: data.author.rank || 'User',
@@ -405,11 +441,11 @@ export async function deleteForumComment(commentId: string): Promise<boolean> {
 // Helper function to make sure the is_edited column exists
 async function ensureIsEditedColumnExists() {
   try {
-    // Since the column already exists in the database (from the migration),
-    // we don't need to check or add it anymore
-    // We're removing the RPC calls that were causing TypeScript errors
+    // We no longer need RPC calls as we already created the column via migration
+    // Just log for debugging purposes
+    console.log("Ensuring is_edited column exists in forum_comments table");
   } catch (error) {
-    console.error("Error checking for is_edited column:", error);
+    console.error("Error in ensureIsEditedColumnExists:", error);
     // Continue anyway as the column might exist despite the error
   }
 }

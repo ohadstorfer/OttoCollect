@@ -7,15 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PenSquare, Search } from 'lucide-react';
 import ForumPostCard from '@/components/forum/ForumPostCard';
 import { fetchForumPosts } from '@/services/forumService';
-import { ForumPost } from '@/types/forum';
+import { ForumPost as ForumPostType } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { UserRank } from '@/types';
 
 const Forum = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [posts, setPosts] = useState<ForumPost[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<ForumPost[]>([]);
+  const [posts, setPosts] = useState<ForumPostType[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<ForumPostType[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -24,14 +24,26 @@ const Forum = () => {
       setLoading(true);
       try {
         const fetchedPosts = await fetchForumPosts();
-        // Convert string rank to UserRank type
-        const typedPosts = fetchedPosts.map(post => ({
-          ...post,
+        
+        // Convert fetched posts to match the ForumPostType
+        const typedPosts: ForumPostType[] = fetchedPosts.map(post => ({
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          authorId: post.authorId,
           author: post.author ? {
-            ...post.author,
-            rank: post.author.rank as UserRank
-          } : undefined
+            id: post.author.id,
+            username: post.author.username || "Unknown User",
+            avatarUrl: post.author.avatarUrl,
+            rank: (post.author.rank as UserRank) || 'Newbie'
+          } : undefined,
+          imageUrls: post.imageUrls,
+          comments: post.comments,
+          commentCount: post.commentCount,
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt
         }));
+        
         setPosts(typedPosts);
         setFilteredPosts(typedPosts);
       } catch (error) {

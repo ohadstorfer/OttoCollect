@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 import { User as UserType, UserRank } from '@/types';
@@ -13,6 +13,7 @@ interface UserProfileLinkProps {
   showAvatar?: boolean;
   showRank?: boolean;
   className?: string;
+  children?: ReactNode; // Add children prop
 }
 
 export default function UserProfileLink({
@@ -24,6 +25,7 @@ export default function UserProfileLink({
   showAvatar = true,
   showRank = false,
   className = '',
+  children,
 }: UserProfileLinkProps) {
   const getAvatarSize = () => {
     switch (size) {
@@ -62,6 +64,15 @@ export default function UserProfileLink({
         return 'text-gray-500';
     }
   };
+
+  // Return children if provided, otherwise render the default link content
+  if (children) {
+    return (
+      <Link to={`/profile/${userId}`} className={`hover:underline ${className}`}>
+        {children}
+      </Link>
+    );
+  }
 
   return (
     <Link 
