@@ -19,7 +19,7 @@ export async function uploadCollectionImage(file: File): Promise<string> {
     const filePath = `${userId}/${fileName}`;
 
     const { error } = await supabase.storage
-      .from('collection_images')
+      .from('banknote_images')
       .upload(filePath, file);
 
     if (error) {
@@ -28,7 +28,7 @@ export async function uploadCollectionImage(file: File): Promise<string> {
     }
 
     const { data } = supabase.storage
-      .from('collection_images')
+      .from('banknote_images')
       .getPublicUrl(filePath);
 
     return data.publicUrl;

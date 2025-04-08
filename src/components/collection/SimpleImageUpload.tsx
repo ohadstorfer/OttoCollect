@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Trash2, UploadCloud } from 'lucide-react';
@@ -39,6 +38,7 @@ const SimpleImageUpload = ({ image, side, onImageUploaded }: SimpleImageUploadPr
 
     setIsUploading(true);
     try {
+      // Use the correct function to upload to the banknote_images bucket
       const imageUrl = await uploadCollectionImage(file);
       onImageUploaded(imageUrl);
       toast({
