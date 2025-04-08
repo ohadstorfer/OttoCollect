@@ -107,7 +107,7 @@ const Catalog = () => {
 
 
       
-        <div className="max-w-md mx-auto mb-4">
+        <div className="max-w-md mx-auto mb-4 ">
           
           <div className="relative ">
             <SearchIcon className="mb-2 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -132,7 +132,7 @@ const Catalog = () => {
           <p className="text-muted-foreground">Try adjusting your search criteria.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6">
           {filteredCountries.map((country) => (
             <Link to={`/catalog/${encodeURIComponent(country.name)}`} key={country.name}>
               <Card className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden">
