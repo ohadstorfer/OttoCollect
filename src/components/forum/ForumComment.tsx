@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from 'date-fns';
@@ -94,7 +95,7 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
   };
   
   return (
-    <div className="py-4 border-b last:border-b-0">
+    <div className="py-4 border-b last:border-b-0 animate-fade-in transition-all duration-300">
       <div className="flex gap-3">
         <div className="flex-shrink-0">
           <Avatar className="h-10 w-10 border">
@@ -113,7 +114,7 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
           </div>
           
           {isEditing ? (
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 space-y-2 animate-scale-in">
               <Textarea 
                 value={editedContent}
                 onChange={(e) => setEditedContent(e.target.value)}
@@ -146,11 +147,12 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
           )}
           
           {isAuthor && !isEditing && (
-            <div className="flex gap-2 mt-2 justify-end">
+            <div className="flex gap-2 mt-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => setIsEditing(true)}
+                className="text-ottoman-600 hover:text-ottoman-700 hover:bg-ottoman-100/50"
               >
                 <Edit2 size={16} className="mr-1" />
                 Edit
@@ -158,7 +160,11 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
               
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
+                  >
                     <Trash2 size={16} className="mr-1" />
                     Delete
                   </Button>
@@ -172,7 +178,13 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} disabled={isSubmitting}>Delete</AlertDialogAction>
+                    <AlertDialogAction 
+                      onClick={handleDelete} 
+                      disabled={isSubmitting}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Delete
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

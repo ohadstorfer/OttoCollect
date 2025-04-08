@@ -1,6 +1,36 @@
-import { supabase, TablesInsert, TablesRow } from "@/integrations/supabase/client";
-import { BanknoteCondition, CollectionItem } from "@/types";
-import { fetchBanknoteById } from "./banknoteService";
+import { supabase } from "@/integrations/supabase/client";
+import { CollectionItem } from "@/types";
+import { v4 as uuidv4 } from 'uuid';
+
+export async function uploadCollectionImage(file: File): Promise<string> {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data.user) throw new Error("User not authenticated");
+
+    const userId = user.data.user.id;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from('collection_images')
+      .upload(filePath, file);
+
+    if (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
+
+    const { data } = supabase.storage
+      .from('collection_images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  } catch (error) {
+    console.error("Error in uploadCollectionImage:", error);
+    throw error;
+  }
+}
 
 export type { CollectionItem };
 

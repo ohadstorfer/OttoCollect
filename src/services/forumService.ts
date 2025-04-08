@@ -52,7 +52,7 @@ function mapStringToUserRank(rankString: string): UserRank {
     : 'Newbie';
 }
 
-// Fetch all forum posts with a more robust approach
+// Fetch all forum posts with a robust approach
 export async function fetchForumPosts(): Promise<ForumPost[]> {
   try {
     // Fetch posts
@@ -135,6 +135,21 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
   }
 }
 
+// Check if is_edited column exists in forum_comments table
+async function checkIsEditedColumnExists(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('column_exists', {
+      table_name: 'forum_comments',
+      column_name: 'is_edited'
+    });
+    
+    return data || false;
+  } catch (error) {
+    console.error("Error checking if is_edited column exists:", error);
+    return false;
+  }
+}
+
 // Fetch a single forum post by ID
 export async function fetchForumPostById(postId: string): Promise<ForumPost | null> {
   try {
@@ -171,6 +186,9 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
     if (commentsError) {
       console.error("Error fetching comments:", commentsError);
     }
+
+    // Check if is_edited column exists
+    const hasIsEditedColumn = await checkIsEditedColumnExists();
 
     // For each comment, fetch the author info
     const comments = commentsData || [];
@@ -214,11 +232,11 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
         } : undefined,
         createdAt: comment.created_at,
         updatedAt: comment.updated_at,
-        isEdited: comment.is_edited || false,
+        isEdited: hasIsEditedColumn ? comment.is_edited || false : false,
       };
     });
 
-    const rankAsUserRank = mapStringToUserRank(author?.rank || 'Newbie');
+    const rankAsUserRank = author ? mapStringToUserRank(author.rank || 'Newbie') : 'Newbie';
 
     const forumPost: ForumPost = {
       id: post.id,
@@ -283,7 +301,7 @@ export async function createForumPost(
       console.error("Error fetching author profile:", authorError);
     }
 
-    const rankAsUserRank = mapStringToUserRank(author?.rank || 'Newbie');
+    const rankAsUserRank = author ? mapStringToUserRank(author.rank || 'Newbie') : 'Newbie';
 
     const forumPost: ForumPost = {
       id: post.id,
@@ -342,7 +360,7 @@ export async function updateForumPost(
       console.error("Error fetching author profile:", authorError);
     }
 
-    const rankAsUserRank = mapStringToUserRank(author?.rank || 'Newbie');
+    const rankAsUserRank = author ? mapStringToUserRank(author.rank || 'Newbie') : 'Newbie';
 
     const forumPost: ForumPost = {
       id: post.id,
@@ -389,22 +407,6 @@ export async function deleteForumPost(postId: string, userId: string): Promise<b
   }
 }
 
-// Check if is_edited column exists
-async function checkIsEditedColumnExists(): Promise<boolean> {
-  try {
-    const { data, error } = await supabase
-      .from('forum_comments')
-      .select('is_edited')
-      .limit(1);
-    
-    // If there's no error, the column exists
-    return !error;
-  } catch (error) {
-    console.error("Error checking is_edited column:", error);
-    return false;
-  }
-}
-
 // Add a comment to a forum post
 export async function addForumComment(
   postId: string,
@@ -412,7 +414,8 @@ export async function addForumComment(
   authorId: string
 ): Promise<ForumComment | null> {
   try {
-    const hasIsEdited = await checkIsEditedColumnExists();
+    // Check if is_edited column exists
+    const hasIsEditedColumn = await checkIsEditedColumnExists();
     
     const insertData: any = {
       post_id: postId,
@@ -421,7 +424,7 @@ export async function addForumComment(
     };
     
     // Only add is_edited if the column exists
-    if (hasIsEdited) {
+    if (hasIsEditedColumn) {
       insertData.is_edited = false;
     }
 
@@ -447,7 +450,7 @@ export async function addForumComment(
       console.error("Error fetching author profile:", authorError);
     }
 
-    const rankAsUserRank = mapStringToUserRank(author?.rank || 'Newbie');
+    const rankAsUserRank = author ? mapStringToUserRank(author.rank || 'Newbie') : 'Newbie';
 
     const forumComment: ForumComment = {
       id: comment.id,
@@ -462,7 +465,7 @@ export async function addForumComment(
       } : undefined,
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
-      isEdited: comment.is_edited || false,
+      isEdited: hasIsEditedColumn ? comment.is_edited || false : false,
     };
     
     return forumComment;
@@ -479,12 +482,13 @@ export async function updateForumComment(
   content: string
 ): Promise<ForumComment | null> {
   try {
-    const hasIsEdited = await checkIsEditedColumnExists();
+    // Check if is_edited column exists
+    const hasIsEditedColumn = await checkIsEditedColumnExists();
 
     const updateData: any = { content };
     
     // Only add is_edited if the column exists
-    if (hasIsEdited) {
+    if (hasIsEditedColumn) {
       updateData.is_edited = true;
     }
 
@@ -512,7 +516,7 @@ export async function updateForumComment(
       console.error("Error fetching author profile:", authorError);
     }
 
-    const rankAsUserRank = mapStringToUserRank(author?.rank || 'Newbie');
+    const rankAsUserRank = author ? mapStringToUserRank(author.rank || 'Newbie') : 'Newbie';
 
     const forumComment: ForumComment = {
       id: comment.id,
@@ -527,7 +531,7 @@ export async function updateForumComment(
       } : undefined,
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
-      isEdited: comment.is_edited || false,
+      isEdited: hasIsEditedColumn ? comment.is_edited || false : false,
     };
     
     return forumComment;

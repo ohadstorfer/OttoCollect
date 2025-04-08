@@ -11,6 +11,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { addForumComment, fetchForumPostById } from "@/services/forumService";
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumComment from "@/components/forum/ForumComment";
+import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
 
@@ -81,11 +82,27 @@ const ForumPostPage = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center py-10">Loading post...</div>;
+    return (
+      <div className="page-container">
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-8 bg-ottoman-200/20 rounded w-64 mb-6"></div>
+            <div className="h-40 bg-ottoman-200/20 rounded w-full max-w-2xl"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!post) {
-    return <div className="text-center py-10">Post not found.</div>;
+    return (
+      <div className="page-container">
+        <div className="text-center py-20">
+          <h2 className="text-2xl font-semibold mb-2">Post not found</h2>
+          <p className="text-muted-foreground">The post you're looking for doesn't exist or has been removed.</p>
+        </div>
+      </div>
+    );
   }
 
   const getRankAsUserRank = (rank: string): UserRank => {
@@ -104,7 +121,7 @@ const ForumPostPage = () => {
       : 'Newbie';
   };
 
-  const authorRank = getRankAsUserRank(post.author?.rank || 'User');
+  const authorRank = getRankAsUserRank(post.author?.rank || 'Newbie');
 
   const formattedDate = formatDistanceToNow(new Date(post.createdAt), {
     addSuffix: true,
@@ -121,83 +138,89 @@ const ForumPostPage = () => {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">{post.title}</h1>
+      <h1 className="page-title animate-fade-in">{post.title}</h1>
 
       <div className="max-w-4xl mx-auto">
-        <div className="bg-parchment-50 p-6 rounded-md shadow-md mb-6">
+        <div className="glass-card p-6 rounded-md shadow-md mb-6 animate-fade-in">
           <div className="flex items-start gap-4">
-            <UserProfileLink
-              userId={post.authorId}
-              username={post.author?.username || "Unknown User"}
-              avatarUrl={post.author?.avatarUrl}
-              rank={authorRank}
-            >
-              <Avatar className="h-12 w-12 border">
-                <AvatarImage src={post.author?.avatarUrl} />
-                <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                  {post.author?.username ? getInitials(post.author.username) : '??'}
-                </AvatarFallback>
-              </Avatar>
-            </UserProfileLink>
+            <Avatar className="h-12 w-12 border">
+              <AvatarImage src={post.author?.avatarUrl} />
+              <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                {post.author?.username ? getInitials(post.author.username) : '??'}
+              </AvatarFallback>
+            </Avatar>
 
-            <div>
+            <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <UserProfileLink
-                  userId={post.authorId}
-                  username={post.author?.username || "Unknown User"}
-                  avatarUrl={post.author?.avatarUrl}
-                  rank={authorRank}
-                >
-                  <span className="font-semibold">{post.author?.username || 'Unknown User'}</span>
-                </UserProfileLink>
+                <span className="font-semibold">{post.author?.username || 'Unknown User'}</span>
                 <span className="text-sm text-muted-foreground">{formattedDate}</span>
               </div>
-              <div className="whitespace-pre-line">{post.content}</div>
+              <div className="whitespace-pre-line mb-4">{post.content}</div>
+              
+              {/* Image gallery component */}
+              {post.imageUrls && post.imageUrls.length > 0 && (
+                <ImageGallery images={post.imageUrls} />
+              )}
             </div>
           </div>
         </div>
 
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold mb-2">Comments</h2>
+        <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <h2 className="text-xl font-semibold mb-4">Comments • {post.commentCount || 0}</h2>
+          
           {user ? (
-            <div className="flex gap-2">
+            <div className="flex gap-3 mb-6 bg-parchment-50/30 p-4 rounded-md border border-ottoman-100">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user.avatarUrl} />
                 <AvatarFallback className="bg-ottoman-700 text-parchment-100">
                   {getInitials(user.username)}
                 </AvatarFallback>
               </Avatar>
-              <Textarea
-                value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
-                placeholder="Add your comment..."
-                className="flex-grow"
-              />
-              <Button onClick={handleAddComment} disabled={isSubmitting}>
-                Post
-              </Button>
+              <div className="flex-1 space-y-2">
+                <Textarea
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+                  placeholder="Add your comment..."
+                  className="resize-none min-h-[100px]"
+                />
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={handleAddComment} 
+                    disabled={isSubmitting || commentContent.trim() === ''}
+                  >
+                    {isSubmitting ? 'Posting...' : 'Post Comment'}
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : (
-            <p className="text-muted-foreground">
-              Please log in to add a comment.
-            </p>
+            <div className="bg-parchment-50/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">
+              <p className="text-muted-foreground">
+                Please log in to add a comment.
+              </p>
+            </div>
           )}
-        </div>
 
-        <div>
-          {comments.length > 0 ? (
-            comments.map((comment) => (
-              <ForumComment
-                key={comment.id}
-                comment={comment}
-                currentUserId={user?.id || ''}
-                onUpdate={onUpdateComment}
-                onDelete={onDeleteComment}
-              />
-            ))
-          ) : (
-            <p className="text-muted-foreground">No comments yet.</p>
-          )}
+          <div className="space-y-1">
+            {comments.length > 0 ? (
+              <div className="bg-parchment-50/20 rounded-md border border-ottoman-100/50">
+                {comments.map((comment, index) => (
+                  <div key={comment.id} className="group">
+                    <ForumComment
+                      comment={comment}
+                      currentUserId={user?.id || ''}
+                      onUpdate={onUpdateComment}
+                      onDelete={onDeleteComment}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-parchment-50/20 p-8 rounded-md border border-ottoman-100/50 text-center">
+                <p className="text-muted-foreground">No comments yet. Be the first to contribute!</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -1,112 +1,115 @@
 
-import React, { useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { UploadCloud, X } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState, useRef } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Loader2, ImageIcon, Upload } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { uploadCollectionImage } from "@/services/collectionService";
 
-interface SimpleImageUploadProps {
-  onImageSelected: (imageUrl: string) => void;
-  uploadFunction: (file: File) => Promise<string>;
-  label?: string;
-  buttonText?: string;
-  className?: string;
-  showPreview?: boolean;
+export interface SimpleImageUploadProps {
+  currentUrl?: string;
+  side: string;
+  onImageUploaded: (url: string) => void;
 }
 
-export default function SimpleImageUpload({
-  onImageSelected,
-  uploadFunction,
-  label = 'Upload Image',
-  buttonText = 'Choose Image',
-  className = '',
-  showPreview = true
+export default function SimpleImageUpload({ 
+  currentUrl,
+  side,
+  onImageUploaded 
 }: SimpleImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const { toast } = useToast();
+  const [imageUrl, setImageUrl] = useState(currentUrl || '');
+  
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file.');
-      return;
-    }
-
-    // Validate file size (2MB limit)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image size should be less than 2MB.');
-      return;
-    }
-
+    
+    setIsUploading(true);
     try {
-      setIsUploading(true);
-      const imageUrl = await uploadFunction(file);
-      setPreviewUrl(imageUrl);
-      onImageSelected(imageUrl);
+      const url = await uploadCollectionImage(file);
+      setImageUrl(url);
+      onImageUploaded(url);
+      toast({
+        title: "Image uploaded",
+        description: `The ${side} image was uploaded successfully.`,
+      });
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image. Please try again.');
+      console.error("Error uploading image:", error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: "There was an error uploading your image. Please try again.",
+      });
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
-
-  const clearImage = () => {
-    setPreviewUrl(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  
+  const handleClick = () => {
+    fileInputRef.current?.click();
   };
-
+  
   return (
-    <div className={className}>
-      <div className="flex flex-col gap-2">
-        <label className="font-medium text-sm">{label}</label>
-        
-        <div className="flex items-center gap-2">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => fileInputRef.current?.click()} 
-            disabled={isUploading}
-            className="flex-1"
-          >
-            <UploadCloud className="mr-2 h-4 w-4" />
-            {isUploading ? 'Uploading...' : buttonText}
-          </Button>
-          
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-        </div>
-
-        {showPreview && previewUrl && (
-          <div className="relative mt-2 inline-block">
+    <Card className="overflow-hidden">
+      <CardContent className="p-0">
+        {imageUrl ? (
+          <div className="relative group">
             <img 
-              src={previewUrl} 
-              alt="Preview" 
-              className="h-24 w-auto rounded border" 
+              src={imageUrl} 
+              alt={`${side} side`} 
+              className="w-full aspect-video object-cover"
             />
-            <button
-              type="button"
-              onClick={clearImage}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-            >
-              <X size={16} />
-            </button>
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button 
+                size="sm"
+                onClick={handleClick}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Change Image
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div 
+            className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-muted-foreground/25 rounded-sm min-h-[200px] cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={handleClick}
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="h-10 w-10 text-muted-foreground animate-spin mb-2" />
+                <p className="text-sm text-muted-foreground">Uploading...</p>
+              </>
+            ) : (
+              <>
+                <ImageIcon className="h-10 w-10 text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground mb-1">Click to upload {side} image</p>
+                <p className="text-xs text-muted-foreground">JPG, PNG or GIF</p>
+              </>
+            )}
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+      <Input 
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+      />
+    </Card>
   );
 }
