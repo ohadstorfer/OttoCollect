@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getBanknoteById } from '@/services/banknoteService';
+import { fetchBanknoteById } from '@/services/banknoteService';
 import { Banknote as BanknoteType, DetailedBanknote } from '@/types';
 import { Spinner } from '@/components/ui/spinner';
 import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
@@ -15,7 +15,7 @@ const Banknote = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchBanknote = async () => {
+    const fetchBanknoteData = async () => {
       if (!id) {
         setError("Banknote ID is required");
         setLoading(false);
@@ -24,7 +24,7 @@ const Banknote = () => {
 
       try {
         setLoading(true);
-        const data = await getBanknoteById(id);
+        const data = await fetchBanknoteById(id);
         if (!data) {
           setError("Banknote not found");
         } else {
@@ -38,7 +38,7 @@ const Banknote = () => {
       }
     };
 
-    fetchBanknote();
+    fetchBanknoteData();
   }, [id]);
 
   if (loading) {
@@ -81,10 +81,7 @@ const Banknote = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        <BanknoteDetailCard 
-          banknote={banknote} 
-          showActions={true}
-        />
+        <BanknoteDetailCard banknote={banknote} />
       </div>
     </div>
   );

@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchBanknoteDetail } from "@/services/banknoteService";
 import { fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
-import { BanknoteDetailSource, CollectionItem } from "@/types";
+import { BanknoteDetailSource } from "@/types";
+import type { CollectionItem as CollectionItemType } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -79,7 +80,7 @@ export default function CollectionItem() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [collectionItem, setCollectionItem] = useState<CollectionItem | null>(null);
+  const [collectionItem, setCollectionItem] = useState<CollectionItemType | null>(null);
 
   const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
@@ -254,4 +255,4 @@ export default function CollectionItem() {
       )}
     </div>
   );
-} 
+}

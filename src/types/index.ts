@@ -1,4 +1,3 @@
-
 // User related types
 export interface User {
   id: string;
@@ -27,12 +26,11 @@ export type UserRank =
 // Banknote related types
 export interface Banknote {
   id: string;
-  pick_number: string;
-  catalogId: string;
+  catalogId: string;  
   country: string;
   denomination: string;
   year: string;
-  series?: string;
+  series: string;
   description: string;
   obverseDescription?: string;
   reverseDescription?: string;
@@ -42,6 +40,7 @@ export interface Banknote {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+  pick_number?: string;
 }
 
 export interface DetailedBanknote extends Banknote {
