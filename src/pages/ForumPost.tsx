@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -88,7 +87,6 @@ const ForumPostPage = () => {
     return <div className="text-center py-10">Post not found.</div>;
   }
 
-  // Convert string rank to UserRank type
   const getRankAsUserRank = (rank: string): UserRank => {
     const validRanks: UserRank[] = [
       'Newbie',

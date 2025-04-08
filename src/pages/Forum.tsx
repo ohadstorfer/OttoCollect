@@ -9,6 +9,7 @@ import ForumPostCard from '@/components/forum/ForumPostCard';
 import { fetchForumPosts } from '@/services/forumService';
 import { ForumPost } from '@/types/forum';
 import { useAuth } from '@/context/AuthContext';
+import { UserRank } from '@/types';
 
 const Forum = () => {
   const navigate = useNavigate();
@@ -23,9 +24,16 @@ const Forum = () => {
       setLoading(true);
       try {
         const fetchedPosts = await fetchForumPosts();
-        // Use spread operator to ensure type compatibility
-        setPosts([...fetchedPosts]);
-        setFilteredPosts([...fetchedPosts]);
+        // Convert string rank to UserRank type
+        const typedPosts = fetchedPosts.map(post => ({
+          ...post,
+          author: post.author ? {
+            ...post.author,
+            rank: post.author.rank as UserRank
+          } : undefined
+        }));
+        setPosts(typedPosts);
+        setFilteredPosts(typedPosts);
       } catch (error) {
         console.error('Error fetching forum posts:', error);
       } finally {

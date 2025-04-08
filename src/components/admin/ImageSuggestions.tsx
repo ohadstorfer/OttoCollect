@@ -34,24 +34,30 @@ const ImageSuggestions = () => {
   const fetchSuggestions = async () => {
     setLoading(true);
     try {
-      // We'll count pending image suggestions
-      const { data: countData, error: countError } = await supabase.rpc('count_pending_image_suggestions');
+      // Count pending image suggestions with direct query instead of RPC
+      const { count, error: countError } = await supabase
+        .from('image_suggestions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
 
       if (countError) {
         console.error("Error counting suggestions:", countError);
         throw countError;
       }
       
-      setTotalSuggestions(countData || 0);
+      setTotalSuggestions(count || 0);
 
-      // Fetch the suggestions with pagination using RPC
-      const { data, error } = await supabase.rpc(
-        'get_image_suggestions',
-        {
-          p_limit: PAGE_SIZE,
-          p_offset: (currentPage - 1) * PAGE_SIZE
-        }
-      );
+      // Fetch the suggestions with pagination using direct query
+      const { data, error } = await supabase
+        .from('image_suggestions')
+        .select(`
+          *,
+          banknote:detailed_banknotes (id, country, pick_number, denomination),
+          user:profiles (id, username, avatar_url)
+        `)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1);
 
       if (error) {
         console.error("Error fetching suggestions:", error);
@@ -65,13 +71,13 @@ const ImageSuggestions = () => {
           banknoteId: item.banknote_id,
           userId: item.user_id,
           banknote: {
-            catalogId: item.catalogId,
-            country: item.country,
-            denomination: item.denomination
+            catalogId: item.banknote?.pick_number || 'Unknown',
+            country: item.banknote?.country || 'Unknown',
+            denomination: item.banknote?.denomination || ''
           },
           user: {
-            username: item.username || 'Unknown User',
-            avatarUrl: item.avatar_url
+            username: item.user?.username || 'Unknown User',
+            avatarUrl: item.user?.avatar_url
           },
           imageUrl: item.image_url,
           type: item.type,
@@ -101,17 +107,27 @@ const ImageSuggestions = () => {
     setProcessingIds(prev => ({ ...prev, [suggestion.id]: true }));
     
     try {
-      // Use RPC to approve the suggestion
-      const { error } = await supabase.rpc(
-        'approve_image_suggestion',
-        { 
-          p_suggestion_id: suggestion.id
-        }
-      );
+      // Update the image suggestion and the banknote directly
+      const { error } = await supabase
+        .from('image_suggestions')
+        .update({ status: 'approved' })
+        .eq('id', suggestion.id);
       
       if (error) {
         console.error("Error approving suggestion:", error);
         throw error;
+      }
+      
+      // Update the banknote with the image
+      const updateField = suggestion.type === 'obverse' ? 'front_picture' : 'back_picture';
+      const { error: updateError } = await supabase
+        .from('detailed_banknotes')
+        .update({ [updateField]: suggestion.imageUrl })
+        .eq('id', suggestion.banknoteId);
+      
+      if (updateError) {
+        console.error("Error updating banknote:", updateError);
+        throw updateError;
       }
       
       // Update local state
@@ -130,13 +146,11 @@ const ImageSuggestions = () => {
     setProcessingIds(prev => ({ ...prev, [suggestion.id]: true }));
     
     try {
-      // Use RPC to reject the suggestion
-      const { error } = await supabase.rpc(
-        'reject_image_suggestion',
-        { 
-          p_suggestion_id: suggestion.id
-        }
-      );
+      // Update status directly
+      const { error } = await supabase
+        .from('image_suggestions')
+        .update({ status: 'rejected' })
+        .eq('id', suggestion.id);
       
       if (error) {
         console.error("Error rejecting suggestion:", error);

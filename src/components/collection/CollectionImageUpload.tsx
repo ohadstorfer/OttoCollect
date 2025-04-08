@@ -15,12 +15,12 @@ import {
   ArrowRight
 } from "lucide-react";
 import { Label } from '../ui/label';
-import { CollectionItem, DetailedBanknote } from '@/types';
+import { DetailedBanknote } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/context/AuthContext';
-import { updateCollectionItem } from '@/services/collectionService';
+import { CollectionItem, updateCollectionItem } from '@/services/collectionService';
 
 interface Props {
   banknote: DetailedBanknote;
@@ -49,7 +49,6 @@ const CollectionImageUpload = ({ banknote, collectionItem, onUpdate }: Props) =>
     setIsUploading(true);
     
     try {
-      // Upload to personal collection first
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `${user?.id}/collection/${collectionItem.id}/${type}-${fileName}`;
@@ -68,13 +67,11 @@ const CollectionImageUpload = ({ banknote, collectionItem, onUpdate }: Props) =>
         
       const imageUrl = data.publicUrl;
       
-      // Update the collection item
-      const updatedItem = await updateCollectionItem(
-        collectionItem.id,
-        { 
-          ...(type === 'obverse' ? { obverseImage: imageUrl } : { reverseImage: imageUrl })
-        }
-      );
+      const updatedFields = type === 'obverse' 
+        ? { obverseImage: imageUrl } 
+        : { reverseImage: imageUrl };
+      
+      const updatedItem = await updateCollectionItem(collectionItem.id, updatedFields);
       
       if (updatedItem) {
         onUpdate(updatedItem);
@@ -83,7 +80,6 @@ const CollectionImageUpload = ({ banknote, collectionItem, onUpdate }: Props) =>
           description: `The ${type} image was successfully updated.`
         });
         
-        // Ask if they want to contribute this image to the catalog
         if (submitSuggestion) {
           await submitImageToCatalog(imageUrl, type);
         }
@@ -97,7 +93,6 @@ const CollectionImageUpload = ({ banknote, collectionItem, onUpdate }: Props) =>
       });
     } finally {
       setIsUploading(false);
-      // Reset the file input
       event.target.value = '';
     }
   };
@@ -106,31 +101,24 @@ const CollectionImageUpload = ({ banknote, collectionItem, onUpdate }: Props) =>
     if (!user || !banknote) return;
     
     try {
-      // First check if a pending suggestion already exists
-      const { data: existingData, error: checkError } = await supabase.rpc(
-        'check_image_suggestion',
-        {
-          p_banknote_id: banknote.id,
-          p_user_id: user.id,
-          p_type: type
-        }
-      );
+      const { data: existingData, error: checkError } = await supabase
+        .from('image_suggestions')
+        .select('*')
+        .eq('banknote_id', banknote.id)
+        .eq('user_id', user.id)
+        .eq('type', type)
+        .eq('status', 'pending');
       
-      // Handle the check error
       if (checkError) {
         console.error("Error checking for existing image suggestions:", checkError);
         return; 
       }
       
-      // If existing suggestions found, update them
-      if (Array.isArray(existingData) && existingData.length > 0) {
-        const { error: updateError } = await supabase.rpc(
-          'update_image_suggestion',
-          {
-            p_suggestion_id: existingData[0].id,
-            p_image_url: imageUrl
-          }
-        );
+      if (existingData && existingData.length > 0) {
+        const { error: updateError } = await supabase
+          .from('image_suggestions')
+          .update({ image_url: imageUrl })
+          .eq('id', existingData[0].id);
         
         if (updateError) {
           console.error("Error updating existing image suggestion:", updateError);
@@ -142,17 +130,15 @@ const CollectionImageUpload = ({ banknote, collectionItem, onUpdate }: Props) =>
           description: "Your image suggestion for the catalog has been updated."
         });
       } 
-      // Otherwise create a new suggestion
       else {
-        const { error: createError } = await supabase.rpc(
-          'create_image_suggestion',
-          {
-            p_banknote_id: banknote.id,
-            p_user_id: user.id,
-            p_image_url: imageUrl,
-            p_type: type
-          }
-        );
+        const { error: createError } = await supabase
+          .from('image_suggestions')
+          .insert([{
+            banknote_id: banknote.id,
+            user_id: user.id,
+            image_url: imageUrl,
+            type: type
+          }]);
         
         if (createError) {
           console.error("Error creating image suggestion:", createError);
@@ -215,7 +201,6 @@ const CollectionImageUpload = ({ banknote, collectionItem, onUpdate }: Props) =>
         </Tabs>
 
         <div className="grid grid-cols-2 gap-4">
-          {/* Obverse (Front) Image Upload */}
           <div>
             <Label className="mb-2 block">Obverse (Front)</Label>
             <div className="aspect-[3/2] relative border rounded-md overflow-hidden">
@@ -262,7 +247,6 @@ const CollectionImageUpload = ({ banknote, collectionItem, onUpdate }: Props) =>
             </div>
           </div>
           
-          {/* Reverse (Back) Image Upload */}
           <div>
             <Label className="mb-2 block">Reverse (Back)</Label>
             <div className="aspect-[3/2] relative border rounded-md overflow-hidden">

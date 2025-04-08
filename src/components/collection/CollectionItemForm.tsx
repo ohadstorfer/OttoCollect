@@ -12,11 +12,88 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { CollectionItem, BanknoteCondition } from "@/types";
-import CollectionImageUpload from './CollectionImageUpload';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { updateCollectionItem, updateCollectionItemImages } from '@/services/collectionService';
 import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
+import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
+
+// Simple image upload component 
+const SimpleImageUpload = ({ imageUrl, onImageUploaded, side }: { 
+  imageUrl?: string, 
+  onImageUploaded: (url: string) => void, 
+  side: 'obverse' | 'reverse' 
+}) => {
+  const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
+  
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    
+    setUploading(true);
+    
+    try {
+      // Generate a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${user.id}/images/${side}/${fileName}`;
+      
+      const { error } = await supabase.storage
+        .from('banknote_images')
+        .upload(filePath, file);
+        
+      if (error) throw error;
+      
+      const { data } = supabase.storage
+        .from('banknote_images')
+        .getPublicUrl(filePath);
+        
+      onImageUploaded(data.publicUrl);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
+    } finally {
+      setUploading(false);
+      // Reset the file input
+      event.target.value = '';
+    }
+  };
+  
+  return (
+    <div className="relative aspect-[3/2] border rounded-md overflow-hidden bg-muted/20">
+      {imageUrl ? (
+        <img 
+          src={imageUrl} 
+          alt={`Banknote ${side}`}
+          className="w-full h-full object-contain"
+        />
+      ) : (
+        <div className="flex items-center justify-center w-full h-full text-muted-foreground">
+          Click to upload
+        </div>
+      )}
+      
+      <div className="absolute inset-0 hover:bg-black/40 transition-colors flex items-center justify-center">
+        <label className="cursor-pointer w-full h-full flex items-center justify-center">
+          <input 
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={uploading}
+          />
+          {uploading && (
+            <div className="bg-white rounded-full p-2">
+              <div className="w-5 h-5 border-2 border-b-transparent border-ottoman-600 rounded-full animate-spin"></div>
+            </div>
+          )}
+        </label>
+      </div>
+    </div>
+  );
+};
 
 interface CollectionItemFormProps {
   collectionItem: CollectionItem;
@@ -141,21 +218,17 @@ export default function CollectionItemForm({ collectionItem, onUpdate }: Collect
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <div>
             <Label className="mb-2 block">Obverse (Front)</Label>
-            <CollectionImageUpload 
-              userId={user?.id || ''} 
-              banknoteId={collectionItem.banknoteId}
-              imageUrl={obverseImage} 
-              side="obverse" 
+            <SimpleImageUpload
+              imageUrl={obverseImage || undefined}
+              side="obverse"
               onImageUploaded={(url) => handleImageUploaded('obverse', url)}
             />
           </div>
           <div>
             <Label className="mb-2 block">Reverse (Back)</Label>
-            <CollectionImageUpload 
-              userId={user?.id || ''} 
-              banknoteId={collectionItem.banknoteId}
-              imageUrl={reverseImage} 
-              side="reverse" 
+            <SimpleImageUpload
+              imageUrl={reverseImage || undefined}
+              side="reverse"
               onImageUploaded={(url) => handleImageUploaded('reverse', url)}
             />
           </div>
