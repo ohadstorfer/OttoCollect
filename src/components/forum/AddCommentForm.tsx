@@ -28,7 +28,7 @@ export default function AddCommentForm({ postId, user, onCommentAdded }: AddComm
       const comment = await addCommentToPost(postId, content, user.id);
       
       if (comment) {
-        onCommentAdded(comment as unknown as ForumComment);
+        onCommentAdded(comment);
         setContent('');
         toast({
           title: "Comment added",

@@ -2,24 +2,31 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Banknote } from '@/types';
+import { Banknote, CollectionItem } from '@/types';
 import { addToWishlist, removeFromWishlist, fetchWishlistItem } from '@/services/wishlistService';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import BanknoteImageGallery from './BanknoteImageGallery';
+import { BanknoteDetailSource } from '@/types';
 
 interface BanknoteDetailCardProps {
   banknote: Banknote;
   showActions?: boolean;
   isInWishlist?: boolean;
   onWishlistChange?: () => void;
+  source?: BanknoteDetailSource;
+  collectionItem?: CollectionItem;
+  ownerId?: string;
 }
 
 const BanknoteDetailCard = ({ 
   banknote,
   showActions = true,
   isInWishlist = false,
-  onWishlistChange
+  onWishlistChange,
+  source,
+  collectionItem,
+  ownerId
 }: BanknoteDetailCardProps) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);

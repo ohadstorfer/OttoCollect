@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ForumPost, ForumComment } from "@/types";
+import { ForumPost, ForumComment } from "@/types/forum";
 
 // === Forum Posts ===
 
@@ -33,7 +33,7 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
 
     // Fetch comment count for each post
     const postsWithCommentCount = await Promise.all(
-      posts.map(async (post) => {
+      (posts || []).map(async (post) => {
         const { count, error: countError } = await supabase
           .from('forum_comments')
           .select('*', { count: 'exact', head: true })
@@ -50,10 +50,10 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
           content: post.content,
           authorId: post.author_id,
           author: post.author ? {
-            id: post.author.id,
-            username: post.author.username,
+            id: post.author.id || '',
+            username: post.author.username || 'Unknown',
             avatarUrl: post.author.avatar_url,
-            rank: post.author.rank
+            rank: post.author.rank || 'User'
           } : undefined,
           imageUrls: post.image_urls || [],
           commentCount: count || 0,
@@ -63,7 +63,7 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
       })
     );
 
-    return postsWithCommentCount;
+    return postsWithCommentCount as ForumPost[];
   } catch (error) {
     console.error("Error in fetchForumPosts:", error);
     return [];
@@ -105,10 +105,10 @@ export const createForumPost = async (
       content: data.content,
       authorId: data.author_id,
       author: data.author ? {
-        id: data.author.id,
-        username: data.author.username,
+        id: data.author.id || '',
+        username: data.author.username || 'Unknown',
         avatarUrl: data.author.avatar_url,
-        rank: data.author.rank
+        rank: data.author.rank || 'User'
       } : undefined,
       imageUrls: data.image_urls || [],
       commentCount: 0,
@@ -157,10 +157,10 @@ export const fetchForumPostById = async (postId: string): Promise<ForumPost | nu
         content: post.content,
         authorId: post.author_id,
         author: post.author ? {
-          id: post.author.id,
-          username: post.author.username,
+          id: post.author.id || '',
+          username: post.author.username || 'Unknown',
           avatarUrl: post.author.avatar_url,
-          rank: post.author.rank
+          rank: post.author.rank || 'User'
         } : undefined,
         imageUrls: post.image_urls || [],
         comments: [],
@@ -170,18 +170,18 @@ export const fetchForumPostById = async (postId: string): Promise<ForumPost | nu
     }
 
     // Map comments to the expected format
-    const formattedComments: ForumComment[] = comments.map(comment => {
-      if (!comment) return null as any;
+    const formattedComments: ForumComment[] = (comments || []).map(comment => {
+      if (!comment) return null as unknown as ForumComment;
       return {
         id: comment.id,
         postId: comment.post_id,
         content: comment.content,
         authorId: comment.author_id,
         author: comment.author ? {
-          id: comment.author.id,
-          username: comment.author.username,
+          id: comment.author.id || '',
+          username: comment.author.username || 'Unknown',
           avatarUrl: comment.author.avatar_url,
-          rank: comment.author.rank
+          rank: comment.author.rank || 'User'
         } : undefined,
         createdAt: comment.created_at,
         updatedAt: comment.updated_at,
@@ -195,10 +195,10 @@ export const fetchForumPostById = async (postId: string): Promise<ForumPost | nu
       content: post.content,
       authorId: post.author_id,
       author: post.author ? {
-        id: post.author.id,
-        username: post.author.username,
+        id: post.author.id || '',
+        username: post.author.username || 'Unknown',
         avatarUrl: post.author.avatar_url,
-        rank: post.author.rank
+        rank: post.author.rank || 'User'
       } : undefined,
       imageUrls: post.image_urls || [],
       comments: formattedComments,
@@ -247,10 +247,10 @@ export const addCommentToPost = async (
       content: data.content,
       authorId: data.author_id,
       author: data.author ? {
-        id: data.author.id,
-        username: data.author.username,
+        id: data.author.id || '',
+        username: data.author.username || 'Unknown',
         avatarUrl: data.author.avatar_url,
-        rank: data.author.rank
+        rank: data.author.rank || 'User'
       } : undefined,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
@@ -267,16 +267,6 @@ export const editComment = async (
   commentId: string,
   content: string,
   authorId: string
-): Promise<ForumComment | null> => {
-  return updateForumComment(commentId, authorId, content);
-};
-
-// Export these functions with the new expected names
-export const addForumComment = addCommentToPost;
-export const updateForumComment = async (
-  commentId: string,
-  authorId: string,
-  content: string
 ): Promise<ForumComment | null> => {
   try {
     // Update the comment
@@ -306,10 +296,10 @@ export const updateForumComment = async (
       content: data.content,
       authorId: data.author_id,
       author: data.author ? {
-        id: data.author.id,
-        username: data.author.username,
+        id: data.author.id || '',
+        username: data.author.username || 'Unknown',
         avatarUrl: data.author.avatar_url,
-        rank: data.author.rank
+        rank: data.author.rank || 'User'
       } : undefined,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
@@ -345,9 +335,6 @@ export const deleteComment = async (
   }
 };
 
-// Alias for deleteForumComment
-export const deleteForumComment = deleteComment;
-
 // Fetch comments for a post
 export const fetchCommentsForPost = async (postId: string): Promise<ForumComment[]> => {
   try {
@@ -366,16 +353,16 @@ export const fetchCommentsForPost = async (postId: string): Promise<ForumComment
     }
 
     // Map comments to the expected format
-    return data.map(comment => ({
+    return (data || []).map(comment => ({
       id: comment.id,
       postId: comment.post_id,
       content: comment.content,
       authorId: comment.author_id,
       author: comment.author ? {
-        id: comment.author.id,
-        username: comment.author.username,
+        id: comment.author.id || '',
+        username: comment.author.username || 'Unknown',
         avatarUrl: comment.author.avatar_url,
-        rank: comment.author.rank
+        rank: comment.author.rank || 'User'
       } : undefined,
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
@@ -398,3 +385,8 @@ export const uploadForumImage = async (file: File): Promise<string> => {
     throw new Error("Failed to upload image");
   }
 };
+
+// Create these alias exports for backward compatibility
+export const addForumComment = addCommentToPost;
+export const updateForumComment = editComment;
+export const deleteForumComment = deleteComment;
