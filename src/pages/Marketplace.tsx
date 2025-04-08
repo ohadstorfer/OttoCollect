@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { fetchMarketplaceItems } from "@/services/marketplaceService";
+import { fetchMarketplaceItems, synchronizeMarketplaceWithCollection } from "@/services/marketplaceService";
 import { Spinner } from "@/components/ui/spinner";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -38,6 +38,12 @@ const Marketplace = () => {
     setError(null);
     try {
       console.log("Starting to fetch marketplace items");
+      
+      // First, synchronize the marketplace with collection items
+      if (user?.role === 'Admin') {
+        await synchronizeMarketplaceWithCollection();
+      }
+      
       const items = await fetchMarketplaceItems();
       console.log("Fetched marketplace items:", items);
       
@@ -55,8 +61,10 @@ const Marketplace = () => {
       setMarketplaceItems(items);
       
       // Set initial price range based on actual items
-      const maxItemPrice = Math.max(...items.map(item => item.collectionItem.salePrice || 0), 100);
-      setPriceRange([0, maxItemPrice]);
+      if (items.length > 0) {
+        const maxItemPrice = Math.max(...items.map(item => item.collectionItem.salePrice || 0), 100);
+        setPriceRange([0, maxItemPrice]);
+      }
       
     } catch (err) {
       console.error("Error loading marketplace items:", err);
