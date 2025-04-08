@@ -97,10 +97,12 @@ const Marketplace = () => {
   
   // Filter items when search or filters change
   useEffect(() => {
-    let results = marketplaceItems;
+    console.log("Filtering with marketplaceItems:", marketplaceItems);
+    let results = [...marketplaceItems]; // Make a copy of the items
     
     // Only show available items
     results = results.filter(item => item.status === "Available");
+    console.log("After available filter:", results);
     
     // Apply search filter
     if (searchTerm) {
@@ -194,10 +196,10 @@ const Marketplace = () => {
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-center text-parchment-500  fade-bottom">
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-center text-parchment-500 fade-bottom">
             Marketplace
           </h1>
-          <p className="mt-4 text-center text-ottoman-300 max-w-2xl mx-auto  fade-bottom">
+          <p className="mt-4 text-center text-ottoman-300 max-w-2xl mx-auto fade-bottom">
             Browse and purchase Ottoman banknotes from fellow collectors
           </p>
           
@@ -376,7 +378,7 @@ const Marketplace = () => {
             )}
           </div>
           
-          {/* Content states */}
+          {/* Content states - Debug information */}
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <Spinner size="lg" />

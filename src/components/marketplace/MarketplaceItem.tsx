@@ -21,6 +21,8 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const { collectionItem, seller, status } = item;
   const { banknote, condition, salePrice, publicNote } = collectionItem;
   
+  console.log("Rendering marketplace item:", item);
+  
   const handleViewDetails = () => {
     navigate(`/marketplace/${item.id}`);
   };
