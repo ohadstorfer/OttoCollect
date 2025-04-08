@@ -23,13 +23,8 @@ const Forum = () => {
       setLoading(true);
       try {
         const fetchedPosts = await fetchForumPosts();
-        // Convert to ForumPost[] from type/forum.ts
-        const typedPosts: ForumPost[] = fetchedPosts.map(post => ({
-          ...post,
-          isEdited: post.isEdited || false
-        }));
-        setPosts(typedPosts);
-        setFilteredPosts(typedPosts);
+        setPosts(fetchedPosts);
+        setFilteredPosts(fetchedPosts);
       } catch (error) {
         console.error('Error fetching forum posts:', error);
       } finally {

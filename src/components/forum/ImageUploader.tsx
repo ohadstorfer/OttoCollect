@@ -1,135 +1,131 @@
 
-import React, { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { ImagePlus, X, Upload } from 'lucide-react';
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { uploadForumImage } from '@/services/forumService';
+import { useToast } from "@/hooks/use-toast";
+import { XCircle, Upload, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface ImageUploaderProps {
   images: string[];
-  onImagesChange: (images: string[]) => void;
-  maxImages?: number;
+  onChange: (images: string[]) => void;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ 
-  images, 
-  onImagesChange,
-  maxImages = 4
-}) => {
-  const [uploading, setUploading] = useState(false);
-  
-  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
+export const ImageUploader = ({ images, onChange }: ImageUploaderProps) => {
+  const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     
-    // Check if adding more images would exceed the limit
-    if (images.length + e.target.files.length > maxImages) {
-      toast.error(`You can only upload a maximum of ${maxImages} images`);
-      return;
-    }
-    
-    setUploading(true);
+    setIsUploading(true);
+    setUploadProgress(0);
     
     try {
-      const uploadPromises = Array.from(e.target.files).map(async (file) => {
-        // Check file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`File ${file.name} is too large. Maximum size is 5MB.`);
-          return null;
-        }
+      // Filter for image files
+      const imageFiles = Array.from(files).filter(file => 
+        file.type.startsWith('image/')
+      );
+      
+      if (imageFiles.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "Invalid files",
+          description: "Please select image files only.",
+        });
+        return;
+      }
+      
+      const uploadedUrls: string[] = [];
+      
+      // Upload each file
+      for (let i = 0; i < imageFiles.length; i++) {
+        const file = imageFiles[i];
+        const url = await uploadForumImage(file);
+        uploadedUrls.push(url);
         
-        // Check file type
-        if (!file.type.startsWith('image/')) {
-          toast.error(`File ${file.name} is not an image.`);
-          return null;
-        }
-        
-        try {
-          const imageUrl = await uploadForumImage(file);
-          return imageUrl;
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          toast.error(`Failed to upload ${file.name}`);
-          return null;
-        }
+        // Update progress
+        setUploadProgress(Math.round(((i + 1) / imageFiles.length) * 100));
+      }
+      
+      // Add new images to the existing ones
+      onChange([...images, ...uploadedUrls]);
+      
+      toast({
+        description: `Successfully uploaded ${uploadedUrls.length} image${uploadedUrls.length !== 1 ? 's' : ''}`,
       });
       
-      const uploadedImages = await Promise.all(uploadPromises);
-      const validImages = uploadedImages.filter(url => url !== null) as string[];
-      
-      if (validImages.length > 0) {
-        onImagesChange([...images, ...validImages]);
-        toast.success(`${validImages.length} image${validImages.length > 1 ? 's' : ''} uploaded successfully`);
-      }
     } catch (error) {
-      console.error("Image upload error:", error);
-      toast.error("An error occurred while uploading images");
+      console.error('Error uploading images:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: "There was an error uploading your images. Please try again.",
+      });
     } finally {
-      setUploading(false);
-      // Reset the input value so the same file can be selected again
-      e.target.value = '';
+      setIsUploading(false);
+      // Reset the file input
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  }, [images, maxImages, onImagesChange]);
+  };
   
-  const removeImage = (indexToRemove: number) => {
-    const newImages = images.filter((_, index) => index !== indexToRemove);
-    onImagesChange(newImages);
+  const handleRemoveImage = (indexToRemove: number) => {
+    onChange(images.filter((_, index) => index !== indexToRemove));
   };
   
   return (
-    <div className="space-y-3">
-      {images.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {images.map((image, index) => (
-            <div key={index} className="relative group rounded-md overflow-hidden border border-muted aspect-square">
-              <img 
-                src={image} 
-                alt={`Uploaded image ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
-              <button
-                type="button"
-                onClick={() => removeImage(index)}
-                className="absolute top-2 right-2 p-1 bg-black/70 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label="Remove image"
-              >
-                <X size={16} />
-              </button>
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {images.map((imageUrl, index) => (
+          <Card key={index} className="group relative aspect-square overflow-hidden">
+            <img 
+              src={imageUrl} 
+              alt={`Uploaded ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              className="absolute top-1 right-1 h-6 w-6 opacity-90 transition-opacity"
+              onClick={() => handleRemoveImage(index)}
+            >
+              <XCircle className="h-4 w-4" />
+            </Button>
+          </Card>
+        ))}
+        
+        <Card 
+          className="flex flex-col items-center justify-center aspect-square cursor-pointer border-dashed"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {isUploading ? (
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-8 w-8 animate-spin text-ottoman-600" />
+              <div className="text-sm font-medium">{uploadProgress}%</div>
             </div>
-          ))}
-        </div>
-      )}
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <Upload className="h-8 w-8" />
+              <div className="text-sm font-medium">Upload</div>
+            </div>
+          )}
+        </Card>
+      </div>
       
-      {images.length < maxImages && (
-        <div className="flex">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => document.getElementById('image-upload')?.click()}
-            disabled={uploading}
-            className="gap-2"
-          >
-            {uploading ? (
-              <>Uploading...</>
-            ) : (
-              <>
-                <ImagePlus size={18} />
-                Add Images
-              </>
-            )}
-          </Button>
-          <input
-            id="image-upload"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageUpload}
-            className="hidden"
-            disabled={uploading}
-          />
-        </div>
-      )}
+      <Input 
+        type="file"
+        accept="image/*"
+        multiple
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        disabled={isUploading}
+        className="hidden"
+      />
     </div>
   );
 };
-
-export default ImageUploader;

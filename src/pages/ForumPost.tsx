@@ -1,146 +1,229 @@
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { Spinner } from '@/components/ui/spinner';
-import { ForumPost, ForumComment } from '@/types/forum';
-import { fetchForumPostById, addCommentToPost } from '@/services/forumService';
-import Comment from '@/components/forum/ForumComment';
-import AddCommentForm from '@/components/forum/AddCommentForm';
-import ImageGallery from '@/components/forum/ImageGallery';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { ForumPost as ForumPostType, ForumComment as ForumCommentType } from "@/types/forum";
+import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
-import { useAuth } from '@/context/AuthContext';
+import { addForumComment, fetchForumPostById } from "@/services/forumService";
+import UserProfileLink from "@/components/common/UserProfileLink";
+import ForumComment from "@/components/forum/ForumComment";
+import ImageGallery from "@/components/forum/ImageGallery";
+import { getInitials } from '@/lib/utils';
+import { UserRank } from '@/types';
 
 const ForumPostPage = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { id: postId } = useParams();
   const { user } = useAuth();
-  const [post, setPost] = useState<ForumPost | null>(null);
-  const [comments, setComments] = useState<ForumComment[]>([]);
-  const [loading, setLoading] = useState(true);
-  
+  const [post, setPost] = useState<ForumPostType | null>(null);
+  const [comments, setComments] = useState<ForumCommentType[]>([]);
+  const [commentContent, setCommentContent] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
-    const loadPost = async () => {
-      if (!id) return;
-      
-      setLoading(true);
-      try {
-        const postData = await fetchForumPostById(id);
-        if (postData) {
-          setPost(postData as unknown as ForumPost);
-          setComments(postData.comments || []);
-        } else {
-          // Post not found, redirect to forum
-          navigate('/community/forum');
-        }
-      } catch (error) {
-        console.error('Error fetching post:', error);
-      } finally {
-        setLoading(false);
+    if (postId) {
+      loadPost(postId);
+    }
+  }, [postId]);
+
+  const loadPost = async (postId: string) => {
+    setIsLoading(true);
+    try {
+      const fetchedPost = await fetchForumPostById(postId);
+      if (fetchedPost) {
+        setPost(fetchedPost);
+        setComments(fetchedPost.comments || []);
+      } else {
+        toast.error("Failed to load post.");
       }
-    };
-    
-    loadPost();
-  }, [id, navigate]);
-  
-  const handleCommentAdded = (newComment: ForumComment) => {
-    setComments(prevComments => [...prevComments, newComment]);
+    } finally {
+      setIsLoading(false);
+    }
   };
-  
-  const handleCommentUpdated = (commentId: string, content: string) => {
-    setComments(prevComments => 
-      prevComments.map(comment => 
-        comment.id === commentId 
-          ? { ...comment, content, isEdited: true, updatedAt: new Date().toISOString() } 
-          : comment
+
+  const handleAddComment = async () => {
+    if (!user || !post || commentContent.trim() === '') return;
+
+    setIsSubmitting(true);
+    try {
+      const newComment = await addForumComment(post.id, commentContent, user.id);
+
+      if (newComment) {
+        onAddComment(newComment);
+        setCommentContent('');
+        toast.success("Your comment has been added successfully.");
+      } else {
+        toast.error("Failed to add comment. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onUpdateComment = (commentId: string, content: string) => {
+    setComments((prevComments) =>
+      prevComments.map((comment) =>
+        comment.id === commentId ? { ...comment, content, isEdited: true } : comment
       )
     );
   };
-  
-  const handleCommentDeleted = (commentId: string) => {
-    setComments(prevComments => prevComments.filter(comment => comment.id !== commentId));
+
+  const onDeleteComment = (commentId: string) => {
+    setComments((prevComments) =>
+      prevComments.filter((comment) => comment.id !== commentId)
+    );
+    if (post) {
+      setPost({ ...post, commentCount: (post.commentCount || 1) - 1 });
+    }
   };
-  
-  if (loading) {
+
+  if (isLoading) {
     return (
-      <div className="page-container flex justify-center items-center py-20">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-  
-  if (!post) {
-    return (
-      <div className="page-container py-10">
-        <p>Post not found</p>
-      </div>
-    );
-  }
-  
-  const formattedDate = formatDistanceToNow(new Date(post.createdAt), { addSuffix: true });
-  
-  return (
-    <div className="page-container py-8">
-      <Button 
-        variant="ghost" 
-        onClick={() => navigate('/community/forum')} 
-        className="mb-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Forum
-      </Button>
-      
-      <article className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">{post.title}</h1>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <span>{post.author?.username || 'Unknown User'}</span>
-            <span className="mx-2">•</span>
-            <span>{formattedDate}</span>
+      <div className="page-container">
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-8 bg-ottoman-200/20 rounded w-64 mb-6"></div>
+            <div className="h-40 bg-ottoman-200/20 rounded w-full max-w-2xl"></div>
           </div>
         </div>
-        
-        {post.imageUrls && post.imageUrls.length > 0 && (
-          <ImageGallery images={post.imageUrls} />
-        )}
-        
-        <div className="mt-4 whitespace-pre-line prose prose-ottoman max-w-none dark:prose-invert">
-          {post.content}
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="page-container">
+        <div className="text-center py-20">
+          <h2 className="text-2xl font-semibold mb-2">Post not found</h2>
+          <p className="text-muted-foreground">The post you're looking for doesn't exist or has been removed.</p>
         </div>
-        
-        <div className="mt-10">
-          <h2 className="text-xl font-semibold mb-4">Comments ({comments.length})</h2>
-          
-          {user && (
-            <div className="mb-6">
-              <AddCommentForm 
-                postId={post.id} 
-                user={user} 
-                onCommentAdded={handleCommentAdded} 
-              />
+      </div>
+    );
+  }
+
+  const getRankAsUserRank = (rank: string): UserRank => {
+    const validRanks: UserRank[] = [
+      'Newbie',
+      'Beginner Collector',
+      'Casual Collector',
+      'Known Collector',
+      'Advance Collector',
+      'Admin',
+      'Super Admin'
+    ];
+
+    return validRanks.includes(rank as UserRank)
+      ? (rank as UserRank)
+      : 'Newbie';
+  };
+
+  const authorRank = getRankAsUserRank(post.author?.rank || 'Newbie');
+
+  const formattedDate = formatDistanceToNow(new Date(post.createdAt), {
+    addSuffix: true,
+  });
+
+  const onAddComment = (comment: ForumCommentType) => {
+    if (!post) return;
+    setComments((prev) => [comment, ...prev]);
+    setPost({
+      ...post,
+      commentCount: (post.commentCount || 0) + 1,
+    });
+  };
+
+  return (
+    <div className="page-container">
+      <h1 className="page-title animate-fade-in">{post.title}</h1>
+
+      <div className="max-w-4xl mx-auto">
+        <div className="glass-card p-6 rounded-md shadow-md mb-6 animate-fade-in">
+          <div className="flex items-start gap-4">
+            <Avatar className="h-12 w-12 border">
+              <AvatarImage src={post.author?.avatarUrl} />
+              <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                {post.author?.username ? getInitials(post.author.username) : '??'}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold">{post.author?.username || 'Unknown User'}</span>
+                <span className="text-sm text-muted-foreground">{formattedDate}</span>
+              </div>
+              <div className="whitespace-pre-line mb-4">{post.content}</div>
+
+              {/* Image gallery component */}
+              {post.imageUrls && post.imageUrls.length > 0 && (
+                <ImageGallery images={post.imageUrls} />
+              )}
             </div>
-          )}
-          
-          {comments.length > 0 ? (
-            <div className="space-y-0 border rounded-lg overflow-hidden">
-              {comments.map((comment) => (
-                <Comment 
-                  key={comment.id} 
-                  comment={comment}
-                  currentUserId={user?.id || ''}
-                  onUpdate={handleCommentUpdated}
-                  onDelete={handleCommentDeleted}
+          </div>
+        </div>
+
+        <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <h2 className="text-xl font-semibold mb-4">Comments • {post.commentCount || 0}</h2>
+
+          {user ? (
+            <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border ">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user.avatarUrl} />
+                <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                  {getInitials(user.username)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-2">
+                <Textarea
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+                  placeholder="Add your comment..."
+                  className="resize-none min-h-[100px]"
                 />
-              ))}
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleAddComment}
+                    disabled={isSubmitting || commentContent.trim() === ''}
+                  >
+                    {isSubmitting ? 'Posting...' : 'Post Comment'}
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : (
-            <div className="text-center py-10 text-muted-foreground">
-              <p>No comments yet. Be the first to comment!</p>
+            <div className="bg-parchment-10/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">
+              <p className="text-muted-foreground">
+                Please log in to add a comment.
+              </p>
             </div>
           )}
+
+          <div className="space-y-4 px-4 glass-card p-4 rounded-md border">
+            {comments.length > 0 ? (
+              <div className="bg-parchment-10/20 rounded-md border p-6">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="group mb-3 last:mb-0">
+                    <ForumComment
+                      comment={comment}
+                      currentUserId={user?.id || ''}
+                      onUpdate={onUpdateComment}
+                      onDelete={onDeleteComment}
+                    />
+                  </div>
+                ))}
+              </div>
+            )
+              : (
+                <div className="bg-parchment-10/20 p-8 rounded-md border border-ottoman-100/50 text-center">
+                  <p className="text-muted-foreground">No comments yet. Be the first to contribute!</p>
+                </div>
+              )}
+          </div>
         </div>
-      </article>
+      </div>
     </div>
   );
 };

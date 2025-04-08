@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { Edit2, Trash2 } from "lucide-react";
-import { editComment, deleteComment } from "@/services/forumService";
+import { updateForumComment, deleteForumComment } from "@/services/forumService";
 import { getInitials } from '@/lib/utils';
 
 interface CommentProps {
@@ -47,7 +47,7 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
     
     setIsSubmitting(true);
     try {
-      const updatedComment = await editComment(comment.id, editedContent, user.id);
+      const updatedComment = await updateForumComment(comment.id, user.id, editedContent);
       
       if (updatedComment) {
         onUpdate(comment.id, editedContent);
@@ -74,7 +74,7 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
     
     setIsSubmitting(true);
     try {
-      const success = await deleteComment(comment.id, user.id);
+      const success = await deleteForumComment(comment.id);
       
       if (success) {
         onDelete(comment.id);

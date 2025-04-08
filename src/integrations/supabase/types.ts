@@ -317,7 +317,6 @@ export type Database = {
           content: string
           created_at: string
           id: string
-          is_edited: boolean | null
           post_id: string
           updated_at: string
         }
@@ -326,7 +325,6 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
-          is_edited?: boolean | null
           post_id: string
           updated_at?: string
         }
@@ -335,7 +333,6 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
-          is_edited?: boolean | null
           post_id?: string
           updated_at?: string
         }

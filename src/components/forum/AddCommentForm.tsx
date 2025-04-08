@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "@/types";
 import { ForumComment } from "@/types/forum";
-import { addCommentToPost } from '@/services/forumService';
+import { addForumComment } from '@/services/forumService';
 import { useToast } from "@/hooks/use-toast";
 import { getInitials } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ export default function AddCommentForm({ postId, user, onCommentAdded }: AddComm
     
     setIsSubmitting(true);
     try {
-      const comment = await addCommentToPost(postId, content, user.id);
+      const comment = await addForumComment(postId, content, user.id);
       
       if (comment) {
         onCommentAdded(comment);

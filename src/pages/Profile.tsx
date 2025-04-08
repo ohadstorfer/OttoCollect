@@ -1,121 +1,126 @@
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
-import { Spinner } from '@/components/ui/spinner';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import ProfileAbout from '@/components/profile/ProfileAbout';
-import ProfileCollection from '@/components/profile/ProfileCollection';
-import ProfileEditForm from '@/components/profile/ProfileEditForm';
-import MessageButton from '@/components/messages/MessageButton';
-import { useAuth } from '@/context/AuthContext';
-import { fetchUserProfile } from '@/services/profileService';
-import { User } from '@/types';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getUserProfile } from "@/services/profileService";
+import { Spinner } from "@/components/ui/spinner";
+import { User } from "@/types";
+import { useAuth } from "@/context/AuthContext";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ProfileAbout } from "@/components/profile/ProfileAbout";
+import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
+import { ProfileCollection } from "@/components/profile/ProfileCollection";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
-const Profile = () => {
+export default function Profile() {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser } = useAuth();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
-  
-  // Default to current user if no ID is provided
-  const userId = id || currentUser?.id;
-  const isOwnProfile = userId === currentUser?.id;
+  const [profile, setProfile] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("about");
+
+  const isOwnProfile = currentUser && profile && currentUser.id === profile.id;
 
   useEffect(() => {
-    const loadUserProfile = async () => {
-      if (!userId) {
-        navigate('/auth', { replace: true });
+    async function loadProfile() {
+      if (!id) {
+        // If no ID is provided in the URL, and user is logged in, show own profile
+        if (currentUser) {
+          navigate(`/profile/${currentUser.id}`);
+        } else {
+          navigate('/auth');
+        }
         return;
       }
 
       setLoading(true);
-      try {
-        const userData = await fetchUserProfile(userId);
-        if (userData) {
-          setUser(userData);
-        } else {
-          setError('User not found');
-        }
-      } catch (err) {
-        console.error('Error fetching user profile:', err);
-        setError('Failed to load profile');
-      } finally {
-        setLoading(false);
+      const profileData = await getUserProfile(id);
+      
+      if (profileData) {
+        setProfile(profileData);
+      } else {
+        toast.error("Could not load profile");
+        navigate('/');
       }
-    };
+      
+      setLoading(false);
+    }
 
-    loadUserProfile();
-  }, [userId, navigate]);
+    loadProfile();
+  }, [id, currentUser, navigate]);
+
+  const handleProfileUpdated = (updatedProfile: User) => {
+    setProfile(updatedProfile);
+    setIsEditing(false);
+  };
 
   if (loading) {
     return (
-      <div className="page-container flex justify-center items-center py-20">
+      <div className="page-container flex items-center justify-center min-h-[60vh]">
         <Spinner size="lg" />
       </div>
     );
   }
 
-  if (error || !user) {
+  if (!profile) {
     return (
-      <div className="page-container py-10">
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error || 'User not found'}</AlertDescription>
-        </Alert>
+      <div className="page-container">
+        <div className="max-w-4xl mx-auto text-center py-12">
+          <h1 className="text-3xl font-serif mb-4">Profile Not Found</h1>
+          <p className="text-ottoman-300 mb-6">The requested profile could not be found.</p>
+          <Button onClick={() => navigate('/')}>Return Home</Button>
+        </div>
       </div>
     );
   }
 
-  const handleProfileSaved = (updatedUser: User) => {
-    setUser(updatedUser);
-    setIsEditing(false);
-  };
-
   return (
-    <div className="page-container py-8">
-      <div className="mb-8">
-        <ProfileHeader 
-          user={user} 
-          isOwnProfile={isOwnProfile} 
-          onEditClick={() => setIsEditing(true)} 
-        />
+    <div className="page-container animate-fade-in">
+      <div className="max-w-4xl mx-auto">
+        {/* Profile Header is always visible */}
+        <ProfileHeader profile={profile} />
         
-        {!isOwnProfile && (
-          <div className="mt-4">
-            <MessageButton userId={user.id} username={user.username} variant="outline" />
+        {isEditing ? (
+          <Card className="mt-6">
+            <ProfileEditForm 
+              profile={profile} 
+              onProfileUpdated={handleProfileUpdated} 
+              onCancel={() => setIsEditing(false)}
+            />
+          </Card>
+        ) : (
+          <div className="mt-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="mb-6">
+                <TabsTrigger value="about">About</TabsTrigger>
+                <TabsTrigger value="collection">Collection</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="about">
+                <Card>
+                  <ProfileAbout 
+                    profile={profile} 
+                    onEditClick={isOwnProfile ? () => setIsEditing(true) : undefined} 
+                  />
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="collection">
+                <Card>
+                  <ProfileCollection 
+                    profile={profile} 
+                    isOwnProfile={isOwnProfile} 
+                  />
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </div>
-
-      {isEditing ? (
-        <ProfileEditForm 
-          user={user} 
-          onCancel={() => setIsEditing(false)}
-          onSave={handleProfileSaved}
-        />
-      ) : (
-        <Tabs defaultValue="collection" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="collection">Collection</TabsTrigger>
-            <TabsTrigger value="about">About</TabsTrigger>
-          </TabsList>
-          <TabsContent value="collection">
-            <ProfileCollection userId={user.id} isOwnProfile={isOwnProfile} />
-          </TabsContent>
-          <TabsContent value="about">
-            <ProfileAbout user={user} />
-          </TabsContent>
-        </Tabs>
-      )}
     </div>
   );
-};
-
-export default Profile;
+}

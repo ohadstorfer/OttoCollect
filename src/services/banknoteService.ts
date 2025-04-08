@@ -126,7 +126,6 @@ function transformDetailedToBanknote(detailed: any): Banknote {
   
   return {
     id: detailed.id,
-    pick_number: detailed.pick_number || detailed.extended_pick_number || 'Unknown',
     catalogId: detailed.extended_pick_number || detailed.pick_number || 'Unknown',
     country: detailed.country || 'Unknown',
     denomination: detailed.face_value || 'Unknown',
@@ -140,13 +139,7 @@ function transformDetailedToBanknote(detailed: any): Banknote {
     isPending: detailed.is_pending === true,    // Default to false if not specified
     createdAt: detailed.created_at || new Date().toISOString(),
     updatedAt: detailed.updated_at || new Date().toISOString(),
-    createdBy: detailed.created_by || 'system',
-    turkCatalogNumber: detailed.turk_catalog_number,
-    sultanName: detailed.sultan_name,
-    sealNames: detailed.seal_names,
-    type: detailed.type,
-    printer: detailed.printer,
-    rarity: detailed.rarity
+    createdBy: detailed.created_by || 'system'
   };
 }
 
@@ -163,7 +156,6 @@ function transformToDetailedBanknote(data: any): DetailedBanknote {
   
   return {
     id: data.id,
-    pick_number: data.pick_number || data.extended_pick_number || 'Unknown',
     catalogId: data.extended_pick_number || data.pick_number || 'Unknown',
     country: data.country || 'Unknown',
     denomination: data.face_value || 'Unknown',
