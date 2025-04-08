@@ -269,7 +269,15 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
               </Button>
             </div>
           </div>
-          <div className="aspect-[4/3] overflow-hidden">
+
+          <div
+            className={cn(
+              displayImage == '/placeholder.svg'
+                ? "aspect-[4/2]"
+                : "aspect-[4/3]",
+              "overflow-hidden"
+            )}
+          >
 
             <img
               src={displayImage}
@@ -295,19 +303,19 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
               <h3 className="text-lg font-medium">
                 {banknote.denomination}
               </h3>
-              
+
               <p className="text-sm text-muted-foreground">
                 {banknote.country} {banknote.year}
               </p>
-              
+
               {banknote.pickNumber && (
-              <p className="text-sm text-muted-foreground">
-                Pick Number: {banknote.pickNumber}
-              </p>)}
+                <p className="text-sm text-muted-foreground">
+                  Pick Number: {banknote.pickNumber}
+                </p>)}
               {banknote.sultanName && (
-              <p className="text-sm text-muted-foreground">
-                Sultan Name: {banknote.sultanName}
-              </p>)}
+                <p className="text-sm text-muted-foreground">
+                  Sultan Name: {banknote.sultanName}
+                </p>)}
               {banknote.sealNames && (
                 <p className="text-sm text-muted-foreground">
                   Seal Names: {banknote.sealNames}
@@ -334,9 +342,9 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
           </div>
         </CardHeader>
 
-        
 
-        
+
+
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
