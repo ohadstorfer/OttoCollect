@@ -1,201 +1,534 @@
-
-import { Banknote, CollectionItem, DetailedBanknote } from "@/types";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Eye, 
-  Calendar, 
-  MapPin, 
-  BarChart3,
-  BookOpen,
-  Printer,
-  Palette,
-  CircleDollarSign,
-  Award,
-  Hash,
-  Star,
-  Tag,
-  Clock,
-  Info,
-  Shield,
-  PencilRuler,
-  BadgeCheck
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Banknote, CollectionItem } from "@/types";
 import { useNavigate } from "react-router-dom";
+import { Eye, Plus, Check, Star, StarOff, ShoppingCart, Pencil } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { addToCollection, removeFromCollection } from "@/services/collectionService";
+import { addToWishlist, removeFromWishlist } from "@/services/wishlistService";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { addToMarketplace, removeFromMarketplace } from "@/services/marketplaceService";
 
 interface BanknoteDetailCardProps {
-  banknote: Banknote | DetailedBanknote;
+  banknote: Banknote;
   collectionItem?: CollectionItem;
-  source: "catalog" | "collection" | "wishlist" | "missing";
+  wishlistItem?: boolean;
+  source?: 'catalog' | 'collection' | 'missing';
   ownerId?: string;
 }
 
-const BanknoteDetailCard = ({ 
-  banknote, 
-  collectionItem, 
-  source, 
-  ownerId 
-}: BanknoteDetailCardProps) => {
+const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = 'catalog', ownerId }: BanknoteDetailCardProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
+  const [isHovering, setIsHovering] = useState(false);
+  const [isAddingToCollection, setIsAddingToCollection] = useState(false);
+  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const [isAddingToMarketplace, setIsAddingToMarketplace] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  const handleViewDetail = () => {
-    navigate(`/banknote/${banknote.id}`, {
-      state: { 
-        source,
-        ownerId
-      }
-    });
+  // Form state for adding to collection
+  const [condition, setCondition] = useState("UNC");
+  const [purchasePrice, setPurchasePrice] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState("");
+  const [publicNote, setPublicNote] = useState("");
+  const [privateNote, setPrivateNote] = useState("");
+  const [salePrice, setSalePrice] = useState("");
+  
+  const handleAddToCollection = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to add items to your collection.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsDialogOpen(true);
   };
-
-  // Cast banknote to DetailedBanknote to access extended properties
-  const detailedBanknote = banknote as DetailedBanknote;
-
-  // Detail items to display in the card
-  const detailItems = [
-    // Basic info
-    { icon: <Calendar className="h-4 w-4 text-muted-foreground" />, 
-      label: "Year", 
-      value: banknote.year,
-      category: "basic"
-    },
-    { icon: <MapPin className="h-4 w-4 text-muted-foreground" />, 
-      label: "Country", 
-      value: banknote.country,
-      category: "basic" 
-    },
-    { icon: <BookOpen className="h-4 w-4 text-muted-foreground" />, 
-      label: "Series", 
-      value: banknote.series,
-      category: "basic" 
-    },
-    { icon: <CircleDollarSign className="h-4 w-4 text-muted-foreground" />, 
-      label: "Denomination", 
-      value: banknote.denomination,
-      category: "basic" 
-    },
+  
+  const handleSubmitAddToCollection = async () => {
+    if (!user) return;
     
-    // Extended catalog info
-    { icon: <Hash className="h-4 w-4 text-muted-foreground" />, 
-      label: "Pick Number", 
-      value: detailedBanknote.pickNumber,
-      category: "catalog" 
-    },
-    { icon: <Tag className="h-4 w-4 text-muted-foreground" />, 
-      label: "Ext. Pick", 
-      value: detailedBanknote.extendedPickNumber,
-      category: "catalog" 
-    },
-    { icon: <PencilRuler className="h-4 w-4 text-muted-foreground" />, 
-      label: "Catalog ID", 
-      value: banknote.catalogId,
-      category: "catalog" 
-    },
-    
-    // Production details
-    { icon: <Printer className="h-4 w-4 text-muted-foreground" />, 
-      label: "Printer", 
-      value: detailedBanknote.printer,
-      category: "production" 
-    },
-    { icon: <Palette className="h-4 w-4 text-muted-foreground" />, 
-      label: "Colors", 
-      value: detailedBanknote.colors,
-      category: "production" 
-    },
-    { icon: <Shield className="h-4 w-4 text-muted-foreground" />, 
-      label: "Security", 
-      value: detailedBanknote.securityElement,
-      category: "production" 
-    },
-    
-    // Additional details
-    { icon: <Info className="h-4 w-4 text-muted-foreground" />, 
-      label: "Type", 
-      value: detailedBanknote.type,
-      category: "additional" 
-    },
-    { icon: <Star className="h-4 w-4 text-muted-foreground" />, 
-      label: "Rarity", 
-      value: detailedBanknote.rarity,
-      category: "additional" 
-    },
-    { icon: <BadgeCheck className="h-4 w-4 text-muted-foreground" />, 
-      label: "Category", 
-      value: detailedBanknote.category,
-      category: "additional" 
+    setIsAddingToCollection(true);
+    try {
+      const result = await addToCollection({
+        userId: user.id,
+        banknoteId: banknote.id,
+        condition,
+        purchasePrice: purchasePrice ? parseFloat(purchasePrice) : undefined,
+        purchaseDate: purchaseDate || undefined,
+        publicNote: publicNote || undefined,
+        privateNote: privateNote || undefined,
+        salePrice: salePrice ? parseFloat(salePrice) : undefined,
+        isForSale: !!salePrice,
+      });
+      
+      if (result) {
+        toast({
+          title: "Success",
+          description: "Banknote added to your collection.",
+        });
+        setIsDialogOpen(false);
+        
+        // If the user set a sale price, also add to marketplace
+        if (salePrice && parseFloat(salePrice) > 0) {
+          await addToMarketplace(result.id, user.id);
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add banknote to your collection.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding to collection:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingToCollection(false);
     }
-  ];
-
-  // For collection items only
-  const collectionDetails = collectionItem ? [
-    { icon: <Award className="h-4 w-4 text-muted-foreground" />, 
-      label: "Condition", 
-      value: collectionItem.condition,
-      category: "collection" 
-    },
-    { icon: <BarChart3 className="h-4 w-4 text-muted-foreground" />, 
-      label: "Price", 
-      value: collectionItem.isForSale && collectionItem.salePrice ? 
-             `$${collectionItem.salePrice}` : 
-             null,
-      category: "collection"
-    },
-    { icon: <Clock className="h-4 w-4 text-muted-foreground" />, 
-      label: "Purchased", 
-      value: collectionItem.purchaseDate ? 
-             new Date(collectionItem.purchaseDate).toLocaleDateString() : 
-             null,
-      category: "collection"
+  };
+  
+  const handleRemoveFromCollection = async () => {
+    if (!user || !collectionItem) return;
+    
+    try {
+      const result = await removeFromCollection(collectionItem.id);
+      if (result) {
+        toast({
+          title: "Success",
+          description: "Banknote removed from your collection.",
+        });
+        
+        // If the item was for sale, also remove from marketplace
+        if (collectionItem.isForSale) {
+          await removeFromMarketplace(collectionItem.id);
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to remove banknote from your collection.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error removing from collection:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
     }
-  ] : [];
-
-  // Combine all details and filter out those without values
-  const allDetails = [...detailItems, ...collectionDetails].filter(item => item.value);
-
+  };
+  
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to manage your wishlist.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsAddingToWishlist(true);
+    try {
+      if (wishlistItem) {
+        const result = await removeFromWishlist(user.id, banknote.id);
+        if (result) {
+          toast({
+            title: "Success",
+            description: "Banknote removed from your wishlist.",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to remove from wishlist.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        const result = await addToWishlist(user.id, banknote.id);
+        if (result) {
+          toast({
+            title: "Success",
+            description: "Banknote added to your wishlist.",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to add to wishlist.",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling wishlist:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingToWishlist(false);
+    }
+  };
+  
+  const handleToggleMarketplace = async () => {
+    if (!user || !collectionItem) return;
+    
+    setIsAddingToMarketplace(true);
+    try {
+      if (collectionItem.isForSale) {
+        // Remove from marketplace
+        const result = await removeFromMarketplace(collectionItem.id);
+        if (result) {
+          toast({
+            title: "Success",
+            description: "Banknote removed from marketplace.",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to remove from marketplace.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        // Show dialog to set sale price
+        setIsDialogOpen(true);
+      }
+    } catch (error) {
+      console.error("Error toggling marketplace:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingToMarketplace(false);
+    }
+  };
+  
+  const handleEditCollectionItem = () => {
+    navigate(`/banknote/${banknote.id}`, { state: { source: 'collection', itemId: collectionItem?.id } });
+  };
+  
+  // Determine which image to show, prioritizing obverse_image
+  const displayImage = collectionItem?.obverseImage || 
+    (banknote.imageUrls && banknote.imageUrls.length > 0 
+      ? banknote.imageUrls[0] 
+      : '/placeholder.svg');
+  
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <div className="aspect-[3/2] relative">
-        <img
-          src={banknote.imageUrls[0] || '/placeholder.svg'}
-          alt={`${banknote.country} ${banknote.denomination}`}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute top-2 right-2">
-          <Badge variant="secondary">{banknote.catalogId}</Badge>
-        </div>
-        {collectionItem?.isForSale && (
-          <div className="absolute bottom-2 right-2">
-            <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">For Sale</Badge>
-          </div>
+    <>
+      <Card 
+        className={cn(
+          "overflow-hidden transition-all duration-300",
+          isHovering ? "shadow-lg" : ""
         )}
-      </div>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <h3 className="font-semibold truncate">{banknote.denomination}</h3>
-            <p className="text-sm text-muted-foreground">{banknote.country}, {banknote.year}</p>
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
+        <div className="relative">
+          <div className="aspect-[4/3] overflow-hidden">
+            <img
+              src={displayImage}
+              alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
+              className={cn(
+                "w-full h-full object-cover transition-transform duration-500",
+                isHovering ? "scale-110" : "scale-100"
+              )}
+            />
           </div>
-        </div>
-
-        <div className="space-y-2 text-sm divide-y divide-gray-100">
-          {allDetails.map((item, index) => (
-            <div key={index} className={`flex justify-between items-center ${index > 0 ? 'pt-2' : ''}`}>
-              <div className="flex items-center gap-2">
-                {item.icon}
-                <span className="text-muted-foreground">{item.label}:</span>
-              </div>
-              <span className="font-medium">{item.value}</span>
+          
+          {collectionItem?.isForSale && (
+            <div className="absolute top-0 left-0 bg-green-600/90 text-white px-2 py-1 text-xs font-medium">
+              For Sale: ${collectionItem.salePrice}
             </div>
-          ))}
+          )}
         </div>
-      </CardContent>
-      <CardFooter className="p-4 pt-0 flex justify-end">
-        <Button variant="outline" size="sm" onClick={handleViewDetail}>
-          <Eye className="mr-2 h-4 w-4" /> View Details
-        </Button>
-      </CardFooter>
-    </Card>
+        
+        <CardHeader className="p-4 pb-2">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-medium">
+                {banknote.denomination}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {banknote.country}, {banknote.year}
+              </p>
+            </div>
+            {collectionItem && (
+              <Badge variant="secondary" className="self-start">
+                {collectionItem.condition}
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        
+        <CardContent className="p-4 pt-2">
+          {collectionItem?.publicNote && (
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+              {collectionItem.publicNote}
+            </p>
+          )}
+          
+          {collectionItem?.purchasePrice && (
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-xs text-muted-foreground">Purchased for:</span>
+              <span className="text-sm font-medium">${collectionItem.purchasePrice}</span>
+            </div>
+          )}
+        </CardContent>
+        
+        <CardFooter className="p-4 pt-2 flex justify-between">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate(`/banknote/${banknote.id}`, { state: { source, itemId: collectionItem?.id } })}
+          >
+            <Eye className="h-4 w-4 mr-1" />
+            Details
+          </Button>
+          
+          <div className="flex gap-2">
+            {source === 'catalog' && user && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleWishlist}
+                  disabled={isAddingToWishlist}
+                >
+                  {wishlistItem ? (
+                    <>
+                      <StarOff className="h-4 w-4 mr-1" />
+                      Unwish
+                    </>
+                  ) : (
+                    <>
+                      <Star className="h-4 w-4 mr-1" />
+                      Wish
+                    </>
+                  )}
+                </Button>
+                
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleAddToCollection}
+                  disabled={isAddingToCollection || !!collectionItem}
+                >
+                  {collectionItem ? (
+                    <>
+                      <Check className="h-4 w-4 mr-1" />
+                      Owned
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+            
+            {source === 'collection' && user && ownerId === user.id && (
+              <>
+                <Button
+                  variant={collectionItem?.isForSale ? "destructive" : "outline"}
+                  size="sm"
+                  onClick={handleToggleMarketplace}
+                  disabled={isAddingToMarketplace}
+                >
+                  {collectionItem?.isForSale ? (
+                    <>
+                      <ShoppingCart className="h-4 w-4 mr-1" />
+                      Unlist
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="h-4 w-4 mr-1" />
+                      Sell
+                    </>
+                  )}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleEditCollectionItem}
+                >
+                  <Pencil className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+              </>
+            )}
+            
+            {source === 'missing' && user && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleWishlist}
+                  disabled={isAddingToWishlist}
+                >
+                  {wishlistItem ? (
+                    <>
+                      <StarOff className="h-4 w-4 mr-1" />
+                      Unwish
+                    </>
+                  ) : (
+                    <>
+                      <Star className="h-4 w-4 mr-1" />
+                      Wish
+                    </>
+                  )}
+                </Button>
+                
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleAddToCollection}
+                  disabled={isAddingToCollection}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add
+                </Button>
+              </>
+            )}
+          </div>
+        </CardFooter>
+      </Card>
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {collectionItem ? "Sell Banknote" : "Add to Collection"}
+            </DialogTitle>
+            <DialogDescription>
+              {collectionItem
+                ? "Set a price to list this banknote for sale in the marketplace."
+                : "Enter details about this banknote in your collection."}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            {!collectionItem && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="condition">Condition</Label>
+                    <Select value={condition} onValueChange={setCondition}>
+                      <SelectTrigger id="condition">
+                        <SelectValue placeholder="Select condition" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="UNC">UNC</SelectItem>
+                        <SelectItem value="AU">AU</SelectItem>
+                        <SelectItem value="XF">XF</SelectItem>
+                        <SelectItem value="VF">VF</SelectItem>
+                        <SelectItem value="F">F</SelectItem>
+                        <SelectItem value="VG">VG</SelectItem>
+                        <SelectItem value="G">G</SelectItem>
+                        <SelectItem value="Fair">Fair</SelectItem>
+                        <SelectItem value="Poor">Poor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="purchasePrice">Purchase Price</Label>
+                    <Input
+                      id="purchasePrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={purchasePrice}
+                      onChange={(e) => setPurchasePrice(e.target.value)}
+                      placeholder="Optional"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="purchaseDate">Purchase Date</Label>
+                  <Input
+                    id="purchaseDate"
+                    type="date"
+                    value={purchaseDate}
+                    onChange={(e) => setPurchaseDate(e.target.value)}
+                    placeholder="Optional"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="publicNote">Public Note</Label>
+                  <Textarea
+                    id="publicNote"
+                    value={publicNote}
+                    onChange={(e) => setPublicNote(e.target.value)}
+                    placeholder="Visible to other users (optional)"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="privateNote">Private Note</Label>
+                  <Textarea
+                    id="privateNote"
+                    value={privateNote}
+                    onChange={(e) => setPrivateNote(e.target.value)}
+                    placeholder="Only visible to you (optional)"
+                  />
+                </div>
+              </>
+            )}
+            
+            <div>
+              <Label htmlFor="salePrice">Sale Price</Label>
+              <Input
+                id="salePrice"
+                type="number"
+                min="0"
+                step="0.01"
+                value={salePrice}
+                onChange={(e) => setSalePrice(e.target.value)}
+                placeholder={collectionItem ? "Enter price to list for sale" : "Optional - list for sale immediately"}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={collectionItem ? handleToggleMarketplace : handleSubmitAddToCollection}
+              disabled={collectionItem ? !salePrice : isAddingToCollection}
+            >
+              {collectionItem ? "List for Sale" : "Add to Collection"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

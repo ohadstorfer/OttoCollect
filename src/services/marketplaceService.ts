@@ -222,6 +222,64 @@ export async function removeFromMarketplace(
   }
 }
 
+export async function getMarketplaceItemById(id: string): Promise<MarketplaceItem | null> {
+  try {
+    console.log(`Fetching marketplace item with ID: ${id}`);
+    const { data, error } = await supabase
+      .from('marketplace_items')
+      .select(`
+        *,
+        collection_item:collection_item_id (*)
+      `)
+      .eq('id', id)
+      .single();
+      
+    if (error) {
+      console.error("Error fetching marketplace item by ID:", error);
+      return null;
+    }
+    
+    if (!data) {
+      console.log(`No marketplace item found with ID: ${id}`);
+      return null;
+    }
+    
+    // Get collection item details
+    const collectionItem = await fetchCollectionItem(data.collection_item_id);
+    if (!collectionItem) {
+      console.log(`Collection item not found: ${data.collection_item_id}`);
+      return null;
+    }
+    
+    // Get seller info
+    const { data: sellerData } = await supabase
+      .from('profiles')
+      .select('id, username, rank')
+      .eq('id', data.seller_id)
+      .single();
+      
+    const seller = sellerData || {
+      id: data.seller_id,
+      username: "Unknown User",
+      rank: "Newbie" as UserRank
+    };
+    
+    return {
+      id: data.id,
+      collectionItemId: data.collection_item_id,
+      collectionItem: collectionItem,
+      sellerId: data.seller_id,
+      seller,
+      status: data.status,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    } as MarketplaceItem;
+  } catch (error) {
+    console.error("Error in getMarketplaceItemById:", error);
+    return null;
+  }
+}
+
 export async function getMarketplaceItemForCollectionItem(
   collectionItemId: string
 ): Promise<MarketplaceItem | null> {

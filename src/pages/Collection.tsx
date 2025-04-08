@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import CollectionItemCard from "@/components/collection/CollectionItemCard";
 
 const Collection = () => {
   const [searchParams, setSearchParams] = useSearchParams();

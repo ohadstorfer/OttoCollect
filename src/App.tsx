@@ -12,6 +12,7 @@ import Catalog from "./pages/Catalog";
 import CountryDetail from "./pages/CountryDetail";
 import Collection from "./pages/Collection";
 import Marketplace from "./pages/Marketplace";
+import MarketplaceItemDetail from "./pages/MarketplaceItemDetail";
 import Community from "./pages/Community";
 import Messaging from "./pages/Messaging";
 import Navbar from "./components/layout/Navbar";
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/catalog/:countryName" element={<CountryDetail />} />
                 <Route path="/collection" element={<Collection />} />
                 <Route path="/marketplace" element={<Marketplace />} />
+                <Route path="/marketplace/:id" element={<MarketplaceItemDetail />} />
                 <Route path="/community" element={<Community />} />
                 <Route path="/community/forum" element={<Forum />} />
                 <Route path="/community/forum/:id" element={<ForumPost />} />
