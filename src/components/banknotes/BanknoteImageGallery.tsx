@@ -1,0 +1,64 @@
+
+import React, { useState } from 'react';
+
+interface BanknoteImageGalleryProps {
+  images: string[];
+}
+
+const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  
+  // If no images provided, show placeholder
+  if (!images || images.length === 0) {
+    return (
+      <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center">
+        <p className="text-gray-400">No images available</p>
+      </div>
+    );
+  }
+
+  // If only one image, just show it without thumbnails
+  if (images.length === 1) {
+    return (
+      <div className="aspect-[4/3] overflow-hidden">
+        <img 
+          src={images[0]} 
+          alt="Banknote" 
+          className="w-full h-full object-contain"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="aspect-[4/3] overflow-hidden bg-gray-50 border border-gray-100">
+        <img 
+          src={images[activeIndex]} 
+          alt={`Banknote view ${activeIndex + 1}`}
+          className="w-full h-full object-contain"
+        />
+      </div>
+      
+      <div className="flex flex-wrap gap-2 p-2">
+        {images.map((image, index) => (
+          <button 
+            key={index}
+            onClick={() => setActiveIndex(index)}
+            className={`w-16 h-16 overflow-hidden border-2 ${
+              index === activeIndex ? 'border-ottoman-600' : 'border-transparent'
+            }`}
+          >
+            <img 
+              src={image} 
+              alt={`Thumbnail ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default BanknoteImageGallery;
