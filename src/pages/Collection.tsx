@@ -238,7 +238,7 @@ const Collection = () => {
               <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
               {sortedCollection.map((item) => (
                 <BanknoteDetailCard
                   key={item.id}
@@ -269,7 +269,7 @@ const Collection = () => {
               <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
               {wishlistItems.map((item) => (
                 <Card key={item.id} className="overflow-hidden">
                   <div className="aspect-[3/2]">
@@ -360,7 +360,7 @@ const Collection = () => {
               <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
               {sortedMissing.map((banknote) => (
                 <BanknoteDetailCard
                   key={banknote.id}

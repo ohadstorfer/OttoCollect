@@ -432,7 +432,7 @@ const Marketplace = () => {
               {filteredItems.map((item, index) => (
                 <div 
                   key={item.id} 
-                  className="reveal fade-bottom"
+                  className=" animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <MarketplaceItem item={item} />
