@@ -1,317 +1,312 @@
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { 
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Upload,
-  ImagePlus,
-  Loader2,
-  ArrowRight
-} from "lucide-react";
-import { Label } from '../ui/label';
-import { DetailedBanknote } from '@/types';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
-import { useAuth } from '@/context/AuthContext';
-import { CollectionItem, updateCollectionItem } from '@/services/collectionService';
 
-interface Props {
-  banknote: DetailedBanknote;
+import React, { useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { UploadCloud, X, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { CollectionItem } from '@/services/collectionService';
+import { uploadCollectionImage } from '@/services/collectionService';
+
+interface CollectionImageUploadProps {
   collectionItem: CollectionItem;
-  onUpdate: (updatedItem: CollectionItem) => void;
+  onObverseImageChange?: (url: string) => void;
+  onReverseImageChange?: (url: string) => void;
+  onPersonalImagesChange?: (urls: string[]) => void;
+  variant?: 'full' | 'compact';
+  className?: string;
 }
 
-const CollectionImageUpload = ({ banknote, collectionItem, onUpdate }: Props) => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [uploadingObverse, setUploadingObverse] = useState(false);
-  const [uploadingReverse, setUploadingReverse] = useState(false);
-  const [submitSuggestion, setSubmitSuggestion] = useState(false);
+export default function CollectionImageUpload({
+  collectionItem,
+  onObverseImageChange,
+  onReverseImageChange,
+  onPersonalImagesChange,
+  variant = 'full',
+  className = '',
+}: CollectionImageUploadProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [personalImages, setPersonalImages] = useState<string[]>(
+    collectionItem.personalImages || []
+  );
+  const obverseFileRef = useRef<HTMLInputElement>(null);
+  const reverseFileRef = useRef<HTMLInputElement>(null);
+  const personalFileRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
-    type: 'obverse' | 'reverse'
+    type: 'obverse' | 'reverse' | 'personal'
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    
-    const isUploading = type === 'obverse' ? uploadingObverse : uploadingReverse;
-    const setIsUploading = type === 'obverse' ? setUploadingObverse : setUploadingReverse;
-    
-    if (isUploading) return;
+
+    // File validation
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB.');
+      return;
+    }
+
     setIsUploading(true);
-    
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `${user?.id}/collection/${collectionItem.id}/${type}-${fileName}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('banknote_images')
-        .upload(filePath, file);
-      
-      if (uploadError) {
-        throw uploadError;
+      const imageUrl = await uploadCollectionImage(file, collectionItem.id);
+
+      if (type === 'obverse') {
+        onObverseImageChange?.(imageUrl);
+      } else if (type === 'reverse') {
+        onReverseImageChange?.(imageUrl);
+      } else if (type === 'personal') {
+        const newPersonalImages = [...personalImages, imageUrl];
+        setPersonalImages(newPersonalImages);
+        onPersonalImagesChange?.(newPersonalImages);
       }
-      
-      const { data } = supabase.storage
-        .from('banknote_images')
-        .getPublicUrl(filePath);
-        
-      const imageUrl = data.publicUrl;
-      
-      const updatedFields = type === 'obverse' 
-        ? { obverseImage: imageUrl } 
-        : { reverseImage: imageUrl };
-      
-      const updatedItem = await updateCollectionItem(collectionItem.id, updatedFields);
-      
-      if (updatedItem) {
-        onUpdate(updatedItem);
-        toast({
-          title: "Image updated",
-          description: `The ${type} image was successfully updated.`
-        });
-        
-        if (submitSuggestion) {
-          await submitImageToCatalog(imageUrl, type);
-        }
-      }
+
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} image uploaded successfully.`);
     } catch (error) {
-      console.error(`Error uploading ${type} image:`, error);
-      toast({
-        variant: "destructive",
-        title: "Upload failed",
-        description: `There was a problem uploading your ${type} image.`
-      });
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image. Please try again.');
     } finally {
       setIsUploading(false);
-      event.target.value = '';
+      // Reset file input
+      if (type === 'obverse') obverseFileRef.current!.value = '';
+      else if (type === 'reverse') reverseFileRef.current!.value = '';
+      else personalFileRef.current!.value = '';
     }
   };
-  
-  const submitImageToCatalog = async (imageUrl: string, type: 'obverse' | 'reverse') => {
-    if (!user || !banknote) return;
-    
-    try {
-      const { data: existingData, error: checkError } = await supabase
-        .from('image_suggestions')
-        .select('*')
-        .eq('banknote_id', banknote.id)
-        .eq('user_id', user.id)
-        .eq('type', type)
-        .eq('status', 'pending');
-      
-      if (checkError) {
-        console.error("Error checking for existing image suggestions:", checkError);
-        return; 
-      }
-      
-      if (existingData && existingData.length > 0) {
-        const { error: updateError } = await supabase
-          .from('image_suggestions')
-          .update({ image_url: imageUrl })
-          .eq('id', existingData[0].id);
-        
-        if (updateError) {
-          console.error("Error updating existing image suggestion:", updateError);
-          return;
-        }
-        
-        toast({
-          title: "Suggestion updated",
-          description: "Your image suggestion for the catalog has been updated."
-        });
-      } 
-      else {
-        const { error: createError } = await supabase
-          .from('image_suggestions')
-          .insert([{
-            banknote_id: banknote.id,
-            user_id: user.id,
-            image_url: imageUrl,
-            type: type
-          }]);
-        
-        if (createError) {
-          console.error("Error creating image suggestion:", createError);
-          return;
-        }
-        
-        toast({
-          title: "Suggestion submitted",
-          description: "Your image has been submitted to improve the catalog."
-        });
-      }
-    } catch (error) {
-      console.error("Error submitting image suggestion:", error);
-      toast({
-        variant: "destructive",
-        title: "Submission failed",
-        description: "There was a problem submitting your image suggestion."
-      });
-    }
+
+  const removePersonalImage = (indexToRemove: number) => {
+    const newImages = personalImages.filter((_, index) => index !== indexToRemove);
+    setPersonalImages(newImages);
+    onPersonalImagesChange?.(newImages);
   };
+
+  if (variant === 'compact') {
+    return (
+      <div className={`grid grid-cols-1 gap-4 ${className}`}>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="obverse-image">Obverse Image</Label>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={() => obverseFileRef.current?.click()}
+              disabled={isUploading}
+            >
+              <UploadCloud className="h-4 w-4 mr-1" />
+              Upload
+            </Button>
+          </div>
+          <Input
+            ref={obverseFileRef}
+            id="obverse-image"
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFileChange(e, 'obverse')}
+            className="hidden"
+          />
+          {collectionItem.obverseImage && (
+            <div className="relative inline-block">
+              <img
+                src={collectionItem.obverseImage}
+                alt="Obverse"
+                className="h-24 w-auto rounded border"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="reverse-image">Reverse Image</Label>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={() => reverseFileRef.current?.click()}
+              disabled={isUploading}
+            >
+              <UploadCloud className="h-4 w-4 mr-1" />
+              Upload
+            </Button>
+          </div>
+          <Input
+            ref={reverseFileRef}
+            id="reverse-image"
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFileChange(e, 'reverse')}
+            className="hidden"
+          />
+          {collectionItem.reverseImage && (
+            <div className="relative inline-block">
+              <img
+                src={collectionItem.reverseImage}
+                alt="Reverse"
+                className="h-24 w-auto rounded border"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Upload Your Images</CardTitle>
-      </CardHeader>
-      
-      <CardContent>
-        <Tabs defaultValue="personal">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="personal">Personal Copy</TabsTrigger>
-            <TabsTrigger value="contribute">Contribute to Catalog</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="personal">
-            <p className="text-sm text-muted-foreground mb-4">
-              Upload images of your personal banknote copy. These will only be visible in your collection.
-            </p>
-          </TabsContent>
-          
-          <TabsContent value="contribute">
-            <p className="text-sm text-muted-foreground mb-4">
-              You can also contribute your high-quality images to improve the catalog for everyone.
-              Your contributions will be reviewed by moderators before being added.
-            </p>
-            
-            <div className="flex items-center space-x-2 mb-4">
-              <input 
-                type="checkbox" 
-                id="submitToCatalog" 
-                checked={submitSuggestion}
-                onChange={(e) => setSubmitSuggestion(e.target.checked)}
-                className="rounded border-gray-300"
-              />
-              <Label htmlFor="submitToCatalog" className="text-sm">
-                Submit my uploads to improve the catalog
-              </Label>
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="mb-2 block">Obverse (Front)</Label>
-            <div className="aspect-[3/2] relative border rounded-md overflow-hidden">
+    <div className={`space-y-6 ${className}`}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Obverse Image */}
+        <div className="space-y-2">
+          <Label htmlFor="obverse-image">Obverse Image</Label>
+          <div className="border rounded-md p-4 bg-gray-50">
+            <div className="flex flex-col items-center justify-center text-center">
               {collectionItem.obverseImage ? (
-                <img
-                  src={collectionItem.obverseImage}
-                  alt={`${banknote.denomination} front`}
-                  className="w-full h-full object-cover"
-                />
-              ) : banknote.frontPicture ? (
-                <div className="w-full h-full bg-muted/20 flex flex-col items-center justify-center">
+                <div className="relative">
                   <img
-                    src={banknote.frontPicture}
-                    alt={`${banknote.denomination} catalog front`}
-                    className="w-full h-full object-contain opacity-40"
+                    src={collectionItem.obverseImage}
+                    alt="Obverse"
+                    className="max-h-48 w-auto mb-4 rounded"
                   />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-white">
-                    <p className="text-sm">Upload your copy</p>
-                    <ArrowRight className="h-4 w-4 mt-1" />
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => obverseFileRef.current?.click()}
+                    disabled={isUploading}
+                    className="mt-2"
+                  >
+                    <UploadCloud className="h-4 w-4 mr-2" />
+                    Change Image
+                  </Button>
                 </div>
               ) : (
-                <div className="w-full h-full bg-muted/20 flex items-center justify-center text-muted-foreground">
-                  No image
+                <div className="flex flex-col items-center">
+                  <UploadCloud className="h-12 w-12 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 mb-4">
+                    Drag and drop or click to upload
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => obverseFileRef.current?.click()}
+                    disabled={isUploading}
+                  >
+                    {isUploading ? 'Uploading...' : 'Upload Obverse Image'}
+                  </Button>
                 </div>
               )}
-              
-              <div className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-colors group">
-                <label className="cursor-pointer p-2 rounded-full bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity">
-                  {uploadingObverse ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  ) : (
-                    <ImagePlus className="h-5 w-5 text-muted-foreground" />
-                  )}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    className="hidden" 
-                    onChange={(e) => handleFileChange(e, 'obverse')}
-                    disabled={uploadingObverse}
-                  />
-                </label>
-              </div>
             </div>
           </div>
-          
-          <div>
-            <Label className="mb-2 block">Reverse (Back)</Label>
-            <div className="aspect-[3/2] relative border rounded-md overflow-hidden">
-              {collectionItem.reverseImage ? (
-                <img
-                  src={collectionItem.reverseImage}
-                  alt={`${banknote.denomination} back`}
-                  className="w-full h-full object-cover"
-                />
-              ) : banknote.backPicture ? (
-                <div className="w-full h-full bg-muted/20 flex flex-col items-center justify-center">
-                  <img
-                    src={banknote.backPicture}
-                    alt={`${banknote.denomination} catalog back`}
-                    className="w-full h-full object-contain opacity-40"
-                  />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-white">
-                    <p className="text-sm">Upload your copy</p>
-                    <ArrowRight className="h-4 w-4 mt-1" />
-                  </div>
-                </div>
-              ) : (
-                <div className="w-full h-full bg-muted/20 flex items-center justify-center text-muted-foreground">
-                  No image
-                </div>
-              )}
-              
-              <div className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-colors group">
-                <label className="cursor-pointer p-2 rounded-full bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity">
-                  {uploadingReverse ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  ) : (
-                    <ImagePlus className="h-5 w-5 text-muted-foreground" />
-                  )}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    className="hidden" 
-                    onChange={(e) => handleFileChange(e, 'reverse')}
-                    disabled={uploadingReverse}
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
+          <Input
+            ref={obverseFileRef}
+            id="obverse-image"
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFileChange(e, 'obverse')}
+            className="hidden"
+          />
         </div>
-      </CardContent>
-      
-      <CardFooter className="flex justify-between border-t pt-4">
-        <p className="text-xs text-muted-foreground">
-          Images should be clear, well-lit, and show the entire banknote.
-        </p>
-        
-        <Button 
-          variant="ghost" 
-          size="sm"
-          type="button"
-          onClick={() => setSubmitSuggestion(!submitSuggestion)}
-        >
-          <Upload className="h-4 w-4 mr-1" />
-          {submitSuggestion ? 'Don\'t contribute' : 'Contribute to catalog'}
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-};
 
-export default CollectionImageUpload;
+        {/* Reverse Image */}
+        <div className="space-y-2">
+          <Label htmlFor="reverse-image">Reverse Image</Label>
+          <div className="border rounded-md p-4 bg-gray-50">
+            <div className="flex flex-col items-center justify-center text-center">
+              {collectionItem.reverseImage ? (
+                <div className="relative">
+                  <img
+                    src={collectionItem.reverseImage}
+                    alt="Reverse"
+                    className="max-h-48 w-auto mb-4 rounded"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => reverseFileRef.current?.click()}
+                    disabled={isUploading}
+                    className="mt-2"
+                  >
+                    <UploadCloud className="h-4 w-4 mr-2" />
+                    Change Image
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <UploadCloud className="h-12 w-12 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 mb-4">
+                    Drag and drop or click to upload
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => reverseFileRef.current?.click()}
+                    disabled={isUploading}
+                  >
+                    {isUploading ? 'Uploading...' : 'Upload Reverse Image'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+          <Input
+            ref={reverseFileRef}
+            id="reverse-image"
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFileChange(e, 'reverse')}
+            className="hidden"
+          />
+        </div>
+      </div>
+
+      {/* Personal Images */}
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label htmlFor="personal-images">Personal Photos (Optional)</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => personalFileRef.current?.click()}
+            disabled={isUploading}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Photo
+          </Button>
+        </div>
+        <Input
+          ref={personalFileRef}
+          id="personal-images"
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleFileChange(e, 'personal')}
+          className="hidden"
+        />
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
+          {personalImages.map((imageUrl, index) => (
+            <div key={index} className="relative group">
+              <img
+                src={imageUrl}
+                alt={`Personal ${index + 1}`}
+                className="h-24 w-24 object-cover rounded border"
+              />
+              <button
+                type="button"
+                onClick={() => removePersonalImage(index)}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

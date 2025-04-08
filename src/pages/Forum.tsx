@@ -7,14 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PenSquare, Search } from 'lucide-react';
 import ForumPostCard from '@/components/forum/ForumPostCard';
 import { fetchForumPosts } from '@/services/forumService';
-import { ForumPost as ForumPostType } from '@/types/forum';
+import { ForumPost } from '@/types/forum';
 import { useAuth } from '@/context/AuthContext';
 
 const Forum = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [posts, setPosts] = useState<ForumPostType[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<ForumPostType[]>([]);
+  const [posts, setPosts] = useState<ForumPost[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<ForumPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 

@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ForumPost, ForumComment } from "@/types/forum";
+import { ForumPost, ForumComment, ImageSuggestion } from "@/types/forum";
 import { v4 as uuidv4 } from 'uuid';
 import { UserRank } from "@/types";
 
@@ -35,92 +35,6 @@ export async function uploadForumImage(file: File): Promise<string> {
   }
 }
 
-// Fetch all forum posts - modified approach
-export async function fetchForumPosts(): Promise<ForumPost[]> {
-  try {
-    // Fetch posts first
-    const { data: postsData, error: postsError } = await supabase
-      .from('forum_posts')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (postsError || !postsData) {
-      console.error("Error fetching forum posts:", postsError);
-      return [];
-    }
-
-    // Get comment counts for each post
-    const { data: commentData, error: commentError } = await supabase
-      .from('forum_comments')
-      .select('post_id, count')
-      .eq('count', '*')
-      .groupBy('post_id');
-
-    // Get all author ids to fetch their profiles
-    const authorIds = [...new Set(postsData.map(post => post.author_id))];
-    
-    // Fetch author profiles in a separate query
-    const { data: authorProfiles, error: authorError } = await supabase
-      .from('profiles')
-      .select('id, username, avatar_url, rank')
-      .in('id', authorIds);
-    
-    if (authorError) {
-      console.error("Error fetching author profiles:", authorError);
-    }
-    
-    // Create a map of profiles by id for easy lookup
-    const profilesMap = new Map();
-    if (authorProfiles) {
-      authorProfiles.forEach(profile => {
-        profilesMap.set(profile.id, profile);
-      });
-    }
-
-    // Create comment count map
-    const commentCountMap = new Map();
-    if (commentData && Array.isArray(commentData)) {
-      commentData.forEach(item => {
-        if (item && item.post_id) {
-          commentCountMap.set(item.post_id, item.count || 0);
-        }
-      });
-    }
-
-    // Combine data into forum posts
-    const forumPosts: ForumPost[] = postsData.map(post => {
-      const authorProfile = profilesMap.get(post.author_id);
-      
-      // Map the rank from string to UserRank type
-      const rankAsUserRank = mapStringToUserRank(
-        authorProfile?.rank || 'Newbie'
-      );
-      
-      return {
-        id: post.id,
-        title: post.title,
-        content: post.content,
-        authorId: post.author_id,
-        author: authorProfile ? {
-          id: authorProfile.id,
-          username: authorProfile.username || 'Unknown User',
-          avatarUrl: authorProfile.avatar_url,
-          rank: rankAsUserRank
-        } : undefined,
-        imageUrls: post.image_urls || [],
-        commentCount: commentCountMap.get(post.id) || 0,
-        createdAt: post.created_at,
-        updatedAt: post.updated_at,
-      };
-    });
-
-    return forumPosts;
-  } catch (error) {
-    console.error("Error in fetchForumPosts:", error);
-    return [];
-  }
-}
-
 // Helper function to map string to UserRank
 function mapStringToUserRank(rankString: string): UserRank {
   const validRanks: UserRank[] = [
@@ -138,6 +52,89 @@ function mapStringToUserRank(rankString: string): UserRank {
     : 'Newbie';
 }
 
+// Fetch all forum posts with a more robust approach
+export async function fetchForumPosts(): Promise<ForumPost[]> {
+  try {
+    // Fetch posts
+    const { data: postsData, error: postsError } = await supabase
+      .from('forum_posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (postsError) {
+      console.error("Error fetching forum posts:", postsError);
+      return [];
+    }
+
+    if (!postsData) return [];
+    
+    // Get unique author IDs from posts
+    const authorIds = Array.from(new Set(postsData.map(post => post.author_id)));
+    
+    // Fetch author profiles separately
+    const { data: authorsData, error: authorsError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .in('id', authorIds);
+    
+    if (authorsError) {
+      console.error("Error fetching author profiles:", authorsError);
+    }
+    
+    // Create a map of authors by ID for easy lookup
+    const authorsMap = new Map();
+    if (authorsData) {
+      authorsData.forEach(author => {
+        authorsMap.set(author.id, author);
+      });
+    }
+
+    // Count comments separately
+    const commentCountPromises = postsData.map(async (post) => {
+      const { count, error: countError } = await supabase
+        .from('forum_comments')
+        .select('*', { count: 'exact', head: true })
+        .eq('post_id', post.id);
+        
+      return { postId: post.id, count: count || 0 };
+    });
+    
+    const commentCounts = await Promise.all(commentCountPromises);
+    const commentCountMap = new Map();
+    commentCounts.forEach(item => {
+      commentCountMap.set(item.postId, item.count);
+    });
+
+    // Map posts to the ForumPost type
+    const forumPosts: ForumPost[] = postsData.map(post => {
+      const author = authorsMap.get(post.author_id);
+      const rankAsUserRank = author ? mapStringToUserRank(author.rank || 'Newbie') : 'Newbie';
+      
+      return {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        authorId: post.author_id,
+        author: author ? {
+          id: author.id,
+          username: author.username || 'Unknown User',
+          avatarUrl: author.avatar_url,
+          rank: rankAsUserRank
+        } : undefined,
+        imageUrls: post.image_urls || [],
+        commentCount: commentCountMap.get(post.id) || 0,
+        createdAt: post.created_at,
+        updatedAt: post.updated_at,
+      };
+    });
+
+    return forumPosts;
+  } catch (error) {
+    console.error("Error in fetchForumPosts:", error);
+    return [];
+  }
+}
+
 // Fetch a single forum post by ID
 export async function fetchForumPostById(postId: string): Promise<ForumPost | null> {
   try {
@@ -148,7 +145,7 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
       .eq('id', postId)
       .single();
 
-    if (postError || !post) {
+    if (postError) {
       console.error("Error fetching forum post:", postError);
       return null;
     }
@@ -165,7 +162,7 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
     }
 
     // Fetch comments
-    const { data: comments, error: commentsError } = await supabase
+    const { data: commentsData, error: commentsError } = await supabase
       .from('forum_comments')
       .select('*')
       .eq('post_id', postId)
@@ -176,17 +173,34 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
     }
 
     // For each comment, fetch the author info
-    const commentPromises = comments?.map(async (comment) => {
-      const { data: commentAuthor } = await supabase
-        .from('profiles')
-        .select('id, username, avatar_url, rank')
-        .eq('id', comment.author_id)
-        .single();
-
-      const rankAsUserRank = mapStringToUserRank(
-        commentAuthor?.rank || 'Newbie'
-      );
-
+    const comments = commentsData || [];
+    const commentAuthorIds = Array.from(new Set(comments.map(comment => comment.author_id)));
+    
+    // Fetch all comment authors in one query
+    const { data: commentAuthors, error: commentAuthorsError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .in('id', commentAuthorIds);
+      
+    if (commentAuthorsError) {
+      console.error("Error fetching comment authors:", commentAuthorsError);
+    }
+    
+    // Create a map of comment authors by ID
+    const commentAuthorsMap = new Map();
+    if (commentAuthors) {
+      commentAuthors.forEach(author => {
+        commentAuthorsMap.set(author.id, author);
+      });
+    }
+    
+    // Process comments
+    const processedComments: ForumComment[] = comments.map(comment => {
+      const commentAuthor = commentAuthorsMap.get(comment.author_id);
+      const rankAsUserRank = commentAuthor 
+        ? mapStringToUserRank(commentAuthor.rank || 'Newbie') 
+        : 'Newbie';
+        
       return {
         id: comment.id,
         postId: comment.post_id,
@@ -202,9 +216,8 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
         updatedAt: comment.updated_at,
         isEdited: comment.is_edited || false,
       };
-    }) || [];
+    });
 
-    const processedComments = await Promise.all(commentPromises || []);
     const rankAsUserRank = mapStringToUserRank(author?.rank || 'Newbie');
 
     const forumPost: ForumPost = {
@@ -254,7 +267,7 @@ export async function createForumPost(
       .select()
       .single();
 
-    if (postError || !post) {
+    if (postError) {
       console.error("Error creating forum post:", postError);
       return null;
     }
@@ -313,7 +326,7 @@ export async function updateForumPost(
       .select()
       .single();
 
-    if (postError || !post) {
+    if (postError) {
       console.error("Error updating forum post:", postError);
       return null;
     }
@@ -343,7 +356,7 @@ export async function updateForumPost(
         rank: rankAsUserRank
       } : undefined,
       imageUrls: post.image_urls || [],
-      commentCount: 0, // We'll have to fetch comments separately if needed
+      commentCount: 0,
       createdAt: post.created_at,
       updatedAt: post.updated_at,
     };
@@ -376,6 +389,22 @@ export async function deleteForumPost(postId: string, userId: string): Promise<b
   }
 }
 
+// Check if is_edited column exists
+async function checkIsEditedColumnExists(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('forum_comments')
+      .select('is_edited')
+      .limit(1);
+    
+    // If there's no error, the column exists
+    return !error;
+  } catch (error) {
+    console.error("Error checking is_edited column:", error);
+    return false;
+  }
+}
+
 // Add a comment to a forum post
 export async function addForumComment(
   postId: string,
@@ -383,23 +412,26 @@ export async function addForumComment(
   authorId: string
 ): Promise<ForumComment | null> {
   try {
-    // Ensure the is_edited column exists
-    await ensureIsEditedColumnExists();
+    const hasIsEdited = await checkIsEditedColumnExists();
     
+    const insertData: any = {
+      post_id: postId,
+      content,
+      author_id: authorId
+    };
+    
+    // Only add is_edited if the column exists
+    if (hasIsEdited) {
+      insertData.is_edited = false;
+    }
+
     const { data: comment, error: commentError } = await supabase
       .from('forum_comments')
-      .insert([
-        {
-          post_id: postId,
-          content,
-          author_id: authorId,
-          is_edited: false,
-        },
-      ])
+      .insert([insertData])
       .select()
       .single();
 
-    if (commentError || !comment) {
+    if (commentError) {
       console.error("Error adding forum comment:", commentError);
       return null;
     }
@@ -447,17 +479,24 @@ export async function updateForumComment(
   content: string
 ): Promise<ForumComment | null> {
   try {
-    await ensureIsEditedColumnExists();
+    const hasIsEdited = await checkIsEditedColumnExists();
+
+    const updateData: any = { content };
     
+    // Only add is_edited if the column exists
+    if (hasIsEdited) {
+      updateData.is_edited = true;
+    }
+
     const { data: comment, error: commentError } = await supabase
       .from('forum_comments')
-      .update({ content, is_edited: true })
+      .update(updateData)
       .eq('id', commentId)
       .eq('author_id', userId)
       .select()
       .single();
 
-    if (commentError || !comment) {
+    if (commentError) {
       console.error("Error updating forum comment:", commentError);
       return null;
     }
@@ -515,25 +554,5 @@ export async function deleteForumComment(commentId: string): Promise<boolean> {
   } catch (error) {
     console.error("Error in deleteForumComment:", error);
     return false;
-  }
-}
-
-// Helper function to make sure the is_edited column exists
-async function ensureIsEditedColumnExists() {
-  try {
-    // Check if column exists
-    const { data } = await supabase.rpc('column_exists', {
-      table_name: 'forum_comments',
-      column_name: 'is_edited'
-    });
-    
-    // If column doesn't exist, add it
-    if (!data) {
-      await supabase.rpc('add_is_edited_column');
-      console.log("Added is_edited column to forum_comments table");
-    }
-  } catch (error) {
-    console.error("Error in ensureIsEditedColumnExists:", error);
-    // Continue anyway as the column might exist despite the error
   }
 }
