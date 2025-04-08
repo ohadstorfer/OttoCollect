@@ -376,30 +376,7 @@ export default function BanknoteDetail() {
               </Card>
             )}
 
-            {viewMode === 'catalog' && banknote.createdBy && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center">
-                    <User className="h-5 w-5 mr-2" />
-                    Added By
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Link 
-                    to={`/profile/${banknote.createdBy}`}
-                    className="flex items-center gap-3 hover:bg-muted/50 p-2 rounded-md transition-colors"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                      <User className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="font-medium">View Profile</p>
-                      <p className="text-sm text-muted-foreground">See this collector's other contributions</p>
-                    </div>
-                  </Link>
-                </CardContent>
-              </Card>
-            )}
+            
           </div>
           
           <div className="lg:col-span-3">
