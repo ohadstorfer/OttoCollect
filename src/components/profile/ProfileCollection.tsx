@@ -233,4 +233,4 @@ const ProfileCollection = ({ userId, userCollection, banknotes, wishlistItems, c
   );
 };
 
-export default ProfileCollection;
+export { ProfileCollection };
