@@ -208,16 +208,6 @@ export default function BanknoteDetail() {
         { label: "Front Signatures", value: banknote.signaturesFront, icon: <Signature className="h-4 w-4" /> },
         { label: "Back Signatures", value: banknote.signaturesBack, icon: <Signature className="h-4 w-4" /> }
       ]
-    },
-    {
-      title: "Record Information",
-      icon: <Clock className="h-5 w-5" />,
-      fields: [
-        { label: "Created", value: banknote.createdAt ? new Date(banknote.createdAt).toLocaleDateString() : null, icon: <Clock className="h-4 w-4" /> },
-        { label: "Updated", value: banknote.updatedAt ? new Date(banknote.updatedAt).toLocaleDateString() : null, icon: <Clock className="h-4 w-4" /> },
-        { label: "Approved", value: banknote.isApproved ? "Yes" : "No", icon: <CheckCircle className="h-4 w-4" /> },
-        { label: "Pending", value: banknote.isPending ? "Yes" : "No", icon: <CircleDashed className="h-4 w-4" /> }
-      ]
     }
   ];
 
