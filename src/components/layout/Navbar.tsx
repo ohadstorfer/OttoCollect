@@ -40,12 +40,10 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo and site name */}
           <Link to="/" className="flex items-center gap-2 group" onClick={closeMenu}>
-            <div className="w-10 h-10 bg-ottoman-500 text-white rounded-md flex items-center justify-center transition-all group-hover:bg-ottoman-600">
-              <BookOpen className="w-6 h-6" />
-            </div>
+            
             <div>
               <h1 className="text-xl font-serif text-ottoman-100 font-semibold tracking-tight">
-                <span className="text-gradient">Ottoman</span> Archive
+                <span className="text-gradient">Ottoman</span> Banknotes
               </h1>
             </div>
           </Link>
