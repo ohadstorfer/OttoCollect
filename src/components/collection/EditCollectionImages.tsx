@@ -87,7 +87,7 @@ const EditCollectionImages = ({ collectionItem, onImagesUpdated }: EditCollectio
           <div>
             <p className="text-sm font-medium mb-2">Obverse (Front)</p>
             <SimpleImageUpload
-              imageUrl={obverseImage}
+              image={obverseImage}
               side="obverse"
               onImageUploaded={setObverseImage}
             />
@@ -96,7 +96,7 @@ const EditCollectionImages = ({ collectionItem, onImagesUpdated }: EditCollectio
           <div>
             <p className="text-sm font-medium mb-2">Reverse (Back)</p>
             <SimpleImageUpload
-              imageUrl={reverseImage}
+              image={reverseImage}
               side="reverse"
               onImageUploaded={setReverseImage}
             />

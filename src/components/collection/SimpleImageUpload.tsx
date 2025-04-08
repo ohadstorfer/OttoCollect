@@ -1,115 +1,113 @@
 
-import React, { useState, useRef } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Loader2, ImageIcon, Upload } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { uploadCollectionImage } from "@/services/collectionService";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Trash2, UploadCloud } from 'lucide-react';
+import { uploadCollectionImage } from '@/services/collectionService';
+import { useToast } from '@/hooks/use-toast';
 
 export interface SimpleImageUploadProps {
-  currentUrl?: string;
+  image: string;
   side: string;
   onImageUploaded: (url: string) => void;
 }
 
-export default function SimpleImageUpload({ 
-  currentUrl,
-  side,
-  onImageUploaded 
-}: SimpleImageUploadProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const SimpleImageUpload = ({ image, side, onImageUploaded }: SimpleImageUploadProps) => {
   const { toast } = useToast();
-  const [imageUrl, setImageUrl] = useState(currentUrl || '');
-  
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Image must be less than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUploading(true);
     try {
-      const url = await uploadCollectionImage(file);
-      setImageUrl(url);
-      onImageUploaded(url);
+      const imageUrl = await uploadCollectionImage(file);
+      onImageUploaded(imageUrl);
       toast({
-        title: "Image uploaded",
-        description: `The ${side} image was uploaded successfully.`,
+        title: "Image Uploaded",
+        description: `${side.charAt(0).toUpperCase() + side.slice(1)} image uploaded successfully.`,
       });
     } catch (error) {
       console.error("Error uploading image:", error);
       toast({
+        title: "Upload Failed",
+        description: "Failed to upload image. Please try again.",
         variant: "destructive",
-        title: "Upload failed",
-        description: "There was an error uploading your image. Please try again.",
       });
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
-  
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
-  
+
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-0">
-        {imageUrl ? (
-          <div className="relative group">
-            <img 
-              src={imageUrl} 
-              alt={`${side} side`} 
-              className="w-full aspect-video object-cover"
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+    <div className="w-full">
+      {image ? (
+        <div className="relative">
+          <img 
+            src={image} 
+            alt={`${side} of banknote`} 
+            className="w-full h-40 object-contain border rounded-md"
+          />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/50">
+            <div className="flex gap-2">
               <Button 
-                size="sm"
-                onClick={handleClick}
+                size="sm" 
+                variant="ghost" 
+                className="text-white"
+                onClick={() => document.getElementById(`upload-${side}`)?.click()}
                 disabled={isUploading}
               >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Change Image
-                  </>
-                )}
+                <UploadCloud className="h-4 w-4 mr-1" /> Change
+              </Button>
+              <Button 
+                size="sm" 
+                variant="destructive"
+                onClick={() => onImageUploaded('')}
+              >
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
-        ) : (
-          <div 
-            className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-muted-foreground/25 rounded-sm min-h-[200px] cursor-pointer hover:bg-muted/50 transition-colors"
-            onClick={handleClick}
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="h-10 w-10 text-muted-foreground animate-spin mb-2" />
-                <p className="text-sm text-muted-foreground">Uploading...</p>
-              </>
-            ) : (
-              <>
-                <ImageIcon className="h-10 w-10 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground mb-1">Click to upload {side} image</p>
-                <p className="text-xs text-muted-foreground">JPG, PNG or GIF</p>
-              </>
-            )}
-          </div>
-        )}
-      </CardContent>
-      <Input 
+        </div>
+      ) : (
+        <div 
+          className="border-2 border-dashed rounded-md border-gray-300 p-4 flex flex-col items-center justify-center h-40 cursor-pointer hover:border-primary transition-colors"
+          onClick={() => document.getElementById(`upload-${side}`)?.click()}
+        >
+          <UploadCloud className="h-8 w-8 text-gray-500 mb-2" />
+          <p className="text-sm text-gray-500">
+            {isUploading ? 'Uploading...' : 'Click to upload'}
+          </p>
+        </div>
+      )}
+      <input 
         type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        onChange={handleFileChange}
+        id={`upload-${side}`}
         className="hidden"
+        accept="image/*"
+        onChange={handleUpload}
+        disabled={isUploading}
       />
-    </Card>
+    </div>
   );
-}
+};
+
+export default SimpleImageUpload;

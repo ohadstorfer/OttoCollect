@@ -1,6 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionItem } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
+import { fetchBanknoteById } from "@/services/banknoteService";
+import { BanknoteCondition } from "@/types";
+import type { Database } from "@/integrations/supabase/types";
+
+// Type definition for collection items table insert
+type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
 
 export async function uploadCollectionImage(file: File): Promise<string> {
   try {
@@ -294,7 +300,6 @@ export async function updateCollectionItem(
   }
 }
 
-// Add function to update collection item images
 export async function updateCollectionItemImages(
   collectionItemId: string,
   obverseImage?: string,

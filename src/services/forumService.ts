@@ -1,8 +1,102 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { ForumPost, ForumComment, ImageSuggestion } from "@/types/forum";
-import { v4 as uuidv4 } from 'uuid';
-import { UserRank } from "@/types";
+import { ForumPost, ForumComment, ForumPostInput, ForumCommentInput } from "@/types/forum";
+import { fetchUserProfile } from "./profileService";
+
+// Constants for search parameters
+const SEARCH_LIMIT_DEFAULT = 10;
+const MAX_SEARCH_LIMIT = 50;
+
+// Helper function to handle database errors
+const handleError = (error: any, context: string): null => {
+  console.error(`Error in ${context}:`, error);
+  return null;
+};
+
+// Check if a column exists in a table
+const columnExists = async (tableName: string, columnName: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.rpc('column_exists', {
+      p_table_name: tableName,
+      p_column_name: columnName,
+    });
+    
+    if (error) {
+      console.error(`Error checking if column ${columnName} exists in ${tableName}:`, error);
+      return false;
+    }
+    
+    return !!data;
+  } catch (error) {
+    console.error(`Exception checking if column ${columnName} exists in ${tableName}:`, error);
+    return false;
+  }
+};
+
+// Helper function to get comment author details
+const getCommentAuthor = async (authorId: string) => {
+  if (!authorId) return null;
+  
+  try {
+    const authorProfile = await fetchUserProfile(authorId);
+    if (!authorProfile) {
+      return {
+        id: authorId,
+        username: "Unknown User",
+        avatarUrl: null,
+        rank: "Unknown"
+      };
+    }
+    
+    return {
+      id: authorProfile.id,
+      username: authorProfile.username,
+      avatarUrl: authorProfile.avatar_url,
+      rank: authorProfile.rank
+    };
+  } catch (error) {
+    console.error("Error fetching comment author:", error);
+    return {
+      id: authorId,
+      username: "Unknown User",
+      avatarUrl: null,
+      rank: "Unknown"
+    };
+  }
+};
+
+// Ensure the forum_comments table has the is_edited column
+export const ensureIsEditedColumnExists = async (): Promise<boolean> => {
+  try {
+    // Check if column already exists
+    const exists = await columnExists('forum_comments', 'is_edited');
+    
+    if (exists) {
+      console.log("is_edited column already exists in forum_comments table");
+      return true;
+    }
+    
+    console.log("Adding is_edited column to forum_comments table");
+    
+    // Add the column if it doesn't exist
+    const { error } = await supabase.rpc('add_is_edited_column');
+    
+    if (error) {
+      console.error("Error adding is_edited column:", error);
+      return false;
+    }
+    
+    console.log("Successfully added is_edited column to forum_comments");
+    return true;
+  } catch (error) {
+    console.error("Error ensuring is_edited column exists:", error);
+    return false;
+  }
+};
+
+// Make sure we run this check early
+ensureIsEditedColumnExists().then(result => {
+  console.log("Column check completed, result:", result);
+});
 
 // Upload forum image to Supabase storage
 export async function uploadForumImage(file: File): Promise<string> {
@@ -132,21 +226,6 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
   } catch (error) {
     console.error("Error in fetchForumPosts:", error);
     return [];
-  }
-}
-
-// Check if is_edited column exists in forum_comments table
-async function checkIsEditedColumnExists(): Promise<boolean> {
-  try {
-    const { data, error } = await supabase.rpc('column_exists', {
-      table_name: 'forum_comments',
-      column_name: 'is_edited'
-    });
-    
-    return data || false;
-  } catch (error) {
-    console.error("Error checking if is_edited column exists:", error);
-    return false;
   }
 }
 
@@ -558,5 +637,54 @@ export async function deleteForumComment(commentId: string): Promise<boolean> {
   } catch (error) {
     console.error("Error in deleteForumComment:", error);
     return false;
+  }
+}
+
+export async function fetchCommentsByPostId(postId: string): Promise<ForumComment[]> {
+  try {
+    await ensureIsEditedColumnExists();
+    
+    // Get comments for the post
+    const { data: comments, error } = await supabase
+      .from('forum_comments')
+      .select(`
+        id,
+        post_id,
+        content,
+        author_id,
+        created_at,
+        updated_at,
+        is_edited
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true });
+      
+    if (error) {
+      console.error("Error fetching comments:", error);
+      return [];
+    }
+    
+    // Get author details for each comment
+    const commentsWithAuthors = await Promise.all(
+      comments.map(async (comment) => {
+        const author = await getCommentAuthor(comment.author_id);
+        
+        return {
+          id: comment.id,
+          postId: comment.post_id,
+          content: comment.content,
+          authorId: comment.author_id,
+          author: author,
+          createdAt: comment.created_at,
+          updatedAt: comment.updated_at,
+          isEdited: comment.is_edited || false
+        } as ForumComment;
+      })
+    );
+    
+    return commentsWithAuthors;
+  } catch (error) {
+    console.error("Error in fetchCommentsByPostId:", error);
+    return [];
   }
 }

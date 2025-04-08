@@ -1,11 +1,10 @@
-
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UploadCloud, X, Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { CollectionItem } from '@/services/collectionService';
+import { UploadCloud, X, Plus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { CollectionItem } from '@/types';
 import { uploadCollectionImage } from '@/services/collectionService';
 
 interface CollectionImageUploadProps {
@@ -25,6 +24,7 @@ export default function CollectionImageUpload({
   variant = 'full',
   className = '',
 }: CollectionImageUploadProps) {
+  const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [personalImages, setPersonalImages] = useState<string[]>(
     collectionItem.personalImages || []
@@ -42,18 +42,24 @@ export default function CollectionImageUpload({
 
     // File validation
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file.');
+      toast({
+        title: 'Please select an image file.',
+        variant: 'destructive'
+      });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size should be less than 5MB.');
+      toast({
+        title: 'Image size should be less than 5MB.',
+        variant: 'destructive'
+      });
       return;
     }
 
     setIsUploading(true);
     try {
-      const imageUrl = await uploadCollectionImage(file, collectionItem.id);
+      const imageUrl = await uploadCollectionImage(file);
 
       if (type === 'obverse') {
         onObverseImageChange?.(imageUrl);
@@ -65,10 +71,16 @@ export default function CollectionImageUpload({
         onPersonalImagesChange?.(newPersonalImages);
       }
 
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} image uploaded successfully.`);
+      toast({
+        title: `${type.charAt(0).toUpperCase() + type.slice(1)} image uploaded successfully.`,
+        variant: 'default'
+      });
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('Failed to upload image. Please try again.');
+      toast({
+        title: 'Failed to upload image. Please try again.',
+        variant: 'destructive'
+      });
     } finally {
       setIsUploading(false);
       // Reset file input
