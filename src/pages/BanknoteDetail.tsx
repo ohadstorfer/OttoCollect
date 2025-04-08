@@ -16,6 +16,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { toast } from "sonner";
 import { fetchUserCollection } from "@/services/collectionService";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
+import { addToWishlist, removeFromWishlist, fetchWishlistItem } from "@/services/wishlistService";
+import { useToast } from "@/hooks/use-toast";
 
 import { 
   Calendar, 
@@ -47,7 +49,8 @@ import {
   Fingerprint,
   CircleDashed,
   Signature,
-  CircleDollarSign
+  CircleDollarSign,
+  StarOff
 } from "lucide-react";
 
 interface LabelValuePairProps {
@@ -76,9 +79,12 @@ export default function BanknoteDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'catalog' | 'collection'>('catalog');
   const [collectionItem, setCollectionItem] = useState<CollectionItem | null>(null);
+  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const [wishlistItem, setWishlistItem] = useState(false);
 
   const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
@@ -106,11 +112,56 @@ export default function BanknoteDetail() {
     }
   }, [user, userCollection, banknote, location]);
 
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (user && banknote) {
+        try {
+          const result = await fetchWishlistItem(user.id, banknote.id);
+          setWishlistItem(!!result);
+        } catch (error) {
+          console.error("Error checking wishlist status:", error);
+        }
+      }
+    };
+    
+    checkWishlistStatus();
+  }, [user, banknote]);
+
   const isLoading = banknoteLoading || collectionLoading;
   const isInCollection = !!collectionItem;
   
   const toggleViewMode = () => {
     setViewMode(viewMode === 'catalog' ? 'collection' : 'catalog');
+  };
+
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      toast.error("Please sign in to add items to your wishlist");
+      return;
+    }
+
+    try {
+      if (wishlistItem) {
+        const success = await removeFromWishlist(user.id, banknote.id);
+        if (success) {
+          setWishlistItem(false);
+          toast.success("Removed from wishlist");
+        } else {
+          toast.error("Failed to remove from wishlist");
+        }
+      } else {
+        const success = await addToWishlist(user.id, banknote.id);
+        if (success) {
+          setWishlistItem(true);
+          toast.success("Added to wishlist");
+        } else {
+          toast.error("Failed to add to wishlist");
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling wishlist:", error);
+      toast.error("An error occurred while updating wishlist");
+    }
   };
 
   if (isLoading) {

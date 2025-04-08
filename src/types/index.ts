@@ -27,6 +27,7 @@ export type UserRank =
 // Banknote related types
 export interface Banknote {
   id: string;
+  pick_number: string;
   catalogId: string;
   country: string;
   denomination: string;

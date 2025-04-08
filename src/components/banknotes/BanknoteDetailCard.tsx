@@ -34,7 +34,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [isAddingToMarketplace, setIsAddingToMarketplace] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+
   // Form state for adding to collection
   const [condition, setCondition] = useState("UNC");
   const [purchasePrice, setPurchasePrice] = useState("");
@@ -42,7 +42,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
   const [publicNote, setPublicNote] = useState("");
   const [privateNote, setPrivateNote] = useState("");
   const [salePrice, setSalePrice] = useState("");
-  
+
   const handleAddToCollection = async () => {
     if (!user) {
       toast({
@@ -52,13 +52,13 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
       });
       return;
     }
-    
+
     setIsDialogOpen(true);
   };
-  
+
   const handleSubmitAddToCollection = async () => {
     if (!user) return;
-    
+
     setIsAddingToCollection(true);
     try {
       const result = await addToCollection({
@@ -72,14 +72,14 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
         salePrice: salePrice ? parseFloat(salePrice) : undefined,
         isForSale: !!salePrice,
       });
-      
+
       if (result) {
         toast({
           title: "Success",
           description: "Banknote added to your collection.",
         });
         setIsDialogOpen(false);
-        
+
         // If the user set a sale price, also add to marketplace
         if (salePrice && parseFloat(salePrice) > 0) {
           await addToMarketplace(result.id, user.id);
@@ -102,10 +102,10 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
       setIsAddingToCollection(false);
     }
   };
-  
+
   const handleRemoveFromCollection = async () => {
     if (!user || !collectionItem) return;
-    
+
     try {
       const result = await removeFromCollection(collectionItem.id);
       if (result) {
@@ -113,7 +113,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
           title: "Success",
           description: "Banknote removed from your collection.",
         });
-        
+
         // If the item was for sale, also remove from marketplace
         if (collectionItem.isForSale) {
           await removeFromMarketplace(collectionItem.id);
@@ -134,7 +134,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
       });
     }
   };
-  
+
   const handleToggleWishlist = async () => {
     if (!user) {
       toast({
@@ -144,7 +144,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
       });
       return;
     }
-    
+
     setIsAddingToWishlist(true);
     try {
       if (wishlistItem) {
@@ -187,10 +187,10 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
       setIsAddingToWishlist(false);
     }
   };
-  
+
   const handleToggleMarketplace = async () => {
     if (!user || !collectionItem) return;
-    
+
     setIsAddingToMarketplace(true);
     try {
       if (collectionItem.isForSale) {
@@ -223,29 +223,54 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
       setIsAddingToMarketplace(false);
     }
   };
-  
+
   const handleEditCollectionItem = () => {
     navigate(`/banknote/${banknote.id}`, { state: { source: 'collection', itemId: collectionItem?.id } });
   };
-  
+
   // Determine which image to show, prioritizing obverse_image
-  const displayImage = collectionItem?.obverseImage || 
-    (banknote.imageUrls && banknote.imageUrls.length > 0 
-      ? banknote.imageUrls[0] 
+  const displayImage = collectionItem?.obverseImage ||
+    (banknote.imageUrls && banknote.imageUrls.length > 0
+      ? banknote.imageUrls[0]
       : '/placeholder.svg');
-  
+
   return (
     <>
-      <Card 
+      <Card
         className={cn(
-          "overflow-hidden transition-all duration-300",
+          "overflow-hidden transition-all duration-300 cursor-pointer",
           isHovering ? "shadow-lg" : ""
         )}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
+        onClick={() => navigate(`/banknote/${banknote.id}`, { state: { source, itemId: collectionItem?.id } })}
       >
         <div className="relative">
+          <div className="absolute top-2 right-2 z-10">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button
+                variant="default"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCollection();
+                }}
+                disabled={isAddingToCollection || !!collectionItem}
+              >
+                {collectionItem ? (
+                  <>
+                    <Check className="h-4 w-4 mr-1" />
+                    Owned
+                  </>
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
           <div className="aspect-[4/3] overflow-hidden">
+
             <img
               src={displayImage}
               alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
@@ -254,15 +279,16 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                 isHovering ? "scale-110" : "scale-100"
               )}
             />
+
           </div>
-          
+
           {collectionItem?.isForSale && (
             <div className="absolute top-0 left-0 bg-green-600/90 text-white px-2 py-1 text-xs font-medium">
               For Sale: ${collectionItem.salePrice}
             </div>
           )}
         </div>
-        
+
         <CardHeader className="p-4 pb-2">
           <div className="flex justify-between items-start">
             <div>
@@ -272,6 +298,12 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
               <p className="text-sm text-muted-foreground">
                 {banknote.country}, {banknote.year}
               </p>
+              <p className="text-sm text-muted-foreground">
+                {banknote.pick_number}, {banknote.year}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {banknote.pick_number}, {banknote.year}
+              </p>
             </div>
             {collectionItem && (
               <Badge variant="secondary" className="self-start">
@@ -280,14 +312,14 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
             )}
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-4 pt-2">
           {collectionItem?.publicNote && (
             <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
               {collectionItem.publicNote}
             </p>
           )}
-          
+
           {collectionItem?.purchasePrice && (
             <div className="flex items-center gap-2 mt-2">
               <span className="text-xs text-muted-foreground">Purchased for:</span>
@@ -295,128 +327,75 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
             </div>
           )}
         </CardContent>
-        
-        <CardFooter className="p-4 pt-2 flex justify-between">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate(`/banknote/${banknote.id}`, { state: { source, itemId: collectionItem?.id } })}
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            Details
-          </Button>
-          
-          <div className="flex gap-2">
-            {source === 'catalog' && user && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleToggleWishlist}
-                  disabled={isAddingToWishlist}
-                >
-                  {wishlistItem ? (
-                    <>
-                      <StarOff className="h-4 w-4 mr-1" />
-                      Unwish
-                    </>
-                  ) : (
-                    <>
-                      <Star className="h-4 w-4 mr-1" />
-                      Wish
-                    </>
-                  )}
-                </Button>
-                
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handleAddToCollection}
-                  disabled={isAddingToCollection || !!collectionItem}
-                >
-                  {collectionItem ? (
-                    <>
-                      <Check className="h-4 w-4 mr-1" />
-                      Owned
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add
-                    </>
-                  )}
-                </Button>
-              </>
-            )}
-            
-            {source === 'collection' && user && ownerId === user.id && (
-              <>
-                <Button
-                  variant={collectionItem?.isForSale ? "destructive" : "outline"}
-                  size="sm"
-                  onClick={handleToggleMarketplace}
-                  disabled={isAddingToMarketplace}
-                >
-                  {collectionItem?.isForSale ? (
-                    <>
-                      <ShoppingCart className="h-4 w-4 mr-1" />
-                      Unlist
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="h-4 w-4 mr-1" />
-                      Sell
-                    </>
-                  )}
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleEditCollectionItem}
-                >
-                  <Pencil className="h-4 w-4 mr-1" />
-                  Edit
-                </Button>
-              </>
-            )}
-            
-            {source === 'missing' && user && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleToggleWishlist}
-                  disabled={isAddingToWishlist}
-                >
-                  {wishlistItem ? (
-                    <>
-                      <StarOff className="h-4 w-4 mr-1" />
-                      Unwish
-                    </>
-                  ) : (
-                    <>
-                      <Star className="h-4 w-4 mr-1" />
-                      Wish
-                    </>
-                  )}
-                </Button>
-                
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handleAddToCollection}
-                  disabled={isAddingToCollection}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add
-                </Button>
-              </>
-            )}
+
+        <CardFooter className="p-4 pt-2">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 w-full">
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              
+
+              {source === 'collection' && user && ownerId === user.id && (
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <Button
+                    variant={collectionItem?.isForSale ? "destructive" : "outline"}
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleMarketplace();
+                    }}
+                    disabled={isAddingToMarketplace}
+                  >
+                    {collectionItem?.isForSale ? (
+                      <>
+                        <ShoppingCart className="h-4 w-4 mr-1" />
+                        Unlist
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="h-4 w-4 mr-1" />
+                        Sell
+                      </>
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditCollectionItem();
+                    }}
+                  >
+                    <Pencil className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                </div>
+              )}
+
+              {source === 'missing' && user && (
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCollection();
+                    }}
+                    disabled={isAddingToCollection}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </CardFooter>
       </Card>
-      
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -429,7 +408,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                 : "Enter details about this banknote in your collection."}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             {!collectionItem && (
               <>
@@ -453,7 +432,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="purchasePrice">Purchase Price</Label>
                     <Input
@@ -467,7 +446,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="purchaseDate">Purchase Date</Label>
                   <Input
@@ -478,7 +457,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                     placeholder="Optional"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="publicNote">Public Note</Label>
                   <Textarea
@@ -488,7 +467,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                     placeholder="Visible to other users (optional)"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="privateNote">Private Note</Label>
                   <Textarea
@@ -500,7 +479,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                 </div>
               </>
             )}
-            
+
             <div>
               <Label htmlFor="salePrice">Sale Price</Label>
               <Input
@@ -514,12 +493,12 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={collectionItem ? handleToggleMarketplace : handleSubmitAddToCollection}
               disabled={collectionItem ? !salePrice : isAddingToCollection}
             >
