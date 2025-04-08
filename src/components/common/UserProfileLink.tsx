@@ -13,7 +13,7 @@ interface UserProfileLinkProps {
   showAvatar?: boolean;
   showRank?: boolean;
   className?: string;
-  children?: ReactNode; // Add children prop
+  children?: ReactNode;
 }
 
 export default function UserProfileLink({

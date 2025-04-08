@@ -7,9 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PenSquare, Search } from 'lucide-react';
 import ForumPostCard from '@/components/forum/ForumPostCard';
 import { fetchForumPosts } from '@/services/forumService';
-import { ForumPost as ForumPostType } from '@/types';
+import { ForumPost as ForumPostType } from '@/types/forum';
 import { useAuth } from '@/context/AuthContext';
-import { UserRank } from '@/types';
 
 const Forum = () => {
   const navigate = useNavigate();
@@ -24,28 +23,8 @@ const Forum = () => {
       setLoading(true);
       try {
         const fetchedPosts = await fetchForumPosts();
-        
-        // Convert fetched posts to match the ForumPostType
-        const typedPosts: ForumPostType[] = fetchedPosts.map(post => ({
-          id: post.id,
-          title: post.title,
-          content: post.content,
-          authorId: post.authorId,
-          author: post.author ? {
-            id: post.author.id,
-            username: post.author.username || "Unknown User",
-            avatarUrl: post.author.avatarUrl,
-            rank: (post.author.rank as UserRank) || 'Newbie'
-          } : undefined,
-          imageUrls: post.imageUrls,
-          comments: post.comments,
-          commentCount: post.commentCount,
-          createdAt: post.createdAt,
-          updatedAt: post.updatedAt
-        }));
-        
-        setPosts(typedPosts);
-        setFilteredPosts(typedPosts);
+        setPosts(fetchedPosts);
+        setFilteredPosts(fetchedPosts);
       } catch (error) {
         console.error('Error fetching forum posts:', error);
       } finally {

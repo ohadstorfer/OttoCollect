@@ -10,7 +10,7 @@ export interface ForumComment {
     id: string;
     username: string;
     avatarUrl?: string;
-    rank: string;
+    rank: UserRank;
   };
   createdAt: string;
   updatedAt: string;
@@ -26,7 +26,7 @@ export interface ForumPost {
     id: string;
     username: string;
     avatarUrl?: string;
-    rank: string;
+    rank: UserRank;
   };
   imageUrls: string[];
   comments?: ForumComment[];
