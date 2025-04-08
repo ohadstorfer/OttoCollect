@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,13 +16,14 @@ import Community from "./pages/Community";
 import Messaging from "./pages/Messaging";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
-import BanknoteDetail from "./pages/BanknoteDetail";
+import Banknote from "./pages/Banknote";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import Forum from "./pages/Forum";
 import ForumPost from "./pages/ForumPost";
 import CreateForumPost from "./pages/CreateForumPost";
 import Members from "./pages/Members";
+import CollectionItem from "./pages/CollectionItem";
 
 const queryClient = new QueryClient();
 
@@ -51,7 +51,8 @@ const App = () => (
                 <Route path="/community/forum/new" element={<CreateForumPost />} />
                 <Route path="/community/members" element={<Members />} />
                 <Route path="/messaging" element={<Messaging />} />
-                <Route path="/banknote/:id" element={<BanknoteDetail />} />
+                <Route path="/banknote/:id" element={<Banknote />} />
+                <Route path="/collection-item/:id" element={<CollectionItem />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:id" element={<Profile />} />

@@ -83,7 +83,7 @@ const CollectionItemCard = ({ item, className }: CollectionItemCardProps) => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => navigate(`/banknote/${banknote.id}`, { state: { source: 'collection', itemId: item.id } })}
+          onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
         >
           <Eye className="h-4 w-4 mr-1" />
           View Details

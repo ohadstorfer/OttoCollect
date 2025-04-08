@@ -23,6 +23,7 @@ interface BanknoteDetailCardProps {
   wishlistItem?: boolean;
   source?: 'catalog' | 'collection' | 'missing';
   ownerId?: string;
+  onClick?: () => void;
 }
 
 const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = 'catalog', ownerId }: BanknoteDetailCardProps) => {
@@ -243,7 +244,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
         )}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
-        onClick={() => navigate(`/banknote/${banknote.id}`, { state: { source, itemId: collectionItem?.id } })}
+        onClick={() => navigate(`/banknote/${banknote.id}`)}
       >
         <div className="relative">
           <div className="absolute top-2 right-2 z-10">

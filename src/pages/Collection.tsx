@@ -247,6 +247,7 @@ const Collection = () => {
                   collectionItem={item}
                   source="collection"
                   ownerId={user.id}
+                  onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
                 />
               ))}
             </div>
@@ -303,7 +304,7 @@ const Collection = () => {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => navigate(`/banknote/${item.banknote.id}`, { state: { source: 'wish-list' } })}
+                        onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
                       >
                         View Details
                       </Button>
