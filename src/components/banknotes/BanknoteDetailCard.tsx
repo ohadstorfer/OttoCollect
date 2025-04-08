@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,7 +83,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
 
         // If the user set a sale price, also add to marketplace
         if (salePrice && parseFloat(salePrice) > 0) {
-          await addToMarketplace(result.id, user.id);
+          await addToMarketplace(result.id);
         }
       } else {
         toast({
@@ -270,7 +271,6 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
             </div>
           </div>
           <div className="aspect-[4/3] overflow-hidden">
-
             <img
               src={displayImage}
               alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
@@ -279,7 +279,6 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                 isHovering ? "scale-110" : "scale-100"
               )}
             />
-
           </div>
 
           {collectionItem?.isForSale && (
@@ -299,11 +298,23 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                 {banknote.country}, {banknote.year}
               </p>
               <p className="text-sm text-muted-foreground">
-                {banknote.pick_number}, {banknote.year}
+                Pick #: {banknote.pick_number || 'N/A'}
               </p>
-              <p className="text-sm text-muted-foreground">
-                {banknote.pick_number}, {banknote.year}
-              </p>
+              {banknote.turkCatalogNumber && (
+                <p className="text-sm text-muted-foreground">
+                  Turk Cat #: {banknote.turkCatalogNumber}
+                </p>
+              )}
+              {banknote.sealNames && (
+                <p className="text-sm text-muted-foreground">
+                  Seal: {banknote.sealNames}
+                </p>
+              )}
+              {banknote.sultanName && (
+                <p className="text-sm text-muted-foreground">
+                  Sultan: {banknote.sultanName}
+                </p>
+              )}
             </div>
             {collectionItem && (
               <Badge variant="secondary" className="self-start">
@@ -427,8 +438,6 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                         <SelectItem value="F">F</SelectItem>
                         <SelectItem value="VG">VG</SelectItem>
                         <SelectItem value="G">G</SelectItem>
-                        <SelectItem value="Fair">Fair</SelectItem>
-                        <SelectItem value="Poor">Poor</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

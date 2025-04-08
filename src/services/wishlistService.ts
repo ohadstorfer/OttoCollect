@@ -1,3 +1,4 @@
+
 import { supabase, TablesInsert, TablesRow } from "@/integrations/supabase/client";
 import { WishlistItem } from "@/types";
 import { fetchBanknoteById } from "./banknoteService";
@@ -42,45 +43,64 @@ export async function fetchUserWishlist(userId: string): Promise<WishlistItem[]>
 }
 
 export const addToWishlist = async (userId: string, banknoteId: string) => {
-  const { data, error } = await supabase
-    .from("wishlist")
-    .insert([{ user_id: userId, banknote_id: banknoteId }])
-    .select()
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from("wishlist_items")
+      .insert([{ 
+        user_id: userId, 
+        banknote_id: banknoteId,
+        priority: 'Medium' 
+      }])
+      .select()
+      .single();
 
-  if (error) {
-    console.error("Error adding to wishlist:", error);
+    if (error) {
+      console.error("Error adding to wishlist:", error);
+      return false;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in addToWishlist:", error);
     return false;
   }
-
-  return data;
 };
 
 export const removeFromWishlist = async (userId: string, banknoteId: string) => {
-  const { error } = await supabase
-    .from("wishlist")
-    .delete()
-    .match({ user_id: userId, banknote_id: banknoteId });
+  try {
+    const { error } = await supabase
+      .from("wishlist_items")
+      .delete()
+      .match({ user_id: userId, banknote_id: banknoteId });
 
-  if (error) {
-    console.error("Error removing from wishlist:", error);
+    if (error) {
+      console.error("Error removing from wishlist:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error in removeFromWishlist:", error);
     return false;
   }
-
-  return true;
 };
 
 export const fetchWishlistItem = async (userId: string, banknoteId: string) => {
-  const { data, error } = await supabase
-    .from("wishlist")
-    .select()
-    .match({ user_id: userId, banknote_id: banknoteId })
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from("wishlist_items")
+      .select()
+      .match({ user_id: userId, banknote_id: banknoteId })
+      .maybeSingle();
 
-  if (error) {
-    console.error("Error fetching wishlist item:", error);
+    if (error) {
+      console.error("Error fetching wishlist item:", error);
+      return false;
+    }
+
+    return !!data;
+  } catch (error) {
+    console.error("Error in fetchWishlistItem:", error);
     return false;
   }
-
-  return !!data;
 };

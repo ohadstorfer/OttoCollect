@@ -42,30 +42,32 @@ export interface Banknote {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+  // Add these properties to the basic Banknote interface
+  // They'll be optional since not all banknote objects might have them
+  turkCatalogNumber?: string;
+  sealNames?: string;
+  sultanName?: string;
+  type?: string;
+  printer?: string;
+  rarity?: string;
 }
 
 export interface DetailedBanknote extends Banknote {
   extendedPickNumber?: string;
   pickNumber?: string;
-  turkCatalogNumber?: string;
   islamicYear?: string;
   gregorianYear?: string;
   faceValue?: string;
   signaturesFront?: string;
   signaturesBack?: string;
-  sealNames?: string;
   sealPictures?: string[];
   signaturePictures?: string[];
   watermarkPicture?: string;
   otherElementPictures?: string[];
   frontPicture?: string;
   backPicture?: string;
-  sultanName?: string;
   tughraPicture?: string;
-  printer?: string;
-  type?: string;
   category?: string;
-  rarity?: string;
   securityElement?: string;
   colors?: string;
   serialNumbering?: string;
