@@ -17,7 +17,7 @@ export async function fetchBanknotes(): Promise<Banknote[]> {
     }
 
     console.log(`Fetched ${data.length} banknotes from Supabase`);
-    return data.map(transformDetailedToBanknote);
+    return data.map(transformToDetailedBanknote);
   } catch (error) {
     console.error('Error fetching banknotes:', error);
     return [];

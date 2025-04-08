@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
-import { Banknote } from "@/types";
+import { Banknote, DetailedBanknote } from "@/types";
 import { fetchBanknotes } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ const CountryDetail = () => {
   const { countryName } = useParams();
   const navigate = useNavigate();
   const decodedCountryName = decodeURIComponent(countryName || "");
-  const [banknotes, setBanknotes] = useState<Banknote[]>([]);
+  const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   

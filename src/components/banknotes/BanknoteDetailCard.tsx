@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Banknote, CollectionItem } from "@/types";
+import { Banknote, CollectionItem, DetailedBanknote } from "@/types";
 import { useNavigate } from "react-router-dom";
 import { Eye, Plus, Check, Star, StarOff, ShoppingCart, Pencil } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { addToMarketplace, removeFromMarketplace } from "@/services/marketplaceService";
 
 interface BanknoteDetailCardProps {
-  banknote: Banknote;
+  banknote: DetailedBanknote;
   collectionItem?: CollectionItem;
   wishlistItem?: boolean;
   source?: 'catalog' | 'collection' | 'missing';
@@ -295,16 +295,32 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
               <h3 className="text-lg font-medium">
                 {banknote.denomination}
               </h3>
+              
               <p className="text-sm text-muted-foreground">
-                {banknote.country}, {banknote.year}
+                {banknote.country} {banknote.year}
               </p>
+              
+              {banknote.pickNumber && (
               <p className="text-sm text-muted-foreground">
-                {banknote.pick_number}, {banknote.year}
-              </p>
+                Pick Number: {banknote.pickNumber}
+              </p>)}
+              {banknote.sultanName && (
               <p className="text-sm text-muted-foreground">
-                {banknote.pick_number}, {banknote.year}
-              </p>
+                Sultan Name: {banknote.sultanName}
+              </p>)}
+              {banknote.sealNames && (
+                <p className="text-sm text-muted-foreground">
+                  Seal Names: {banknote.sealNames}
+                </p>
+              )}
+              {banknote.rarity && (
+                <p className="text-sm text-muted-foreground">
+                  Rarity: {banknote.rarity}
+                </p>
+              )}
             </div>
+
+
             {collectionItem && (
               <Badge variant="secondary" className="self-start">
                 {collectionItem.condition}
@@ -313,87 +329,9 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
           </div>
         </CardHeader>
 
-        <CardContent className="p-4 pt-2">
-          {collectionItem?.publicNote && (
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-              {collectionItem.publicNote}
-            </p>
-          )}
+        
 
-          {collectionItem?.purchasePrice && (
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs text-muted-foreground">Purchased for:</span>
-              <span className="text-sm font-medium">${collectionItem.purchasePrice}</span>
-            </div>
-          )}
-        </CardContent>
-
-        <CardFooter className="p-4 pt-2">
-          <div className="flex flex-col sm:flex-row justify-end gap-2 w-full">
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              
-
-              {source === 'collection' && user && ownerId === user.id && (
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <Button
-                    variant={collectionItem?.isForSale ? "destructive" : "outline"}
-                    size="sm"
-                    className="w-full sm:w-auto"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleMarketplace();
-                    }}
-                    disabled={isAddingToMarketplace}
-                  >
-                    {collectionItem?.isForSale ? (
-                      <>
-                        <ShoppingCart className="h-4 w-4 mr-1" />
-                        Unlist
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="h-4 w-4 mr-1" />
-                        Sell
-                      </>
-                    )}
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditCollectionItem();
-                    }}
-                  >
-                    <Pencil className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                </div>
-              )}
-
-              {source === 'missing' && user && (
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddToCollection();
-                    }}
-                    disabled={isAddingToCollection}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardFooter>
+        
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
