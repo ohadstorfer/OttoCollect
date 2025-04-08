@@ -1,6 +1,9 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ForumPost, ForumComment, ForumPostInput, ForumCommentInput } from "@/types/forum";
-import { fetchUserProfile } from "./profileService";
+import { getUserProfile } from "./profileService";
+import { v4 as uuidv4 } from "uuid";
+import { UserRank } from "@/types";
 
 // Constants for search parameters
 const SEARCH_LIMIT_DEFAULT = 10;
@@ -15,10 +18,14 @@ const handleError = (error: any, context: string): null => {
 // Check if a column exists in a table
 const columnExists = async (tableName: string, columnName: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('column_exists', {
-      p_table_name: tableName,
-      p_column_name: columnName,
-    });
+    // We need to use a different approach since column_exists isn't a recognized RPC
+    const { data, error } = await supabase
+      .from('information_schema.columns')
+      .select('column_name')
+      .eq('table_schema', 'public')
+      .eq('table_name', tableName)
+      .eq('column_name', columnName)
+      .single();
     
     if (error) {
       console.error(`Error checking if column ${columnName} exists in ${tableName}:`, error);
@@ -37,20 +44,20 @@ const getCommentAuthor = async (authorId: string) => {
   if (!authorId) return null;
   
   try {
-    const authorProfile = await fetchUserProfile(authorId);
+    const authorProfile = await getUserProfile(authorId);
     if (!authorProfile) {
       return {
         id: authorId,
         username: "Unknown User",
         avatarUrl: null,
-        rank: "Unknown"
+        rank: "Unknown" as UserRank
       };
     }
     
     return {
       id: authorProfile.id,
       username: authorProfile.username,
-      avatarUrl: authorProfile.avatar_url,
+      avatarUrl: authorProfile.avatarUrl,
       rank: authorProfile.rank
     };
   } catch (error) {
@@ -59,7 +66,7 @@ const getCommentAuthor = async (authorId: string) => {
       id: authorId,
       username: "Unknown User",
       avatarUrl: null,
-      rank: "Unknown"
+      rank: "Unknown" as UserRank
     };
   }
 };
@@ -78,7 +85,9 @@ export const ensureIsEditedColumnExists = async (): Promise<boolean> => {
     console.log("Adding is_edited column to forum_comments table");
     
     // Add the column if it doesn't exist
-    const { error } = await supabase.rpc('add_is_edited_column');
+    const { error } = await supabase
+      .rpc('add_is_edited_column')
+      .single();
     
     if (error) {
       console.error("Error adding is_edited column:", error);
@@ -267,7 +276,7 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
     }
 
     // Check if is_edited column exists
-    const hasIsEditedColumn = await checkIsEditedColumnExists();
+    const hasIsEditedColumn = await ensureIsEditedColumnExists();
 
     // For each comment, fetch the author info
     const comments = commentsData || [];
@@ -311,7 +320,7 @@ export async function fetchForumPostById(postId: string): Promise<ForumPost | nu
         } : undefined,
         createdAt: comment.created_at,
         updatedAt: comment.updated_at,
-        isEdited: hasIsEditedColumn ? comment.is_edited || false : false,
+        isEdited: hasIsEditedColumn && comment.is_edited ? comment.is_edited : false,
       };
     });
 
@@ -494,7 +503,7 @@ export async function addForumComment(
 ): Promise<ForumComment | null> {
   try {
     // Check if is_edited column exists
-    const hasIsEditedColumn = await checkIsEditedColumnExists();
+    const hasIsEditedColumn = await ensureIsEditedColumnExists();
     
     const insertData: any = {
       post_id: postId,
@@ -544,7 +553,7 @@ export async function addForumComment(
       } : undefined,
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
-      isEdited: hasIsEditedColumn ? comment.is_edited || false : false,
+      isEdited: hasIsEditedColumn && comment.is_edited ? comment.is_edited : false,
     };
     
     return forumComment;
@@ -562,7 +571,7 @@ export async function updateForumComment(
 ): Promise<ForumComment | null> {
   try {
     // Check if is_edited column exists
-    const hasIsEditedColumn = await checkIsEditedColumnExists();
+    const hasIsEditedColumn = await ensureIsEditedColumnExists();
 
     const updateData: any = { content };
     
@@ -610,7 +619,7 @@ export async function updateForumComment(
       } : undefined,
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
-      isEdited: hasIsEditedColumn ? comment.is_edited || false : false,
+      isEdited: hasIsEditedColumn && comment.is_edited ? comment.is_edited : false,
     };
     
     return forumComment;
@@ -661,6 +670,10 @@ export async function fetchCommentsByPostId(postId: string): Promise<ForumCommen
       
     if (error) {
       console.error("Error fetching comments:", error);
+      return [];
+    }
+    
+    if (!comments) {
       return [];
     }
     

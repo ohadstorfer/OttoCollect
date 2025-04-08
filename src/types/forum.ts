@@ -35,6 +35,20 @@ export interface ForumPost {
   updatedAt: string;
 }
 
+// Add these interfaces to fix the missing type errors
+export interface ForumPostInput {
+  title: string;
+  content: string;
+  authorId: string;
+  imageUrls?: string[];
+}
+
+export interface ForumCommentInput {
+  content: string;
+  authorId: string;
+  postId: string;
+}
+
 // Add this interface for image suggestions
 export interface ImageSuggestion {
   id: string;
