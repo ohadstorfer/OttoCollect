@@ -115,9 +115,9 @@ const ForumPostPage = () => {
       'Admin',
       'Super Admin'
     ];
-    
-    return validRanks.includes(rank as UserRank) 
-      ? (rank as UserRank) 
+
+    return validRanks.includes(rank as UserRank)
+      ? (rank as UserRank)
       : 'Newbie';
   };
 
@@ -156,7 +156,7 @@ const ForumPostPage = () => {
                 <span className="text-sm text-muted-foreground">{formattedDate}</span>
               </div>
               <div className="whitespace-pre-line mb-4">{post.content}</div>
-              
+
               {/* Image gallery component */}
               {post.imageUrls && post.imageUrls.length > 0 && (
                 <ImageGallery images={post.imageUrls} />
@@ -167,9 +167,9 @@ const ForumPostPage = () => {
 
         <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <h2 className="text-xl font-semibold mb-4">Comments • {post.commentCount || 0}</h2>
-          
+
           {user ? (
-            <div className="flex gap-3 mb-6 bg-parchment-50/30 p-4 rounded-md border border-ottoman-100">
+            <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border ">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user.avatarUrl} />
                 <AvatarFallback className="bg-ottoman-700 text-parchment-100">
@@ -184,8 +184,8 @@ const ForumPostPage = () => {
                   className="resize-none min-h-[100px]"
                 />
                 <div className="flex justify-end">
-                  <Button 
-                    onClick={handleAddComment} 
+                  <Button
+                    onClick={handleAddComment}
                     disabled={isSubmitting || commentContent.trim() === ''}
                   >
                     {isSubmitting ? 'Posting...' : 'Post Comment'}
@@ -194,18 +194,18 @@ const ForumPostPage = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-parchment-50/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">
+            <div className="bg-parchment-10/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">
               <p className="text-muted-foreground">
                 Please log in to add a comment.
               </p>
             </div>
           )}
 
-          <div className="space-y-1">
+          <div className="space-y-4 px-4 glass-card p-4 rounded-md border">
             {comments.length > 0 ? (
-              <div className="bg-parchment-50/20 rounded-md border border-ottoman-100/50">
-                {comments.map((comment, index) => (
-                  <div key={comment.id} className="group">
+              <div className="bg-parchment-10/20 rounded-md border p-6">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="group mb-3 last:mb-0">
                     <ForumComment
                       comment={comment}
                       currentUserId={user?.id || ''}
@@ -215,11 +215,12 @@ const ForumPostPage = () => {
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="bg-parchment-50/20 p-8 rounded-md border border-ottoman-100/50 text-center">
-                <p className="text-muted-foreground">No comments yet. Be the first to contribute!</p>
-              </div>
-            )}
+            )
+              : (
+                <div className="bg-parchment-10/20 p-8 rounded-md border border-ottoman-100/50 text-center">
+                  <p className="text-muted-foreground">No comments yet. Be the first to contribute!</p>
+                </div>
+              )}
           </div>
         </div>
       </div>
