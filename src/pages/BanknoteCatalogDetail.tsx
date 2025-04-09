@@ -126,19 +126,15 @@ export default function BanknoteCatalogDetail() {
         { label: "Gregorian Year", value: banknote.gregorianYear, icon: <Calendar className="h-4 w-4" /> },
         { label: "Category", value: banknote.category, icon: <Hash className="h-4 w-4" /> },
         { label: "Type", value: banknote.type, icon: <FileText className="h-4 w-4" /> },
-        { label: "Sultan", value: banknote.sultanName, icon: <Users className="h-4 w-4" /> }
-      ]
-    },
-    {
-      title: "Catalog Information",
-      icon: <BookOpen className="h-5 w-5" />,
-      fields: [
+        { label: "Sultan", value: banknote.sultanName, icon: <Users className="h-4 w-4" /> },
         { label: "Pick Number", value: banknote.pickNumber, icon: <Hash className="h-4 w-4" /> },
         { label: "Extended Pick", value: banknote.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
         { label: "Turkish Cat #", value: banknote.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
         { label: "Rarity", value: banknote.rarity, icon: <Star className="h-4 w-4" /> }
       ]
     },
+    
+      
     {
       title: "Production Details",
       icon: <Building className="h-5 w-5" />,
