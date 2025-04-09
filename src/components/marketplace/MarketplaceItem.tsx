@@ -2,7 +2,7 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
-import { Eye } from "lucide-react";
+import { Eye, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -111,13 +111,23 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
       
       <CardFooter className="p-4 pt-2 flex justify-between">
         <Button 
+          // variant="ghost" 
+          size="sm"
+          className="text-ottoman-300 text-ottoman-100 bg-ottoman-700/50 hover:bg-ottoman-800/50"
+          onClick={handleViewDetails}
+        >
+          <Eye className="h-4 w-4 mr-1" />
+          Details
+        </Button>
+
+        <Button 
           variant="ghost" 
           size="sm"
           className="text-ottoman-300 hover:text-ottoman-100 hover:bg-ottoman-700/50"
           onClick={handleViewDetails}
         >
-          <Eye className="h-4 w-4 mr-1" />
-          Details
+          <MessageCircle className="h-4 w-4 mr-1" />
+          Message Seller
         </Button>
         
         <ContactSellerButton item={item} />
