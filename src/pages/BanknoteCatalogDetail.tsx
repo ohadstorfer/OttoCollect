@@ -167,7 +167,11 @@ export default function BanknoteCatalogDetail() {
           </h1>
           <div className="flex items-center justify-between">
             <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
+            <Button variant="outline" onClick={() => navigate(-1)}>
+            Back
+          </Button>
           </div>
+          
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -317,20 +321,7 @@ export default function BanknoteCatalogDetail() {
           </div>
         </div>
         
-        <div className="flex justify-between items-center">
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            Back
-          </Button>
-          {user ? (
-            <Button onClick={() => navigate(`/banknote/${banknote.id}`)}>
-              View Complete Details
-            </Button>
-          ) : (
-            <Button onClick={() => navigate('/auth')}>
-              Sign in to View More
-            </Button>
-          )}
-        </div>
+        
       </div>
       
       {selectedImage && (
