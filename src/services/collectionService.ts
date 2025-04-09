@@ -159,41 +159,47 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
 }
 
 export async function addToCollection(
-  userId: string, 
-  banknoteId: string, 
-  condition: BanknoteCondition,
-  purchasePrice?: number,
-  purchaseDate?: string,
-  publicNote?: string,
-  privateNote?: string
+  params: {
+    userId: string;
+    banknoteId: string;
+    condition: BanknoteCondition;
+    purchasePrice?: number;
+    purchaseDate?: string;
+    publicNote?: string;
+    privateNote?: string;
+    salePrice?: number;
+    isForSale?: boolean;
+  }
 ): Promise<CollectionItem | null> {
   try {
-    console.log("Adding banknote to collection:", { userId, banknoteId, condition });
+    console.log("Adding banknote to collection:", params);
 
     // Get current highest order index
     const { data: highestItem } = await supabase
       .from('collection_items')
       .select('order_index')
-      .eq('user_id', userId)
+      .eq('user_id', params.userId)
       .order('order_index', { ascending: false })
       .limit(1);
     
     const orderIndex = highestItem && highestItem.length > 0 ? highestItem[0].order_index + 1 : 0;
     
-    const newItem: TablesInsert<'collection_items'> = {
-      user_id: userId,
-      banknote_id: banknoteId,
-      condition: condition,
-      purchase_price: purchasePrice,
-      purchase_date: purchaseDate,
-      public_note: publicNote,
-      private_note: privateNote,
-      order_index: orderIndex
+    const newItem = {
+      user_id: params.userId,
+      banknote_id: params.banknoteId,
+      condition: params.condition,
+      purchase_price: params.purchasePrice || null,
+      purchase_date: params.purchaseDate || null,
+      public_note: params.publicNote || null,
+      private_note: params.privateNote || null,
+      order_index: orderIndex,
+      is_for_sale: params.isForSale || false,
+      sale_price: params.salePrice || null
     };
 
     const { data: insertedItem, error } = await supabase
       .from('collection_items')
-      .insert(newItem)
+      .insert([newItem])
       .select('*')
       .single();
     

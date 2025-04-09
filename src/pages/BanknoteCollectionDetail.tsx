@@ -51,6 +51,7 @@ export default function BanknoteCollectionDetail() {
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [collectionItem, setCollectionItem] = useState<CollectionItem | null>(null);
+  
 
   const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
@@ -143,13 +144,12 @@ export default function BanknoteCollectionDetail() {
         </Button>
         
         <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="text-sm font-medium px-3 py-1">
-            {banknote.catalogId}
-          </Badge>
+          
           {collectionItem?.isForSale && (
-            <Badge variant="destructive" className="text-sm font-medium px-3 py-1">
+            <Badge variant="default" className="text-sm font-medium px-3 py-1 outline-none ring-0 focus:outline-none focus:ring-0 active:outline-none active:ring-0">
               For Sale
             </Badge>
+            
           )}
         </div>
       </div>
@@ -276,6 +276,10 @@ export default function BanknoteCollectionDetail() {
           </DialogContent>
         </Dialog>
       )}
+
+
+
+      
     </div>
   );
 }
