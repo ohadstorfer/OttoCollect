@@ -162,17 +162,7 @@ export default function BanknoteCatalogDetail() {
 
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Button>
-        
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="text-sm font-medium px-3 py-1">
-            {banknote.catalogId}
-          </Badge>
-        </div>
-      </div>
+      
       
       <div className="flex flex-col space-y-6">
         <div className="space-y-1">
