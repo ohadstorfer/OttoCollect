@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -243,7 +244,14 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
         )}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
-        onClick={() => navigate(`/banknote/${banknote.id}`, { state: { source, itemId: collectionItem?.id } })}
+        onClick={() => {
+          // Updated navigation to use the new catalog-only view when source is 'catalog'
+          if (source === 'catalog') {
+            navigate(`/catalog-banknote/${banknote.id}`);
+          } else {
+            navigate(`/banknote/${banknote.id}`, { state: { source, itemId: collectionItem?.id } });
+          }
+        }}
       >
         <div className="relative">
           <div className="absolute top-2 right-2 z-10">
@@ -270,14 +278,13 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
             </div>
           </div>
           <div
-  className={cn(
-    displayImage == "/placeholder.svg"
-      ? "aspect-[4/2]"
-      : "aspect-[4/3]",
-    "overflow-hidden"
-  )}
->
-
+            className={cn(
+              displayImage == "/placeholder.svg"
+                ? "aspect-[4/2]"
+                : "aspect-[4/3]",
+              "overflow-hidden"
+            )}
+          >
             <img
               src={displayImage}
               alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
@@ -286,7 +293,6 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                 isHovering ? "scale-110" : "scale-100"
               )}
             />
-
           </div>
 
           {collectionItem?.isForSale && (
@@ -327,7 +333,6 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
               )}
             </div>
 
-
             {collectionItem && (
               <Badge variant="secondary" className="self-start">
                 {collectionItem.condition}
@@ -335,10 +340,6 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
             )}
           </div>
         </CardHeader>
-
-        
-
-        
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
