@@ -269,7 +269,14 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
               </Button>
             </div>
           </div>
-          <div className="aspect-[4/3] overflow-hidden">
+          <div
+  className={cn(
+    displayImage == "/placeholder.svg"
+      ? "aspect-[4/2]"
+      : "aspect-[4/3]",
+    "overflow-hidden"
+  )}
+>
 
             <img
               src={displayImage}
