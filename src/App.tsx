@@ -19,6 +19,7 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import Banknote from "./pages/Banknote";
 import BanknoteCatalogDetail from "./pages/BanknoteCatalogDetail";
+import BanknoteCollectionDetail from "./pages/BanknoteCollectionDetail";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import Forum from "./pages/Forum";
@@ -55,6 +56,7 @@ const App = () => (
                 <Route path="/messaging" element={<Messaging />} />
                 <Route path="/banknote/:id" element={<Banknote />} />
                 <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
+                <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail />} />
                 <Route path="/collection-item/:id" element={<CollectionItem />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/profile" element={<Profile />} />

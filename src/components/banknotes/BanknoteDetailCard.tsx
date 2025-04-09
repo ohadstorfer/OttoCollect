@@ -245,10 +245,13 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         onClick={() => {
-          // Updated navigation to use the new catalog-only view when source is 'catalog'
+          // Updated navigation to use different routes based on source
           if (source === 'catalog') {
             navigate(`/catalog-banknote/${banknote.id}`);
+          } else if (source === 'collection') {
+            navigate(`/collection-banknote/${banknote.id}`);
           } else {
+            // For any other sources, use the original route with state info
             navigate(`/banknote/${banknote.id}`, { state: { source, itemId: collectionItem?.id } });
           }
         }}
