@@ -152,7 +152,6 @@ const MarketplaceItemDetail = () => {
                 <div className="flex items-center gap-2">
                   <User className="h-5 w-5 text-ottoman-400" />
                   <div>
-                    <p className="text-sm font-medium">Seller</p>
                     <Link
                       to={`/profile/${seller.id}`}
                       className="text-ottoman-500 hover:text-ottoman-600"
@@ -209,17 +208,7 @@ const MarketplaceItemDetail = () => {
                   ${salePrice}
                 </div>
 
-                {user.id !==seller.id && (
-                  <Button
-                    className="ottoman-button mt-2"
-                    onClick={() => {
-                      navigate(`/messaging?user=${seller.id}`);
-                    }}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Contact Seller
-                  </Button>
-                )}
+                
               </div>
 
 

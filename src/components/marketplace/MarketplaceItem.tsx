@@ -120,15 +120,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           Details
         </Button>
 
-        <Button 
-          variant="ghost" 
-          size="sm"
-          className="text-ottoman-300 hover:text-ottoman-100 hover:bg-ottoman-700/50"
-          onClick={handleViewDetails}
-        >
-          <MessageCircle className="h-4 w-4 mr-1" />
-          Message Seller
-        </Button>
+        
         
         <ContactSellerButton item={item} />
       </CardFooter>
