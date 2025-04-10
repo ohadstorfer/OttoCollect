@@ -210,11 +210,7 @@ export default function BanknoteCollectionDetail() {
         <Button variant="outline" onClick={() => navigate(-1)}>
           Back
         </Button>
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => navigate(`/catalog-banknote/${banknote.id}`)}>
-            View Catalog Entry
-          </Button>
-        </div>
+        
       </div>
 
       {selectedImage && (
