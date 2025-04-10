@@ -54,7 +54,7 @@ const LatestForumPosts = ({ posts }: LatestForumPostsProps) => {
         <div 
           key={post.id} 
           className={cn(
-            "glass-card p-5 cursor-pointer hover:shadow-lg transition-all border border-ottoman-800/50 reveal",
+            "glass-card p-5 cursor-pointer hover:shadow-lg transition-all border border-ottoman-800/50 ",
             index % 2 === 0 ? "fade-right" : "fade-left"
           )}
           style={{ animationDelay: `${index * 100}ms` }}
