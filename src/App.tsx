@@ -27,6 +27,7 @@ import ForumPost from "./pages/ForumPost";
 import CreateForumPost from "./pages/CreateForumPost";
 import Members from "./pages/Members";
 import CollectionItem from "./pages/CollectionItem";
+import BanknoteCatalogDetailMinimized from "./pages/BanknoteCatalogDetailMinimized";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
                 <Route path="/messaging" element={<Messaging />} />
                 <Route path="/banknote/:id" element={<Banknote />} />
                 <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
+                <Route path="/banknote-details/:id" element={<BanknoteCatalogDetailMinimized />} />
                 <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail />} />
                 <Route path="/collection-item/:id" element={<CollectionItem />} />
                 <Route path="/admin" element={<Admin />} />

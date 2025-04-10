@@ -23,6 +23,7 @@ import {
   Calendar,
   DollarSign
 } from "lucide-react";
+import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
 
 interface LabelValuePairProps {
   label: string;
@@ -166,78 +167,17 @@ export default function BanknoteCollectionDetail() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div className="lg:col-span-2 space-y-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <ImagePlus className="h-5 w-5 mr-2" />
-                  My Banknote Images
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  {displayImages.length > 0 ? (
-                    displayImages.slice(0, 4).map((url, index) => (
-                      <div 
-                        key={index} 
-                        className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => openImageViewer(url)}
-                      >
-                        <div className="absolute inset-0 rounded-md overflow-hidden border">
-                          <img
-                            src={url}
-                            alt={`Banknote Image ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 p-6 text-center bg-muted rounded-md">
-                      <p className="text-muted-foreground">No images available</p>
-                    </div>
-                  )}
-                  
-                  {displayImages.length > 4 && (
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
-                          <span className="text-lg font-medium">+{displayImages.length - 4} more</span>
-                        </div>
-                      </SheetTrigger>
-                      <SheetContent className="w-[90%] sm:max-w-lg">
-                        <SheetHeader>
-                          <SheetTitle>All Banknote Images</SheetTitle>
-                          <SheetDescription>
-                            {banknote.country}, {banknote.denomination}, {banknote.year}
-                          </SheetDescription>
-                        </SheetHeader>
-                        <div className="grid grid-cols-2 gap-4 mt-8">
-                          {displayImages.map((url, index) => (
-                            <div 
-                              key={index} 
-                              className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => openImageViewer(url)}
-                            >
-                              <div className="absolute inset-0 rounded-md overflow-hidden border">
-                                <img
-                                  src={url}
-                                  alt={`Banknote Image ${index + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </SheetContent>
-                    </Sheet>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          
+
+
+        <div className="lg:col-span-2">
+    <BanknoteCatalogDetailMinimized />
+  </div>
+
+
           
           <div className="lg:col-span-3">
+            
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
                 <CardTitle className="text-xl">My Collection Copy</CardTitle>
