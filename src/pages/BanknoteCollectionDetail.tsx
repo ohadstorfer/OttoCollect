@@ -16,9 +16,9 @@ import { toast } from "sonner";
 import { fetchUserCollection } from "@/services/collectionService";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
 
-import { 
-  ArrowLeft, 
-  ImagePlus, 
+import {
+  ArrowLeft,
+  ImagePlus,
   Star,
   Calendar,
   DollarSign
@@ -34,7 +34,7 @@ interface LabelValuePairProps {
 
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
   if (!value) return null;
-  
+
   return (
     <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-1.5 py-1.5 border-b border-gray-100 last:border-0">
       <div className="text-right font-medium text-muted-foreground">{label}</div>
@@ -52,7 +52,7 @@ export default function BanknoteCollectionDetail() {
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [collectionItem, setCollectionItem] = useState<CollectionItem | null>(null);
-  
+
 
   const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
@@ -129,7 +129,7 @@ export default function BanknoteCollectionDetail() {
       </div>
     );
   }
-  
+
   // Collection item is guaranteed to exist at this point
   const displayImages = [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[];
   if (displayImages.length === 0 && banknote.imageUrls && banknote.imageUrls.length > 0) {
@@ -143,18 +143,18 @@ export default function BanknoteCollectionDetail() {
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
-        
+
         <div className="flex items-center space-x-2">
-          
+
           {collectionItem?.isForSale && (
             <Badge variant="default" className="text-sm font-medium px-3 py-1 outline-none ring-0 focus:outline-none focus:ring-0 active:outline-none active:ring-0">
               For Sale
             </Badge>
-            
+
           )}
         </div>
       </div>
-      
+
       <div className="flex flex-col space-y-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -166,52 +166,64 @@ export default function BanknoteCollectionDetail() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          
 
 
-        <div className="lg:col-span-2">
-    <BanknoteCatalogDetailMinimized />
-  </div>
 
 
-          
-          <div className="lg:col-span-3">
-            
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
+
+
+
+
+
+
+
+          <div className="lg:col-span-5">
+
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
                 <CardTitle className="text-xl">My Collection Copy</CardTitle>
                 <CardDescription>Details about your copy of this banknote</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <CollectionItemForm 
-                  collectionItem={collectionItem} 
+                <CollectionItemForm
+                  collectionItem={collectionItem}
                   onUpdate={(updatedItem) => setCollectionItem(updatedItem)}
                 />
               </CardContent>
             </Card>
           </div>
-        </div>
-        
-        <div className="flex justify-between items-center">
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            Back
-          </Button>
-          <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => navigate(`/catalog-banknote/${banknote.id}`)}>
-              View Catalog Entry
-            </Button>
+
+
+          <div className="lg:col-span-5">
+            <BanknoteCatalogDetailMinimized />
           </div>
+
+
+        </div>
+
+
+      </div>
+
+
+      <div className="flex justify-between items-center">
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          Back
+        </Button>
+        <div className="flex gap-3">
+          <Button variant="secondary" onClick={() => navigate(`/catalog-banknote/${banknote.id}`)}>
+            View Catalog Entry
+          </Button>
         </div>
       </div>
-      
+
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContent className="sm:max-w-[800px] p-1">
-            <img 
-              src={selectedImage} 
+            <img
+              src={selectedImage}
               alt="Banknote detail"
-              className="w-full h-auto rounded" 
+              className="w-full h-auto rounded"
             />
           </DialogContent>
         </Dialog>
@@ -219,7 +231,7 @@ export default function BanknoteCollectionDetail() {
 
 
 
-      
+
     </div>
   );
 }
