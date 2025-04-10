@@ -17,9 +17,10 @@ import Community from "./pages/Community";
 import Messaging from "./pages/Messaging";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
-import Banknote from "./pages/Banknote";
+import BanknoteDetail from "./pages/Banknote";
 import BanknoteCatalogDetail from "./pages/BanknoteCatalogDetail";
 import BanknoteCollectionDetail from "./pages/BanknoteCollectionDetail";
+import UserBanknoteCollectionDetail from "./pages/UserBanknoteCollectionDetail";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import Forum from "./pages/Forum";
@@ -55,10 +56,11 @@ const App = () => (
                 <Route path="/community/forum/new" element={<CreateForumPost />} />
                 <Route path="/community/members" element={<Members />} />
                 <Route path="/messaging" element={<Messaging />} />
-                <Route path="/banknote/:id" element={<Banknote />} />
+                <Route path="/banknote/:id" element={<BanknoteDetail />} />
                 <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
                 <Route path="/banknote-details/:id" element={<BanknoteCatalogDetailMinimized />} />
                 <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail />} />
+                <Route path="/user/:userId/collection-banknote/:banknoteId" element={<UserBanknoteCollectionDetail />} />
                 <Route path="/collection-item/:id" element={<CollectionItem />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/profile" element={<Profile />} />
