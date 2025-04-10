@@ -9,10 +9,19 @@ import { cn } from '@/lib/utils';
 
 interface LatestForumPostsProps {
   posts: ForumPost[];
+  loading?: boolean;
 }
 
-const LatestForumPosts = ({ posts }: LatestForumPostsProps) => {
+const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => {
   const navigate = useNavigate();
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center py-10">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-500"></div>
+      </div>
+    );
+  }
   
   if (!posts || posts.length === 0) {
     return (

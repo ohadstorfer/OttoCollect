@@ -1,37 +1,55 @@
-
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { MOCK_BANKNOTES, MOCK_MARKETPLACE_ITEMS } from "@/lib/constants";
+import { MOCK_BANKNOTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Search, Database, BookOpen, Users, DollarSign } from "lucide-react";
-import MarketplaceItem from "@/components/marketplace/MarketplaceItem";
 import LatestForumPosts from "@/components/home/LatestForumPosts";
+import MarketplaceHighlights from "@/components/home/MarketplaceHighlights";
 import { fetchForumPosts } from "@/services/forumService";
-import { ForumPost } from "@/types/forum";
+import { fetchMarketplaceItems } from "@/services/marketplaceService";
+import { ForumPost, MarketplaceItem } from '@/types';
 
 const Index = () => {
   const { user } = useAuth();
-  const [marketplaceItems, setMarketplaceItems] = useState(MOCK_MARKETPLACE_ITEMS.slice(0, 2));
+  const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItem[]>([]);
   const [forumPosts, setForumPosts] = useState<ForumPost[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [loadingMarketplace, setLoadingMarketplace] = useState(false);
   
   // Fetch forum posts
   useEffect(() => {
     const loadForumPosts = async () => {
-      setLoading(true);
+      setLoadingPosts(true);
       try {
         const posts = await fetchForumPosts();
         setForumPosts(posts.slice(0, 3)); // Take only the first 3 posts
       } catch (error) {
         console.error("Failed to fetch forum posts:", error);
       } finally {
-        setLoading(false);
+        setLoadingPosts(false);
       }
     };
     
     loadForumPosts();
+  }, []);
+  
+  // Fetch marketplace items
+  useEffect(() => {
+    const loadMarketplaceItems = async () => {
+      setLoadingMarketplace(true);
+      try {
+        const items = await fetchMarketplaceItems();
+        setMarketplaceItems(items.slice(0, 4)); // Take only the first 4 items
+      } catch (error) {
+        console.error("Failed to fetch marketplace items:", error);
+      } finally {
+        setLoadingMarketplace(false);
+      }
+    };
+    
+    loadMarketplaceItems();
   }, []);
   
   // Animation observer for scroll animations
@@ -194,7 +212,7 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Community Forum Section - Replacing Featured Banknotes */}
+      {/* Community Forum Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
@@ -215,17 +233,11 @@ const Index = () => {
             </div>
           </div>
           
-          {loading ? (
-            <div className="flex justify-center py-10">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-500"></div>
-            </div>
-          ) : (
-            <LatestForumPosts posts={forumPosts} />
-          )}
+          <LatestForumPosts posts={forumPosts} loading={loadingPosts} />
         </div>
       </section>
       
-      {/* Marketplace Preview */}
+      {/* Marketplace Highlights Section */}
       <section className="py-20 bg-dark-600">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
@@ -246,17 +258,7 @@ const Index = () => {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {marketplaceItems.map((item, index) => (
-              <div 
-                key={item.id} 
-                className={cn("reveal", index % 2 === 0 ? "fade-right" : "fade-left")}
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <MarketplaceItem item={item} />
-              </div>
-            ))}
-          </div>
+          <MarketplaceHighlights items={marketplaceItems} loading={loadingMarketplace} />
         </div>
       </section>
       
