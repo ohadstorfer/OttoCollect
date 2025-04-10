@@ -13,6 +13,10 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { fetchUserCollection } from "@/services/collectionService";
+import { fetchBanknotes } from "@/services/banknoteService";
+import { fetchUserWishlist } from "@/services/wishlistService";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Profile() {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +28,9 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState("about");
 
   const isOwnProfile = currentUser && profile && currentUser.id === profile.id;
+  const userId = profile?.id || '';
 
+  // Fetch profile data
   useEffect(() => {
     async function loadProfile() {
       if (!id) {
@@ -52,6 +58,27 @@ export default function Profile() {
 
     loadProfile();
   }, [id, currentUser, navigate]);
+
+  // Fetch collection data
+  const { data: userCollection, isLoading: collectionLoading } = useQuery({
+    queryKey: ['userCollection', userId],
+    queryFn: () => userId ? fetchUserCollection(userId) : Promise.resolve([]),
+    enabled: !!userId,
+  });
+
+  // Fetch banknotes
+  const { data: banknotes, isLoading: banknotesLoading } = useQuery({
+    queryKey: ['banknotes'],
+    queryFn: fetchBanknotes,
+    enabled: !!userId,
+  });
+
+  // Fetch wishlist
+  const { data: wishlistItems, isLoading: wishlistLoading } = useQuery({
+    queryKey: ['userWishlist', userId],
+    queryFn: () => userId ? fetchUserWishlist(userId) : Promise.resolve([]),
+    enabled: !!userId,
+  });
 
   const handleProfileUpdated = (updatedProfile: User) => {
     setProfile(updatedProfile);
@@ -112,8 +139,12 @@ export default function Profile() {
               <TabsContent value="collection">
                 <Card>
                   <ProfileCollection 
-                    profile={profile} 
-                    isOwnProfile={isOwnProfile} 
+                    userId={profile.id}
+                    userCollection={userCollection}
+                    banknotes={banknotes}
+                    wishlistItems={wishlistItems || []}
+                    collectionLoading={collectionLoading || banknotesLoading || wishlistLoading}
+                    isCurrentUser={isOwnProfile || false}
                   />
                 </Card>
               </TabsContent>
