@@ -40,9 +40,9 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           {profile.avatarUrl ? (
             <AvatarImage src={profile.avatarUrl} alt={profile.username} />
           ) : (
-             <AvatarFallback className="bg-ottoman-700 text-parchment-100 text-xs">
-              {getInitials(profile.username)}
-            </AvatarFallback>
+            <AvatarFallback className="bg-ottoman-700 text-parchment-100 text-xs">
+                              {profile?.username ? getInitials(profile.username) : "U"}
+                            </AvatarFallback>
           )}
         </Avatar>
         

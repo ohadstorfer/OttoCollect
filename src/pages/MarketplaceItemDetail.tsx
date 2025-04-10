@@ -13,6 +13,7 @@ import { MarketplaceItem } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ContactSeller } from "@/components/messages/ContactSeller";
+import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
 
 const MarketplaceItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +39,7 @@ const MarketplaceItemDetail = () => {
         }
         
         setItem(fetchedItem);
+        
       } catch (err) {
         console.error("Error fetching marketplace item:", err);
         setError("Failed to load marketplace item");
@@ -114,6 +116,10 @@ const MarketplaceItemDetail = () => {
               <TabsTrigger value="obverse">Obverse (Front)</TabsTrigger>
               <TabsTrigger value="reverse">Reverse (Back)</TabsTrigger>
             </TabsList>
+            
+
+            <BanknoteCatalogDetailMinimized />
+
             
             <TabsContent value="obverse">
               <div className="aspect-[4/3] overflow-hidden rounded-lg border">

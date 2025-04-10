@@ -137,10 +137,10 @@ export async function addToMarketplace(
     // Add the item to marketplace
     const newItem = {
       collection_item_id: collectionItemId,
+      banknote_id: collectionItem.banknote_id,
       seller_id: userId,
       status: 'Available'
     };
-    
     const { error } = await supabase
       .from('marketplace_items')
       .insert(newItem);
