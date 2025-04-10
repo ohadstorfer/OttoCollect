@@ -6,13 +6,33 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Search, Database, BookOpen, Users, DollarSign } from "lucide-react";
-import BanknoteCard from "@/components/banknotes/BanknoteCard";
 import MarketplaceItem from "@/components/marketplace/MarketplaceItem";
+import LatestForumPosts from "@/components/home/LatestForumPosts";
+import { fetchForumPosts } from "@/services/forumService";
+import { ForumPost } from "@/types/forum";
 
 const Index = () => {
   const { user } = useAuth();
-  const [featuredBanknotes, setFeaturedBanknotes] = useState(MOCK_BANKNOTES.slice(0, 4));
   const [marketplaceItems, setMarketplaceItems] = useState(MOCK_MARKETPLACE_ITEMS.slice(0, 2));
+  const [forumPosts, setForumPosts] = useState<ForumPost[]>([]);
+  const [loading, setLoading] = useState(false);
+  
+  // Fetch forum posts
+  useEffect(() => {
+    const loadForumPosts = async () => {
+      setLoading(true);
+      try {
+        const posts = await fetchForumPosts();
+        setForumPosts(posts.slice(0, 3)); // Take only the first 3 posts
+      } catch (error) {
+        console.error("Failed to fetch forum posts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadForumPosts();
+  }, []);
   
   // Animation observer for scroll animations
   useEffect(() => {
@@ -68,54 +88,53 @@ const Index = () => {
           </div>
           
           <div className="relative h-[400px] w-full max-w-5xl mx-auto" style={{ transform: "translateX(20%)" }} >
-      {/* Image 1 */}
-      <div
-        className="absolute top-0 left-0 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
-        style={{ animation: "floatRotate 3s ease-in-out infinite" }}
-      >
-        <img
-          src="/image1.jpg"
-          alt="Image 1"
-          className="w-full h-full object-cover"
-        />
-      </div>
+            {/* Image 1 */}
+            <div
+              className="absolute top-0 left-0 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
+              style={{ animation: "floatRotate 3s ease-in-out infinite" }}
+            >
+              <img
+                src="/image1.jpg"
+                alt="Image 1"
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-      {/* Image 2 */}
-      <div
-        className="absolute top-36 left-36 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
-        style={{ animation: "floatRotate 3s ease-in-out infinite", animationDelay: "200ms" }}
-      >
-        <img
-          src="/image2.jpg"
-          alt="Image 2"
-          className="w-full h-full object-cover"
-        />
-      </div>
+            {/* Image 2 */}
+            <div
+              className="absolute top-36 left-36 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
+              style={{ animation: "floatRotate 3s ease-in-out infinite", animationDelay: "200ms" }}
+            >
+              <img
+                src="/image2.jpg"
+                alt="Image 2"
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-      {/* Image 3 */}
-      <div
-       className="absolute top-72 left-72 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
-        style={{ animation: "floatRotate 3s ease-in-out infinite", animationDelay: "400ms" }}
-      >
-        <img
-          src="/image3.jpg"
-          alt="Image 3"
-          className="w-full h-full object-cover"
-        />
-      </div>
+            {/* Image 3 */}
+            <div
+             className="absolute top-72 left-72 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
+              style={{ animation: "floatRotate 3s ease-in-out infinite", animationDelay: "400ms" }}
+            >
+              <img
+                src="/image3.jpg"
+                alt="Image 3"
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-      <style>{`
-        @keyframes floatRotate {
-          0%, 100% {
-            transform: translateY(0) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-10px) rotate(3deg);
-          }
-        }
-      `}</style>
-    </div>
-    
+            <style>{`
+              @keyframes floatRotate {
+                0%, 100% {
+                  transform: translateY(0) rotate(0deg);
+                }
+                50% {
+                  transform: translateY(-10px) rotate(3deg);
+                }
+              }
+            `}</style>
+          </div>
         </div>
       </section>
       
@@ -175,38 +194,34 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Featured Banknotes */}
+      {/* Community Forum Section - Replacing Featured Banknotes */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
             <div className="reveal fade-right">
               <h2 className="text-3xl font-serif font-bold text-parchment-500 mb-3">
-                Featured Banknotes
+                Community Discussions
               </h2>
               <p className="text-ottoman-300 max-w-2xl">
-                Explore these notable Ottoman Empire banknotes from our extensive catalog
+                Join the conversation with fellow Ottoman banknote enthusiasts
               </p>
             </div>
             <div className="mt-4 md:mt-0 reveal fade-left">
-              <Link to="/catalog">
+              <Link to="/community/forum">
                 <Button variant="outline" className="border-ottoman-700 hover:bg-ottoman-800/50 text-ottoman-100">
-                  View Catalog
+                  View All Discussions
                 </Button>
               </Link>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredBanknotes.map((banknote, index) => (
-              <div 
-                key={banknote.id} 
-                className={cn("reveal", index % 2 === 0 ? "fade-right" : "fade-left")}
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <BanknoteCard banknote={banknote} />
-              </div>
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-500"></div>
+            </div>
+          ) : (
+            <LatestForumPosts posts={forumPosts} />
+          )}
         </div>
       </section>
       

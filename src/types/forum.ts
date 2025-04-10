@@ -7,6 +7,13 @@ export interface ForumPost {
   created_at: string;
   updated_at: string;
   image_urls?: string[];
+  author?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank?: string;
+  };
+  commentCount?: number;
 }
 
 export interface ForumComment {
@@ -16,7 +23,13 @@ export interface ForumComment {
   author_id: string;
   created_at: string;
   updated_at: string;
-  is_edited?: boolean; // Make this property optional with default false
+  is_edited?: boolean;
+  author?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank?: string;
+  };
 }
 
 export interface Author {
@@ -33,4 +46,15 @@ export interface ForumPostWithAuthor extends ForumPost {
 
 export interface ForumCommentWithAuthor extends ForumComment {
   author: Author;
+}
+
+export interface ImageSuggestion {
+  id: string;
+  banknote_id: string;
+  user_id: string;
+  image_url: string;
+  type: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }
