@@ -1,18 +1,11 @@
-
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchBanknoteDetail } from "@/services/banknoteService";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { toast } from "sonner";
 import {
   Calendar,
   BookOpen,
@@ -21,18 +14,17 @@ import {
   Stamp,
   Hash,
   Shield,
-  ArrowLeft,
+  Image,
   Info,
-  ImagePlus,
+  ImageIcon,
   FileText,
   Map,
   History,
   Building,
   CircleDollarSign,
   Star,
-  Image,
-  ImageIcon
 } from "lucide-react";
+import { useBanknoteContext } from "@/context/BanknoteContext";
 
 interface LabelValuePairProps {
   label: string;
@@ -56,9 +48,11 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 };
 
 export default function BanknoteCatalogDetailMinimized() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  const routeParams = useParams<{ id: string }>();
+  const { banknoteId } = useBanknoteContext();
+  
+  const id = banknoteId || routeParams.id;
+  
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
@@ -89,23 +83,6 @@ export default function BanknoteCatalogDetailMinimized() {
           <p className="mb-6 text-muted-foreground">
             We couldn't load the banknote details. Please try again later.
           </p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (user?.role !== 'Super Admin' && user?.role !== 'Admin' && banknote?.isPending) {
-    return (
-      <div className="page-container max-w-5xl mx-auto py-10">
-        <h1 className="page-title">Banknote Details</h1>
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4">Pending Approval</h2>
-            <p className="mb-6 text-muted-foreground">
-              This banknote is pending administrator approval.
-            </p>
-          </div>
         </div>
       </div>
     );
@@ -135,8 +112,6 @@ export default function BanknoteCatalogDetailMinimized() {
         { label: "Rarity", value: banknote.rarity, icon: <Star className="h-4 w-4" /> }
       ]
     },
-
-
     {
       title: "Production Details",
       icon: <Building className="h-5 w-5" />,
@@ -146,7 +121,6 @@ export default function BanknoteCatalogDetailMinimized() {
         { label: "Serial Numbering", value: banknote.serialNumbering, icon: <Hash className="h-4 w-4" /> }
       ]
     },
-    
     {
       title: "Security Features",
       icon: <Shield className="h-5 w-5" />,
@@ -161,14 +135,7 @@ export default function BanknoteCatalogDetailMinimized() {
 
   return (
     <div>
-
-
       <div className="flex flex-col space-y-6">
-
-
-
-
-
         <div className="lg:col-span-3">
           <Card className="border-t-4 border-t-primary shadow-md">
             <CardHeader className="border-b bg-muted/20">
@@ -176,12 +143,6 @@ export default function BanknoteCatalogDetailMinimized() {
               <CardDescription>Complete information about this banknote</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-
-
-
-
-
-
               <Accordion type="single" collapsible className="w-full space-y-4" >
                 {detailGroups.map((group, groupIndex) => (
                   <AccordionItem
@@ -246,14 +207,11 @@ export default function BanknoteCatalogDetailMinimized() {
                 </div>
               )}
 
-
-
               <div className="lg:col-span-2 space-y-4 mt-4">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center">
                       <ImageIcon className="h-5 w-5 mr-2" />
-                      
                       Banknote Images
                     </CardTitle>
                   </CardHeader>
@@ -319,17 +277,10 @@ export default function BanknoteCatalogDetailMinimized() {
                   </CardContent>
                 </Card>
               </div>
-
-
-
-
             </CardContent>
           </Card>
         </div>
       </div>
-
-
-
 
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>

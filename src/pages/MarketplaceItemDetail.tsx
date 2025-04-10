@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ContactSeller } from "@/components/messages/ContactSeller";
 import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
+import { BanknoteProvider } from "@/context/BanknoteContext";
 
 const MarketplaceItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -117,9 +118,10 @@ const MarketplaceItemDetail = () => {
               <TabsTrigger value="reverse">Reverse (Back)</TabsTrigger>
             </TabsList>
             
-
-            <BanknoteCatalogDetailMinimized />
-
+            {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
+            <BanknoteProvider banknoteId={banknote.id}>
+              <BanknoteCatalogDetailMinimized />
+            </BanknoteProvider>
             
             <TabsContent value="obverse">
               <div className="aspect-[4/3] overflow-hidden rounded-lg border">
