@@ -6,11 +6,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { User } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
-import { ProfileAbout } from "@/components/profile/ProfileAbout";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { fetchUserCollection } from "@/services/collectionService";
@@ -25,7 +23,6 @@ export default function Profile() {
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState("about");
 
   const isOwnProfile = currentUser && profile && currentUser.id === profile.id;
   const userId = profile?.id || '';
@@ -59,26 +56,7 @@ export default function Profile() {
     loadProfile();
   }, [id, currentUser, navigate]);
 
-  // Fetch collection data
-  const { data: userCollection, isLoading: collectionLoading } = useQuery({
-    queryKey: ['userCollection', userId],
-    queryFn: () => userId ? fetchUserCollection(userId) : Promise.resolve([]),
-    enabled: !!userId,
-  });
-
-  // Fetch banknotes
-  const { data: banknotes, isLoading: banknotesLoading } = useQuery({
-    queryKey: ['banknotes'],
-    queryFn: fetchBanknotes,
-    enabled: !!userId,
-  });
-
-  // Fetch wishlist
-  const { data: wishlistItems, isLoading: wishlistLoading } = useQuery({
-    queryKey: ['userWishlist', userId],
-    queryFn: () => userId ? fetchUserWishlist(userId) : Promise.resolve([]),
-    enabled: !!userId,
-  });
+  // Fetch collection data is now handled by ProfileCollection component
 
   const handleProfileUpdated = (updatedProfile: User) => {
     setProfile(updatedProfile);
@@ -121,34 +99,12 @@ export default function Profile() {
           </Card>
         ) : (
           <div className="mt-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-6">
-                <TabsTrigger value="about">About</TabsTrigger>
-                <TabsTrigger value="collection">Collection</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="about">
-                <Card>
-                  <ProfileAbout 
-                    profile={profile} 
-                    onEditClick={isOwnProfile ? () => setIsEditing(true) : undefined} 
-                  />
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="collection">
-                <Card>
-                  <ProfileCollection 
-                    userId={profile.id}
-                    userCollection={userCollection}
-                    banknotes={banknotes}
-                    wishlistItems={wishlistItems || []}
-                    collectionLoading={collectionLoading || banknotesLoading || wishlistLoading}
-                    isCurrentUser={isOwnProfile || false}
-                  />
-                </Card>
-              </TabsContent>
-            </Tabs>
+            <Card>
+              <ProfileCollection 
+                userId={profile.id}
+                isCurrentUser={isOwnProfile || false}
+              />
+            </Card>
           </div>
         )}
       </div>

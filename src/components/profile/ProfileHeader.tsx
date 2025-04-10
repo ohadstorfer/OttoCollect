@@ -54,13 +54,20 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             <Badge variant="user" rank={profile.rank} showIcon />
           </div>
           
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            {profile.country && (
-              <span>{profile.country}</span>
+          <div className="text-sm text-muted-foreground max-w-xl">
+            {profile.about ? (
+              <p>{profile.about}</p>
+            ) : (
+              <p className="italic">
+                {isOwnProfile 
+                  ? "You haven't added any information about yourself yet."
+                  : "This user hasn't added any information about themselves yet."
+                }
+              </p>
             )}
-            <span>
-              Joined {new Date(profile.createdAt).toLocaleDateString()}
-            </span>
+            {profile.country && (
+              <p className="mt-1">{profile.country}</p>
+            )}
           </div>
         </div>
 

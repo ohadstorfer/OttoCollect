@@ -1,16 +1,14 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Grid, PlusSquare, Search, Star, Info } from 'lucide-react';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import { Input } from '@/components/ui/input';
 import BanknoteCard from '@/components/banknotes/BanknoteCard';
 import { Spinner } from '@/components/ui/spinner';
-import { CollectionItem, Banknote, User } from '@/types';
+import { CollectionItem, Banknote } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { fetchUserCollection } from '@/services/collectionService';
 import { fetchBanknotes } from '@/services/banknoteService';
@@ -23,9 +21,6 @@ interface ProfileCollectionProps {
   wishlistItems?: any[];
   collectionLoading?: boolean;
   isCurrentUser: boolean;
-  // For backward compatibility with Profile.tsx
-  profile?: User;
-  isOwnProfile?: boolean;
 }
 
 interface FilterState {
@@ -39,19 +34,12 @@ const ProfileCollection = ({
   banknotes: initialBanknotes, 
   wishlistItems: initialWishlist, 
   collectionLoading: initialLoading,
-  isCurrentUser,
-  profile,
-  isOwnProfile
+  isCurrentUser
 }: ProfileCollectionProps) => {
-  // If props are passed from the old Profile.tsx format, extract userId and isCurrentUser
-  const effectiveUserId = userId || (profile?.id || '');
-  const isEffectiveCurrentUser = isCurrentUser || isOwnProfile || false;
-
-  // Use React Query to fetch data if not provided via props
   const { data: fetchedCollection, isLoading: collectionQueryLoading } = useQuery({
-    queryKey: ['userCollection', effectiveUserId],
-    queryFn: () => fetchUserCollection(effectiveUserId),
-    enabled: !initialCollection && !!effectiveUserId
+    queryKey: ['userCollection', userId],
+    queryFn: () => fetchUserCollection(userId),
+    enabled: !initialCollection && !!userId
   });
 
   const { data: fetchedBanknotes, isLoading: banknotesQueryLoading } = useQuery({
@@ -61,12 +49,11 @@ const ProfileCollection = ({
   });
 
   const { data: fetchedWishlist, isLoading: wishlistQueryLoading } = useQuery({
-    queryKey: ['userWishlist', effectiveUserId],
-    queryFn: () => fetchUserWishlist(effectiveUserId),
-    enabled: !initialWishlist && !!effectiveUserId
+    queryKey: ['userWishlist', userId],
+    queryFn: () => fetchUserWishlist(userId),
+    enabled: !initialWishlist && !!userId
   });
 
-  // Use either the props or fetched data
   const userCollection = initialCollection || fetchedCollection || [];
   const banknotes = initialBanknotes || fetchedBanknotes || [];
   const wishlistItems = initialWishlist || fetchedWishlist || [];
@@ -85,7 +72,7 @@ const ProfileCollection = ({
   };
 
   const filteredCollection = userCollection.filter(item => {
-    const banknote = banknotes.find(b => b.id === item.banknoteId);
+    const banknote = banknotes?.find(b => b.id === item.banknoteId);
     if (!banknote) return false;
 
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
@@ -95,7 +82,9 @@ const ProfileCollection = ({
     return matchesSearch;
   });
 
-  const missingItems = banknotes.filter(banknote => !userCollection.find(item => item.banknoteId === banknote.id));
+  const missingItems = banknotes?.filter(banknote => 
+    !userCollection.some(item => item.banknoteId === banknote.id)
+  ) || [];
 
   const filteredMissing = missingItems.filter(banknote => {
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
@@ -105,13 +94,13 @@ const ProfileCollection = ({
     return matchesSearch;
   });
 
-  const filteredCatalog = banknotes.filter(banknote => {
+  const filteredCatalog = banknotes?.filter(banknote => {
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
       banknote.country.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
       banknote.year.toLowerCase().includes(filter.searchTerm.toLowerCase());
 
     return matchesSearch;
-  });
+  }) || [];
 
   const emptyStateMessages = {
     collection: "No items in collection yet.",
@@ -133,11 +122,11 @@ const ProfileCollection = ({
         </TabsTrigger>
         <TabsTrigger value="catalog">
           <Info className="h-4 w-4 mr-2" />
-          Catalog ({banknotes.length})
+          Catalog ({banknotes?.length || 0})
         </TabsTrigger>
         <TabsTrigger value="wishlist">
           <Star className="h-4 w-4 mr-2" />
-          Wishlist ({wishlistItems.length})
+          Wishlist ({wishlistItems?.length || 0})
         </TabsTrigger>
       </TabsList>
       <div className="mt-4 flex items-center justify-between">
@@ -169,23 +158,24 @@ const ProfileCollection = ({
         ) : filteredCollection.length > 0 ? (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredCollection.map(item => {
-              const banknote = banknotes.find(b => b.id === item.banknoteId);
+              const banknote = banknotes?.find(b => b.id === item.banknoteId);
               if (!banknote) return null;
 
               return (
-                <CollectionItemCard
-                  key={item.id}
-                  item={item}
-                  banknote={banknote}
-                />
+                <div key={item.id} onClick={() => navigate(isCurrentUser ? `/collection-banknote/${item.id}` : `/collection-item/${item.id}`)}>
+                  <CollectionItemCard
+                    item={item}
+                    banknote={banknote}
+                  />
+                </div>
               );
             })}
           </div>
         ) : (
           <Card className="p-6 text-center">
             <p>{emptyStateMessages.collection}</p>
-            {isEffectiveCurrentUser && (
-              <Button onClick={() => navigate('/catalog')}>
+            {isCurrentUser && (
+              <Button onClick={() => navigate('/catalog')} className="mt-4">
                 Browse Catalog
               </Button>
             )}
@@ -201,17 +191,20 @@ const ProfileCollection = ({
         ) : filteredMissing.length > 0 ? (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredMissing.map(banknote => (
-              <BanknoteCard
-                key={banknote.id}
-                banknote={banknote}
-              />
+              <div 
+                key={banknote.id} 
+                onClick={() => navigate(`/banknote-details/${banknote.id}`)}
+                className="cursor-pointer"
+              >
+                <BanknoteCard banknote={banknote} />
+              </div>
             ))}
           </div>
         ) : (
           <Card className="p-6 text-center">
             <p>{emptyStateMessages.missing}</p>
-            {isEffectiveCurrentUser && (
-              <Button onClick={() => navigate('/catalog')}>
+            {isCurrentUser && (
+              <Button onClick={() => navigate('/catalog')} className="mt-4">
                 Browse Catalog
               </Button>
             )}
@@ -236,7 +229,7 @@ const ProfileCollection = ({
         ) : (
           <Card className="p-6 text-center">
             <p>{emptyStateMessages.catalog}</p>
-            {isEffectiveCurrentUser && (
+            {isCurrentUser && (
               <Button onClick={() => navigate('/catalog')}>
                 Browse Catalog
               </Button>
@@ -267,7 +260,7 @@ const ProfileCollection = ({
         ) : (
           <Card className="p-6 text-center">
             <p>{emptyStateMessages.wishlist}</p>
-            {isEffectiveCurrentUser && (
+            {isCurrentUser && (
               <Button onClick={() => navigate('/catalog')}>
                 Browse Catalog
               </Button>
