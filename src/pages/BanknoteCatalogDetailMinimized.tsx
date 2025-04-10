@@ -146,14 +146,7 @@ export default function BanknoteCatalogDetailMinimized() {
         { label: "Serial Numbering", value: banknote.serialNumbering, icon: <Hash className="h-4 w-4" /> }
       ]
     },
-    {
-      title: "Banknote Images",
-      icon: <Image className="h-5 w-5" />,
-      fields: [
-        { value: banknote.imageUrls },
-
-      ]
-    },
+    
     {
       title: "Security Features",
       icon: <Shield className="h-5 w-5" />,
@@ -260,6 +253,7 @@ export default function BanknoteCatalogDetailMinimized() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center">
                       <ImageIcon className="h-5 w-5 mr-2" />
+                      
                       Banknote Images
                     </CardTitle>
                   </CardHeader>
