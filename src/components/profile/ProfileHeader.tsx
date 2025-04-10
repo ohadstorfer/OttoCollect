@@ -4,7 +4,7 @@ import { User } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getInitials } from "@/lib/utils";
-import { MessageCircle, MapPin, Calendar, Edit } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { SendMessage } from "@/components/messages/SendMessage";
@@ -54,44 +54,27 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             <Badge variant="user" rank={profile.rank} showIcon />
           </div>
           
-          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {profile.country && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
-                {profile.country}
-              </span>
+              <span>{profile.country}</span>
             )}
-            <span className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" />
+            <span>
               Joined {new Date(profile.createdAt).toLocaleDateString()}
             </span>
           </div>
         </div>
 
-        <div className="md:self-center flex-shrink-0 space-x-2">
-          {!isOwnProfile && user && (
+        {!isOwnProfile && user && (
+          <div className="md:self-center flex-shrink-0">
             <Button 
               onClick={handleMessageClick}
-              size="sm"
               className="flex items-center gap-2"
             >
               <MessageCircle className="h-4 w-4" />
               Message
             </Button>
-          )}
-          
-          {isOwnProfile && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={() => navigate('/collection')}
-            >
-              <Edit className="h-4 w-4" />
-              Manage Collection
-            </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
       
       {!isOwnProfile && user && (

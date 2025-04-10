@@ -1,8 +1,8 @@
 
 import React from "react";
 import { User } from "@/types";
-import { CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { MessageCircle, Edit, Info } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { MessageCircle, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SendMessage } from "@/components/messages/SendMessage";
 import { useAuth } from "@/context/AuthContext";
@@ -31,13 +31,10 @@ export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
   return (
     <>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Info className="h-4 w-4" />
-          About
-        </CardTitle>
+        <CardTitle className="text-lg">About</CardTitle>
         {isOwnProfile && onEditClick && (
-          <Button variant="ghost" size="sm" onClick={onEditClick}>
-            <Edit className="h-4 w-4 mr-1" /> Edit
+          <Button variant="outline" size="sm" onClick={onEditClick}>
+            <Edit className="h-4 w-4 mr-1" /> Edit Profile
           </Button>
         )}
       </CardHeader>
@@ -47,7 +44,7 @@ export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
         ) : (
           <p className="text-muted-foreground italic">
             {isOwnProfile 
-              ? "You haven't added any information about yourself yet. Click 'Edit' to add your bio."
+              ? "You haven't added any information about yourself yet. Click 'Edit Profile' to add your bio."
               : "This user hasn't added any information about themselves yet."
             }
           </p>

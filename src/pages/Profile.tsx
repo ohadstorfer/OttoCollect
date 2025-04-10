@@ -10,6 +10,7 @@ import { ProfileAbout } from "@/components/profile/ProfileAbout";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { fetchUserCollection } from "@/services/collectionService";
@@ -24,6 +25,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("about");
 
   const isOwnProfile = currentUser && profile && currentUser.id === profile.id;
   const userId = profile?.id || '';
@@ -105,8 +107,8 @@ export default function Profile() {
 
   return (
     <div className="page-container animate-fade-in">
-      <div className="max-w-5xl mx-auto">
-        {/* Modern Profile Header with integrated About section */}
+      <div className="max-w-4xl mx-auto">
+        {/* Profile Header is always visible */}
         <ProfileHeader profile={profile} />
         
         {isEditing ? (
@@ -118,28 +120,35 @@ export default function Profile() {
             />
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6">
-            <div className="md:col-span-5">
-              <Card className="h-full">
-                <ProfileAbout 
-                  profile={profile} 
-                  onEditClick={isOwnProfile ? () => setIsEditing(true) : undefined} 
-                />
-              </Card>
-            </div>
-            
-            <div className="md:col-span-7">
-              <Card>
-                <ProfileCollection 
-                  userId={profile.id}
-                  userCollection={userCollection}
-                  banknotes={banknotes}
-                  wishlistItems={wishlistItems || []}
-                  collectionLoading={collectionLoading || banknotesLoading || wishlistLoading}
-                  isCurrentUser={isOwnProfile || false}
-                />
-              </Card>
-            </div>
+          <div className="mt-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="mb-6">
+                <TabsTrigger value="about">About</TabsTrigger>
+                <TabsTrigger value="collection">Collection</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="about">
+                <Card>
+                  <ProfileAbout 
+                    profile={profile} 
+                    onEditClick={isOwnProfile ? () => setIsEditing(true) : undefined} 
+                  />
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="collection">
+                <Card>
+                  <ProfileCollection 
+                    userId={profile.id}
+                    userCollection={userCollection}
+                    banknotes={banknotes}
+                    wishlistItems={wishlistItems || []}
+                    collectionLoading={collectionLoading || banknotesLoading || wishlistLoading}
+                    isCurrentUser={isOwnProfile || false}
+                  />
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </div>
