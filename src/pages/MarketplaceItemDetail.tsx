@@ -28,19 +28,19 @@ const MarketplaceItemDetail = () => {
   useEffect(() => {
     const fetchItem = async () => {
       if (!id) return;
-      
+
       setLoading(true);
       try {
         // We're getting the marketplace item by its ID directly
         const fetchedItem = await getMarketplaceItemById(id);
-        
+
         if (!fetchedItem) {
           setError("Item not found or no longer available");
           return;
         }
-        
+
         setItem(fetchedItem);
-        
+
       } catch (err) {
         console.error("Error fetching marketplace item:", err);
         setError("Failed to load marketplace item");
@@ -77,7 +77,7 @@ const MarketplaceItemDetail = () => {
             {error || "Item not found or no longer available"}
           </AlertDescription>
         </Alert>
-        
+
         <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Marketplace
@@ -96,18 +96,18 @@ const MarketplaceItemDetail = () => {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        
+
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Marketplace Item Details</h1>
         </div>
       </div>
-      
+
       {/* Status indicator */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <Badge variant={status === "Available" ? "primary" : status === "Reserved" ? "secondary" : "destructive"}>
           {status}
         </Badge>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left column: Images */}
@@ -117,12 +117,9 @@ const MarketplaceItemDetail = () => {
               <TabsTrigger value="obverse">Obverse (Front)</TabsTrigger>
               <TabsTrigger value="reverse">Reverse (Back)</TabsTrigger>
             </TabsList>
-            
-            {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
-            <BanknoteProvider banknoteId={banknote.id}>
-              <BanknoteCatalogDetailMinimized />
-            </BanknoteProvider>
-            
+
+           
+
             <TabsContent value="obverse">
               <div className="aspect-[4/3] overflow-hidden rounded-lg border">
                 <img
@@ -132,7 +129,7 @@ const MarketplaceItemDetail = () => {
                 />
               </div>
             </TabsContent>
-            
+
             <TabsContent value="reverse">
               <div className="aspect-[4/3] overflow-hidden rounded-lg border">
                 <img
@@ -142,8 +139,12 @@ const MarketplaceItemDetail = () => {
                 />
               </div>
             </TabsContent>
+
+            
+
+
           </Tabs>
-          
+
           {/* Seller information */}
           <Card>
             <CardContent className="p-4">
@@ -152,21 +153,23 @@ const MarketplaceItemDetail = () => {
                   <User className="h-5 w-5 text-ottoman-400" />
                   <div>
                     <p className="text-sm font-medium">Seller</p>
-                    <Link 
-                      to={`/profile/${seller.id}`} 
+                    <Link
+                      to={`/profile/${seller.id}`}
                       className="text-ottoman-500 hover:text-ottoman-600"
                     >
-                      {seller.username}
+                      {seller.username} <Badge variant="user" rank={seller.rank} />
                     </Link>
                   </div>
+                  
                 </div>
-                
-                <Badge variant="user" rank={seller.rank} />
-              </div>
+
               
-              {user && user.id !== seller.id && (
-                <div className="mt-4">
-                  <ContactSeller 
+
+                
+
+                {user && user.id !== seller.id && (
+                <div >
+                  <ContactSeller
                     sellerId={seller.id}
                     sellerName={seller.username}
                     itemId={collectionItem.id}
@@ -174,10 +177,14 @@ const MarketplaceItemDetail = () => {
                   />
                 </div>
               )}
+
+              </div>
+
+              
             </CardContent>
           </Card>
         </div>
-        
+
         {/* Right column: Details */}
         <div>
           <Card className="mb-6">
@@ -185,7 +192,7 @@ const MarketplaceItemDetail = () => {
               <h2 className="text-2xl font-serif font-bold text-parchment-500 mb-2">
                 {banknote.denomination}
               </h2>
-              
+
               <div className="flex items-center gap-2 mb-4">
                 <p className="text-lg text-ottoman-300">
                   {banknote.country}, {banknote.year}
@@ -194,15 +201,29 @@ const MarketplaceItemDetail = () => {
                   {condition}
                 </Badge>
               </div>
-              
+
               <Separator className="mb-4" />
-              
-              <div className="text-3xl font-bold mb-6 text-ottoman-500">
-                ${salePrice}
+
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <div className="text-3xl font-bold text-ottoman-500">
+                  ${salePrice}
+                </div>
+
+                {user.id !==seller.id && (
+                  <Button
+                    className="ottoman-button mt-2"
+                    onClick={() => {
+                      navigate(`/messaging?user=${seller.id}`);
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Contact Seller
+                  </Button>
+                )}
               </div>
-              
-              
-              
+
+
+
               {publicNote && (
                 <div className="mt-4">
                   <p className="text-sm text-ottoman-400">Seller's Note</p>
@@ -211,28 +232,20 @@ const MarketplaceItemDetail = () => {
                   </p>
                 </div>
               )}
+
+
+
               
-              <div className="mt-6">
-                <p className="text-sm text-ottoman-400 mb-2">About this banknote</p>
-                <p className="text-ottoman-200">
-                  {banknote.description || "No description available."}
-                </p>
-              </div>
-              
-              {user && user.id !== seller.id && (
-                <Button 
-                  className="ottoman-button w-full mt-6"
-                  onClick={() => {
-                    // Navigate to messaging with this seller
-                    navigate(`/messaging?user=${seller.id}`);
-                  }}
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Contact Seller
-                </Button>
-              )}
             </CardContent>
           </Card>
+
+
+           {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
+           <BanknoteProvider banknoteId={banknote.id}>
+              <BanknoteCatalogDetailMinimized />
+            </BanknoteProvider>
+
+            
         </div>
       </div>
     </div>

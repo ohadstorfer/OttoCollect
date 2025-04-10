@@ -306,43 +306,53 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
         </div>
 
         <CardHeader className="p-4 pb-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-medium">
-                {banknote.denomination}
-              </h3>
-              
-              <p className="text-sm text-muted-foreground">
-                {banknote.country} {banknote.year}
-              </p>
-              
-              {banknote.pickNumber && (
-              <p className="text-sm text-muted-foreground">
-                Pick Number: {banknote.pickNumber}
-              </p>)}
-              {banknote.sultanName && (
-              <p className="text-sm text-muted-foreground">
-                Sultan Name: {banknote.sultanName}
-              </p>)}
-              {banknote.sealNames && (
-                <p className="text-sm text-muted-foreground">
-                  Seal Names: {banknote.sealNames}
-                </p>
-              )}
-              {banknote.rarity && (
-                <p className="text-sm text-muted-foreground">
-                  Rarity: {banknote.rarity}
-                </p>
-              )}
-            </div>
+  <div className="flex justify-between items-start">
+    <div>
+      <h3 className="text-lg font-semibold text-primary">
+        {banknote.denomination}
+      </h3>
+      <p className="text-sm text-muted-foreground">
+        {banknote.country} · {banknote.year}
+      </p>
+    </div>
 
-            {collectionItem && (
-              <Badge variant="secondary" className="self-start">
-                {collectionItem.condition}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
+    {collectionItem && (
+      <Badge variant="secondary" className="self-start">
+        {collectionItem.condition}
+      </Badge>
+    )}
+  </div>
+
+  <div className="mt-3 p-3 bg-muted/40 rounded-md">
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
+      {banknote.pickNumber && (
+        <>
+          <dt className="font-medium text-foreground">Pick #</dt>
+          <dd>{banknote.pickNumber}</dd>
+        </>
+      )}
+      {banknote.sultanName && (
+        <>
+          <dt className="font-medium text-foreground">Sultan</dt>
+          <dd>{banknote.sultanName}</dd>
+        </>
+      )}
+      {banknote.sealNames && (
+        <>
+          <dt className="font-medium text-foreground">Seal Names</dt>
+          <dd>{banknote.sealNames}</dd>
+        </>
+      )}
+      {banknote.rarity && (
+        <>
+          <dt className="font-medium text-foreground">Rarity</dt>
+          <dd>{banknote.rarity}</dd>
+        </>
+      )}
+    </dl>
+  </div>
+</CardHeader>
+
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
