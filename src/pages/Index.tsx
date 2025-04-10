@@ -67,26 +67,55 @@ const Index = () => {
             </div>
           </div>
           
-          <div className="lg:w-1/2 relative">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="h-48 rounded-lg shadow-lg overflow-hidden transform rotate-1 animate-fade-in" style={{ animationDelay: '100ms' }}>
-                  <img src="/placeholder.svg" alt="Ottoman banknote" className="w-full h-full object-cover" />
-                </div>
-                <div className="h-40 rounded-lg shadow-lg overflow-hidden transform -rotate-2 animate-fade-in" style={{ animationDelay: '300ms' }}>
-                  <img src="/placeholder.svg" alt="Ottoman banknote" className="w-full h-full object-cover" />
-                </div>
-              </div>
-              <div className="space-y-4 pt-10">
-                <div className="h-40 rounded-lg shadow-lg overflow-hidden transform rotate-3 animate-fade-in" style={{ animationDelay: '200ms' }}>
-                  <img src="/placeholder.svg" alt="Ottoman banknote" className="w-full h-full object-cover" />
-                </div>
-                <div className="h-48 rounded-lg shadow-lg overflow-hidden transform -rotate-1 animate-fade-in" style={{ animationDelay: '400ms' }}>
-                  <img src="/placeholder.svg" alt="Ottoman banknote" className="w-full h-full object-cover" />
-                </div>
-              </div>
-            </div>
-          </div>
+          <div className="relative h-[400px] w-full max-w-5xl mx-auto" style={{ transform: "translateX(20%)" }} >
+      {/* Image 1 */}
+      <div
+        className="absolute top-0 left-0 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
+        style={{ animation: "floatRotate 3s ease-in-out infinite" }}
+      >
+        <img
+          src="/image1.jpg"
+          alt="Image 1"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Image 2 */}
+      <div
+        className="absolute top-36 left-36 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
+        style={{ animation: "floatRotate 3s ease-in-out infinite", animationDelay: "200ms" }}
+      >
+        <img
+          src="/image2.jpg"
+          alt="Image 2"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Image 3 */}
+      <div
+       className="absolute top-72 left-72 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
+        style={{ animation: "floatRotate 3s ease-in-out infinite", animationDelay: "400ms" }}
+      >
+        <img
+          src="/image3.jpg"
+          alt="Image 3"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      <style>{`
+        @keyframes floatRotate {
+          0%, 100% {
+            transform: translateY(0) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-10px) rotate(3deg);
+          }
+        }
+      `}</style>
+    </div>
+    
         </div>
       </section>
       
