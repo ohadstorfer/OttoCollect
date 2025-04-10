@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Calendar, MessageSquare, User } from "lucide-react";
-import { format } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import { ForumPost } from '@/types/forum';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +30,22 @@ const LatestForumPosts = ({ posts }: LatestForumPostsProps) => {
   
   const handlePostClick = (postId: string) => {
     navigate(`/community/forum/${postId}`);
+  };
+  
+  // Function to safely format dates
+  const safeFormatDate = (dateString: string) => {
+    try {
+      // Parse the ISO string to a Date object first
+      const date = parseISO(dateString);
+      // Check if the resulting date is valid before formatting
+      if (isValid(date)) {
+        return format(date, 'MMM d, yyyy');
+      }
+      return 'Unknown date';
+    } catch (error) {
+      console.error('Error formatting date:', dateString, error);
+      return 'Unknown date';
+    }
   };
 
   return (
@@ -67,7 +83,7 @@ const LatestForumPosts = ({ posts }: LatestForumPostsProps) => {
               <div className="flex items-center text-xs text-ottoman-300 mt-2 gap-3">
                 <div className="flex items-center">
                   <Calendar className="h-3 w-3 mr-1" />
-                  {format(new Date(post.created_at), 'MMM d, yyyy')}
+                  {safeFormatDate(post.created_at)}
                 </div>
                 <div className="flex items-center">
                   <MessageSquare className="h-3 w-3 mr-1" />
