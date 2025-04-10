@@ -201,24 +201,7 @@ const MarketplaceItemDetail = () => {
                 ${salePrice}
               </div>
               
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className="text-sm text-ottoman-400">Catalog ID</p>
-                  <p className="font-medium">{banknote.catalogId}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-ottoman-400">Series</p>
-                  <p className="font-medium">{banknote.series || "Standard"}</p>
-                </div>
-                
-                {banknote.series && (
-                  <div>
-                    <p className="text-sm text-ottoman-400">Series</p>
-                    <p className="font-medium">{banknote.series}</p>
-                  </div>
-                )}
-              </div>
+              
               
               {publicNote && (
                 <div className="mt-4">
