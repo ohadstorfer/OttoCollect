@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/context/AuthContext";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,9 +16,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import CollectionItemCard from "@/components/collection/CollectionItemCard";
 
-const Collection = () => {
+interface CollectionProfileNewProps {
+  userId: string;
+  isCurrentUser: boolean;
+}
+
+const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const initialTab = searchParams.get("tab") || "collection";
@@ -34,13 +37,13 @@ const Collection = () => {
 
   useEffect(() => {
     const loadUserData = async () => {
-      if (user) {
+      if (userId) {
         setLoading(true);
         try {
           console.log("Loading user collection and wishlist");
           
-          const collection = await fetchUserCollection(user.id);
-          const wishlist = await fetchUserWishlist(user.id);
+          const collection = await fetchUserCollection(userId);
+          const wishlist = await fetchUserWishlist(userId);
           const allBanknotes = await fetchBanknotes();
           
           console.log("Loaded collection items:", collection.length);
@@ -67,7 +70,7 @@ const Collection = () => {
           console.error("Error loading user data:", error);
           toast({
             title: "Error",
-            description: "Failed to load your collection. Please try again later.",
+            description: "Failed to load collection. Please try again later.",
             variant: "destructive",
           });
         } finally {
@@ -79,7 +82,7 @@ const Collection = () => {
     };
 
     loadUserData();
-  }, [user, toast]);
+  }, [userId, toast]);
 
   const filteredCollection = collectionItems.filter(item => {
     const banknote = item.banknote;
@@ -97,6 +100,18 @@ const Collection = () => {
     return matchesSearch && matchesCondition;
   });
   
+  const filteredMissing = missingItems.filter(banknote => {
+    const matchesSearch = searchQuery
+      ? banknote.catalogId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.denomination.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banknote.year.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+    
+    return matchesSearch;
+  });
+  
   const sortedCollection = [...filteredCollection].sort((a, b) => {
     switch (sortBy) {
       case "oldest":
@@ -109,18 +124,6 @@ const Collection = () => {
       default:
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
-  });
-
-  const filteredMissing = missingItems.filter(banknote => {
-    const matchesSearch = searchQuery
-      ? banknote.catalogId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.denomination.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.year.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-    
-    return matchesSearch;
   });
   
   const sortedMissing = [...filteredMissing].sort((a, b) => {
@@ -153,7 +156,7 @@ const Collection = () => {
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6">My Collection</h1>
 
-      {!user && (
+      {!userId && (
         <Alert variant="default" className="mb-6">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Authentication Required</AlertTitle>
@@ -227,7 +230,7 @@ const Collection = () => {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
             </div>
-          ) : !user ? (
+          ) : !userId ? (
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-4">You need to sign in to view your collection</h3>
               <Button onClick={signIn}>Sign In</Button>
@@ -246,7 +249,7 @@ const Collection = () => {
                   banknote={item.banknote}
                   collectionItem={item}
                   source="collection"
-                  ownerId={user.id}
+                  ownerId={userId}
                   onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
                 />
               ))}
@@ -259,7 +262,7 @@ const Collection = () => {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
             </div>
-          ) : !user ? (
+          ) : !userId ? (
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-4">You need to sign in to view your wishlist</h3>
               <Button onClick={signIn}>Sign In</Button>
@@ -350,7 +353,7 @@ const Collection = () => {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
             </div>
-          ) : !user ? (
+          ) : !userId ? (
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-4">You need to sign in to view missing banknotes</h3>
               <Button onClick={signIn}>Sign In</Button>
@@ -378,7 +381,7 @@ const Collection = () => {
           <div className="bg-card border rounded-lg p-6">
             <h2 className="text-xl font-bold mb-4">Collection Statistics</h2>
             
-            {!user ? (
+            {!userId ? (
               <div className="text-center py-8">
                 <h3 className="text-xl font-medium mb-4">Sign in to view your statistics</h3>
                 <Button onClick={signIn}>Sign In</Button>
@@ -416,4 +419,4 @@ const Collection = () => {
   );
 };
 
-export default Collection;
+export default CollectionProfileNew;
