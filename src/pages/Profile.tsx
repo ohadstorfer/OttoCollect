@@ -15,6 +15,7 @@ import { fetchUserCollection } from "@/services/collectionService";
 import { fetchBanknotes } from "@/services/banknoteService";
 import { fetchUserWishlist } from "@/services/wishlistService";
 import { useQuery } from "@tanstack/react-query";
+import CollectionProfileNew from "./CollectionProfileNew";
 
 export default function Profile() {
   const { id } = useParams<{ id: string }>();
@@ -100,7 +101,7 @@ export default function Profile() {
         ) : (
           <div className="mt-6">
             <Card>
-              <ProfileCollection 
+              <CollectionProfileNew
                 userId={profile.id}
                 isCurrentUser={isOwnProfile || false}
               />

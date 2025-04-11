@@ -112,7 +112,7 @@ const Index = () => {
               style={{ animation: "floatRotate 3s ease-in-out infinite" }}
             >
               <img
-                src="/image1.jpg"
+                src="/placeholder.svg"
                 alt="Image 1"
                 className="w-full h-full object-cover"
               />
@@ -124,7 +124,7 @@ const Index = () => {
               style={{ animation: "floatRotate 3s ease-in-out infinite", animationDelay: "200ms" }}
             >
               <img
-                src="/image2.jpg"
+                src="/placeholder.svg"
                 alt="Image 2"
                 className="w-full h-full object-cover"
               />
@@ -136,7 +136,7 @@ const Index = () => {
               style={{ animation: "floatRotate 3s ease-in-out infinite", animationDelay: "400ms" }}
             >
               <img
-                src="/image3.jpg"
+                src="/placeholder.svg"
                 alt="Image 3"
                 className="w-full h-full object-cover"
               />
