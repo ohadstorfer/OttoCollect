@@ -4,7 +4,7 @@ export interface ForumPost {
   title: string;
   content: string;
   author_id: string;
-  created_at: string;
+  createdAt:string;
   updated_at: string;
   image_urls?: string[];
   author?: {

@@ -108,7 +108,7 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
                 <div className="flex items-center text-xs text-ottoman-300 mt-2 gap-3">
                   <div className="flex items-center">
                     <Calendar className="h-3 w-3 mr-1" />
-                    {safeFormatDate(post.created_at)}
+                    {safeFormatDate(post.createdAt)}
                   </div>
                   <div className="flex items-center">
                     <MessageSquare className="h-3 w-3 mr-1" />
