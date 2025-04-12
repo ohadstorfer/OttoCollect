@@ -27,7 +27,7 @@ const Navbar = () => {
 
   // Navigation links that appear in both desktop and mobile views
   const navLinks = [
-    { path: '/', label: 'Home' },
+    
     { path: '/catalog', label: 'Catalog' },
     { path: '/collection', label: 'My Collection' },
     { path: '/marketplace', label: 'Marketplace' },
@@ -68,13 +68,7 @@ const Navbar = () => {
 
           {/* Desktop right section */}
           <div className="hidden md:flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-ottoman-200 hover:text-ottoman-100 hover:bg-ottoman-600/20"
-            >
-              <Search className="h-[1.2rem] w-[1.2rem]" />
-            </Button>
+           
             
             {user ? (
               <div className="flex items-center gap-3">
@@ -85,13 +79,7 @@ const Navbar = () => {
                   />
                 )}
                 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-ottoman-200 hover:text-ottoman-100 hover:bg-ottoman-600/20"
-                >
-                  <ShoppingCart className="h-[1.2rem] w-[1.2rem]" />
-                </Button>
+                
                 <Link to={`/profile/${user.id}`} className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-ottoman-700 flex items-center justify-center overflow-hidden">
                     {user.avatarUrl ? (
@@ -149,14 +137,7 @@ const Navbar = () => {
         <div className="md:hidden animate-fade-in">
           <div className="flex flex-col space-y-1 px-4 pb-4 pt-2 bg-dark-600">
             <div className="flex items-center justify-between py-2 border-b border-ottoman-900/30">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-ottoman-200 hover:text-ottoman-100 hover:bg-ottoman-600/20"
-              >
-                <Search className="h-5 w-5 mr-2" />
-                Search
-              </Button>
+              
               
               {user ? (
                 <Link to={`/profile/${user.id}`} className="flex items-center gap-2" onClick={closeMenu}>
@@ -212,7 +193,7 @@ const Navbar = () => {
                     onClick={handleMessageClick}
                     className="px-3 py-2 rounded-md text-sm transition-colors flex items-center text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100 cursor-pointer"
                   >
-                    <MessageCircle className="h-4 w-4 mr-2" />
+                    
                     <span className="ml-1">Messages</span>
                     {location.pathname !== '/messaging' && (
                       <div className="ml-auto">
