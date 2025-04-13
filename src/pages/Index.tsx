@@ -86,102 +86,58 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-dark-500">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 px-4 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 -z-10">
-          <div
-            className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] bg-dark-600/40 shadow-xl shadow-ottoman-900/20 ring-1 ring-inset ring-ottoman-900/10"
-            aria-hidden="true"
-          />
-        </div>
-        
-        <div className="container mx-auto flex flex-col lg:flex-row items-center">
-          <div className="lg:w-1/2 lg:pr-12 mb-10 lg:mb-0 animate-fade-in">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-parchment-500 leading-tight">
-              Discover the Legacy of{" "}
-              <div className="relative inline-flex flex-col h-[1.5em] overflow-hidden">
-                <span className="text-gradient absolute animate-slide-up">
-                  {animatedWords[(currentWordIndex + animatedWords.length - 1) % animatedWords.length]}
-                </span>
-                <span className="text-gradient animate-typewriter">
-                  {animatedWords[currentWordIndex]}
-                </span>
-                <span className="text-gradient absolute top-full animate-slide-down">
-                  {animatedWords[(currentWordIndex + 1) % animatedWords.length]}
-                </span>
-              </div>
-              <br />
-              <span className="text-gradient animate-shimmer inline-block">Ottoman Banknotes</span>
-            </h1>
-            <p className="mt-6 text-lg text-ottoman-100 max-w-2xl animate-floating">
-              Explore, collect, and trade historical Ottoman Empire banknotes from across regions 
-              and eras. Join our <span className="text-ottoman-300 font-medium animate-pulse-subtle">community of passionate collectors</span> and numismatic enthusiasts.
-            </p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <Button className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg group">
-                <span className="group-hover:animate-bounce-subtle">Explore Catalog</span>
-                <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
-              </Button>
-              {!user && (
-                <Link to="/auth">
-                  <Button variant="outline" className="border-ottoman-700 hover:bg-ottoman-800/50 text-ottoman-100 py-6 px-8 text-lg">
-                    Join Community
-                  </Button>
-                </Link>
-              )}
-            </div>
-          </div>
-          
-          <div className="relative h-[400px] w-full max-w-5xl mx-auto" style={{ transform: "translateX(20%)" }} >
-            {/* Image 1 */}
-            <div
-              className="absolute top-0 left-0 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
-              style={{ animation: "floatRotate 3s ease-in-out infinite" }}
-            >
-              <img
-                src="/placeholder.svg"
-                alt="Image 1"
-                className="w-full h-full object-cover"
-              />
-            </div>
+      <section className="relative py-16 px-4 overflow-hidden text-center">
+  {/* Background Pattern */}
+  <div className="absolute inset-0 -z-10">
+    <div
+      className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] bg-dark-600/40 shadow-xl shadow-ottoman-900/20 ring-1 ring-inset ring-ottoman-900/10"
+      aria-hidden="true"
+    />
+  </div>
 
-            {/* Image 2 */}
-            <div
-              className="absolute top-36 left-36 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
-              style={{ animation: "floatRotate 3s ease-in-out infinite", animationDelay: "200ms" }}
-            >
-              <img
-                src="/placeholder.svg"
-                alt="Image 2"
-                className="w-full h-full object-cover"
-              />
-            </div>
+  <div className="container mx-auto max-w-4xl flex flex-col items-center justify-center animate-fade-in">
+    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-parchment-500 leading-tight">
+      Discover the Legacy of
+      <br />
+      <span className="relative inline-flex flex-col h-[1.5em] overflow-hidden mt-2">
+        <span className="text-gradient animate-typewriter">
+          {animatedWords[currentWordIndex]}
+        </span>
+        <span className="text-gradient absolute top-full animate-slide-down">
+          {animatedWords[(currentWordIndex + 1) % animatedWords.length]}
+        </span>
+      </span>
+      <br />
+      <span className="text-gradient animate-shimmer inline-block mt-2">
+        Ottoman Banknotes
+      </span>
+    </h1>
 
-            {/* Image 3 */}
-            <div
-             className="absolute top-72 left-72 w-48 h-48 rounded-lg shadow-lg overflow-hidden"
-              style={{ animation: "floatRotate 3s ease-in-out infinite", animationDelay: "400ms" }}
-            >
-              <img
-                src="/placeholder.svg"
-                alt="Image 3"
-                className="w-full h-full object-cover"
-              />
-            </div>
+    <p className="mt-6 text-lg text-ottoman-100 max-w-2xl animate-floating">
+      Explore, collect, and trade historical Ottoman Empire banknotes from across regions 
+      and eras. Join our <span className="text-ottoman-300 font-medium animate-pulse-subtle">
+        community of passionate collectors
+      </span> and numismatic enthusiasts.
+    </p>
 
-            <style>{`
-              @keyframes floatRotate {
-                0%, 100% {
-                  transform: translateY(0) rotate(0deg);
-                }
-                50% {
-                  transform: translateY(-10px) rotate(3deg);
-                }
-              }
-            `}</style>
-          </div>
-        </div>
-      </section>
+    <div className="mt-10 flex flex-wrap justify-center gap-4">
+      <Button className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg group">
+        <span className="group-hover:animate-bounce-subtle">Explore Catalog</span>
+        <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
+      </Button>
+      {!user && (
+        <Link to="/auth">
+          <Button
+            variant="outline"
+            className="border-ottoman-700 hover:bg-ottoman-800/50 text-ottoman-100 py-6 px-8 text-lg"
+          >
+            Join Community
+          </Button>
+        </Link>
+      )}
+    </div>
+  </div>
+</section>
       
       {/* Features Section */}
       <section className="py-20 bg-dark-600">
