@@ -240,8 +240,9 @@ const Index = () => {
               </Link>
             </div>
           </div>
-          
+          <div className="animate-floating">
           <MarketplaceHighlights items={marketplaceItems} loading={loadingMarketplace} />
+          </div>
         </div>
       </section>
       
