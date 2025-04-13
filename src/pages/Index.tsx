@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { MOCK_BANKNOTES } from "@/lib/constants";
@@ -17,6 +18,17 @@ const Index = () => {
   const [forumPosts, setForumPosts] = useState<ForumPost[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [loadingMarketplace, setLoadingMarketplace] = useState(false);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const animatedWords = ["Rare", "Historic", "Valuable", "Unique", "Exquisite"];
+  
+  // Change word every 2 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentWordIndex((prevIndex) => (prevIndex + 1) % animatedWords.length);
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
   
   // Fetch forum posts
   useEffect(() => {
@@ -24,6 +36,7 @@ const Index = () => {
       setLoadingPosts(true);
       try {
         const posts = await fetchForumPosts();
+        // @ts-ignore - handling type mismatch temporarily
         setForumPosts(posts.slice(0, 3)); // Take only the first 3 posts
       } catch (error) {
         console.error("Failed to fetch forum posts:", error);
@@ -85,15 +98,29 @@ const Index = () => {
         <div className="container mx-auto flex flex-col lg:flex-row items-center">
           <div className="lg:w-1/2 lg:pr-12 mb-10 lg:mb-0 animate-fade-in">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-parchment-500 leading-tight">
-              Discover the Legacy of <span className="text-gradient">Ottoman Banknotes</span>
+              Discover the Legacy of{" "}
+              <div className="relative inline-flex flex-col h-[1.5em] overflow-hidden">
+                <span className="text-gradient absolute animate-slide-up">
+                  {animatedWords[(currentWordIndex + animatedWords.length - 1) % animatedWords.length]}
+                </span>
+                <span className="text-gradient animate-typewriter">
+                  {animatedWords[currentWordIndex]}
+                </span>
+                <span className="text-gradient absolute top-full animate-slide-down">
+                  {animatedWords[(currentWordIndex + 1) % animatedWords.length]}
+                </span>
+              </div>
+              <br />
+              <span className="text-gradient animate-shimmer inline-block">Ottoman Banknotes</span>
             </h1>
-            <p className="mt-6 text-lg text-ottoman-100 max-w-2xl">
+            <p className="mt-6 text-lg text-ottoman-100 max-w-2xl animate-floating">
               Explore, collect, and trade historical Ottoman Empire banknotes from across regions 
-              and eras. Join our community of passionate collectors and numismatic enthusiasts.
+              and eras. Join our <span className="text-ottoman-300 font-medium animate-pulse-subtle">community of passionate collectors</span> and numismatic enthusiasts.
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
-              <Button className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg">
-                Explore Catalog
+              <Button className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg group">
+                <span className="group-hover:animate-bounce-subtle">Explore Catalog</span>
+                <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
               {!user && (
                 <Link to="/auth">

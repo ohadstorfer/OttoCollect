@@ -17,7 +17,8 @@ import Community from "./pages/Community";
 import Messaging from "./pages/Messaging";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
-import Banknote from "./pages/Banknote";
+// Fix BankNote import to use consistent casing
+import BanknoteDetail from "./pages/BanknoteDetail";
 import BanknoteCatalogDetail from "./pages/BanknoteCatalogDetail";
 import BanknoteCollectionDetail from "./pages/BanknoteCollectionDetail";
 import Admin from "./pages/Admin";
@@ -55,7 +56,7 @@ const App = () => (
                 <Route path="/community/forum/new" element={<CreateForumPost />} />
                 <Route path="/community/members" element={<Members />} />
                 <Route path="/messaging" element={<Messaging />} />
-                <Route path="/banknote/:id" element={<Banknote />} />
+                <Route path="/banknote/:id" element={<BanknoteDetail />} />
                 <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
                 <Route path="/banknote-details/:id" element={<BanknoteCatalogDetailMinimized />} />
                 <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail />} />

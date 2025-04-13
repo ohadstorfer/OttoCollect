@@ -379,9 +379,10 @@ export async function synchronizeMarketplaceWithCollection() {
         const { error } = await supabase
           .from('marketplace_items')
           .insert({
+            banknote_id: item.banknote_id,
             collection_item_id: item.id,
             seller_id: item.user_id,
-            status: 'Available'
+            status: "active"
           });
           
         if (error) {

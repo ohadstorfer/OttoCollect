@@ -155,7 +155,29 @@ export default {
         "pulse-subtle": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.8" }
-        }
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% center" },
+          "100%": { backgroundPosition: "200% center" }
+        },
+        "typewriter": {
+          "0%": { width: "0" },
+          "20%": { width: "100%" },
+          "80%": { width: "100%" },
+          "100%": { width: "0" }
+        },
+        "cursor": {
+          "0%": { borderRight: "2px solid transparent" },
+          "100%": { borderRight: "2px solid #9C6644" }
+        },
+        "bounce-subtle": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-3px)" }
+        },
+        "floating": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-5px)" }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -167,6 +189,11 @@ export default {
         "slide-in": "slide-in 0.5s ease-out",
         "slide-out": "slide-out 0.3s ease-out",
         "pulse-subtle": "pulse-subtle 3s infinite ease-in-out",
+        "shimmer": "shimmer 4s linear infinite",
+        "typewriter": "typewriter 2s ease-in-out infinite",
+        "cursor": "cursor 1s ease-in-out infinite",
+        "bounce-subtle": "bounce-subtle 0.5s ease-in-out",
+        "floating": "floating 3s ease-in-out infinite",
       },
       fontFamily: {
         serif: ['Playfair Display', 'serif'],
