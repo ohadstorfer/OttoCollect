@@ -4,6 +4,7 @@ export interface ForumPost {
   title: string;
   content: string;
   author_id: string;
+  authorId?: string;
   author?: {
     id: string;
     username: string;
@@ -11,14 +12,13 @@ export interface ForumPost {
     rank?: string;
   };
   image_urls?: string[];
+  imageUrls?: string[];
   created_at: string;
   updated_at: string;
   commentCount?: number;
   comments?: ForumComment[];
   
   // Compatibility aliases to handle both naming conventions
-  authorId?: string;
-  imageUrls?: string[];
   createdAt?: string;
   updatedAt?: string;
 }

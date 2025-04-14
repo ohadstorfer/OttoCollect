@@ -50,15 +50,18 @@ function App() {
             <Route path="/catalog" element={<Catalog />} />
             <Route path="/catalog/:country" element={<CountryDetail />} />
             <Route path="/banknote-details/:id" element={<BanknoteCatalogDetail />} />
+            <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
             <Route path="/profile/:id" element={<Profile />} />
             <Route path="/collection" element={<Collection />} />
             <Route path="/collection/:id" element={<CollectionItem />} />
             <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail />} />
+            <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/marketplace/:id" element={<MarketplaceItemDetail />} />
             <Route path="/community" element={<Community />} />
             <Route path="/community/forum" element={<Forum />} />
             <Route path="/community/forum/post/:id" element={<ForumPost />} />
+            <Route path="/community/forum/:id" element={<ForumPost />} />
             <Route path="/community/forum/new" element={<CreateForumPost />} />
             <Route path="/messaging" element={<Messaging />} />
             <Route path="/members" element={<Members />} />

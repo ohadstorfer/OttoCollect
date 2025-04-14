@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionItem, MarketplaceItem } from "@/types";
 
@@ -7,7 +8,7 @@ import { CollectionItem, MarketplaceItem } from "@/types";
 export const fetchMarketplaceItems = async (): Promise<MarketplaceItem[]> => {
   try {
     const { data, error } = await supabase
-      .from('marketplace_listings')
+      .from('marketplace_items')
       .select(`
         id,
         status,
@@ -40,8 +41,11 @@ export const fetchMarketplaceItems = async (): Promise<MarketplaceItem[]> => {
     // Map the data to our MarketplaceItem type
     return (data || []).map(item => ({
       id: item.id,
+      collectionItemId: item.collection_item_id,
+      sellerId: item.profiles.id,
       status: item.status,
       createdAt: item.created_at,
+      updatedAt: item.created_at, // Using created_at as a fallback for updatedAt
       collectionItem: {
         id: item.collection_items.id,
         banknoteId: item.collection_items.banknote_id,

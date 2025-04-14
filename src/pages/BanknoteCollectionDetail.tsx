@@ -72,8 +72,8 @@ export default function BanknoteCollectionDetail() {
       if (foundItem) {
         setCollectionItem(foundItem);
       } else {
-        // If not in collection, redirect to catalog view
-        navigate(`/catalog-banknote/${id}`);
+        // If not in collection, redirect to catalog view with the correct path
+        navigate(`/banknote-details/${id}`);
       }
     }
   }, [user, userCollection, banknote, id, navigate]);
