@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { MOCK_BANKNOTES } from "@/lib/constants";
@@ -24,7 +23,6 @@ const Index = () => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const animatedWords = ["Rare", "Historic", "Valuable", "Unique", "Exquisite"];
   
-  // Change word every 2 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentWordIndex((prevIndex) => (prevIndex + 1) % animatedWords.length);
@@ -33,14 +31,12 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Fetch forum posts
   useEffect(() => {
     const loadForumPosts = async () => {
       setLoadingPosts(true);
       try {
         const posts = await fetchForumPosts();
-        // @ts-ignore - handling type mismatch temporarily
-        setForumPosts(posts.slice(0, 3)); // Take only the first 3 posts
+        setForumPosts(posts.slice(0, 3));
       } catch (error) {
         console.error("Failed to fetch forum posts:", error);
       } finally {
@@ -51,13 +47,12 @@ const Index = () => {
     loadForumPosts();
   }, []);
   
-  // Fetch marketplace items
   useEffect(() => {
     const loadMarketplaceItems = async () => {
       setLoadingMarketplace(true);
       try {
         const items = await fetchMarketplaceItems();
-        setMarketplaceItems(items.slice(0, 4)); // Take only the first 4 items
+        setMarketplaceItems(items.slice(0, 4));
       } catch (error) {
         console.error("Failed to fetch marketplace items:", error);
       } finally {
@@ -68,7 +63,6 @@ const Index = () => {
     loadMarketplaceItems();
   }, []);
   
-  // Animation observer for scroll animations
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -96,9 +90,7 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen ${bgColor}`}>
-      {/* Hero Section */}
       <section className="relative py-16 px-4 overflow-hidden text-center">
-        {/* Background Pattern */}
         <div className="absolute inset-0 -z-10">
           <div
             className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${skewedBgColor} shadow-xl ring-1 ring-inset`}
@@ -119,7 +111,7 @@ const Index = () => {
               </span>
             </span>
             <br />
-            <span className="text-gradient animate-shimmer inline-block mt-2">
+            <span className="animate-shimmer inline-block mt-2">
               Ottoman Banknotes
             </span>
           </h1>
@@ -152,7 +144,6 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Features Section */}
       <section className={`py-20 ${featuresBgColor} border-y`}>
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16 reveal fade-bottom">
@@ -208,7 +199,6 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Community Forum Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
@@ -235,7 +225,6 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Marketplace Highlights Section */}
       <section className={`py-20 ${featuresBgColor} border-y`}>
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
@@ -258,12 +247,11 @@ const Index = () => {
             </div>
           </div>
           <div className="animate-floating">
-          <MarketplaceHighlights items={marketplaceItems} loading={loadingMarketplace} />
+            <MarketplaceHighlights items={marketplaceItems} loading={loadingMarketplace} />
           </div>
         </div>
       </section>
       
-      {/* CTA Section */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div
@@ -298,7 +286,6 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Search Bar */}
       <section className={`py-12 ${theme === 'light' ? 'bg-ottoman-100 border-ottoman-300' : 'bg-ottoman-800 border-none'} border-t`}>
         <div className="container mx-auto px-4 reveal fade-bottom">
           <div className="max-w-4xl mx-auto">

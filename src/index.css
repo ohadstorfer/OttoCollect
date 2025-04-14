@@ -277,6 +277,20 @@
   }
 }
 
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+  }
+  
+  [data-theme="dark"] .text-gradient {
+    @apply bg-gradient-to-r from-ottoman-300 via-gold-400 to-ottoman-500;
+  }
+  
+  [data-theme="light"] .text-gradient {
+    @apply bg-gradient-to-r from-ottoman-600 via-gold-600 to-ottoman-700;
+  }
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
@@ -452,7 +466,7 @@
 }
 
 [data-theme="dark"] .animate-shimmer {
-  background: linear-gradient(
+  background-image: linear-gradient(
     to right,
     #b1784f 20%,
     #d4af37 30%,
@@ -464,7 +478,7 @@
 }
 
 [data-theme="light"] .animate-shimmer {
-  background: linear-gradient(
+  background-image: linear-gradient(
     to right,
     #7d5234 20%,
     #b38728 30%,
