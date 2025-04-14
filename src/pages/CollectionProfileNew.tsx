@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -122,15 +121,6 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
     }
   });
 
-  // Define sort options
-  const sortOptions = [
-    { id: "newest", name: "Newest First" },
-    { id: "oldest", name: "Oldest First" },
-    { id: "sultan", name: "Sultan" },
-    { id: "faceValue", name: "Face Value" },
-    { id: "extPick", name: "Ext. Pick#", required: true }
-  ];
-
   const handleTabChange = (value: string) => {
     setSearchParams({ tab: value });
   };
@@ -172,8 +162,7 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
           <div className="bg-card border rounded-lg p-6 mb-6">
             <BanknoteFilter
               categories={collectionCategories}
-              types={collectionTypes}
-              sortOptions={sortOptions}
+              availableTypes={collectionTypes}
               onFilterChange={setCollectionFilters}
               isLoading={loading}
               defaultSort={["newest", "extPick"]}
@@ -203,7 +192,6 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
                     collectionItem={item}
                     source="collection"
                     ownerId={userId}
-                    searchHighlight={collectionFilters.search}
                   />
                 ))}
               </div>
@@ -215,8 +203,7 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
           <div className="bg-card border rounded-lg p-6 mb-6">
             <BanknoteFilter
               categories={wishlistCategories}
-              types={wishlistTypes}
-              sortOptions={sortOptions}
+              availableTypes={wishlistTypes}
               onFilterChange={setWishlistFilters}
               isLoading={loading}
               defaultSort={["newest", "extPick"]}
@@ -288,8 +275,7 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
           <div className="bg-card border rounded-lg p-6 mb-6">
             <BanknoteFilter
               categories={missingCategories}
-              types={missingTypes}
-              sortOptions={sortOptions}
+              availableTypes={missingTypes}
               onFilterChange={setMissingFilters}
               isLoading={loading}
               defaultSort={["extPick"]}
@@ -317,7 +303,6 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
                     key={banknote.id}
                     banknote={banknote}
                     source="missing"
-                    searchHighlight={missingFilters.search}
                   />
                 ))}
               </div>

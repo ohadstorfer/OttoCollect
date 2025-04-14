@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
@@ -119,15 +118,6 @@ const Collection = () => {
     }
   });
 
-  // Define sort options
-  const sortOptions = [
-    { id: "newest", name: "Newest First" },
-    { id: "oldest", name: "Oldest First" },
-    { id: "sultan", name: "Sultan" },
-    { id: "faceValue", name: "Face Value" },
-    { id: "extPick", name: "Ext. Pick#", required: true }
-  ];
-
   const handleTabChange = (value: string) => {
     setSearchParams({ tab: value });
   };
@@ -167,8 +157,7 @@ const Collection = () => {
           <div className="bg-card border rounded-lg p-6 mb-6">
             <BanknoteFilter
               categories={collectionCategories}
-              types={collectionTypes}
-              sortOptions={sortOptions}
+              availableTypes={collectionTypes}
               onFilterChange={setCollectionFilters}
               isLoading={loading}
               defaultSort={["newest", "extPick"]}
@@ -198,7 +187,6 @@ const Collection = () => {
                     collectionItem={item}
                     source="collection"
                     ownerId={user.id}
-                    searchHighlight={collectionFilters.search}
                   />
                 ))}
               </div>
@@ -210,8 +198,7 @@ const Collection = () => {
           <div className="bg-card border rounded-lg p-6 mb-6">
             <BanknoteFilter
               categories={wishlistCategories}
-              types={wishlistTypes}
-              sortOptions={sortOptions}
+              availableTypes={wishlistTypes}
               onFilterChange={setWishlistFilters}
               isLoading={loading}
               defaultSort={["newest", "extPick"]}
@@ -283,8 +270,7 @@ const Collection = () => {
           <div className="bg-card border rounded-lg p-6 mb-6">
             <BanknoteFilter
               categories={missingCategories}
-              types={missingTypes}
-              sortOptions={sortOptions}
+              availableTypes={missingTypes}
               onFilterChange={setMissingFilters}
               isLoading={loading}
               defaultSort={["extPick"]}
@@ -312,7 +298,6 @@ const Collection = () => {
                     key={banknote.id}
                     banknote={banknote}
                     source="missing"
-                    searchHighlight={missingFilters.search}
                   />
                 ))}
               </div>

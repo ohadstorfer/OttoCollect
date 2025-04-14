@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
@@ -82,14 +83,21 @@ const Marketplace = () => {
     loadMarketplaceItems();
   }, [toast]);
   
+  // Transform marketplace items for the filter
+  const marketplaceItemsForFilter = marketplaceItems.map(item => ({
+    banknote: item.collectionItem.banknote,
+    marketplaceItem: item
+  }));
+  
   // Use the banknote filter hook
   const { 
     filteredItems, 
     filters, 
     setFilters,
-    availableCategories
+    availableCategories,
+    availableTypes
   } = useBanknoteFilter({
-    items: marketplaceItems,
+    items: marketplaceItemsForFilter,
     initialFilters: {
       sort: ["extPick"]
     }
@@ -163,6 +171,7 @@ const Marketplace = () => {
 
               <BanknoteFilter
                 categories={availableCategories}
+                availableTypes={availableTypes}
                 onFilterChange={setFilters}
                 isLoading={loading}
                 defaultSort={["extPick"]}
@@ -221,11 +230,11 @@ const Marketplace = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredItems.map((item, index) => (
                 <div 
-                  key={item.id} 
+                  key={`marketplace-item-${index}`}
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <MarketplaceItem item={item} />
+                  <MarketplaceItem item={(item as any).marketplaceItem} />
                 </div>
               ))}
             </div>

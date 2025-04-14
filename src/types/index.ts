@@ -1,244 +1,112 @@
-// User related types
 export interface User {
   id: string;
-  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  role: UserRole;
-  rank: UserRank;
-  points: number;
-  createdAt: string;
-  avatarUrl?: string;
-  country?: string;
-  about?: string;
+  role: 'User' | 'Admin';
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export type UserRole = 'User' | 'Admin' | 'Super Admin';
-
-export type UserRank = 
-  | 'Newbie'
-  | 'Beginner Collector'
-  | 'Casual Collector'
-  | 'Known Collector'
-  | 'Advance Collector'
-  | 'Admin'
-  | 'Super Admin';
-
-// Banknote related types
 export interface Banknote {
   id: string;
-  catalogId: string;  
+  catalogId: string;
   country: string;
   denomination: string;
   year: string;
-  series: string;
-  description: string;
-  obverseDescription?: string;
-  reverseDescription?: string;
   imageUrls: string[];
+  description?: string;
+  series?: string;
+  type?: string;
+  sultanName?: string;
+  extendedPickNumber?: string;
   isApproved: boolean;
   isPending: boolean;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  pick_number?: string;
-  rarity?: string;  // Add rarity property to fix errors in CountryDetail
-  type?: string;  // Add type property for filtering
-  sultanName?: string; // Add sultanName property for sorting
-  extendedPickNumber?: string; // Add extendedPickNumber property for sorting
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface DetailedBanknote extends Banknote {
-  extendedPickNumber?: string;
-  pickNumber?: string;
-  turkCatalogNumber?: string;
-  islamicYear?: string;
-  gregorianYear?: string;
-  faceValue?: string;
-  signaturesFront?: string;
-  signaturesBack?: string;
-  sealNames?: string;
-  sealPictures?: string[];
-  signaturePictures?: string[];
-  watermarkPicture?: string;
-  otherElementPictures?: string[];
-  frontPicture?: string;
-  backPicture?: string;
-  sultanName?: string;
-  tughraPicture?: string;
-  printer?: string;
-  type?: string;
-  category?: string;
-  rarity?: string;
-  securityElement?: string;
-  colors?: string;
-  serialNumbering?: string;
-  banknoteDescription?: string;
-  historicalDescription?: string;
+  gradeCounts: { [grade: string]: number };
+  averagePrice: number | null;
 }
 
-export type BanknoteCondition = 
-  | 'UNC' 
-  | 'AU' 
-  | 'XF' 
-  | 'VF' 
-  | 'F' 
-  | 'VG' 
-  | 'G'
-  | 'Fair'
-  | 'Poor';
-
-// Collection related types
 export interface CollectionItem {
   id: string;
-  userId: string;
   banknoteId: string;
-  banknote: Banknote;
+  userId: string;
   condition: BanknoteCondition;
-  salePrice: number | null;
-  isForSale: boolean;  // Note this property name (not forSale)
-  publicNote?: string;
-  privateNote?: string;
   purchasePrice?: number;
-  purchaseDate?: string;
-  location?: string;
-  obverseImage?: string;
-  reverseImage?: string;
-  orderIndex: number;
-  createdAt: string;
-  updatedAt: string;
-  personalImages?: string[];
+  purchaseDate?: Date;
+  notes?: string;
+  isForSale: boolean;
+  salePrice?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+  banknote: Banknote;
 }
 
-// Wishlist related types
 export interface WishlistItem {
   id: string;
-  userId: string;
   banknoteId: string;
-  banknote: Banknote;
-  priority: 'Low' | 'Medium' | 'High';
+  userId: string;
+  priority: 'High' | 'Medium' | 'Low';
   note?: string;
-  createdAt: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  banknote: Banknote;
 }
 
-// Marketplace related types
+export type BanknoteCondition =
+  | 'Uncirculated'
+  | 'Near Mint'
+  | 'Extremely Fine'
+  | 'Very Fine'
+  | 'Fine'
+  | 'Very Good'
+  | 'Good'
+  | 'Poor';
+
 export interface MarketplaceItem {
   id: string;
   collectionItemId: string;
-  collectionItem: CollectionItem;
   sellerId: string;
-  seller: {
-    id: string;
-    username: string;
-    rank: UserRank;
-  };
-  status: 'Available' | 'Sold' | 'Reserved';
-  createdAt: string;
-  updatedAt: string;
+  price: number;
+  description?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  collectionItem: CollectionItem;
 }
 
-// Messaging related types
-export interface Message {
-  id: string;
-  senderId: string;
-  receiverId: string;
-  content: string;
-  referenceItemId?: string;
-  isRead: boolean;
-  createdAt: string;
-}
+// Banknote types
+export const BANKNOTE_TYPES = [
+  "issued notes",
+  "specimens",
+  "Cancelled & Annule",
+  "Trial note",
+  "Error banknote",
+  "Counterfeit banknote",
+  "Emergency note", 
+  "Check & Bond notes",
+  "Other notes"
+];
 
-// Forum/Blog related types
-export interface ForumPost {
-  id: string;
-  title: string;
-  content: string;
-  authorId: string;
-  author?: {
-    id: string;
-    username: string;
-    avatarUrl?: string;
-    rank: UserRank;
-  };
-  imageUrls: string[];
-  comments?: ForumComment[];
-  commentCount?: number;
-  createdAt: string;
-  updatedAt: string;
-}
+export const DEFAULT_SELECTED_TYPES = [
+  "issued notes",
+  "specimens",
+  "Cancelled & Annule"
+];
 
-export interface ForumComment {
-  id: string;
-  postId: string;
-  content: string;
-  authorId: string;
-  author?: {
-    id: string;
-    username: string;
-    avatarUrl?: string;
-    rank: UserRank;
-  };
-  createdAt: string;
-  updatedAt: string;
-  isEdited?: boolean;
-}
+// Sort options
+export const SORT_OPTIONS = [
+  { id: "sultan", name: "Sultan" },
+  { id: "faceValue", name: "Face Value" },
+  { id: "extPick", name: "Ext. Pick#", required: true }
+];
 
-// Define the CountryData interface needed in Catalog.tsx
-export interface CountryData {
-  name: string;
-  count: number;
-  imageUrl: string | null;
-}
-
-// Define BanknoteDetailSource for components that need it
-export type BanknoteDetailSource = 
-  | 'collection' 
-  | 'catalog' 
-  | 'wish-list' 
-  | 'marketplace' 
-  | 'search' 
-  | 'country-detail'
-  | 'missing'
-  | 'wishlist';
-
-// BanknoteDetailCard props
-export interface BanknoteDetailCardProps {
-  banknote: Banknote | DetailedBanknote;
-  collectionItem?: CollectionItem;
-  source: BanknoteDetailSource;
-  ownerId?: string;
-  searchHighlight?: string;
-}
-
-// Banknote filter types
-export type BanknoteFilterState = {
+export interface BanknoteFilterState {
   search: string;
   categories: string[];
   types: string[];
   sort: string[];
-};
-
-export const BANKNOTE_TYPES = [
-  'issued notes',
-  'specimens',
-  'Cancelled & Annule',
-  'Trial note',
-  'Error banknote',
-  'Counterfeit banknote',
-  'Emergency note',
-  'Check & Bond notes',
-  'Other notes'
-] as const;
-
-export type BanknoteType = typeof BANKNOTE_TYPES[number];
-
-export const DEFAULT_SELECTED_TYPES = [
-  'issued notes',
-  'specimens',
-  'Cancelled & Annule'
-];
-
-export const SORT_OPTIONS = [
-  { id: "sultan", name: "Sultan", required: false },
-  { id: "faceValue", name: "Face Value", required: false },
-  { id: "extPick", name: "Ext. Pick#", required: true }
-] as const;
+}

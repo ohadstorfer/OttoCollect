@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
 import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
+import { HighlightText } from "@/components/filter/HighlightText";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -64,16 +65,6 @@ const CountryDetail = () => {
     }
   });
 
-  // Define sort options
-  const sortOptions = [
-    { id: "sultan", name: "Sultan" },
-    { id: "faceValue", name: "Face Value" },
-    { id: "year", name: "Year" },
-    { id: "newest", name: "Newest First" },
-    { id: "oldest", name: "Oldest First" },
-    { id: "extPick", name: "Ext. Pick#", required: true }
-  ];
-
   const handleBack = () => {
     navigate('/catalog');
   };
@@ -90,8 +81,7 @@ const CountryDetail = () => {
       <div className="bg-card border rounded-lg p-6 mb-6">
         <BanknoteFilter
           categories={availableCategories}
-          types={availableTypes}
-          sortOptions={sortOptions}
+          availableTypes={availableTypes}
           onFilterChange={setFilters}
           isLoading={loading}
           defaultSort={["extPick"]}
@@ -114,7 +104,6 @@ const CountryDetail = () => {
                   key={banknote.id}
                   banknote={banknote}
                   source="catalog"
-                  searchHighlight={filters.search}
                 />
               ))}
             </div>

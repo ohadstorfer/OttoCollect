@@ -12,7 +12,7 @@ export const HighlightText: React.FC<HighlightTextProps> = ({
   highlight,
   className = ""
 }) => {
-  if (!highlight.trim() || !text) {
+  if (!highlight?.trim() || !text) {
     return <span className={className}>{text}</span>;
   }
 

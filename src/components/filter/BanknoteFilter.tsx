@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
-import { BANKNOTE_TYPES, DEFAULT_SELECTED_TYPES, SORT_OPTIONS } from "@/types";
+import { BanknoteFilterState, BANKNOTE_TYPES, DEFAULT_SELECTED_TYPES, SORT_OPTIONS } from "@/types";
 import {
   Sheet,
   SheetContent,
@@ -26,15 +26,11 @@ export type FilterCategory = {
 
 export type BanknoteFilterProps = {
   categories: FilterCategory[];
-  onFilterChange: (filters: {
-    search: string;
-    categories: string[];
-    types: string[];
-    sort: string[];
-  }) => void;
+  onFilterChange: (filters: BanknoteFilterState) => void;
   isLoading?: boolean;
   className?: string;
   defaultSort?: string[];
+  availableTypes?: FilterCategory[];
 };
 
 export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
@@ -42,7 +38,8 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   onFilterChange,
   isLoading = false,
   className,
-  defaultSort = ["extPick"]
+  defaultSort = ["extPick"],
+  availableTypes = []
 }) => {
   const isMobile = useIsMobile();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
@@ -57,12 +54,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     handleFilterChange({ search: value });
   }, 300);
 
-  const handleFilterChange = (changes: Partial<{
-    search: string;
-    categories: string[];
-    types: string[];
-    sort: string[];
-  }>) => {
+  const handleFilterChange = (changes: Partial<BanknoteFilterState>) => {
     const newFilters = {
       search: changes.search !== undefined ? changes.search : search,
       categories: changes.categories !== undefined ? changes.categories : selectedCategories,
@@ -103,7 +95,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
 
     let newSort: string[];
     if (checked) {
-      newSort = [...selectedSort.filter(s => s !== "extPick"), sortId, "extPick"];
+      newSort = [...selectedSort.filter(s => s !== sortId && s !== "extPick"), sortId, "extPick"];
     } else {
       newSort = selectedSort.filter(s => s !== sortId && s !== "extPick").concat(["extPick"]);
     }
@@ -116,6 +108,9 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     setSearch(value);
     debouncedSearch(value);
   };
+
+  const allCategoriesSelected = selectedCategories.length === categories.length && categories.length > 0;
+  const allTypesSelected = selectedTypes.length === BANKNOTE_TYPES.length;
 
   return (
     <div className={cn(
@@ -145,7 +140,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
             >
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
-                <span>Category & Type</span>
+                <span>{isMobile ? "Categories" : "Category & Types"}</span>
               </div>
             </Button>
           </SheetTrigger>
@@ -153,14 +148,14 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
             <SheetHeader>
               <SheetTitle>Categories & Types</SheetTitle>
             </SheetHeader>
-            <div className="space-y-6 py-4">
+            <div className="space-y-6 py-4 max-h-[80vh] overflow-y-auto">
               <div>
                 <h4 className="font-medium mb-3">Categories</h4>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="all-categories"
-                      checked={selectedCategories.length === categories.length}
+                      checked={allCategoriesSelected}
                       onCheckedChange={(checked) => handleCategoryChange("all", !!checked)}
                     />
                     <label htmlFor="all-categories" className="text-sm">All Categories</label>
@@ -185,7 +180,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="all-types"
-                      checked={selectedTypes.length === BANKNOTE_TYPES.length}
+                      checked={allTypesSelected}
                       onCheckedChange={(checked) => handleTypeChange("all", !!checked)}
                     />
                     <label htmlFor="all-types" className="text-sm">All Types</label>
@@ -202,6 +197,9 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                   ))}
                 </div>
               </div>
+              <SheetClose asChild>
+                <Button className="w-full">Apply Filters</Button>
+              </SheetClose>
             </div>
           </SheetContent>
         </Sheet>
@@ -243,6 +241,9 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                   </label>
                 </div>
               ))}
+              <SheetClose asChild className="mt-4">
+                <Button className="w-full">Apply Sort</Button>
+              </SheetClose>
             </div>
           </SheetContent>
         </Sheet>

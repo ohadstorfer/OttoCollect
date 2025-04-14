@@ -28,7 +28,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
   });
 
   // Extract banknote from item
-  const getBanknote = (item: T): Banknote => {
+  const getBanknote = (item: T): Banknote | undefined => {
     if ((item as any).banknote) {
       return (item as any).banknote;
     }
@@ -39,6 +39,8 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       const banknote = getBanknote(item);
+      if (!banknote) return false;
+      
       const searchLower = filters.search.toLowerCase();
 
       // Search filter
@@ -60,6 +62,8 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     }).sort((a, b) => {
       const banknoteA = getBanknote(a);
       const banknoteB = getBanknote(b);
+      
+      if (!banknoteA || !banknoteB) return 0;
 
       // Apply sorting based on selected criteria
       for (const sortOption of filters.sort) {
@@ -107,7 +111,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     
     items.forEach(item => {
       const banknote = getBanknote(item);
-      if (banknote.series) {
+      if (banknote?.series) {
         if (!categories.has(banknote.series)) {
           categories.set(banknote.series, { 
             name: banknote.series, 
@@ -133,7 +137,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     
     items.forEach(item => {
       const banknote = getBanknote(item);
-      if (banknote.type) {
+      if (banknote?.type) {
         if (!types.has(banknote.type)) {
           types.set(banknote.type, { 
             name: banknote.type, 
