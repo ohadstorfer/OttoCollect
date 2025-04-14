@@ -23,7 +23,7 @@ export default function Community() {
       title: "Members",
       description: "Browse other collectors and view their profiles",
       icon: <Users className="h-8 w-8 text-ottoman-500" />,
-      action: () => navigate('/community/members'),
+      action: () => navigate('/members'),
       buttonText: "Browse Members",
       comingSoon: false
     },

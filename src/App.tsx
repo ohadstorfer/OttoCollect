@@ -22,6 +22,7 @@ import Messaging from "@/pages/Messaging";
 import Members from "@/pages/Members";
 import NotFound from "@/pages/NotFound";
 import Admin from "@/pages/Admin";
+import Community from "@/pages/Community";
 import { PageBackground } from "./components/ui/page-background";
 import { useTheme } from "./context/ThemeContext";
 import "./App.css";
@@ -55,6 +56,7 @@ function App() {
             <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/marketplace/:id" element={<MarketplaceItemDetail />} />
+            <Route path="/community" element={<Community />} />
             <Route path="/community/forum" element={<Forum />} />
             <Route path="/community/forum/post/:id" element={<ForumPost />} />
             <Route path="/community/forum/new" element={<CreateForumPost />} />

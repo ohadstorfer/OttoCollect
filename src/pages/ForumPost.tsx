@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -157,7 +156,6 @@ const ForumPostPage = () => {
               </div>
               <div className="whitespace-pre-line mb-4">{post.content}</div>
 
-              {/* Image gallery component */}
               {post.imageUrls && post.imageUrls.length > 0 && (
                 <ImageGallery images={post.imageUrls} />
               )}
