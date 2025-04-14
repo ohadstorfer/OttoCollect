@@ -250,7 +250,6 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
                   collectionItem={item}
                   source="collection"
                   ownerId={userId}
-                  onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
                 />
               ))}
             </div>

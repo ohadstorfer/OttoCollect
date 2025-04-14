@@ -162,12 +162,10 @@ const ProfileCollection = ({
               if (!banknote) return null;
 
               return (
-                <div key={item.id} onClick={() => navigate(isCurrentUser ? `/collection-banknote/${item.id}` : `/collection-item/${item.id}`)}>
-                  <CollectionItemCard
-                    item={item}
-                    banknote={banknote}
-                  />
-                </div>
+                <CollectionItemCard
+                  key={item.id}
+                  item={item}
+                />
               );
             })}
           </div>

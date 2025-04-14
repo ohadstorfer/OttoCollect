@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { MOCK_BANKNOTES } from "@/lib/constants";
@@ -10,7 +9,8 @@ import LatestForumPosts from "@/components/home/LatestForumPosts";
 import MarketplaceHighlights from "@/components/home/MarketplaceHighlights";
 import { fetchForumPosts } from "@/services/forumService";
 import { fetchMarketplaceItems } from "@/services/marketplaceService";
-import { ForumPost, MarketplaceItem } from '@/types';
+import { ForumPost } from '@/types/forum';
+import { MarketplaceItem } from '@/types';
 
 const Index = () => {
   const { user } = useAuth();

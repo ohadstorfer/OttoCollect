@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Banknote, CollectionItem, DetailedBanknote } from "@/types";
+import { Banknote, CollectionItem, DetailedBanknote, BanknoteCondition } from "@/types";
 import { useNavigate } from "react-router-dom";
 import { Eye, Plus, Check, Star, StarOff, ShoppingCart, Pencil } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -37,7 +36,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Form state for adding to collection
-  const [condition, setCondition] = useState("UNC");
+  const [condition, setCondition] = useState<BanknoteCondition>("UNC");
   const [purchasePrice, setPurchasePrice] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   const [publicNote, setPublicNote] = useState("");

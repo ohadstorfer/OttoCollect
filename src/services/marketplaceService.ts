@@ -1,6 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceItem, UserRank } from "@/types";
 import { fetchCollectionItem } from "./collectionService";
+import type { Database } from "@/integrations/supabase/types";
+
+type CollectionItemRow = Database['public']['Tables']['collection_items']['Row'];
+type MarketplaceItemInsert = Database['public']['Tables']['marketplace_items']['Insert'];
 
 export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
   try {
@@ -85,9 +89,9 @@ export async function addToMarketplace(
     // First, check if the collection item exists and is not already for sale
     const { data: collectionItem, error: fetchError } = await supabase
       .from('collection_items')
-      .select('*')
+      .select('banknote_id, id, is_for_sale')
       .eq('id', collectionItemId)
-      .single();
+      .single() as { data: { banknote_id: string; id: string; is_for_sale: boolean } | null, error: any };
       
     if (fetchError) {
       console.error("Error fetching collection item:", fetchError);
@@ -98,7 +102,7 @@ export async function addToMarketplace(
       console.error("Collection item not found:", collectionItemId);
       return false;
     }
-    
+
     // Update the collection item to mark as for sale
     const { error: updateError } = await supabase
       .from('collection_items')
@@ -135,11 +139,11 @@ export async function addToMarketplace(
     }
     
     // Add the item to marketplace
-    const newItem = {
+    const newItem: MarketplaceItemInsert = {
       collection_item_id: collectionItemId,
-      banknote_id: collectionItem.banknote_id,
       seller_id: userId,
-      status: 'Available'
+      status: 'Available',
+      banknote_id: collectionItem.banknote_id
     };
     const { error } = await supabase
       .from('marketplace_items')
@@ -345,7 +349,7 @@ export async function synchronizeMarketplaceWithCollection() {
     // 1. Get all collection items marked as for sale
     const { data: forSaleItems, error: collectionError } = await supabase
       .from('collection_items')
-      .select('id, user_id')
+      .select('id, user_id, banknote_id')
       .eq('is_for_sale', true);
       
     if (collectionError) {
