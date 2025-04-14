@@ -1,13 +1,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
-import { Filter, Search, SortAsc, X, AlertCircle, RefreshCw } from "lucide-react";
+import { SortAsc, AlertCircle, RefreshCw } from "lucide-react";
 import MarketplaceItem from "@/components/marketplace/MarketplaceItem";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { fetchMarketplaceItems, synchronizeMarketplaceWithCollection } from "@/services/marketplaceService";
 import { Spinner } from "@/components/ui/spinner";
@@ -15,26 +12,18 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { useTheme } from "@/context/ThemeContext";
+import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
+import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
 
 const Marketplace = () => {
-  console.log('Rendering Marketplace component');
   const { user } = useAuth();
   const { theme } = useTheme();
   const { toast } = useToast();
   const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItemType[]>([]);
-  const [filteredItems, setFilteredItems] = useState<MarketplaceItemType[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  // Filters
-  const [selectedCountry, setSelectedCountry] = useState<string>("all");
-  const [selectedCondition, setSelectedCondition] = useState<string>("all");
-  const [priceRange, setPriceRange] = useState<number[]>([0, 1000]);
-  const [sortBy, setSortBy] = useState<string>("newest");
-  
+
   // Load real marketplace data
   const loadMarketplaceItems = async (showToast = false) => {
     console.log('Starting loadMarketplaceItems function');
@@ -71,7 +60,6 @@ const Marketplace = () => {
       if (items.length > 0) {
         const maxItemPrice = Math.max(...items.map(item => item.collectionItem.salePrice || 0), 100);
         console.log('Setting price range with max price:', maxItemPrice);
-        setPriceRange([0, maxItemPrice]);
       }
       
     } catch (err) {
@@ -94,113 +82,18 @@ const Marketplace = () => {
     loadMarketplaceItems();
   }, [toast]);
   
-  // Get unique countries from the marketplace items
-  const countries = Array.from(
-    new Set(marketplaceItems.map(item => item.collectionItem.banknote.country))
-  ).sort();
-  
-  // Get max price for range slider
-  const maxPrice = Math.max(
-    ...marketplaceItems.map(item => item.collectionItem.salePrice || 0),
-    1000
-  );
-  
-  console.log('Countries detected:', countries);
-  console.log('Max price detected:', maxPrice);
-  
-  // Filter items when search or filters change
-  useEffect(() => {
-    console.log("Filtering with marketplaceItems:", marketplaceItems);
-    let results = [...marketplaceItems]; // Make a copy of the items
-    
-    // Only show available items
-    results = results.filter(item => item.status === "Available");
-    console.log("After available filter:", results.length, "items");
-    
-    // Apply search filter
-    if (searchTerm) {
-      console.log('Applying search filter with term:', searchTerm);
-      const lowerSearchTerm = searchTerm.toLowerCase();
-      results = results.filter(
-        item => {
-          const banknote = item.collectionItem.banknote;
-          return (
-            banknote.catalogId?.toLowerCase().includes(lowerSearchTerm) ||
-            banknote.country?.toLowerCase().includes(lowerSearchTerm) ||
-            banknote.denomination?.toLowerCase().includes(lowerSearchTerm) ||
-            banknote.year?.toLowerCase().includes(lowerSearchTerm) ||
-            item.seller.username?.toLowerCase().includes(lowerSearchTerm)
-          );
-        }
-      );
-      console.log("After search filter:", results.length, "items");
+  // Use the banknote filter hook
+  const { 
+    filteredItems, 
+    filters, 
+    setFilters,
+    availableCategories
+  } = useBanknoteFilter({
+    items: marketplaceItems,
+    initialFilters: {
+      sort: ["extPick"]
     }
-    
-    // Apply country filter
-    if (selectedCountry && selectedCountry !== "all") {
-      console.log('Applying country filter with country:', selectedCountry);
-      results = results.filter(
-        item => item.collectionItem.banknote.country === selectedCountry
-      );
-      console.log("After country filter:", results.length, "items");
-    }
-    
-    // Apply condition filter
-    if (selectedCondition && selectedCondition !== "all") {
-      console.log('Applying condition filter with condition:', selectedCondition);
-      results = results.filter(
-        item => item.collectionItem.condition === selectedCondition
-      );
-      console.log("After condition filter:", results.length, "items");
-    }
-    
-    // Apply price filter
-    console.log('Applying price filter with range:', priceRange);
-    results = results.filter(
-      item => {
-        const price = item.collectionItem.salePrice || 0;
-        return price >= priceRange[0] && price <= priceRange[1];
-      }
-    );
-    console.log("After price filter:", results.length, "items");
-    
-    // Apply sorting
-    console.log('Applying sorting with sort type:', sortBy);
-    switch (sortBy) {
-      case "price-asc":
-        results.sort((a, b) => 
-          (a.collectionItem.salePrice || 0) - (b.collectionItem.salePrice || 0)
-        );
-        break;
-      case "price-desc":
-        results.sort((a, b) => 
-          (b.collectionItem.salePrice || 0) - (a.collectionItem.salePrice || 0)
-        );
-        break;
-      case "newest":
-        results.sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        break;
-      case "oldest":
-        results.sort((a, b) => 
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-        break;
-    }
-    
-    console.log(`Filtering marketplace items: ${results.length} items match filters`);
-    setFilteredItems(results);
-  }, [searchTerm, selectedCountry, selectedCondition, priceRange, sortBy, marketplaceItems]);
-
-  const resetFilters = () => {
-    console.log('Resetting all filters');
-    setSearchTerm("");
-    setSelectedCountry("all");
-    setSelectedCondition("all");
-    setPriceRange([0, maxPrice]);
-    setSortBy("newest");
-  };
+  });
 
   const handleRefresh = () => {
     console.log('Manual refresh triggered');
@@ -208,21 +101,16 @@ const Marketplace = () => {
     loadMarketplaceItems(true);
   };
 
-  console.log('Marketplace render - filteredItems count:', filteredItems.length);
-  
   return (
     <div className="min-h-screen animate-fade-in">
       {/* Header */}
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden`}>
         <div className="absolute inset-0 -z-10">
-          <div
-            className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${
-              theme === 'light'
-                ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
-                : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
-            } shadow-xl ring-1 ring-inset`}
-            aria-hidden="true"
-          />
+          <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${
+            theme === 'light'
+              ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
+              : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
+          } shadow-xl ring-1 ring-inset`} aria-hidden="true" />
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
@@ -232,25 +120,6 @@ const Marketplace = () => {
           <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
             Browse and purchase Ottoman banknotes from fellow collectors
           </p>
-          
-          {/* Search bar */}
-          <div className="mt-8 max-w-2xl mx-auto reveal fade-bottom">
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="Search banknotes or sellers..."
-                className={`ottoman-input pr-10 ${theme === 'light' ? 'bg-white/80 text-ottoman-900 placeholder:text-ottoman-500' : 'bg-white/10 text-white placeholder:text-gray-400'}`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <button
-                className={`absolute right-3 top-1/2 -translate-y-1/2 ${theme === 'light' ? 'text-ottoman-500 hover:text-ottoman-900' : 'text-gray-300 hover:text-white'}`}
-                onClick={() => setSearchTerm("")}
-              >
-                {searchTerm ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
         </div>
       </section>
       
@@ -260,135 +129,44 @@ const Marketplace = () => {
           {/* Filter section */}
           <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'}`}>
             <div className="p-4">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-4">
                 <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
                   Filters & Sorting
                 </h3>
                 
                 <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`${theme === 'light' ? 'text-ottoman-500 hover:text-ottoman-900' : 'text-ottoman-400 hover:text-ottoman-200'}`}
-                    onClick={resetFilters}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Clear
-                  </Button>
+                  {user && (
+                    <Link to="/collection?filter=forsale">
+                      <Button className="ottoman-button">
+                        <SortAsc className="h-4 w-4 mr-2" />
+                        My Listings
+                      </Button>
+                    </Link>
+                  )}
                   
-                  <Button
-                    variant="outline"
+                  <Button 
+                    variant="outline" 
                     size="sm"
-                    className={`${theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'} lg:hidden`}
-                    onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
                   >
-                    <Filter className="h-4 w-4 mr-2" />
-                    {isFilterExpanded ? "Hide Filters" : "Show Filters"}
+                    {isRefreshing ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    Refresh
                   </Button>
                 </div>
               </div>
-              
-              <div className={cn(
-                "mt-4",
-                !isFilterExpanded && "hidden lg:block"
-              )}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <label className="text-sm font-medium text-ottoman-300 mb-1 block">
-                      Country
-                    </label>
-                    <Select 
-                      value={selectedCountry} 
-                      onValueChange={setSelectedCountry}
-                    >
-                      <SelectTrigger className="ottoman-input">
-                        <SelectValue placeholder="All Countries" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Countries</SelectItem>
-                        {countries.map((country) => (
-                          <SelectItem key={country} value={country}>
-                            {country}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-ottoman-300 mb-1 block">
-                      Condition
-                    </label>
-                    <Select 
-                      value={selectedCondition} 
-                      onValueChange={setSelectedCondition}
-                    >
-                      <SelectTrigger className="ottoman-input">
-                        <SelectValue placeholder="Any Condition" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Any Condition</SelectItem>
-                        <SelectItem value="UNC">UNC</SelectItem>
-                        <SelectItem value="AU">AU</SelectItem>
-                        <SelectItem value="XF">XF</SelectItem>
-                        <SelectItem value="VF">VF</SelectItem>
-                        <SelectItem value="F">F</SelectItem>
-                        <SelectItem value="VG">VG</SelectItem>
-                        <SelectItem value="G">G</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-ottoman-300 mb-1 block">
-                      Sort By
-                    </label>
-                    <Select 
-                      value={sortBy} 
-                      onValueChange={setSortBy}
-                    >
-                      <SelectTrigger className="ottoman-input">
-                        <SelectValue placeholder="Sort By" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="newest">Newest First</SelectItem>
-                        <SelectItem value="oldest">Oldest First</SelectItem>
-                        <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                        <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex items-end">
-                    <Button 
-                      className="ottoman-button w-full"
-                      onClick={handleRefresh}
-                      disabled={isRefreshing}
-                    >
-                      {isRefreshing ? (
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                      )}
-                      Refresh
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className={`pt-4 border-t ${theme === 'light' ? 'border-ottoman-200/70' : 'border-ottoman-900/30'}`}>
-                  <label className="text-sm font-medium text-ottoman-300 mb-3 block">
-                    Price Range: ${priceRange[0]} - ${priceRange[1]}
-                  </label>
-                  <Slider
-                    value={priceRange}
-                    min={0}
-                    max={maxPrice}
-                    step={10}
-                    className="my-6"
-                    onValueChange={setPriceRange}
-                  />
-                </div>
-              </div>
+
+              <BanknoteFilter
+                categories={availableCategories}
+                onFilterChange={setFilters}
+                isLoading={loading}
+                defaultSort={["extPick"]}
+              />
             </div>
           </Card>
           
@@ -397,15 +175,6 @@ const Marketplace = () => {
             <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
               Showing <span className={`font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{filteredItems.length}</span> items for sale
             </p>
-            
-            {user && (
-              <Link to="/collection?filter=forsale">
-                <Button className="ottoman-button">
-                  <SortAsc className="h-4 w-4 mr-2" />
-                  My Listings
-                </Button>
-              </Link>
-            )}
           </div>
           
           {/* Content states */}
@@ -436,18 +205,9 @@ const Marketplace = () => {
                 No Items Found
               </h3>
               <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
-                {searchTerm || selectedCountry !== "all" || selectedCondition !== "all" || priceRange[0] > 0 || priceRange[1] < maxPrice
-                  ? "Try adjusting your search criteria or filters"
-                  : "There are currently no items available in the marketplace"}
+                { "There are currently no items available in the marketplace"}
               </p>
               <div className="space-x-4">
-                <Button 
-                  variant="outline" 
-                  className="dark:border-ottoman-700 border-ottoman-300 dark:text-ottoman-200 text-ottoman-800"
-                  onClick={resetFilters}
-                >
-                  Clear All Filters
-                </Button>
                 <Button 
                   className="ottoman-button"
                   onClick={handleRefresh}
