@@ -1,94 +1,55 @@
 
-import { useState } from 'react';
-import { CollectionItem } from '@/types';
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { MoreVertical } from 'lucide-react';
+import { CollectionItem, Banknote } from '@/types';
+import { formatCurrency } from '@/lib/formatters';
 
 interface CollectionItemCardProps {
   item: CollectionItem;
-  className?: string;
+  banknote: Banknote;
 }
 
-const CollectionItemCard = ({ item, className }: CollectionItemCardProps) => {
-  const [isHovering, setIsHovering] = useState(false);
-  const navigate = useNavigate();
-  
-  const { banknote, condition, purchasePrice, publicNote, obverseImage } = item;
-  
-  // Determine which image to show, prioritizing obverse_image
-  const displayImage = obverseImage || 
-    (banknote.imageUrls && banknote.imageUrls.length > 0 
-      ? banknote.imageUrls[0] 
-      : '/placeholder.svg');
-  
+const CollectionItemCard = ({ item, banknote }: CollectionItemCardProps) => {
   return (
-    <Card 
-      className={cn(
-        "overflow-hidden transition-all duration-300",
-        isHovering ? "shadow-lg" : "",
-        className
-      )}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
-      <div className="relative">
-        <div className="aspect-[4/3] overflow-hidden">
-          <img
-            src={displayImage}
-            alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-            className={cn(
-              "w-full h-full object-cover transition-transform duration-500",
-              isHovering ? "scale-110" : "scale-100"
-            )}
-          />
-        </div>
+    <Card className="overflow-hidden transition-all hover:shadow-md h-full">
+      <div className="aspect-video relative overflow-hidden">
+        <img
+          src={item.obverseImage || banknote.imageUrls[0] || '/placeholder.svg'}
+          alt={banknote.denomination}
+          className="w-full h-full object-cover"
+        />
+        {item.forSale && (
+          <Badge className="absolute top-2 right-2 bg-ottoman-500 text-white">
+            For Sale
+          </Badge>
+        )}
       </div>
-      
-      <CardHeader className="p-4 pb-2">
+      <CardContent className="p-3">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="text-lg font-serif font-semibold">
-              {banknote.denomination}
-            </h3>
+            <h3 className="font-medium text-lg leading-tight">{banknote.denomination}</h3>
             <p className="text-sm text-muted-foreground">
               {banknote.country}, {banknote.year}
             </p>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary" className="text-xs">
+                {item.condition}
+              </Badge>
+              {item.forSale && (
+                <Badge variant="outline" className="text-ottoman-500 font-medium text-xs">
+                  {formatCurrency(item.salePrice || 0)}
+                </Badge>
+              )}
+            </div>
           </div>
-          <Badge variant="secondary" className="self-start">
-            {condition}
-          </Badge>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
         </div>
-      </CardHeader>
-      
-      <CardContent className="p-4 pt-2">
-        {publicNote && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-            {publicNote}
-          </p>
-        )}
-        
-        {purchasePrice && (
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-xs text-muted-foreground">Purchased for:</span>
-            <span className="text-sm font-medium">${purchasePrice}</span>
-          </div>
-        )}
       </CardContent>
-      
-      <CardFooter className="p-4 pt-2 flex justify-end">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
-        >
-          <Eye className="h-4 w-4 mr-1" />
-          View Details
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

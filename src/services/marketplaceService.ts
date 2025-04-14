@@ -1,407 +1,158 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { MarketplaceItem, UserRank } from "@/types";
-import { fetchCollectionItem } from "./collectionService";
-import type { Database } from "@/integrations/supabase/types";
+import { CollectionItem, MarketplaceItem } from "@/types";
 
-type CollectionItemRow = Database['public']['Tables']['collection_items']['Row'];
-type MarketplaceItemInsert = Database['public']['Tables']['marketplace_items']['Insert'];
-
-export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
+/**
+ * Fetch marketplace items
+ */
+export const fetchMarketplaceItems = async (): Promise<MarketplaceItem[]> => {
   try {
-    console.log("Fetching marketplace items from Supabase");
-    const { data: marketplaceItems, error } = await supabase
-      .from('marketplace_items')
+    const { data, error } = await supabase
+      .from('marketplace_listings')
       .select(`
-        *,
-        collection_item:collection_item_id (*)
+        id,
+        status,
+        created_at,
+        collection_item_id,
+        collection_items (
+          id,
+          banknote_id,
+          condition,
+          sale_price,
+          public_note,
+          obverse_image,
+          reverse_image,
+          detailed_banknotes (*)
+        ),
+        profiles (
+          id,
+          username,
+          avatar_url,
+          rank
+        )
       `)
       .eq('status', 'Available');
-      
+
     if (error) {
-      console.error("Error fetching marketplace items:", error);
-      throw error;
+      console.error('Error fetching marketplace items:', error);
+      return [];
     }
-    
-    console.log(`Found ${marketplaceItems.length} marketplace items`);
-    
-    // Process the marketplace items
-    const enrichedItems = await Promise.all(
-      (marketplaceItems || []).map(async (item) => {
-        try {
-          // Get collection item details
-          const collectionItem = await fetchCollectionItem(item.collection_item_id);
-          if (!collectionItem) {
-            console.log(`Collection item not found: ${item.collection_item_id}`);
-            return null;
-          }
-          
-          // Verify that the collection item is actually for sale
-          if (!collectionItem.isForSale) {
-            console.log(`Collection item ${item.collection_item_id} is no longer marked for sale, skipping`);
-            return null;
-          }
-          
-          // Get basic seller info
-          const { data: sellerData } = await supabase
-            .from('profiles')
-            .select('id, username, rank')
-            .eq('id', item.seller_id)
-            .single();
-          
-          // Fallback seller data if we can't find the profile
-          const seller = sellerData || {
-            id: item.seller_id,
-            username: "Unknown User",
-            rank: "Newbie" as UserRank
-          };
-          
-          return {
-            id: item.id,
-            collectionItemId: item.collection_item_id,
-            collectionItem: collectionItem,
-            sellerId: item.seller_id,
-            seller,
-            status: item.status,
-            createdAt: item.created_at,
-            updatedAt: item.updated_at
-          } as MarketplaceItem;
-        } catch (error) {
-          console.error(`Error processing marketplace item ${item.id}:`, error);
-          return null;
-        }
-      })
-    );
-    
-    const validItems = enrichedItems.filter(item => item !== null) as MarketplaceItem[];
-    console.log(`Processed ${validItems.length} valid marketplace items`);
-    return validItems;
-  } catch (error) {
-    console.error("Error in fetchMarketplaceItems:", error);
+
+    // Map the data to our MarketplaceItem type
+    return (data || []).map(item => ({
+      id: item.id,
+      status: item.status,
+      createdAt: item.created_at,
+      collectionItem: {
+        id: item.collection_items.id,
+        banknoteId: item.collection_items.banknote_id,
+        condition: item.collection_items.condition,
+        salePrice: item.collection_items.sale_price,
+        publicNote: item.collection_items.public_note,
+        obverseImage: item.collection_items.obverse_image,
+        reverseImage: item.collection_items.reverse_image,
+        banknote: item.collection_items.detailed_banknotes
+      },
+      seller: {
+        id: item.profiles.id,
+        username: item.profiles.username,
+        avatarUrl: item.profiles.avatar_url,
+        rank: item.profiles.rank
+      }
+    }));
+  } catch (err) {
+    console.error('Error in fetchMarketplaceItems:', err);
     return [];
   }
-}
+};
 
-export async function addToMarketplace(
-  collectionItemId: string,
-  userId: string
-): Promise<boolean> {
+/**
+ * Get marketplace item by id
+ */
+export const getMarketplaceItemById = async (id: string): Promise<MarketplaceItem | null> => {
   try {
-    // First, check if the collection item exists and is not already for sale
-    const { data: collectionItem, error: fetchError } = await supabase
-      .from('collection_items')
-      .select('banknote_id, id, is_for_sale')
-      .eq('id', collectionItemId)
-      .single() as { data: { banknote_id: string; id: string; is_for_sale: boolean } | null, error: any };
-      
-    if (fetchError) {
-      console.error("Error fetching collection item:", fetchError);
-      throw fetchError;
-    }
-    
-    if (!collectionItem) {
-      console.error("Collection item not found:", collectionItemId);
-      return false;
-    }
-
-    // Update the collection item to mark as for sale
-    const { error: updateError } = await supabase
-      .from('collection_items')
-      .update({ is_for_sale: true })
-      .eq('id', collectionItemId);
-      
-    if (updateError) {
-      console.error("Error updating collection item for marketplace:", updateError);
-      throw updateError;
-    }
-    
-    // Check if the item is already in the marketplace
-    const { data: existingItem } = await supabase
-      .from('marketplace_items')
-      .select('id, status')
-      .eq('collection_item_id', collectionItemId)
-      .maybeSingle();
-      
-    if (existingItem) {
-      // Item is already in marketplace, update its status if needed
-      if (existingItem.status !== 'Available') {
-        const { error } = await supabase
-          .from('marketplace_items')
-          .update({ status: 'Available' })
-          .eq('id', existingItem.id);
-          
-        if (error) {
-          console.error("Error updating existing marketplace item:", error);
-          throw error;
-        }
-      }
-      
-      return true;
-    }
-    
-    // Add the item to marketplace
-    const newItem: MarketplaceItemInsert = {
-      collection_item_id: collectionItemId,
-      seller_id: userId,
-      status: 'Available',
-      banknote_id: collectionItem.banknote_id
-    };
-    const { error } = await supabase
-      .from('marketplace_items')
-      .insert(newItem);
-      
-    if (error) {
-      console.error("Error adding to marketplace:", error);
-      // Roll back the update to the collection item
-      await supabase
-        .from('collection_items')
-        .update({ is_for_sale: false })
-        .eq('id', collectionItemId);
-      throw error;
-    }
-    
-    console.log(`Successfully added item ${collectionItemId} to marketplace`);
-    return true;
-  } catch (error) {
-    console.error("Error in addToMarketplace:", error);
-    return false;
-  }
-}
-
-export async function removeFromMarketplace(
-  collectionItemId: string,
-  marketplaceItemId?: string
-): Promise<boolean> {
-  try {
-    // If marketplaceItemId is provided, use it directly
-    if (marketplaceItemId) {
-      const { error } = await supabase
-        .from('marketplace_items')
-        .update({ status: 'Removed' })
-        .eq('id', marketplaceItemId);
-        
-      if (error) {
-        console.error("Error removing from marketplace:", error);
-        throw error;
-      }
-    } else {
-      // Otherwise, look up the marketplace item by collection_item_id
-      const { data: marketplaceItem, error: findError } = await supabase
-        .from('marketplace_items')
-        .select('id')
-        .eq('collection_item_id', collectionItemId)
-        .single();
-      
-      if (findError && findError.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error("Error finding marketplace item:", findError);
-        throw findError;
-      }
-      
-      if (marketplaceItem) {
-        const { error } = await supabase
-          .from('marketplace_items')
-          .update({ status: 'Removed' })
-          .eq('id', marketplaceItem.id);
-          
-        if (error) {
-          console.error("Error removing from marketplace:", error);
-          throw error;
-        }
-      }
-    }
-    
-    // Update the collection item to mark as not for sale
-    const { error: updateError } = await supabase
-      .from('collection_items')
-      .update({ is_for_sale: false })
-      .eq('id', collectionItemId);
-      
-    if (updateError) {
-      console.error("Error updating collection item from marketplace:", updateError);
-    }
-    
-    return true;
-  } catch (error) {
-    console.error("Error in removeFromMarketplace:", error);
-    return false;
-  }
-}
-
-export async function getMarketplaceItemById(id: string): Promise<MarketplaceItem | null> {
-  try {
-    console.log(`Fetching marketplace item with ID: ${id}`);
     const { data, error } = await supabase
-      .from('marketplace_items')
+      .from('marketplace_listings')
       .select(`
-        *,
-        collection_item:collection_item_id (*)
+        id,
+        status,
+        created_at,
+        collection_item_id,
+        collection_items (
+          id,
+          banknote_id,
+          condition,
+          sale_price,
+          public_note,
+          private_note,
+          obverse_image,
+          reverse_image,
+          detailed_banknotes (*)
+        ),
+        profiles (
+          id,
+          username,
+          avatar_url,
+          rank
+        )
       `)
       .eq('id', id)
       .single();
-      
-    if (error) {
-      console.error("Error fetching marketplace item by ID:", error);
-      return null;
-    }
-    
-    if (!data) {
-      console.log(`No marketplace item found with ID: ${id}`);
-      return null;
-    }
-    
-    // Get collection item details
-    const collectionItem = await fetchCollectionItem(data.collection_item_id);
-    if (!collectionItem) {
-      console.log(`Collection item not found: ${data.collection_item_id}`);
-      return null;
-    }
-    
-    // Get seller info
-    const { data: sellerData } = await supabase
-      .from('profiles')
-      .select('id, username, rank')
-      .eq('id', data.seller_id)
-      .single();
-      
-    const seller = sellerData || {
-      id: data.seller_id,
-      username: "Unknown User",
-      rank: "Newbie" as UserRank
-    };
-    
-    return {
-      id: data.id,
-      collectionItemId: data.collection_item_id,
-      collectionItem: collectionItem,
-      sellerId: data.seller_id,
-      seller,
-      status: data.status,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    } as MarketplaceItem;
-  } catch (error) {
-    console.error("Error in getMarketplaceItemById:", error);
-    return null;
-  }
-}
 
-export async function getMarketplaceItemForCollectionItem(
-  collectionItemId: string
-): Promise<MarketplaceItem | null> {
-  try {
-    const { data, error } = await supabase
-      .from('marketplace_items')
-      .select(`
-        *,
-        collection_item:collection_item_id (*)
-      `)
-      .eq('collection_item_id', collectionItemId)
-      .single();
-      
     if (error) {
-      if (error.code === 'PGRST116') { // No rows returned
-        return null;
-      }
-      throw error;
+      console.error('Error fetching marketplace item:', error);
+      return null;
     }
-    
+
     if (!data) return null;
-    
-    // Get collection item details
-    const collectionItem = await fetchCollectionItem(collectionItemId);
-    if (!collectionItem) {
-      console.log(`Collection item not found: ${collectionItemId}`);
-      return null;
-    }
-    
-    // Get seller info
-    const { data: sellerData } = await supabase
-      .from('profiles')
-      .select('id, username, rank')
-      .eq('id', data.seller_id)
-      .single();
-      
-    const seller = sellerData || {
-      id: data.seller_id,
-      username: "Unknown User",
-      rank: "Newbie" as UserRank
-    };
-    
+
+    // Map the data to our MarketplaceItem type
     return {
       id: data.id,
-      collectionItemId: data.collection_item_id,
-      collectionItem: collectionItem,
-      sellerId: data.seller_id,
-      seller,
       status: data.status,
       createdAt: data.created_at,
-      updatedAt: data.updated_at
-    } as MarketplaceItem;
-  } catch (error) {
-    console.error("Error in getMarketplaceItemForCollectionItem:", error);
+      collectionItem: {
+        id: data.collection_items.id,
+        banknoteId: data.collection_items.banknote_id,
+        condition: data.collection_items.condition,
+        salePrice: data.collection_items.sale_price,
+        publicNote: data.collection_items.public_note,
+        privateNote: data.collection_items.private_note,
+        obverseImage: data.collection_items.obverse_image,
+        reverseImage: data.collection_items.reverse_image,
+        banknote: data.collection_items.detailed_banknotes
+      },
+      seller: {
+        id: data.profiles.id,
+        username: data.profiles.username,
+        avatarUrl: data.profiles.avatar_url,
+        rank: data.profiles.rank
+      }
+    };
+  } catch (err) {
+    console.error('Error in getMarketplaceItemById:', err);
     return null;
   }
-}
+};
 
-export async function synchronizeMarketplaceWithCollection() {
+/**
+ * Remove an item from the marketplace
+ */
+export const removeFromMarketplace = async (itemId: string): Promise<boolean> => {
   try {
-    console.log("Starting marketplace synchronization");
-    
-    // 1. Get all collection items marked as for sale
-    const { data: forSaleItems, error: collectionError } = await supabase
-      .from('collection_items')
-      .select('id, user_id, banknote_id')
-      .eq('is_for_sale', true);
-      
-    if (collectionError) {
-      console.error("Error fetching for-sale collection items:", collectionError);
-      throw collectionError;
+    const { error } = await supabase
+      .from('marketplace_listings')
+      .delete()
+      .eq('id', itemId);
+
+    if (error) {
+      console.error('Error removing item from marketplace:', error);
+      return false;
     }
-    
-    console.log(`Found ${forSaleItems?.length || 0} collection items marked for sale`);
-    
-    // 2. Get all marketplace items
-    const { data: marketplaceItems, error: marketplaceError } = await supabase
-      .from('marketplace_items')
-      .select('id, collection_item_id, status')
-      .in('status', ['Available', 'Reserved']);
-      
-    if (marketplaceError) {
-      console.error("Error fetching marketplace items:", marketplaceError);
-      throw marketplaceError;
-    }
-    
-    // Create maps for easier lookups
-    const marketplaceMap = new Map(
-      (marketplaceItems || []).map(item => [item.collection_item_id, item])
-    );
-    
-    // 3. Add missing items to marketplace
-    let addedCount = 0;
-    for (const item of forSaleItems || []) {
-      if (!marketplaceMap.has(item.id)) {
-        // This item is marked for sale but not in marketplace - add it
-        const { error } = await supabase
-          .from('marketplace_items')
-          .insert({
-            banknote_id: item.banknote_id,
-            collection_item_id: item.id,
-            seller_id: item.user_id,
-            status: "active"
-          });
-          
-        if (error) {
-          console.error(`Error adding item ${item.id} to marketplace:`, error);
-          continue;
-        }
-        
-        addedCount++;
-      }
-    }
-    
-    console.log(`Added ${addedCount} new items to marketplace`);
+
     return true;
-  } catch (error) {
-    console.error("Error in synchronizeMarketplaceWithCollection:", error);
+  } catch (err) {
+    console.error('Error in removeFromMarketplace:', err);
     return false;
   }
-}
+};

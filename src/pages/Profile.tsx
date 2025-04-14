@@ -16,6 +16,7 @@ import { fetchBanknotes } from "@/services/banknoteService";
 import { fetchUserWishlist } from "@/services/wishlistService";
 import { useQuery } from "@tanstack/react-query";
 import CollectionProfileNew from "./CollectionProfileNew";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function Profile() {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +25,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const { theme } = useTheme();
 
   const isOwnProfile = currentUser && profile && currentUser.id === profile.id;
   const userId = profile?.id || '';
@@ -77,7 +79,9 @@ export default function Profile() {
       <div className="page-container">
         <div className="max-w-4xl mx-auto text-center py-12">
           <h1 className="text-3xl font-serif mb-4">Profile Not Found</h1>
-          <p className="text-ottoman-300 mb-6">The requested profile could not be found.</p>
+          <p className={`mb-6 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'}`}>
+            The requested profile could not be found.
+          </p>
           <Button onClick={() => navigate('/')}>Return Home</Button>
         </div>
       </div>
@@ -91,7 +95,7 @@ export default function Profile() {
         <ProfileHeader profile={profile} />
         
         {isEditing ? (
-          <Card className="mt-6">
+          <Card className={`mt-6 ${theme === 'light' ? 'bg-white/90 shadow-light-md' : ''}`}>
             <ProfileEditForm 
               profile={profile} 
               onProfileUpdated={handleProfileUpdated} 
@@ -100,7 +104,7 @@ export default function Profile() {
           </Card>
         ) : (
           <div className="mt-6">
-            <Card>
+            <Card className={theme === 'light' ? 'bg-white/90 shadow-light-md' : ''}>
               <CollectionProfileNew
                 userId={profile.id}
                 isCurrentUser={isOwnProfile || false}

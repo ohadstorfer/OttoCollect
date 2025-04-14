@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @tailwind base;
@@ -5,7 +6,40 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root,
+  [data-theme="light"] {
+    --background: 33 30% 96%;
+    --foreground: 25 30% 10%;
+
+    --card: 35 25% 94%;
+    --card-foreground: 25 30% 10%;
+
+    --popover: 35 25% 98%;
+    --popover-foreground: 25 30% 10%;
+
+    --primary: 33 52% 44%;
+    --primary-foreground: 33 30% 98%;
+
+    --secondary: 32 15% 90%;
+    --secondary-foreground: 30 10% 20%;
+
+    --muted: 27 10% 85%;
+    --muted-foreground: 25 5% 45%;
+
+    --accent: 35 50% 52%;
+    --accent-foreground: 33 30% 10%;
+
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 33 30% 98%;
+
+    --border: 30 15% 80%;
+    --input: 30 15% 85%;
+    --ring: 33 50% 44%;
+
+    --radius: 0.75rem;
+  }
+
+  [data-theme="dark"] {
     --background: 25 30% 8%;
     --foreground: 33 25% 90%;
 
@@ -33,13 +67,20 @@
     --border: 30 15% 20%;
     --input: 30 15% 20%;
     --ring: 33 50% 44%;
-
-    --radius: 0.75rem;
   }
 
   * {
-    @apply border-border selection:bg-ottoman-800/30 selection:text-parchment-500;
+    @apply border-border;
     scroll-behavior: smooth;
+  }
+
+  /* Selection styles */
+  [data-theme="dark"] *::selection {
+    @apply bg-ottoman-800/30 text-parchment-500;
+  }
+  
+  [data-theme="light"] *::selection {
+    @apply bg-ottoman-300/30 text-ottoman-900;
   }
 
   body {
@@ -58,7 +99,25 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif text-parchment-500;
+    @apply font-serif;
+  }
+
+  [data-theme="dark"] h1, 
+  [data-theme="dark"] h2, 
+  [data-theme="dark"] h3, 
+  [data-theme="dark"] h4, 
+  [data-theme="dark"] h5, 
+  [data-theme="dark"] h6 {
+    @apply text-parchment-500;
+  }
+
+  [data-theme="light"] h1, 
+  [data-theme="light"] h2, 
+  [data-theme="light"] h3, 
+  [data-theme="light"] h4, 
+  [data-theme="light"] h5, 
+  [data-theme="light"] h6 {
+    @apply text-ottoman-900;
   }
 
   p, a, li, span, div {
@@ -74,21 +133,53 @@
   }
   
   .section-title {
-    @apply text-2xl md:text-3xl font-serif font-semibold mb-6 text-ottoman-300;
+    @apply text-2xl md:text-3xl font-serif font-semibold mb-6;
+  }
+  
+  [data-theme="dark"] .section-title {
+    @apply text-ottoman-300;
+  }
+  
+  [data-theme="light"] .section-title {
+    @apply text-ottoman-700;
   }
 }
 
 @layer components {
   .ottoman-card {
-    @apply bg-card border border-ottoman-800/50 rounded-lg p-5 shadow-md hover:shadow-lg hover:border-ottoman-700/50 transition-all duration-300;
+    @apply bg-card border rounded-lg p-5 shadow-md hover:shadow-lg transition-all duration-300;
+  }
+  
+  [data-theme="dark"] .ottoman-card {
+    @apply border-ottoman-800/50 hover:border-ottoman-700/50;
+  }
+  
+  [data-theme="light"] .ottoman-card {
+    @apply border-ottoman-300/50 hover:border-ottoman-400/50;
   }
   
   .ottoman-button {
-    @apply px-4 py-2 bg-ottoman-600 hover:bg-ottoman-700 text-parchment-100 rounded-md transition-colors flex items-center justify-center gap-2;
+    @apply px-4 py-2 rounded-md transition-colors flex items-center justify-center gap-2;
+  }
+  
+  [data-theme="dark"] .ottoman-button {
+    @apply bg-ottoman-600 hover:bg-ottoman-700 text-parchment-100;
+  }
+  
+  [data-theme="light"] .ottoman-button {
+    @apply bg-ottoman-500 text-white hover:bg-ottoman-600;
   }
   
   .ottoman-input {
-    @apply bg-dark-500 border border-ottoman-800/50 rounded-md px-4 py-2 text-parchment-100 focus:border-ottoman-500 focus:outline-none focus:ring-1 focus:ring-ottoman-500 transition-colors;
+    @apply border rounded-md px-4 py-2 focus:outline-none focus:ring-1 focus:ring-ottoman-500 transition-colors;
+  }
+  
+  [data-theme="dark"] .ottoman-input {
+    @apply bg-dark-500 border-ottoman-800/50 text-parchment-100 focus:border-ottoman-500;
+  }
+  
+  [data-theme="light"] .ottoman-input {
+    @apply bg-white border-ottoman-300/50 text-ottoman-900 focus:border-ottoman-500;
   }
   
   .ottoman-badge {
@@ -96,11 +187,23 @@
   }
   
   .glass-card {
-    @apply backdrop-blur-md bg-dark-500/60 border border-ottoman-700/10 shadow-lg hover:shadow-xl rounded-lg transition-all duration-300;
+    @apply backdrop-blur-md border shadow-lg hover:shadow-xl rounded-lg transition-all duration-300;
+  }
+  
+  [data-theme="dark"] .glass-card {
+    @apply bg-dark-500/60 border-ottoman-700/10;
+  }
+  
+  [data-theme="light"] .glass-card {
+    @apply bg-white/80 border-ottoman-200/30;
   }
   
   .gold-accent {
     @apply text-gold-500;
+  }
+  
+  [data-theme="light"] .gold-accent {
+    @apply text-gold-600;
   }
   
   .animate-on-scroll {
@@ -112,15 +215,35 @@
   }
   
   .text-gradient {
-    @apply bg-gradient-to-r from-ottoman-300 via-gold-400 to-ottoman-500 bg-clip-text text-transparent;
+    @apply bg-clip-text text-transparent;
+  }
+  
+  [data-theme="dark"] .text-gradient {
+    @apply bg-gradient-to-r from-ottoman-300 via-gold-400 to-ottoman-500;
+  }
+  
+  [data-theme="light"] .text-gradient {
+    @apply bg-gradient-to-r from-ottoman-600 via-gold-600 to-ottoman-700;
   }
   
   .divider {
-    @apply h-px w-full bg-gradient-to-r from-transparent via-ottoman-700/50 to-transparent my-8;
+    @apply h-px w-full bg-gradient-to-r from-transparent to-transparent my-8;
+  }
+  
+  [data-theme="dark"] .divider {
+    @apply via-ottoman-700/50;
+  }
+  
+  [data-theme="light"] .divider {
+    @apply via-ottoman-400/50;
   }
   
   .auto-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+  }
+
+  .light-mode-card {
+    @apply [data-theme="light"]:shadow-light [data-theme="light"]:bg-white/90;
   }
 }
 
@@ -279,6 +402,14 @@
 }
 
 .animate-shimmer {
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+[data-theme="dark"] .animate-shimmer {
   background: linear-gradient(
     to right,
     #b1784f 20%,
@@ -288,11 +419,18 @@
     #b1784f 60%,
     #9c6644 70%
   );
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 4s linear infinite;
+}
+
+[data-theme="light"] .animate-shimmer {
+  background: linear-gradient(
+    to right,
+    #7d5234 20%,
+    #b38728 30%,
+    #d4af37 40%,
+    #b38728 50%,
+    #7d5234 60%,
+    #614027 70%
+  );
 }
 
 .animate-slide-up {
@@ -315,4 +453,26 @@
 
 .animate-floating {
   animation: floating 3s ease-in-out infinite;
+}
+
+/* Light mode specific styles */
+[data-theme="light"] .page-container {
+  background-color: transparent;
+}
+
+/* Text contrast helpers */
+[data-theme="light"] .text-light-contrast {
+  @apply text-ottoman-900;
+}
+
+[data-theme="dark"] .text-light-contrast {
+  @apply text-parchment-500;
+}
+
+[data-theme="light"] .text-light-muted {
+  @apply text-ottoman-700;
+}
+
+[data-theme="dark"] .text-light-muted {
+  @apply text-ottoman-300;
 }

@@ -2,7 +2,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["class"],
+  darkMode: ["class", '[data-theme="dark"]'],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -112,7 +112,14 @@ export default {
           800: '#000000',
           900: '#000000',
           950: '#000000'
-        }
+        },
+        // Light mode page-specific background colors
+        'page-default': '#F9FAFB', // Soft Gray
+        'page-home': '#FFF9F0',    // Peach Tint
+        'page-marketplace': '#F0F9FF', // Powder Blue
+        'page-collection': '#F3FAF4', // Mint Cream
+        'page-profile': '#FFF1F3',  // Blush Pink
+        'page-forum': '#F8F4FF',    // Lavender Mist
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -198,6 +205,15 @@ export default {
       fontFamily: {
         serif: ['Playfair Display', 'serif'],
         sans: ['Inter', 'sans-serif']
+      },
+      backgroundImage: {
+        'gradient-light': 'linear-gradient(to right, rgba(255,255,255,0.7), rgba(255,255,255,0.3))',
+      },
+      boxShadow: {
+        'light-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+        'light': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+        'light-md': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+        'light-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)',
       }
     },
   },

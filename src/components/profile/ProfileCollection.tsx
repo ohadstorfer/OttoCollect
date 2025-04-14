@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchUserCollection } from '@/services/collectionService';
 import { fetchBanknotes } from '@/services/banknoteService';
 import { fetchUserWishlist } from '@/services/wishlistService';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ProfileCollectionProps {
   userId: string;
@@ -36,6 +38,8 @@ const ProfileCollection = ({
   collectionLoading: initialLoading,
   isCurrentUser
 }: ProfileCollectionProps) => {
+  const { theme } = useTheme();
+  
   const { data: fetchedCollection, isLoading: collectionQueryLoading } = useQuery({
     queryKey: ['userCollection', userId],
     queryFn: () => fetchUserCollection(userId),
@@ -136,6 +140,7 @@ const ProfileCollection = ({
             placeholder="Search denomination, country, year..."
             value={filter.searchTerm}
             onChange={handleSearchChange}
+            className={theme === 'light' ? 'bg-white/80' : ''}
           />
         </div>
         {activeTab === "missing" && (
@@ -165,12 +170,13 @@ const ProfileCollection = ({
                 <CollectionItemCard
                   key={item.id}
                   item={item}
+                  banknote={banknote}
                 />
               );
             })}
           </div>
         ) : (
-          <Card className="p-6 text-center">
+          <Card className={`p-6 text-center ${theme === 'light' ? 'bg-white/90' : ''}`}>
             <p>{emptyStateMessages.collection}</p>
             {isCurrentUser && (
               <Button onClick={() => navigate('/catalog')} className="mt-4">
@@ -199,7 +205,7 @@ const ProfileCollection = ({
             ))}
           </div>
         ) : (
-          <Card className="p-6 text-center">
+          <Card className={`p-6 text-center ${theme === 'light' ? 'bg-white/90' : ''}`}>
             <p>{emptyStateMessages.missing}</p>
             {isCurrentUser && (
               <Button onClick={() => navigate('/catalog')} className="mt-4">
@@ -225,7 +231,7 @@ const ProfileCollection = ({
             ))}
           </div>
         ) : (
-          <Card className="p-6 text-center">
+          <Card className={`p-6 text-center ${theme === 'light' ? 'bg-white/90' : ''}`}>
             <p>{emptyStateMessages.catalog}</p>
             {isCurrentUser && (
               <Button onClick={() => navigate('/catalog')}>
@@ -256,7 +262,7 @@ const ProfileCollection = ({
             })}
           </div>
         ) : (
-          <Card className="p-6 text-center">
+          <Card className={`p-6 text-center ${theme === 'light' ? 'bg-white/90' : ''}`}>
             <p>{emptyStateMessages.wishlist}</p>
             {isCurrentUser && (
               <Button onClick={() => navigate('/catalog')}>
