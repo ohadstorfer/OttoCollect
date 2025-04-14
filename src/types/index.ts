@@ -1,4 +1,3 @@
-
 // User related types
 export interface User {
   id: string;
@@ -209,3 +208,37 @@ export interface BanknoteDetailCardProps {
   ownerId?: string;
   searchHighlight?: string;
 }
+
+// Banknote filter types
+export type BanknoteFilterState = {
+  search: string;
+  categories: string[];
+  types: string[];
+  sort: string[];
+};
+
+export const BANKNOTE_TYPES = [
+  'issued notes',
+  'specimens',
+  'Cancelled & Annule',
+  'Trial note',
+  'Error banknote',
+  'Counterfeit banknote',
+  'Emergency note',
+  'Check & Bond notes',
+  'Other notes'
+] as const;
+
+export type BanknoteType = typeof BANKNOTE_TYPES[number];
+
+export const DEFAULT_SELECTED_TYPES = [
+  'issued notes',
+  'specimens',
+  'Cancelled & Annule'
+];
+
+export const SORT_OPTIONS = [
+  { id: "sultan", name: "Sultan", required: false },
+  { id: "faceValue", name: "Face Value", required: false },
+  { id: "extPick", name: "Ext. Pick#", required: true }
+] as const;
