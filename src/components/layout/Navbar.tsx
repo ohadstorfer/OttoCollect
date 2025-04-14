@@ -36,7 +36,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-dark-600 dark:bg-dark-600 bg-white border-b dark:border-ottoman-900/50 border-ottoman-200 sticky top-0 z-50 shadow-md animate-fade-in">
+    <nav className="bg-white dark:bg-dark-600 border-b border-ottoman-200 dark:border-ottoman-900/50 sticky top-0 z-50 shadow-md animate-fade-in">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo and site name */}
