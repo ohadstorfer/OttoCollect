@@ -5,9 +5,8 @@ import { Banknote, DetailedBanknote } from "@/types";
 export async function fetchBanknotes(): Promise<Banknote[]> {
   try {
     console.log("Fetching banknotes from Supabase");
-    // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
-      .from('detailed_banknotes' as any)
+      .from('detailed_banknotes')
       .select('*')
       .eq('is_pending', false);
 
@@ -27,9 +26,8 @@ export async function fetchBanknotes(): Promise<Banknote[]> {
 export async function fetchBanknoteById(id: string): Promise<Banknote | null> {
   try {
     console.log("Fetching banknote by id:", id);
-    // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
-      .from('detailed_banknotes' as any)
+      .from('detailed_banknotes')
       .select('*')
       .eq('id', id)
       .single();
@@ -50,9 +48,8 @@ export async function fetchBanknoteById(id: string): Promise<Banknote | null> {
 export async function fetchDetailedBanknote(id: string): Promise<DetailedBanknote | null> {
   try {
     console.log("Fetching detailed banknote:", id);
-    // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
-      .from('detailed_banknotes' as any)
+      .from('detailed_banknotes')
       .select('*')
       .eq('id', id)
       .single();
@@ -76,9 +73,8 @@ export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote 
 
 export async function fetchBanknotesByCategory(category: string): Promise<Banknote[]> {
   try {
-    // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
-      .from('detailed_banknotes' as any)
+      .from('detailed_banknotes')
       .select('*')
       .eq('is_approved', true)
       .eq('is_pending', false)
@@ -95,9 +91,8 @@ export async function fetchBanknotesByCategory(category: string): Promise<Bankno
 
 export async function fetchBanknotesByPeriod(startYear: number, endYear: number): Promise<Banknote[]> {
   try {
-    // Using type assertion to avoid the TypeScript error
     const { data, error } = await supabase
-      .from('detailed_banknotes' as any)
+      .from('detailed_banknotes')
       .select('*')
       .eq('is_approved', true)
       .eq('is_pending', false)

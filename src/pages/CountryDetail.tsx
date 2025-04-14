@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,9 +15,9 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const CountryDetail = () => {
-  const { countryName } = useParams();
+  const { country } = useParams();
   const navigate = useNavigate();
-  const decodedCountryName = decodeURIComponent(countryName || "");
+  const decodedCountryName = decodeURIComponent(country || "");
   const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -37,6 +36,7 @@ const CountryDetail = () => {
     const loadBanknotes = async () => {
       setLoading(true);
       try {
+        console.log(`Fetching banknotes for country: ${decodedCountryName}`);
         const data = await fetchBanknotes();
         
         // Filter banknotes for this country
@@ -44,6 +44,7 @@ const CountryDetail = () => {
           banknote => banknote.country === decodedCountryName
         );
         
+        console.log(`Found ${countryBanknotes.length} banknotes for ${decodedCountryName}`);
         setBanknotes(countryBanknotes);
         
         // Extract unique types and rarities
@@ -52,12 +53,9 @@ const CountryDetail = () => {
         
         countryBanknotes.forEach(banknote => {
           if (banknote.series) types.add(banknote.series);
-          // Assuming rarity might be in a property or derived from another field
-          // This is placeholder logic - adjust based on your actual data structure
-          if (banknote.obverseDescription && banknote.obverseDescription.includes("rare")) {
-            rarities.add("Rare");
-          } else if (banknote.obverseDescription && banknote.obverseDescription.includes("common")) {
-            rarities.add("Common");
+          // Extract rarity from the banknote data
+          if (banknote.rarity) {
+            rarities.add(banknote.rarity);
           } else {
             rarities.add("Standard");
           }
@@ -78,10 +76,10 @@ const CountryDetail = () => {
       }
     };
 
-    if (countryName) {
+    if (country) {
       loadBanknotes();
     }
-  }, [countryName, decodedCountryName, toast]);
+  }, [country, decodedCountryName, toast]);
 
   const handleTypeToggle = (type: string) => {
     setSelectedTypes(prev => 
@@ -110,10 +108,10 @@ const CountryDetail = () => {
     .filter(banknote => {
       // Search query filter
       const matchesSearch = searchQuery
-        ? banknote.catalogId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          banknote.denomination.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          banknote.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          banknote.year.toLowerCase().includes(searchQuery.toLowerCase())
+        ? banknote.catalogId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          banknote.denomination?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          banknote.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          banknote.year?.toLowerCase().includes(searchQuery.toLowerCase())
         : true;
       
       // Type filter
@@ -121,15 +119,9 @@ const CountryDetail = () => {
         ? banknote.series && selectedTypes.includes(banknote.series)
         : true;
       
-      // Rarity filter - placeholder logic, adjust based on your data
-      const banknoteRarity = banknote.obverseDescription?.includes("rare")
-        ? "Rare"
-        : banknote.obverseDescription?.includes("common")
-          ? "Common"
-          : "Standard";
-      
+      // Rarity filter based on banknote.rarity property
       const matchesRarity = selectedRarities.length > 0
-        ? selectedRarities.includes(banknoteRarity)
+        ? (banknote.rarity && selectedRarities.includes(banknote.rarity))
         : true;
       
       return matchesSearch && matchesType && matchesRarity;
@@ -138,20 +130,18 @@ const CountryDetail = () => {
   const sortedBanknotes = [...filteredBanknotes].sort((a, b) => {
     switch (sortBy) {
       case "pick":
-        return a.catalogId.localeCompare(b.catalogId);
+        return (a.catalogId || '').localeCompare(b.catalogId || '');
       case "year":
-        return a.year.localeCompare(b.year);
+        return (a.year || '').localeCompare(b.year || '');
       case "denomination":
-        return a.denomination.localeCompare(b.denomination);
+        return (a.denomination || '').localeCompare(b.denomination || '');
       case "rarity":
-        // Placeholder rarity sorting logic - adjust based on your data
-        const rarityA = a.obverseDescription?.includes("rare") ? 3 : 
-                       a.obverseDescription?.includes("common") ? 1 : 2;
-        const rarityB = b.obverseDescription?.includes("rare") ? 3 : 
-                       b.obverseDescription?.includes("common") ? 1 : 2;
-        return rarityB - rarityA; // Higher rarity first
+        // Sort by rarity if available
+        const rarityA = a.rarity || "Standard";
+        const rarityB = b.rarity || "Standard";
+        return rarityB.localeCompare(rarityA); // Higher rarity first
       default:
-        return a.catalogId.localeCompare(b.catalogId);
+        return (a.catalogId || '').localeCompare(b.catalogId || '');
     }
   });
 
