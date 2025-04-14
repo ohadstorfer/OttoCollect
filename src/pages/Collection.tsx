@@ -1,21 +1,20 @@
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BanknoteCondition, CollectionItem, WishlistItem, Banknote } from "@/types";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { fetchUserCollection } from "@/services/collectionService";
 import { fetchUserWishlist } from "@/services/wishlistService";
 import { fetchBanknotes } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import CollectionItemCard from "@/components/collection/CollectionItemCard";
+import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
+import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
 
 const Collection = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,9 +27,6 @@ const Collection = () => {
   const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [missingItems, setMissingItems] = useState<Banknote[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [condition, setCondition] = useState<string>("all");
-  const [sortBy, setSortBy] = useState("newest");
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -81,61 +77,56 @@ const Collection = () => {
     loadUserData();
   }, [user, toast]);
 
-  const filteredCollection = collectionItems.filter(item => {
-    const banknote = item.banknote;
-    
-    const matchesSearch = searchQuery
-      ? banknote.catalogId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.denomination.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.year.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-    
-    const matchesCondition = condition !== "all" ? item.condition === condition : true;
-    
-    return matchesSearch && matchesCondition;
-  });
-  
-  const sortedCollection = [...filteredCollection].sort((a, b) => {
-    switch (sortBy) {
-      case "oldest":
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case "a-z":
-        return a.banknote.denomination.localeCompare(b.banknote.denomination);
-      case "z-a":
-        return b.banknote.denomination.localeCompare(a.banknote.denomination);
-      case "newest":
-      default:
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  // Collection filter
+  const { 
+    filteredItems: filteredCollection, 
+    filters: collectionFilters, 
+    setFilters: setCollectionFilters,
+    availableCategories: collectionCategories,
+    availableTypes: collectionTypes
+  } = useBanknoteFilter({
+    items: collectionItems,
+    initialFilters: {
+      sort: ["newest", "extPick"]
     }
   });
 
-  const filteredMissing = missingItems.filter(banknote => {
-    const matchesSearch = searchQuery
-      ? banknote.catalogId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.denomination.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        banknote.year.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-    
-    return matchesSearch;
-  });
-  
-  const sortedMissing = [...filteredMissing].sort((a, b) => {
-    switch (sortBy) {
-      case "oldest":
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case "a-z":
-        return a.denomination.localeCompare(b.denomination);
-      case "z-a":
-        return b.denomination.localeCompare(a.denomination);
-      case "newest":
-      default:
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  // Missing filter
+  const { 
+    filteredItems: filteredMissing, 
+    filters: missingFilters, 
+    setFilters: setMissingFilters,
+    availableCategories: missingCategories,
+    availableTypes: missingTypes
+  } = useBanknoteFilter({
+    items: missingItems,
+    initialFilters: {
+      sort: ["extPick"]
     }
   });
+
+  // Wishlist filter (assume similar structure to collection)
+  const { 
+    filteredItems: filteredWishlist, 
+    filters: wishlistFilters, 
+    setFilters: setWishlistFilters,
+    availableCategories: wishlistCategories,
+    availableTypes: wishlistTypes
+  } = useBanknoteFilter({
+    items: wishlistItems,
+    initialFilters: {
+      sort: ["newest", "extPick"]
+    }
+  });
+
+  // Define sort options
+  const sortOptions = [
+    { id: "newest", name: "Newest First" },
+    { id: "oldest", name: "Oldest First" },
+    { id: "sultan", name: "Sultan" },
+    { id: "faceValue", name: "Face Value" },
+    { id: "extPick", name: "Ext. Pick#", required: true }
+  ];
 
   const handleTabChange = (value: string) => {
     setSearchParams({ tab: value });
@@ -174,203 +165,159 @@ const Collection = () => {
         
         <TabsContent value="collection">
           <div className="bg-card border rounded-lg p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="search" className="mb-2 block">Search</Label>
-                <Input
-                  id="search"
-                  placeholder="Search by name, country, etc."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+            <BanknoteFilter
+              categories={collectionCategories}
+              types={collectionTypes}
+              sortOptions={sortOptions}
+              onFilterChange={setCollectionFilters}
+              isLoading={loading}
+              defaultSort={["newest", "extPick"]}
+            />
 
-              <div>
-                <Label htmlFor="condition" className="mb-2 block">Condition</Label>
-                <Select value={condition} onValueChange={setCondition}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Conditions" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Conditions</SelectItem>
-                    <SelectItem value="UNC">UNC</SelectItem>
-                    <SelectItem value="AU">AU</SelectItem>
-                    <SelectItem value="XF">XF</SelectItem>
-                    <SelectItem value="VF">VF</SelectItem>
-                    <SelectItem value="F">F</SelectItem>
-                    <SelectItem value="VG">VG</SelectItem>
-                    <SelectItem value="G">G</SelectItem>
-                    <SelectItem value="Fair">Fair</SelectItem>
-                    <SelectItem value="Poor">Poor</SelectItem>
-                  </SelectContent>
-                </Select>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
               </div>
-
-              <div>
-                <Label htmlFor="sortBy" className="mb-2 block">Sort By</Label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="oldest">Oldest First</SelectItem>
-                    <SelectItem value="a-z">A-Z</SelectItem>
-                    <SelectItem value="z-a">Z-A</SelectItem>
-                  </SelectContent>
-                </Select>
+            ) : !user ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">You need to sign in to view your collection</h3>
+                <Button onClick={signIn}>Sign In</Button>
               </div>
-            </div>
+            ) : filteredCollection.length === 0 ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">Your collection is empty</h3>
+                <p className="text-muted-foreground mb-6">Start adding banknotes to your collection by browsing the catalog.</p>
+                <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
+                {filteredCollection.map((item) => (
+                  <BanknoteDetailCard
+                    key={item.id}
+                    banknote={item.banknote}
+                    collectionItem={item}
+                    source="collection"
+                    ownerId={user.id}
+                    searchHighlight={collectionFilters.search}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
-            </div>
-          ) : !user ? (
-            <div className="text-center py-8">
-              <h3 className="text-xl font-medium mb-4">You need to sign in to view your collection</h3>
-              <Button onClick={signIn}>Sign In</Button>
-            </div>
-          ) : sortedCollection.length === 0 ? (
-            <div className="text-center py-8">
-              <h3 className="text-xl font-medium mb-4">Your collection is empty</h3>
-              <p className="text-muted-foreground mb-6">Start adding banknotes to your collection by browsing the catalog.</p>
-              <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
-              {sortedCollection.map((item) => (
-                <BanknoteDetailCard
-                  key={item.id}
-                  banknote={item.banknote}
-                  collectionItem={item}
-                  source="collection"
-                  ownerId={user.id}
-                />
-              ))}
-            </div>
-          )}
         </TabsContent>
         
         <TabsContent value="wishlist">
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
-            </div>
-          ) : !user ? (
-            <div className="text-center py-8">
-              <h3 className="text-xl font-medium mb-4">You need to sign in to view your wishlist</h3>
-              <Button onClick={signIn}>Sign In</Button>
-            </div>
-          ) : wishlistItems.length === 0 ? (
-            <div className="text-center py-8">
-              <h3 className="text-xl font-medium mb-4">Your wishlist is empty</h3>
-              <p className="text-muted-foreground mb-6">Add banknotes to your wishlist while browsing the catalog.</p>
-              <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
-              {wishlistItems.map((item) => (
-                <Card key={item.id} className="overflow-hidden">
-                  <div className="aspect-[3/2]">
-                    <img
-                      src={item.banknote.imageUrls[0] || '/placeholder.svg'}
-                      alt={`${item.banknote.country} ${item.banknote.denomination}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <CardHeader className="p-4">
-                    <div className="flex justify-between">
-                      <div>
-                        <h3 className="font-semibold">{item.banknote.denomination}</h3>
-                        <p className="text-sm text-muted-foreground">{item.banknote.country}, {item.banknote.year}</p>
-                      </div>
-                      <div className={`px-2 py-1 text-xs rounded-full ${
-                        item.priority === 'High' ? 'bg-red-100 text-red-800' :
-                        item.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {item.priority}
-                      </div>
+          <div className="bg-card border rounded-lg p-6 mb-6">
+            <BanknoteFilter
+              categories={wishlistCategories}
+              types={wishlistTypes}
+              sortOptions={sortOptions}
+              onFilterChange={setWishlistFilters}
+              isLoading={loading}
+              defaultSort={["newest", "extPick"]}
+            />
+            
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+              </div>
+            ) : !user ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">You need to sign in to view your wishlist</h3>
+                <Button onClick={signIn}>Sign In</Button>
+              </div>
+            ) : filteredWishlist.length === 0 ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">Your wishlist is empty</h3>
+                <p className="text-muted-foreground mb-6">Add banknotes to your wishlist while browsing the catalog.</p>
+                <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
+                {filteredWishlist.map((item) => (
+                  <Card key={item.id} className="overflow-hidden">
+                    <div className="aspect-[3/2]">
+                      <img
+                        src={item.banknote.imageUrls[0] || '/placeholder.svg'}
+                        alt={`${item.banknote.country} ${item.banknote.denomination}`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    {item.note && (
-                      <p className="text-sm text-muted-foreground">{item.note}</p>
-                    )}
-                    <div className="flex justify-end mt-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
-                      >
-                        View Details
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                    <CardHeader className="p-4">
+                      <div className="flex justify-between">
+                        <div>
+                          <h3 className="font-semibold">{item.banknote.denomination}</h3>
+                          <p className="text-sm text-muted-foreground">{item.banknote.country}, {item.banknote.year}</p>
+                        </div>
+                        <div className={`px-2 py-1 text-xs rounded-full ${
+                          item.priority === 'High' ? 'bg-red-100 text-red-800' :
+                          item.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {item.priority}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      {item.note && (
+                        <p className="text-sm text-muted-foreground">{item.note}</p>
+                      )}
+                      <div className="flex justify-end mt-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
         
         <TabsContent value="missing">
           <div className="bg-card border rounded-lg p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="search-missing" className="mb-2 block">Search</Label>
-                <Input
-                  id="search-missing"
-                  placeholder="Search by name, country, etc."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+            <BanknoteFilter
+              categories={missingCategories}
+              types={missingTypes}
+              sortOptions={sortOptions}
+              onFilterChange={setMissingFilters}
+              isLoading={loading}
+              defaultSort={["extPick"]}
+            />
 
-              <div>
-                <Label htmlFor="sortBy-missing" className="mb-2 block">Sort By</Label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="oldest">Oldest First</SelectItem>
-                    <SelectItem value="a-z">A-Z</SelectItem>
-                    <SelectItem value="z-a">Z-A</SelectItem>
-                  </SelectContent>
-                </Select>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
               </div>
-            </div>
+            ) : !user ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">You need to sign in to view missing banknotes</h3>
+                <Button onClick={signIn}>Sign In</Button>
+              </div>
+            ) : filteredMissing.length === 0 ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">You have all available banknotes in your collection!</h3>
+                <p className="text-muted-foreground mb-6">Congratulations! You've collected everything in our catalog.</p>
+                <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
+                {filteredMissing.map((banknote) => (
+                  <BanknoteDetailCard
+                    key={banknote.id}
+                    banknote={banknote}
+                    source="missing"
+                    searchHighlight={missingFilters.search}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
-            </div>
-          ) : !user ? (
-            <div className="text-center py-8">
-              <h3 className="text-xl font-medium mb-4">You need to sign in to view missing banknotes</h3>
-              <Button onClick={signIn}>Sign In</Button>
-            </div>
-          ) : sortedMissing.length === 0 ? (
-            <div className="text-center py-8">
-              <h3 className="text-xl font-medium mb-4">You have all available banknotes in your collection!</h3>
-              <p className="text-muted-foreground mb-6">Congratulations! You've collected everything in our catalog.</p>
-              <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
-              {sortedMissing.map((banknote) => (
-                <BanknoteDetailCard
-                  key={banknote.id}
-                  banknote={banknote}
-                  source="missing"
-                />
-              ))}
-            </div>
-          )}
         </TabsContent>
         
         <TabsContent value="stats">

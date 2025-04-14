@@ -43,6 +43,9 @@ export interface Banknote {
   createdBy: string;
   pick_number?: string;
   rarity?: string;  // Add rarity property to fix errors in CountryDetail
+  type?: string;  // Add type property for filtering
+  sultanName?: string; // Add sultanName property for sorting
+  extendedPickNumber?: string; // Add extendedPickNumber property for sorting
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -81,7 +84,9 @@ export type BanknoteCondition =
   | 'VF' 
   | 'F' 
   | 'VG' 
-  | 'G';
+  | 'G'
+  | 'Fair'
+  | 'Poor';
 
 // Collection related types
 export interface CollectionItem {
@@ -195,3 +200,12 @@ export type BanknoteDetailSource =
   | 'country-detail'
   | 'missing'
   | 'wishlist';
+
+// BanknoteDetailCard props
+export interface BanknoteDetailCardProps {
+  banknote: Banknote | DetailedBanknote;
+  collectionItem?: CollectionItem;
+  source: BanknoteDetailSource;
+  ownerId?: string;
+  searchHighlight?: string;
+}
