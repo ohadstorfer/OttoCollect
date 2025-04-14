@@ -7,76 +7,86 @@ import { MarketplaceItem } from '@/types';
  */
 export const getMarketplaceItemById = async (id: string): Promise<MarketplaceItem | null> => {
   try {
-    const { data, error } = await supabase
+    // First, get the marketplace item
+    const { data: marketplaceItem, error: marketplaceError } = await supabase
       .from('marketplace_items')
-      .select(`
-        id,
-        status,
-        created_at,
-        seller_id,
-        collection_item_id,
-        collection_items (
-          id,
-          user_id,
-          banknote_id,
-          condition,
-          sale_price,
-          public_note,
-          private_note,
-          is_for_sale,
-          order_index,
-          created_at,
-          updated_at,
-          obverse_image,
-          reverse_image,
-          detailed_banknotes (*)
-        ),
-        profiles (
-          id,
-          username,
-          avatar_url,
-          rank
-        )
-      `)
+      .select('id, status, created_at, updated_at, seller_id, collection_item_id')
       .eq('id', id)
       .single();
 
-    if (error) {
-      console.error('Error fetching marketplace item:', error);
+    if (marketplaceError || !marketplaceItem) {
+      console.error('Error fetching marketplace item:', marketplaceError);
       return null;
     }
 
-    if (!data) return null;
+    // Get the collection item
+    const { data: collectionItem, error: collectionError } = await supabase
+      .from('collection_items')
+      .select(`
+        id,
+        user_id,
+        banknote_id,
+        condition,
+        sale_price,
+        public_note,
+        private_note,
+        is_for_sale,
+        order_index,
+        created_at,
+        updated_at,
+        obverse_image,
+        reverse_image,
+        detailed_banknotes (*)
+      `)
+      .eq('id', marketplaceItem.collection_item_id)
+      .single();
+
+    if (collectionError || !collectionItem) {
+      console.error('Error fetching collection item:', collectionError);
+      return null;
+    }
+
+    // Get the seller profile
+    const { data: seller, error: sellerError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .eq('id', marketplaceItem.seller_id)
+      .single();
+
+    if (sellerError || !seller) {
+      console.error('Error fetching seller profile:', sellerError);
+      return null;
+    }
 
     // Map the data to our MarketplaceItem type
     return {
-      id: data.id,
-      status: data.status,
-      createdAt: data.created_at,
-      updatedAt: data.created_at,
-      sellerId: data.seller_id,
-      collectionItemId: data.collection_item_id,
+      id: marketplaceItem.id,
+      status: marketplaceItem.status,
+      createdAt: marketplaceItem.created_at,
+      updatedAt: marketplaceItem.updated_at,
+      sellerId: marketplaceItem.seller_id,
+      collectionItemId: marketplaceItem.collection_item_id,
       collectionItem: {
-        id: data.collection_items.id,
-        userId: data.collection_items.user_id,
-        banknoteId: data.collection_items.banknote_id,
-        condition: data.collection_items.condition,
-        salePrice: data.collection_items.sale_price,
-        publicNote: data.collection_items.public_note,
-        privateNote: data.collection_items.private_note,
-        isForSale: data.collection_items.is_for_sale,
-        orderIndex: data.collection_items.order_index,
-        createdAt: data.collection_items.created_at,
-        updatedAt: data.collection_items.updated_at,
-        obverseImage: data.collection_items.obverse_image,
-        reverseImage: data.collection_items.reverse_image,
-        banknote: data.collection_items.detailed_banknotes
+        id: collectionItem.id,
+        userId: collectionItem.user_id,
+        banknoteId: collectionItem.banknote_id,
+        condition: collectionItem.condition,
+        salePrice: collectionItem.sale_price,
+        publicNote: collectionItem.public_note,
+        privateNote: collectionItem.private_note,
+        isForSale: collectionItem.is_for_sale,
+        orderIndex: collectionItem.order_index,
+        createdAt: collectionItem.created_at,
+        updatedAt: collectionItem.updated_at,
+        obverseImage: collectionItem.obverse_image,
+        reverseImage: collectionItem.reverse_image,
+        banknote: collectionItem.detailed_banknotes
       },
       seller: {
-        id: data.profiles.id,
-        username: data.profiles.username,
-        avatarUrl: data.profiles.avatar_url,
-        rank: data.profiles.rank
+        id: seller.id,
+        username: seller.username,
+        avatarUrl: seller.avatar_url,
+        rank: seller.rank
       }
     };
   } catch (err) {
@@ -90,16 +100,28 @@ export const getMarketplaceItemById = async (id: string): Promise<MarketplaceIte
  */
 export const fetchMarketplaceItems = async (): Promise<MarketplaceItem[]> => {
   try {
-    const { data, error } = await supabase
+    // First, get all marketplace items
+    const { data: marketplaceItems, error: marketplaceError } = await supabase
       .from('marketplace_items')
-      .select(`
-        id,
-        status,
-        created_at,
-        updated_at,
-        seller_id,
-        collection_item_id,
-        collection_items (
+      .select('id, status, created_at, updated_at, seller_id, collection_item_id')
+      .eq('status', 'Available')
+      .order('created_at', { ascending: false });
+
+    if (marketplaceError) {
+      console.error('Error fetching marketplace items:', marketplaceError);
+      return [];
+    }
+
+    if (!marketplaceItems || marketplaceItems.length === 0) {
+      return [];
+    }
+
+    // Build an array of promises to get collection items and seller profiles
+    const itemPromises = marketplaceItems.map(async (item) => {
+      // Get the collection item
+      const { data: collectionItem, error: collectionError } = await supabase
+        .from('collection_items')
+        .select(`
           id,
           user_id,
           banknote_id,
@@ -114,53 +136,63 @@ export const fetchMarketplaceItems = async (): Promise<MarketplaceItem[]> => {
           obverse_image,
           reverse_image,
           detailed_banknotes (*)
-        ),
-        profiles (
-          id,
-          username,
-          avatar_url,
-          rank
-        )
-      `)
-      .eq('status', 'Available')
-      .order('created_at', { ascending: false });
+        `)
+        .eq('id', item.collection_item_id)
+        .single();
 
-    if (error) {
-      console.error('Error fetching marketplace items:', error);
-      return [];
-    }
-
-    // Map the data to our MarketplaceItem type
-    return data.map(item => ({
-      id: item.id,
-      status: item.status,
-      createdAt: item.created_at,
-      updatedAt: item.updated_at,
-      sellerId: item.seller_id,
-      collectionItemId: item.collection_item_id,
-      collectionItem: {
-        id: item.collection_items.id,
-        userId: item.collection_items.user_id,
-        banknoteId: item.collection_items.banknote_id,
-        condition: item.collection_items.condition,
-        salePrice: item.collection_items.sale_price,
-        publicNote: item.collection_items.public_note,
-        privateNote: item.collection_items.private_note,
-        isForSale: item.collection_items.is_for_sale,
-        orderIndex: item.collection_items.order_index,
-        createdAt: item.collection_items.created_at,
-        updatedAt: item.collection_items.updated_at,
-        obverseImage: item.collection_items.obverse_image,
-        reverseImage: item.collection_items.reverse_image,
-        banknote: item.collection_items.detailed_banknotes
-      },
-      seller: {
-        id: item.profiles.id,
-        username: item.profiles.username,
-        avatarUrl: item.profiles.avatar_url,
-        rank: item.profiles.rank
+      if (collectionError || !collectionItem) {
+        console.error('Error fetching collection item:', collectionError);
+        return null;
       }
-    }));
+
+      // Get the seller profile
+      const { data: seller, error: sellerError } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, rank')
+        .eq('id', item.seller_id)
+        .single();
+
+      if (sellerError || !seller) {
+        console.error('Error fetching seller profile:', sellerError);
+        return null;
+      }
+
+      // Map the data to our MarketplaceItem type
+      return {
+        id: item.id,
+        status: item.status,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+        sellerId: item.seller_id,
+        collectionItemId: item.collection_item_id,
+        collectionItem: {
+          id: collectionItem.id,
+          userId: collectionItem.user_id,
+          banknoteId: collectionItem.banknote_id,
+          condition: collectionItem.condition,
+          salePrice: collectionItem.sale_price,
+          publicNote: collectionItem.public_note,
+          privateNote: collectionItem.private_note,
+          isForSale: collectionItem.is_for_sale,
+          orderIndex: collectionItem.order_index,
+          createdAt: collectionItem.created_at,
+          updatedAt: collectionItem.updated_at,
+          obverseImage: collectionItem.obverse_image,
+          reverseImage: collectionItem.reverse_image,
+          banknote: collectionItem.detailed_banknotes
+        },
+        seller: {
+          id: seller.id,
+          username: seller.username,
+          avatarUrl: seller.avatar_url,
+          rank: seller.rank
+        }
+      };
+    });
+
+    // Execute all promises and filter out any nulls
+    const results = await Promise.all(itemPromises);
+    return results.filter((item): item is MarketplaceItem => item !== null);
   } catch (err) {
     console.error('Error in fetchMarketplaceItems:', err);
     return [];
