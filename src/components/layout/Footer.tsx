@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Facebook, Twitter, Instagram, Github, Mail } from "lucide-react";
 
-const Footer = () => {
+export const Footer = () => {
   return (
     <footer className="bg-dark-600 border-t border-ottoman-900/50 animate-fade-in">
       <div className="container mx-auto px-4 py-12">
