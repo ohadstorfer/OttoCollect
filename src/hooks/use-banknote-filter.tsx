@@ -20,16 +20,9 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
   items,
   initialFilters = {},
 }: UseBanknoteFilterProps<T>): UseBanknoteFilterResult<T> => {
-  const defaultSelectedCategories = [
-    "First Kaime 1851-1861",
-    "1893 War Banknote",
-    "Imperial Ottoman Bank",
-    "World War I banknotes"
-  ];
-
   const [filters, setFilters] = useState<BanknoteFilterState>({
     search: initialFilters.search || "",
-    categories: initialFilters.categories || defaultSelectedCategories,
+    categories: initialFilters.categories || [],
     types: initialFilters.types || [],
     sort: initialFilters.sort || ["extPick"],
   });
@@ -51,12 +44,13 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       const searchLower = filters.search.toLowerCase();
 
       // Search filter
-      const matchesSearch = !filters.search || 
-        Object.values(banknote).some(value => 
-          typeof value === 'string' && value.toLowerCase().includes(searchLower)
+      const matchesSearch = !filters.search || Object.values(banknote)
+        .some(value => 
+          typeof value === 'string' && 
+          value.toLowerCase().includes(searchLower)
         );
 
-      // Category filter (series field)
+      // Category filter
       const matchesCategory = filters.categories.length === 0 ||
         (banknote.series && filters.categories.includes(banknote.series));
 

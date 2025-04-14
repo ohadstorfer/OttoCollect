@@ -9,7 +9,7 @@ interface WithHighlightProps {
 }
 
 export const withHighlight = (text: string, searchTerm?: string, className?: string) => {
-  if (!searchTerm || searchTerm === "") return text;
+  if (!searchTerm) return text;
   
   return (
     <HighlightText 
