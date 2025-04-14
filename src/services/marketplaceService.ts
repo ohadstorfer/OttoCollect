@@ -5,12 +5,11 @@ import { fetchCollectionItem } from "./collectionService";
 export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
   try {
     console.log("Fetching marketplace items from Supabase");
+    
+    // Fetch marketplace items with status 'Available'
     const { data: marketplaceItems, error } = await supabase
       .from('marketplace_items')
-      .select(`
-        *,
-        collection_item:collection_item_id (*)
-      `)
+      .select('*')
       .eq('status', 'Available');
       
     if (error) {
@@ -18,12 +17,19 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
       throw error;
     }
     
-    console.log(`Found ${marketplaceItems.length} marketplace items`);
+    console.log(`Found ${marketplaceItems?.length || 0} marketplace items`);
+    
+    if (!marketplaceItems || marketplaceItems.length === 0) {
+      console.log("No marketplace items found");
+      return [];
+    }
     
     // Process the marketplace items
     const enrichedItems = await Promise.all(
-      (marketplaceItems || []).map(async (item) => {
+      marketplaceItems.map(async (item) => {
         try {
+          console.log(`Processing marketplace item ${item.id}`);
+          
           // Get collection item details
           const collectionItem = await fetchCollectionItem(item.collection_item_id);
           if (!collectionItem) {
@@ -38,18 +44,26 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           }
           
           // Get basic seller info
-          const { data: sellerData } = await supabase
+          console.log(`Fetching seller info for user ${item.seller_id}`);
+          const { data: sellerData, error: sellerError } = await supabase
             .from('profiles')
-            .select('id, username, rank')
+            .select('id, username, rank, avatar_url')
             .eq('id', item.seller_id)
             .single();
+          
+          if (sellerError) {
+            console.log(`Error fetching seller data: ${sellerError.message}`);
+          }
           
           // Fallback seller data if we can't find the profile
           const seller = sellerData || {
             id: item.seller_id,
             username: "Unknown User",
-            rank: "Newbie" as UserRank
+            rank: "Newbie" as UserRank,
+            avatar_url: null
           };
+          
+          console.log(`Successfully processed marketplace item ${item.id}`);
           
           return {
             id: item.id,
@@ -225,12 +239,11 @@ export async function removeFromMarketplace(
 export async function getMarketplaceItemById(id: string): Promise<MarketplaceItem | null> {
   try {
     console.log(`Fetching marketplace item with ID: ${id}`);
+    
+    // Get the marketplace item by ID
     const { data, error } = await supabase
       .from('marketplace_items')
-      .select(`
-        *,
-        collection_item:collection_item_id (*)
-      `)
+      .select('*')
       .eq('id', id)
       .single();
       
@@ -245,6 +258,7 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
     }
     
     // Get collection item details
+    console.log(`Fetching collection item: ${data.collection_item_id}`);
     const collectionItem = await fetchCollectionItem(data.collection_item_id);
     if (!collectionItem) {
       console.log(`Collection item not found: ${data.collection_item_id}`);
@@ -252,17 +266,26 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
     }
     
     // Get seller info
-    const { data: sellerData } = await supabase
+    console.log(`Fetching seller info: ${data.seller_id}`);
+    const { data: sellerData, error: sellerError } = await supabase
       .from('profiles')
-      .select('id, username, rank')
+      .select('id, username, rank, avatar_url')
       .eq('id', data.seller_id)
       .single();
       
+    if (sellerError) {
+      console.log(`Error fetching seller data: ${sellerError.message}`);
+    }
+    
+    // Fallback seller data if we can't find the profile
     const seller = sellerData || {
       id: data.seller_id,
       username: "Unknown User",
-      rank: "Newbie" as UserRank
+      rank: "Newbie" as UserRank,
+      avatar_url: null
     };
+    
+    console.log(`Successfully fetched and processed marketplace item ${id}`);
     
     return {
       id: data.id,
@@ -286,10 +309,7 @@ export async function getMarketplaceItemForCollectionItem(
   try {
     const { data, error } = await supabase
       .from('marketplace_items')
-      .select(`
-        *,
-        collection_item:collection_item_id (*)
-      `)
+      .select('*')
       .eq('collection_item_id', collectionItemId)
       .single();
       
@@ -310,16 +330,21 @@ export async function getMarketplaceItemForCollectionItem(
     }
     
     // Get seller info
-    const { data: sellerData } = await supabase
+    const { data: sellerData, error: sellerError } = await supabase
       .from('profiles')
-      .select('id, username, rank')
+      .select('id, username, rank, avatar_url')
       .eq('id', data.seller_id)
       .single();
       
+    if (sellerError) {
+      console.log(`Error fetching seller data: ${sellerError.message}`);
+    }
+    
     const seller = sellerData || {
       id: data.seller_id,
       username: "Unknown User",
-      rank: "Newbie" as UserRank
+      rank: "Newbie" as UserRank,
+      avatar_url: null
     };
     
     return {
@@ -342,10 +367,10 @@ export async function synchronizeMarketplaceWithCollection() {
   try {
     console.log("Starting marketplace synchronization");
     
-    // 1. Get all collection items marked as for sale
+    // 1. Get all collection items marked for sale
     const { data: forSaleItems, error: collectionError } = await supabase
       .from('collection_items')
-      .select('id, user_id')
+      .select('id, user_id, banknote_id')
       .eq('is_for_sale', true);
       
     if (collectionError) {
@@ -375,6 +400,7 @@ export async function synchronizeMarketplaceWithCollection() {
     let addedCount = 0;
     for (const item of forSaleItems || []) {
       if (!marketplaceMap.has(item.id)) {
+        console.log(`Adding item ${item.id} to marketplace`);
         // This item is marked for sale but not in marketplace - add it
         const { error } = await supabase
           .from('marketplace_items')
@@ -382,7 +408,7 @@ export async function synchronizeMarketplaceWithCollection() {
             banknote_id: item.banknote_id,
             collection_item_id: item.id,
             seller_id: item.user_id,
-            status: "active"
+            status: "Available"
           });
           
         if (error) {
