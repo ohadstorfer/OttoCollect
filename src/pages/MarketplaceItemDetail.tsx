@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquare, AlertCircle, User } from "lucide-react";
@@ -17,7 +16,10 @@ import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 
 const MarketplaceItemDetail = () => {
+  console.log('Rendering MarketplaceItemDetail component');
   const { id } = useParams<{ id: string }>();
+  console.log('MarketplaceItemDetail ID from params:', id);
+  
   const [item, setItem] = useState<MarketplaceItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,18 +29,25 @@ const MarketplaceItemDetail = () => {
 
   useEffect(() => {
     const fetchItem = async () => {
-      if (!id) return;
+      if (!id) {
+        console.log('No ID provided in params');
+        return;
+      }
 
+      console.log('Starting to fetch marketplace item with ID:', id);
       setLoading(true);
       try {
         // We're getting the marketplace item by its ID directly
         const fetchedItem = await getMarketplaceItemById(id);
+        console.log('Fetched marketplace item result:', fetchedItem);
 
         if (!fetchedItem) {
+          console.error('Item not found or no longer available');
           setError("Item not found or no longer available");
           return;
         }
 
+        console.log('Setting marketplace item in state:', fetchedItem);
         setItem(fetchedItem);
 
       } catch (err) {
@@ -51,11 +60,16 @@ const MarketplaceItemDetail = () => {
         });
       } finally {
         setLoading(false);
+        console.log('Finished loading marketplace item');
       }
     };
 
     fetchItem();
   }, [id, toast]);
+
+  console.log('Current item state:', item);
+  console.log('Loading state:', loading);
+  console.log('Error state:', error);
 
   if (loading) {
     return (
@@ -86,8 +100,12 @@ const MarketplaceItemDetail = () => {
     );
   }
 
+  console.log('Rendering marketplace item details with data:', item);
   const { collectionItem, seller, status } = item;
   const { banknote, condition, salePrice, publicNote, privateNote, obverseImage, reverseImage } = collectionItem;
+
+  console.log('Banknote data for detail view:', banknote);
+  console.log('Image sources:', { obverseImage, reverseImage, banknoteImages: banknote.imageUrls });
 
   return (
     <div className="container py-8">
@@ -118,8 +136,6 @@ const MarketplaceItemDetail = () => {
               <TabsTrigger value="reverse">Reverse (Back)</TabsTrigger>
             </TabsList>
 
-           
-
             <TabsContent value="obverse">
               <div className="aspect-[4/3] overflow-hidden rounded-lg border">
                 <img
@@ -139,10 +155,6 @@ const MarketplaceItemDetail = () => {
                 />
               </div>
             </TabsContent>
-
-            
-
-
           </Tabs>
 
           {/* Seller information */}
@@ -162,24 +174,17 @@ const MarketplaceItemDetail = () => {
                   
                 </div>
 
-              
-
-                
-
                 {user && user.id !== seller.id && (
-                <div >
-                  <ContactSeller
-                    sellerId={seller.id}
-                    sellerName={seller.username}
-                    itemId={collectionItem.id}
-                    itemName={`${banknote.denomination} (${banknote.year})`}
-                  />
-                </div>
-              )}
-
+                  <div>
+                    <ContactSeller
+                      sellerId={seller.id}
+                      sellerName={seller.username}
+                      itemId={collectionItem.id}
+                      itemName={`${banknote.denomination} (${banknote.year})`}
+                    />
+                  </div>
+                )}
               </div>
-
-              
             </CardContent>
           </Card>
         </div>
@@ -211,8 +216,6 @@ const MarketplaceItemDetail = () => {
                 
               </div>
 
-
-
               {publicNote && (
                 <div className="mt-4">
                   <p className="text-sm text-ottoman-400">Seller's Note</p>
@@ -221,20 +224,13 @@ const MarketplaceItemDetail = () => {
                   </p>
                 </div>
               )}
-
-
-
-              
             </CardContent>
           </Card>
 
-
-           {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
-           <BanknoteProvider banknoteId={banknote.id}>
-              <BanknoteCatalogDetailMinimized />
-            </BanknoteProvider>
-
-            
+          {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
+          <BanknoteProvider banknoteId={banknote.id}>
+            <BanknoteCatalogDetailMinimized />
+          </BanknoteProvider>
         </div>
       </div>
     </div>

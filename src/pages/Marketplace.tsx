@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { useTheme } from "@/context/ThemeContext";
 
 const Marketplace = () => {
+  console.log('Rendering Marketplace component');
   const { user } = useAuth();
   const { theme } = useTheme();
   const { toast } = useToast();
@@ -37,6 +37,7 @@ const Marketplace = () => {
   
   // Load real marketplace data
   const loadMarketplaceItems = async (showToast = false) => {
+    console.log('Starting loadMarketplaceItems function');
     setLoading(true);
     setError(null);
     try {
@@ -44,9 +45,11 @@ const Marketplace = () => {
       
       // First, synchronize the marketplace with collection items
       if (user?.role === 'Admin') {
+        console.log('User is admin, synchronizing marketplace with collection');
         await synchronizeMarketplaceWithCollection();
       }
       
+      console.log('Calling fetchMarketplaceItems');
       const items = await fetchMarketplaceItems();
       console.log("Fetched marketplace items:", items);
       
@@ -61,11 +64,13 @@ const Marketplace = () => {
         }
       }
       
+      console.log('Setting marketplace items in state');
       setMarketplaceItems(items);
       
       // Set initial price range based on actual items
       if (items.length > 0) {
         const maxItemPrice = Math.max(...items.map(item => item.collectionItem.salePrice || 0), 100);
+        console.log('Setting price range with max price:', maxItemPrice);
         setPriceRange([0, maxItemPrice]);
       }
       
@@ -78,12 +83,14 @@ const Marketplace = () => {
         variant: "destructive"
       });
     } finally {
+      console.log('Finishing loadMarketplaceItems, setting loading to false');
       setLoading(false);
       setIsRefreshing(false);
     }
   };
   
   useEffect(() => {
+    console.log('Initial useEffect for loadMarketplaceItems running');
     loadMarketplaceItems();
   }, [toast]);
   
@@ -98,6 +105,9 @@ const Marketplace = () => {
     1000
   );
   
+  console.log('Countries detected:', countries);
+  console.log('Max price detected:', maxPrice);
+  
   // Filter items when search or filters change
   useEffect(() => {
     console.log("Filtering with marketplaceItems:", marketplaceItems);
@@ -105,48 +115,57 @@ const Marketplace = () => {
     
     // Only show available items
     results = results.filter(item => item.status === "Available");
-    console.log("After available filter:", results);
+    console.log("After available filter:", results.length, "items");
     
     // Apply search filter
     if (searchTerm) {
+      console.log('Applying search filter with term:', searchTerm);
       const lowerSearchTerm = searchTerm.toLowerCase();
       results = results.filter(
         item => {
           const banknote = item.collectionItem.banknote;
           return (
-            banknote.catalogId.toLowerCase().includes(lowerSearchTerm) ||
-            banknote.country.toLowerCase().includes(lowerSearchTerm) ||
-            banknote.denomination.toLowerCase().includes(lowerSearchTerm) ||
-            banknote.year.toLowerCase().includes(lowerSearchTerm) ||
-            item.seller.username.toLowerCase().includes(lowerSearchTerm)
+            banknote.catalogId?.toLowerCase().includes(lowerSearchTerm) ||
+            banknote.country?.toLowerCase().includes(lowerSearchTerm) ||
+            banknote.denomination?.toLowerCase().includes(lowerSearchTerm) ||
+            banknote.year?.toLowerCase().includes(lowerSearchTerm) ||
+            item.seller.username?.toLowerCase().includes(lowerSearchTerm)
           );
         }
       );
+      console.log("After search filter:", results.length, "items");
     }
     
     // Apply country filter
     if (selectedCountry && selectedCountry !== "all") {
+      console.log('Applying country filter with country:', selectedCountry);
       results = results.filter(
         item => item.collectionItem.banknote.country === selectedCountry
       );
+      console.log("After country filter:", results.length, "items");
     }
     
     // Apply condition filter
     if (selectedCondition && selectedCondition !== "all") {
+      console.log('Applying condition filter with condition:', selectedCondition);
       results = results.filter(
         item => item.collectionItem.condition === selectedCondition
       );
+      console.log("After condition filter:", results.length, "items");
     }
     
     // Apply price filter
+    console.log('Applying price filter with range:', priceRange);
     results = results.filter(
       item => {
         const price = item.collectionItem.salePrice || 0;
         return price >= priceRange[0] && price <= priceRange[1];
       }
     );
+    console.log("After price filter:", results.length, "items");
     
     // Apply sorting
+    console.log('Applying sorting with sort type:', sortBy);
     switch (sortBy) {
       case "price-asc":
         results.sort((a, b) => 
@@ -175,6 +194,7 @@ const Marketplace = () => {
   }, [searchTerm, selectedCountry, selectedCondition, priceRange, sortBy, marketplaceItems]);
 
   const resetFilters = () => {
+    console.log('Resetting all filters');
     setSearchTerm("");
     setSelectedCountry("all");
     setSelectedCondition("all");
@@ -183,10 +203,13 @@ const Marketplace = () => {
   };
 
   const handleRefresh = () => {
+    console.log('Manual refresh triggered');
     setIsRefreshing(true);
     loadMarketplaceItems(true);
   };
 
+  console.log('Marketplace render - filteredItems count:', filteredItems.length);
+  
   return (
     <div className="min-h-screen animate-fade-in">
       {/* Header */}

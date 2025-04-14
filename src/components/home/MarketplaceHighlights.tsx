@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { DollarSign, Calendar, Tag, User } from "lucide-react";
@@ -20,17 +20,25 @@ interface MarketplaceHighlightsProps {
 }
 
 const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlightsProps) => {
+  console.log('Rendering MarketplaceHighlights component with items:', items?.length || 0);
+  
+  useEffect(() => {
+    console.log('MarketplaceHighlights items:', items);
+  }, [items]);
+  
   const navigate = useNavigate();
   
   // Function to safely format dates
   const safeFormatDate = (dateString: string) => {
     try {
       // Parse the ISO string to a Date object first
+      console.log('Formatting date:', dateString);
       const date = parseISO(dateString);
       // Check if the resulting date is valid before formatting
       if (isValid(date)) {
         return format(date, 'MMM d, yyyy');
       }
+      console.log('Invalid date:', dateString);
       return 'Unknown date';
     } catch (error) {
       console.error('Error formatting date:', dateString, error);
@@ -39,6 +47,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
   };
   
   if (loading) {
+    console.log('MarketplaceHighlights in loading state');
     return (
       <div className="flex justify-center py-10">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-500"></div>
@@ -47,6 +56,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
   }
   
   if (!items || items.length === 0) {
+    console.log('No marketplace items available for highlights');
     return (
       <div className="text-center py-12">
         <p className="text-ottoman-300">No marketplace items available.</p>
@@ -61,6 +71,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
   }
   
   const handleItemClick = (itemId: string) => {
+    console.log('Marketplace highlight item clicked:', itemId);
     navigate(`/marketplace/${itemId}`);
   };
 

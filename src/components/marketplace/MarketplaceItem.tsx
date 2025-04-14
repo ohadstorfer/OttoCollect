@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
@@ -15,17 +14,23 @@ interface MarketplaceItemProps {
 }
 
 const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
+  console.log('Rendering MarketplaceItem component with item:', item.id);
   const [isHovering, setIsHovering] = useState(false);
   const navigate = useNavigate();
   
   const { collectionItem, seller, status } = item;
+  console.log('Banknote data:', collectionItem.banknote);
+  console.log('Seller data:', seller);
+  
   const { banknote, condition, salePrice, publicNote } = collectionItem;
   
   const handleViewDetails = () => {
+    console.log(`Navigating to marketplace item detail: ${item.id}`);
     navigate(`/marketplace/${item.id}`);
   };
   
   const getStatusBadge = () => {
+    console.log('Getting status badge for status:', status);
     switch (status) {
       case "Available":
         return <Badge variant="primary">Available</Badge>;
@@ -42,7 +47,11 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const displayImage = collectionItem.obverseImage || 
     (collectionItem.personalImages && collectionItem.personalImages.length > 0 
       ? collectionItem.personalImages[0] 
-      : banknote.imageUrls[0] || '/placeholder.svg');
+      : banknote.imageUrls && banknote.imageUrls.length > 0 
+        ? banknote.imageUrls[0] 
+        : '/placeholder.svg');
+  
+  console.log('Display image:', displayImage);
   
   return (
     <Card 
