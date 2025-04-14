@@ -25,20 +25,20 @@ const lightModeTheme = {
 };
 
 export const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
+  theme: 'light', // Changed default to light
   toggleTheme: () => {},
-  pageBackground: '#1A1A1A',
+  pageBackground: '#F9FAFB', // Light mode default background
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize theme from localStorage or default to dark
+  // Initialize theme from localStorage or default to light
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const savedTheme = localStorage.getItem('ottoman-theme');
-    return (savedTheme as ThemeMode) || 'dark';
+    return (savedTheme as ThemeMode) || 'light'; // Default to light if no saved theme
   });
 
   const location = useLocation();
-  const [pageBackground, setPageBackground] = useState<string>('#1A1A1A');
+  const [pageBackground, setPageBackground] = useState<string>('#F9FAFB');
 
   // Set the page-specific background based on the current route
   useEffect(() => {
