@@ -57,12 +57,6 @@ const Marketplace = () => {
       console.log('Setting marketplace items in state');
       setMarketplaceItems(items);
       
-      // Set initial price range based on actual items
-      if (items.length > 0) {
-        const maxItemPrice = Math.max(...items.map(item => item.collectionItem.salePrice || 0), 100);
-        console.log('Setting price range with max price:', maxItemPrice);
-      }
-      
     } catch (err) {
       console.error("Error loading marketplace items:", err);
       setError("Failed to load marketplace items. Please try again later.");
@@ -89,7 +83,7 @@ const Marketplace = () => {
     marketplaceItem: item
   }));
   
-  // Use the banknote filter hook
+  // Use the banknote filter hook with default selected categories
   const { 
     filteredItems, 
     filters, 
@@ -99,6 +93,7 @@ const Marketplace = () => {
   } = useBanknoteFilter({
     items: marketplaceItemsForFilter,
     initialFilters: {
+      categories: ["First Kaime 1851-1861", "1893 War Banknote", "Imperial Ottoman Bank", "World War I banknotes"],
       sort: ["extPick"]
     }
   });
@@ -135,49 +130,53 @@ const Marketplace = () => {
       <section className="py-8">
         <div className="container mx-auto px-4">
           {/* Filter section */}
-          <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'}`}>
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-                  Filters & Sorting
-                </h3>
-                
-                <div className="flex items-center gap-3">
-                  {user && (
-                    <Link to="/collection?filter=forsale">
-                      <Button className="ottoman-button">
-                        <SortAsc className="h-4 w-4 mr-2" />
-                        My Listings
-                      </Button>
-                    </Link>
-                  )}
+          <div className="sticky top-[64px] z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-4 pb-4 mb-6">
+            <Card className={`${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'}`}>
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
+                    Filters & Sorting
+                  </h3>
                   
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
-                  >
-                    {isRefreshing ? (
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4 mr-2" />
+                  <div className="flex items-center gap-3">
+                    {user && (
+                      <Link to="/collection?filter=forsale">
+                        <Button className="ottoman-button">
+                          <SortAsc className="h-4 w-4 mr-2" />
+                          My Listings
+                        </Button>
+                      </Link>
                     )}
-                    Refresh
-                  </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleRefresh}
+                      disabled={isRefreshing}
+                      className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
+                    >
+                      {isRefreshing ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                      )}
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
-              </div>
 
-              <BanknoteFilter
-                categories={availableCategories}
-                availableTypes={availableTypes}
-                onFilterChange={setFilters}
-                isLoading={loading}
-                defaultSort={["extPick"]}
-              />
-            </div>
-          </Card>
+                <BanknoteFilter
+                  categories={availableCategories}
+                  availableTypes={availableTypes}
+                  onFilterChange={setFilters}
+                  isLoading={loading}
+                  defaultSort={["extPick"]}
+                  defaultCategories={["First Kaime 1851-1861", "1893 War Banknote", "Imperial Ottoman Bank", "World War I banknotes"]}
+                  className="pb-0" // Remove padding to fit better in the card
+                />
+              </div>
+            </Card>
+          </div>
           
           {/* Results header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
@@ -228,13 +227,13 @@ const Marketplace = () => {
             </Card>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredItems.map((item, index) => (
+              {filteredItems.map((item: any, index) => (
                 <div 
                   key={`marketplace-item-${index}`}
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <MarketplaceItem item={(item as any).marketplaceItem} />
+                  <MarketplaceItem item={item.marketplaceItem} />
                 </div>
               ))}
             </div>

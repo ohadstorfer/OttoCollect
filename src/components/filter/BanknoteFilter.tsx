@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ export type BanknoteFilterProps = {
   className?: string;
   defaultSort?: string[];
   availableTypes?: FilterCategory[];
+  defaultCategories?: string[];
 };
 
 export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
@@ -39,15 +40,25 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   isLoading = false,
   className,
   defaultSort = ["extPick"],
-  availableTypes = []
+  availableTypes = [],
+  defaultCategories = ["First Kaime 1851-1861", "1893 War Banknote", "Imperial Ottoman Bank", "World War I banknotes"]
 }) => {
   const isMobile = useIsMobile();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(defaultCategories);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(DEFAULT_SELECTED_TYPES);
   const [selectedSort, setSelectedSort] = useState<string[]>(defaultSort);
+
+  useEffect(() => {
+    // Apply initial filters
+    handleFilterChange({
+      categories: selectedCategories,
+      types: selectedTypes,
+      sort: selectedSort
+    });
+  }, []);
 
   // Handle search with debounce
   const debouncedSearch = debounce((value: string) => {
@@ -140,7 +151,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
             >
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
-                <span>{isMobile ? "Categories" : "Category & Types"}</span>
+                <span>{isMobile ? "Types" : "Category & Types"}</span>
               </div>
             </Button>
           </SheetTrigger>

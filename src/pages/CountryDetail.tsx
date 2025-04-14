@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
 import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
-import { HighlightText } from "@/components/filter/HighlightText";
+import { withHighlight } from "@/components/filter/withHighlight";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -51,7 +51,7 @@ const CountryDetail = () => {
     }
   }, [country, decodedCountryName, toast]);
 
-  // Use the banknote filter hook
+  // Use the banknote filter hook with default selected categories
   const { 
     filteredItems: filteredBanknotes, 
     filters, 
@@ -61,6 +61,7 @@ const CountryDetail = () => {
   } = useBanknoteFilter({
     items: banknotes,
     initialFilters: {
+      categories: ["First Kaime 1851-1861", "1893 War Banknote", "Imperial Ottoman Bank", "World War I banknotes"],
       sort: ["extPick"] // Default sort by extended pick number
     }
   });
@@ -85,6 +86,7 @@ const CountryDetail = () => {
           onFilterChange={setFilters}
           isLoading={loading}
           defaultSort={["extPick"]}
+          defaultCategories={["First Kaime 1851-1861", "1893 War Banknote", "Imperial Ottoman Bank", "World War I banknotes"]}
         />
 
         <div className="mt-6">
