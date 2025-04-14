@@ -1,45 +1,73 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { ForumPost, ForumComment, normalizeForumPost, normalizeForumComment } from '@/types/forum';
+import { ForumPost, ForumComment } from '@/types/forum';
 
 /**
  * Fetch all forum posts
  */
 export const fetchForumPosts = async (): Promise<ForumPost[]> => {
   try {
-    const { data, error } = await supabase
+    console.log("Fetching forum posts...");
+    
+    // Step 1: Fetch forum posts
+    const { data: posts, error: postsError } = await supabase
       .from('forum_posts')
-      .select(`
-        *,
-        profiles:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching forum posts:', error);
+    if (postsError) {
+      console.error('Error fetching forum posts:', postsError);
       return [];
     }
 
-    // Process the data to match our ForumPost type
-    return data.map((post) => ({
-      id: post.id,
-      title: post.title,
-      content: post.content,
-      author_id: post.author_id,
-      image_urls: post.image_urls || [],
-      created_at: post.created_at,
-      updated_at: post.updated_at,
-      author: {
-        id: post.profiles.id,
-        username: post.profiles.username,
-        avatarUrl: post.profiles.avatar_url,
-        rank: post.profiles.rank
-      }
-    }));
+    console.log("Fetched posts:", posts.length);
+
+    // Step 2: Get unique author IDs from posts
+    const authorIds = Array.from(new Set(posts.map(post => post.author_id)));
+    
+    // Step 3: Fetch author profiles
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .in('id', authorIds);
+
+    if (profilesError) {
+      console.error('Error fetching author profiles:', profilesError);
+      return [];
+    }
+
+    console.log("Fetched profiles:", profiles.length);
+
+    // Step 4: Create a lookup map for profiles
+    const profileMap = profiles.reduce((acc, profile) => {
+      acc[profile.id] = profile;
+      return acc;
+    }, {} as Record<string, any>);
+
+    // Step 5: Combine data to create normalized forum posts
+    return posts.map(post => {
+      const authorProfile = profileMap[post.author_id] || null;
+      
+      return {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        author_id: post.author_id,
+        authorId: post.author_id, // Add compatibility alias
+        image_urls: post.image_urls || [],
+        imageUrls: post.image_urls || [],
+        created_at: post.created_at,
+        updated_at: post.updated_at,
+        createdAt: post.created_at,
+        updatedAt: post.updated_at,
+        author: authorProfile ? {
+          id: authorProfile.id,
+          username: authorProfile.username,
+          avatarUrl: authorProfile.avatar_url,
+          rank: authorProfile.rank
+        } : null
+      };
+    });
   } catch (error) {
     console.error('Error in fetchForumPosts:', error);
     return [];
@@ -51,83 +79,146 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
  */
 export const fetchForumPostById = async (id: string): Promise<ForumPost | null> => {
   try {
-    const { data, error } = await supabase
+    console.log("Fetching forum post by ID:", id);
+    
+    // Step 1: Fetch the forum post
+    const { data: post, error: postError } = await supabase
       .from('forum_posts')
-      .select(`
-        *,
-        profiles:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        ),
-        forum_comments (
-          id,
-          post_id,
-          content,
-          created_at,
-          updated_at,
-          profiles:author_id (
-            id,
-            username,
-            avatar_url,
-            rank
-          )
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
-    if (error) {
-      console.error('Error fetching forum post:', error);
+    if (postError) {
+      console.error('Error fetching forum post:', postError);
       return null;
     }
 
-    if (!data) {
+    if (!post) {
       return null;
     }
 
-    // Normalize forum post
-    const normalizedPost = normalizeForumPost({
-      id: data.id,
-      title: data.title,
-      content: data.content,
-      author_id: data.author_id,
-      image_urls: data.image_urls || [],
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      author: {
-        id: data.profiles.id,
-        username: data.profiles.username,
-        avatarUrl: data.profiles.avatar_url,
-        rank: data.profiles.rank
-      }
-    });
+    console.log("Fetched post:", post.id);
 
-    // Normalize forum comments
-    const normalizedComments = (data.forum_comments || []).map(comment => normalizeForumComment({
-      id: comment.id,
-      post_id: comment.post_id,
-      content: comment.content,
-      author_id: comment.profiles.id,
-      created_at: comment.created_at,
-      updated_at: comment.updated_at,
-      author: {
-        id: comment.profiles.id,
-        username: comment.profiles.username,
-        avatarUrl: comment.profiles.avatar_url,
-        rank: comment.profiles.rank
-      }
-    }));
+    // Step 2: Fetch the author profile
+    const { data: authorProfile, error: authorError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .eq('id', post.author_id)
+      .single();
 
+    if (authorError) {
+      console.error('Error fetching author profile:', authorError);
+      // Continue without author info
+    }
+
+    console.log("Fetched author profile:", authorProfile?.id);
+
+    // Step 3: Fetch comments for this post
+    const comments = await fetchCommentsByPostId(id);
+    console.log("Fetched comments:", comments.length);
+
+    // Step 4: Normalize and return the forum post
     return {
-      ...normalizedPost,
-      comments: normalizedComments,
-      commentCount: normalizedComments.length
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      author_id: post.author_id,
+      authorId: post.author_id,
+      image_urls: post.image_urls || [],
+      imageUrls: post.image_urls || [],
+      created_at: post.created_at,
+      updated_at: post.updated_at,
+      createdAt: post.created_at,
+      updatedAt: post.updated_at,
+      author: authorProfile ? {
+        id: authorProfile.id,
+        username: authorProfile.username,
+        avatarUrl: authorProfile.avatar_url,
+        rank: authorProfile.rank
+      } : null,
+      comments,
+      commentCount: comments.length
     };
   } catch (error) {
     console.error('Error in fetchForumPostById:', error);
     return null;
+  }
+};
+
+/**
+ * Fetch comments for a specific post
+ */
+export const fetchCommentsByPostId = async (postId: string): Promise<ForumComment[]> => {
+  try {
+    console.log("Fetching comments for post:", postId);
+    
+    // Step 1: Fetch comments for the post
+    const { data: comments, error: commentsError } = await supabase
+      .from('forum_comments')
+      .select('*')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false });
+
+    if (commentsError) {
+      console.error('Error fetching comments:', commentsError);
+      return [];
+    }
+
+    console.log("Fetched comments:", comments.length);
+
+    // Step 2: Get unique author IDs from comments
+    const authorIds = Array.from(new Set(comments.map(comment => comment.author_id)));
+    
+    if (authorIds.length === 0) {
+      return [];
+    }
+
+    // Step 3: Fetch author profiles
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .in('id', authorIds);
+
+    if (profilesError) {
+      console.error('Error fetching comment author profiles:', profilesError);
+      return [];
+    }
+
+    console.log("Fetched comment profiles:", profiles.length);
+
+    // Step 4: Create a lookup map for profiles
+    const profileMap = profiles.reduce((acc, profile) => {
+      acc[profile.id] = profile;
+      return acc;
+    }, {} as Record<string, any>);
+
+    // Step 5: Combine data to create normalized comments
+    return comments.map(comment => {
+      const authorProfile = profileMap[comment.author_id] || null;
+      
+      return {
+        id: comment.id,
+        post_id: comment.post_id,
+        postId: comment.post_id, // Add compatibility alias
+        content: comment.content,
+        author_id: comment.author_id,
+        authorId: comment.author_id, // Add compatibility alias
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        createdAt: comment.created_at,
+        updatedAt: comment.updated_at,
+        isEdited: comment.is_edited || false,
+        author: authorProfile ? {
+          id: authorProfile.id,
+          username: authorProfile.username,
+          avatarUrl: authorProfile.avatar_url,
+          rank: authorProfile.rank
+        } : null
+      };
+    });
+  } catch (error) {
+    console.error('Error in fetchCommentsByPostId:', error);
+    return [];
   }
 };
 
@@ -137,62 +228,78 @@ export const fetchForumPostById = async (id: string): Promise<ForumPost | null> 
 export const createForumPost = async (
   title: string,
   content: string,
-  imageUrls: string[] | null | undefined
-): Promise<{ data: ForumPost | null; error: any }> => {
+  authorId: string,
+  imageUrls: string[] | null = []
+): Promise<ForumPost | null> => {
   try {
+    console.log("Creating forum post...");
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       throw new Error('Not authenticated');
     }
 
+    // Step 1: Insert the new post
     const { data, error } = await supabase
       .from('forum_posts')
       .insert([
         {
           title,
           content,
-          author_id: user.id,
+          author_id: authorId,
           image_urls: imageUrls || [],
         },
       ])
-      .select(`
-        *,
-        profiles:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        )
-      `)
+      .select('*')
       .single();
 
     if (error) {
       console.error('Error creating forum post:', error);
-      return { data: null, error };
+      return null;
     }
 
-    // Process the data to match our ForumPost type
-    const newPost = {
+    if (!data) {
+      return null;
+    }
+
+    console.log("Created post:", data.id);
+
+    // Step 2: Fetch the author profile
+    const { data: authorProfile, error: authorError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .eq('id', authorId)
+      .single();
+
+    if (authorError) {
+      console.error('Error fetching author profile:', authorError);
+      // Continue without author info
+    }
+
+    // Step 3: Normalize and return the new post
+    return {
       id: data.id,
       title: data.title,
       content: data.content,
       author_id: data.author_id,
+      authorId: data.author_id,
       image_urls: data.image_urls || [],
+      imageUrls: data.image_urls || [],
       created_at: data.created_at,
       updated_at: data.updated_at,
-      author: {
-        id: data.profiles.id,
-        username: data.profiles.username,
-        avatarUrl: data.profiles.avatar_url,
-        rank: data.profiles.rank
-      }
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      author: authorProfile ? {
+        id: authorProfile.id,
+        username: authorProfile.username,
+        avatarUrl: authorProfile.avatar_url,
+        rank: authorProfile.rank
+      } : null,
+      commentCount: 0
     };
-
-    return { data: newPost, error: null };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in createForumPost:', error);
-    return { data: null, error };
+    return null;
   }
 };
 
@@ -203,15 +310,17 @@ export const updateForumPost = async (
   id: string,
   title: string,
   content: string,
-  imageUrls: string[] | null | undefined
-): Promise<{ data: ForumPost | null; error: any }> => {
+  imageUrls: string[] | null = []
+): Promise<ForumPost | null> => {
   try {
+    console.log("Updating forum post:", id);
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       throw new Error('Not authenticated');
     }
 
+    // Step 1: Update the post
     const { data, error } = await supabase
       .from('forum_posts')
       .update({
@@ -220,51 +329,64 @@ export const updateForumPost = async (
         image_urls: imageUrls || [],
       })
       .eq('id', id)
-      .select(`
-        *,
-        profiles:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        )
-      `)
+      .select('*')
       .single();
 
     if (error) {
       console.error('Error updating forum post:', error);
-      return { data: null, error };
+      return null;
     }
 
-    // Process the data to match our ForumPost type
-    const updatedPost = {
+    if (!data) {
+      return null;
+    }
+
+    console.log("Updated post:", data.id);
+
+    // Step 2: Fetch the author profile
+    const { data: authorProfile, error: authorError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .eq('id', data.author_id)
+      .single();
+
+    if (authorError) {
+      console.error('Error fetching author profile:', authorError);
+      // Continue without author info
+    }
+
+    // Step 3: Normalize and return the updated post
+    return {
       id: data.id,
       title: data.title,
       content: data.content,
       author_id: data.author_id,
+      authorId: data.author_id,
       image_urls: data.image_urls || [],
+      imageUrls: data.image_urls || [],
       created_at: data.created_at,
       updated_at: data.updated_at,
-      author: {
-        id: data.profiles.id,
-        username: data.profiles.username,
-        avatarUrl: data.profiles.avatar_url,
-        rank: data.profiles.rank
-      }
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      author: authorProfile ? {
+        id: authorProfile.id,
+        username: authorProfile.username,
+        avatarUrl: authorProfile.avatar_url,
+        rank: authorProfile.rank
+      } : null
     };
-
-    return { data: updatedPost, error: null };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in updateForumPost:', error);
-    return { data: null, error };
+    return null;
   }
 };
 
 /**
  * Delete a forum post
  */
-export const deleteForumPost = async (id: string): Promise<{ success: boolean; error: any }> => {
+export const deleteForumPost = async (id: string): Promise<boolean> => {
   try {
+    console.log("Deleting forum post:", id);
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -278,13 +400,14 @@ export const deleteForumPost = async (id: string): Promise<{ success: boolean; e
 
     if (error) {
       console.error('Error deleting forum post:', error);
-      return { success: false, error };
+      return false;
     }
 
-    return { success: true, error: null };
-  } catch (error: any) {
+    console.log("Deleted post:", id);
+    return true;
+  } catch (error) {
     console.error('Error in deleteForumPost:', error);
-    return { success: false, error };
+    return false;
   }
 };
 
@@ -294,14 +417,16 @@ export const deleteForumPost = async (id: string): Promise<{ success: boolean; e
 export const addForumComment = async (
   postId: string,
   content: string
-): Promise<{ data: ForumComment | null; error: any }> => {
+): Promise<ForumComment | null> => {
   try {
+    console.log("Adding comment to post:", postId);
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       throw new Error('Not authenticated');
     }
 
+    // Step 1: Insert the new comment
     const { data, error } = await supabase
       .from('forum_comments')
       .insert([
@@ -311,42 +436,55 @@ export const addForumComment = async (
           author_id: user.id,
         },
       ])
-      .select(`
-        *,
-        profiles:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        )
-      `)
+      .select('*')
       .single();
 
     if (error) {
       console.error('Error adding forum comment:', error);
-      return { data: null, error };
+      return null;
     }
 
-    // Process the data to match our ForumComment type
-    const newComment = {
+    if (!data) {
+      return null;
+    }
+
+    console.log("Added comment:", data.id);
+
+    // Step 2: Fetch the author profile
+    const { data: authorProfile, error: authorError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .eq('id', user.id)
+      .single();
+
+    if (authorError) {
+      console.error('Error fetching author profile:', authorError);
+      // Continue without author info
+    }
+
+    // Step 3: Normalize and return the new comment
+    return {
       id: data.id,
       post_id: data.post_id,
+      postId: data.post_id,
       content: data.content,
       author_id: data.author_id,
+      authorId: data.author_id,
       created_at: data.created_at,
       updated_at: data.updated_at,
-      author: {
-        id: data.profiles.id,
-        username: data.profiles.username,
-        avatarUrl: data.profiles.avatar_url,
-        rank: data.profiles.rank
-      }
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      isEdited: data.is_edited || false,
+      author: authorProfile ? {
+        id: authorProfile.id,
+        username: authorProfile.username,
+        avatarUrl: authorProfile.avatar_url,
+        rank: authorProfile.rank
+      } : null
     };
-
-    return { data: newComment, error: null };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in addForumComment:', error);
-    return { data: null, error };
+    return null;
   }
 };
 
@@ -356,66 +494,81 @@ export const addForumComment = async (
 export const updateForumComment = async (
   id: string,
   content: string
-): Promise<{ data: ForumComment | null; error: any }> => {
+): Promise<ForumComment | null> => {
   try {
+    console.log("Updating comment:", id);
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       throw new Error('Not authenticated');
     }
 
+    // Step 1: Update the comment
     const { data, error } = await supabase
       .from('forum_comments')
       .update({
         content,
-        isEdited: true
+        is_edited: true
       })
       .eq('id', id)
-      .select(`
-        *,
-        profiles:author_id (
-          id,
-          username,
-          avatar_url,
-          rank
-        )
-      `)
+      .select('*')
       .single();
 
     if (error) {
       console.error('Error updating forum comment:', error);
-      return { data: null, error };
+      return null;
     }
 
-    // Process the data to match our ForumComment type
-    const updatedComment = {
+    if (!data) {
+      return null;
+    }
+
+    console.log("Updated comment:", data.id);
+
+    // Step 2: Fetch the author profile
+    const { data: authorProfile, error: authorError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .eq('id', data.author_id)
+      .single();
+
+    if (authorError) {
+      console.error('Error fetching author profile:', authorError);
+      // Continue without author info
+    }
+
+    // Step 3: Normalize and return the updated comment
+    return {
       id: data.id,
       post_id: data.post_id,
+      postId: data.post_id,
       content: data.content,
       author_id: data.author_id,
+      authorId: data.author_id,
       created_at: data.created_at,
       updated_at: data.updated_at,
-      isEdited: data.isEdited,
-      author: {
-        id: data.profiles.id,
-        username: data.profiles.username,
-        avatarUrl: data.profiles.avatar_url,
-        rank: data.profiles.rank
-      }
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      isEdited: data.is_edited || false,
+      author: authorProfile ? {
+        id: authorProfile.id,
+        username: authorProfile.username,
+        avatarUrl: authorProfile.avatar_url,
+        rank: authorProfile.rank
+      } : null
     };
-
-    return { data: updatedComment, error: null };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in updateForumComment:', error);
-    return { data: null, error };
+    return null;
   }
 };
 
 /**
  * Delete a forum comment
  */
-export const deleteForumComment = async (id: string): Promise<{ success: boolean; error: any }> => {
+export const deleteForumComment = async (id: string): Promise<boolean> => {
   try {
+    console.log("Deleting comment:", id);
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -429,12 +582,50 @@ export const deleteForumComment = async (id: string): Promise<{ success: boolean
 
     if (error) {
       console.error('Error deleting forum comment:', error);
-      return { success: false, error };
+      return false;
     }
 
-    return { success: true, error: null };
-  } catch (error: any) {
+    console.log("Deleted comment:", id);
+    return true;
+  } catch (error) {
     console.error('Error in deleteForumComment:', error);
-    return { success: false, error };
+    return false;
+  }
+};
+
+/**
+ * Upload an image for a forum post
+ */
+export const uploadForumImage = async (file: File): Promise<string> => {
+  try {
+    console.log("Uploading forum image...");
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error('Not authenticated');
+    }
+
+    const fileName = `${Math.random().toString(36).substring(2)}-${file.name}`;
+    const filePath = `forum-images/${user.id}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from('public')
+      .upload(filePath, file);
+
+    if (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+
+    // Get the public URL
+    const { data } = supabase.storage
+      .from('public')
+      .getPublicUrl(filePath);
+
+    console.log("Uploaded image:", data.publicUrl);
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Error in uploadForumImage:', error);
+    throw error;
   }
 };

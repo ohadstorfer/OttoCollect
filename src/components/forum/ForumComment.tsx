@@ -47,7 +47,7 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
     
     setIsSubmitting(true);
     try {
-      const updatedComment = await updateForumComment(comment.id, user.id, editedContent);
+      const updatedComment = await updateForumComment(comment.id, editedContent);
       
       if (updatedComment) {
         onUpdate(comment.id, editedContent);

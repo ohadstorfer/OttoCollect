@@ -1,15 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ForumPost as ForumPostType, ForumComment as ForumCommentType } from "@/types/forum";
+import { ForumPost as ForumPostType, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
-import { addForumComment, fetchForumPostById, fetchCommentsByPostId } from "@/services/forumService";
+import { addForumComment, fetchForumPostById } from "@/services/forumService";
 import UserProfileLink from "@/components/common/UserProfileLink";
-import ForumComment from "@/components/forum/ForumComment";
+import ForumCommentComponent from "@/components/forum/ForumComment";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
@@ -18,7 +19,7 @@ const ForumPostPage = () => {
   const { id: postId } = useParams();
   const { user } = useAuth();
   const [post, setPost] = useState<ForumPostType | null>(null);
-  const [comments, setComments] = useState<ForumCommentType[]>([]);
+  const [comments, setComments] = useState<ForumComment[]>([]);
   const [commentContent, setCommentContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,8 +36,7 @@ const ForumPostPage = () => {
       const fetchedPost = await fetchForumPostById(postId);
       if (fetchedPost) {
         setPost(fetchedPost);
-        const postComments = await fetchCommentsByPostId(postId);
-        setComments(postComments);
+        setComments(fetchedPost.comments || []);
       } else {
         toast.error("Failed to load post.");
       }
@@ -50,7 +50,7 @@ const ForumPostPage = () => {
 
     setIsSubmitting(true);
     try {
-      const newComment = await addForumComment(post.id, commentContent, user.id);
+      const newComment = await addForumComment(post.id, commentContent);
 
       if (newComment) {
         onAddComment(newComment);
@@ -127,7 +127,7 @@ const ForumPostPage = () => {
     addSuffix: true,
   });
 
-  const onAddComment = (comment: ForumCommentType) => {
+  const onAddComment = (comment: ForumComment) => {
     if (!post) return;
     setComments((prev) => [comment, ...prev]);
     setPost({
@@ -205,7 +205,7 @@ const ForumPostPage = () => {
               <div className="bg-parchment-10/20 rounded-md border p-6">
                 {comments.map((comment) => (
                   <div key={comment.id} className="group mb-3 last:mb-0">
-                    <ForumComment
+                    <ForumCommentComponent
                       comment={comment}
                       currentUserId={user?.id || ''}
                       onUpdate={onUpdateComment}

@@ -247,7 +247,6 @@ const Collection = () => {
                   collectionItem={item}
                   source="collection"
                   ownerId={user.id}
-                  onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
                 />
               ))}
             </div>

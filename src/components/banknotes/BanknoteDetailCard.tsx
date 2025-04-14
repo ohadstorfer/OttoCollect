@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -233,6 +234,18 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
     (banknote.imageUrls && banknote.imageUrls.length > 0
       ? banknote.imageUrls[0]
       : '/placeholder.svg');
+  
+  const handleCardClick = () => {
+    // Updated navigation to use different routes based on source
+    if (source === 'catalog') {
+      navigate(`/catalog-banknote/${banknote.id}`);
+    } else if (source === 'collection') {
+      navigate(`/collection-banknote/${banknote.id}`);
+    } else {
+      // For any other sources, use the original route with state info
+      navigate(`/banknote/${banknote.id}`, { state: { source, itemId: collectionItem?.id } });
+    }
+  };
 
   return (
     <>
@@ -243,17 +256,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
         )}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
-        onClick={() => {
-          // Updated navigation to use different routes based on source
-          if (source === 'catalog') {
-            navigate(`/catalog-banknote/${banknote.id}`);
-          } else if (source === 'collection') {
-            navigate(`/collection-banknote/${banknote.id}`);
-          } else {
-            // For any other sources, use the original route with state info
-            navigate(`/banknote/${banknote.id}`, { state: { source, itemId: collectionItem?.id } });
-          }
-        }}
+        onClick={handleCardClick}
       >
         <div className="relative">
           <div className="absolute top-2 right-2 z-10">
@@ -305,53 +308,52 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
         </div>
 
         <CardHeader className="p-4 pb-2">
-  <div className="flex justify-between items-start">
-    <div>
-      <h3 className="text-lg font-semibold text-primary">
-        {banknote.denomination}
-      </h3>
-      <p className="text-sm text-muted-foreground">
-        {banknote.country} · {banknote.year}
-      </p>
-    </div>
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-semibold text-primary">
+                {banknote.denomination}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {banknote.country} · {banknote.year}
+              </p>
+            </div>
 
-    {collectionItem && (
-      <Badge variant="secondary" className="self-start">
-        {collectionItem.condition}
-      </Badge>
-    )}
-  </div>
+            {collectionItem && (
+              <Badge variant="secondary" className="self-start">
+                {collectionItem.condition}
+              </Badge>
+            )}
+          </div>
 
-  <div className="mt-3 p-3 bg-muted/40 rounded-md">
-    <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
-      {banknote.pickNumber && (
-        <>
-          <dt className="font-medium text-foreground">Pick #</dt>
-          <dd>{banknote.pickNumber}</dd>
-        </>
-      )}
-      {banknote.sultanName && (
-        <>
-          <dt className="font-medium text-foreground">Sultan</dt>
-          <dd>{banknote.sultanName}</dd>
-        </>
-      )}
-      {banknote.sealNames && (
-        <>
-          <dt className="font-medium text-foreground">Seal Names</dt>
-          <dd>{banknote.sealNames}</dd>
-        </>
-      )}
-      {banknote.rarity && (
-        <>
-          <dt className="font-medium text-foreground">Rarity</dt>
-          <dd>{banknote.rarity}</dd>
-        </>
-      )}
-    </dl>
-  </div>
-</CardHeader>
-
+          <div className="mt-3 p-3 bg-muted/40 rounded-md">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
+              {banknote.pickNumber && (
+                <>
+                  <dt className="font-medium text-foreground">Pick #</dt>
+                  <dd>{banknote.pickNumber}</dd>
+                </>
+              )}
+              {banknote.sultanName && (
+                <>
+                  <dt className="font-medium text-foreground">Sultan</dt>
+                  <dd>{banknote.sultanName}</dd>
+                </>
+              )}
+              {banknote.sealNames && (
+                <>
+                  <dt className="font-medium text-foreground">Seal Names</dt>
+                  <dd>{banknote.sealNames}</dd>
+                </>
+              )}
+              {banknote.rarity && (
+                <>
+                  <dt className="font-medium text-foreground">Rarity</dt>
+                  <dd>{banknote.rarity}</dd>
+                </>
+              )}
+            </dl>
+          </div>
+        </CardHeader>
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -373,7 +375,10 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="condition">Condition</Label>
-                    <Select value={condition} onValueChange={setCondition}>
+                    <Select
+                      value={condition}
+                      onValueChange={(value: BanknoteCondition) => setCondition(value)}
+                    >
                       <SelectTrigger id="condition">
                         <SelectValue placeholder="Select condition" />
                       </SelectTrigger>

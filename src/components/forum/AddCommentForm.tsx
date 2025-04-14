@@ -25,7 +25,7 @@ export default function AddCommentForm({ postId, user, onCommentAdded }: AddComm
     
     setIsSubmitting(true);
     try {
-      const comment = await addForumComment(postId, content, user.id);
+      const comment = await addForumComment(postId, content);
       
       if (comment) {
         onCommentAdded(comment);
