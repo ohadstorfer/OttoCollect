@@ -21,7 +21,7 @@ const CollectionItemCard = ({ item, banknote }: CollectionItemCardProps) => {
           alt={banknote.denomination}
           className="w-full h-full object-cover"
         />
-        {item.forSale && (
+        {item.isForSale && (
           <Badge className="absolute top-2 right-2 bg-ottoman-500 text-white">
             For Sale
           </Badge>
@@ -38,7 +38,7 @@ const CollectionItemCard = ({ item, banknote }: CollectionItemCardProps) => {
               <Badge variant="secondary" className="text-xs">
                 {item.condition}
               </Badge>
-              {item.forSale && (
+              {item.isForSale && (
                 <Badge variant="outline" className="text-ottoman-500 font-medium text-xs">
                   {formatCurrency(item.salePrice || 0)}
                 </Badge>

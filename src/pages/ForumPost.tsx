@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { ForumPost as ForumPostType, ForumComment as ForumCommentType } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
-import { addForumComment, fetchForumPostById } from "@/services/forumService";
+import { addForumComment, fetchForumPostById, fetchCommentsByPostId } from "@/services/forumService";
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumComment from "@/components/forum/ForumComment";
 import ImageGallery from "@/components/forum/ImageGallery";
@@ -35,7 +35,8 @@ const ForumPostPage = () => {
       const fetchedPost = await fetchForumPostById(postId);
       if (fetchedPost) {
         setPost(fetchedPost);
-        setComments(fetchedPost.comments || []);
+        const postComments = await fetchCommentsByPostId(postId);
+        setComments(postComments);
       } else {
         toast.error("Failed to load post.");
       }

@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import { fetchUserCollection } from "@/services/collectionService";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
 import { addToWishlist, removeFromWishlist, fetchWishlistItem } from "@/services/wishlistService";
-import { useToast } from "@/hooks/use-toast";
 
 import { 
   Calendar, 
@@ -79,7 +78,6 @@ export default function BanknoteDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'catalog' | 'collection'>('catalog');
   const [collectionItem, setCollectionItem] = useState<CollectionItem | null>(null);

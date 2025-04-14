@@ -1,3 +1,4 @@
+
 // User related types
 export interface User {
   id: string;
@@ -41,6 +42,7 @@ export interface Banknote {
   updatedAt: string;
   createdBy: string;
   pick_number?: string;
+  rarity?: string;  // Add rarity property to fix errors in CountryDetail
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -89,7 +91,7 @@ export interface CollectionItem {
   banknote: Banknote;
   condition: BanknoteCondition;
   salePrice: number | null;
-  isForSale: boolean;
+  isForSale: boolean;  // Note this property name (not forSale)
   publicNote?: string;
   privateNote?: string;
   purchasePrice?: number;

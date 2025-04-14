@@ -134,7 +134,8 @@ function transformDetailedToBanknote(detailed: any): Banknote {
     isPending: detailed.is_pending === true,    // Default to false if not specified
     createdAt: detailed.created_at || new Date().toISOString(),
     updatedAt: detailed.updated_at || new Date().toISOString(),
-    createdBy: detailed.created_by || 'system'
+    createdBy: detailed.created_by || 'system',
+    rarity: detailed.rarity || ''  // Add rarity field to fix CountryDetail errors
   };
 }
 

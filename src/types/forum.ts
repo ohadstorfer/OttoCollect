@@ -14,6 +14,7 @@ export interface ForumPost {
   created_at: string;
   updated_at: string;
   commentCount?: number;
+  comments?: ForumComment[];
   
   // Compatibility aliases to handle both naming conventions
   authorId?: string;
@@ -42,6 +43,43 @@ export interface ForumComment {
   authorId?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface ForumPostWithAuthor extends ForumPost {
+  profiles: {
+    id: string;
+    username: string;
+    avatar_url: string;
+    rank: string;
+  };
+}
+
+export interface ForumCommentWithAuthor extends ForumComment {
+  profiles: {
+    id: string;
+    username: string;
+    avatar_url: string;
+    rank: string;
+  };
+}
+
+export interface ImageSuggestion {
+  id: string;
+  banknoteId: string;
+  userId: string;
+  banknote: {
+    catalogId: string;
+    country: string;
+    denomination: string;
+  };
+  user: {
+    username: string;
+    avatarUrl?: string;
+  };
+  imageUrl: string;
+  type: 'obverse' | 'reverse';
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
 }
 
 // Helper function to normalize forum post data
