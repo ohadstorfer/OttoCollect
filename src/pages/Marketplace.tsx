@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,9 +15,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
+import { useTheme } from "@/context/ThemeContext";
 
 const Marketplace = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const { toast } = useToast();
   const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItemType[]>([]);
   const [filteredItems, setFilteredItems] = useState<MarketplaceItemType[]>([]);
@@ -187,19 +190,23 @@ const Marketplace = () => {
   return (
     <div className="min-h-screen animate-fade-in">
       {/* Header */}
-      <section className="bg-dark-600 dark:bg-dark-600 bg-ottoman-100 py-12 relative overflow-hidden">
+      <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden`}>
         <div className="absolute inset-0 -z-10">
           <div
-            className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] dark:bg-dark-500/40 bg-ottoman-500/10 shadow-xl dark:shadow-ottoman-900/20 shadow-ottoman-300/20 ring-1 ring-inset dark:ring-ottoman-900/10 ring-ottoman-400/10"
+            className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${
+              theme === 'light'
+                ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
+                : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
+            } shadow-xl ring-1 ring-inset`}
             aria-hidden="true"
           />
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-center dark:text-parchment-500 text-ottoman-900 fade-bottom">
+          <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
             Marketplace
           </h1>
-          <p className="mt-4 text-center dark:text-ottoman-300 text-ottoman-700 max-w-2xl mx-auto fade-bottom">
+          <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
             Browse and purchase Ottoman banknotes from fellow collectors
           </p>
           
@@ -209,12 +216,12 @@ const Marketplace = () => {
               <Input
                 type="text"
                 placeholder="Search banknotes or sellers..."
-                className="ottoman-input pr-10 dark:bg-white/10 bg-white/80 dark:text-white text-ottoman-900 placeholder:dark:text-gray-400 placeholder:text-ottoman-500"
+                className={`ottoman-input pr-10 ${theme === 'light' ? 'bg-white/80 text-ottoman-900 placeholder:text-ottoman-500' : 'bg-white/10 text-white placeholder:text-gray-400'}`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <button
-                className="absolute right-3 top-1/2 -translate-y-1/2 dark:text-gray-300 text-ottoman-500 dark:hover:text-white hover:text-ottoman-900"
+                className={`absolute right-3 top-1/2 -translate-y-1/2 ${theme === 'light' ? 'text-ottoman-500 hover:text-ottoman-900' : 'text-gray-300 hover:text-white'}`}
                 onClick={() => setSearchTerm("")}
               >
                 {searchTerm ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
@@ -228,10 +235,10 @@ const Marketplace = () => {
       <section className="py-8">
         <div className="container mx-auto px-4">
           {/* Filter section */}
-          <Card className="mb-8 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
+          <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'}`}>
             <div className="p-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-serif font-semibold dark:text-ottoman-200 text-ottoman-800">
+                <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
                   Filters & Sorting
                 </h3>
                 
@@ -239,7 +246,7 @@ const Marketplace = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="dark:text-ottoman-400 text-ottoman-500 dark:hover:text-ottoman-200 hover:text-ottoman-900"
+                    className={`${theme === 'light' ? 'text-ottoman-500 hover:text-ottoman-900' : 'text-ottoman-400 hover:text-ottoman-200'}`}
                     onClick={resetFilters}
                   >
                     <X className="h-4 w-4 mr-2" />
@@ -249,7 +256,7 @@ const Marketplace = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="dark:border-ottoman-700 border-ottoman-300 dark:text-ottoman-200 text-ottoman-800 lg:hidden"
+                    className={`${theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'} lg:hidden`}
                     onClick={() => setIsFilterExpanded(!isFilterExpanded)}
                   >
                     <Filter className="h-4 w-4 mr-2" />
@@ -345,7 +352,7 @@ const Marketplace = () => {
                   </div>
                 </div>
                 
-                <div className="pt-4 border-t dark:border-ottoman-900/30 border-ottoman-200/70">
+                <div className={`pt-4 border-t ${theme === 'light' ? 'border-ottoman-200/70' : 'border-ottoman-900/30'}`}>
                   <label className="text-sm font-medium text-ottoman-300 mb-3 block">
                     Price Range: ${priceRange[0]} - ${priceRange[1]}
                   </label>
@@ -364,8 +371,8 @@ const Marketplace = () => {
           
           {/* Results header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <p className="dark:text-ottoman-300 text-ottoman-700 mb-4 sm:mb-0">
-              Showing <span className="font-semibold dark:text-ottoman-100 text-ottoman-900">{filteredItems.length}</span> items for sale
+            <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
+              Showing <span className={`font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{filteredItems.length}</span> items for sale
             </p>
             
             {user && (

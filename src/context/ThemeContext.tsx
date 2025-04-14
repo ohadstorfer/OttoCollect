@@ -72,6 +72,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Set the theme attribute on mount and when theme changes
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    
+    // Make sure the proper theme class is also added to the html element
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
   }, [theme]);
 
   return (

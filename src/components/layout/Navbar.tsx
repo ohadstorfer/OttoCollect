@@ -36,13 +36,13 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-white dark:bg-dark-600 border-b border-ottoman-200 dark:border-ottoman-900/50 sticky top-0 z-50 shadow-md animate-fade-in">
+    <nav className={`${theme === 'light' ? 'bg-white border-ottoman-200' : 'bg-dark-600 border-ottoman-900/50'} border-b sticky top-0 z-50 shadow-md animate-fade-in`}>
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo and site name */}
           <Link to="/" className="flex items-center gap-2 group" onClick={closeMenu}>
             <div>
-              <h1 className="text-xl font-serif dark:text-ottoman-100 text-ottoman-800 font-semibold tracking-tight">
+              <h1 className={`text-xl font-serif ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-100'} font-semibold tracking-tight`}>
                 <span className="text-gradient">Ottoman</span> Banknotes
               </h1>
             </div>
@@ -57,8 +57,12 @@ const Navbar = () => {
                 className={cn(
                   "px-4 py-2 rounded-md text-sm transition-colors",
                   isActive(link.path)
-                    ? "dark:bg-ottoman-600/30 bg-ottoman-100 dark:text-ottoman-100 text-ottoman-900"
-                    : "dark:text-ottoman-200 text-ottoman-700 dark:hover:bg-ottoman-600/20 hover:bg-ottoman-50 dark:hover:text-ottoman-100 hover:text-ottoman-900"
+                    ? theme === 'light' 
+                      ? "bg-ottoman-100 text-ottoman-900" 
+                      : "bg-ottoman-600/30 text-ottoman-100"
+                    : theme === 'light'
+                      ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900"
+                      : "text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
                 )}
               >
                 {link.label}
@@ -71,7 +75,7 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full dark:text-ottoman-200 text-ottoman-700"
+              className={`rounded-full ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}
               onClick={toggleTheme}
             >
               {theme === 'dark' ? (
@@ -91,7 +95,7 @@ const Navbar = () => {
                 )}
                 
                 <Link to={`/profile/${user.id}`} className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full dark:bg-ottoman-700 bg-ottoman-100 flex items-center justify-center overflow-hidden">
+                  <div className={`w-8 h-8 rounded-full ${theme === 'light' ? 'bg-ottoman-100' : 'bg-ottoman-700'} flex items-center justify-center overflow-hidden`}>
                     {user.avatarUrl ? (
                       <img 
                         src={user.avatarUrl} 
@@ -99,16 +103,16 @@ const Navbar = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <User className="h-5 w-5 dark:text-ottoman-100 text-ottoman-700" />
+                      <User className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />
                     )}
                   </div>
                   <div className="text-left hidden xl:block">
-                    <p className="text-sm font-medium dark:text-ottoman-100 text-ottoman-900">{user.username}</p>
-                    <p className="text-xs dark:text-ottoman-300 text-ottoman-600">{user.rank}</p>
+                    <p className={`text-sm font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{user.username}</p>
+                    <p className={`text-xs ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>{user.rank}</p>
                   </div>
                   <Button 
                     variant="outline" 
-                    className="ml-2 dark:text-ottoman-100 text-ottoman-800 dark:border-ottoman-700 border-ottoman-300 dark:hover:bg-ottoman-700/50 hover:bg-ottoman-100"
+                    className={`ml-2 ${theme === 'light' ? 'text-ottoman-800 border-ottoman-300 hover:bg-ottoman-100' : 'text-ottoman-100 border-ottoman-700 hover:bg-ottoman-700/50'}`}
                     onClick={logout}
                   >
                     Logout
@@ -130,7 +134,7 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full dark:text-ottoman-200 text-ottoman-700"
+              className={`rounded-full ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}
               onClick={toggleTheme}
             >
               {theme === 'dark' ? (
@@ -142,7 +146,7 @@ const Navbar = () => {
             
             <button
               type="button"
-              className="dark:text-ottoman-200 text-ottoman-800 dark:hover:text-ottoman-100 hover:text-ottoman-900"
+              className={`${theme === 'light' ? 'text-ottoman-800 hover:text-ottoman-900' : 'text-ottoman-200 hover:text-ottoman-100'}`}
               onClick={toggleMenu}
             >
               {isOpen ? (
@@ -158,11 +162,11 @@ const Navbar = () => {
       {/* Mobile navigation */}
       {isOpen && (
         <div className="md:hidden animate-fade-in">
-          <div className="flex flex-col space-y-1 px-4 pb-4 pt-2 dark:bg-dark-600 bg-white">
-            <div className="flex items-center justify-between py-2 border-b dark:border-ottoman-900/30 border-ottoman-200">
+          <div className={`flex flex-col space-y-1 px-4 pb-4 pt-2 ${theme === 'light' ? 'bg-white' : 'bg-dark-600'}`}>
+            <div className={`flex items-center justify-between py-2 border-b ${theme === 'light' ? 'border-ottoman-200' : 'border-ottoman-900/30'}`}>
               {user ? (
                 <Link to={`/profile/${user.id}`} className="flex items-center gap-2" onClick={closeMenu}>
-                  <div className="w-8 h-8 rounded-full dark:bg-ottoman-700 bg-ottoman-100 flex items-center justify-center overflow-hidden">
+                  <div className={`w-8 h-8 rounded-full ${theme === 'light' ? 'bg-ottoman-100' : 'bg-ottoman-700'} flex items-center justify-center overflow-hidden`}>
                     {user.avatarUrl ? (
                       <img 
                         src={user.avatarUrl} 
@@ -170,12 +174,12 @@ const Navbar = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <User className="h-5 w-5 dark:text-ottoman-100 text-ottoman-700" />
+                      <User className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />
                     )}
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium dark:text-ottoman-100 text-ottoman-900">{user.username}</p>
-                    <p className="text-xs dark:text-ottoman-300 text-ottoman-600">{user.rank}</p>
+                    <p className={`text-sm font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{user.username}</p>
+                    <p className={`text-xs ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>{user.rank}</p>
                   </div>
                 </Link>
               ) : (
@@ -198,8 +202,12 @@ const Navbar = () => {
                 className={cn(
                   "px-3 py-2 rounded-md text-sm transition-colors flex items-center",
                   isActive(link.path)
-                    ? "dark:bg-ottoman-600/30 bg-ottoman-100 dark:text-ottoman-100 text-ottoman-900"
-                    : "dark:text-ottoman-200 text-ottoman-700 dark:hover:bg-ottoman-600/20 hover:bg-ottoman-50 dark:hover:text-ottoman-100 hover:text-ottoman-900"
+                    ? theme === 'light'
+                      ? "bg-ottoman-100 text-ottoman-900"
+                      : "bg-ottoman-600/30 text-ottoman-100"
+                    : theme === 'light'
+                      ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900"
+                      : "text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
                 )}
                 onClick={closeMenu}
               >
@@ -209,10 +217,14 @@ const Navbar = () => {
             
             {user && (
               <>
-                <div className="border-t dark:border-ottoman-900/30 border-ottoman-200 my-1 pt-1">
+                <div className={`border-t ${theme === 'light' ? 'border-ottoman-200' : 'border-ottoman-900/30'} my-1 pt-1`}>
                   <div
                     onClick={handleMessageClick}
-                    className="px-3 py-2 rounded-md text-sm transition-colors flex items-center dark:text-ottoman-200 text-ottoman-700 dark:hover:bg-ottoman-600/20 hover:bg-ottoman-50 dark:hover:text-ottoman-100 hover:text-ottoman-900 cursor-pointer"
+                    className={`px-3 py-2 rounded-md text-sm transition-colors flex items-center ${
+                      theme === 'light' 
+                        ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900" 
+                        : "text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
+                    } cursor-pointer`}
                   >
                     <span className="ml-1">Messages</span>
                     {location.pathname !== '/messaging' && (
@@ -229,7 +241,11 @@ const Navbar = () => {
                       logout();
                       closeMenu();
                     }}
-                    className="w-full px-3 py-2 rounded-md text-sm text-left transition-colors flex items-center dark:text-ottoman-200 text-ottoman-700 dark:hover:bg-ottoman-600/20 hover:bg-ottoman-50 dark:hover:text-ottoman-100 hover:text-ottoman-900"
+                    className={`w-full px-3 py-2 rounded-md text-sm text-left transition-colors flex items-center ${
+                      theme === 'light'
+                        ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900"
+                        : "text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
+                    }`}
                   >
                     Logout
                   </button>

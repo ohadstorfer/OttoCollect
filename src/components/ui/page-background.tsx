@@ -12,13 +12,14 @@ export function PageBackground({ children }: PageBackgroundProps) {
   const location = useLocation();
   
   useEffect(() => {
-    // Only apply custom background in light mode
+    // Apply the background color based on theme
     if (theme === 'light') {
       document.body.style.backgroundColor = pageBackground;
-      document.body.style.transition = 'background-color 0.3s ease-in-out';
     } else {
-      document.body.style.backgroundColor = '';
+      document.body.style.backgroundColor = '#1A1A1A'; // Dark mode default
     }
+    
+    document.body.style.transition = 'background-color 0.3s ease-in-out';
     
     return () => {
       document.body.style.backgroundColor = '';

@@ -2,7 +2,7 @@
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { Navbar } from "@/components/layout/Navbar";
+import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
@@ -40,7 +40,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className={theme === 'light' ? 'light-mode' : 'dark-mode'}>
+      <div data-theme={theme}>
         <PageBackground>
           <Navbar />
           <Routes>
@@ -58,7 +58,7 @@ function App() {
             <Route path="/community/forum" element={<Forum />} />
             <Route path="/community/forum/post/:id" element={<ForumPost />} />
             <Route path="/community/forum/new" element={<CreateForumPost />} />
-            <Route path="/messages" element={<Messaging />} />
+            <Route path="/messaging" element={<Messaging />} />
             <Route path="/members" element={<Members />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
