@@ -84,69 +84,69 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-dark-500">
+    <div className="min-h-screen bg-dark-500 dark:bg-dark-500 bg-page-home">
       {/* Hero Section */}
       <section className="relative py-16 px-4 overflow-hidden text-center">
-  {/* Background Pattern */}
-  <div className="absolute inset-0 -z-10">
-    <div
-      className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] bg-dark-600/40 shadow-xl shadow-ottoman-900/20 ring-1 ring-inset ring-ottoman-900/10"
-      aria-hidden="true"
-    />
-  </div>
+        {/* Background Pattern */}
+        <div className="absolute inset-0 -z-10">
+          <div
+            className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] dark:bg-dark-600/40 bg-ottoman-500/10 shadow-xl shadow-ottoman-900/20 dark:shadow-ottoman-900/20 shadow-ottoman-300/20 ring-1 ring-inset dark:ring-ottoman-900/10 ring-ottoman-400/10"
+            aria-hidden="true"
+          />
+        </div>
 
-  <div className="container mx-auto max-w-4xl flex flex-col items-center justify-center animate-fade-in">
-    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-parchment-500 leading-tight">
-      Discover the Legacy of
-      <br />
-      <span className="relative inline-flex flex-col h-[1.5em] overflow-hidden mt-2">
-        <span className="text-gradient animate-typewriter">
-          {animatedWords[currentWordIndex]}
-        </span>
-        <span className="text-gradient absolute top-full animate-slide-down">
-          {animatedWords[(currentWordIndex + 1) % animatedWords.length]}
-        </span>
-      </span>
-      <br />
-      <span className="text-gradient animate-shimmer inline-block mt-2">
-        Ottoman Banknotes
-      </span>
-    </h1>
+        <div className="container mx-auto max-w-4xl flex flex-col items-center justify-center animate-fade-in">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-parchment-500 dark:text-parchment-500 text-ottoman-900 leading-tight">
+            Discover the Legacy of
+            <br />
+            <span className="relative inline-flex flex-col h-[1.5em] overflow-hidden mt-2">
+              <span className="text-gradient animate-typewriter">
+                {animatedWords[currentWordIndex]}
+              </span>
+              <span className="text-gradient absolute top-full animate-slide-down">
+                {animatedWords[(currentWordIndex + 1) % animatedWords.length]}
+              </span>
+            </span>
+            <br />
+            <span className="text-gradient animate-shimmer inline-block mt-2">
+              Ottoman Banknotes
+            </span>
+          </h1>
 
-    <p className="mt-6 text-lg text-ottoman-100 max-w-2xl animate-floating">
-      Explore, collect, and trade historical Ottoman Empire banknotes from across regions 
-      and eras. Join our <span className="text-ottoman-300 font-medium animate-pulse-subtle">
-        community of passionate collectors
-      </span> and numismatic enthusiasts.
-    </p>
+          <p className="mt-6 text-lg text-ottoman-100 dark:text-ottoman-100 text-ottoman-800 max-w-2xl animate-floating">
+            Explore, collect, and trade historical Ottoman Empire banknotes from across regions 
+            and eras. Join our <span className="text-ottoman-300 dark:text-ottoman-300 text-ottoman-600 font-medium animate-pulse-subtle">
+              community of passionate collectors
+            </span> and numismatic enthusiasts.
+          </p>
 
-    <div className="mt-10 flex flex-wrap justify-center gap-4">
-      <Button className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg group">
-        <span className="group-hover:animate-bounce-subtle">Explore Catalog</span>
-        <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
-      </Button>
-      {!user && (
-        <Link to="/auth">
-          <Button
-            variant="outline"
-            className="border-ottoman-700 hover:bg-ottoman-800/50 text-ottoman-100 py-6 px-8 text-lg"
-          >
-            Join Community
-          </Button>
-        </Link>
-      )}
-    </div>
-  </div>
-</section>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Button className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg group">
+              <span className="group-hover:animate-bounce-subtle">Explore Catalog</span>
+              <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
+            </Button>
+            {!user && (
+              <Link to="/auth">
+                <Button
+                  variant="outline"
+                  className="border-ottoman-700 hover:bg-ottoman-800/50 dark:text-ottoman-100 text-ottoman-800 py-6 px-8 text-lg dark:border-ottoman-700 border-ottoman-400 dark:hover:bg-ottoman-800/50 hover:bg-ottoman-200/50"
+                >
+                  Join Community
+                </Button>
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
       
       {/* Features Section */}
-      <section className="py-20 bg-dark-600">
+      <section className="py-20 bg-dark-600 dark:bg-dark-600 bg-ottoman-50 border-y border-ottoman-200 dark:border-none">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16 reveal fade-bottom">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-parchment-500">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold dark:text-parchment-500 text-ottoman-900">
               Comprehensive Platform for Collectors
             </h2>
-            <p className="mt-4 text-lg text-ottoman-200">
+            <p className="mt-4 text-lg dark:text-ottoman-200 text-ottoman-700">
               Everything you need to manage, showcase, and grow your Ottoman banknote collection
             </p>
           </div>
@@ -156,8 +156,8 @@ const Index = () => {
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <Database className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-xl font-serif font-semibold mb-2 text-ottoman-200">Catalog Management</h3>
-              <p className="text-ottoman-300">
+              <h3 className="text-xl font-serif font-semibold mb-2 dark:text-ottoman-200 text-ottoman-800">Catalog Management</h3>
+              <p className="dark:text-ottoman-300 text-ottoman-600">
                 Browse comprehensive catalog of Ottoman banknotes organized by country and era
               </p>
             </div>
@@ -166,8 +166,8 @@ const Index = () => {
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-xl font-serif font-semibold mb-2 text-ottoman-200">Collection Tools</h3>
-              <p className="text-ottoman-300">
+              <h3 className="text-xl font-serif font-semibold mb-2 dark:text-ottoman-200 text-ottoman-800">Collection Tools</h3>
+              <p className="dark:text-ottoman-300 text-ottoman-600">
                 Track your collection, wishlist, and display missing items with detailed information
               </p>
             </div>
@@ -176,8 +176,8 @@ const Index = () => {
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <DollarSign className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-xl font-serif font-semibold mb-2 text-ottoman-200">Marketplace</h3>
-              <p className="text-ottoman-300">
+              <h3 className="text-xl font-serif font-semibold mb-2 dark:text-ottoman-200 text-ottoman-800">Marketplace</h3>
+              <p className="dark:text-ottoman-300 text-ottoman-600">
                 Buy and sell banknotes within the community through our integrated marketplace
               </p>
             </div>
@@ -186,8 +186,8 @@ const Index = () => {
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <Users className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-xl font-serif font-semibold mb-2 text-ottoman-200">Community</h3>
-              <p className="text-ottoman-300">
+              <h3 className="text-xl font-serif font-semibold mb-2 dark:text-ottoman-200 text-ottoman-800">Community</h3>
+              <p className="dark:text-ottoman-300 text-ottoman-600">
                 Connect with fellow collectors through forums, blogs, and private messaging
               </p>
             </div>
@@ -200,16 +200,16 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
             <div className="reveal fade-right">
-              <h2 className="text-3xl font-serif font-bold text-parchment-500 mb-3">
+              <h2 className="text-3xl font-serif font-bold dark:text-parchment-500 text-ottoman-900 mb-3">
                 Community Discussions
               </h2>
-              <p className="text-ottoman-300 max-w-2xl">
+              <p className="dark:text-ottoman-300 text-ottoman-700 max-w-2xl">
                 Join the conversation with fellow Ottoman banknote enthusiasts
               </p>
             </div>
             <div className="mt-4 md:mt-0 reveal fade-left">
               <Link to="/community/forum">
-                <Button variant="outline" className="border-ottoman-700 hover:bg-ottoman-800/50 text-ottoman-100">
+                <Button variant="outline" className="dark:border-ottoman-700 border-ottoman-400 dark:hover:bg-ottoman-800/50 hover:bg-ottoman-200/50 dark:text-ottoman-100 text-ottoman-800">
                   View All Discussions
                 </Button>
               </Link>
@@ -221,20 +221,20 @@ const Index = () => {
       </section>
       
       {/* Marketplace Highlights Section */}
-      <section className="py-20 bg-dark-600">
+      <section className="py-20 bg-dark-600 dark:bg-dark-600 bg-ottoman-50 border-y border-ottoman-200 dark:border-none">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
             <div className="reveal fade-right">
-              <h2 className="text-3xl font-serif font-bold text-parchment-500 mb-3">
+              <h2 className="text-3xl font-serif font-bold dark:text-parchment-500 text-ottoman-900 mb-3">
                 Marketplace Highlights
               </h2>
-              <p className="text-ottoman-300 max-w-2xl">
+              <p className="dark:text-ottoman-300 text-ottoman-700 max-w-2xl">
                 Currently available items from our collector community
               </p>
             </div>
             <div className="mt-4 md:mt-0 reveal fade-left">
               <Link to="/marketplace">
-                <Button variant="outline" className="border-ottoman-700 hover:bg-ottoman-800/50 text-ottoman-100">
+                <Button variant="outline" className="dark:border-ottoman-700 border-ottoman-400 dark:hover:bg-ottoman-800/50 hover:bg-ottoman-200/50 dark:text-ottoman-100 text-ottoman-800">
                   Visit Marketplace
                 </Button>
               </Link>
@@ -250,16 +250,16 @@ const Index = () => {
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div
-            className="absolute inset-y-0 left-1/2 -z-10 ml-16 w-[200%] origin-bottom-right skew-x-[-30deg] bg-dark-600/40 shadow-xl shadow-ottoman-900/20 ring-1 ring-inset ring-ottoman-900/10"
+            className="absolute inset-y-0 left-1/2 -z-10 ml-16 w-[200%] origin-bottom-right skew-x-[-30deg] dark:bg-dark-600/40 bg-ottoman-500/10 shadow-xl shadow-ottoman-900/20 dark:shadow-ottoman-900/20 shadow-ottoman-300/20 ring-1 ring-inset dark:ring-ottoman-900/10 ring-ottoman-400/10"
             aria-hidden="true"
           />
         </div>
         
         <div className="container mx-auto px-4 text-center reveal fade-bottom">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-parchment-500 mb-6">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold dark:text-parchment-500 text-ottoman-900 mb-6">
             Join Our Community Today
           </h2>
-          <p className="text-lg text-ottoman-200 max-w-2xl mx-auto mb-10">
+          <p className="text-lg dark:text-ottoman-200 text-ottoman-700 max-w-2xl mx-auto mb-10">
             Connect with fellow collectors, track your collection, and explore the rich history of Ottoman banknotes
           </p>
           
@@ -270,7 +270,7 @@ const Index = () => {
             
             {!user && (
               <Link to="/auth">
-                <Button variant="outline" className="border-ottoman-700 hover:bg-ottoman-800/50 text-ottoman-100 py-6 px-8 text-lg">
+                <Button variant="outline" className="dark:border-ottoman-700 border-ottoman-400 dark:hover:bg-ottoman-800/50 hover:bg-ottoman-200/50 dark:text-ottoman-100 text-ottoman-800 py-6 px-8 text-lg">
                   Sign Up Now
                 </Button>
               </Link>
@@ -280,17 +280,17 @@ const Index = () => {
       </section>
       
       {/* Search Bar */}
-      <section className="py-12 bg-ottoman-800">
+      <section className="py-12 bg-ottoman-800 dark:bg-ottoman-800 bg-ottoman-100 border-t border-ottoman-300 dark:border-none">
         <div className="container mx-auto px-4 reveal fade-bottom">
           <div className="max-w-4xl mx-auto">
-            <h3 className="text-2xl font-serif font-semibold text-center text-parchment-500 mb-6">
+            <h3 className="text-2xl font-serif font-semibold text-center text-parchment-500 dark:text-parchment-500 text-ottoman-900 mb-6">
               Search Our Catalog
             </h3>
             <div className="relative">
               <input
                 type="text"
                 placeholder="Search by country, denomination, year, or catalog ID..."
-                className="w-full px-4 py-4 pr-12 rounded-lg bg-dark-500 border border-ottoman-700 text-ottoman-100 focus:outline-none focus:border-ottoman-500"
+                className="w-full px-4 py-4 pr-12 rounded-lg dark:bg-dark-500 bg-white border dark:border-ottoman-700 border-ottoman-300 dark:text-ottoman-100 text-ottoman-800 focus:outline-none dark:focus:border-ottoman-500 focus:border-ottoman-500"
               />
               <Button
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-ottoman-600 hover:bg-ottoman-700 rounded-md p-2"

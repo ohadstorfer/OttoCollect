@@ -252,17 +252,29 @@
   width: 8px;
 }
 
-::-webkit-scrollbar-track {
+[data-theme="dark"] ::-webkit-scrollbar-track {
   background: hsl(var(--muted));
 }
 
-::-webkit-scrollbar-thumb {
+[data-theme="light"] ::-webkit-scrollbar-track {
+  @apply bg-ottoman-100;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
   background: hsl(var(--primary));
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  @apply bg-ottoman-400 rounded;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--accent));
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  @apply bg-ottoman-500;
 }
 
 /* Animation observer utility */
