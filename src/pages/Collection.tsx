@@ -89,8 +89,22 @@ const Collection = () => {
       banknote: item.banknote // Already includes the banknote
     })),
     initialFilters: {
+      // Set default categories to all available categories
+      categories: collectionItems.length > 0 
+        ? [...new Set(collectionItems.map(item => item.banknote.series || ''))]
+        .filter(series => series !== '')
+        : [],
+      // Set default types to "issued notes" or similar variations
+      types: ["issued notes"],
       sort: ["newest", "extPick"]
     }
+  });
+
+  console.log("Collection items after filtering:", {
+    all: collectionItems.length,
+    filtered: filteredCollection.length,
+    categories: collectionFilters.categories,
+    types: collectionFilters.types
   });
 
   // Missing filter

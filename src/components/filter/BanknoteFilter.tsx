@@ -60,8 +60,17 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(DEFAULT_SELECTED_CATEGORIES);
-  const [selectedTypes, setSelectedTypes] = useState<string[]>(DEFAULT_SELECTED_TYPES);
+  
+  // Default to all available categories initially
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    categories.length > 0 ? categories.map(c => c.id) : DEFAULT_SELECTED_CATEGORIES
+  );
+  
+  // Default to "issued notes" type if available, otherwise all types
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(
+    availableTypes.length > 0 ? ["issued notes"] : DEFAULT_SELECTED_TYPES
+  );
+  
   const [selectedSort, setSelectedSort] = useState<string[]>(defaultSort);
 
   console.log("Initial state:", { 
@@ -93,6 +102,21 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
       sort: selectedSort
     });
   }, []);
+
+  // Update when available categories or types change
+  useEffect(() => {
+    if (categories.length > 0 && selectedCategories.length === 0) {
+      const newCategories = categories.map(c => c.id);
+      setSelectedCategories(newCategories);
+      handleFilterChange({ categories: newCategories });
+    }
+    
+    if (availableTypes.length > 0 && selectedTypes.length === 0) {
+      const newTypes = ["issued notes"];
+      setSelectedTypes(newTypes);
+      handleFilterChange({ types: newTypes });
+    }
+  }, [categories, availableTypes]);
 
   const handleFilterChange = (changes: Partial<BanknoteFilterState>) => {
     console.log("Filter change requested:", changes);

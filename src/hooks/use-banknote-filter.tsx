@@ -1,5 +1,6 @@
+
 import { useState, useEffect, useMemo } from "react";
-import { Banknote, BanknoteFilterState, BANKNOTE_CATEGORIES, DEFAULT_SELECTED_CATEGORIES } from "@/types";
+import { Banknote, BanknoteFilterState, BANKNOTE_CATEGORIES, DEFAULT_SELECTED_CATEGORIES, BANKNOTE_TYPES } from "@/types";
 
 interface UseBanknoteFilterProps<T> {
   items: T[];
@@ -51,6 +52,27 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     return item as Banknote;
   };
 
+  // Normalize types for consistent comparison
+  const normalizeType = (type: string | undefined): string => {
+    if (!type) return "";
+    
+    // Convert to lowercase for case-insensitive comparison
+    const lowerType = type.toLowerCase();
+    
+    // Handle common variations of types
+    if (lowerType.includes("issued") || lowerType === "issue") return "issued notes";
+    if (lowerType.includes("specimen")) return "specimens";
+    if (lowerType.includes("cancelled") || lowerType.includes("annule")) return "cancelled & annule";
+    if (lowerType.includes("trial")) return "trial note";
+    if (lowerType.includes("error")) return "error banknote";
+    if (lowerType.includes("counterfeit")) return "counterfeit banknote";
+    if (lowerType.includes("emergency")) return "emergency note";
+    if (lowerType.includes("check") || lowerType.includes("bond")) return "check & bond notes";
+    
+    // Default case
+    return lowerType;
+  };
+
   // Filter items based on criteria
   const filteredItems = useMemo(() => {
     console.log("### FILTERING ITEMS ###");
@@ -86,14 +108,20 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       // Type filter - if no types selected, don't show any items
       const matchesType = filters.types.length > 0 &&
         (filters.types.some(type => {
-          return banknote.type &&
-            banknote.type.toLowerCase() === type.toLowerCase();
+          const normalizedItemType = normalizeType(banknote.type);
+          const normalizedFilterType = normalizeType(type);
+          return normalizedItemType === normalizedFilterType;
         }));
+
+      // If no specific category or type filters are active, show nothing
+      if (filters.categories.length === 0 || filters.types.length === 0) {
+        return false;
+      }
 
       const result = matchesSearch && matchesCategory && matchesType;
       
       if (banknote.catalogId) {
-        console.log(`Item ${banknote.catalogId} - Search: ${matchesSearch}, Category: ${matchesCategory}, Type: ${matchesType}`);
+        console.log(`Item ${banknote.catalogId} - Search: ${matchesSearch}, Category: ${matchesCategory}, Type: ${matchesType}, NormalizedType: ${normalizeType(banknote.type)}`);
       }
       
       return result;
@@ -271,20 +299,31 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     console.log("### CALCULATING AVAILABLE TYPES ###");
     const types = new Map<string, { name: string; count: number }>();
     
+    // Initialize with default types even if count is 0
+    BANKNOTE_TYPES.forEach(type => {
+      types.set(type.toLowerCase(), {
+        name: type,
+        count: 0
+      });
+    });
+    
     items.forEach(item => {
       const banknote = getBanknote(item);
       if (banknote?.type) {
-        if (!types.has(banknote.type)) {
-          types.set(banknote.type, { 
-            name: banknote.type, 
-            count: 1 
-          });
-        } else {
-          const current = types.get(banknote.type)!;
-          types.set(banknote.type, { 
-            ...current, 
-            count: current.count + 1 
-          });
+        const normalizedType = normalizeType(banknote.type);
+        if (normalizedType) {
+          if (!types.has(normalizedType)) {
+            types.set(normalizedType, { 
+              name: banknote.type, 
+              count: 1 
+            });
+          } else {
+            const current = types.get(normalizedType)!;
+            types.set(normalizedType, { 
+              ...current, 
+              count: current.count + 1 
+            });
+          }
         }
       }
     });
