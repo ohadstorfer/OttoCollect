@@ -69,7 +69,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     if (lowerType.includes("emergency")) return "emergency note";
     if (lowerType.includes("check") || lowerType.includes("bond")) return "check & bond notes";
     
-    // Default case
+    // Default case - return the original type if no match
     return lowerType;
   };
 
@@ -82,6 +82,16 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       types: filters.types,
       sort: filters.sort
     });
+    
+    // When no filters are selected, show all items
+    const noCategories = filters.categories.length === 0;
+    const noTypes = filters.types.length === 0;
+    
+    // If both categories and types are empty, return all items
+    if (noCategories && noTypes && !filters.search) {
+      console.log("No filters selected, returning all items");
+      return items;
+    }
     
     const filtered = items.filter((item) => {
       const banknote = getBanknote(item);
@@ -99,24 +109,25 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
         );
 
       // Category filter
-      const matchesCategory = filters.categories.length === 0 || 
+      const matchesCategory = noCategories || 
         filters.categories.some(category => {
           return banknote.series && 
             banknote.series.toLowerCase() === category.toLowerCase();
         });
 
       // Type filter
-      const matchesType = filters.types.length === 0 || 
+      const normalizedItemType = normalizeType(banknote.type || "issued note");
+      const matchesType = noTypes || 
         filters.types.some(type => {
-          const normalizedItemType = normalizeType(banknote.type);
           const normalizedFilterType = normalizeType(type);
-          return normalizedItemType === normalizedFilterType;
+          const isMatch = normalizedItemType === normalizedFilterType;
+          return isMatch;
         });
 
       const result = matchesSearch && matchesCategory && matchesType;
       
       if (banknote.catalogId) {
-        console.log(`Item ${banknote.catalogId} - Search: ${matchesSearch}, Category: ${matchesCategory}, Type: ${matchesType}, NormalizedType: ${normalizeType(banknote.type)}`);
+        console.log(`Item ${banknote.catalogId} - Search: ${matchesSearch}, Category: ${matchesCategory}, Type: ${matchesType}, NormalizedType: ${normalizedItemType}`);
       }
       
       return result;
@@ -314,12 +325,15 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     // Count the actual types in items
     items.forEach(item => {
       const banknote = getBanknote(item);
-      if (banknote?.type) {
-        const normalizedType = normalizeType(banknote.type);
+      if (banknote) {
+        // If type is not specified, assume it's an "Issued note"
+        const typeToUse = banknote.type || "Issued note";
+        const normalizedType = normalizeType(typeToUse);
+        
         if (normalizedType) {
           if (!types.has(normalizedType)) {
             types.set(normalizedType, { 
-              name: banknote.type, 
+              name: typeToUse, 
               count: 1 
             });
           } else {

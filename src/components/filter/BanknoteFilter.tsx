@@ -40,6 +40,27 @@ export type BanknoteFilterProps = {
   availableTypes?: FilterCategory[];
 };
 
+// Helper function to normalize types for consistent comparison
+const normalizeType = (type: string): string => {
+  if (!type) return "";
+  
+  // Convert to lowercase for case-insensitive comparison
+  const lowerType = type.toLowerCase();
+  
+  // Handle common variations of types
+  if (lowerType.includes("issued") || lowerType === "issue") return "issued notes";
+  if (lowerType.includes("specimen")) return "specimens";
+  if (lowerType.includes("cancelled") || lowerType.includes("annule")) return "cancelled & annule";
+  if (lowerType.includes("trial")) return "trial note";
+  if (lowerType.includes("error")) return "error banknote";
+  if (lowerType.includes("counterfeit")) return "counterfeit banknote";
+  if (lowerType.includes("emergency")) return "emergency note";
+  if (lowerType.includes("check") || lowerType.includes("bond")) return "check & bond notes";
+  
+  // Default case
+  return lowerType;
+};
+
 export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   categories,
   onFilterChange,
@@ -112,6 +133,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     }
     
     if (availableTypes.length > 0 && selectedTypes.length === 0) {
+      // Make sure we use "issued notes" for compatibility with the normalizeType function
       const newTypes = ["issued notes"];
       setSelectedTypes(newTypes);
       handleFilterChange({ types: newTypes });
@@ -130,6 +152,11 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     
     console.log("New filters after merging:", newFilters);
     onFilterChange(newFilters);
+  };
+
+  // Helper function for case-insensitive array includes
+  const caseInsensitiveIncludes = (array: string[], value: string): boolean => {
+    return array.some(item => normalizeType(item) === normalizeType(value));
   };
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
@@ -160,7 +187,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     } else {
       newTypes = checked
         ? [...selectedTypes, type]
-        : selectedTypes.filter(t => t !== type);
+        : selectedTypes.filter(t => normalizeType(t) !== normalizeType(type));
     }
     
     console.log("New types:", newTypes);
@@ -301,27 +328,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                           {type.count !== undefined && (
                             <span className="text-muted-foreground">({type.count})</span>
                           )}
-                        </label>
-                      </div>
-                    );
-                  })}
-                  {BANKNOTE_TYPES.map(type => {
-                    // Only show predefined types that are not already in available types
-                    if (availableTypes.some(t => t.name.toLowerCase() === type.toLowerCase())) {
-                      return null;
-                    }
-                    
-                    const isChecked = selectedTypes.some(t => t.toLowerCase() === type.toLowerCase());
-                    return (
-                      <div key={type} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`type-${type}`}
-                          checked={isChecked}
-                          onCheckedChange={(checked) => handleTypeChange(type, !!checked)}
-                        />
-                        <label htmlFor={`type-${type}`} className="text-sm flex justify-between w-full">
-                          <span>{withHighlight(type, search)}</span>
-                          <span className="text-muted-foreground">(0)</span>
                         </label>
                       </div>
                     );

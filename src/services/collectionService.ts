@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionItem } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
@@ -61,11 +62,22 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
     const enrichedItems = await Promise.all(
       (collectionItems || []).map(async (item) => {
         const banknote = await fetchBanknoteById(item.banknote_id);
+        
+        if (!banknote) {
+          console.error(`Banknote not found for collection item: ${item.banknote_id}`);
+          return null;
+        }
+        
+        // Ensure banknote.type is never undefined - default to "Issued note"
+        if (!banknote.type) {
+          banknote.type = "Issued note";
+        }
+        
         return {
           id: item.id,
           userId: item.user_id,
           banknoteId: item.banknote_id,
-          banknote: banknote!,
+          banknote: banknote,
           condition: item.condition as BanknoteCondition,
           salePrice: item.sale_price,
           isForSale: item.is_for_sale,
@@ -83,7 +95,8 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
       })
     );
 
-    return enrichedItems;
+    // Filter out any null items (where banknote wasn't found)
+    return enrichedItems.filter(item => item !== null) as CollectionItem[];
   } catch (error) {
     console.error("Error in fetchUserCollection:", error);
     return [];

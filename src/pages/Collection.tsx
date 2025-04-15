@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
@@ -77,17 +76,6 @@ const Collection = () => {
     loadUserData();
   }, [user, toast]);
 
-  // Helper function to get all available categories from items
-  const getAllAvailableCategories = (items: { banknote: Banknote }[]) => {
-    const categories = new Set<string>();
-    items.forEach(item => {
-      if (item.banknote?.series) {
-        categories.add(item.banknote.series);
-      }
-    });
-    return Array.from(categories);
-  };
-
   // Collection filter - now properly handles collection items with their banknotes
   const { 
     filteredItems: filteredCollection, 
@@ -99,7 +87,7 @@ const Collection = () => {
   } = useBanknoteFilter({
     items: collectionItems,
     initialFilters: {
-      // Set default types to include "issued notes"
+      // By default, assume all collection items are "issued notes"
       types: ["issued notes"],
       sort: ["newest", "extPick"]
     }
