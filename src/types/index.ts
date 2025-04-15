@@ -118,7 +118,7 @@ export interface MarketplaceItem {
   id: string;
   collectionItemId: string;
   sellerId: string;
-  price: number;
+  price?: number; // Make price optional
   description?: string;
   createdAt?: Date | string; // Allow string or Date
   updatedAt?: Date | string; // Allow string or Date

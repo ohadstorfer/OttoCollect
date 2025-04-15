@@ -116,7 +116,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     
     let newCategories: string[];
     if (categoryId === "all") {
-      newCategories = checked ? BANKNOTE_CATEGORIES : [];
+      newCategories = checked ? categories.map(c => c.id) : [];
       console.log(`${checked ? "Selected" : "Deselected"} all categories`);
     } else {
       newCategories = checked 
@@ -134,7 +134,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     
     let newTypes: string[];
     if (type === "all") {
-      newTypes = checked ? [...BANKNOTE_TYPES] : [];
+      newTypes = checked ? availableTypes.map(t => t.id) : [];
       console.log(`${checked ? "Selected" : "Deselected"} all types`);
     } else {
       newTypes = checked
@@ -174,8 +174,16 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     debouncedSearch(value);
   };
 
-  const allCategoriesSelected = selectedCategories.length === BANKNOTE_CATEGORIES.length && BANKNOTE_CATEGORIES.length > 0;
-  const allTypesSelected = selectedTypes.length === BANKNOTE_TYPES.length;
+  // Helper function for case-insensitive array includes
+  const caseInsensitiveIncludes = (array: string[], value: string): boolean => {
+    return array.some(item => item.toLowerCase() === value.toLowerCase());
+  };
+
+  const allCategoriesSelected = categories.length > 0 && 
+    categories.every(category => caseInsensitiveIncludes(selectedCategories, category.id));
+    
+  const allTypesSelected = availableTypes.length > 0 && 
+    availableTypes.every(type => caseInsensitiveIncludes(selectedTypes, type.id));
 
   return (
     <div className={cn(
@@ -228,18 +236,24 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                     />
                     <label htmlFor="all-categories" className="text-sm">All Categories</label>
                   </div>
-                  {BANKNOTE_CATEGORIES.map(category => (
-                    <div key={category} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`category-${category}`}
-                        checked={selectedCategories.includes(category)}
-                        onCheckedChange={(checked) => handleCategoryChange(category, !!checked)}
-                      />
-                      <label htmlFor={`category-${category}`} className="text-sm">
-                        {withHighlight(category, search)}
-                      </label>
-                    </div>
-                  ))}
+                  {categories.map(category => {
+                    const isChecked = caseInsensitiveIncludes(selectedCategories, category.id);
+                    return (
+                      <div key={category.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`category-${category.id}`}
+                          checked={isChecked}
+                          onCheckedChange={(checked) => handleCategoryChange(category.id, !!checked)}
+                        />
+                        <label htmlFor={`category-${category.id}`} className="text-sm flex justify-between w-full">
+                          <span>{withHighlight(category.name, search)}</span>
+                          {category.count !== undefined && (
+                            <span className="text-muted-foreground">({category.count})</span>
+                          )}
+                        </label>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               <div>
@@ -253,18 +267,24 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                     />
                     <label htmlFor="all-types" className="text-sm">All Types</label>
                   </div>
-                  {BANKNOTE_TYPES.map(type => (
-                    <div key={type} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`type-${type}`}
-                        checked={selectedTypes.includes(type)}
-                        onCheckedChange={(checked) => handleTypeChange(type, !!checked)}
-                      />
-                      <label htmlFor={`type-${type}`} className="text-sm">
-                        {withHighlight(type, search)}
-                      </label>
-                    </div>
-                  ))}
+                  {availableTypes.map(type => {
+                    const isChecked = caseInsensitiveIncludes(selectedTypes, type.id);
+                    return (
+                      <div key={type.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`type-${type.id}`}
+                          checked={isChecked}
+                          onCheckedChange={(checked) => handleTypeChange(type.id, !!checked)}
+                        />
+                        <label htmlFor={`type-${type.id}`} className="text-sm flex justify-between w-full">
+                          <span>{withHighlight(type.name, search)}</span>
+                          {type.count !== undefined && (
+                            <span className="text-muted-foreground">({type.count})</span>
+                          )}
+                        </label>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               <SheetClose asChild>

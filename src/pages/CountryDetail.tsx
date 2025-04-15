@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
-import { DetailedBanknote } from "@/types";
+import { Banknote, DetailedBanknote } from "@/types";
 import { fetchBanknotes } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,8 @@ const CountryDetail = () => {
   const decodedCountryName = decodeURIComponent(country || "");
   console.log(`Country from URL param: ${decodedCountryName}`);
   
-  const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
+  // Changed to Banknote[] to fix type errors
+  const [banknotes, setBanknotes] = useState<Banknote[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
@@ -114,10 +115,6 @@ const CountryDetail = () => {
         />
 
         <div className="mt-6">
-          {console.log("Rendering content based on loading and filtered items:", {
-            loading,
-            filteredCount: filteredBanknotes.length
-          })}
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
@@ -129,10 +126,8 @@ const CountryDetail = () => {
             </div>
           ) : (
             <div className="space-y-8">
-              {console.log(`Rendering ${groupedItems.length} grouped items`)}
               {groupedItems.map((group, groupIndex) => (
                 <div key={`group-${groupIndex}`} className="space-y-4">
-                  {console.log(`Rendering group ${groupIndex}: ${group.category} with ${group.items.length} items`)}
                   <div className="sticky top-[168px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b">
                     <h2 className="text-xl font-bold">{group.category}</h2>
                   </div>
@@ -140,24 +135,19 @@ const CountryDetail = () => {
                   {group.sultanGroups ? (
                     // If grouped by sultan
                     <div className="space-y-6">
-                      {console.log(`Rendering with sultan groups. ${group.sultanGroups.length} sultans`)}
                       {group.sultanGroups.map((sultanGroup, sultanIndex) => (
                         <div key={`sultan-${sultanIndex}`} className="space-y-4">
-                          {console.log(`Rendering sultan group ${sultanIndex}: ${sultanGroup.sultan} with ${sultanGroup.items.length} items`)}
                           <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
                             {sultanGroup.sultan}
                           </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {sultanGroup.items.map((banknote, index) => {
-                              console.log(`Rendering banknote card for ${(banknote as any)?.catalogId || index}`);
-                              return (
-                                <BanknoteDetailCard
-                                  key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
-                                  banknote={banknote as DetailedBanknote}
-                                  source="catalog"
-                                />
-                              );
-                            })}
+                            {sultanGroup.items.map((banknote, index) => (
+                              <BanknoteDetailCard
+                                key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                                banknote={banknote as DetailedBanknote}
+                                source="catalog"
+                              />
+                            ))}
                           </div>
                         </div>
                       ))}
@@ -165,17 +155,13 @@ const CountryDetail = () => {
                   ) : (
                     // If not grouped by sultan
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {console.log(`Rendering without sultan groups. ${group.items.length} items directly`)}
-                      {group.items.map((banknote, index) => {
-                        console.log(`Rendering banknote card for ${(banknote as any)?.catalogId || index}`);
-                        return (
-                          <BanknoteDetailCard
-                            key={`banknote-${group.category}-${index}`}
-                            banknote={banknote as DetailedBanknote}
-                            source="catalog"
-                          />
-                        );
-                      })}
+                      {group.items.map((banknote, index) => (
+                        <BanknoteDetailCard
+                          key={`banknote-${group.category}-${index}`}
+                          banknote={banknote as DetailedBanknote}
+                          source="catalog"
+                        />
+                      ))}
                     </div>
                   )}
                 </div>

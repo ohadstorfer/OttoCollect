@@ -74,12 +74,18 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
         );
 
       // Category filter - if categories are selected, only show those
+      // Use case-insensitive comparison
       const matchesCategory = filters.categories.length === 0 ||
-        (banknote.series && filters.categories.includes(banknote.series));
+        (banknote.series && filters.categories.some(category => 
+          banknote.series && banknote.series.toLowerCase() === category.toLowerCase()
+        ));
 
       // Type filter - if types are selected, only show those
+      // Use case-insensitive comparison
       const matchesType = filters.types.length === 0 ||
-        (banknote.type && filters.types.includes(banknote.type));
+        (banknote.type && filters.types.some(type => 
+          banknote.type && banknote.type.toLowerCase() === type.toLowerCase()
+        ));
 
       // Log matching status for each item
       if (banknote.catalogId) {
@@ -97,8 +103,6 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       const banknoteB = getBanknote(b);
       
       if (!banknoteA || !banknoteB) return 0;
-
-      console.log(`Sorting ${banknoteA.catalogId || 'unknown'} vs ${banknoteB.catalogId || 'unknown'}`);
       
       // Apply sorting based on selected criteria
       for (const sortOption of filters.sort) {
@@ -177,42 +181,47 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     console.log(`Found ${categoryMap.size} categories in filtered items`);
     
     // Sort categories based on the defined order
-    BANKNOTE_CATEGORIES.forEach(category => {
-      const categoryItems = categoryMap.get(category);
-      if (!categoryItems || categoryItems.length === 0) return;
-      
-      console.log(`Processing category: ${category} with ${categoryItems.length} items`);
-      
-      const group = { category, items: categoryItems };
-      
-      // If sorting by sultan is enabled, group items by sultan within each category
-      if (sortBySultan) {
-        const sultanMap = new Map<string, T[]>();
-        categoryItems.forEach(item => {
-          const banknote = getBanknote(item);
-          if (!banknote) return;
+    BANKNOTE_CATEGORIES.forEach(categoryPattern => {
+      // Find any category that matches this pattern (case-insensitive)
+      Array.from(categoryMap.keys()).forEach(actualCategory => {
+        if (actualCategory.toLowerCase() === categoryPattern.toLowerCase()) {
+          const categoryItems = categoryMap.get(actualCategory);
+          if (!categoryItems || categoryItems.length === 0) return;
           
-          const sultan = banknote.sultanName || "Unknown";
-          if (!sultanMap.has(sultan)) {
-            sultanMap.set(sultan, []);
+          console.log(`Processing category: ${actualCategory} with ${categoryItems.length} items`);
+          
+          const group = { category: actualCategory, items: categoryItems };
+          
+          // If sorting by sultan is enabled, group items by sultan within each category
+          if (sortBySultan) {
+            const sultanMap = new Map<string, T[]>();
+            categoryItems.forEach(item => {
+              const banknote = getBanknote(item);
+              if (!banknote) return;
+              
+              const sultan = banknote.sultanName || "Unknown";
+              if (!sultanMap.has(sultan)) {
+                sultanMap.set(sultan, []);
+              }
+              sultanMap.get(sultan)?.push(item);
+            });
+            
+            // Create sultan groups
+            const sultanGroups = Array.from(sultanMap.entries())
+              .map(([sultan, items]) => ({ sultan, items }))
+              .sort((a, b) => a.sultan.localeCompare(b.sultan));
+            
+            console.log(`Category ${actualCategory} has ${sultanGroups.length} sultans`);
+            sultanGroups.forEach(sg => {
+              console.log(`  - Sultan ${sg.sultan}: ${sg.items.length} items`);
+            });
+            
+            group.sultanGroups = sultanGroups;
           }
-          sultanMap.get(sultan)?.push(item);
-        });
-        
-        // Create sultan groups
-        const sultanGroups = Array.from(sultanMap.entries())
-          .map(([sultan, items]) => ({ sultan, items }))
-          .sort((a, b) => a.sultan.localeCompare(b.sultan));
-        
-        console.log(`Category ${category} has ${sultanGroups.length} sultans`);
-        sultanGroups.forEach(sg => {
-          console.log(`  - Sultan ${sg.sultan}: ${sg.items.length} items`);
-        });
-        
-        group.sultanGroups = sultanGroups;
-      }
-      
-      groups.push(group);
+          
+          groups.push(group);
+        }
+      });
     });
     
     console.log(`Grouping complete: ${groups.length} groups created`);
