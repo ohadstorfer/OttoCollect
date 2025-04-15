@@ -101,11 +101,6 @@ const CountryDetail = () => {
       </div>
 
       <div className="bg-card border rounded-lg p-6 mb-6">
-        {console.log("Rendering BanknoteFilter with props:", {
-          categoriesCount: availableCategories.length,
-          typesCount: availableTypes.length,
-          loading
-        })}
         <BanknoteFilter
           categories={availableCategories}
           availableTypes={availableTypes}
@@ -125,23 +120,23 @@ const CountryDetail = () => {
               <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-8 pt-4">
               {groupedItems.map((group, groupIndex) => (
                 <div key={`group-${groupIndex}`} className="space-y-4">
-                  <div className="sticky top-[120px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b">
-                    <h2 className="text-xl font-bold">{group.category}</h2>
+                  <div className="sticky top-[120px] z-40 -mx-6 px-6 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-y">
+                    <h2 className="text-2xl font-serif font-bold text-primary">{group.category}</h2>
                   </div>
                   
                   {group.sultanGroups ? (
                     <div className="space-y-6">
                       {group.sultanGroups.map((sultanGroup, sultanIndex) => (
                         <div key={`sultan-${sultanIndex}`} className="space-y-4">
-                          <div className="sticky top-[176px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2">
-                            <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
+                          <div className="sticky top-[180px] z-30 -mx-6 px-6 py-2 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                            <h3 className="text-lg font-medium pl-4 border-l-4 border-primary/60">
                               {sultanGroup.sultan}
                             </h3>
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-2">
                             {sultanGroup.items.map((banknote, index) => {
                               const detailedBanknote = banknote as unknown as DetailedBanknote;
                               return (
@@ -157,7 +152,7 @@ const CountryDetail = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-2">
                       {group.items.map((banknote, index) => {
                         const detailedBanknote = banknote as unknown as DetailedBanknote;
                         return (
