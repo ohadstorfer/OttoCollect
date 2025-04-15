@@ -100,14 +100,16 @@ const CountryDetail = () => {
         <h1 className="text-3xl font-bold">{decodedCountryName} Banknotes</h1>
       </div>
 
-      <div className="bg-card border rounded-lg p-6 mb-6">
-        <BanknoteFilter
-          categories={availableCategories}
-          availableTypes={availableTypes}
-          onFilterChange={handleFilterChange}
-          isLoading={loading}
-          defaultSort={["extPick"]}
-        />
+      <div className="bg-card border rounded-lg p-6 mb-6 relative">
+        <div className="sticky top-[64px] z-50 -mx-6 px-6 pb-4 pt-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <BanknoteFilter
+            categories={availableCategories}
+            availableTypes={availableTypes}
+            onFilterChange={handleFilterChange}
+            isLoading={loading}
+            defaultSort={["extPick"]}
+          />
+        </div>
 
         <div className="mt-6">
           {loading ? (
@@ -123,7 +125,7 @@ const CountryDetail = () => {
             <div className="space-y-8 pt-4">
               {groupedItems.map((group, groupIndex) => (
                 <div key={`group-${groupIndex}`} className="space-y-4">
-                  <div className="sticky top-[120px] z-40 -mx-6 px-6 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-y">
+                  <div className="sticky top-[184px] z-40 -mx-6 px-6 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-y">
                     <h2 className="text-2xl font-serif font-bold text-primary">{group.category}</h2>
                   </div>
                   
@@ -131,7 +133,7 @@ const CountryDetail = () => {
                     <div className="space-y-6">
                       {group.sultanGroups.map((sultanGroup, sultanIndex) => (
                         <div key={`sultan-${sultanIndex}`} className="space-y-4">
-                          <div className="sticky top-[180px] z-30 -mx-6 px-6 py-2 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                          <div className="sticky top-[248px] z-30 -mx-6 px-6 py-2 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                             <h3 className="text-lg font-medium pl-4 border-l-4 border-primary/60">
                               {sultanGroup.sultan}
                             </h3>
