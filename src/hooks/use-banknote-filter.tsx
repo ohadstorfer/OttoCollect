@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from "react";
-import { Banknote, BanknoteFilterState } from "@/types";
+import { Banknote, BanknoteFilterState, BANKNOTE_CATEGORIES, DEFAULT_SELECTED_CATEGORIES } from "@/types";
 import { SORT_OPTIONS } from "@/types";
 
 interface UseBanknoteFilterProps<T> {
@@ -14,6 +14,7 @@ interface UseBanknoteFilterResult<T> {
   setFilters: (filters: BanknoteFilterState) => void;
   availableCategories: { id: string; name: string; count: number }[];
   availableTypes: { id: string; name: string; count: number }[];
+  groupedItems: { category: string; items: T[]; sultanGroups?: { sultan: string; items: T[] }[] }[];
 }
 
 export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>({
@@ -22,7 +23,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
 }: UseBanknoteFilterProps<T>): UseBanknoteFilterResult<T> => {
   const [filters, setFilters] = useState<BanknoteFilterState>({
     search: initialFilters.search || "",
-    categories: initialFilters.categories || [],
+    categories: initialFilters.categories || DEFAULT_SELECTED_CATEGORIES,
     types: initialFilters.types || [],
     sort: initialFilters.sort || ["extPick"],
   });
@@ -50,11 +51,11 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           value.toLowerCase().includes(searchLower)
         );
 
-      // Category filter
+      // Category filter - if categories are selected, only show those
       const matchesCategory = filters.categories.length === 0 ||
         (banknote.series && filters.categories.includes(banknote.series));
 
-      // Type filter
+      // Type filter - if types are selected, only show those
       const matchesType = filters.types.length === 0 ||
         (banknote.type && filters.types.includes(banknote.type));
 
@@ -104,6 +105,59 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       return 0;
     });
   }, [items, filters]);
+
+  // Group items by category and optionally by sultan within category
+  const groupedItems = useMemo(() => {
+    const sortBySultan = filters.sort.includes("sultan");
+    const groups: { category: string; items: T[]; sultanGroups?: { sultan: string; items: T[] }[] }[] = [];
+    
+    // Group filtered items by category
+    const categoryMap = new Map<string, T[]>();
+    filteredItems.forEach(item => {
+      const banknote = getBanknote(item);
+      if (!banknote || !banknote.series) return;
+      
+      const category = banknote.series;
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, []);
+      }
+      categoryMap.get(category)?.push(item);
+    });
+    
+    // Sort categories based on the defined order
+    BANKNOTE_CATEGORIES.forEach(category => {
+      const categoryItems = categoryMap.get(category);
+      if (!categoryItems || categoryItems.length === 0) return;
+      
+      const group = { category, items: categoryItems };
+      
+      // If sorting by sultan is enabled, group items by sultan within each category
+      if (sortBySultan) {
+        const sultanMap = new Map<string, T[]>();
+        categoryItems.forEach(item => {
+          const banknote = getBanknote(item);
+          if (!banknote) return;
+          
+          const sultan = banknote.sultanName || "Unknown";
+          if (!sultanMap.has(sultan)) {
+            sultanMap.set(sultan, []);
+          }
+          sultanMap.get(sultan)?.push(item);
+        });
+        
+        // Create sultan groups
+        const sultanGroups = Array.from(sultanMap.entries())
+          .map(([sultan, items]) => ({ sultan, items }))
+          .sort((a, b) => a.sultan.localeCompare(b.sultan));
+        
+        group.sultanGroups = sultanGroups;
+      }
+      
+      groups.push(group);
+    });
+    
+    return groups;
+  }, [filteredItems, filters.sort]);
 
   // Calculate available categories and their counts
   const availableCategories = useMemo(() => {
@@ -163,5 +217,6 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     setFilters,
     availableCategories,
     availableTypes,
+    groupedItems,
   };
 };

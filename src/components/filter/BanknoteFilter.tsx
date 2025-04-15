@@ -1,14 +1,20 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
-import { BanknoteFilterState, BANKNOTE_TYPES, DEFAULT_SELECTED_TYPES, SORT_OPTIONS } from "@/types";
+import { 
+  BanknoteFilterState, 
+  BANKNOTE_TYPES, 
+  DEFAULT_SELECTED_TYPES,
+  BANKNOTE_CATEGORIES,
+  DEFAULT_SELECTED_CATEGORIES,
+  SORT_OPTIONS 
+} from "@/types";
 import {
   Sheet,
   SheetContent,
@@ -17,6 +23,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import { withHighlight } from "./withHighlight";
 
 export type FilterCategory = {
   id: string;
@@ -45,7 +52,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(DEFAULT_SELECTED_CATEGORIES);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(DEFAULT_SELECTED_TYPES);
   const [selectedSort, setSelectedSort] = useState<string[]>(defaultSort);
 
@@ -53,6 +60,16 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   const debouncedSearch = debounce((value: string) => {
     handleFilterChange({ search: value });
   }, 300);
+
+  // Initial filter setup
+  useEffect(() => {
+    handleFilterChange({
+      search: search,
+      categories: selectedCategories,
+      types: selectedTypes,
+      sort: selectedSort
+    });
+  }, []);
 
   const handleFilterChange = (changes: Partial<BanknoteFilterState>) => {
     const newFilters = {
@@ -67,7 +84,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     let newCategories: string[];
     if (categoryId === "all") {
-      newCategories = checked ? categories.map(c => c.id) : [];
+      newCategories = checked ? BANKNOTE_CATEGORIES : [];
     } else {
       newCategories = checked 
         ? [...selectedCategories, categoryId]
@@ -109,7 +126,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     debouncedSearch(value);
   };
 
-  const allCategoriesSelected = selectedCategories.length === categories.length && categories.length > 0;
+  const allCategoriesSelected = selectedCategories.length === BANKNOTE_CATEGORIES.length && BANKNOTE_CATEGORIES.length > 0;
   const allTypesSelected = selectedTypes.length === BANKNOTE_TYPES.length;
 
   return (
@@ -144,11 +161,11 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
               </div>
             </Button>
           </SheetTrigger>
-          <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg">
+          <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
             <SheetHeader>
               <SheetTitle>Categories & Types</SheetTitle>
             </SheetHeader>
-            <div className="space-y-6 py-4 max-h-[80vh] overflow-y-auto">
+            <div className="space-y-6 py-4 overflow-y-auto">
               <div>
                 <h4 className="font-medium mb-3">Categories</h4>
                 <div className="space-y-2">
@@ -160,15 +177,15 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                     />
                     <label htmlFor="all-categories" className="text-sm">All Categories</label>
                   </div>
-                  {categories.map(category => (
-                    <div key={category.id} className="flex items-center space-x-2">
+                  {BANKNOTE_CATEGORIES.map(category => (
+                    <div key={category} className="flex items-center space-x-2">
                       <Checkbox
-                        id={`category-${category.id}`}
-                        checked={selectedCategories.includes(category.id)}
-                        onCheckedChange={(checked) => handleCategoryChange(category.id, !!checked)}
+                        id={`category-${category}`}
+                        checked={selectedCategories.includes(category)}
+                        onCheckedChange={(checked) => handleCategoryChange(category, !!checked)}
                       />
-                      <label htmlFor={`category-${category.id}`} className="text-sm">
-                        {category.name} {category.count !== undefined && `(${category.count})`}
+                      <label htmlFor={`category-${category}`} className="text-sm">
+                        {withHighlight(category, search)}
                       </label>
                     </div>
                   ))}
@@ -192,7 +209,9 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                         checked={selectedTypes.includes(type)}
                         onCheckedChange={(checked) => handleTypeChange(type, !!checked)}
                       />
-                      <label htmlFor={`type-${type}`} className="text-sm">{type}</label>
+                      <label htmlFor={`type-${type}`} className="text-sm">
+                        {withHighlight(type, search)}
+                      </label>
                     </div>
                   ))}
                 </div>

@@ -57,12 +57,6 @@ const Marketplace = () => {
       console.log('Setting marketplace items in state');
       setMarketplaceItems(items);
       
-      // Set initial price range based on actual items
-      if (items.length > 0) {
-        const maxItemPrice = Math.max(...items.map(item => item.collectionItem.salePrice || 0), 100);
-        console.log('Setting price range with max price:', maxItemPrice);
-      }
-      
     } catch (err) {
       console.error("Error loading marketplace items:", err);
       setError("Failed to load marketplace items. Please try again later.");
@@ -95,7 +89,8 @@ const Marketplace = () => {
     filters, 
     setFilters,
     availableCategories,
-    availableTypes
+    availableTypes,
+    groupedItems
   } = useBanknoteFilter({
     items: marketplaceItemsForFilter,
     initialFilters: {
@@ -135,7 +130,7 @@ const Marketplace = () => {
       <section className="py-8">
         <div className="container mx-auto px-4">
           {/* Filter section */}
-          <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'}`}>
+          <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'} sticky top-[64px] z-50`}>
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
@@ -227,14 +222,51 @@ const Marketplace = () => {
               </div>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredItems.map((item, index) => (
-                <div 
-                  key={`marketplace-item-${index}`}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <MarketplaceItem item={(item as any).marketplaceItem} />
+            <div className="space-y-8">
+              {groupedItems.map((group, groupIndex) => (
+                <div key={`group-${groupIndex}`} className="space-y-4">
+                  <div className="sticky top-[168px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b">
+                    <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
+                      {group.category}
+                    </h2>
+                  </div>
+                  
+                  {group.sultanGroups ? (
+                    // If grouped by sultan
+                    <div className="space-y-6">
+                      {group.sultanGroups.map((sultanGroup, sultanIndex) => (
+                        <div key={`sultan-${sultanIndex}`} className="space-y-4">
+                          <h3 className={`text-lg font-semibold pl-4 border-l-4 ${theme === 'light' ? 'border-ottoman-600 text-ottoman-700' : 'border-ottoman-400 text-ottoman-300'}`}>
+                            {sultanGroup.sultan}
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {sultanGroup.items.map((item, index) => (
+                              <div 
+                                key={`marketplace-item-${index}`}
+                                className="animate-fade-in"
+                                style={{ animationDelay: `${index * 100}ms` }}
+                              >
+                                <MarketplaceItem item={(item as any).marketplaceItem} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    // If not grouped by sultan
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {group.items.map((item, index) => (
+                        <div 
+                          key={`marketplace-item-${index}`}
+                          className="animate-fade-in"
+                          style={{ animationDelay: `${index * 100}ms` }}
+                        >
+                          <MarketplaceItem item={(item as any).marketplaceItem} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

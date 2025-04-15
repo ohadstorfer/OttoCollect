@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
 import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
-import { HighlightText } from "@/components/filter/HighlightText";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -53,11 +52,12 @@ const CountryDetail = () => {
 
   // Use the banknote filter hook
   const { 
-    filteredItems: filteredBanknotes, 
+    filteredItems: filteredBanknotes,
     filters, 
     setFilters,
     availableCategories,
-    availableTypes
+    availableTypes,
+    groupedItems
   } = useBanknoteFilter({
     items: banknotes,
     initialFilters: {
@@ -98,13 +98,46 @@ const CountryDetail = () => {
               <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredBanknotes.map((banknote) => (
-                <BanknoteDetailCard
-                  key={banknote.id}
-                  banknote={banknote}
-                  source="catalog"
-                />
+            <div className="space-y-8">
+              {groupedItems.map((group, groupIndex) => (
+                <div key={`group-${groupIndex}`} className="space-y-4">
+                  <div className="sticky top-[168px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b">
+                    <h2 className="text-xl font-bold">{group.category}</h2>
+                  </div>
+                  
+                  {group.sultanGroups ? (
+                    // If grouped by sultan
+                    <div className="space-y-6">
+                      {group.sultanGroups.map((sultanGroup, sultanIndex) => (
+                        <div key={`sultan-${sultanIndex}`} className="space-y-4">
+                          <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
+                            {sultanGroup.sultan}
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {sultanGroup.items.map((banknote, index) => (
+                              <BanknoteDetailCard
+                                key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                                banknote={banknote as DetailedBanknote}
+                                source="catalog"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    // If not grouped by sultan
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {group.items.map((banknote, index) => (
+                        <BanknoteDetailCard
+                          key={`banknote-${group.category}-${index}`}
+                          banknote={banknote as DetailedBanknote}
+                          source="catalog"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}

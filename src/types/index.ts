@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   firstName: string;
@@ -78,6 +79,22 @@ export interface MarketplaceItem {
   collectionItem: CollectionItem;
 }
 
+// Banknote categories
+export const BANKNOTE_CATEGORIES = [
+  "First Kaime Em. 1–6",
+  "First Kaime 1851–1861",
+  "1893 War Banknote",
+  "Imperial Ottoman Bank",
+  "World War I Banknotes"
+];
+
+export const DEFAULT_SELECTED_CATEGORIES = [
+  "First Kaime 1851–1861",
+  "1893 War Banknote",
+  "Imperial Ottoman Bank",
+  "World War I Banknotes"
+];
+
 // Banknote types
 export const BANKNOTE_TYPES = [
   "issued notes",
@@ -110,3 +127,4 @@ export interface BanknoteFilterState {
   types: string[];
   sort: string[];
 }
+
