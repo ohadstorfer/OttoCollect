@@ -21,11 +21,22 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
   items,
   initialFilters = {},
 }: UseBanknoteFilterProps<T>): UseBanknoteFilterResult<T> => {
+  console.log("### useBanknoteFilter INITIALIZED ###");
+  console.log("Input items count:", items.length);
+  console.log("Initial filters:", initialFilters);
+
   const [filters, setFilters] = useState<BanknoteFilterState>({
     search: initialFilters.search || "",
     categories: initialFilters.categories || DEFAULT_SELECTED_CATEGORIES,
     types: initialFilters.types || [],
     sort: initialFilters.sort || ["extPick"],
+  });
+
+  console.log("Initial state after setup:", {
+    search: filters.search,
+    selectedCategories: filters.categories,
+    selectedTypes: filters.types,
+    selectedSort: filters.sort,
   });
 
   // Extract banknote from item
@@ -38,9 +49,20 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
 
   // Filter items based on criteria
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
+    console.log("### FILTERING ITEMS ###");
+    console.log("Current filters:", {
+      search: filters.search,
+      categories: filters.categories,
+      types: filters.types,
+      sort: filters.sort
+    });
+    
+    const filtered = items.filter((item) => {
       const banknote = getBanknote(item);
-      if (!banknote) return false;
+      if (!banknote) {
+        console.log("Item skipped - no banknote found", item);
+        return false;
+      }
       
       const searchLower = filters.search.toLowerCase();
 
@@ -59,13 +81,25 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       const matchesType = filters.types.length === 0 ||
         (banknote.type && filters.types.includes(banknote.type));
 
+      // Log matching status for each item
+      if (banknote.catalogId) {
+        console.log(`Item ${banknote.catalogId} - Search: ${matchesSearch}, Category: ${matchesCategory} (${banknote.series}), Type: ${matchesType} (${banknote.type})`);
+      }
+
       return matchesSearch && matchesCategory && matchesType;
-    }).sort((a, b) => {
+    });
+    
+    console.log(`Filtering complete: ${filtered.length} items matched out of ${items.length}`);
+    
+    // Sort the filtered items
+    const sorted = [...filtered].sort((a, b) => {
       const banknoteA = getBanknote(a);
       const banknoteB = getBanknote(b);
       
       if (!banknoteA || !banknoteB) return 0;
 
+      console.log(`Sorting ${banknoteA.catalogId || 'unknown'} vs ${banknoteB.catalogId || 'unknown'}`);
+      
       // Apply sorting based on selected criteria
       for (const sortOption of filters.sort) {
         let comparison = 0;
@@ -74,6 +108,9 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           case "sultan":
             comparison = (banknoteA.sultanName || "")
               .localeCompare(banknoteB.sultanName || "");
+            if (comparison !== 0) {
+              console.log(`Sort by sultan: ${banknoteA.sultanName} vs ${banknoteB.sultanName} = ${comparison}`);
+            }
             break;
 
           case "faceValue":
@@ -91,11 +128,18 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
               const numB = parseFloat(valueB.replace(/[^0-9.]/g, "")) || 0;
               comparison = numA - numB;
             }
+            
+            if (comparison !== 0) {
+              console.log(`Sort by faceValue: ${valueA} vs ${valueB} = ${comparison}`);
+            }
             break;
 
           case "extPick":
             comparison = (banknoteA.extendedPickNumber || banknoteA.catalogId || "")
               .localeCompare(banknoteB.extendedPickNumber || banknoteB.catalogId || "");
+            if (comparison !== 0) {
+              console.log(`Sort by extPick: ${banknoteA.extendedPickNumber} vs ${banknoteB.extendedPickNumber} = ${comparison}`);
+            }
             break;
         }
 
@@ -104,11 +148,17 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
 
       return 0;
     });
+    
+    console.log(`Sorting complete: ${sorted.length} items`);
+    return sorted;
   }, [items, filters]);
 
   // Group items by category and optionally by sultan within category
   const groupedItems = useMemo(() => {
+    console.log("### GROUPING ITEMS ###");
     const sortBySultan = filters.sort.includes("sultan");
+    console.log(`Grouping by sultan: ${sortBySultan}`);
+    
     const groups: { category: string; items: T[]; sultanGroups?: { sultan: string; items: T[] }[] }[] = [];
     
     // Group filtered items by category
@@ -124,10 +174,14 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       categoryMap.get(category)?.push(item);
     });
     
+    console.log(`Found ${categoryMap.size} categories in filtered items`);
+    
     // Sort categories based on the defined order
     BANKNOTE_CATEGORIES.forEach(category => {
       const categoryItems = categoryMap.get(category);
       if (!categoryItems || categoryItems.length === 0) return;
+      
+      console.log(`Processing category: ${category} with ${categoryItems.length} items`);
       
       const group = { category, items: categoryItems };
       
@@ -150,17 +204,24 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           .map(([sultan, items]) => ({ sultan, items }))
           .sort((a, b) => a.sultan.localeCompare(b.sultan));
         
+        console.log(`Category ${category} has ${sultanGroups.length} sultans`);
+        sultanGroups.forEach(sg => {
+          console.log(`  - Sultan ${sg.sultan}: ${sg.items.length} items`);
+        });
+        
         group.sultanGroups = sultanGroups;
       }
       
       groups.push(group);
     });
     
+    console.log(`Grouping complete: ${groups.length} groups created`);
     return groups;
   }, [filteredItems, filters.sort]);
 
   // Calculate available categories and their counts
   const availableCategories = useMemo(() => {
+    console.log("### CALCULATING AVAILABLE CATEGORIES ###");
     const categories = new Map<string, { name: string; count: number }>();
     
     items.forEach(item => {
@@ -181,12 +242,20 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       }
     });
 
-    return Array.from(categories.entries())
+    const result = Array.from(categories.entries())
       .map(([id, { name, count }]) => ({ id, name, count }));
+    
+    console.log(`Found ${result.length} available categories`);
+    result.forEach(cat => {
+      console.log(`  - ${cat.name}: ${cat.count} items`);
+    });
+    
+    return result;
   }, [items]);
 
   // Calculate available types and their counts
   const availableTypes = useMemo(() => {
+    console.log("### CALCULATING AVAILABLE TYPES ###");
     const types = new Map<string, { name: string; count: number }>();
     
     items.forEach(item => {
@@ -207,14 +276,29 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       }
     });
 
-    return Array.from(types.entries())
+    const result = Array.from(types.entries())
       .map(([id, { name, count }]) => ({ id, name, count }));
+    
+    console.log(`Found ${result.length} available types`);
+    result.forEach(type => {
+      console.log(`  - ${type.name}: ${type.count} items`);
+    });
+    
+    return result;
   }, [items]);
+
+  // Handle filter changes
+  const handleFilterChange = (newFilters: BanknoteFilterState) => {
+    console.log("### FILTER CHANGED ###");
+    console.log("Old filters:", filters);
+    console.log("New filters:", newFilters);
+    setFilters(newFilters);
+  };
 
   return {
     filteredItems,
     filters,
-    setFilters,
+    setFilters: handleFilterChange,
     availableCategories,
     availableTypes,
     groupedItems,

@@ -17,6 +17,8 @@ import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
 import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
 
 const Marketplace = () => {
+  console.log("### Marketplace RENDERING ###");
+  
   const { user } = useAuth();
   const { theme } = useTheme();
   const { toast } = useToast();
@@ -41,7 +43,8 @@ const Marketplace = () => {
       
       console.log('Calling fetchMarketplaceItems');
       const items = await fetchMarketplaceItems();
-      console.log("Fetched marketplace items:", items);
+      console.log("Fetched marketplace items:", items.length);
+      console.log("Sample marketplace item:", items.length > 0 ? items[0] : "No items");
       
       if (items.length === 0) {
         console.log("No marketplace items found");
@@ -78,12 +81,15 @@ const Marketplace = () => {
   }, [toast]);
   
   // Transform marketplace items for the filter
+  console.log('Transforming marketplace items for filter');
   const marketplaceItemsForFilter = marketplaceItems.map(item => ({
     banknote: item.collectionItem.banknote,
     marketplaceItem: item
   }));
+  console.log(`Created ${marketplaceItemsForFilter.length} filter items`);
   
   // Use the banknote filter hook
+  console.log("Initializing useBanknoteFilter for marketplace");
   const { 
     filteredItems, 
     filters, 
@@ -97,11 +103,24 @@ const Marketplace = () => {
       sort: ["extPick"]
     }
   });
+  
+  console.log("useBanknoteFilter results for marketplace:", {
+    filteredItems: filteredItems.length,
+    filters,
+    availableCategories: availableCategories.length,
+    availableTypes: availableTypes.length,
+    groupedItems: groupedItems.length
+  });
 
   const handleRefresh = () => {
     console.log('Manual refresh triggered');
     setIsRefreshing(true);
     loadMarketplaceItems(true);
+  };
+
+  const handleFilterChange = (newFilters: any) => {
+    console.log("Filter changed in Marketplace:", newFilters);
+    setFilters(newFilters);
   };
 
   return (
@@ -164,10 +183,15 @@ const Marketplace = () => {
                 </div>
               </div>
 
+              {console.log("Rendering BanknoteFilter in Marketplace with props:", {
+                categoriesCount: availableCategories.length,
+                typesCount: availableTypes.length,
+                loading
+              })}
               <BanknoteFilter
                 categories={availableCategories}
                 availableTypes={availableTypes}
-                onFilterChange={setFilters}
+                onFilterChange={handleFilterChange}
                 isLoading={loading}
                 defaultSort={["extPick"]}
               />
@@ -182,6 +206,11 @@ const Marketplace = () => {
           </div>
           
           {/* Content states */}
+          {console.log("Rendering marketplace content based on loading and filtered items:", {
+            loading,
+            error,
+            filteredCount: filteredItems.length
+          })}
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <Spinner size="lg" />
@@ -223,8 +252,10 @@ const Marketplace = () => {
             </Card>
           ) : (
             <div className="space-y-8">
+              {console.log(`Rendering ${groupedItems.length} marketplace grouped items`)}
               {groupedItems.map((group, groupIndex) => (
                 <div key={`group-${groupIndex}`} className="space-y-4">
+                  {console.log(`Rendering marketplace group ${groupIndex}: ${group.category} with ${group.items.length} items`)}
                   <div className="sticky top-[168px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b">
                     <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
                       {group.category}
@@ -234,21 +265,26 @@ const Marketplace = () => {
                   {group.sultanGroups ? (
                     // If grouped by sultan
                     <div className="space-y-6">
+                      {console.log(`Rendering marketplace with sultan groups. ${group.sultanGroups.length} sultans`)}
                       {group.sultanGroups.map((sultanGroup, sultanIndex) => (
                         <div key={`sultan-${sultanIndex}`} className="space-y-4">
+                          {console.log(`Rendering marketplace sultan group ${sultanIndex}: ${sultanGroup.sultan} with ${sultanGroup.items.length} items`)}
                           <h3 className={`text-lg font-semibold pl-4 border-l-4 ${theme === 'light' ? 'border-ottoman-600 text-ottoman-700' : 'border-ottoman-400 text-ottoman-300'}`}>
                             {sultanGroup.sultan}
                           </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {sultanGroup.items.map((item, index) => (
-                              <div 
-                                key={`marketplace-item-${index}`}
-                                className="animate-fade-in"
-                                style={{ animationDelay: `${index * 100}ms` }}
-                              >
-                                <MarketplaceItem item={(item as any).marketplaceItem} />
-                              </div>
-                            ))}
+                            {sultanGroup.items.map((item, index) => {
+                              console.log(`Rendering marketplace item card for index ${index}`);
+                              return (
+                                <div 
+                                  key={`marketplace-item-${index}`}
+                                  className="animate-fade-in"
+                                  style={{ animationDelay: `${index * 100}ms` }}
+                                >
+                                  <MarketplaceItem item={(item as any).marketplaceItem} />
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       ))}
@@ -256,15 +292,19 @@ const Marketplace = () => {
                   ) : (
                     // If not grouped by sultan
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {group.items.map((item, index) => (
-                        <div 
-                          key={`marketplace-item-${index}`}
-                          className="animate-fade-in"
-                          style={{ animationDelay: `${index * 100}ms` }}
-                        >
-                          <MarketplaceItem item={(item as any).marketplaceItem} />
-                        </div>
-                      ))}
+                      {console.log(`Rendering marketplace without sultan groups. ${group.items.length} items directly`)}
+                      {group.items.map((item, index) => {
+                        console.log(`Rendering marketplace item card for index ${index}`);
+                        return (
+                          <div 
+                            key={`marketplace-item-${index}`}
+                            className="animate-fade-in"
+                            style={{ animationDelay: `${index * 100}ms` }}
+                          >
+                            <MarketplaceItem item={(item as any).marketplaceItem} />
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

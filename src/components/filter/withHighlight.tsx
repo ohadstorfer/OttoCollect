@@ -9,8 +9,14 @@ interface WithHighlightProps {
 }
 
 export const withHighlight = (text: string, searchTerm?: string, className?: string) => {
-  if (!searchTerm || searchTerm.trim() === '') return text;
+  console.log(`withHighlight: text="${text}", searchTerm="${searchTerm || ''}"`);
   
+  if (!searchTerm || searchTerm.trim() === '') {
+    console.log("withHighlight: No search term, returning original text");
+    return text;
+  }
+  
+  console.log("withHighlight: Returning highlighted text component");
   return (
     <HighlightText 
       text={text} 

@@ -16,7 +16,7 @@ export interface User {
 }
 
 export type UserRole = 'User' | 'Admin' | 'Super Admin';
-export type UserRank = 'Newbie' | 'Collector' | 'Expert' | 'Master';
+export type UserRank = 'Newbie' | 'Beginner Collector' | 'Casual Collector' | 'Known Collector' | 'Advance Collector' | 'Expert' | 'Master' | 'Admin' | 'Super Admin';
 
 export interface Banknote {
   id: string;
@@ -41,6 +41,18 @@ export interface Banknote {
   createdBy?: string; // Added to match actual usage
   obverseDescription?: string; // Added to match actual usage
   reverseDescription?: string; // Added to match actual usage
+  // Additional fields from DetailedBanknote used across the app
+  islamicYear?: string;
+  gregorianYear?: string;
+  category?: string;
+  printer?: string;
+  colors?: string;
+  serialNumbering?: string;
+  securityElement?: string;
+  signaturesFront?: string;
+  signaturesBack?: string;
+  banknoteDescription?: string;
+  historicalDescription?: string;
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -71,6 +83,7 @@ export interface CollectionItem {
   privateNote?: string; // Added to match actual usage
   publicNote?: string; // Added to match actual usage
   personalImages?: string[]; // Added to match actual usage
+  orderIndex?: number; // Added to match actual usage in constants.ts
 }
 
 export interface WishlistItem {
@@ -87,12 +100,18 @@ export interface WishlistItem {
 export type BanknoteCondition =
   | 'Uncirculated'
   | 'UNC'  // Added to match actual usage
+  | 'AU'   // Added to match usage in constants.ts
+  | 'XF'   // Added to match usage in constants.ts
   | 'Near Mint'
   | 'Extremely Fine'
   | 'Very Fine'
+  | 'VF'   // Added to match usage in constants.ts
   | 'Fine'
+  | 'F'    // Added to match usage in constants.ts
   | 'Very Good'
+  | 'VG'   // Added to match usage in constants.ts
   | 'Good'
+  | 'G'    // Added to match usage in constants.ts
   | 'Poor';
 
 export interface MarketplaceItem {
@@ -104,7 +123,45 @@ export interface MarketplaceItem {
   createdAt?: Date | string; // Allow string or Date
   updatedAt?: Date | string; // Allow string or Date
   collectionItem: CollectionItem;
+  status?: string; // Added to match usage in constants.ts
+  seller?: { // Added to match usage in constants.ts
+    id: string;
+    username: string;
+    rank: string;
+  };
 }
+
+// Add missing interface for ForumPost
+export interface ForumPost {
+  id: string;
+  title: string;
+  content: string;
+  userId: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  author?: User;
+  commentCount?: number;
+  viewCount?: number;
+  imageUrls?: string[];
+  isPinned?: boolean;
+  category?: string;
+  excerpt?: string;
+}
+
+// Add missing interface for Message
+export interface Message {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  content: string;
+  isRead: boolean;
+  createdAt: Date | string;
+  sender?: User;
+  recipient?: User;
+}
+
+// Add missing interface for BanknoteDetailSource
+export type BanknoteDetailSource = "catalog" | "collection" | "marketplace";
 
 // Banknote categories
 export const BANKNOTE_CATEGORIES = [
