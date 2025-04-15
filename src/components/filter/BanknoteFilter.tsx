@@ -221,7 +221,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   return (
     <div className={cn(
       "w-full space-y-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-4",
-      "sticky top-0",
+      "sticky top-[64px]",
       className
     )}>
       <div className="relative">
