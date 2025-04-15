@@ -276,7 +276,12 @@ export async function updateCollectionItem(
     if (updates.publicNote !== undefined) dbUpdates.public_note = updates.publicNote;
     if (updates.privateNote !== undefined) dbUpdates.private_note = updates.privateNote;
     if (updates.purchasePrice !== undefined) dbUpdates.purchase_price = updates.purchasePrice;
-    if (updates.purchaseDate !== undefined) dbUpdates.purchase_date = updates.purchaseDate;
+    if (updates.purchaseDate !== undefined) {
+      // Convert Date object to ISO string if it's a Date
+      dbUpdates.purchase_date = typeof updates.purchaseDate === 'string' 
+        ? updates.purchaseDate 
+        : updates.purchaseDate.toISOString();
+    }
     if (updates.location !== undefined) dbUpdates.location = updates.location;
     if (updates.obverseImage !== undefined) dbUpdates.obverse_image = updates.obverseImage;
     if (updates.reverseImage !== undefined) dbUpdates.reverse_image = updates.reverseImage;

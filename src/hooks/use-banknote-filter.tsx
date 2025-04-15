@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from "react";
-import { Banknote, BanknoteFilterState, BANKNOTE_CATEGORIES, DEFAULT_SELECTED_CATEGORIES, BANKNOTE_TYPES } from "@/types";
+import { Banknote, BanknoteFilterState } from "@/types";
 
 interface UseBanknoteFilterProps<T> {
   items: T[];
@@ -98,25 +98,20 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           value.toLowerCase().includes(searchLower)
         );
 
-      // Category filter - if no categories selected, don't show any items
-      const matchesCategory = filters.categories.length > 0 &&
-        (filters.categories.some(category => {
+      // Category filter
+      const matchesCategory = filters.categories.length === 0 || 
+        filters.categories.some(category => {
           return banknote.series && 
             banknote.series.toLowerCase() === category.toLowerCase();
-        }));
+        });
 
-      // Type filter - if no types selected, don't show any items
-      const matchesType = filters.types.length > 0 &&
-        (filters.types.some(type => {
+      // Type filter
+      const matchesType = filters.types.length === 0 || 
+        filters.types.some(type => {
           const normalizedItemType = normalizeType(banknote.type);
           const normalizedFilterType = normalizeType(type);
           return normalizedItemType === normalizedFilterType;
-        }));
-
-      // If no specific category or type filters are active, show nothing
-      if (filters.categories.length === 0 || filters.types.length === 0) {
-        return false;
-      }
+        });
 
       const result = matchesSearch && matchesCategory && matchesType;
       
@@ -169,8 +164,8 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
             break;
           case "newest":
             if (a && b && 'createdAt' in a && 'createdAt' in b) {
-              const dateA = new Date(a.createdAt as string).getTime();
-              const dateB = new Date(b.createdAt as string).getTime();
+              const dateA = new Date((a.createdAt as string) || "").getTime();
+              const dateB = new Date((b.createdAt as string) || "").getTime();
               comparison = dateB - dateA;
             }
             break;
@@ -209,52 +204,48 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     
     console.log(`Found ${categoryMap.size} categories in filtered items`);
     
-    // Sort categories based on the defined order
-    BANKNOTE_CATEGORIES.forEach(categoryPattern => {
-      // Find any category that matches this pattern (case-insensitive)
-      Array.from(categoryMap.keys()).forEach(actualCategory => {
-        if (actualCategory.toLowerCase() === categoryPattern.toLowerCase()) {
-          const categoryItems = categoryMap.get(actualCategory);
-          if (!categoryItems || categoryItems.length === 0) return;
+    // Add all categories in alphabetical order
+    Array.from(categoryMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .forEach(([category, categoryItems]) => {
+        if (!categoryItems || categoryItems.length === 0) return;
           
-          console.log(`Processing category: ${actualCategory} with ${categoryItems.length} items`);
-          
-          const group: GroupItem<T> = { 
-            category: actualCategory, 
-            items: categoryItems,
-          };
-          
-          // If sorting by sultan is enabled, group items by sultan within each category
-          if (sortBySultan) {
-            const sultanMap = new Map<string, T[]>();
-            categoryItems.forEach(item => {
-              const banknote = getBanknote(item);
-              if (!banknote) return;
-              
-              const sultan = banknote.sultanName || "Unknown";
-              if (!sultanMap.has(sultan)) {
-                sultanMap.set(sultan, []);
-              }
-              sultanMap.get(sultan)?.push(item);
-            });
+        console.log(`Processing category: ${category} with ${categoryItems.length} items`);
+        
+        const group: GroupItem<T> = { 
+          category, 
+          items: categoryItems,
+        };
+        
+        // If sorting by sultan is enabled, group items by sultan within each category
+        if (sortBySultan) {
+          const sultanMap = new Map<string, T[]>();
+          categoryItems.forEach(item => {
+            const banknote = getBanknote(item);
+            if (!banknote) return;
             
-            // Create sultan groups
-            const sultanGroups = Array.from(sultanMap.entries())
-              .map(([sultan, items]) => ({ sultan, items }))
-              .sort((a, b) => a.sultan.localeCompare(b.sultan));
-            
-            console.log(`Category ${actualCategory} has ${sultanGroups.length} sultans`);
-            sultanGroups.forEach(sg => {
-              console.log(`  - Sultan ${sg.sultan}: ${sg.items.length} items`);
-            });
-            
-            group.sultanGroups = sultanGroups;
-          }
+            const sultan = banknote.sultanName || "Unknown";
+            if (!sultanMap.has(sultan)) {
+              sultanMap.set(sultan, []);
+            }
+            sultanMap.get(sultan)?.push(item);
+          });
           
-          groups.push(group);
+          // Create sultan groups
+          const sultanGroups = Array.from(sultanMap.entries())
+            .map(([sultan, items]) => ({ sultan, items }))
+            .sort((a, b) => a.sultan.localeCompare(b.sultan));
+          
+          console.log(`Category ${category} has ${sultanGroups.length} sultans`);
+          sultanGroups.forEach(sg => {
+            console.log(`  - Sultan ${sg.sultan}: ${sg.items.length} items`);
+          });
+          
+          group.sultanGroups = sultanGroups;
         }
+        
+        groups.push(group);
       });
-    });
     
     console.log(`Grouping complete: ${groups.length} groups created`);
     return groups;
@@ -299,14 +290,28 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     console.log("### CALCULATING AVAILABLE TYPES ###");
     const types = new Map<string, { name: string; count: number }>();
     
+    // Define the default types
+    const defaultTypes = [
+      "Issued note",
+      "Specimen",
+      "Cancelled",
+      "Trial note",
+      "Error banknote",
+      "Counterfeit banknote",
+      "Emergency note",
+      "Check & Bond notes",
+      "Other notes"
+    ];
+    
     // Initialize with default types even if count is 0
-    BANKNOTE_TYPES.forEach(type => {
-      types.set(type.toLowerCase(), {
+    defaultTypes.forEach(type => {
+      types.set(normalizeType(type), {
         name: type,
         count: 0
       });
     });
     
+    // Count the actual types in items
     items.forEach(item => {
       const banknote = getBanknote(item);
       if (banknote?.type) {

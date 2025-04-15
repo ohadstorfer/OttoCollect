@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { Button } from "@/components/ui/button";
-import { BanknoteCondition, CollectionItem, WishlistItem, Banknote } from "@/types";
+import { CollectionItem, WishlistItem, Banknote } from "@/types";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { fetchUserCollection } from "@/services/collectionService";
 import { fetchUserWishlist } from "@/services/wishlistService";
@@ -76,29 +77,44 @@ const Collection = () => {
     loadUserData();
   }, [user, toast]);
 
+  // Helper function to get all available categories from items
+  const getAllAvailableCategories = (items: { banknote: Banknote }[]) => {
+    const categories = new Set<string>();
+    items.forEach(item => {
+      if (item.banknote?.series) {
+        categories.add(item.banknote.series);
+      }
+    });
+    return Array.from(categories);
+  };
+
   // Collection filter - now properly handles collection items with their banknotes
   const { 
     filteredItems: filteredCollection, 
     filters: collectionFilters, 
     setFilters: setCollectionFilters,
     availableCategories: collectionCategories,
-    availableTypes: collectionTypes
+    availableTypes: collectionTypes,
+    groupedItems: groupedCollection
   } = useBanknoteFilter({
-    items: collectionItems.map(item => ({
-      ...item,
-      banknote: item.banknote // Already includes the banknote
-    })),
+    items: collectionItems,
     initialFilters: {
-      // Set default categories to all available categories
-      categories: collectionItems.length > 0 
-        ? [...new Set(collectionItems.map(item => item.banknote.series || ''))]
-        .filter(series => series !== '')
-        : [],
-      // Set default types to "issued notes" or similar variations
+      // Set default types to include "issued notes"
       types: ["issued notes"],
       sort: ["newest", "extPick"]
     }
   });
+
+  // When collection items load, update the categories filter to include all available categories
+  useEffect(() => {
+    if (collectionItems.length > 0 && collectionCategories.length > 0) {
+      const allCategories = collectionCategories.map(c => c.id);
+      setCollectionFilters({
+        ...collectionFilters,
+        categories: allCategories
+      });
+    }
+  }, [collectionItems, collectionCategories.length]);
 
   console.log("Collection items after filtering:", {
     all: collectionItems.length,
@@ -191,8 +207,14 @@ const Collection = () => {
               </div>
             ) : filteredCollection.length === 0 ? (
               <div className="text-center py-8">
-                <h3 className="text-xl font-medium mb-4">Your collection is empty</h3>
-                <p className="text-muted-foreground mb-6">Start adding banknotes to your collection by browsing the catalog.</p>
+                <h3 className="text-xl font-medium mb-4">
+                  {collectionItems.length === 0 ? "Your collection is empty" : "No matching banknotes found"}
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  {collectionItems.length === 0 
+                    ? "Start adding banknotes to your collection by browsing the catalog." 
+                    : "Try adjusting your filters to see more items."}
+                </p>
                 <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
               </div>
             ) : (
@@ -270,7 +292,7 @@ const Collection = () => {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
+                          onClick={() => navigate(`/banknote-details/${item.banknote.id}`)}
                         >
                           View Details
                         </Button>
