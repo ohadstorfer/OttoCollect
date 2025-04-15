@@ -1,13 +1,22 @@
 
 export interface User {
   id: string;
-  firstName: string;
-  lastName: string;
+  username: string; // Added username
+  firstName?: string; // Made optional
+  lastName?: string; // Made optional
   email: string;
-  role: 'User' | 'Admin';
-  createdAt?: Date;
-  updatedAt?: Date;
+  role: 'User' | 'Admin' | 'Super Admin'; // Added Super Admin
+  avatarUrl?: string; // Added avatar URL
+  country?: string; // Added country
+  about?: string; // Added about
+  rank?: string; // Added rank
+  points?: number; // Added points
+  createdAt?: Date | string; // Allow string or Date
+  updatedAt?: Date | string; // Allow string or Date
 }
+
+export type UserRole = 'User' | 'Admin' | 'Super Admin';
+export type UserRank = 'Newbie' | 'Collector' | 'Expert' | 'Master';
 
 export interface Banknote {
   id: string;
@@ -21,15 +30,26 @@ export interface Banknote {
   type?: string;
   sultanName?: string;
   extendedPickNumber?: string;
+  pickNumber?: string; // Added to match actual usage
+  sealNames?: string; // Added to match actual usage 
+  turkCatalogNumber?: string; // Added to match actual usage
+  rarity?: string; // Added to match actual usage
   isApproved: boolean;
   isPending: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | string; // Allow string or Date
+  updatedAt?: Date | string; // Allow string or Date
+  createdBy?: string; // Added to match actual usage
+  obverseDescription?: string; // Added to match actual usage
+  reverseDescription?: string; // Added to match actual usage
 }
 
 export interface DetailedBanknote extends Banknote {
   gradeCounts: { [grade: string]: number };
   averagePrice: number | null;
+  pickNumber?: string; // Added to match actual usage
+  sealNames?: string; // Added to match actual usage
+  turkCatalogNumber?: string; // Added to match actual usage
+  rarity?: string; // Added to match actual usage
 }
 
 export interface CollectionItem {
@@ -38,13 +58,19 @@ export interface CollectionItem {
   userId: string;
   condition: BanknoteCondition;
   purchasePrice?: number;
-  purchaseDate?: Date;
+  purchaseDate?: Date | string; // Allow string or Date
   notes?: string;
   isForSale: boolean;
   salePrice?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | string; // Allow string or Date
+  updatedAt?: Date | string; // Allow string or Date
   banknote: Banknote;
+  obverseImage?: string; // Added to match actual usage
+  reverseImage?: string; // Added to match actual usage
+  location?: string; // Added to match actual usage
+  privateNote?: string; // Added to match actual usage
+  publicNote?: string; // Added to match actual usage
+  personalImages?: string[]; // Added to match actual usage
 }
 
 export interface WishlistItem {
@@ -53,13 +79,14 @@ export interface WishlistItem {
   userId: string;
   priority: 'High' | 'Medium' | 'Low';
   note?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | string; // Allow string or Date
+  updatedAt?: Date | string; // Allow string or Date
   banknote: Banknote;
 }
 
 export type BanknoteCondition =
   | 'Uncirculated'
+  | 'UNC'  // Added to match actual usage
   | 'Near Mint'
   | 'Extremely Fine'
   | 'Very Fine'
@@ -74,8 +101,8 @@ export interface MarketplaceItem {
   sellerId: string;
   price: number;
   description?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | string; // Allow string or Date
+  updatedAt?: Date | string; // Allow string or Date
   collectionItem: CollectionItem;
 }
 
@@ -127,4 +154,3 @@ export interface BanknoteFilterState {
   types: string[];
   sort: string[];
 }
-
