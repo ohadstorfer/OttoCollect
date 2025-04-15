@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
@@ -40,14 +39,11 @@ export type BanknoteFilterProps = {
   availableTypes?: FilterCategory[];
 };
 
-// Helper function to normalize types for consistent comparison
 const normalizeType = (type: string): string => {
   if (!type) return "";
   
-  // Convert to lowercase for case-insensitive comparison
   const lowerType = type.toLowerCase();
   
-  // Handle common variations of types
   if (lowerType.includes("issued") || lowerType === "issue") return "issued notes";
   if (lowerType.includes("specimen")) return "specimens";
   if (lowerType.includes("cancelled") || lowerType.includes("annule")) return "cancelled & annule";
@@ -57,7 +53,6 @@ const normalizeType = (type: string): string => {
   if (lowerType.includes("emergency")) return "emergency note";
   if (lowerType.includes("check") || lowerType.includes("bond")) return "check & bond notes";
   
-  // Default case
   return lowerType;
 };
 
@@ -82,12 +77,10 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [search, setSearch] = useState("");
   
-  // Default to all available categories initially
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     categories.length > 0 ? categories.map(c => c.id) : DEFAULT_SELECTED_CATEGORIES
   );
   
-  // Default to "issued notes" type if available, otherwise all types
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
     availableTypes.length > 0 ? ["issued notes"] : DEFAULT_SELECTED_TYPES
   );
@@ -101,12 +94,10 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     selectedSort 
   });
 
-  // Handle search with debounce
   const debouncedSearch = debounce((value: string) => {
     handleFilterChange({ search: value });
   }, 300);
 
-  // Initial filter setup
   useEffect(() => {
     console.log("Initial filter setup in useEffect");
     console.log("Setting initial filters:", {
@@ -124,7 +115,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     });
   }, []);
 
-  // Update when available categories or types change
   useEffect(() => {
     if (categories.length > 0 && selectedCategories.length === 0) {
       const newCategories = categories.map(c => c.id);
@@ -133,7 +123,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     }
     
     if (availableTypes.length > 0 && selectedTypes.length === 0) {
-      // Make sure we use "issued notes" for compatibility with the normalizeType function
       const newTypes = ["issued notes"];
       setSelectedTypes(newTypes);
       handleFilterChange({ types: newTypes });
@@ -154,9 +143,11 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     onFilterChange(newFilters);
   };
 
-  // Helper function for case-insensitive array includes
   const caseInsensitiveIncludes = (array: string[], value: string): boolean => {
-    return array.some(item => normalizeType(item) === normalizeType(value));
+    if (value.includes('type') || value.includes('type.id')) {
+      return array.some(item => normalizeType(item) === normalizeType(value));
+    }
+    return array.some(item => item.toLowerCase() === value.toLowerCase());
   };
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
@@ -200,7 +191,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     
     if (sortId === "extPick") {
       console.log("Sort extPick is required, ignoring change");
-      return; // Don't allow changing extPick
+      return;
     }
 
     let newSort: string[];
@@ -221,11 +212,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     debouncedSearch(value);
   };
 
-  // Helper function for case-insensitive array includes
-  const caseInsensitiveIncludes = (array: string[], value: string): boolean => {
-    return array.some(item => item.toLowerCase() === value.toLowerCase());
-  };
-
   const allCategoriesSelected = categories.length > 0 && 
     categories.every(category => caseInsensitiveIncludes(selectedCategories, category.id));
     
@@ -235,10 +221,9 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   return (
     <div className={cn(
       "w-full space-y-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-4",
-      "sticky top-[64px]", // Adjust this value based on your navbar height
+      "sticky top-[64px]",
       className
     )}>
-      {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
@@ -249,7 +234,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
         />
       </div>
 
-      {/* Filter buttons */}
       <div className="grid grid-cols-2 gap-4">
         <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
           <SheetTrigger asChild>
