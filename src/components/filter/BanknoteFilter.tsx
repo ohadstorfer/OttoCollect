@@ -140,7 +140,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
             >
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
-                <span>{isMobile ? "Categories" : "Category & Types"}</span>
+                <span>{isMobile ? "Types" : "Category & Types"}</span>
               </div>
             </Button>
           </SheetTrigger>
