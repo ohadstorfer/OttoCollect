@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { Banknote, BanknoteFilterState, BANKNOTE_CATEGORIES, DEFAULT_SELECTED_CATEGORIES } from "@/types";
 
@@ -32,7 +31,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
 
   const [filters, setFilters] = useState<BanknoteFilterState>({
     search: initialFilters.search || "",
-    categories: initialFilters.categories || DEFAULT_SELECTED_CATEGORIES,
+    categories: initialFilters.categories || [],
     types: initialFilters.types || [],
     sort: initialFilters.sort || ["extPick"],
   });
@@ -77,25 +76,26 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           value.toLowerCase().includes(searchLower)
         );
 
-      // Category filter - check if any of the selected categories match
-      const matchesCategory = filters.categories.length === 0 ||
-        (!banknote.series ? false : filters.categories.some(category => {
+      // Category filter - if no categories selected, don't show any items
+      const matchesCategory = filters.categories.length > 0 &&
+        (filters.categories.some(category => {
           return banknote.series && 
             banknote.series.toLowerCase() === category.toLowerCase();
         }));
 
-      // Type filter - check if any of the selected types match
-      const matchesType = filters.types.length === 0 ||
-        (!banknote.type ? false : filters.types.some(type => {
+      // Type filter - if no types selected, don't show any items
+      const matchesType = filters.types.length > 0 &&
+        (filters.types.some(type => {
           return banknote.type &&
             banknote.type.toLowerCase() === type.toLowerCase();
         }));
 
+      const result = matchesSearch && matchesCategory && matchesType;
+      
       if (banknote.catalogId) {
-        console.log(`Item ${banknote.catalogId} - Search: ${matchesSearch}, Category: ${matchesCategory} (${banknote.series}), Type: ${matchesType} (${banknote.type})`);
+        console.log(`Item ${banknote.catalogId} - Search: ${matchesSearch}, Category: ${matchesCategory}, Type: ${matchesType}`);
       }
       
-      const result = matchesSearch && matchesCategory && (filters.types.length === 0 || matchesType);
       return result;
     });
     
@@ -138,6 +138,13 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           case "extPick":
             comparison = (banknoteA.extendedPickNumber || banknoteA.catalogId || "")
               .localeCompare(banknoteB.extendedPickNumber || banknoteB.catalogId || "");
+            break;
+          case "newest":
+            if (a && b && 'createdAt' in a && 'createdAt' in b) {
+              const dateA = new Date(a.createdAt as string).getTime();
+              const dateB = new Date(b.createdAt as string).getTime();
+              comparison = dateB - dateA;
+            }
             break;
         }
 

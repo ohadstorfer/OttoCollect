@@ -76,7 +76,7 @@ const Collection = () => {
     loadUserData();
   }, [user, toast]);
 
-  // Collection filter
+  // Collection filter - now properly handles collection items with their banknotes
   const { 
     filteredItems: filteredCollection, 
     filters: collectionFilters, 
@@ -84,7 +84,10 @@ const Collection = () => {
     availableCategories: collectionCategories,
     availableTypes: collectionTypes
   } = useBanknoteFilter({
-    items: collectionItems,
+    items: collectionItems.map(item => ({
+      ...item,
+      banknote: item.banknote // Already includes the banknote
+    })),
     initialFilters: {
       sort: ["newest", "extPick"]
     }

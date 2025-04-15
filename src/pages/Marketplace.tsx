@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
@@ -81,15 +80,12 @@ const Marketplace = () => {
   }, [toast]);
   
   // Transform marketplace items for the filter
-  console.log('Transforming marketplace items for filter');
   const marketplaceItemsForFilter = marketplaceItems.map(item => ({
-    banknote: item.collectionItem.banknote,
-    marketplaceItem: item
+    ...item,
+    banknote: item.collectionItem.banknote
   }));
-  console.log(`Created ${marketplaceItemsForFilter.length} filter items`);
-  
-  // Use the banknote filter hook
-  console.log("Initializing useBanknoteFilter for marketplace");
+
+  // Use the banknote filter hook with the transformed items
   const { 
     filteredItems, 
     filters, 
@@ -103,7 +99,7 @@ const Marketplace = () => {
       sort: ["extPick"]
     }
   });
-  
+
   console.log("useBanknoteFilter results for marketplace:", {
     filteredItems: filteredItems.length,
     filters,
