@@ -123,6 +123,172 @@ const Marketplace = () => {
     setFilters(newFilters);
   };
 
+  const renderFilterSection = () => (
+    <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'} sticky top-[64px] z-50`}>
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
+            Filters & Sorting
+          </h3>
+          
+          <div className="flex items-center gap-3">
+            {user && (
+              <Link to="/collection?filter=forsale">
+                <Button className="ottoman-button">
+                  <SortAsc className="h-4 w-4 mr-2" />
+                  My Listings
+                </Button>
+              </Link>
+            )}
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
+            >
+              {isRefreshing ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Refresh
+            </Button>
+          </div>
+        </div>
+
+        {console.log("Rendering BanknoteFilter in Marketplace with props:", {
+          categoriesCount: availableCategories.length,
+          typesCount: availableTypes.length,
+          loading
+        })}
+        <BanknoteFilter
+          categories={availableCategories}
+          availableTypes={availableTypes}
+          onFilterChange={handleFilterChange}
+          isLoading={loading}
+          defaultSort={["extPick"]}
+        />
+      </div>
+    </Card>
+  );
+
+  const renderResults = () => (
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+      <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
+        Showing <span className={`font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{filteredItems.length}</span> items for sale
+      </p>
+    </div>
+  );
+
+  const renderLoadingState = () => (
+    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+      <Spinner size="lg" />
+      <p className="dark:text-ottoman-300 text-ottoman-600">Loading marketplace items...</p>
+    </div>
+  );
+
+  const renderErrorState = () => (
+    <Alert variant="destructive" className="mb-6">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>Error</AlertTitle>
+      <AlertDescription>
+        {error}
+        <Button 
+          variant="outline" 
+          className="mt-4 dark:border-ottoman-700 border-ottoman-300 dark:text-ottoman-200 text-ottoman-800"
+          onClick={handleRefresh}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Try Again
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
+
+  const renderEmptyState = () => (
+    <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
+      <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
+        No Items Found
+      </h3>
+      <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
+        { "There are currently no items available in the marketplace"}
+      </p>
+      <div className="space-x-4">
+        <Button 
+          className="ottoman-button"
+          onClick={handleRefresh}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
+      </div>
+    </Card>
+  );
+
+  const renderMarketplaceItems = () => (
+    <div className="space-y-8">
+      {console.log(`Rendering ${groupedItems.length} marketplace grouped items`)}
+      {groupedItems.map((group, groupIndex) => (
+        <div key={`group-${groupIndex}`} className="space-y-4">
+          {console.log(`Rendering marketplace group ${groupIndex}: ${group.category} with ${group.items.length} items`)}
+          <div className="sticky top-[168px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b">
+            <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
+              {group.category}
+            </h2>
+          </div>
+          
+          {group.sultanGroups ? (
+            // If grouped by sultan
+            <div className="space-y-6">
+              {console.log(`Rendering marketplace with sultan groups. ${group.sultanGroups.length} sultans`)}
+              {group.sultanGroups.map((sultanGroup, sultanIndex) => (
+                <div key={`sultan-${sultanIndex}`} className="space-y-4">
+                  {console.log(`Rendering marketplace sultan group ${sultanIndex}: ${sultanGroup.sultan} with ${sultanGroup.items.length} items`)}
+                  <h3 className={`text-lg font-semibold pl-4 border-l-4 ${theme === 'light' ? 'border-ottoman-600 text-ottoman-700' : 'border-ottoman-400 text-ottoman-300'}`}>
+                    {sultanGroup.sultan}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {sultanGroup.items.map((item, index) => {
+                      console.log(`Rendering marketplace item card for index ${index}`);
+                      return (
+                        <div 
+                          key={`marketplace-item-${index}`}
+                          className="animate-fade-in"
+                          style={{ animationDelay: `${index * 100}ms` }}
+                        >
+                          <MarketplaceItem item={(item as any).marketplaceItem} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // If not grouped by sultan
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {console.log(`Rendering marketplace without sultan groups. ${group.items.length} items directly`)}
+              {group.items.map((item, index) => {
+                console.log(`Rendering marketplace item card for index ${index}`);
+                return (
+                  <div 
+                    key={`marketplace-item-${index}`}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <MarketplaceItem item={(item as any).marketplaceItem} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="min-h-screen animate-fade-in">
       {/* Header */}
@@ -149,61 +315,10 @@ const Marketplace = () => {
       <section className="py-8">
         <div className="container mx-auto px-4">
           {/* Filter section */}
-          <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'} sticky top-[64px] z-50`}>
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-                  Filters & Sorting
-                </h3>
-                
-                <div className="flex items-center gap-3">
-                  {user && (
-                    <Link to="/collection?filter=forsale">
-                      <Button className="ottoman-button">
-                        <SortAsc className="h-4 w-4 mr-2" />
-                        My Listings
-                      </Button>
-                    </Link>
-                  )}
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
-                  >
-                    {isRefreshing ? (
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                    )}
-                    Refresh
-                  </Button>
-                </div>
-              </div>
-
-              {console.log("Rendering BanknoteFilter in Marketplace with props:", {
-                categoriesCount: availableCategories.length,
-                typesCount: availableTypes.length,
-                loading
-              })}
-              <BanknoteFilter
-                categories={availableCategories}
-                availableTypes={availableTypes}
-                onFilterChange={handleFilterChange}
-                isLoading={loading}
-                defaultSort={["extPick"]}
-              />
-            </div>
-          </Card>
+          {renderFilterSection()}
           
           {/* Results header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
-              Showing <span className={`font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{filteredItems.length}</span> items for sale
-            </p>
-          </div>
+          {renderResults()}
           
           {/* Content states */}
           {console.log("Rendering marketplace content based on loading and filtered items:", {
@@ -212,104 +327,13 @@ const Marketplace = () => {
             filteredCount: filteredItems.length
           })}
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 space-y-4">
-              <Spinner size="lg" />
-              <p className="dark:text-ottoman-300 text-ottoman-600">Loading marketplace items...</p>
-            </div>
+            renderLoadingState()
           ) : error ? (
-            <Alert variant="destructive" className="mb-6">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>
-                {error}
-                <Button 
-                  variant="outline" 
-                  className="mt-4 dark:border-ottoman-700 border-ottoman-300 dark:text-ottoman-200 text-ottoman-800"
-                  onClick={handleRefresh}
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Try Again
-                </Button>
-              </AlertDescription>
-            </Alert>
+            renderErrorState()
           ) : filteredItems.length === 0 ? (
-            <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
-              <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
-                No Items Found
-              </h3>
-              <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
-                { "There are currently no items available in the marketplace"}
-              </p>
-              <div className="space-x-4">
-                <Button 
-                  className="ottoman-button"
-                  onClick={handleRefresh}
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
-                </Button>
-              </div>
-            </Card>
+            renderEmptyState()
           ) : (
-            <div className="space-y-8">
-              {console.log(`Rendering ${groupedItems.length} marketplace grouped items`)}
-              {groupedItems.map((group, groupIndex) => (
-                <div key={`group-${groupIndex}`} className="space-y-4">
-                  {console.log(`Rendering marketplace group ${groupIndex}: ${group.category} with ${group.items.length} items`)}
-                  <div className="sticky top-[168px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b">
-                    <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-                      {group.category}
-                    </h2>
-                  </div>
-                  
-                  {group.sultanGroups ? (
-                    // If grouped by sultan
-                    <div className="space-y-6">
-                      {console.log(`Rendering marketplace with sultan groups. ${group.sultanGroups.length} sultans`)}
-                      {group.sultanGroups.map((sultanGroup, sultanIndex) => (
-                        <div key={`sultan-${sultanIndex}`} className="space-y-4">
-                          {console.log(`Rendering marketplace sultan group ${sultanIndex}: ${sultanGroup.sultan} with ${sultanGroup.items.length} items`)}
-                          <h3 className={`text-lg font-semibold pl-4 border-l-4 ${theme === 'light' ? 'border-ottoman-600 text-ottoman-700' : 'border-ottoman-400 text-ottoman-300'}`}>
-                            {sultanGroup.sultan}
-                          </h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {sultanGroup.items.map((item, index) => {
-                              console.log(`Rendering marketplace item card for index ${index}`);
-                              return (
-                                <div 
-                                  key={`marketplace-item-${index}`}
-                                  className="animate-fade-in"
-                                  style={{ animationDelay: `${index * 100}ms` }}
-                                >
-                                  <MarketplaceItem item={(item as any).marketplaceItem} />
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    // If not grouped by sultan
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {console.log(`Rendering marketplace without sultan groups. ${group.items.length} items directly`)}
-                      {group.items.map((item, index) => {
-                        console.log(`Rendering marketplace item card for index ${index}`);
-                        return (
-                          <div 
-                            key={`marketplace-item-${index}`}
-                            className="animate-fade-in"
-                            style={{ animationDelay: `${index * 100}ms` }}
-                          >
-                            <MarketplaceItem item={(item as any).marketplaceItem} />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            renderMarketplaceItems()
           )}
         </div>
       </section>

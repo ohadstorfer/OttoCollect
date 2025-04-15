@@ -1,11 +1,16 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Banknote, BanknoteFilterState, BANKNOTE_CATEGORIES, DEFAULT_SELECTED_CATEGORIES } from "@/types";
-import { SORT_OPTIONS } from "@/types";
 
 interface UseBanknoteFilterProps<T> {
   items: T[];
   initialFilters?: Partial<BanknoteFilterState>;
+}
+
+interface GroupItem<T> {
+  category: string;
+  items: T[];
+  sultanGroups?: { sultan: string; items: T[] }[];
 }
 
 interface UseBanknoteFilterResult<T> {
@@ -14,7 +19,7 @@ interface UseBanknoteFilterResult<T> {
   setFilters: (filters: BanknoteFilterState) => void;
   availableCategories: { id: string; name: string; count: number }[];
   availableTypes: { id: string; name: string; count: number }[];
-  groupedItems: { category: string; items: T[]; sultanGroups?: { sultan: string; items: T[] }[] }[];
+  groupedItems: GroupItem<T>[];
 }
 
 export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>({
@@ -22,7 +27,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
   initialFilters = {},
 }: UseBanknoteFilterProps<T>): UseBanknoteFilterResult<T> => {
   console.log("### useBanknoteFilter INITIALIZED ###");
-  console.log("Input items count:", items.length);
+  console.log(`Input items count: ${items.length}`);
   console.log("Initial filters:", initialFilters);
 
   const [filters, setFilters] = useState<BanknoteFilterState>({
@@ -60,7 +65,6 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     const filtered = items.filter((item) => {
       const banknote = getBanknote(item);
       if (!banknote) {
-        console.log("Item skipped - no banknote found", item);
         return false;
       }
       
@@ -73,26 +77,26 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           value.toLowerCase().includes(searchLower)
         );
 
-      // Category filter - if categories are selected, only show those
-      // Use case-insensitive comparison
+      // Category filter - check if any of the selected categories match
       const matchesCategory = filters.categories.length === 0 ||
-        (banknote.series && filters.categories.some(category => 
-          banknote.series && banknote.series.toLowerCase() === category.toLowerCase()
-        ));
+        (!banknote.series ? false : filters.categories.some(category => {
+          return banknote.series && 
+            banknote.series.toLowerCase() === category.toLowerCase();
+        }));
 
-      // Type filter - if types are selected, only show those
-      // Use case-insensitive comparison
+      // Type filter - check if any of the selected types match
       const matchesType = filters.types.length === 0 ||
-        (banknote.type && filters.types.some(type => 
-          banknote.type && banknote.type.toLowerCase() === type.toLowerCase()
-        ));
+        (!banknote.type ? false : filters.types.some(type => {
+          return banknote.type &&
+            banknote.type.toLowerCase() === type.toLowerCase();
+        }));
 
-      // Log matching status for each item
       if (banknote.catalogId) {
         console.log(`Item ${banknote.catalogId} - Search: ${matchesSearch}, Category: ${matchesCategory} (${banknote.series}), Type: ${matchesType} (${banknote.type})`);
       }
-
-      return matchesSearch && matchesCategory && matchesType;
+      
+      const result = matchesSearch && matchesCategory && (filters.types.length === 0 || matchesType);
+      return result;
     });
     
     console.log(`Filtering complete: ${filtered.length} items matched out of ${items.length}`);
@@ -112,9 +116,6 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           case "sultan":
             comparison = (banknoteA.sultanName || "")
               .localeCompare(banknoteB.sultanName || "");
-            if (comparison !== 0) {
-              console.log(`Sort by sultan: ${banknoteA.sultanName} vs ${banknoteB.sultanName} = ${comparison}`);
-            }
             break;
 
           case "faceValue":
@@ -132,18 +133,11 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
               const numB = parseFloat(valueB.replace(/[^0-9.]/g, "")) || 0;
               comparison = numA - numB;
             }
-            
-            if (comparison !== 0) {
-              console.log(`Sort by faceValue: ${valueA} vs ${valueB} = ${comparison}`);
-            }
             break;
 
           case "extPick":
             comparison = (banknoteA.extendedPickNumber || banknoteA.catalogId || "")
               .localeCompare(banknoteB.extendedPickNumber || banknoteB.catalogId || "");
-            if (comparison !== 0) {
-              console.log(`Sort by extPick: ${banknoteA.extendedPickNumber} vs ${banknoteB.extendedPickNumber} = ${comparison}`);
-            }
             break;
         }
 
@@ -163,7 +157,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     const sortBySultan = filters.sort.includes("sultan");
     console.log(`Grouping by sultan: ${sortBySultan}`);
     
-    const groups: { category: string; items: T[]; sultanGroups?: { sultan: string; items: T[] }[] }[] = [];
+    const groups: GroupItem<T>[] = [];
     
     // Group filtered items by category
     const categoryMap = new Map<string, T[]>();
@@ -190,7 +184,10 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           
           console.log(`Processing category: ${actualCategory} with ${categoryItems.length} items`);
           
-          const group = { category: actualCategory, items: categoryItems };
+          const group: GroupItem<T> = { 
+            category: actualCategory, 
+            items: categoryItems,
+          };
           
           // If sorting by sultan is enabled, group items by sultan within each category
           if (sortBySultan) {

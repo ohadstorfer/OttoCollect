@@ -18,7 +18,6 @@ const CountryDetail = () => {
   const decodedCountryName = decodeURIComponent(country || "");
   console.log(`Country from URL param: ${decodedCountryName}`);
   
-  // Changed to Banknote[] to fix type errors
   const [banknotes, setBanknotes] = useState<Banknote[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -37,7 +36,9 @@ const CountryDetail = () => {
         );
         
         console.log(`Found ${countryBanknotes.length} banknotes for ${decodedCountryName}`);
-        console.log("Sample banknote data:", countryBanknotes.length > 0 ? countryBanknotes[0] : "No banknotes");
+        if (countryBanknotes.length > 0) {
+          console.log("Sample banknote data:", countryBanknotes[0]);
+        }
         setBanknotes(countryBanknotes);
         
       } catch (error) {
@@ -70,7 +71,7 @@ const CountryDetail = () => {
   } = useBanknoteFilter({
     items: banknotes,
     initialFilters: {
-      sort: ["extPick"] // Default sort by extended pick number
+      sort: ["extPick"]
     }
   });
   
@@ -141,13 +142,16 @@ const CountryDetail = () => {
                             {sultanGroup.sultan}
                           </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {sultanGroup.items.map((banknote, index) => (
-                              <BanknoteDetailCard
-                                key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
-                                banknote={banknote as DetailedBanknote}
-                                source="catalog"
-                              />
-                            ))}
+                            {sultanGroup.items.map((banknote, index) => {
+                              const detailedBanknote = banknote as unknown as DetailedBanknote;
+                              return (
+                                <BanknoteDetailCard
+                                  key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                                  banknote={detailedBanknote}
+                                  source="catalog"
+                                />
+                              );
+                            })}
                           </div>
                         </div>
                       ))}
@@ -155,13 +159,16 @@ const CountryDetail = () => {
                   ) : (
                     // If not grouped by sultan
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {group.items.map((banknote, index) => (
-                        <BanknoteDetailCard
-                          key={`banknote-${group.category}-${index}`}
-                          banknote={banknote as DetailedBanknote}
-                          source="catalog"
-                        />
-                      ))}
+                      {group.items.map((banknote, index) => {
+                        const detailedBanknote = banknote as unknown as DetailedBanknote;
+                        return (
+                          <BanknoteDetailCard
+                            key={`banknote-${group.category}-${index}`}
+                            banknote={detailedBanknote}
+                            source="catalog"
+                          />
+                        );
+                      })}
                     </div>
                   )}
                 </div>

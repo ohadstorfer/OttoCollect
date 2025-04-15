@@ -55,8 +55,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     defaultSort, 
     availableTypes: availableTypes.length 
   });
-  console.log("Categories:", categories);
-  console.log("Available types:", availableTypes);
   
   const isMobile = useIsMobile();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
@@ -75,7 +73,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
 
   // Handle search with debounce
   const debouncedSearch = debounce((value: string) => {
-    console.log("Search debounced:", value);
     handleFilterChange({ search: value });
   }, 300);
 
@@ -169,7 +166,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    console.log("Search input changed:", value);
     setSearch(value);
     debouncedSearch(value);
   };
@@ -281,6 +277,27 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                           {type.count !== undefined && (
                             <span className="text-muted-foreground">({type.count})</span>
                           )}
+                        </label>
+                      </div>
+                    );
+                  })}
+                  {BANKNOTE_TYPES.map(type => {
+                    // Only show predefined types that are not already in available types
+                    if (availableTypes.some(t => t.name.toLowerCase() === type.toLowerCase())) {
+                      return null;
+                    }
+                    
+                    const isChecked = selectedTypes.some(t => t.toLowerCase() === type.toLowerCase());
+                    return (
+                      <div key={type} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`type-${type}`}
+                          checked={isChecked}
+                          onCheckedChange={(checked) => handleTypeChange(type, !!checked)}
+                        />
+                        <label htmlFor={`type-${type}`} className="text-sm flex justify-between w-full">
+                          <span>{withHighlight(type, search)}</span>
+                          <span className="text-muted-foreground">(0)</span>
                         </label>
                       </div>
                     );

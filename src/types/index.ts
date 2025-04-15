@@ -1,18 +1,18 @@
 
 export interface User {
   id: string;
-  username: string; // Added username
-  firstName?: string; // Made optional
-  lastName?: string; // Made optional
+  username: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
-  role: 'User' | 'Admin' | 'Super Admin'; // Added Super Admin
-  avatarUrl?: string; // Added avatar URL
-  country?: string; // Added country
-  about?: string; // Added about
-  rank?: string; // Added rank
-  points?: number; // Added points
-  createdAt?: Date | string; // Allow string or Date
-  updatedAt?: Date | string; // Allow string or Date
+  role: 'User' | 'Admin' | 'Super Admin';
+  avatarUrl?: string;
+  country?: string;
+  about?: string;
+  rank?: string;
+  points?: number;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 export type UserRole = 'User' | 'Admin' | 'Super Admin';
@@ -30,18 +30,17 @@ export interface Banknote {
   type?: string;
   sultanName?: string;
   extendedPickNumber?: string;
-  pickNumber?: string; // Added to match actual usage
-  sealNames?: string; // Added to match actual usage 
-  turkCatalogNumber?: string; // Added to match actual usage
-  rarity?: string; // Added to match actual usage
+  pickNumber?: string;
+  sealNames?: string;
+  turkCatalogNumber?: string;
+  rarity?: string;
   isApproved: boolean;
   isPending: boolean;
-  createdAt?: Date | string; // Allow string or Date
-  updatedAt?: Date | string; // Allow string or Date
-  createdBy?: string; // Added to match actual usage
-  obverseDescription?: string; // Added to match actual usage
-  reverseDescription?: string; // Added to match actual usage
-  // Additional fields from DetailedBanknote used across the app
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  createdBy?: string;
+  obverseDescription?: string;
+  reverseDescription?: string;
   islamicYear?: string;
   gregorianYear?: string;
   category?: string;
@@ -58,10 +57,6 @@ export interface Banknote {
 export interface DetailedBanknote extends Banknote {
   gradeCounts: { [grade: string]: number };
   averagePrice: number | null;
-  pickNumber?: string; // Added to match actual usage
-  sealNames?: string; // Added to match actual usage
-  turkCatalogNumber?: string; // Added to match actual usage
-  rarity?: string; // Added to match actual usage
 }
 
 export interface CollectionItem {
@@ -70,20 +65,20 @@ export interface CollectionItem {
   userId: string;
   condition: BanknoteCondition;
   purchasePrice?: number;
-  purchaseDate?: Date | string; // Allow string or Date
+  purchaseDate?: Date | string;
   notes?: string;
   isForSale: boolean;
   salePrice?: number;
-  createdAt?: Date | string; // Allow string or Date
-  updatedAt?: Date | string; // Allow string or Date
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
   banknote: Banknote;
-  obverseImage?: string; // Added to match actual usage
-  reverseImage?: string; // Added to match actual usage
-  location?: string; // Added to match actual usage
-  privateNote?: string; // Added to match actual usage
-  publicNote?: string; // Added to match actual usage
-  personalImages?: string[]; // Added to match actual usage
-  orderIndex?: number; // Added to match actual usage in constants.ts
+  obverseImage?: string;
+  reverseImage?: string;
+  location?: string;
+  privateNote?: string;
+  publicNote?: string;
+  personalImages?: string[];
+  orderIndex?: number;
 }
 
 export interface WishlistItem {
@@ -92,46 +87,45 @@ export interface WishlistItem {
   userId: string;
   priority: 'High' | 'Medium' | 'Low';
   note?: string;
-  createdAt?: Date | string; // Allow string or Date
-  updatedAt?: Date | string; // Allow string or Date
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
   banknote: Banknote;
 }
 
 export type BanknoteCondition =
   | 'Uncirculated'
-  | 'UNC'  // Added to match actual usage
-  | 'AU'   // Added to match usage in constants.ts
-  | 'XF'   // Added to match usage in constants.ts
+  | 'UNC'
+  | 'AU'
   | 'Near Mint'
   | 'Extremely Fine'
+  | 'XF'
   | 'Very Fine'
-  | 'VF'   // Added to match usage in constants.ts
+  | 'VF'
   | 'Fine'
-  | 'F'    // Added to match usage in constants.ts
+  | 'F'
   | 'Very Good'
-  | 'VG'   // Added to match usage in constants.ts
+  | 'VG'
   | 'Good'
-  | 'G'    // Added to match usage in constants.ts
+  | 'G'
   | 'Poor';
 
 export interface MarketplaceItem {
   id: string;
   collectionItemId: string;
   sellerId: string;
-  price?: number; // Make price optional
+  price?: number;
   description?: string;
-  createdAt?: Date | string; // Allow string or Date
-  updatedAt?: Date | string; // Allow string or Date
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
   collectionItem: CollectionItem;
-  status?: string; // Added to match usage in constants.ts
-  seller?: { // Added to match usage in constants.ts
+  status?: string;
+  seller?: {
     id: string;
     username: string;
     rank: string;
   };
 }
 
-// Add missing interface for ForumPost
 export interface ForumPost {
   id: string;
   title: string;
@@ -148,7 +142,6 @@ export interface ForumPost {
   excerpt?: string;
 }
 
-// Add missing interface for Message
 export interface Message {
   id: string;
   senderId: string;
@@ -160,30 +153,30 @@ export interface Message {
   recipient?: User;
 }
 
-// Add missing interface for BanknoteDetailSource
 export type BanknoteDetailSource = "catalog" | "collection" | "marketplace";
 
-// Banknote categories
+// Banknote categories - updated to match actual database values
 export const BANKNOTE_CATEGORIES = [
-  "First Kaime Em. 1–6",
-  "First Kaime 1851–1861",
+  "First Kaime Em. 1-6",
+  "First Kaime 1851-1861",
   "1893 War Banknote",
   "Imperial Ottoman Bank",
-  "World War I Banknotes"
+  "World War I banknotes"
 ];
 
+// Default selected categories - updated to match actual database values
 export const DEFAULT_SELECTED_CATEGORIES = [
-  "First Kaime 1851–1861",
+  "First Kaime 1851-1861",
   "1893 War Banknote",
   "Imperial Ottoman Bank",
-  "World War I Banknotes"
+  "World War I banknotes"
 ];
 
-// Banknote types
+// Banknote types - updated to match actual database values
 export const BANKNOTE_TYPES = [
-  "issued notes",
-  "specimens",
-  "Cancelled & Annule",
+  "Issued note",
+  "Specimen",
+  "Cancelled",
   "Trial note",
   "Error banknote",
   "Counterfeit banknote",
@@ -192,10 +185,11 @@ export const BANKNOTE_TYPES = [
   "Other notes"
 ];
 
+// Default selected types - updated to match actual database values
 export const DEFAULT_SELECTED_TYPES = [
-  "issued notes",
-  "specimens",
-  "Cancelled & Annule"
+  "Issued note",
+  "Specimen", 
+  "Cancelled"
 ];
 
 // Sort options
@@ -210,4 +204,11 @@ export interface BanknoteFilterState {
   categories: string[];
   types: string[];
   sort: string[];
+}
+
+export interface CountryData {
+  id: string;
+  name: string;
+  banknoteCount: number;
+  imageUrl?: string;
 }
