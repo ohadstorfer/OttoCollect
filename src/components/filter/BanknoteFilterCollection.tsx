@@ -37,21 +37,25 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   console.log("BanknoteFilterCollection: Rendering with", {
     countryId,
     currentFilters,
-    collectionCategories: collectionCategories.length,
-    collectionTypes: collectionTypes.length
+    collectionCategories: collectionCategories?.length,
+    collectionTypes: collectionTypes?.length
   });
 
   useEffect(() => {
     // If no countryId provided, use the collection categories and types directly
     if (!countryId) {
       console.log("BanknoteFilterCollection: Using provided collection categories and types");
-      setCategories(collectionCategories.map(cat => ({
+      // Safety check for collectionCategories
+      const categoriesToUse = collectionCategories || [];
+      setCategories(categoriesToUse.map(cat => ({
         id: cat.id,
         name: cat.name,
         count: cat.count
       })));
       
-      setTypes(collectionTypes.map(type => ({
+      // Safety check for collectionTypes
+      const typesToUse = collectionTypes || [];
+      setTypes(typesToUse.map(type => ({
         id: type.id,
         name: type.name,
         count: type.count
@@ -106,13 +110,13 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         console.error("Error loading filter options:", error);
         
         // Fallback to collection data
-        setCategories(collectionCategories.map(cat => ({
+        setCategories((collectionCategories || []).map(cat => ({
           id: cat.id,
           name: cat.name,
           count: cat.count
         })));
         
-        setTypes(collectionTypes.map(type => ({
+        setTypes((collectionTypes || []).map(type => ({
           id: type.id,
           name: type.name,
           count: type.count
@@ -135,19 +139,23 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
 
   // Update categories and types when collectionCategories and collectionTypes change
   useEffect(() => {
-    if (!countryId) {
+    if (!countryId && (collectionCategories || collectionTypes)) {
       console.log("BanknoteFilterCollection: Updating with new collection data");
-      setCategories(collectionCategories.map(cat => ({
-        id: cat.id,
-        name: cat.name,
-        count: cat.count
-      })));
+      if (collectionCategories && collectionCategories.length > 0) {
+        setCategories(collectionCategories.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          count: cat.count
+        })));
+      }
       
-      setTypes(collectionTypes.map(type => ({
-        id: type.id,
-        name: type.name,
-        count: type.count
-      })));
+      if (collectionTypes && collectionTypes.length > 0) {
+        setTypes(collectionTypes.map(type => ({
+          id: type.id,
+          name: type.name,
+          count: type.count
+        })));
+      }
     }
   }, [collectionCategories, collectionTypes, countryId]);
 

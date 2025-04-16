@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
@@ -15,6 +16,12 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { BanknoteFilterCollection } from "@/components/filter/BanknoteFilterCollection";
 import { useDynamicFilter } from "@/hooks/use-dynamic-filter";
 import { FilterCategoryOption, DynamicFilterState } from "@/types/filter";
+
+// Add a type for the banknote data specific to this component
+interface DetailedBanknote extends Banknote {
+  gradeCounts?: { [grade: string]: number };
+  averagePrice?: number;
+}
 
 const Collection = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -133,6 +140,18 @@ const Collection = () => {
           setWishlistCategories(Array.from(wishlistCategoryMap.values()));
           setWishlistTypes(Array.from(wishlistTypeMap.values()));
           
+          const collectionBanknoteIds = new Set(collection.map(item => item.banknoteId));
+          const wishlistBanknoteIds = new Set(wishlist.map(item => item.banknoteId));
+          
+          const missingBanknotes = allBanknotes.filter(banknote => 
+            !collectionBanknoteIds.has(banknote.id) && 
+            banknote.isApproved && 
+            !banknote.isPending
+          );
+          
+          setMissingItems(missingBanknotes);
+          console.log("Missing banknotes:", missingBanknotes.length);
+          
           const missingCategoryMap = new Map<string, { id: string; name: string; count: number }>();
           const missingTypeMap = new Map<string, { id: string; name: string; count: number }>();
           
@@ -163,18 +182,6 @@ const Collection = () => {
           setMissingCategories(Array.from(missingCategoryMap.values()));
           setMissingTypes(Array.from(missingTypeMap.values()));
           
-          const collectionBanknoteIds = new Set(collection.map(item => item.banknoteId));
-          const wishlistBanknoteIds = new Set(wishlist.map(item => item.banknoteId));
-          
-          const missingBanknotes = allBanknotes.filter(banknote => 
-            !collectionBanknoteIds.has(banknote.id) && 
-            banknote.isApproved && 
-            !banknote.isPending
-          );
-          
-          setMissingItems(missingBanknotes);
-          console.log("Missing banknotes:", missingBanknotes.length);
-          
         } catch (error) {
           console.error("Error loading user data:", error);
           toast({
@@ -200,7 +207,8 @@ const Collection = () => {
   } = useDynamicFilter({
     items: collectionItems,
     initialFilters: collectionFilters,
-    userId: user?.id,
+    collectionCategories: collectionCategories,
+    collectionTypes: collectionTypes
   });
   
   const { 
@@ -210,7 +218,8 @@ const Collection = () => {
   } = useDynamicFilter({
     items: missingItems,
     initialFilters: missingFilters,
-    userId: user?.id,
+    collectionCategories: missingCategories,
+    collectionTypes: missingTypes
   });
 
   const { 
@@ -220,7 +229,8 @@ const Collection = () => {
   } = useDynamicFilter({
     items: wishlistItems,
     initialFilters: wishlistFilters,
-    userId: user?.id,
+    collectionCategories: wishlistCategories,
+    collectionTypes: wishlistTypes
   });
 
   const handleTabChange = (value: string) => {
@@ -417,6 +427,8 @@ const Collection = () => {
         <TabsContent value="missing">
           <div className="bg-card border rounded-lg p-6 mb-6">
             <BanknoteFilterCollection
+              collectionCategories={missingCategories}
+              collectionTypes={missingTypes}
               onFilterChange={handleMissingFilterChange}
               currentFilters={missingFilters}
               isLoading={loading || missingFilterLoading}
@@ -503,3 +515,4 @@ const Collection = () => {
 };
 
 export default Collection;
+

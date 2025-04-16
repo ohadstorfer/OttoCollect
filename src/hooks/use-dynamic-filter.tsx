@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { DynamicFilterState, FilterableItem } from "@/types/filter";
@@ -7,9 +8,11 @@ interface UseDynamicFilterProps<T extends FilterableItem> {
   items: T[];
   initialFilters?: Partial<DynamicFilterState>;
   countryId?: string;
-  categories: { id: string; name: string; count?: number }[];
-  types: { id: string; name: string; count?: number }[];
-  sortOptions: { id: string; name: string; field_name: string; is_required: boolean }[];
+  categories?: { id: string; name: string; count?: number }[];
+  types?: { id: string; name: string; count?: number }[];
+  sortOptions?: { id: string; name: string; field_name: string; is_required: boolean }[];
+  collectionCategories?: { id: string; name: string; count?: number }[];
+  collectionTypes?: { id: string; name: string; count?: number }[];
 }
 
 interface GroupItem<T> {
@@ -31,9 +34,11 @@ export const useDynamicFilter = <T extends FilterableItem>({
   items,
   initialFilters = {},
   countryId,
-  categories,
-  types,
-  sortOptions,
+  categories = [],
+  types = [],
+  sortOptions = [],
+  collectionCategories = [],
+  collectionTypes = [],
 }: UseDynamicFilterProps<T>): UseDynamicFilterResult<T> => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -48,6 +53,16 @@ export const useDynamicFilter = <T extends FilterableItem>({
     userId, 
     initialFilters 
   });
+  
+  // Use categories from props or collection props
+  const effectiveCategories = useMemo(() => {
+    return categories.length > 0 ? categories : collectionCategories;
+  }, [categories, collectionCategories]);
+  
+  // Use types from props or collection props
+  const effectiveTypes = useMemo(() => {
+    return types.length > 0 ? types : collectionTypes;
+  }, [types, collectionTypes]);
   
   // Determine default sort options
   const defaultSortFields = useMemo(() => {
@@ -105,10 +120,10 @@ export const useDynamicFilter = <T extends FilterableItem>({
         setIsLoading(true);
         
         // Set default values first (will be overridden by user preferences if they exist)
-        const defaultCategoryIds = categories.map(cat => cat.id);
-        const defaultTypeIds = types
-          .filter(type => type.name.toLowerCase().includes('issued'))
-          .map(type => type.id);
+        const defaultCategoryIds = effectiveCategories?.map(cat => cat.id) || [];
+        const defaultTypeIds = effectiveTypes
+          ?.filter(type => type.name.toLowerCase().includes('issued'))
+          .map(type => type.id) || [];
           
         const requiredSortFields = sortOptions
           .filter(option => option.is_required)
@@ -180,7 +195,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
             const newFilters = {
               ...filters,
               categories: defaultCategoryIds,
-              types: defaultTypeIds.length > 0 ? defaultTypeIds : types.map(t => t.id),
+              types: defaultTypeIds.length > 0 ? defaultTypeIds : effectiveTypes?.map(t => t.id) || [],
               sort: requiredSortFields.length > 0 ? requiredSortFields : defaultSortFields,
               country_id: countryId // Ensure countryId is set correctly
             };
@@ -204,7 +219,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
     };
 
     loadUserPreferences();
-  }, [userId, countryId, categories, types, sortOptions, defaultSortFields, filters]);
+  }, [userId, countryId, effectiveCategories, effectiveTypes, sortOptions, defaultSortFields, filters]);
 
   // Handle filter changes 
   const setFilters = useCallback((changes: Partial<DynamicFilterState>) => {
@@ -232,8 +247,6 @@ export const useDynamicFilter = <T extends FilterableItem>({
     
     setFiltersState(newFilters);
     filtersRef.current = newFilters;
-
-    // No longer saving preferences here - that's done via the Save button
     
     setTimeout(() => {
       isUpdatingFilters.current = false;
@@ -271,6 +284,12 @@ export const useDynamicFilter = <T extends FilterableItem>({
     
     console.log("useDynamicFilter: Filter status", { noCategories, noTypes });
     
+    // Safety check for items array
+    if (!items || !Array.isArray(items)) {
+      console.log("useDynamicFilter: Items is not an array, returning empty array");
+      return [];
+    }
+    
     const filtered = items.filter((item) => {
       const banknote = getBanknote(item);
       if (!banknote) {
@@ -290,7 +309,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
       const matchesCategory = noCategories || 
         (currentFilters.categories && currentFilters.categories.includes(banknote.categoryId)) ||
         (banknote.series && currentFilters.categories && currentFilters.categories.some(catId => {
-          const category = categories.find(c => c.id === catId);
+          const category = effectiveCategories.find(c => c.id === catId);
           return category && banknote.series === category.name;
         }));
       
@@ -298,7 +317,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
       const matchesType = noTypes || 
         (currentFilters.types && currentFilters.types.includes(banknote.typeId)) ||
         (banknote.type && currentFilters.types && currentFilters.types.some(typeId => {
-          const typeDefinition = types.find(t => t.id === typeId);
+          const typeDefinition = effectiveTypes.find(t => t.id === typeId);
           return typeDefinition && normalizeType(banknote.type) === normalizeType(typeDefinition.name);
         }));
 
@@ -366,7 +385,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
     
     console.log("useDynamicFilter: Sorted items count:", sorted.length);
     return sorted;
-  }, [items, filters, categories, types, isLoading, getBanknote]);
+  }, [items, filters, effectiveCategories, effectiveTypes, isLoading, getBanknote]);
 
   // Group items by category and optionally by sultan within category
   const groupedItems = useMemo(() => {
@@ -380,9 +399,14 @@ export const useDynamicFilter = <T extends FilterableItem>({
     const sortBySultan = filters.sort?.includes("sultan") || false;
     const groups: GroupItem<T>[] = [];
     
+    // Safety check for filteredItems
+    if (!filteredItems || !Array.isArray(filteredItems)) {
+      return [];
+    }
+    
     // Associate categories with their IDs for lookup
     const categoryLookup = new Map<string, string>();
-    categories.forEach(cat => categoryLookup.set(cat.name, cat.id));
+    effectiveCategories.forEach(cat => categoryLookup.set(cat.name, cat.id));
     
     // Group filtered items by category
     const categoryMap = new Map<string, { name: string, id: string, items: T[] }>();
@@ -409,8 +433,8 @@ export const useDynamicFilter = <T extends FilterableItem>({
     // Add all categories in display order
     Array.from(categoryMap.values())
       .sort((a, b) => {
-        const catA = categories.find(c => c.id === a.id);
-        const catB = categories.find(c => c.id === b.id);
+        const catA = effectiveCategories.find(c => c.id === a.id);
+        const catB = effectiveCategories.find(c => c.id === b.id);
         
         if (catA && catB && 'display_order' in catA && 'display_order' in catB) {
           return (catA as any).display_order - (catB as any).display_order;
@@ -453,7 +477,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
     
     console.log("useDynamicFilter: Grouped", filteredItems.length, "items into", groups.length, "groups");
     return groups;
-  }, [filteredItems, filters.sort, categories, isLoading, getBanknote]);
+  }, [filteredItems, filters.sort, effectiveCategories, isLoading, getBanknote]);
 
   return {
     filteredItems,
@@ -483,3 +507,4 @@ const normalizeType = (type: string | undefined): string => {
   
   return lowerType;
 };
+
