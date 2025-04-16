@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { Banknote, DetailedBanknote } from "@/types";
@@ -22,16 +22,32 @@ const CountryDetail = () => {
   const [banknotes, setBanknotes] = useState<Banknote[]>([]);
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
+  const [hasInitialized, setHasInitialized] = useState(false);
   const { toast } = useToast();
   
+  console.log("CountryDetail: Rendering with", { 
+    country: decodedCountryName, 
+    countryId, 
+    loading, 
+    banknotes: banknotes.length 
+  });
+  
+  // Load country data and banknotes
   useEffect(() => {
     const loadCountryData = async () => {
-      if (!decodedCountryName) return;
+      if (!decodedCountryName) {
+        console.log("CountryDetail: No country name provided");
+        return;
+      }
+      
+      console.log("CountryDetail: Loading country data for", decodedCountryName);
       
       try {
         // Fetch country ID
         const countryData = await fetchCountryByName(decodedCountryName);
+        
         if (!countryData) {
+          console.error("CountryDetail: Country not found:", decodedCountryName);
           toast({
             title: "Error",
             description: `Country "${decodedCountryName}" not found.`,
@@ -41,15 +57,19 @@ const CountryDetail = () => {
           return;
         }
         
+        console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
         
         // Fetch banknotes
         setLoading(true);
+        console.log("CountryDetail: Fetching banknotes for country", countryData.id);
         const banknotesData = await fetchBanknotesByCountryId(countryData.id);
+        
+        console.log("CountryDetail: Banknotes loaded:", banknotesData.length);
         setBanknotes(banknotesData);
         
       } catch (error) {
-        console.error("Error loading data:", error);
+        console.error("CountryDetail: Error loading data:", error);
         toast({
           title: "Error",
           description: "Failed to load banknotes. Please try again later.",
@@ -75,10 +95,12 @@ const CountryDetail = () => {
   // Update country_id when it changes
   useEffect(() => {
     if (countryId) {
+      console.log("CountryDetail: Updating country_id in filters", countryId);
       setCurrentFilters(prev => ({
         ...prev,
         country_id: countryId
       }));
+      setHasInitialized(true);
     }
   }, [countryId]);
 
@@ -87,7 +109,8 @@ const CountryDetail = () => {
     filteredItems: filteredBanknotes,
     filters,
     setFilters,
-    groupedItems
+    groupedItems,
+    isLoading: filterLoading
   } = useDynamicFilter({
     items: banknotes,
     initialFilters: currentFilters,
@@ -97,17 +120,28 @@ const CountryDetail = () => {
     sortOptions: [] // These will be fetched by the filter component
   });
 
+  console.log("CountryDetail: Filter state", { 
+    currentFilters, 
+    hookFilters: filters, 
+    filterLoading,
+    filteredCount: filteredBanknotes.length,
+    groupedCount: groupedItems.length
+  });
+
   const handleBack = () => {
     navigate('/catalog');
   };
 
-  const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
+  const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    console.log("CountryDetail: Filter change", newFilters);
+    
     setCurrentFilters(prev => ({
       ...prev,
       ...newFilters
     }));
+    
     setFilters(newFilters);
-  };
+  }, [setFilters]);
 
   return (
     <div className="container py-8">
@@ -124,12 +158,12 @@ const CountryDetail = () => {
             countryId={countryId}
             onFilterChange={handleFilterChange}
             currentFilters={filters}
-            isLoading={loading}
+            isLoading={loading || filterLoading}
           />
         )}
 
         <div className="mt-6">
-          {loading ? (
+          {loading || filterLoading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
             </div>

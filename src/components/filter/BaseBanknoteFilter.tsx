@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -48,25 +47,63 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const isMobile = useIsMobile();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+  
   const [search, setSearch] = useState(currentFilters.search || "");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
   const [selectedSort, setSelectedSort] = useState<string[]>(currentFilters.sort || []);
 
-  // When the currentFilters prop changes, update local state
-  useEffect(() => {
-    setSearch(currentFilters.search || "");
-    setSelectedCategories(currentFilters.categories || []);
-    setSelectedTypes(currentFilters.types || []);
-    setSelectedSort(currentFilters.sort || []);
-  }, [currentFilters]);
+  const [isApplyingChanges, setIsApplyingChanges] = useState(false);
 
-  // Create a debounced search handler
-  const debouncedSearch = debounce((value: string) => {
-    handleFilterChange({ search: value });
-  }, 300);
+  console.log("BaseBanknoteFilter: Render with props", { 
+    categories: categories.length, 
+    types: types.length, 
+    sortOptions: sortOptions.length,
+    currentFilters,
+    localState: { search, selectedCategories, selectedTypes, selectedSort }
+  });
+
+  useEffect(() => {
+    if (isApplyingChanges) {
+      console.log("BaseBanknoteFilter: Skipping sync due to local changes being applied");
+      return;
+    }
+
+    console.log("BaseBanknoteFilter: Syncing local state with currentFilters", currentFilters);
+    
+    setSearch(currentFilters.search || "");
+    
+    if (JSON.stringify(selectedCategories) !== JSON.stringify(currentFilters.categories)) {
+      setSelectedCategories(currentFilters.categories || []);
+    }
+    
+    if (JSON.stringify(selectedTypes) !== JSON.stringify(currentFilters.types)) {
+      setSelectedTypes(currentFilters.types || []);
+    }
+    
+    if (JSON.stringify(selectedSort) !== JSON.stringify(currentFilters.sort)) {
+      setSelectedSort(currentFilters.sort || []);
+    }
+  }, [currentFilters, isApplyingChanges]);
+
+  const debouncedSearch = useCallback(
+    debounce((value: string) => {
+      console.log("BaseBanknoteFilter: Debounced search with value:", value);
+      handleFilterChange({ search: value });
+    }, 300),
+    [onFilterChange]
+  );
 
   const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
+    console.log("BaseBanknoteFilter: Local filter change:", changes);
+    
+    setIsApplyingChanges(true);
+    
+    if (changes.search !== undefined) setSearch(changes.search);
+    if (changes.categories !== undefined) setSelectedCategories(changes.categories);
+    if (changes.types !== undefined) setSelectedTypes(changes.types);
+    if (changes.sort !== undefined) setSelectedSort(changes.sort);
+    
     const newFilters = {
       search: changes.search !== undefined ? changes.search : currentFilters.search,
       categories: changes.categories !== undefined ? changes.categories : currentFilters.categories,
@@ -76,9 +113,15 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     };
     
     onFilterChange(newFilters);
+    
+    setTimeout(() => {
+      setIsApplyingChanges(false);
+    }, 100);
   };
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
+    console.log("BaseBanknoteFilter: Category change:", { categoryId, checked });
+    
     let newCategories: string[];
     
     if (categoryId === "all") {
@@ -89,11 +132,13 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
         : selectedCategories.filter(id => id !== categoryId);
     }
     
-    setSelectedCategories(newCategories);
+    console.log("BaseBanknoteFilter: New categories:", newCategories);
     handleFilterChange({ categories: newCategories });
   };
 
   const handleTypeChange = (typeId: string, checked: boolean) => {
+    console.log("BaseBanknoteFilter: Type change:", { typeId, checked });
+    
     let newTypes: string[];
     
     if (typeId === "all") {
@@ -104,17 +149,18 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
         : selectedTypes.filter(id => id !== typeId);
     }
     
-    setSelectedTypes(newTypes);
+    console.log("BaseBanknoteFilter: New types:", newTypes);
     handleFilterChange({ types: newTypes });
   };
 
   const handleSortChange = (sortId: string, checked: boolean) => {
+    console.log("BaseBanknoteFilter: Sort change:", { sortId, checked });
+    
     const sortOption = sortOptions.find(option => option.id === sortId);
     if (!sortOption || !sortOption.fieldName) return;
     
     const fieldName = sortOption.fieldName;
     
-    // Get required sort fields that should always be included
     const requiredSortFields = sortOptions
       .filter(option => option.isRequired)
       .map(option => option.fieldName)
@@ -123,31 +169,39 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     let newSort: string[];
     
     if (checked) {
-      // Add the field while preserving required fields
       newSort = [
         ...selectedSort.filter(field => !requiredSortFields.includes(field) && field !== fieldName),
         fieldName, 
         ...requiredSortFields
       ];
     } else {
-      // Remove the field while preserving required fields
       newSort = [
         ...selectedSort.filter(field => field !== fieldName && !requiredSortFields.includes(field)),
         ...requiredSortFields
       ];
     }
     
-    setSelectedSort(newSort);
+    console.log("BaseBanknoteFilter: New sort:", newSort);
     handleFilterChange({ sort: newSort });
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    console.log("BaseBanknoteFilter: Search input change:", value);
     setSearch(value);
     debouncedSearch(value);
   };
 
-  // Check if all categories or types are selected
+  const applyFilters = () => {
+    console.log("BaseBanknoteFilter: Applying all filters explicitly");
+    handleFilterChange({
+      search,
+      categories: selectedCategories,
+      types: selectedTypes,
+      sort: selectedSort
+    });
+  };
+
   const allCategoriesSelected = categories.length > 0 && 
     categories.every(category => selectedCategories.includes(category.id));
     
@@ -173,12 +227,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       <div className="grid grid-cols-2 gap-4">
         <Sheet 
           open={isCategorySheetOpen} 
-          onOpenChange={(open) => {
-            // Only set state if it's actually changing
-            if (open !== isCategorySheetOpen) {
-              setIsCategorySheetOpen(open);
-            }
-          }}
+          onOpenChange={setIsCategorySheetOpen}
         >
           <SheetTrigger asChild>
             <Button 
@@ -257,7 +306,10 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 </div>
               </div>
               <SheetClose asChild>
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={applyFilters}
+                >
                   Apply Filters
                 </Button>
               </SheetClose>
@@ -267,12 +319,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
         <Sheet 
           open={isSortSheetOpen} 
-          onOpenChange={(open) => {
-            // Only set state if it's actually changing
-            if (open !== isSortSheetOpen) {
-              setIsSortSheetOpen(open);
-            }
-          }}
+          onOpenChange={setIsSortSheetOpen}
         >
           <SheetTrigger asChild>
             <Button 
@@ -317,7 +364,10 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 );
               })}
               <SheetClose asChild className="mt-4">
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={applyFilters}
+                >
                   Apply Sort
                 </Button>
               </SheetClose>
