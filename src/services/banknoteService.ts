@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Banknote, DetailedBanknote } from "@/types";
+import { fetchCategoriesByCountryId, fetchTypesByCountryId } from "./countryService";
 
 export async function fetchBanknotes(): Promise<Banknote[]> {
   try {
@@ -21,6 +22,80 @@ export async function fetchBanknotes(): Promise<Banknote[]> {
     console.error('Error fetching banknotes:', error);
     return [];
   }
+}
+
+export async function fetchBanknotesByCountryId(countryId: string): Promise<Banknote[]> {
+  try {
+    // First get the country name
+    const { data: countryData, error: countryError } = await supabase
+      .from('countries')
+      .select('name')
+      .eq('id', countryId)
+      .single();
+      
+    if (countryError) {
+      console.error("Error fetching country data:", countryError);
+      throw countryError;
+    }
+    
+    if (!countryData) {
+      console.error(`Country with ID ${countryId} not found`);
+      return [];
+    }
+
+    // Fetch banknotes by country name
+    const { data, error } = await supabase
+      .from('detailed_banknotes')
+      .select('*')
+      .eq('country', countryData.name)
+      .eq('is_pending', false);
+
+    if (error) {
+      console.error("Error fetching banknotes by country ID:", error);
+      throw error;
+    }
+
+    // Get categories and types for this country
+    const categories = await fetchCategoriesByCountryId(countryId);
+    const types = await fetchTypesByCountryId(countryId);
+    
+    // Map category and type names to IDs
+    const categoryMap = new Map(categories.map(cat => [cat.name, cat.id]));
+    const typeMap = new Map(types.map(type => [normalizeType(type.name), type.id]));
+    
+    // Enhance banknotes with category and type IDs
+    const enhancedBanknotes = data.map(banknote => {
+      const transformed = transformToDetailedBanknote(banknote);
+      return {
+        ...transformed,
+        categoryId: transformed.series ? categoryMap.get(transformed.series) : undefined,
+        typeId: transformed.type ? typeMap.get(normalizeType(transformed.type)) : typeMap.get('issued notes')
+      };
+    });
+    
+    return enhancedBanknotes;
+  } catch (error) {
+    console.error(`Error fetching banknotes for country ${countryId}:`, error);
+    return [];
+  }
+}
+
+// Helper function to normalize types
+function normalizeType(type: string | undefined): string {
+  if (!type) return "issued notes";
+  
+  const lowerType = type.toLowerCase();
+  
+  if (lowerType.includes("issued") || lowerType === "issue") return "issued notes";
+  if (lowerType.includes("specimen")) return "specimens";
+  if (lowerType.includes("cancelled") || lowerType.includes("annule")) return "cancelled & annule";
+  if (lowerType.includes("trial")) return "trial note";
+  if (lowerType.includes("error")) return "error banknote";
+  if (lowerType.includes("counterfeit")) return "counterfeit banknote";
+  if (lowerType.includes("emergency")) return "emergency note";
+  if (lowerType.includes("check") || lowerType.includes("bond")) return "check & bond notes";
+  
+  return lowerType;
 }
 
 export async function fetchBanknoteById(id: string): Promise<Banknote | null> {
@@ -135,39 +210,17 @@ function transformDetailedToBanknote(detailed: any): Banknote {
     createdAt: detailed.created_at || new Date().toISOString(),
     updatedAt: detailed.updated_at || new Date().toISOString(),
     createdBy: detailed.created_by || 'system',
-    rarity: detailed.rarity || ''  // Add rarity field to fix CountryDetail errors
+    rarity: detailed.rarity || '',  // Add rarity field to fix CountryDetail errors
+    // Category and type IDs will be added by fetchBanknotesByCountryId when needed
   };
 }
 
 // Helper function to transform database object to detailed banknote format
 function transformToDetailedBanknote(data: any): DetailedBanknote {
-  const imageUrls: string[] = [];
-  
-  if (data.front_picture) imageUrls.push(data.front_picture);
-  if (data.back_picture) imageUrls.push(data.back_picture);
-  if (data.seal_pictures && data.seal_pictures.length) imageUrls.push(...data.seal_pictures);
-  if (data.tughra_picture) imageUrls.push(data.tughra_picture);
-  if (data.watermark_picture) imageUrls.push(data.watermark_picture);
-  if (data.other_element_pictures && data.other_element_pictures.length) imageUrls.push(...data.other_element_pictures);
+  const banknote = transformDetailedToBanknote(data);
   
   return {
-    id: data.id,
-    catalogId: data.extended_pick_number || data.pick_number || 'Unknown',
-    country: data.country || 'Unknown',
-    denomination: data.face_value || 'Unknown',
-    year: data.gregorian_year || data.islamic_year || 'Unknown',
-    series: data.category,
-    description: data.banknote_description || `${data.face_value || 'Unknown'} from ${data.gregorian_year || data.islamic_year || 'Unknown'}`,
-    obverseDescription: data.banknote_description,
-    reverseDescription: data.historical_description,
-    imageUrls: imageUrls.length > 0 ? imageUrls : ['/placeholder.svg'],
-    isApproved: data.is_approved !== false,
-    isPending: data.is_pending === true,
-    createdAt: data.created_at || new Date().toISOString(),
-    updatedAt: data.updated_at || new Date().toISOString(),
-    createdBy: data.created_by || 'system',
-    
-    // Additional DetailedBanknote fields
+    ...banknote,
     extendedPickNumber: data.extended_pick_number,
     pickNumber: data.pick_number,
     turkCatalogNumber: data.turk_catalog_number,
@@ -193,6 +246,8 @@ function transformToDetailedBanknote(data: any): DetailedBanknote {
     colors: data.colors,
     serialNumbering: data.serial_numbering,
     banknoteDescription: data.banknote_description,
-    historicalDescription: data.historical_description
+    historicalDescription: data.historical_description,
+    gradeCounts: {},  // This would need to be populated if needed
+    averagePrice: null // This would need to be calculated if needed
   };
 }

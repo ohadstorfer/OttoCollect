@@ -66,6 +66,44 @@ export type Database = {
         }
         Relationships: []
       }
+      banknote_category_definitions: {
+        Row: {
+          country_id: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banknote_category_definitions_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       banknote_rarity_levels: {
         Row: {
           code: string
@@ -86,6 +124,91 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      banknote_sort_options: {
+        Row: {
+          country_id: string
+          created_at: string
+          description: string | null
+          display_order: number
+          field_name: string
+          id: string
+          is_default: boolean
+          is_required: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          field_name: string
+          id?: string
+          is_default?: boolean
+          is_required?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          field_name?: string
+          id?: string
+          is_default?: boolean
+          is_required?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banknote_sort_options_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      banknote_type_definitions: {
+        Row: {
+          country_id: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banknote_type_definitions_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       banknote_types: {
         Row: {
@@ -205,6 +328,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      countries: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       detailed_banknotes: {
         Row: {
@@ -617,6 +767,47 @@ export type Database = {
             columns: ["badge_id"]
             isOneToOne: false
             referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_filter_preferences: {
+        Row: {
+          country_id: string
+          created_at: string
+          id: string
+          selected_categories: string[] | null
+          selected_sort_options: string[] | null
+          selected_types: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          id?: string
+          selected_categories?: string[] | null
+          selected_sort_options?: string[] | null
+          selected_types?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          id?: string
+          selected_categories?: string[] | null
+          selected_sort_options?: string[] | null
+          selected_types?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_filter_preferences_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
             referencedColumns: ["id"]
           },
         ]

@@ -1,60 +1,33 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { fetchBanknotes } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { SearchIcon } from "lucide-react";
-import { CountryData, Banknote } from "@/types";
+import { CountryData } from "@/types";
+import { fetchCountriesForCatalog } from "@/services/countryCatalogService";
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [banknotes, setBanknotes] = useState<Banknote[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [countries, setCountries] = useState<CountryData[]>([]);
 
   useEffect(() => {
-    const loadBanknotes = async () => {
+    const loadCountries = async () => {
       setLoading(true);
       try {
-        const data = await fetchBanknotes();
-        setBanknotes(data);
+        const data = await fetchCountriesForCatalog();
         
-        const countryMap = data.reduce((acc: Record<string, CountryData>, banknote: Banknote) => {
-          if (!acc[banknote.country]) {
-            acc[banknote.country] = {
-              name: banknote.country,
-              count: 0,
-              imageUrl: null
-            };
-          }
-          
-          acc[banknote.country].count += 1;
-          
-          if (!acc[banknote.country].imageUrl && banknote.imageUrls && banknote.imageUrls.length > 0) {
-            acc[banknote.country].imageUrl = banknote.imageUrls[0];
-          }
-          
-          if (banknote.country === "Ottoman Empire" && !acc[banknote.country].imageUrl) {
-            acc[banknote.country].imageUrl = "/images/ottoman-empire.jpg";
-          }
-          
-          if (banknote.country === "Palestine" && !acc[banknote.country].imageUrl) {
-            acc[banknote.country].imageUrl = "/images/palestine-mandate.jpg";
-          }
-          
-          return acc;
-        }, {});
-        
-        const countriesArray = Object.values(countryMap).sort((a, b) => 
+        // Sort countries alphabetically
+        const countriesArray = data.sort((a, b) => 
           a.name.localeCompare(b.name)
         );
         
         setCountries(countriesArray);
       } catch (error) {
-        console.error("Error loading banknotes:", error);
+        console.error("Error loading countries:", error);
         toast({
           title: "Error",
           description: "Failed to load banknote catalog. Please try again later.",
@@ -65,7 +38,7 @@ const Catalog = () => {
       }
     };
 
-    loadBanknotes();
+    loadCountries();
   }, [toast]);
 
   const filteredCountries = countries.filter(country => 
@@ -117,7 +90,7 @@ const Catalog = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6">
           {filteredCountries.map((country) => (
-            <Link to={`/catalog/${encodeURIComponent(country.name)}`} key={country.name}>
+            <Link to={`/catalog/${encodeURIComponent(country.name)}`} key={country.id}>
               <Card className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50">
                 <div className="aspect-[4/3] overflow-hidden relative">
                   {country.imageUrl ? (
@@ -134,7 +107,7 @@ const Catalog = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
                     <div className="p-4 text-white w-full">
                       <h3 className="text-xl font-bold">{country.name}</h3>
-                      <p className="text-sm opacity-80">{country.count} banknotes</p>
+                      <p className="text-sm opacity-80">{country.banknoteCount} banknotes</p>
                     </div>
                   </div>
                 </div>

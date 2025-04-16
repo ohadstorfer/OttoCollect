@@ -1,4 +1,6 @@
 
+import { FilterCategoryOption } from "./filter";
+
 export interface User {
   id: string;
   username: string;
@@ -52,6 +54,9 @@ export interface Banknote {
   signaturesBack?: string;
   banknoteDescription?: string;
   historicalDescription?: string;
+  // New fields for dynamic filtering
+  categoryId?: string;
+  typeId?: string;
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -79,6 +84,9 @@ export interface CollectionItem {
   publicNote?: string;
   personalImages?: string[];
   orderIndex?: number;
+  // New fields for dynamic filtering
+  categoryId?: string;
+  typeId?: string;
 }
 
 export interface WishlistItem {
@@ -90,6 +98,9 @@ export interface WishlistItem {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   banknote: Banknote;
+  // New fields for dynamic filtering
+  categoryId?: string;
+  typeId?: string;
 }
 
 export type BanknoteCondition =
@@ -124,6 +135,9 @@ export interface MarketplaceItem {
     username: string;
     rank: string;
   };
+  // New fields for dynamic filtering
+  categoryId?: string;
+  typeId?: string;
 }
 
 export interface ForumPost {
@@ -155,60 +169,17 @@ export interface Message {
 
 export type BanknoteDetailSource = "catalog" | "collection" | "marketplace";
 
-// Banknote categories - updated to match actual database values
-export const BANKNOTE_CATEGORIES = [
-  "First Kaime Em. 1-6",
-  "First Kaime 1851-1861",
-  "1893 War Banknote",
-  "Imperial Ottoman Bank",
-  "World War I banknotes"
-];
-
-// Default selected categories - updated to match actual database values
-export const DEFAULT_SELECTED_CATEGORIES = [
-  "First Kaime 1851-1861",
-  "1893 War Banknote",
-  "Imperial Ottoman Bank",
-  "World War I banknotes"
-];
-
-// Banknote types - updated to match actual database values
-export const BANKNOTE_TYPES = [
-  "Issued note",
-  "Specimen",
-  "Cancelled",
-  "Trial note",
-  "Error banknote",
-  "Counterfeit banknote",
-  "Emergency note", 
-  "Check & Bond notes",
-  "Other notes"
-];
-
-// Default selected types - updated to match actual database values
-export const DEFAULT_SELECTED_TYPES = [
-  "Issued note",
-  "Specimen", 
-  "Cancelled"
-];
-
-// Sort options
-export const SORT_OPTIONS = [
-  { id: "sultan", name: "Sultan" },
-  { id: "faceValue", name: "Face Value" },
-  { id: "extPick", name: "Ext. Pick#", required: true }
-];
+export interface CountryData {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string | null;
+  banknoteCount: number;
+}
 
 export interface BanknoteFilterState {
   search: string;
   categories: string[];
   types: string[];
   sort: string[];
-}
-
-export interface CountryData {
-  id: string;
-  name: string;
-  banknoteCount: number;
-  imageUrl?: string;
 }
