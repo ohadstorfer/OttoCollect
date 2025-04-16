@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { DynamicFilterState, FilterableItem } from "@/types/filter";
@@ -40,6 +39,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
   const [isLoading, setIsLoading] = useState(true);
   const userId = user?.id;
   const isMounted = useRef(true);
+  const isUpdatingFilters = useRef(false);
   const filtersRef = useRef<DynamicFilterState | null>(null);
   
   console.log("useDynamicFilter: Initialize with", { 
@@ -56,7 +56,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
       .map(option => option.field_name);
     
     console.log("useDynamicFilter: Default sort fields", fields);
-    return fields;
+    return fields.length > 0 ? fields : ["extPick"];
   }, [sortOptions]);
 
   const [filters, setFiltersState] = useState<DynamicFilterState>({
@@ -69,11 +69,18 @@ export const useDynamicFilter = <T extends FilterableItem>({
 
   // Update filters when countryId changes
   useEffect(() => {
-    if (countryId) {
+    if (countryId && !isUpdatingFilters.current) {
+      console.log("useDynamicFilter: Updating filters with new countryId:", countryId);
+      isUpdatingFilters.current = true;
+      
       setFiltersState(prev => ({
         ...prev,
         country_id: countryId
       }));
+      
+      setTimeout(() => {
+        isUpdatingFilters.current = false;
+      }, 100);
     }
   }, [countryId]);
 
@@ -127,6 +134,8 @@ export const useDynamicFilter = <T extends FilterableItem>({
           console.log("useDynamicFilter: No userId, skipping preference fetch");
         }
         
+        if (!isMounted.current) return;
+        
         if (userPrefs) {
           // Map IDs to field names for sort options
           const sortFieldNames = userPrefs.selected_sort_options
@@ -137,38 +146,52 @@ export const useDynamicFilter = <T extends FilterableItem>({
             .filter(Boolean) as string[];
           
           // Ensure required sort fields are included
-          const finalSortFields = [...new Set([...sortFieldNames, ...requiredSortFields])];
+          const finalSortFields = Array.from(
+            new Set([...sortFieldNames, ...requiredSortFields])
+          );
           
-          // Only update state if component is still mounted
-          if (isMounted.current) {
+          // Only update state if component is still mounted and we're not already updating
+          if (isMounted.current && !isUpdatingFilters.current) {
             console.log("useDynamicFilter: Setting filters from user preferences");
+            isUpdatingFilters.current = true;
             
             const newFilters = {
               ...filters,
               categories: userPrefs.selected_categories.length > 0 ? userPrefs.selected_categories : defaultCategoryIds,
               types: userPrefs.selected_types.length > 0 ? userPrefs.selected_types : defaultTypeIds,
-              sort: finalSortFields.length > 0 ? finalSortFields : requiredSortFields
+              sort: finalSortFields.length > 0 ? finalSortFields : defaultSortFields,
+              country_id: countryId // Ensure countryId is set correctly
             };
             
             console.log("useDynamicFilter: New filters from preferences", newFilters);
             setFiltersState(newFilters);
             filtersRef.current = newFilters;
+            
+            setTimeout(() => {
+              isUpdatingFilters.current = false;
+            }, 100);
           }
         } else {
           // Set defaults if no preferences found
-          if (isMounted.current) {
+          if (isMounted.current && !isUpdatingFilters.current) {
             console.log("useDynamicFilter: Setting default filters");
+            isUpdatingFilters.current = true;
             
             const newFilters = {
               ...filters,
               categories: defaultCategoryIds,
               types: defaultTypeIds.length > 0 ? defaultTypeIds : types.map(t => t.id),
-              sort: requiredSortFields
+              sort: requiredSortFields.length > 0 ? requiredSortFields : defaultSortFields,
+              country_id: countryId // Ensure countryId is set correctly
             };
             
             console.log("useDynamicFilter: Default filters set", newFilters);
             setFiltersState(newFilters);
             filtersRef.current = newFilters;
+            
+            setTimeout(() => {
+              isUpdatingFilters.current = false;
+            }, 100);
           }
         }
       } catch (error) {
@@ -181,14 +204,31 @@ export const useDynamicFilter = <T extends FilterableItem>({
     };
 
     loadUserPreferences();
-  }, [userId, countryId, categories, types, sortOptions, defaultSortFields]);
+  }, [userId, countryId, categories, types, sortOptions, defaultSortFields, filters]);
 
   // Handle filter changes with debouncing
   const setFilters = useCallback(async (changes: Partial<DynamicFilterState>) => {
-    console.log("useDynamicFilter: setFilters called with", changes);
+    if (isUpdatingFilters.current) {
+      console.log("useDynamicFilter: setFilters skipped - update already in progress");
+      return;
+    }
     
-    const newFilters = { ...filters, ...changes };
+    console.log("useDynamicFilter: setFilters called with", changes);
+    isUpdatingFilters.current = true;
+    
+    const newFilters = { 
+      ...filters, 
+      ...changes,
+      // Always ensure country_id is properly set
+      country_id: changes.country_id || filters.country_id || countryId
+    };
+    
     console.log("useDynamicFilter: New filters", newFilters);
+    
+    if (!isMounted.current) {
+      console.log("useDynamicFilter: Component unmounted, skipping state update");
+      return;
+    }
     
     setFiltersState(newFilters);
     filtersRef.current = newFilters;
@@ -206,7 +246,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
           })
           .filter(Boolean) as string[];
         
-        await saveUserFilterPreferences(
+        const success = await saveUserFilterPreferences(
           userId,
           countryId,
           newFilters.categories,
@@ -214,7 +254,11 @@ export const useDynamicFilter = <T extends FilterableItem>({
           sortOptionIds
         );
         
-        console.log("useDynamicFilter: User preferences saved successfully");
+        if (success) {
+          console.log("useDynamicFilter: User preferences saved successfully");
+        } else {
+          console.warn("useDynamicFilter: Error saving user preferences");
+        }
       } catch (error) {
         console.error("useDynamicFilter: Error saving filter preferences", error);
         // Continue even if save fails
@@ -222,6 +266,10 @@ export const useDynamicFilter = <T extends FilterableItem>({
     } else {
       console.log("useDynamicFilter: Not saving preferences", { userId, countryId, isLoading });
     }
+    
+    setTimeout(() => {
+      isUpdatingFilters.current = false;
+    }, 100);
   }, [filters, userId, countryId, isLoading, sortOptions]);
 
   // Extract banknote from item
@@ -255,6 +303,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
     
     console.log("useDynamicFilter: Filter status", { noCategories, noTypes });
     
+    // ... keep existing code (the filtering logic)
     const filtered = items.filter((item) => {
       const banknote = getBanknote(item);
       if (!banknote) {
@@ -296,6 +345,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
     });
     
     // Sort the filtered items
+    // ... keep existing code (the sorting logic)
     const sorted = [...filtered].sort((a, b) => {
       const banknoteA = getBanknote(a);
       const banknoteB = getBanknote(b);
@@ -315,29 +365,29 @@ export const useDynamicFilter = <T extends FilterableItem>({
           case "faceValue":
             const valueA = banknoteA.denomination || banknoteA.face_value || "";
             const valueB = banknoteB.denomination || banknoteB.face_value || "";
-            const isKurushA = valueA.toLowerCase().includes("kurush");
-            const isKurushB = valueB.toLowerCase().includes("kurush");
-            const isLiraA = valueA.toLowerCase().includes("lira");
-            const isLiraB = valueB.toLowerCase().includes("lira");
+            const isKurushA = String(valueA).toLowerCase().includes("kurush");
+            const isKurushB = String(valueB).toLowerCase().includes("kurush");
+            const isLiraA = String(valueA).toLowerCase().includes("lira");
+            const isLiraB = String(valueB).toLowerCase().includes("lira");
 
             if (isKurushA && isLiraB) comparison = -1;
             else if (isLiraA && isKurushB) comparison = 1;
             else {
-              const numA = parseFloat(valueA.replace(/[^0-9.]/g, "")) || 0;
-              const numB = parseFloat(valueB.replace(/[^0-9.]/g, "")) || 0;
+              const numA = parseFloat(String(valueA).replace(/[^0-9.]/g, "")) || 0;
+              const numB = parseFloat(String(valueB).replace(/[^0-9.]/g, "")) || 0;
               comparison = numA - numB;
             }
             break;
 
           case "extPick":
-            comparison = (banknoteA.extendedPickNumber || banknoteA.catalogId || "")
-              .localeCompare(banknoteB.extendedPickNumber || banknoteB.catalogId || "");
+            comparison = String(banknoteA.extendedPickNumber || banknoteA.catalogId || "")
+              .localeCompare(String(banknoteB.extendedPickNumber || banknoteB.catalogId || ""));
             break;
             
           case "newest":
             if ('createdAt' in a && 'createdAt' in b) {
-              const dateA = new Date(String(a.createdAt)).getTime();
-              const dateB = new Date(String(b.createdAt)).getTime();
+              const dateA = typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : 0;
+              const dateB = typeof b.createdAt === 'string' ? new Date(b.createdAt).getTime() : 0;
               comparison = dateB - dateA;
             }
             break;
@@ -397,7 +447,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
         const catA = categories.find(c => c.id === a.id);
         const catB = categories.find(c => c.id === b.id);
         
-        if (catA && catB) {
+        if (catA && catB && 'display_order' in catA && 'display_order' in catB) {
           return (catA as any).display_order - (catB as any).display_order;
         }
         return a.name.localeCompare(b.name);
@@ -454,7 +504,7 @@ const normalizeType = (type: string | undefined): string => {
   if (!type) return "";
   
   // Convert to lowercase for case-insensitive comparison
-  const lowerType = type.toLowerCase();
+  const lowerType = String(type).toLowerCase();
   
   // Handle common variations of types
   if (lowerType.includes("issued") || lowerType === "issue") return "issued notes";

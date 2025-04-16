@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,8 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
   const [selectedSort, setSelectedSort] = useState<string[]>(currentFilters.sort || []);
 
-  const [isApplyingChanges, setIsApplyingChanges] = useState(false);
+  const isApplyingChanges = useRef(false);
+  const prevFilters = useRef<DynamicFilterState | null>(null);
 
   console.log("BaseBanknoteFilter: Render with props", { 
     categories: categories.length, 
@@ -64,27 +65,27 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   });
 
   useEffect(() => {
-    if (isApplyingChanges) {
+    if (isApplyingChanges.current) {
       console.log("BaseBanknoteFilter: Skipping sync due to local changes being applied");
+      return;
+    }
+    
+    if (
+      prevFilters.current && 
+      JSON.stringify(prevFilters.current) === JSON.stringify(currentFilters)
+    ) {
+      console.log("BaseBanknoteFilter: Skipping sync, no changes detected");
       return;
     }
 
     console.log("BaseBanknoteFilter: Syncing local state with currentFilters", currentFilters);
+    prevFilters.current = { ...currentFilters };
     
     setSearch(currentFilters.search || "");
-    
-    if (JSON.stringify(selectedCategories) !== JSON.stringify(currentFilters.categories)) {
-      setSelectedCategories(currentFilters.categories || []);
-    }
-    
-    if (JSON.stringify(selectedTypes) !== JSON.stringify(currentFilters.types)) {
-      setSelectedTypes(currentFilters.types || []);
-    }
-    
-    if (JSON.stringify(selectedSort) !== JSON.stringify(currentFilters.sort)) {
-      setSelectedSort(currentFilters.sort || []);
-    }
-  }, [currentFilters, isApplyingChanges]);
+    setSelectedCategories(currentFilters.categories || []);
+    setSelectedTypes(currentFilters.types || []);
+    setSelectedSort(currentFilters.sort || []);
+  }, [currentFilters]);
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
@@ -97,7 +98,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
     console.log("BaseBanknoteFilter: Local filter change:", changes);
     
-    setIsApplyingChanges(true);
+    isApplyingChanges.current = true;
     
     if (changes.search !== undefined) setSearch(changes.search);
     if (changes.categories !== undefined) setSelectedCategories(changes.categories);
@@ -105,17 +106,19 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     if (changes.sort !== undefined) setSelectedSort(changes.sort);
     
     const newFilters = {
-      search: changes.search !== undefined ? changes.search : currentFilters.search,
-      categories: changes.categories !== undefined ? changes.categories : currentFilters.categories,
-      types: changes.types !== undefined ? changes.types : currentFilters.types,
-      sort: changes.sort !== undefined ? changes.sort : currentFilters.sort,
+      search: changes.search !== undefined ? changes.search : search,
+      categories: changes.categories !== undefined ? changes.categories : selectedCategories,
+      types: changes.types !== undefined ? changes.types : selectedTypes,
+      sort: changes.sort !== undefined ? changes.sort : selectedSort,
       country_id: currentFilters.country_id
     };
+    
+    prevFilters.current = { ...newFilters };
     
     onFilterChange(newFilters);
     
     setTimeout(() => {
-      setIsApplyingChanges(false);
+      isApplyingChanges.current = false;
     }, 100);
   };
 

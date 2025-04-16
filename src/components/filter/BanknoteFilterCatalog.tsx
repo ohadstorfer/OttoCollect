@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
@@ -26,15 +26,32 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasInitializedFilters, setHasInitializedFilters] = useState(false);
+  const isMounted = useRef(true);
+  const previousCountryId = useRef<string | null>(null);
+  
+  // Track if a filter change is in progress to prevent infinite loops
+  const isFilterChangeInProgress = useRef(false);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const loadFilterOptions = async () => {
-      if (!countryId) return;
+      if (!countryId || previousCountryId.current === countryId) return;
       
       console.log("BanknoteFilterCatalog: Loading filter options for country:", countryId);
       console.log("BanknoteFilterCatalog: Current filters:", currentFilters);
       
+      // Update the previous country ID
+      previousCountryId.current = countryId;
+      
+      if (!isMounted.current) return;
       setLoading(true);
+      
       try {
         // Fetch categories, types and sort options in parallel
         console.log("BanknoteFilterCatalog: Fetching categories, types, and sort options");
@@ -43,6 +60,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
           fetchTypesByCountryId(countryId),
           fetchSortOptionsByCountryId(countryId)
         ]);
+        
+        if (!isMounted.current) return;
         
         console.log("BanknoteFilterCatalog: Fetched data:", { 
           categories: categoriesData, 
@@ -68,6 +87,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
           isRequired: sort.is_required
         }));
         
+        if (!isMounted.current) return;
+        
         setCategories(mappedCategories);
         setTypes(mappedTypes);
         setSortOptions(mappedSortOptions);
@@ -87,9 +108,14 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             ? currentFilters.types 
             : mappedTypes.filter(type => type.name.toLowerCase().includes('issued')).map(t => t.id);
           
+          // Always include required sort fields
+          const requiredSortFields = sortOptionsData
+            .filter(opt => opt.is_required)
+            .map(opt => opt.field_name || '');
+          
           const defaultSortFields = currentFilters.sort && currentFilters.sort.length > 0
-            ? currentFilters.sort
-            : mappedSortOptions.filter(opt => opt.isRequired).map(opt => opt.fieldName || '');
+            ? Array.from(new Set([...currentFilters.sort, ...requiredSortFields]))
+            : requiredSortFields.length > 0 ? requiredSortFields : ['extPick'];
           
           console.log("BanknoteFilterCatalog: Default filters:", { 
             categories: defaultCategoryIds, 
@@ -99,17 +125,28 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
           
           // Only update if we have default values that are different from current ones
           const shouldUpdate = 
-            (defaultCategoryIds.length > 0 && JSON.stringify(defaultCategoryIds) !== JSON.stringify(currentFilters.categories)) ||
-            (defaultTypeIds.length > 0 && JSON.stringify(defaultTypeIds) !== JSON.stringify(currentFilters.types)) ||
-            (defaultSortFields.length > 0 && JSON.stringify(defaultSortFields) !== JSON.stringify(currentFilters.sort));
+            !isFilterChangeInProgress.current && (
+              (defaultCategoryIds.length > 0 && JSON.stringify(defaultCategoryIds) !== JSON.stringify(currentFilters.categories)) ||
+              (defaultTypeIds.length > 0 && JSON.stringify(defaultTypeIds) !== JSON.stringify(currentFilters.types)) ||
+              (defaultSortFields.length > 0 && JSON.stringify(defaultSortFields) !== JSON.stringify(currentFilters.sort))
+            );
           
           if (shouldUpdate) {
             console.log("BanknoteFilterCatalog: Updating with default filters");
-            onFilterChange({
+            isFilterChangeInProgress.current = true;
+            
+            const updatedFilters = {
               categories: defaultCategoryIds,
               types: defaultTypeIds,
-              sort: defaultSortFields
-            });
+              sort: defaultSortFields,
+              country_id: countryId // Ensure country_id is set
+            };
+            
+            onFilterChange(updatedFilters);
+            
+            setTimeout(() => {
+              isFilterChangeInProgress.current = false;
+            }, 100);
           }
           
           setHasInitializedFilters(true);
@@ -117,17 +154,37 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
       } catch (error) {
         console.error("Error loading filter options:", error);
       } finally {
-        setLoading(false);
+        if (isMounted.current) {
+          setLoading(false);
+        }
       }
     };
 
     loadFilterOptions();
-  }, [countryId]);
+  }, [countryId, currentFilters, hasInitializedFilters, onFilterChange]);
 
   // Filter change handler
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
+    if (isFilterChangeInProgress.current) {
+      console.log("BanknoteFilterCatalog: Skipping filter change due to another change in progress");
+      return;
+    }
+    
     console.log("BanknoteFilterCatalog: Filter change requested:", newFilters);
-    onFilterChange(newFilters);
+    
+    isFilterChangeInProgress.current = true;
+    
+    // Always add the countryId to filter changes
+    const filtersWithCountryId = {
+      ...newFilters,
+      country_id: countryId
+    };
+    
+    onFilterChange(filtersWithCountryId);
+    
+    setTimeout(() => {
+      isFilterChangeInProgress.current = false;
+    }, 100);
   };
 
   return (

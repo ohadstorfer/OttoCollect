@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { Banknote, DetailedBanknote } from "@/types";
@@ -24,6 +24,9 @@ const CountryDetail = () => {
   const [countryId, setCountryId] = useState<string>("");
   const [hasInitialized, setHasInitialized] = useState(false);
   const { toast } = useToast();
+  
+  // Track if we're currently updating filters
+  const isUpdatingFilters = useRef(false);
   
   console.log("CountryDetail: Rendering with", { 
     country: decodedCountryName, 
@@ -83,7 +86,7 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
 
-  // Default filters
+  // Default filters with stable reference
   const [currentFilters, setCurrentFilters] = useState<DynamicFilterState>({
     search: "",
     categories: [],
@@ -94,17 +97,24 @@ const CountryDetail = () => {
 
   // Update country_id when it changes
   useEffect(() => {
-    if (countryId) {
+    if (countryId && !isUpdatingFilters.current) {
       console.log("CountryDetail: Updating country_id in filters", countryId);
+      
+      isUpdatingFilters.current = true;
       setCurrentFilters(prev => ({
         ...prev,
         country_id: countryId
       }));
+      
+      setTimeout(() => {
+        isUpdatingFilters.current = false;
+      }, 100);
+      
       setHasInitialized(true);
     }
   }, [countryId]);
 
-  // Use the dynamic filter hook
+  // Use the dynamic filter hook with memoized props
   const { 
     filteredItems: filteredBanknotes,
     filters,
@@ -133,15 +143,32 @@ const CountryDetail = () => {
   };
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    if (isUpdatingFilters.current) {
+      console.log("CountryDetail: Skipping filter change - update in progress");
+      return;
+    }
+    
     console.log("CountryDetail: Filter change", newFilters);
+    
+    isUpdatingFilters.current = true;
+    
+    // Always ensure country_id is set correctly
+    const updatedFilters = {
+      ...newFilters,
+      country_id: countryId // Make sure country_id is always set correctly
+    };
     
     setCurrentFilters(prev => ({
       ...prev,
-      ...newFilters
+      ...updatedFilters
     }));
     
-    setFilters(newFilters);
-  }, [setFilters]);
+    setFilters(updatedFilters);
+    
+    setTimeout(() => {
+      isUpdatingFilters.current = false;
+    }, 100);
+  }, [setFilters, countryId]);
 
   return (
     <div className="container py-8">
