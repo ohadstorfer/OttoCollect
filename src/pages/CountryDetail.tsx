@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { Banknote, DetailedBanknote } from "@/types";
-import { fetchBanknotes } from "@/services/banknoteService";
+import { fetchBanknotesByCountryId } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -45,23 +45,8 @@ const CountryDetail = () => {
         
         // Fetch banknotes
         setLoading(true);
-        const banknotesData = await fetchBanknotes();
-        
-        // Filter banknotes for this country
-        const countryBanknotes = banknotesData.filter(
-          banknote => banknote.country === decodedCountryName
-        );
-        
-        // Add category and type IDs to banknotes for filtering
-        const enhancedBanknotes = countryBanknotes.map(banknote => ({
-          ...banknote,
-          // These will be populated from the database eventually
-          // Currently using the name to connect to database values
-          categoryId: banknote.series,
-          typeId: banknote.type || "Issued Notes"
-        }));
-        
-        setBanknotes(enhancedBanknotes);
+        const banknotesData = await fetchBanknotesByCountryId(countryData.id);
+        setBanknotes(banknotesData);
         
       } catch (error) {
         console.error("Error loading data:", error);
@@ -117,10 +102,10 @@ const CountryDetail = () => {
   };
 
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
-    setCurrentFilters({
-      ...currentFilters,
+    setCurrentFilters(prev => ({
+      ...prev,
       ...newFilters
-    });
+    }));
     setFilters(newFilters);
   };
 

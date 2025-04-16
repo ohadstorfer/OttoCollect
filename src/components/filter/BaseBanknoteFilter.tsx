@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
   const [selectedSort, setSelectedSort] = useState<string[]>(currentFilters.sort || []);
 
+  // When the currentFilters prop changes, update local state
   useEffect(() => {
     setSearch(currentFilters.search || "");
     setSelectedCategories(currentFilters.categories || []);
@@ -59,6 +61,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     setSelectedSort(currentFilters.sort || []);
   }, [currentFilters]);
 
+  // Create a debounced search handler
   const debouncedSearch = debounce((value: string) => {
     handleFilterChange({ search: value });
   }, 300);
@@ -77,6 +80,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     let newCategories: string[];
+    
     if (categoryId === "all") {
       newCategories = checked ? categories.map(c => c.id) : [];
     } else {
@@ -91,6 +95,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
   const handleTypeChange = (typeId: string, checked: boolean) => {
     let newTypes: string[];
+    
     if (typeId === "all") {
       newTypes = checked ? types.map(t => t.id) : [];
     } else {
@@ -109,16 +114,27 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     
     const fieldName = sortOption.fieldName;
     
+    // Get required sort fields that should always be included
     const requiredSortFields = sortOptions
       .filter(option => option.isRequired)
       .map(option => option.fieldName)
       .filter(Boolean) as string[];
     
     let newSort: string[];
+    
     if (checked) {
-      newSort = [...selectedSort.filter(field => !requiredSortFields.includes(field) && field !== fieldName), fieldName, ...requiredSortFields];
+      // Add the field while preserving required fields
+      newSort = [
+        ...selectedSort.filter(field => !requiredSortFields.includes(field) && field !== fieldName),
+        fieldName, 
+        ...requiredSortFields
+      ];
     } else {
-      newSort = selectedSort.filter(field => field !== fieldName && !requiredSortFields.includes(field)).concat(requiredSortFields);
+      // Remove the field while preserving required fields
+      newSort = [
+        ...selectedSort.filter(field => field !== fieldName && !requiredSortFields.includes(field)),
+        ...requiredSortFields
+      ];
     }
     
     setSelectedSort(newSort);
@@ -131,6 +147,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     debouncedSearch(value);
   };
 
+  // Check if all categories or types are selected
   const allCategoriesSelected = categories.length > 0 && 
     categories.every(category => selectedCategories.includes(category.id));
     
@@ -154,19 +171,28 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
+        <Sheet 
+          open={isCategorySheetOpen} 
+          onOpenChange={(open) => {
+            // Only set state if it's actually changing
+            if (open !== isCategorySheetOpen) {
+              setIsCategorySheetOpen(open);
+            }
+          }}
+        >
           <SheetTrigger asChild>
             <Button 
               variant="outline" 
               className="w-full justify-between"
-              onClick={() => {
-                setIsCategorySheetOpen(true);
-              }}
+              disabled={isLoading}
             >
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 <span>{isMobile ? "Types" : "Category & Types"}</span>
               </div>
+              {isLoading && (
+                <span className="animate-spin ml-2">⊚</span>
+              )}
             </Button>
           </SheetTrigger>
           <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
@@ -239,19 +265,28 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
           </SheetContent>
         </Sheet>
 
-        <Sheet open={isSortSheetOpen} onOpenChange={setIsSortSheetOpen}>
+        <Sheet 
+          open={isSortSheetOpen} 
+          onOpenChange={(open) => {
+            // Only set state if it's actually changing
+            if (open !== isSortSheetOpen) {
+              setIsSortSheetOpen(open);
+            }
+          }}
+        >
           <SheetTrigger asChild>
             <Button 
               variant="outline" 
               className="w-full justify-between"
-              onClick={() => {
-                setIsSortSheetOpen(true);
-              }}
+              disabled={isLoading}
             >
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 <span>Sort</span>
               </div>
+              {isLoading && (
+                <span className="animate-spin ml-2">⊚</span>
+              )}
             </Button>
           </SheetTrigger>
           <SheetContent side={isMobile ? "bottom" : "right"} className="w-full sm:max-w-md">

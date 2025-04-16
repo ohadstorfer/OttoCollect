@@ -210,8 +210,9 @@ function transformDetailedToBanknote(detailed: any): Banknote {
     createdAt: detailed.created_at || new Date().toISOString(),
     updatedAt: detailed.updated_at || new Date().toISOString(),
     createdBy: detailed.created_by || 'system',
-    rarity: detailed.rarity || '',  // Add rarity field to fix CountryDetail errors
-    // Category and type IDs will be added by fetchBanknotesByCountryId when needed
+    rarity: detailed.rarity || '',
+    categoryId: '',  // Will be populated later if needed
+    typeId: '',      // Will be populated later if needed
   };
 }
 
@@ -226,7 +227,7 @@ function transformToDetailedBanknote(data: any): DetailedBanknote {
     turkCatalogNumber: data.turk_catalog_number,
     islamicYear: data.islamic_year,
     gregorianYear: data.gregorian_year,
-    faceValue: data.face_value,
+    denomination: data.face_value, // Match with banknote property
     signaturesFront: data.signatures_front,
     signaturesBack: data.signatures_back,
     sealNames: data.seal_names,
@@ -247,7 +248,7 @@ function transformToDetailedBanknote(data: any): DetailedBanknote {
     serialNumbering: data.serial_numbering,
     banknoteDescription: data.banknote_description,
     historicalDescription: data.historical_description,
-    gradeCounts: {},  // This would need to be populated if needed
-    averagePrice: null // This would need to be calculated if needed
+    gradeCounts: {},
+    averagePrice: null
   };
 }

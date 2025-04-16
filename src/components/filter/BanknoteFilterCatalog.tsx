@@ -32,12 +32,14 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
       
       setLoading(true);
       try {
+        // Fetch categories, types and sort options in parallel
         const [categoriesData, typesData, sortOptionsData] = await Promise.all([
           fetchCategoriesByCountryId(countryId),
           fetchTypesByCountryId(countryId),
           fetchSortOptionsByCountryId(countryId)
         ]);
         
+        // Map data to FilterOption format
         setCategories(categoriesData.map(cat => ({
           id: cat.id,
           name: cat.name,

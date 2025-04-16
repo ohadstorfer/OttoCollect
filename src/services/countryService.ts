@@ -121,8 +121,12 @@ export async function fetchSortOptionsByCountryId(countryId: string): Promise<So
   }
 }
 
-export async function fetchUserFilterPreferences(userId: string, countryId: string): Promise<UserFilterPreference | null> {
-  if (!userId) return null;
+export async function fetchUserFilterPreferences(userId: string | undefined, countryId: string): Promise<UserFilterPreference | null> {
+  // Don't try to fetch preferences if no user ID
+  if (!userId) {
+    console.log("No user ID provided for filter preferences");
+    return null;
+  }
   
   try {
     const { data, error } = await supabase
@@ -130,14 +134,14 @@ export async function fetchUserFilterPreferences(userId: string, countryId: stri
       .select('*')
       .eq('user_id', userId)
       .eq('country_id', countryId)
-      .single();
+      .maybeSingle();
     
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
+    if (error) {
       console.error("Error fetching user filter preferences:", error);
-      throw error;
+      return null;
     }
     
-    return data || null;
+    return data;
   } catch (error) {
     console.error(`Error fetching filter preferences for user ${userId} and country ${countryId}:`, error);
     return null;
@@ -145,13 +149,16 @@ export async function fetchUserFilterPreferences(userId: string, countryId: stri
 }
 
 export async function saveUserFilterPreferences(
-  userId: string, 
+  userId: string | undefined, 
   countryId: string, 
   selectedCategories: string[],
   selectedTypes: string[],
   selectedSortOptions: string[]
 ): Promise<void> {
-  if (!userId) return;
+  if (!userId) {
+    console.log("No user ID provided, not saving filter preferences");
+    return;
+  }
   
   try {
     const existingPrefs = await fetchUserFilterPreferences(userId, countryId);
@@ -170,7 +177,6 @@ export async function saveUserFilterPreferences(
       
       if (error) {
         console.error("Error updating user filter preferences:", error);
-        throw error;
       }
     } else {
       // Create new preferences
@@ -186,7 +192,6 @@ export async function saveUserFilterPreferences(
       
       if (error) {
         console.error("Error creating user filter preferences:", error);
-        throw error;
       }
     }
   } catch (error) {

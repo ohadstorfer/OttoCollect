@@ -70,4 +70,5 @@ export interface FilterableItem {
   id: string;
   // Properties used for filtering and display
   banknote?: any; // The actual banknote data
+  createdAt?: string | Date;
 }

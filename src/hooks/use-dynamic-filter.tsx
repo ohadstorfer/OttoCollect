@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { DynamicFilterState, FilterableItem } from "@/types/filter";
@@ -37,6 +38,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
 }: UseDynamicFilterProps<T>): UseDynamicFilterResult<T> => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const userId = user?.id;
   
   // Determine default sort options
   const defaultSortFields = useMemo(() => {
@@ -56,78 +58,106 @@ export const useDynamicFilter = <T extends FilterableItem>({
   // Load user preferences
   useEffect(() => {
     const loadUserPreferences = async () => {
-      if (user && countryId) {
-        try {
-          setIsLoading(true);
-          const prefs = await fetchUserFilterPreferences(user.id, countryId);
+      if (!countryId) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        
+        // Set default values first (will be overridden by user preferences if they exist)
+        const defaultCategoryIds = categories.map(cat => cat.id);
+        const defaultTypeIds = types
+          .filter(type => type.name.toLowerCase().includes('issued'))
+          .map(type => type.id);
           
-          if (prefs) {
-            // Map IDs to field names for sort options
-            const sortFieldNames = prefs.selected_sort_options.map(sortId => {
+        const requiredSortFields = sortOptions
+          .filter(option => option.is_required)
+          .map(option => option.field_name);
+          
+        // Try to load user preferences
+        let userPrefs = null;
+        if (userId) {
+          userPrefs = await fetchUserFilterPreferences(userId, countryId);
+        }
+        
+        if (userPrefs) {
+          // Map IDs to field names for sort options
+          const sortFieldNames = userPrefs.selected_sort_options
+            .map(sortId => {
               const option = sortOptions.find(opt => opt.id === sortId);
               return option ? option.field_name : null;
-            }).filter(Boolean) as string[];
-            
-            // Ensure required sort fields are included
-            const requiredSortFields = sortOptions
-              .filter(option => option.is_required)
-              .map(option => option.field_name);
-              
-            const finalSortFields = [...new Set([...sortFieldNames, ...requiredSortFields])];
-            
-            setFiltersState(prev => ({
-              ...prev,
-              categories: prefs.selected_categories,
-              types: prefs.selected_types,
-              sort: finalSortFields
-            }));
-          } else {
-            // Set defaults if no preferences found
-            const defaultCategoryIds = categories.map(cat => cat.id);
-            const defaultTypeIds = types
-              .filter(type => type.name.toLowerCase().includes('issued'))
-              .map(type => type.id);
-              
-            setFiltersState(prev => ({
-              ...prev,
-              categories: defaultCategoryIds,
-              types: defaultTypeIds.length > 0 ? defaultTypeIds : types.map(t => t.id),
-              sort: defaultSortFields
-            }));
-          }
-        } catch (error) {
-          console.error("Error loading user preferences:", error);
-        } finally {
-          setIsLoading(false);
+            })
+            .filter(Boolean) as string[];
+          
+          // Ensure required sort fields are included
+          const finalSortFields = [...new Set([...sortFieldNames, ...requiredSortFields])];
+          
+          setFiltersState(prev => ({
+            ...prev,
+            categories: userPrefs.selected_categories.length > 0 ? userPrefs.selected_categories : defaultCategoryIds,
+            types: userPrefs.selected_types.length > 0 ? userPrefs.selected_types : defaultTypeIds,
+            sort: finalSortFields.length > 0 ? finalSortFields : requiredSortFields
+          }));
+        } else {
+          // Set defaults if no preferences found
+          setFiltersState(prev => ({
+            ...prev,
+            categories: defaultCategoryIds,
+            types: defaultTypeIds.length > 0 ? defaultTypeIds : types.map(t => t.id),
+            sort: requiredSortFields
+          }));
         }
-      } else {
+      } catch (error) {
+        console.error("Error loading user preferences:", error);
+        
+        // Set default values in case of error
+        const defaultCategoryIds = categories.map(cat => cat.id);
+        const defaultTypeIds = types
+          .filter(type => type.name.toLowerCase().includes('issued'))
+          .map(type => type.id);
+          
+        setFiltersState(prev => ({
+          ...prev,
+          categories: defaultCategoryIds,
+          types: defaultTypeIds.length > 0 ? defaultTypeIds : types.map(t => t.id),
+          sort: defaultSortFields
+        }));
+      } finally {
         setIsLoading(false);
       }
     };
 
     loadUserPreferences();
-  }, [user, countryId, categories, types, sortOptions, defaultSortFields]);
+  }, [userId, countryId, categories, types, sortOptions, defaultSortFields]);
 
-  // Handle filter changes
+  // Handle filter changes with debouncing
   const setFilters = async (changes: Partial<DynamicFilterState>) => {
     const newFilters = { ...filters, ...changes };
     setFiltersState(newFilters);
 
-    // Save user preferences when filters change
-    if (user && countryId) {
-      // Map sort field names back to IDs
-      const sortOptionIds = newFilters.sort.map(fieldName => {
-        const option = sortOptions.find(opt => opt.field_name === fieldName);
-        return option ? option.id : null;
-      }).filter(Boolean) as string[];
-      
-      await saveUserFilterPreferences(
-        user.id,
-        countryId,
-        newFilters.categories,
-        newFilters.types,
-        sortOptionIds
-      );
+    // Save user preferences when filters change (only if user is logged in)
+    if (userId && countryId && !isLoading) {
+      try {
+        // Map sort field names back to IDs
+        const sortOptionIds = newFilters.sort
+          .map(fieldName => {
+            const option = sortOptions.find(opt => opt.field_name === fieldName);
+            return option ? option.id : null;
+          })
+          .filter(Boolean) as string[];
+        
+        await saveUserFilterPreferences(
+          userId,
+          countryId,
+          newFilters.categories,
+          newFilters.types,
+          sortOptionIds
+        );
+      } catch (error) {
+        console.error("Error saving filter preferences:", error);
+      }
     }
   };
 
@@ -145,15 +175,15 @@ export const useDynamicFilter = <T extends FilterableItem>({
     if (isLoading) return [];
     
     // When no filters are selected, show all items
-    const noCategories = filters.categories.length === 0;
-    const noTypes = filters.types.length === 0;
+    const noCategories = !filters.categories || filters.categories.length === 0;
+    const noTypes = !filters.types || filters.types.length === 0;
     
     const filtered = items.filter((item) => {
       const banknote = getBanknote(item);
       if (!banknote) return false;
 
       // Search filter
-      const searchLower = filters.search.toLowerCase();
+      const searchLower = filters.search?.toLowerCase() || "";
       const matchesSearch = !filters.search || Object.values(banknote)
         .some(value => 
           typeof value === 'string' && 
@@ -162,16 +192,16 @@ export const useDynamicFilter = <T extends FilterableItem>({
 
       // Category filter - match by category ID
       const matchesCategory = noCategories || 
-        filters.categories.includes(banknote.categoryId) ||
-        (banknote.series && filters.categories.some(catId => {
+        (filters.categories && filters.categories.includes(banknote.categoryId)) ||
+        (banknote.series && filters.categories && filters.categories.some(catId => {
           const category = categories.find(c => c.id === catId);
           return category && banknote.series === category.name;
         }));
       
       // Type filter - match by type ID
       const matchesType = noTypes || 
-        filters.types.includes(banknote.typeId) ||
-        (banknote.type && filters.types.some(typeId => {
+        (filters.types && filters.types.includes(banknote.typeId)) ||
+        (banknote.type && filters.types && filters.types.some(typeId => {
           const typeDefinition = types.find(t => t.id === typeId);
           return typeDefinition && normalizeType(banknote.type) === normalizeType(typeDefinition.name);
         }));
@@ -187,7 +217,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
       if (!banknoteA || !banknoteB) return 0;
       
       // Apply sorting based on selected criteria
-      for (const fieldName of filters.sort) {
+      for (const fieldName of filters.sort || []) {
         let comparison = 0;
 
         switch (fieldName) {
@@ -197,8 +227,8 @@ export const useDynamicFilter = <T extends FilterableItem>({
             break;
 
           case "faceValue":
-            const valueA = banknoteA.denomination || "";
-            const valueB = banknoteB.denomination || "";
+            const valueA = banknoteA.denomination || banknoteA.face_value || "";
+            const valueB = banknoteB.denomination || banknoteB.face_value || "";
             const isKurushA = valueA.toLowerCase().includes("kurush");
             const isKurushB = valueB.toLowerCase().includes("kurush");
             const isLiraA = valueA.toLowerCase().includes("lira");
@@ -220,8 +250,8 @@ export const useDynamicFilter = <T extends FilterableItem>({
             
           case "newest":
             if ('createdAt' in a && 'createdAt' in b) {
-              const dateA = new Date((a.createdAt as string) || "").getTime();
-              const dateB = new Date((b.createdAt as string) || "").getTime();
+              const dateA = new Date(String(a.createdAt)).getTime();
+              const dateB = new Date(String(b.createdAt)).getTime();
               comparison = dateB - dateA;
             }
             break;
@@ -238,7 +268,9 @@ export const useDynamicFilter = <T extends FilterableItem>({
 
   // Group items by category and optionally by sultan within category
   const groupedItems = useMemo(() => {
-    const sortBySultan = filters.sort.includes("sultan");
+    if (isLoading) return [];
+    
+    const sortBySultan = filters.sort?.includes("sultan") || false;
     const groups: GroupItem<T>[] = [];
     
     // Associate categories with their IDs for lookup
@@ -311,7 +343,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
       });
     
     return groups;
-  }, [filteredItems, filters.sort, categories]);
+  }, [filteredItems, filters.sort, categories, isLoading]);
 
   return {
     filteredItems,
