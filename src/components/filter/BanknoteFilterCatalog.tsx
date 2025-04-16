@@ -3,7 +3,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
-import { fetchCategoriesByCountryId, fetchTypesByCountryId, fetchSortOptionsByCountryId } from "@/services/countryService";
+import { fetchCategoriesByCountryId, fetchTypesByCountryId, fetchSortOptionsByCountryId, saveUserFilterPreferences } from "@/services/countryService";
+import { Button } from "@/components/ui/button";
+import { Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface BanknoteFilterCatalogProps {
   countryId: string;
@@ -20,17 +23,30 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   isLoading = false,
   className,
 }) => {
+  const { toast } = useToast();
   const { user } = useAuth();
   const [categories, setCategories] = useState<FilterOption[]>([]);
   const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasInitializedFilters, setHasInitializedFilters] = useState(false);
+  const [temporaryFilters, setTemporaryFilters] = useState<DynamicFilterState | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  
   const isMounted = useRef(true);
   const previousCountryId = useRef<string | null>(null);
-  
-  // Track if a filter change is in progress to prevent infinite loops
   const isFilterChangeInProgress = useRef(false);
+
+  console.log("BanknoteFilterCatalog: Rendering with", { 
+    countryId, 
+    currentFilters,
+    temporaryFilters,
+    isLoading, 
+    loading,
+    categories: categories.length,
+    types: types.length,
+    sortOptions: sortOptions.length
+  });
 
   // Clean up on unmount
   useEffect(() => {
@@ -142,6 +158,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
               country_id: countryId // Ensure country_id is set
             };
             
+            setTemporaryFilters(updatedFilters as DynamicFilterState);
             onFilterChange(updatedFilters);
             
             setTimeout(() => {
@@ -163,7 +180,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     loadFilterOptions();
   }, [countryId, currentFilters, hasInitializedFilters, onFilterChange]);
 
-  // Filter change handler
+  // Filter change handler - now this just updates the UI without saving to database
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
     if (isFilterChangeInProgress.current) {
       console.log("BanknoteFilterCatalog: Skipping filter change due to another change in progress");
@@ -180,6 +197,15 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
       country_id: countryId
     };
     
+    // Store the current filters locally for the save button
+    if (filtersWithCountryId) {
+      setTemporaryFilters(prev => ({
+        ...prev,
+        ...filtersWithCountryId
+      } as DynamicFilterState));
+    }
+    
+    // Pass changes to parent component
     onFilterChange(filtersWithCountryId);
     
     setTimeout(() => {
@@ -187,15 +213,89 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     }, 100);
   };
 
+  // Save filter preferences to the database
+  const handleSaveFilters = async () => {
+    if (!user?.id || !countryId) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save filter preferences.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      console.log("BanknoteFilterCatalog: Saving filter preferences to database", currentFilters);
+
+      // Map sort field names back to IDs
+      const sortOptionIds = currentFilters.sort
+        .map(fieldName => {
+          const option = sortOptions.find(opt => opt.fieldName === fieldName);
+          return option ? option.id : null;
+        })
+        .filter(Boolean) as string[];
+      
+      const success = await saveUserFilterPreferences(
+        user.id,
+        countryId,
+        currentFilters.categories || [],
+        currentFilters.types || [],
+        sortOptionIds
+      );
+      
+      if (success) {
+        toast({
+          title: "Success",
+          description: "Filter preferences saved successfully.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save filter preferences.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving filter preferences:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save filter preferences.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <BaseBanknoteFilter
-      categories={categories}
-      types={types}
-      sortOptions={sortOptions}
-      onFilterChange={handleFilterChange}
-      currentFilters={currentFilters}
-      isLoading={isLoading || loading}
-      className={className}
-    />
+    <div className="space-y-4">
+      <BaseBanknoteFilter
+        categories={categories}
+        types={types}
+        sortOptions={sortOptions}
+        onFilterChange={handleFilterChange}
+        currentFilters={currentFilters}
+        isLoading={isLoading || loading}
+        className={className}
+      />
+      
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleSaveFilters} 
+          disabled={isLoading || loading || isSaving}
+          className="bg-ottoman-600 hover:bg-ottoman-700"
+        >
+          {isSaving ? (
+            <>Saving...</>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Save Filter Preferences
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
   );
 };

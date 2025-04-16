@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
@@ -48,13 +49,15 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   
+  // Local state for user selections
   const [search, setSearch] = useState(currentFilters.search || "");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
   const [selectedSort, setSelectedSort] = useState<string[]>(currentFilters.sort || []);
-
-  const isApplyingChanges = useRef(false);
-  const prevFilters = useRef<DynamicFilterState | null>(null);
+  
+  // Used to track local changes vs. external changes
+  const isLocalChange = useRef(false);
+  const prevFiltersRef = useRef<DynamicFilterState | null>(null);
 
   console.log("BaseBanknoteFilter: Render with props", { 
     categories: categories.length, 
@@ -64,22 +67,34 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     localState: { search, selectedCategories, selectedTypes, selectedSort }
   });
 
+  // Sync from external state only if it's different and not in the middle of a local change
   useEffect(() => {
-    if (isApplyingChanges.current) {
+    if (isLocalChange.current) {
       console.log("BaseBanknoteFilter: Skipping sync due to local changes being applied");
       return;
     }
     
-    if (
-      prevFilters.current && 
-      JSON.stringify(prevFilters.current) === JSON.stringify(currentFilters)
-    ) {
+    const currentFilterStr = JSON.stringify({
+      search: currentFilters.search,
+      categories: currentFilters.categories,
+      types: currentFilters.types,
+      sort: currentFilters.sort
+    });
+    
+    const prevFiltersStr = prevFiltersRef.current ? JSON.stringify({
+      search: prevFiltersRef.current.search,
+      categories: prevFiltersRef.current.categories,
+      types: prevFiltersRef.current.types,
+      sort: prevFiltersRef.current.sort
+    }) : null;
+    
+    if (prevFiltersStr === currentFilterStr) {
       console.log("BaseBanknoteFilter: Skipping sync, no changes detected");
       return;
     }
 
     console.log("BaseBanknoteFilter: Syncing local state with currentFilters", currentFilters);
-    prevFilters.current = { ...currentFilters };
+    prevFiltersRef.current = { ...currentFilters };
     
     setSearch(currentFilters.search || "");
     setSelectedCategories(currentFilters.categories || []);
@@ -95,16 +110,19 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     [onFilterChange]
   );
 
+  // Notify parent component of filter changes
   const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
     console.log("BaseBanknoteFilter: Local filter change:", changes);
     
-    isApplyingChanges.current = true;
+    isLocalChange.current = true;
     
+    // Update local state
     if (changes.search !== undefined) setSearch(changes.search);
     if (changes.categories !== undefined) setSelectedCategories(changes.categories);
     if (changes.types !== undefined) setSelectedTypes(changes.types);
     if (changes.sort !== undefined) setSelectedSort(changes.sort);
     
+    // Create a complete filter state with current local values + changes
     const newFilters = {
       search: changes.search !== undefined ? changes.search : search,
       categories: changes.categories !== undefined ? changes.categories : selectedCategories,
@@ -113,13 +131,16 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       country_id: currentFilters.country_id
     };
     
-    prevFilters.current = { ...newFilters };
+    // Update the prevFiltersRef to avoid unnecessary syncs
+    prevFiltersRef.current = { ...newFilters };
     
+    // Notify parent of changes
     onFilterChange(newFilters);
     
+    // Reset the local change flag after a short delay
     setTimeout(() => {
-      isApplyingChanges.current = false;
-    }, 100);
+      isLocalChange.current = false;
+    }, 200);
   };
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
@@ -164,25 +185,37 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     
     const fieldName = sortOption.fieldName;
     
+    // Get required sort fields
     const requiredSortFields = sortOptions
       .filter(option => option.isRequired)
       .map(option => option.fieldName)
       .filter(Boolean) as string[];
     
+    // Create new sort array
     let newSort: string[];
     
     if (checked) {
-      newSort = [
-        ...selectedSort.filter(field => !requiredSortFields.includes(field) && field !== fieldName),
-        fieldName, 
-        ...requiredSortFields
-      ];
+      // If checked, add this field (if not already present)
+      if (!selectedSort.includes(fieldName)) {
+        newSort = [...selectedSort, fieldName];
+      } else {
+        newSort = [...selectedSort]; // Keep as is
+      }
     } else {
-      newSort = [
-        ...selectedSort.filter(field => field !== fieldName && !requiredSortFields.includes(field)),
-        ...requiredSortFields
-      ];
+      // If unchecked, remove this field (unless required)
+      if (!requiredSortFields.includes(fieldName)) {
+        newSort = selectedSort.filter(field => field !== fieldName);
+      } else {
+        newSort = [...selectedSort]; // Keep as is for required fields
+      }
     }
+    
+    // Ensure required fields are always included
+    requiredSortFields.forEach(reqField => {
+      if (!newSort.includes(reqField)) {
+        newSort.push(reqField);
+      }
+    });
     
     console.log("BaseBanknoteFilter: New sort:", newSort);
     handleFilterChange({ sort: newSort });
@@ -195,6 +228,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     debouncedSearch(value);
   };
 
+  // Apply current local filter state
   const applyFilters = () => {
     console.log("BaseBanknoteFilter: Applying all filters explicitly");
     handleFilterChange({
@@ -368,7 +402,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
               })}
               <SheetClose asChild className="mt-4">
                 <Button 
-                  className="w-full"
+                  className="w-full mt-4"
                   onClick={applyFilters}
                 >
                   Apply Sort

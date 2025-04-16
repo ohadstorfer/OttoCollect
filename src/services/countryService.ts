@@ -28,6 +28,16 @@ export function clearServiceCache() {
   console.log("countryService: Cache cleared");
 }
 
+// Clear a specific cache entry
+export function clearCacheItem(key: string) {
+  if (apiCache.has(key)) {
+    apiCache.delete(key);
+    console.log(`countryService: Cleared cache for ${key}`);
+    return true;
+  }
+  return false;
+}
+
 export async function fetchCountries(): Promise<Country[]> {
   const cacheKey = 'countries';
   
@@ -237,6 +247,7 @@ export async function fetchUserFilterPreferences(userId: string | undefined, cou
   });
 }
 
+// Save user filter preferences explicitly
 export async function saveUserFilterPreferences(
   userId: string | undefined, 
   countryId: string, 
@@ -250,7 +261,7 @@ export async function saveUserFilterPreferences(
   }
   
   try {
-    // Clear cache for this user-country combination
+    // Clear cache for this user-country combination to ensure fresh data next time
     const cacheKey = `user-filter-preferences-${userId}-${countryId}`;
     apiCache.delete(cacheKey);
     

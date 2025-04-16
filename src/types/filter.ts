@@ -72,3 +72,13 @@ export interface FilterableItem {
   banknote?: any; // The actual banknote data
   createdAt?: string | Date;
 }
+
+// Define user rank type for TypeScript
+export type UserRank = 
+  | "Newbie" 
+  | "Beginner" 
+  | "Collector" 
+  | "Advanced" 
+  | "Expert" 
+  | "Master" 
+  | "Grandmaster";

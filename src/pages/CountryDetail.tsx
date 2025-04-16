@@ -27,6 +27,7 @@ const CountryDetail = () => {
   
   // Track if we're currently updating filters
   const isUpdatingFilters = useRef(false);
+  const isFirstRender = useRef(true);
   
   console.log("CountryDetail: Rendering with", { 
     country: decodedCountryName, 
@@ -92,10 +93,10 @@ const CountryDetail = () => {
     categories: [],
     types: [],
     sort: ["extPick"],
-    country_id: countryId
+    country_id: ""
   });
 
-  // Update country_id when it changes
+  // Sync countryId to filters when it changes
   useEffect(() => {
     if (countryId && !isUpdatingFilters.current) {
       console.log("CountryDetail: Updating country_id in filters", countryId);
@@ -110,11 +111,14 @@ const CountryDetail = () => {
         isUpdatingFilters.current = false;
       }, 100);
       
-      setHasInitialized(true);
+      if (!isFirstRender.current) {
+        setHasInitialized(true);
+      }
+      isFirstRender.current = false;
     }
   }, [countryId]);
 
-  // Use the dynamic filter hook with memoized props
+  // Use the dynamic filter hook
   const { 
     filteredItems: filteredBanknotes,
     filters,
@@ -152,7 +156,7 @@ const CountryDetail = () => {
     
     isUpdatingFilters.current = true;
     
-    // Always ensure country_id is set correctly
+    // Preserve countryId in filters
     const updatedFilters = {
       ...newFilters,
       country_id: countryId // Make sure country_id is always set correctly

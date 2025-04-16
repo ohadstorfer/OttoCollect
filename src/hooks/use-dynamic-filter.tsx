@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { DynamicFilterState, FilterableItem } from "@/types/filter";
-import { fetchUserFilterPreferences, saveUserFilterPreferences } from "@/services/countryService";
+import { fetchUserFilterPreferences } from "@/services/countryService";
 
 interface UseDynamicFilterProps<T extends FilterableItem> {
   items: T[];
@@ -206,8 +206,8 @@ export const useDynamicFilter = <T extends FilterableItem>({
     loadUserPreferences();
   }, [userId, countryId, categories, types, sortOptions, defaultSortFields, filters]);
 
-  // Handle filter changes with debouncing
-  const setFilters = useCallback(async (changes: Partial<DynamicFilterState>) => {
+  // Handle filter changes 
+  const setFilters = useCallback((changes: Partial<DynamicFilterState>) => {
     if (isUpdatingFilters.current) {
       console.log("useDynamicFilter: setFilters skipped - update already in progress");
       return;
@@ -233,44 +233,12 @@ export const useDynamicFilter = <T extends FilterableItem>({
     setFiltersState(newFilters);
     filtersRef.current = newFilters;
 
-    // Save user preferences when filters change (only if user is logged in)
-    if (userId && countryId && !isLoading) {
-      try {
-        console.log("useDynamicFilter: Saving user preferences");
-        
-        // Map sort field names back to IDs
-        const sortOptionIds = newFilters.sort
-          .map(fieldName => {
-            const option = sortOptions.find(opt => opt.field_name === fieldName);
-            return option ? option.id : null;
-          })
-          .filter(Boolean) as string[];
-        
-        const success = await saveUserFilterPreferences(
-          userId,
-          countryId,
-          newFilters.categories,
-          newFilters.types,
-          sortOptionIds
-        );
-        
-        if (success) {
-          console.log("useDynamicFilter: User preferences saved successfully");
-        } else {
-          console.warn("useDynamicFilter: Error saving user preferences");
-        }
-      } catch (error) {
-        console.error("useDynamicFilter: Error saving filter preferences", error);
-        // Continue even if save fails
-      }
-    } else {
-      console.log("useDynamicFilter: Not saving preferences", { userId, countryId, isLoading });
-    }
+    // No longer saving preferences here - that's done via the Save button
     
     setTimeout(() => {
       isUpdatingFilters.current = false;
     }, 100);
-  }, [filters, userId, countryId, isLoading, sortOptions]);
+  }, [filters, countryId]);
 
   // Extract banknote from item
   const getBanknote = useCallback((item: T): any => {
@@ -303,7 +271,6 @@ export const useDynamicFilter = <T extends FilterableItem>({
     
     console.log("useDynamicFilter: Filter status", { noCategories, noTypes });
     
-    // ... keep existing code (the filtering logic)
     const filtered = items.filter((item) => {
       const banknote = getBanknote(item);
       if (!banknote) {
@@ -344,8 +311,6 @@ export const useDynamicFilter = <T extends FilterableItem>({
       after: filtered.length 
     });
     
-    // Sort the filtered items
-    // ... keep existing code (the sorting logic)
     const sorted = [...filtered].sort((a, b) => {
       const banknoteA = getBanknote(a);
       const banknoteB = getBanknote(b);
