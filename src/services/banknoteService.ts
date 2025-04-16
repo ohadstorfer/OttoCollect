@@ -1,7 +1,5 @@
-
-import { supabase } from "@/integrations/supabase/client";
-import { Banknote, DetailedBanknote } from "@/types";
-import { fetchCategoriesByCountryId, fetchTypesByCountryId } from "./countryService";
+import { supabase } from '@/integrations/supabase/client';
+import { Banknote, DetailedBanknote } from '@/types';
 
 export async function fetchBanknotes(): Promise<Banknote[]> {
   try {
@@ -252,3 +250,60 @@ function transformToDetailedBanknote(data: any): DetailedBanknote {
     averagePrice: null
   };
 }
+
+export const mapBanknoteFromSupabase = (rawData: any): DetailedBanknote => {
+  const basicBanknote: Banknote = {
+    id: rawData.id,
+    country: rawData.country || '',
+    denomination: rawData.face_value || '',
+    year: rawData.gregorian_year || rawData.islamic_year || '',
+    imageUrls: [
+      rawData.front_picture, 
+      rawData.back_picture
+    ].filter(Boolean),
+    isApproved: rawData.is_approved === true,
+    isPending: rawData.is_pending === true,
+    catalogNumber: rawData.pick_number || rawData.turk_catalog_number || '',
+    description: rawData.banknote_description || '',
+    category: rawData.category || '',
+    type: rawData.type || '',
+  };
+  
+  return {
+    ...basicBanknote,
+    pickNumber: rawData.pick_number || '',
+    extendedPickNumber: rawData.extended_pick_number || '',
+    turkCatalogNumber: rawData.turk_catalog_number || '',
+    faceValue: rawData.face_value || '',
+    description: rawData.banknote_description || '',
+    createdAt: rawData.created_at || '',
+    updatedAt: rawData.updated_at || '',
+    gregorianYear: rawData.gregorian_year || '',
+    islamicYear: rawData.islamic_year || '',
+    sultans: rawData.sultan_name ? [rawData.sultan_name] : [],
+    sultanName: rawData.sultan_name || '',
+    islandscapeLayout: false,
+    rarity: rawData.rarity || '',
+    historicalDescription: rawData.historical_description || '',
+    frontDescription: rawData.banknote_description || '',
+    backDescription: '',
+    frontImage: rawData.front_picture || '',
+    backImage: rawData.back_picture || '',
+    serialNumbering: rawData.serial_numbering || '',
+    sealNames: rawData.seal_names || '',
+    signaturesFront: rawData.signatures_front || '',
+    signaturesBack: rawData.signatures_back || '',
+    colors: rawData.colors || '',
+    watermark: rawData.watermark_picture || '',
+    securityElement: rawData.security_element || '',
+    printer: rawData.printer || '',
+    category: rawData.category || '',
+    type: rawData.type || '',
+    tughraImage: rawData.tughra_picture || '',
+    seal_pictures: rawData.seal_pictures || [],
+    signature_pictures: rawData.signature_pictures || [],
+    other_element_pictures: rawData.other_element_pictures || [],
+    gradeCounts: {},
+    averagePrice: 0,
+  };
+};

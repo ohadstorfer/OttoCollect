@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
 import { fetchCategoriesByCountryId, fetchTypesByCountryId, fetchSortOptionsByCountryId } from "@/services/countryService";
+import { useToast } from "@/hooks/use-toast";
 
 interface BanknoteFilterCollectionProps {
   countryId?: string;
@@ -10,9 +12,9 @@ interface BanknoteFilterCollectionProps {
   currentFilters: DynamicFilterState;
   isLoading?: boolean;
   className?: string;
-  // Additional collection-specific props can be added here
-  collectionCategories?: { id: string; name: string; count: number }[];
-  collectionTypes?: { id: string; name: string; count: number }[];
+  // Additional collection-specific props
+  collectionCategories?: { id: string; name: string; count?: number }[];
+  collectionTypes?: { id: string; name: string; count?: number }[];
 }
 
 export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> = ({
@@ -24,17 +26,36 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   collectionCategories = [],
   collectionTypes = [],
 }) => {
+  const { toast } = useToast();
   const { user } = useAuth();
-  const [categories, setCategories] = useState<FilterOption[]>(collectionCategories);
-  const [types, setTypes] = useState<FilterOption[]>(collectionTypes);
+  const [categories, setCategories] = useState<FilterOption[]>([]);
+  const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  console.log("BanknoteFilterCollection: Rendering with", {
+    countryId,
+    currentFilters,
+    collectionCategories: collectionCategories.length,
+    collectionTypes: collectionTypes.length
+  });
 
   useEffect(() => {
     // If no countryId provided, use the collection categories and types directly
     if (!countryId) {
-      setCategories(collectionCategories);
-      setTypes(collectionTypes);
+      console.log("BanknoteFilterCollection: Using provided collection categories and types");
+      setCategories(collectionCategories.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        count: cat.count
+      })));
+      
+      setTypes(collectionTypes.map(type => ({
+        id: type.id,
+        name: type.name,
+        count: type.count
+      })));
       
       // Set default sort options for collection
       setSortOptions([
@@ -52,6 +73,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     const loadFilterOptions = async () => {
       setLoading(true);
       try {
+        console.log("BanknoteFilterCollection: Loading filter options for country", countryId);
         const [categoriesData, typesData, sortOptionsData] = await Promise.all([
           fetchCategoriesByCountryId(countryId),
           fetchTypesByCountryId(countryId),
@@ -74,12 +96,27 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
           fieldName: sort.field_name,
           isRequired: sort.is_required
         })));
+
+        console.log("BanknoteFilterCollection: Loaded filter options", {
+          categories: categoriesData.length,
+          types: typesData.length,
+          sortOptions: sortOptionsData.length
+        });
       } catch (error) {
         console.error("Error loading filter options:", error);
         
         // Fallback to collection data
-        setCategories(collectionCategories);
-        setTypes(collectionTypes);
+        setCategories(collectionCategories.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          count: cat.count
+        })));
+        
+        setTypes(collectionTypes.map(type => ({
+          id: type.id,
+          name: type.name,
+          count: type.count
+        })));
         
         // Set default sort options
         setSortOptions([
@@ -99,20 +136,53 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   // Update categories and types when collectionCategories and collectionTypes change
   useEffect(() => {
     if (!countryId) {
-      setCategories(collectionCategories);
-      setTypes(collectionTypes);
+      console.log("BanknoteFilterCollection: Updating with new collection data");
+      setCategories(collectionCategories.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        count: cat.count
+      })));
+      
+      setTypes(collectionTypes.map(type => ({
+        id: type.id,
+        name: type.name,
+        count: type.count
+      })));
     }
   }, [collectionCategories, collectionTypes, countryId]);
+
+  // Handle filter changes
+  const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
+    console.log("BanknoteFilterCollection: Filter change", newFilters);
+    onFilterChange(newFilters);
+  };
+
+  // Mock save function since collection filters aren't stored in the database
+  const handleSaveFilters = () => {
+    console.log("BanknoteFilterCollection: Save filters (not implemented for collections)");
+    setIsSaving(true);
+    
+    // Show toast notification
+    setTimeout(() => {
+      toast({
+        title: "Success",
+        description: "Filter preferences saved for this session.",
+      });
+      setIsSaving(false);
+    }, 500);
+  };
 
   return (
     <BaseBanknoteFilter
       categories={categories}
       types={types}
       sortOptions={sortOptions}
-      onFilterChange={onFilterChange}
+      onFilterChange={handleFilterChange}
       currentFilters={currentFilters}
       isLoading={isLoading || loading}
       className={className}
+      onSaveFilters={handleSaveFilters}
+      saveButtonText={isSaving ? "Saving..." : "Save View Settings"}
     />
   );
 };

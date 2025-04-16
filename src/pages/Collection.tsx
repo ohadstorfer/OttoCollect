@@ -12,8 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
-import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
+import { BanknoteFilterCollection } from "@/components/filter/BanknoteFilterCollection";
+import { useDynamicFilter } from "@/hooks/use-dynamic-filter";
+import { FilterCategoryOption, DynamicFilterState } from "@/types/filter";
 
 const Collection = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,6 +27,33 @@ const Collection = () => {
   const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [missingItems, setMissingItems] = useState<Banknote[]>([]);
+  const [collectionCategories, setCollectionCategories] = useState<FilterCategoryOption[]>([]);
+  const [collectionTypes, setCollectionTypes] = useState<FilterCategoryOption[]>([]);
+  const [wishlistCategories, setWishlistCategories] = useState<FilterCategoryOption[]>([]);
+  const [wishlistTypes, setWishlistTypes] = useState<FilterCategoryOption[]>([]);
+  const [missingCategories, setMissingCategories] = useState<FilterCategoryOption[]>([]);
+  const [missingTypes, setMissingTypes] = useState<FilterCategoryOption[]>([]);
+
+  const [collectionFilters, setCollectionFilters] = useState<DynamicFilterState>({
+    search: "",
+    categories: [],
+    types: [],
+    sort: ["newest", "extPick"]
+  });
+  
+  const [wishlistFilters, setWishlistFilters] = useState<DynamicFilterState>({
+    search: "",
+    categories: [],
+    types: [],
+    sort: ["newest", "extPick"]
+  });
+  
+  const [missingFilters, setMissingFilters] = useState<DynamicFilterState>({
+    search: "",
+    categories: [],
+    types: [],
+    sort: ["extPick"]
+  });
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -45,7 +73,96 @@ const Collection = () => {
           setCollectionItems(collection);
           setWishlistItems(wishlist);
           
-          // Calculate missing banknotes
+          const categoryMap = new Map<string, { id: string; name: string; count: number }>();
+          const typeMap = new Map<string, { id: string; name: string; count: number }>();
+          
+          collection.forEach(item => {
+            if (item.banknote.category) {
+              const categoryKey = item.banknote.category;
+              const categoryEntry = categoryMap.get(categoryKey) || { 
+                id: categoryKey,
+                name: categoryKey,
+                count: 0
+              };
+              categoryEntry.count += 1;
+              categoryMap.set(categoryKey, categoryEntry);
+            }
+            
+            if (item.banknote.type) {
+              const typeKey = item.banknote.type;
+              const typeEntry = typeMap.get(typeKey) || { 
+                id: typeKey,
+                name: typeKey,
+                count: 0
+              };
+              typeEntry.count += 1;
+              typeMap.set(typeKey, typeEntry);
+            }
+          });
+          
+          setCollectionCategories(Array.from(categoryMap.values()));
+          setCollectionTypes(Array.from(typeMap.values()));
+          
+          const wishlistCategoryMap = new Map<string, { id: string; name: string; count: number }>();
+          const wishlistTypeMap = new Map<string, { id: string; name: string; count: number }>();
+          
+          wishlist.forEach(item => {
+            if (item.banknote.category) {
+              const categoryKey = item.banknote.category;
+              const categoryEntry = wishlistCategoryMap.get(categoryKey) || { 
+                id: categoryKey,
+                name: categoryKey,
+                count: 0
+              };
+              categoryEntry.count += 1;
+              wishlistCategoryMap.set(categoryKey, categoryEntry);
+            }
+            
+            if (item.banknote.type) {
+              const typeKey = item.banknote.type;
+              const typeEntry = wishlistTypeMap.get(typeKey) || { 
+                id: typeKey,
+                name: typeKey,
+                count: 0
+              };
+              typeEntry.count += 1;
+              wishlistTypeMap.set(typeKey, typeEntry);
+            }
+          });
+          
+          setWishlistCategories(Array.from(wishlistCategoryMap.values()));
+          setWishlistTypes(Array.from(wishlistTypeMap.values()));
+          
+          const missingCategoryMap = new Map<string, { id: string; name: string; count: number }>();
+          const missingTypeMap = new Map<string, { id: string; name: string; count: number }>();
+          
+          missingBanknotes.forEach(banknote => {
+            if (banknote.category) {
+              const categoryKey = banknote.category;
+              const categoryEntry = missingCategoryMap.get(categoryKey) || { 
+                id: categoryKey,
+                name: categoryKey,
+                count: 0
+              };
+              categoryEntry.count += 1;
+              missingCategoryMap.set(categoryKey, categoryEntry);
+            }
+            
+            if (banknote.type) {
+              const typeKey = banknote.type;
+              const typeEntry = missingTypeMap.get(typeKey) || { 
+                id: typeKey,
+                name: typeKey,
+                count: 0
+              };
+              typeEntry.count += 1;
+              missingTypeMap.set(typeKey, typeEntry);
+            }
+          });
+          
+          setMissingCategories(Array.from(missingCategoryMap.values()));
+          setMissingTypes(Array.from(missingTypeMap.values()));
+          
           const collectionBanknoteIds = new Set(collection.map(item => item.banknoteId));
           const wishlistBanknoteIds = new Set(wishlist.map(item => item.banknoteId));
           
@@ -76,67 +193,34 @@ const Collection = () => {
     loadUserData();
   }, [user, toast]);
 
-  // Collection filter - now properly handles collection items with their banknotes
   const { 
     filteredItems: filteredCollection, 
-    filters: collectionFilters, 
-    setFilters: setCollectionFilters,
-    availableCategories: collectionCategories,
-    availableTypes: collectionTypes,
-    groupedItems: groupedCollection
-  } = useBanknoteFilter({
+    groupedItems: groupedCollection,
+    isLoading: collectionFilterLoading
+  } = useDynamicFilter({
     items: collectionItems,
-    initialFilters: {
-      // By default, assume all collection items are "issued notes"
-      types: ["issued notes"],
-      sort: ["newest", "extPick"]
-    }
+    initialFilters: collectionFilters,
+    userId: user?.id,
   });
-
-  // When collection items load, update the categories filter to include all available categories
-  useEffect(() => {
-    if (collectionItems.length > 0 && collectionCategories.length > 0) {
-      const allCategories = collectionCategories.map(c => c.id);
-      setCollectionFilters({
-        ...collectionFilters,
-        categories: allCategories
-      });
-    }
-  }, [collectionItems, collectionCategories.length]);
-
-  console.log("Collection items after filtering:", {
-    all: collectionItems.length,
-    filtered: filteredCollection.length,
-    categories: collectionFilters.categories,
-    types: collectionFilters.types
-  });
-
-  // Missing filter
+  
   const { 
-    filteredItems: filteredMissing, 
-    filters: missingFilters, 
-    setFilters: setMissingFilters,
-    availableCategories: missingCategories,
-    availableTypes: missingTypes
-  } = useBanknoteFilter({
+    filteredItems: filteredMissing,
+    groupedItems: groupedMissing,
+    isLoading: missingFilterLoading
+  } = useDynamicFilter({
     items: missingItems,
-    initialFilters: {
-      sort: ["extPick"]
-    }
+    initialFilters: missingFilters,
+    userId: user?.id,
   });
 
-  // Wishlist filter (assume similar structure to collection)
   const { 
-    filteredItems: filteredWishlist, 
-    filters: wishlistFilters, 
-    setFilters: setWishlistFilters,
-    availableCategories: wishlistCategories,
-    availableTypes: wishlistTypes
-  } = useBanknoteFilter({
+    filteredItems: filteredWishlist,
+    groupedItems: groupedWishlist,
+    isLoading: wishlistFilterLoading
+  } = useDynamicFilter({
     items: wishlistItems,
-    initialFilters: {
-      sort: ["newest", "extPick"]
-    }
+    initialFilters: wishlistFilters,
+    userId: user?.id,
   });
 
   const handleTabChange = (value: string) => {
@@ -149,6 +233,19 @@ const Collection = () => {
 
   const signIn = () => {
     navigate('/auth');
+  };
+
+  const handleCollectionFilterChange = (newFilters: Partial<DynamicFilterState>) => {
+    console.log("Collection filter change:", newFilters);
+    setCollectionFilters(prev => ({ ...prev, ...newFilters }));
+  };
+
+  const handleWishlistFilterChange = (newFilters: Partial<DynamicFilterState>) => {
+    setWishlistFilters(prev => ({ ...prev, ...newFilters }));
+  };
+
+  const handleMissingFilterChange = (newFilters: Partial<DynamicFilterState>) => {
+    setMissingFilters(prev => ({ ...prev, ...newFilters }));
   };
 
   return (
@@ -176,12 +273,12 @@ const Collection = () => {
         
         <TabsContent value="collection">
           <div className="bg-card border rounded-lg p-6 mb-6">
-            <BanknoteFilter
-              categories={collectionCategories}
-              availableTypes={collectionTypes}
-              onFilterChange={setCollectionFilters}
-              isLoading={loading}
-              defaultSort={["newest", "extPick"]}
+            <BanknoteFilterCollection
+              collectionCategories={collectionCategories}
+              collectionTypes={collectionTypes}
+              onFilterChange={handleCollectionFilterChange}
+              currentFilters={collectionFilters}
+              isLoading={loading || collectionFilterLoading}
             />
 
             {loading ? (
@@ -206,15 +303,27 @@ const Collection = () => {
                 <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
-                {filteredCollection.map((item) => (
-                  <BanknoteDetailCard
-                    key={item.id}
-                    banknote={item.banknote}
-                    collectionItem={item}
-                    source="collection"
-                    ownerId={user.id}
-                  />
+              <div className="mt-6">
+                {groupedCollection.map((group, groupIndex) => (
+                  <div key={`group-${groupIndex}`} className="space-y-4 mb-8">
+                    <div className="sticky top-[184px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
+                      <h2 className="text-xl font-bold">{group.category}</h2>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {group.items.map((item, index) => {
+                        const collectionItem = item as unknown as CollectionItem;
+                        return (
+                          <BanknoteDetailCard
+                            key={`collection-item-${group.category}-${index}`}
+                            banknote={collectionItem.banknote as unknown as DetailedBanknote}
+                            collectionItem={collectionItem}
+                            source="collection"
+                            ownerId={user.id}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -223,12 +332,12 @@ const Collection = () => {
         
         <TabsContent value="wishlist">
           <div className="bg-card border rounded-lg p-6 mb-6">
-            <BanknoteFilter
-              categories={wishlistCategories}
-              availableTypes={wishlistTypes}
-              onFilterChange={setWishlistFilters}
-              isLoading={loading}
-              defaultSort={["newest", "extPick"]}
+            <BanknoteFilterCollection
+              collectionCategories={wishlistCategories}
+              collectionTypes={wishlistTypes}
+              onFilterChange={handleWishlistFilterChange}
+              currentFilters={wishlistFilters}
+              isLoading={loading || wishlistFilterLoading}
             />
             
             {loading ? (
@@ -247,46 +356,58 @@ const Collection = () => {
                 <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
-                {filteredWishlist.map((item) => (
-                  <Card key={item.id} className="overflow-hidden">
-                    <div className="aspect-[3/2]">
-                      <img
-                        src={item.banknote.imageUrls[0] || '/placeholder.svg'}
-                        alt={`${item.banknote.country} ${item.banknote.denomination}`}
-                        className="w-full h-full object-cover"
-                      />
+              <div className="mt-6">
+                {groupedWishlist.map((group, groupIndex) => (
+                  <div key={`group-${groupIndex}`} className="space-y-4 mb-8">
+                    <div className="sticky top-[184px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
+                      <h2 className="text-xl font-bold">{group.category}</h2>
                     </div>
-                    <CardHeader className="p-4">
-                      <div className="flex justify-between">
-                        <div>
-                          <h3 className="font-semibold">{item.banknote.denomination}</h3>
-                          <p className="text-sm text-muted-foreground">{item.banknote.country}, {item.banknote.year}</p>
-                        </div>
-                        <div className={`px-2 py-1 text-xs rounded-full ${
-                          item.priority === 'High' ? 'bg-red-100 text-red-800' :
-                          item.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-green-100 text-green-800'
-                        }`}>
-                          {item.priority}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      {item.note && (
-                        <p className="text-sm text-muted-foreground">{item.note}</p>
-                      )}
-                      <div className="flex justify-end mt-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => navigate(`/banknote-details/${item.banknote.id}`)}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {group.items.map((item, index) => {
+                        const wishlistItem = item as unknown as WishlistItem;
+                        return (
+                          <Card key={wishlistItem.id} className="overflow-hidden">
+                            <div className="aspect-[3/2]">
+                              <img
+                                src={wishlistItem.banknote.imageUrls[0] || '/placeholder.svg'}
+                                alt={`${wishlistItem.banknote.country} ${wishlistItem.banknote.denomination}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <CardHeader className="p-4">
+                              <div className="flex justify-between">
+                                <div>
+                                  <h3 className="font-semibold">{wishlistItem.banknote.denomination}</h3>
+                                  <p className="text-sm text-muted-foreground">{wishlistItem.banknote.country}, {wishlistItem.banknote.year}</p>
+                                </div>
+                                <div className={`px-2 py-1 text-xs rounded-full ${
+                                  wishlistItem.priority === 'High' ? 'bg-red-100 text-red-800' :
+                                  wishlistItem.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-green-100 text-green-800'
+                                }`}>
+                                  {wishlistItem.priority}
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-0">
+                              {wishlistItem.note && (
+                                <p className="text-sm text-muted-foreground">{wishlistItem.note}</p>
+                              )}
+                              <div className="flex justify-end mt-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => navigate(`/banknote-details/${wishlistItem.banknote.id}`)}
+                                >
+                                  View Details
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -295,12 +416,10 @@ const Collection = () => {
         
         <TabsContent value="missing">
           <div className="bg-card border rounded-lg p-6 mb-6">
-            <BanknoteFilter
-              categories={missingCategories}
-              availableTypes={missingTypes}
-              onFilterChange={setMissingFilters}
-              isLoading={loading}
-              defaultSort={["extPick"]}
+            <BanknoteFilterCollection
+              onFilterChange={handleMissingFilterChange}
+              currentFilters={missingFilters}
+              isLoading={loading || missingFilterLoading}
             />
 
             {loading ? (
@@ -319,13 +438,22 @@ const Collection = () => {
                 <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
-                {filteredMissing.map((banknote) => (
-                  <BanknoteDetailCard
-                    key={banknote.id}
-                    banknote={banknote}
-                    source="missing"
-                  />
+              <div className="mt-6">
+                {groupedMissing.map((group, groupIndex) => (
+                  <div key={`group-${groupIndex}`} className="space-y-4 mb-8">
+                    <div className="sticky top-[184px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
+                      <h2 className="text-xl font-bold">{group.category}</h2>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {group.items.map((banknote, index) => (
+                        <BanknoteDetailCard
+                          key={`missing-banknote-${group.category}-${index}`}
+                          banknote={banknote as unknown as DetailedBanknote}
+                          source="missing"
+                        />
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

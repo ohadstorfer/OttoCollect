@@ -4,7 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
 import { DynamicFilterState } from "@/types/filter";
@@ -34,6 +34,8 @@ export type BaseBanknoteFilterProps = {
   currentFilters: DynamicFilterState;
   isLoading?: boolean;
   className?: string;
+  onSaveFilters?: () => void;
+  saveButtonText?: string;
 };
 
 export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
@@ -44,6 +46,8 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   currentFilters,
   isLoading = false,
   className,
+  onSaveFilters,
+  saveButtonText = "Save Filter Preferences"
 }) => {
   const isMobile = useIsMobile();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
@@ -239,6 +243,21 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     });
   };
 
+  const handleSaveClick = () => {
+    // First apply the filters to ensure we're using the latest state
+    applyFilters();
+    
+    // Then call the parent's save function if provided
+    if (onSaveFilters) {
+      console.log("BaseBanknoteFilter: Calling onSaveFilters");
+      onSaveFilters();
+    }
+    
+    // Close the sheets
+    setIsCategorySheetOpen(false);
+    setIsSortSheetOpen(false);
+  };
+
   const allCategoriesSelected = categories.length > 0 && 
     categories.every(category => selectedCategories.includes(category.id));
     
@@ -344,10 +363,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
               </div>
               <SheetClose asChild>
                 <Button 
-                  className="w-full"
-                  onClick={applyFilters}
+                  className="w-full bg-ottoman-600 hover:bg-ottoman-700"
+                  onClick={handleSaveClick}
                 >
-                  Apply Filters
+                  <Save className="h-4 w-4 mr-2" />
+                  {saveButtonText}
                 </Button>
               </SheetClose>
             </div>
@@ -402,10 +422,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
               })}
               <SheetClose asChild className="mt-4">
                 <Button 
-                  className="w-full mt-4"
-                  onClick={applyFilters}
+                  className="w-full bg-ottoman-600 hover:bg-ottoman-700 mt-4"
+                  onClick={handleSaveClick}
                 >
-                  Apply Sort
+                  <Save className="h-4 w-4 mr-2" />
+                  {saveButtonText}
                 </Button>
               </SheetClose>
             </div>

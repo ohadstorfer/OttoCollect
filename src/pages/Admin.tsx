@@ -3,23 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { User, UserRole } from '@/types';
-import { Loader2, Shield, Users, Book, Image } from 'lucide-react';
+import { Shield, Users, Book, Image, Globe } from 'lucide-react';
 import UserManagement from '@/components/admin/UserManagement';
 import BanknotesManagement from '@/components/admin/BanknotesManagement';
 import ImageSuggestions from '@/components/admin/ImageSuggestions';
+import CountryManagement from '@/components/admin/CountryManagement';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -49,7 +40,7 @@ const Admin = () => {
       
       <div className="max-w-6xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-6">
+          <TabsList className="grid grid-cols-4 mb-6">
             <TabsTrigger value="users">
               <Users className="mr-2 h-4 w-4" />
               User Management
@@ -61,6 +52,10 @@ const Admin = () => {
             <TabsTrigger value="suggestions">
               <Image className="mr-2 h-4 w-4" />
               Image Suggestions
+            </TabsTrigger>
+            <TabsTrigger value="countries">
+              <Globe className="mr-2 h-4 w-4" />
+              Country Settings
             </TabsTrigger>
           </TabsList>
 
@@ -95,6 +90,10 @@ const Admin = () => {
                 <ImageSuggestions />
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="countries">
+            <CountryManagement />
           </TabsContent>
         </Tabs>
       </div>

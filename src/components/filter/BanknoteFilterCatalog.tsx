@@ -4,8 +4,6 @@ import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
 import { fetchCategoriesByCountryId, fetchTypesByCountryId, fetchSortOptionsByCountryId, saveUserFilterPreferences } from "@/services/countryService";
-import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface BanknoteFilterCatalogProps {
@@ -180,7 +178,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     loadFilterOptions();
   }, [countryId, currentFilters, hasInitializedFilters, onFilterChange]);
 
-  // Filter change handler - now this just updates the UI without saving to database
+  // Filter change handler - does not save to database
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
     if (isFilterChangeInProgress.current) {
       console.log("BanknoteFilterCatalog: Skipping filter change due to another change in progress");
@@ -269,33 +267,16 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      <BaseBanknoteFilter
-        categories={categories}
-        types={types}
-        sortOptions={sortOptions}
-        onFilterChange={handleFilterChange}
-        currentFilters={currentFilters}
-        isLoading={isLoading || loading}
-        className={className}
-      />
-      
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleSaveFilters} 
-          disabled={isLoading || loading || isSaving}
-          className="bg-ottoman-600 hover:bg-ottoman-700"
-        >
-          {isSaving ? (
-            <>Saving...</>
-          ) : (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Save Filter Preferences
-            </>
-          )}
-        </Button>
-      </div>
-    </div>
+    <BaseBanknoteFilter
+      categories={categories}
+      types={types}
+      sortOptions={sortOptions}
+      onFilterChange={handleFilterChange}
+      currentFilters={currentFilters}
+      isLoading={isLoading || loading || isSaving}
+      className={className}
+      onSaveFilters={handleSaveFilters}
+      saveButtonText={isSaving ? "Saving..." : "Save Filter Preferences"}
+    />
   );
 };
