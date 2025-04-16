@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { DynamicFilterState, FilterableItem } from "@/types/filter";
@@ -273,7 +272,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
         const catB = categories.find(c => c.id === b.id);
         
         if (catA && catB) {
-          return catA.display_order - catB.display_order;
+          return (catA as any).display_order - (catB as any).display_order;
         }
         return a.name.localeCompare(b.name);
       })

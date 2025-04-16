@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
@@ -6,14 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
-import { 
-  BanknoteFilterState, 
-  BANKNOTE_TYPES, 
-  DEFAULT_SELECTED_TYPES,
-  BANKNOTE_CATEGORIES,
-  DEFAULT_SELECTED_CATEGORIES,
-  SORT_OPTIONS 
-} from "@/types";
+import { DynamicFilterState } from "@/types/filter";
 import {
   Sheet,
   SheetContent,
@@ -32,11 +26,12 @@ export type FilterCategory = {
 
 export type BanknoteFilterProps = {
   categories: FilterCategory[];
-  onFilterChange: (filters: BanknoteFilterState) => void;
+  onFilterChange: (filters: Partial<DynamicFilterState>) => void;
   isLoading?: boolean;
   className?: string;
   defaultSort?: string[];
   availableTypes?: FilterCategory[];
+  currentFilters?: Partial<DynamicFilterState>;
 };
 
 const normalizeType = (type: string): string => {
@@ -56,57 +51,45 @@ const normalizeType = (type: string): string => {
   return lowerType;
 };
 
+// Define default constants here instead of importing them
+const DEFAULT_SORT_OPTIONS = [
+  { id: "extPick", name: "Catalog Number", required: true },
+  { id: "sultan", name: "Sultan" },
+  { id: "faceValue", name: "Face Value" },
+  { id: "newest", name: "Newest First" }
+];
+
 export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   categories,
   onFilterChange,
   isLoading = false,
   className,
   defaultSort = ["extPick"],
-  availableTypes = []
+  availableTypes = [],
+  currentFilters = {}
 }) => {
-  console.log("### BanknoteFilter RENDERING ###");
-  console.log("Props received:", { 
-    categories: categories.length, 
-    isLoading, 
-    defaultSort, 
-    availableTypes: availableTypes.length 
-  });
-  
   const isMobile = useIsMobile();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(currentFilters.search || "");
   
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    categories.length > 0 ? categories.map(c => c.id) : DEFAULT_SELECTED_CATEGORIES
+    currentFilters.categories || (categories.length > 0 ? categories.map(c => c.id) : [])
   );
   
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
-    availableTypes.length > 0 ? ["issued notes"] : DEFAULT_SELECTED_TYPES
+    currentFilters.types || (availableTypes.length > 0 ? ["issued notes"] : [])
   );
   
-  const [selectedSort, setSelectedSort] = useState<string[]>(defaultSort);
-
-  console.log("Initial state:", { 
-    search, 
-    selectedCategories, 
-    selectedTypes, 
-    selectedSort 
-  });
+  const [selectedSort, setSelectedSort] = useState<string[]>(
+    currentFilters.sort || defaultSort
+  );
 
   const debouncedSearch = debounce((value: string) => {
     handleFilterChange({ search: value });
   }, 300);
 
   useEffect(() => {
-    console.log("Initial filter setup in useEffect");
-    console.log("Setting initial filters:", {
-      search,
-      categories: selectedCategories,
-      types: selectedTypes,
-      sort: selectedSort
-    });
-    
     handleFilterChange({
       search: search,
       categories: selectedCategories,
@@ -129,9 +112,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     }
   }, [categories, availableTypes]);
 
-  const handleFilterChange = (changes: Partial<BanknoteFilterState>) => {
-    console.log("Filter change requested:", changes);
-    
+  const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
     const newFilters = {
       search: changes.search !== undefined ? changes.search : search,
       categories: changes.categories !== undefined ? changes.categories : selectedCategories,
@@ -139,7 +120,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
       sort: changes.sort !== undefined ? changes.sort : selectedSort,
     };
     
-    console.log("New filters after merging:", newFilters);
     onFilterChange(newFilters);
   };
 
@@ -151,46 +131,35 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   };
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
-    console.log(`Category change: ${categoryId} - ${checked ? "selected" : "deselected"}`);
-    
     let newCategories: string[];
     if (categoryId === "all") {
       newCategories = checked ? categories.map(c => c.id) : [];
-      console.log(`${checked ? "Selected" : "Deselected"} all categories`);
     } else {
       newCategories = checked 
         ? [...selectedCategories, categoryId]
         : selectedCategories.filter(id => id !== categoryId);
     }
     
-    console.log("New categories:", newCategories);
     setSelectedCategories(newCategories);
     handleFilterChange({ categories: newCategories });
   };
 
   const handleTypeChange = (type: string, checked: boolean) => {
-    console.log(`Type change: ${type} - ${checked ? "selected" : "deselected"}`);
-    
     let newTypes: string[];
     if (type === "all") {
       newTypes = checked ? availableTypes.map(t => t.id) : [];
-      console.log(`${checked ? "Selected" : "Deselected"} all types`);
     } else {
       newTypes = checked
         ? [...selectedTypes, type]
         : selectedTypes.filter(t => normalizeType(t) !== normalizeType(type));
     }
     
-    console.log("New types:", newTypes);
     setSelectedTypes(newTypes);
     handleFilterChange({ types: newTypes });
   };
 
   const handleSortChange = (sortId: string, checked: boolean) => {
-    console.log(`Sort change: ${sortId} - ${checked ? "selected" : "deselected"}`);
-    
     if (sortId === "extPick") {
-      console.log("Sort extPick is required, ignoring change");
       return;
     }
 
@@ -201,7 +170,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
       newSort = selectedSort.filter(s => s !== sortId && s !== "extPick").concat(["extPick"]);
     }
     
-    console.log("New sort:", newSort);
     setSelectedSort(newSort);
     handleFilterChange({ sort: newSort });
   };
@@ -241,7 +209,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
               variant="outline" 
               className="w-full justify-between"
               onClick={() => {
-                console.log("Category/Type filter button clicked");
                 setIsCategorySheetOpen(true);
               }}
             >
@@ -322,11 +289,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                 <Button 
                   className="w-full"
                   onClick={() => {
-                    console.log("Apply Filters button clicked");
-                    console.log("Filters applied:", {
-                      categories: selectedCategories,
-                      types: selectedTypes
-                    });
+                    // Apply filters on close
                   }}
                 >
                   Apply Filters
@@ -342,7 +305,6 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
               variant="outline" 
               className="w-full justify-between"
               onClick={() => {
-                console.log("Sort button clicked");
                 setIsSortSheetOpen(true);
               }}
             >
@@ -357,7 +319,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
               <SheetTitle>Sort Options</SheetTitle>
             </SheetHeader>
             <div className="py-4 space-y-2">
-              {SORT_OPTIONS.map(option => (
+              {DEFAULT_SORT_OPTIONS.map(option => (
                 <div key={option.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`sort-${option.id}`}
@@ -380,8 +342,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                 <Button 
                   className="w-full"
                   onClick={() => {
-                    console.log("Apply Sort button clicked");
-                    console.log("Sort applied:", selectedSort);
+                    // Apply sort on close
                   }}
                 >
                   Apply Sort

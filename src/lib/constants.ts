@@ -1,4 +1,3 @@
-
 import { BanknoteCondition, UserRank, Banknote, MarketplaceItem } from "@/types";
 
 // Update the RANK_POINTS object to use the correct UserRank values
@@ -8,19 +7,29 @@ export const RANK_POINTS: Record<UserRank, number> = {
   'Casual Collector': 200,
   'Known Collector': 500,
   'Advance Collector': 1000,
+  'Expert': 2000,
+  'Master': 5000,
   'Admin': 0,
   'Super Admin': 0
 };
 
 // Update the CONDITION_DESCRIPTIONS to use the correct BanknoteCondition values
 export const CONDITION_DESCRIPTIONS: Record<BanknoteCondition, string> = {
+  'Uncirculated': 'Brand new condition with no signs of handling, wear, or deterioration.',
   'UNC': 'Uncirculated - Brand new condition with no signs of handling, wear, or deterioration.',
   'AU': 'About Uncirculated - Very light handling with some slight imperfections.',
+  'Near Mint': 'Almost perfect condition with minimal signs of handling.',
+  'Extremely Fine': 'Light circulation with minor creases or folds.',
   'XF': 'Extremely Fine - Light circulation with minor creases or folds.',
+  'Very Fine': 'Some circulation with creases, folds, and minor soiling.',
   'VF': 'Very Fine - Some circulation with creases, folds, and minor soiling.',
+  'Fine': 'Significant circulation with multiple creases and folds.',
   'F': 'Fine - Significant circulation with multiple creases and folds.',
+  'Very Good': 'Heavy circulation with multiple heavy creases and some minor damage.',
   'VG': 'Very Good - Heavy circulation with multiple heavy creases and some minor damage.',
-  'G': 'Good - Heavily used with considerable wear and potentially some minor damage.'
+  'Good': 'Heavily used with considerable wear and potentially some minor damage.',
+  'G': 'Good - Heavily used with considerable wear and potentially some minor damage.',
+  'Poor': 'Extensively worn and may have tears, stains, or other significant damage.'
 };
 
 // Mock data for development

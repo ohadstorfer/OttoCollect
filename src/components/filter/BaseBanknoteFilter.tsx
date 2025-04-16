@@ -52,7 +52,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
   const [selectedSort, setSelectedSort] = useState<string[]>(currentFilters.sort || []);
 
-  // Update local state when currentFilters change
   useEffect(() => {
     setSearch(currentFilters.search || "");
     setSelectedCategories(currentFilters.categories || []);
@@ -105,13 +104,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   };
 
   const handleSortChange = (sortId: string, checked: boolean) => {
-    // Find sort option by ID
     const sortOption = sortOptions.find(option => option.id === sortId);
     if (!sortOption || !sortOption.fieldName) return;
     
     const fieldName = sortOption.fieldName;
     
-    // Get required sort field names
     const requiredSortFields = sortOptions
       .filter(option => option.isRequired)
       .map(option => option.fieldName)
@@ -119,10 +116,8 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     
     let newSort: string[];
     if (checked) {
-      // Add this sort field and keep all required ones
       newSort = [...selectedSort.filter(field => !requiredSortFields.includes(field) && field !== fieldName), fieldName, ...requiredSortFields];
     } else {
-      // Remove this sort field but keep all required ones
       newSort = selectedSort.filter(field => field !== fieldName && !requiredSortFields.includes(field)).concat(requiredSortFields);
     }
     
