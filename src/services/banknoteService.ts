@@ -1,4 +1,3 @@
-
 // Update fetchBanknotes to use correct type mapping
 export async function fetchBanknotes(filters?: BanknoteFilters): Promise<DetailedBanknote[]> {
   try {
@@ -143,6 +142,64 @@ export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote 
   } catch (error) {
     console.error('Unexpected error in fetchBanknoteDetail:', error);
     return null;
+  }
+}
+
+// Add the missing fetchBanknotesByCountryId function
+export async function fetchBanknotesByCountryId(countryId: string): Promise<DetailedBanknote[]> {
+  try {
+    if (!countryId) {
+      console.error('No country ID provided to fetchBanknotesByCountryId');
+      return [];
+    }
+    
+    console.log(`Fetching banknotes for country ID: ${countryId}`);
+    
+    const { data, error } = await supabase
+      .from('detailed_banknotes')
+      .select('*')
+      .filter('country_id', 'eq', countryId);
+    
+    if (error) {
+      console.error('Error fetching banknotes by country ID:', error);
+      return [];
+    }
+    
+    console.log(`Found ${data?.length || 0} banknotes for country ID: ${countryId}`);
+    
+    // Convert database fields to client-side model
+    const banknotes = data?.map(item => ({
+      id: item.id,
+      catalogId: item.extended_pick_number || '',
+      country: item.country || '',
+      denomination: item.face_value || '',
+      year: item.gregorian_year || '',
+      series: '',
+      description: item.banknote_description || '',
+      obverseDescription: '',
+      reverseDescription: '',
+      imageUrls: [
+        item.front_picture || '',
+        item.back_picture || ''
+      ].filter(Boolean),
+      isApproved: item.is_approved || false,
+      isPending: item.is_pending || false,
+      createdAt: item.created_at || '',
+      updatedAt: item.updated_at || '',
+      pickNumber: item.pick_number,
+      turkCatalogNumber: item.turk_catalog_number,
+      sultanName: item.sultan_name,
+      sealNames: item.seal_names,
+      rarity: item.rarity,
+      printer: item.printer,
+      type: item.type,
+      category: item.category,
+    } as DetailedBanknote)) || [];
+    
+    return banknotes;
+  } catch (error) {
+    console.error('Unexpected error in fetchBanknotesByCountryId:', error);
+    return [];
   }
 }
 

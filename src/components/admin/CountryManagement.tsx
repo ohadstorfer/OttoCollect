@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -55,7 +54,6 @@ const CountryManagement: React.FC = () => {
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Form states
   const [countryForm, setCountryForm] = useState({ name: '', description: '' });
   const [categoryForm, setCategoryForm] = useState({ name: '', description: '', display_order: 0 });
   const [typeForm, setTypeForm] = useState({ name: '', description: '', display_order: 0 });
@@ -163,7 +161,6 @@ const CountryManagement: React.FC = () => {
     }
   };
 
-  // Country CRUD operations
   const addCountry = async () => {
     setIsLoading(true);
     try {
@@ -239,7 +236,6 @@ const CountryManagement: React.FC = () => {
     }
   };
 
-  // Category CRUD operations
   const addCategory = async () => {
     if (!selectedCountryId) {
       toast({ title: "Error", description: "Please select a country first.", variant: "destructive" });
@@ -253,7 +249,7 @@ const CountryManagement: React.FC = () => {
         .insert([{ 
           name: categoryForm.name, 
           description: categoryForm.description,
-          display_order: categoryForm.display_order,
+          display_order: parseInt(String(categoryForm.display_order)) || 0,
           country_id: selectedCountryId
         }])
         .select();
@@ -280,7 +276,7 @@ const CountryManagement: React.FC = () => {
         .update({ 
           name: categoryForm.name, 
           description: categoryForm.description,
-          display_order: categoryForm.display_order
+          display_order: parseInt(String(categoryForm.display_order)) || 0
         })
         .eq('id', id);
       
@@ -320,7 +316,6 @@ const CountryManagement: React.FC = () => {
     }
   };
 
-  // Type CRUD operations
   const addType = async () => {
     if (!selectedCountryId) {
       toast({ title: "Error", description: "Please select a country first.", variant: "destructive" });
@@ -334,7 +329,7 @@ const CountryManagement: React.FC = () => {
         .insert([{ 
           name: typeForm.name, 
           description: typeForm.description,
-          display_order: typeForm.display_order,
+          display_order: parseInt(String(typeForm.display_order)) || 0,
           country_id: selectedCountryId
         }])
         .select();
@@ -361,7 +356,7 @@ const CountryManagement: React.FC = () => {
         .update({ 
           name: typeForm.name, 
           description: typeForm.description,
-          display_order: typeForm.display_order
+          display_order: parseInt(String(typeForm.display_order)) || 0
         })
         .eq('id', id);
       
@@ -401,7 +396,6 @@ const CountryManagement: React.FC = () => {
     }
   };
 
-  // Sort Option CRUD operations
   const addSortOption = async () => {
     if (!selectedCountryId) {
       toast({ title: "Error", description: "Please select a country first.", variant: "destructive" });
@@ -418,7 +412,7 @@ const CountryManagement: React.FC = () => {
           description: sortForm.description,
           is_required: sortForm.is_required,
           is_default: sortForm.is_default,
-          display_order: sortForm.display_order,
+          display_order: parseInt(String(sortForm.display_order)) || 0,
           country_id: selectedCountryId
         }])
         .select();
@@ -455,7 +449,7 @@ const CountryManagement: React.FC = () => {
           description: sortForm.description,
           is_required: sortForm.is_required,
           is_default: sortForm.is_default,
-          display_order: sortForm.display_order
+          display_order: parseInt(String(sortForm.display_order)) || 0
         })
         .eq('id', id);
       

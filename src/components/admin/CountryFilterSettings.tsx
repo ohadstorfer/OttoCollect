@@ -3,10 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import { fetchCountries } from "@/services/countryService";
 
 import CategoriesManager from "./filter/CategoriesManager";
@@ -22,20 +19,20 @@ const CountryFilterSettings: React.FC = () => {
   const [countries, setCountries] = useState<Country[]>([]);
   const [selectedCountryId, setSelectedCountryId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("categories");
-  const { toast } = useToast();
   
   useEffect(() => {
     const loadCountries = async () => {
       const countriesData = await fetchCountries();
       setCountries(countriesData);
       
+      // Only set default country if none selected yet
       if (countriesData.length > 0 && !selectedCountryId) {
         setSelectedCountryId(countriesData[0].id);
       }
     };
     
     loadCountries();
-  }, []);
+  }, [selectedCountryId]);
   
   const handleCountryChange = (value: string) => {
     setSelectedCountryId(value);
