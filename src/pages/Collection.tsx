@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   fetchUserCollection, 
-  addToCollection,
   updateCollectionItem,
   deleteCollectionItem,
 } from '@/services/collectionService';
@@ -14,9 +14,7 @@ import { Container } from '@/components/ui/container';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
-import BanknoteCard from '@/components/banknotes/BanknoteCard';
 import CollectionItemForm from '@/components/collection/CollectionItemForm';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -47,7 +45,7 @@ const CollectionPage = () => {
 
   const { data: banknotes, isLoading: banknotesLoading } = useQuery({
     queryKey: ['banknotes'],
-    queryFn: fetchBanknotes,
+    queryFn: () => fetchBanknotes(),
   });
 
   const handleAddItem = () => {
@@ -63,7 +61,7 @@ const CollectionPage = () => {
     if (!user) return;
 
     try {
-      await updateCollectionItem(updatedItem);
+      await updateCollectionItem(updatedItem.id, updatedItem);
       toast.success('Collection item updated successfully!');
       setIsEditing(false);
       setEditingItem(null);

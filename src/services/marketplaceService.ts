@@ -294,3 +294,5 @@ export async function fetchSellerInfo(sellerId: string): Promise<User | null> {
     return null;
   }
 }
+
+export { addItemToMarketplace, removeItemFromMarketplace } from '@/services/marketplaceService';

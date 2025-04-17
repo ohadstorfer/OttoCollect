@@ -10,9 +10,23 @@ import { formatCurrency } from '@/lib/formatters';
 interface CollectionItemCardProps {
   item: CollectionItem;
   banknote: Banknote;
+  onItemEdit?: (item: CollectionItem) => void;
+  onCollectionUpdated?: () => void;
 }
 
-const CollectionItemCard = ({ item, banknote }: CollectionItemCardProps) => {
+const CollectionItemCard = ({ 
+  item, 
+  banknote, 
+  onItemEdit, 
+  onCollectionUpdated 
+}: CollectionItemCardProps) => {
+  
+  const handleEdit = () => {
+    if (onItemEdit) {
+      onItemEdit(item);
+    }
+  };
+
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md h-full">
       <div className="aspect-video relative overflow-hidden">
@@ -45,7 +59,7 @@ const CollectionItemCard = ({ item, banknote }: CollectionItemCardProps) => {
               )}
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleEdit}>
             <MoreVertical className="h-4 w-4" />
           </Button>
         </div>

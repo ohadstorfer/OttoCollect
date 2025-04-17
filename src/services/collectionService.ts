@@ -388,3 +388,22 @@ export async function updateCollectionItemImages(
     return false;
   }
 }
+
+export async function deleteCollectionItem(itemId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('collection_items')
+      .delete()
+      .eq('id', itemId);
+    
+    if (error) {
+      console.error("Error deleting collection item:", error);
+      throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error in deleteCollectionItem:", error);
+    return false;
+  }
+}
