@@ -46,6 +46,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
   const isMounted = useRef(true);
   const isUpdatingFilters = useRef(false);
   const filtersRef = useRef<DynamicFilterState | null>(null);
+  const preferencesLoaded = useRef(false); // Track if preferences were loaded
   
   console.log("useDynamicFilter: Initialize with", { 
     itemsCount: items.length, 
@@ -115,6 +116,13 @@ export const useDynamicFilter = <T extends FilterableItem>({
         return;
       }
 
+      // Skip if we've already loaded preferences for this countryId
+      if (preferencesLoaded.current && filters.country_id === countryId) {
+        console.log("useDynamicFilter: Preferences already loaded for this countryId");
+        setIsLoading(false);
+        return;
+      }
+
       console.log("useDynamicFilter: Loading preferences for", { userId, countryId });
       try {
         setIsLoading(true);
@@ -167,7 +175,12 @@ export const useDynamicFilter = <T extends FilterableItem>({
           
           // Only update state if component is still mounted and we're not already updating
           if (isMounted.current && !isUpdatingFilters.current) {
-            console.log("useDynamicFilter: Setting filters from user preferences");
+            console.log("useDynamicFilter: Setting filters from user preferences", {
+              categories: userPrefs.selected_categories,
+              types: userPrefs.selected_types,
+              sort: finalSortFields
+            });
+            
             isUpdatingFilters.current = true;
             
             const newFilters = {
@@ -181,6 +194,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
             console.log("useDynamicFilter: New filters from preferences", newFilters);
             setFiltersState(newFilters);
             filtersRef.current = newFilters;
+            preferencesLoaded.current = true; // Mark preferences as loaded
             
             setTimeout(() => {
               isUpdatingFilters.current = false;
@@ -203,6 +217,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
             console.log("useDynamicFilter: Default filters set", newFilters);
             setFiltersState(newFilters);
             filtersRef.current = newFilters;
+            preferencesLoaded.current = true; // Mark preferences as loaded
             
             setTimeout(() => {
               isUpdatingFilters.current = false;
@@ -282,7 +297,12 @@ export const useDynamicFilter = <T extends FilterableItem>({
     const noCategories = !currentFilters.categories || currentFilters.categories.length === 0;
     const noTypes = !currentFilters.types || currentFilters.types.length === 0;
     
-    console.log("useDynamicFilter: Filter status", { noCategories, noTypes });
+    console.log("useDynamicFilter: Filter status", { 
+      noCategories, 
+      noTypes, 
+      categoryFilters: currentFilters.categories,
+      typeFilters: currentFilters.types
+    });
     
     // Safety check for items array
     if (!items || !Array.isArray(items)) {
@@ -305,21 +325,40 @@ export const useDynamicFilter = <T extends FilterableItem>({
           value.toLowerCase().includes(searchLower)
         );
 
-      // Category filter - match by category ID
-      const matchesCategory = noCategories || 
-        (currentFilters.categories && currentFilters.categories.includes(banknote.categoryId)) ||
-        (banknote.series && currentFilters.categories && currentFilters.categories.some(catId => {
-          const category = effectiveCategories.find(c => c.id === catId);
-          return category && banknote.series === category.name;
-        }));
+      // Category filter - match by category ID or name
+      let matchesCategory = noCategories;
       
-      // Type filter - match by type ID
-      const matchesType = noTypes || 
-        (currentFilters.types && currentFilters.types.includes(banknote.typeId)) ||
-        (banknote.type && currentFilters.types && currentFilters.types.some(typeId => {
-          const typeDefinition = effectiveTypes.find(t => t.id === typeId);
-          return typeDefinition && normalizeType(banknote.type) === normalizeType(typeDefinition.name);
-        }));
+      if (!matchesCategory && currentFilters.categories) {
+        // Check if category matches by ID
+        if (banknote.categoryId && currentFilters.categories.includes(banknote.categoryId)) {
+          matchesCategory = true;
+        }
+        // Check if category matches by name/series
+        else if (banknote.series || banknote.category) {
+          const categoryName = banknote.series || banknote.category;
+          matchesCategory = currentFilters.categories.some(catId => {
+            const category = effectiveCategories.find(c => c.id === catId);
+            return category && categoryName === category.name;
+          });
+        }
+      }
+      
+      // Type filter - match by type ID or name
+      let matchesType = noTypes;
+      
+      if (!matchesType && currentFilters.types) {
+        // Check if type matches by ID
+        if (banknote.typeId && currentFilters.types.includes(banknote.typeId)) {
+          matchesType = true;
+        }
+        // Check if type matches by name
+        else if (banknote.type) {
+          matchesType = currentFilters.types.some(typeId => {
+            const typeDefinition = effectiveTypes.find(t => t.id === typeId);
+            return typeDefinition && normalizeType(banknote.type) === normalizeType(typeDefinition.name);
+          });
+        }
+      }
 
       const result = matchesSearch && matchesCategory && matchesType;
       return result;
@@ -413,9 +452,10 @@ export const useDynamicFilter = <T extends FilterableItem>({
     
     filteredItems.forEach(item => {
       const banknote = getBanknote(item);
-      if (!banknote || !banknote.series) return;
+      if (!banknote) return;
       
-      const categoryName = banknote.series;
+      // Use series or category as the category name
+      const categoryName = banknote.series || banknote.category || "Uncategorized";
       const categoryId = banknote.categoryId || categoryLookup.get(categoryName) || '';
       
       if (!categoryMap.has(categoryName)) {
@@ -507,4 +547,3 @@ const normalizeType = (type: string | undefined): string => {
   
   return lowerType;
 };
-

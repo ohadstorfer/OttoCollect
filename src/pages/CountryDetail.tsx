@@ -1,7 +1,8 @@
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
-import { Banknote, DetailedBanknote } from "@/types";
+import { DetailedBanknote } from "@/types";
 import { fetchBanknotes, fetchBanknotesByCountryId } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,11 @@ const CountryDetail = () => {
         
         console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
+        
+        // Load banknotes immediately after getting country ID
+        const banknotesData = await fetchBanknotesByCountryId(countryData.id);
+        console.log("CountryDetail: Banknotes loaded:", banknotesData.length);
+        setBanknotes(banknotesData);
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
         toast({
@@ -66,49 +72,24 @@ const CountryDetail = () => {
           description: "Failed to load country data. Please try again later.",
           variant: "destructive",
         });
+      } finally {
+        setLoading(false);
       }
     };
 
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
-  
-  useEffect(() => {
-    const loadBanknotes = async () => {
-      if (!countryId) return;
-      
-      setLoading(true);
-      console.log("CountryDetail: Fetching banknotes for country", countryId);
-      
-      try {
-        const banknotesData = await fetchBanknotes({ country_id: countryId });
-        console.log("CountryDetail: Banknotes loaded:", banknotesData.length);
-        setBanknotes(banknotesData);
-      } catch (error) {
-        console.error("Error fetching banknotes for country", countryId, ":", error);
-        toast({
-          title: "Error",
-          description: "Failed to load banknotes. Please try again later.",
-          variant: "destructive",
-        });
-        setBanknotes([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (countryId) {
-      loadBanknotes();
-    }
-  }, [countryId, toast]);
 
+  // Define initial filters with empty arrays but include the countryId
   const [currentFilters, setCurrentFilters] = useState<DynamicFilterState>({
     search: "",
-    categories: [],
-    types: [],
+    categories: [], // Don't set initial categories here, let user preferences load them
+    types: [], // Don't set initial types here, let user preferences load them
     sort: ["extPick"],
     country_id: ""
   });
 
+  // Update filters when countryId changes
   useEffect(() => {
     if (countryId && !isUpdatingFilters.current) {
       console.log("CountryDetail: Updating country_id in filters", countryId);
@@ -130,6 +111,7 @@ const CountryDetail = () => {
     }
   }, [countryId]);
 
+  // Now use the dynamic filter hook
   const { 
     filteredItems: filteredBanknotes,
     filters,
@@ -140,7 +122,7 @@ const CountryDetail = () => {
     items: banknotes,
     initialFilters: currentFilters,
     countryId,
-    categories: [],
+    categories: [], // These arrays are empty because they'll be populated by the hook
     types: [],
     sortOptions: []
   });
