@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import CollectionItemForm from '@/components/collection/CollectionItemForm';
 import { fetchUserCollectionItems, fetchBanknoteCategoriesAndTypes } from '@/services/collectionService';
-import { fetchBanknote } from '@/services/banknoteService';
-import { CollectionItem, Banknote, DetailedBanknote } from '@/types';
+import { CollectionItem, DetailedBanknote } from '@/types';
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
 import { DynamicFilterState } from '@/types/filter';
 import { useDynamicFilter } from '@/hooks/use-dynamic-filter';
@@ -150,7 +149,7 @@ const Collection = () => {
       {showForm && (
         <div className="mb-8">
           <CollectionItemForm
-            item={editingItem}
+            initialItem={editingItem}
             onSave={handleSaveItem}
             onCancel={handleCloseForm}
           />
@@ -214,8 +213,8 @@ const Collection = () => {
                               return (
                                 <CollectionItemCard
                                   key={collectionItem.id}
-                                  item={collectionItem}
-                                  onEdit={() => handleEditItem(collectionItem)}
+                                  collectionItem={collectionItem}
+                                  onItemEdit={() => handleEditItem(collectionItem)}
                                   onCollectionUpdated={loadUserCollection}
                                 />
                               );
@@ -232,8 +231,8 @@ const Collection = () => {
                         return (
                           <CollectionItemCard
                             key={collectionItem.id}
-                            item={collectionItem}
-                            onEdit={() => handleEditItem(collectionItem)}
+                            collectionItem={collectionItem}
+                            onItemEdit={() => handleEditItem(collectionItem)}
                             onCollectionUpdated={loadUserCollection}
                           />
                         );

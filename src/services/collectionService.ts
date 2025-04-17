@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionItem } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
@@ -100,6 +99,71 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
   } catch (error) {
     console.error("Error in fetchUserCollection:", error);
     return [];
+  }
+}
+
+export async function fetchUserCollectionItems(userId: string): Promise<CollectionItem[]> {
+  // This function replaces fetchUserCollection but with a more accurate name
+  return fetchUserCollection(userId);
+}
+
+export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): Promise<{
+  categories: { id: string; name: string; count: number }[];
+  types: { id: string; name: string; count: number }[];
+}> {
+  try {
+    // Extract unique categories and types from collection items
+    const categoriesMap = new Map<string, { id: string; name: string; count: number }>();
+    const typesMap = new Map<string, { id: string; name: string; count: number }>();
+    
+    // Process each item to count categories and types
+    items.forEach(item => {
+      if (item.banknote?.category) {
+        const categoryId = item.banknote.category;
+        const categoryName = item.banknote.category; // Using category name as ID for now
+        
+        if (categoriesMap.has(categoryId)) {
+          const category = categoriesMap.get(categoryId)!;
+          category.count++;
+          categoriesMap.set(categoryId, category);
+        } else {
+          categoriesMap.set(categoryId, {
+            id: categoryId,
+            name: categoryName,
+            count: 1
+          });
+        }
+      }
+      
+      if (item.banknote?.type) {
+        const typeId = item.banknote.type;
+        const typeName = item.banknote.type; // Using type name as ID for now
+        
+        if (typesMap.has(typeId)) {
+          const type = typesMap.get(typeId)!;
+          type.count++;
+          typesMap.set(typeId, type);
+        } else {
+          typesMap.set(typeId, {
+            id: typeId,
+            name: typeName,
+            count: 1
+          });
+        }
+      }
+    });
+    
+    // Convert maps to arrays and sort by count (descending)
+    const categories = Array.from(categoriesMap.values())
+      .sort((a, b) => b.count - a.count);
+    
+    const types = Array.from(typesMap.values())
+      .sort((a, b) => b.count - a.count);
+    
+    return { categories, types };
+  } catch (error) {
+    console.error("Error extracting categories and types:", error);
+    return { categories: [], types: [] };
   }
 }
 
