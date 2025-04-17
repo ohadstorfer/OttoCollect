@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DetailedBanknote } from '@/types';
@@ -11,6 +12,7 @@ const Banknote = () => {
   const navigate = useNavigate();
   const [banknote, setBanknote] = useState<DetailedBanknote | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -22,11 +24,13 @@ const Banknote = () => {
         const data = await fetchBanknoteDetail(id);
         if (data) {
           setBanknote(data as DetailedBanknote);
+          setFetchError(null);
         } else {
           throw new Error('Banknote not found');
         }
       } catch (error) {
         console.error('Error loading banknote:', error);
+        setFetchError(error instanceof Error ? error.message : 'Unknown error');
         toast({
           title: "Error",
           description: "Failed to load banknote",
@@ -49,12 +53,12 @@ const Banknote = () => {
     );
   }
 
-  if (error || !banknote) {
+  if (fetchError || !banknote) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
           <h2 className="text-xl font-semibold text-red-800 mb-2">Error</h2>
-          <p className="text-red-700">{error || "Something went wrong"}</p>
+          <p className="text-red-700">{fetchError || "Something went wrong"}</p>
           <button
             onClick={() => navigate(-1)}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
