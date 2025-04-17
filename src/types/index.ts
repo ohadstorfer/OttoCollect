@@ -8,6 +8,7 @@ export interface Message {
   created_at: string;
   isRead: boolean;
   reference_item_id?: string;
+  is_read?: boolean;  // Database field name
   
   // Alias properties for compatibility
   senderId?: string;
@@ -156,6 +157,7 @@ export interface CountryData {
   name: string;
   description?: string;
   image_url?: string;
+  banknoteCount?: number;  // Add this property for display in the catalog
 }
 
 // Add WishlistItem interface for compatibility

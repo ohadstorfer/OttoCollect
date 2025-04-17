@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +13,7 @@ interface MessagePanelProps {
   referenceItemId?: string;
 }
 
-const MessagePanel: React.FC<MessagePanelProps> = ({ receiverId, referenceItemId }) => {
+export const MessagePanel: React.FC<MessagePanelProps> = ({ receiverId, referenceItemId }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -63,11 +64,13 @@ const MessagePanel: React.FC<MessagePanelProps> = ({ receiverId, referenceItemId
       return [];
     }
       
+    // Map the database fields to the Message interface
     return data.map(msg => ({
       ...msg,
       senderId: msg.sender_id,
       receiverId: msg.receiver_id,
-      createdAt: msg.created_at
+      createdAt: msg.created_at,
+      isRead: msg.is_read // Make sure this property is correctly mapped
     })) as Message[];
   };
 
@@ -95,9 +98,9 @@ const MessagePanel: React.FC<MessagePanelProps> = ({ receiverId, referenceItemId
     }
   };
 
-  const formatDate = (message) => {
+  const formatDate = (message: Message) => {
     try {
-      const messageDate = new Date(message.created_at);
+      const messageDate = new Date(message.createdAt || message.created_at);
       return format(messageDate, 'MMM d, h:mm a');
     } catch (error) {
       console.error('Error formatting date:', error);
