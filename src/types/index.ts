@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -155,3 +154,14 @@ export interface MarketplaceItem {
 export * from './message';
 export * from './forum';
 export * from './filter';
+
+// Add CountryData type if it doesn't exist
+export interface CountryData {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string | null;
+  banknoteCount?: number;
+  created_at?: string;
+  updated_at?: string;
+}

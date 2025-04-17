@@ -124,7 +124,6 @@ export async function fetchBanknotesByCountryId(
     }
     
     // Execute the query first to get all banknotes for this country
-    // We'll filter by category and type after fetching
     const { data, error } = await query;
     
     if (error) {
@@ -173,17 +172,17 @@ export async function fetchBanknotesByCountryId(
     }
     
     // Now we do the filtering in-memory since we need more flexible matching
-    let filteredData = data || [];
+    let filteredData = [...data];  // Create a copy to avoid mutations causing issues
     
     // Apply category filters if any
     if (categoryNames.length > 0) {
+      const lowerCaseCategories = categoryNames.map(cat => cat.toLowerCase());
+      
       filteredData = filteredData.filter(banknote => {
         const itemCategory = (banknote.category || "").toLowerCase();
         
         // Check if the banknote category matches any of the selected categories
-        return categoryNames.some(categoryName => {
-          const normalizedCategoryName = categoryName.toLowerCase();
-          
+        return lowerCaseCategories.some(normalizedCategoryName => {
           // Direct match
           if (itemCategory === normalizedCategoryName) return true;
           
@@ -199,13 +198,13 @@ export async function fetchBanknotesByCountryId(
     
     // Apply type filters if any
     if (typeNames.length > 0) {
+      const lowerCaseTypes = typeNames.map(type => type.toLowerCase());
+      
       filteredData = filteredData.filter(banknote => {
         const itemType = (banknote.type || "").toLowerCase();
         
         // Check if the banknote type matches any of the selected types
-        return typeNames.some(typeName => {
-          const normalizedTypeName = typeName.toLowerCase();
-          
+        return lowerCaseTypes.some(normalizedTypeName => {
           // Direct match
           if (itemType === normalizedTypeName) return true;
           
@@ -310,7 +309,7 @@ export async function fetchBanknotesByCountryId(
     
     // Group banknotes by category and organize by sultan if needed
     const groupBySultan = filters?.sort?.includes('sultan') || false;
-    const groupedBanknotes = groupBanknotesByCategory(banknotes, groupBySultan);
+    console.log(`Grouped banknotes into ${groupBanknotesByCategory(banknotes, groupBySultan).length} categories`);
     
     return banknotes;
   } catch (error) {
