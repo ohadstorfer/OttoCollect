@@ -1,238 +1,219 @@
 
-import React, { useState, useCallback } from 'react';
-import { CollectionItem, BanknoteCondition } from '@/types';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { CollectionItem, BanknoteCondition } from '@/types';
 import { updateCollectionItem } from '@/services/collectionService';
 import { useAuth } from '@/context/AuthContext';
 import { UploadImage } from '../UploadImage';
 
 interface CollectionItemFormProps {
   collectionItem: CollectionItem;
-  onSave?: (item: CollectionItem) => void;
-  onCancel?: () => void;
-  onUpdate?: (item: CollectionItem) => void;
+  onSave: (updatedItem: CollectionItem) => void;
+  onCancel: () => void;
 }
 
-const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ 
-  collectionItem,
-  onSave,
-  onCancel,
-  onUpdate
-}) => {
-  const { toast } = useToast();
+const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ collectionItem, onSave, onCancel }) => {
   const { user } = useAuth();
-
+  const [item, setItem] = useState<CollectionItem>({ ...collectionItem });
   const [condition, setCondition] = useState<BanknoteCondition>(collectionItem.condition);
-  const [purchasePrice, setPurchasePrice] = useState<string>(collectionItem.purchasePrice?.toString() || '');
-  const [purchaseDate, setPurchaseDate] = useState<string>(
-    collectionItem.purchaseDate 
-      ? typeof collectionItem.purchaseDate === 'string' 
-        ? collectionItem.purchaseDate 
-        : new Date(collectionItem.purchaseDate).toISOString().split('T')[0] 
-      : ''
-  );
-  const [salePrice, setSalePrice] = useState<string>(collectionItem.salePrice?.toString() || '');
-  const [isForSale, setIsForSale] = useState<boolean>(collectionItem.isForSale);
-  const [publicNote, setPublicNote] = useState<string>(collectionItem.publicNote || '');
-  const [privateNote, setPrivateNote] = useState<string>(collectionItem.privateNote || '');
-  const [obverseImage, setObverseImage] = useState<string>(collectionItem.obverseImage || '');
-  const [reverseImage, setReverseImage] = useState<string>(collectionItem.reverseImage || '');
-  const [isSaving, setIsSaving] = useState(false);
+  const [isForSale, setIsForSale] = useState(collectionItem.isForSale);
+  const [salePrice, setSalePrice] = useState(collectionItem.salePrice || 0);
+  const [purchasePrice, setPurchasePrice] = useState(collectionItem.purchasePrice || 0);
+  const [purchaseDate, setPurchaseDate] = useState<string>(collectionItem.purchaseDate || '');
+  const [publicNote, setPublicNote] = useState(collectionItem.publicNote || '');
+  const [privateNote, setPrivateNote] = useState(collectionItem.privateNote || '');
+  const [location, setLocation] = useState(collectionItem.location || '');
 
-  const handleObverseImageUpload = useCallback((url: string) => {
-    setObverseImage(url);
-  }, []);
-
-  const handleReverseImageUpload = useCallback((url: string) => {
-    setReverseImage(url);
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-
-    const updatedItem: CollectionItem = {
+  useEffect(() => {
+    setItem({
       ...collectionItem,
       condition,
-      purchasePrice: purchasePrice ? parseFloat(purchasePrice) : null,
-      purchaseDate: purchaseDate || null,
-      salePrice: salePrice ? parseFloat(salePrice) : null,
       isForSale,
-      publicNote: publicNote || null,
-      privateNote: privateNote || null,
-      obverseImage: obverseImage || null,
-      reverseImage: reverseImage || null,
-    };
+      salePrice,
+      purchasePrice,
+      purchaseDate,
+      publicNote,
+      privateNote,
+      location,
+    });
+  }, [
+    condition,
+    isForSale,
+    salePrice,
+    purchasePrice,
+    purchaseDate,
+    publicNote,
+    privateNote,
+    location,
+    collectionItem,
+  ]);
 
-    try {
-      const success = await updateCollectionItem(collectionItem.id, updatedItem);
-      if (success) {
-        toast({
-          title: "Success",
-          description: "Collection item updated successfully.",
-        });
-        if (onSave) {
-          onSave(updatedItem);
-        } else if (onUpdate) {
-          onUpdate(updatedItem);
-        }
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to update collection item.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error updating collection item:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+  const handleObverseImageUpload = (url: string) => {
+    setItem({ ...item, obverseImage: url });
   };
-  
+
+  const handleReverseImageUpload = (url: string) => {
+    setItem({ ...item, reverseImage: url });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(item);
+  };
+
+  const handleConditionChange = (value: string) => {
+    setCondition(value as BanknoteCondition);
+  };
+
   return (
-    <CardContent className="p-4">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit}>
+      <CardContent className="space-y-4 pt-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="condition">Condition</Label>
             <Select 
-              defaultValue={condition} 
-              onValueChange={(value) => setCondition(value as BanknoteCondition)}
+              value={condition} 
+              onValueChange={handleConditionChange}
             >
-              <SelectTrigger id="condition">
+              <SelectTrigger>
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="UNC">UNC</SelectItem>
-                <SelectItem value="AU">AU</SelectItem>
-                <SelectItem value="XF">XF</SelectItem>
-                <SelectItem value="VF">VF</SelectItem>
-                <SelectItem value="F">F</SelectItem>
-                <SelectItem value="VG">VG</SelectItem>
-                <SelectItem value="G">G</SelectItem>
-                <SelectItem value="Fair">Fair</SelectItem>
-                <SelectItem value="Poor">Poor</SelectItem>
+                <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
+                <SelectItem value="AU">AU - Almost Uncirculated</SelectItem>
+                <SelectItem value="XF">XF - Extremely Fine</SelectItem>
+                <SelectItem value="VF">VF - Very Fine</SelectItem>
+                <SelectItem value="F">F - Fine</SelectItem>
+                <SelectItem value="VG">VG - Very Good</SelectItem>
+                <SelectItem value="G">G - Good</SelectItem>
+                <SelectItem value="FAIR">Fair</SelectItem>
+                <SelectItem value="POOR">Poor</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
-          <div>
-            <Label htmlFor="purchasePrice">Purchase Price</Label>
-            <Input
-              type="number"
-              id="purchasePrice"
-              value={purchasePrice}
-              onChange={(e) => setPurchasePrice(e.target.value)}
-              placeholder="Purchase Price"
+          <div className="space-y-2">
+            <Label htmlFor="location">Storage Location</Label>
+            <Input 
+              id="location" 
+              value={location || ''} 
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g., Album 2, Page 5" 
             />
           </div>
         </div>
-
-        <div>
-          <Label htmlFor="purchaseDate">Purchase Date</Label>
-          <Input
-            type="date"
-            id="purchaseDate"
-            value={purchaseDate}
-            onChange={(e) => setPurchaseDate(e.target.value)}
-            placeholder="Purchase Date"
-          />
-        </div>
-
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="salePrice">Sale Price</Label>
-            <Input
-              type="number"
-              id="salePrice"
-              value={salePrice}
-              onChange={(e) => setSalePrice(e.target.value)}
-              placeholder="Sale Price"
+          <div className="space-y-2">
+            <Label htmlFor="purchasePrice">Purchase Price ($)</Label>
+            <Input 
+              id="purchasePrice" 
+              type="number" 
+              min="0" 
+              step="0.01" 
+              value={purchasePrice || ''} 
+              onChange={(e) => setPurchasePrice(parseFloat(e.target.value) || 0)}
             />
           </div>
-
-          <div>
-            <Label htmlFor="isForSale">For Sale</Label>
-            <div className="flex items-center mt-2">
-              <input
-                type="checkbox"
-                id="isForSale"
-                checked={isForSale}
-                onChange={(e) => setIsForSale(e.target.checked)}
-                className="mr-2"
-              />
-              <Label htmlFor="isForSale">List for sale</Label>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="purchaseDate">Purchase Date</Label>
+            <Input 
+              id="purchaseDate" 
+              type="date" 
+              value={purchaseDate || ''} 
+              onChange={(e) => setPurchaseDate(e.target.value)}
+            />
           </div>
         </div>
-
-        <div>
-          <Label htmlFor="publicNote">Public Note</Label>
-          <Textarea
-            id="publicNote"
-            value={publicNote}
+        
+        <div className="flex items-center space-x-2">
+          <Switch 
+            checked={isForSale} 
+            onCheckedChange={setIsForSale}
+          />
+          <Label htmlFor="isForSale">List for sale</Label>
+        </div>
+        
+        {isForSale && (
+          <div className="space-y-2">
+            <Label htmlFor="salePrice">Sale Price ($)</Label>
+            <Input 
+              id="salePrice" 
+              type="number" 
+              min="0" 
+              step="0.01"
+              value={salePrice || ''} 
+              onChange={(e) => setSalePrice(parseFloat(e.target.value) || 0)}
+              className="w-full" 
+            />
+          </div>
+        )}
+        
+        <div className="space-y-2">
+          <Label htmlFor="publicNote">Public Note (visible to others)</Label>
+          <Textarea 
+            id="publicNote" 
+            value={publicNote || ''} 
             onChange={(e) => setPublicNote(e.target.value)}
-            placeholder="Public Note"
+            placeholder="Add details visible to other collectors" 
+            className="h-20" 
           />
         </div>
-
-        <div>
-          <Label htmlFor="privateNote">Private Note</Label>
-          <Textarea
-            id="privateNote"
-            value={privateNote}
+        
+        <div className="space-y-2">
+          <Label htmlFor="privateNote">Private Note (only visible to you)</Label>
+          <Textarea 
+            id="privateNote" 
+            value={privateNote || ''} 
             onChange={(e) => setPrivateNote(e.target.value)}
-            placeholder="Private Note"
+            placeholder="Add private notes for your reference" 
+            className="h-20" 
           />
         </div>
-
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="obverseImage">Obverse Image</Label>
-            <UploadImage
-              id="obverseImage"
-              userId={user?.id || ''}
+          <div className="space-y-2">
+            <Label>Obverse (Front) Image</Label>
+            <UploadImage 
+              id="obverse-upload" 
+              userId={user?.id || ''} 
               onUpload={handleObverseImageUpload}
-              existingImageUrl={obverseImage}
+              existingImageUrl={item.obverseImage}
             />
           </div>
-
-          <div>
-            <Label htmlFor="reverseImage">Reverse Image</Label>
-            <UploadImage
-              id="reverseImage"
+          <div className="space-y-2">
+            <Label>Reverse (Back) Image</Label>
+            <UploadImage 
+              id="reverse-upload" 
               userId={user?.id || ''}
               onUpload={handleReverseImageUpload}
-              existingImageUrl={reverseImage}
+              existingImageUrl={item.reverseImage}
             />
           </div>
         </div>
-
-        <CardFooter className="justify-between p-4">
-          {onCancel && (
-            <Button variant="ghost" onClick={onCancel}>
-              Cancel
-            </Button>
-          )}
-          <Button type="submit" disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </CardFooter>
-      </form>
-    </CardContent>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button type="submit">Save Changes</Button>
+      </CardFooter>
+    </form>
   );
 };
 

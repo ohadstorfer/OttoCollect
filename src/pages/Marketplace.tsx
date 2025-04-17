@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMarketplaceItems } from '@/services/marketplaceService';
 import { MarketplaceItem } from '@/types';
 import MarketplaceItemCard from '@/components/marketplace/MarketplaceItemCard';
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/input";
 
 export default function Marketplace() {
   const [searchTerm, setSearchTerm] = useState('');

@@ -10,13 +10,11 @@ import {
 import { fetchBanknotes } from '@/services/banknoteService';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Container } from '@/components/ui/container';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import CollectionItemForm from '@/components/collection/CollectionItemForm';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CollectionItem, Banknote } from '@/types';
 import { toast } from 'sonner';
@@ -138,7 +136,7 @@ const CollectionPage = () => {
         </Dialog>
       )}
 
-      <Container>
+      <div className="container mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">My Collection</h1>
         </div>
@@ -219,7 +217,7 @@ const CollectionPage = () => {
             )}
           </TabsContent>
         </Tabs>
-      </Container>
+      </div>
     </div>
   );
 };

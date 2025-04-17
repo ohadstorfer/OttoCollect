@@ -6,16 +6,13 @@ import { User } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
-import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { fetchUserCollection } from "@/services/collectionService";
-import { fetchBanknotes } from "@/services/banknoteService";
-import { fetchUserWishlist } from "@/services/wishlistService";
 import { useQuery } from "@tanstack/react-query";
 import CollectionProfileNew from "./CollectionProfileNew";
 import { useTheme } from "@/context/ThemeContext";
+import ProfileCollection from "@/components/profile/ProfileCollection";
 
 export default function Profile() {
   const { id } = useParams<{ id: string }>();

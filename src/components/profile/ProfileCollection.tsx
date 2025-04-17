@@ -30,9 +30,11 @@ const ProfileCollection = ({ userId }: ProfileCollectionProps) => {
     queryKey: ['collection', userId],
     queryFn: () => fetchUserCollection(userId),
     enabled: !!userId,
-    meta: { onSuccess: (data: CollectionItem[]) => {
-      setCollection(data);
-    }}
+    meta: {
+      onSuccess: (data: CollectionItem[]) => {
+        setCollection(data);
+      }
+    }
   });
   
   const filteredItems = collection?.filter((item) => {
@@ -68,6 +70,8 @@ const ProfileCollection = ({ userId }: ProfileCollectionProps) => {
               key={item.id}
               item={item}
               banknote={banknote}
+              onItemEdit={() => {}}
+              onCollectionUpdated={() => {}}
             />
           );
         })}
