@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { DetailedBanknote } from "@/types";
-import { fetchBanknotes, fetchBanknotesByCountryId } from "@/services/banknoteService";
+import { fetchBanknotesByCountryId } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -64,7 +64,9 @@ const CountryDetail = () => {
         // Load banknotes immediately after getting country ID
         const banknotesData = await fetchBanknotesByCountryId(countryData.id);
         console.log("CountryDetail: Banknotes loaded:", banknotesData.length);
+        console.log("CountryDetail: Banknotes loaded:", banknotesData);
         setBanknotes(banknotesData);
+        setLoading(false);
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
         toast({
@@ -72,7 +74,6 @@ const CountryDetail = () => {
           description: "Failed to load country data. Please try again later.",
           variant: "destructive",
         });
-      } finally {
         setLoading(false);
       }
     };
@@ -80,11 +81,11 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
 
-  // Define initial filters with empty arrays but include the countryId
+  // Define initial filters
   const [currentFilters, setCurrentFilters] = useState<DynamicFilterState>({
     search: "",
-    categories: [], // Don't set initial categories here, let user preferences load them
-    types: [], // Don't set initial types here, let user preferences load them
+    categories: [], 
+    types: [], 
     sort: ["extPick"],
     country_id: ""
   });

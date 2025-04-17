@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { DynamicFilterState, FilterableItem } from "@/types/filter";
@@ -310,6 +309,19 @@ export const useDynamicFilter = <T extends FilterableItem>({
       return [];
     }
     
+    // DEBUG: Log first few items to see their structure
+    if (items.length > 0) {
+      const sampleBanknote = getBanknote(items[0]);
+      console.log("Sample banknote data:", {
+        id: sampleBanknote.id,
+        category: sampleBanknote.category,
+        type: sampleBanknote.type,
+        series: sampleBanknote.series,
+        categoryId: sampleBanknote.categoryId,
+        typeId: sampleBanknote.typeId
+      });
+    }
+    
     const filtered = items.filter((item) => {
       const banknote = getBanknote(item);
       if (!banknote) {
@@ -325,39 +337,58 @@ export const useDynamicFilter = <T extends FilterableItem>({
           value.toLowerCase().includes(searchLower)
         );
 
-      // Category filter - match by category ID or name
+      // Category filter - match category directly since we don't have IDs in the banknote data
       let matchesCategory = noCategories;
       
-      if (!matchesCategory && currentFilters.categories) {
-        // Check if category matches by ID
-        if (banknote.categoryId && currentFilters.categories.includes(banknote.categoryId)) {
-          matchesCategory = true;
-        }
-        // Check if category matches by name/series
-        else if (banknote.series || banknote.category) {
-          const categoryName = banknote.series || banknote.category;
-          matchesCategory = currentFilters.categories.some(catId => {
+      if (!matchesCategory && currentFilters.categories && currentFilters.categories.length > 0) {
+        // First try to find categories by exact match if categories exist in banknote data
+        if (banknote.category) {
+          // Get category names from our filters
+          const categoryNames = currentFilters.categories.map(catId => {
             const category = effectiveCategories.find(c => c.id === catId);
-            return category && categoryName === category.name;
+            return category?.name || '';
           });
+          
+          // Check if banknote category is in our category names list
+          matchesCategory = categoryNames.some(name => 
+            name.toLowerCase() === banknote.category?.toLowerCase()
+          );
+        } else {
+          // Fallback: if all categories are selected, count as match
+          matchesCategory = currentFilters.categories.length === effectiveCategories.length;
         }
       }
       
-      // Type filter - match by type ID or name
+      // Type filter - match directly since we don't have IDs in the banknote data
       let matchesType = noTypes;
       
-      if (!matchesType && currentFilters.types) {
-        // Check if type matches by ID
-        if (banknote.typeId && currentFilters.types.includes(banknote.typeId)) {
-          matchesType = true;
-        }
-        // Check if type matches by name
-        else if (banknote.type) {
-          matchesType = currentFilters.types.some(typeId => {
+      if (!matchesType && currentFilters.types && currentFilters.types.length > 0) {
+        if (banknote.type) {
+          // Get type names from our filters
+          const typeNames = currentFilters.types.map(typeId => {
             const typeDefinition = effectiveTypes.find(t => t.id === typeId);
-            return typeDefinition && normalizeType(banknote.type) === normalizeType(typeDefinition.name);
+            return typeDefinition?.name || '';
           });
+          
+          // Check if banknote type is in our type names list (case-insensitive)
+          matchesType = typeNames.some(name => 
+            normalizeType(name) === normalizeType(banknote.type)
+          );
+        } else {
+          // Fallback: if all types are selected, count as match
+          matchesType = currentFilters.types.length === effectiveTypes.length;
         }
+      }
+
+      // Debug every 20th item to avoid flooding the console
+      if (banknote.id && Math.random() < 0.05) {
+        console.log(`Filtering banknote ${banknote.id}`, {
+          type: banknote.type,
+          category: banknote.category,
+          matchesSearch,
+          matchesCategory,
+          matchesType
+        });
       }
 
       const result = matchesSearch && matchesCategory && matchesType;
@@ -403,8 +434,8 @@ export const useDynamicFilter = <T extends FilterableItem>({
             break;
 
           case "extPick":
-            comparison = String(banknoteA.extendedPickNumber || banknoteA.catalogId || "")
-              .localeCompare(String(banknoteB.extendedPickNumber || banknoteB.catalogId || ""));
+            comparison = String(banknoteA.extendedPickNumber || banknoteA.catalogId || banknoteA.extended_pick_number || "")
+              .localeCompare(String(banknoteB.extendedPickNumber || banknoteB.catalogId || banknoteB.extended_pick_number || ""));
             break;
             
           case "newest":
@@ -426,7 +457,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
     return sorted;
   }, [items, filters, effectiveCategories, effectiveTypes, isLoading, getBanknote]);
 
-  // Group items by category and optionally by sultan within category
+  // Group items by category
   const groupedItems = useMemo(() => {
     console.log("useDynamicFilter: Grouping items", { 
       filteredCount: filteredItems.length,
@@ -439,7 +470,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
     const groups: GroupItem<T>[] = [];
     
     // Safety check for filteredItems
-    if (!filteredItems || !Array.isArray(filteredItems)) {
+    if (!filteredItems || !Array.isArray(filteredItems) || filteredItems.length === 0) {
       return [];
     }
     
@@ -454,9 +485,9 @@ export const useDynamicFilter = <T extends FilterableItem>({
       const banknote = getBanknote(item);
       if (!banknote) return;
       
-      // Use series or category as the category name
-      const categoryName = banknote.series || banknote.category || "Uncategorized";
-      const categoryId = banknote.categoryId || categoryLookup.get(categoryName) || '';
+      // Use category as the grouping key
+      const categoryName = banknote.category || "Uncategorized";
+      const categoryId = categoryLookup.get(categoryName) || '';
       
       if (!categoryMap.has(categoryName)) {
         categoryMap.set(categoryName, { 
