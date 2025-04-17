@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { MarketplaceItem, User, CollectionItem } from "@/types";
+import { MarketplaceItem, User, CollectionItem, BanknoteCondition } from "@/types";
+import { v4 as uuidv4 } from 'uuid';
 
 export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
   try {
@@ -25,13 +26,28 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
 
     // Properly map the data to MarketplaceItem type
     return data.map(item => {
+      // Make sure the seller property exists and is correctly typed
+      const seller = item.seller || { 
+        id: '',
+        username: '',
+        email: '',
+        avatarUrl: '',
+        role: 'User',
+        rank: 'Newbie',
+        points: 0,
+        createdAt: '',
+        about: '',
+        country: '',
+        updatedAt: ''
+      };
+      
       const mappedItem: MarketplaceItem = {
         id: item.id,
         collectionItem: {
           id: item.collection_item.id,
           userId: item.collection_item.user_id,
           banknoteId: item.collection_item.banknote_id,
-          condition: item.collection_item.condition,
+          condition: item.collection_item.condition as BanknoteCondition,
           purchasePrice: item.collection_item.purchase_price,
           purchaseDate: item.collection_item.purchase_date,
           salePrice: item.collection_item.sale_price,
@@ -47,14 +63,14 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
         },
         sellerId: item.seller_id,
         seller: {
-          id: item.seller.id,
-          username: item.seller.username,
-          email: item.seller.email || '',
-          avatarUrl: item.seller.avatar_url,
-          role: item.seller.role || 'User',
-          rank: item.seller.rank || 'Newbie',
-          points: item.seller.points || 0,
-          createdAt: item.seller.created_at,
+          id: seller.id,
+          username: seller.username,
+          email: seller.email || '',
+          avatarUrl: seller.avatar_url,
+          role: seller.role || 'User',
+          rank: seller.rank || 'Newbie',
+          points: seller.points || 0,
+          createdAt: seller.created_at,
           about: '',
           country: '',
           updatedAt: ''
@@ -92,13 +108,28 @@ export async function fetchMarketplaceItemById(id: string): Promise<MarketplaceI
       return null;
     }
     
+    // Make sure the seller property exists and is correctly typed
+    const seller = data.seller || { 
+      id: '',
+      username: '',
+      email: '',
+      avatarUrl: '',
+      role: 'User',
+      rank: 'Newbie',
+      points: 0,
+      createdAt: '',
+      about: '',
+      country: '',
+      updatedAt: ''
+    };
+    
     const mappedItem: MarketplaceItem = {
       id: data.id,
       collectionItem: {
         id: data.collection_item.id,
         userId: data.collection_item.user_id,
         banknoteId: data.collection_item.banknote_id,
-        condition: data.collection_item.condition,
+        condition: data.collection_item.condition as BanknoteCondition,
         purchasePrice: data.collection_item.purchase_price,
         purchaseDate: data.collection_item.purchase_date,
         salePrice: data.collection_item.sale_price,
@@ -114,14 +145,14 @@ export async function fetchMarketplaceItemById(id: string): Promise<MarketplaceI
       },
       sellerId: data.seller_id,
       seller: {
-        id: data.seller.id,
-        username: data.seller.username,
-        email: data.seller.email || '',
-        avatarUrl: data.seller.avatar_url,
-        role: data.seller.role || 'User',
-        rank: data.seller.rank || 'Newbie',
-        points: data.seller.points || 0,
-        createdAt: data.seller.created_at,
+        id: seller.id,
+        username: seller.username,
+        email: seller.email || '',
+        avatarUrl: seller.avatar_url,
+        role: seller.role || 'User',
+        rank: seller.rank || 'Newbie',
+        points: seller.points || 0,
+        createdAt: seller.created_at,
         about: '',
         country: '',
         updatedAt: ''

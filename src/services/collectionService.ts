@@ -1,8 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
-import { CollectionItem } from "@/types";
+import { CollectionItem, DetailedBanknote, BanknoteCondition } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 import { fetchBanknoteById } from "@/services/banknoteService";
-import { BanknoteCondition } from "@/types";
 import type { Database } from "@/integrations/supabase/types";
 
 // Type definition for collection items table insert
@@ -107,29 +106,31 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
   return fetchUserCollection(userId);
 }
 
-export async function fetchBanknoteCategoriesAndTypes(collectionItems: CollectionItem[], banknotes: Banknote[]): Promise<{
+export async function fetchBanknoteCategoriesAndTypes(collectionItems: CollectionItem[], banknotes: DetailedBanknote[]): Promise<{
   categories: { id: string; name: string; count: number }[];
   types: { id: string; name: string; count: number }[];
 }> {
-  const categories: Record<string, { name: string; count: number }> = {};
-  const types: Record<string, { name: string; count: number }> = {};
+  const categories: Record<string, { id: string; name: string; count: number }> = {};
+  const types: Record<string, { id: string; name: string; count: number }> = {};
   
   collectionItems.forEach(item => {
     const banknote = banknotes.find(b => b.id === item.banknoteId);
     if (banknote) {
       // Use categoryId if available, otherwise use a default category
       const categoryName = banknote.categoryId || 'Uncategorized';
-      if (!categories[categoryName]) {
-        categories[categoryName] = { name: banknote.categoryId || 'Uncategorized', count: 0 };
+      const categoryId = banknote.categoryId || 'uncategorized';
+      if (!categories[categoryId]) {
+        categories[categoryId] = { id: categoryId, name: categoryName, count: 0 };
       }
-      categories[categoryName].count += 1;
+      categories[categoryId].count += 1;
       
       // Use typeId if available, otherwise use a default type
       const typeName = banknote.typeId || 'Unknown';
-      if (!types[typeName]) {
-        types[typeName] = { name: banknote.typeId || 'Unknown', count: 0 };
+      const typeId = banknote.typeId || 'unknown';
+      if (!types[typeId]) {
+        types[typeId] = { id: typeId, name: typeName, count: 0 };
       }
-      types[typeName].count += 1;
+      types[typeId].count += 1;
     }
   });
   
@@ -139,254 +140,50 @@ export async function fetchBanknoteCategoriesAndTypes(collectionItems: Collectio
   };
 }
 
-export async function fetchCollectionItem(itemId: string): Promise<CollectionItem | null> {
-  try {
-    // First check if the item exists
-    const { data: item, error } = await supabase
-      .from('collection_items')
-      .select(`
-        id,
-        user_id,
-        banknote_id,
-        condition,
-        sale_price,
-        is_for_sale,
-        public_note,
-        private_note,
-        purchase_price,
-        purchase_date,
-        location,
-        obverse_image,
-        reverse_image,
-        order_index,
-        created_at,
-        updated_at
-      `)
-      .eq('id', itemId)
-      .maybeSingle();
+export function getCategoryCountsFromCollection(collection: CollectionItem[], banknotes: DetailedBanknote[]): { id: string; name: string; count: number }[] {
+  if (!collection || !banknotes) return [];
 
-    if (error) {
-      console.error("Error fetching collection item:", error);
-      return null;
-    }
-
-    if (!item) {
-      console.log(`Collection item not found: ${itemId}`);
-      return null;
-    }
-
-    // Fetch the banknote details
-    const banknote = await fetchBanknoteById(item.banknote_id);
-    if (!banknote) {
-      console.error(`Banknote not found for collection item: ${item.banknote_id}`);
-      return null;
-    }
-    
-    return {
-      id: item.id,
-      userId: item.user_id,
-      banknoteId: item.banknote_id,
-      banknote: banknote,
-      condition: item.condition as BanknoteCondition,
-      salePrice: item.sale_price,
-      isForSale: item.is_for_sale,
-      publicNote: item.public_note,
-      privateNote: item.private_note,
-      purchasePrice: item.purchase_price,
-      purchaseDate: item.purchase_date,
-      location: item.location,
-      obverseImage: item.obverse_image,
-      reverseImage: item.reverse_image,
-      orderIndex: item.order_index,
-      createdAt: item.created_at,
-      updatedAt: item.updated_at
-    } as CollectionItem;
-  } catch (error) {
-    console.error("Error in fetchCollectionItem:", error);
-    return null;
-  }
-}
-
-export async function addToCollection(
-  params: {
-    userId: string;
-    banknoteId: string;
-    condition: BanknoteCondition;
-    purchasePrice?: number;
-    purchaseDate?: string;
-    publicNote?: string;
-    privateNote?: string;
-    salePrice?: number;
-    isForSale?: boolean;
-  }
-): Promise<CollectionItem | null> {
-  try {
-    console.log("Adding banknote to collection:", params);
-
-    // Get current highest order index
-    const { data: highestItem } = await supabase
-      .from('collection_items')
-      .select('order_index')
-      .eq('user_id', params.userId)
-      .order('order_index', { ascending: false })
-      .limit(1);
-    
-    const orderIndex = highestItem && highestItem.length > 0 ? highestItem[0].order_index + 1 : 0;
-    
-    const newItem = {
-      user_id: params.userId,
-      banknote_id: params.banknoteId,
-      condition: params.condition,
-      purchase_price: params.purchasePrice || null,
-      purchase_date: params.purchaseDate || null,
-      public_note: params.publicNote || null,
-      private_note: params.privateNote || null,
-      order_index: orderIndex,
-      is_for_sale: params.isForSale || false,
-      sale_price: params.salePrice || null
-    };
-
-    const { data: insertedItem, error } = await supabase
-      .from('collection_items')
-      .insert([newItem])
-      .select('*')
-      .single();
-    
-    if (error) {
-      console.error("Error adding to collection:", error);
-      throw error;
-    }
-
-    // Fetch the banknote details
-    const banknote = await fetchBanknoteById(insertedItem.banknote_id);
-    
-    const collectionItem: CollectionItem = {
-      id: insertedItem.id,
-      userId: insertedItem.user_id,
-      banknoteId: insertedItem.banknote_id,
-      banknote: banknote!,
-      condition: insertedItem.condition as BanknoteCondition,
-      salePrice: insertedItem.sale_price,
-      isForSale: insertedItem.is_for_sale,
-      publicNote: insertedItem.public_note,
-      privateNote: insertedItem.private_note,
-      purchasePrice: insertedItem.purchase_price,
-      purchaseDate: insertedItem.purchase_date,
-      location: insertedItem.location,
-      obverseImage: insertedItem.obverse_image,
-      reverseImage: insertedItem.reverse_image,
-      orderIndex: insertedItem.order_index,
-      createdAt: insertedItem.created_at,
-      updatedAt: insertedItem.updated_at
-    };
-
-    return collectionItem;
-  } catch (error) {
-    console.error("Error in addToCollection:", error);
-    return null;
-  }
-}
-
-export async function removeFromCollection(collectionItemId: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('collection_items')
-      .delete()
-      .eq('id', collectionItemId);
-    
-    if (error) {
-      console.error("Error removing from collection:", error);
-      throw error;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error("Error in removeFromCollection:", error);
-    return false;
-  }
-}
-
-export async function updateCollectionItem(
-  collectionItemId: string, 
-  updates: Partial<Omit<CollectionItem, 'id' | 'userId' | 'banknoteId' | 'banknote' | 'createdAt' | 'updatedAt'>>
-): Promise<boolean> {
-  try {
-    // Convert from our frontend model to database model
-    const dbUpdates: Partial<TablesInsert<'collection_items'>> = {
-      // Explicitly define default properties so TypeScript doesn't complain
-      banknote_id: undefined,
-      condition: undefined,
-      user_id: undefined
-    };
-    
-    if (updates.condition) dbUpdates.condition = updates.condition;
-    if (updates.salePrice !== undefined) dbUpdates.sale_price = updates.salePrice;
-    if (updates.isForSale !== undefined) dbUpdates.is_for_sale = updates.isForSale;
-    if (updates.publicNote !== undefined) dbUpdates.public_note = updates.publicNote;
-    if (updates.privateNote !== undefined) dbUpdates.private_note = updates.privateNote;
-    if (updates.purchasePrice !== undefined) dbUpdates.purchase_price = updates.purchasePrice;
-    if (updates.purchaseDate !== undefined) {
-      // Convert Date object to ISO string if it's a Date
-      dbUpdates.purchase_date = typeof updates.purchaseDate === 'string' 
-        ? updates.purchaseDate 
-        : updates.purchaseDate.toISOString();
-    }
-    if (updates.location !== undefined) dbUpdates.location = updates.location;
-    if (updates.obverseImage !== undefined) dbUpdates.obverse_image = updates.obverseImage;
-    if (updates.reverseImage !== undefined) dbUpdates.reverse_image = updates.reverseImage;
-    if (updates.orderIndex !== undefined) dbUpdates.order_index = updates.orderIndex;
-    
-    // Remove undefined fields
-    Object.keys(dbUpdates).forEach(key => {
-      if (dbUpdates[key as keyof typeof dbUpdates] === undefined) {
-        delete dbUpdates[key as keyof typeof dbUpdates];
+  const categoryMap = new Map<string, { id: string, name: string, count: number }>();
+  
+  collection.forEach(item => {
+    const banknote = banknotes.find(b => b.id === item.banknoteId);
+    if (banknote?.category) {
+      const categoryId = banknote.category;
+      const categoryName = banknote.category;
+      const existing = categoryMap.get(categoryId);
+      
+      if (existing) {
+        existing.count += 1;
+      } else {
+        categoryMap.set(categoryId, { id: categoryId, name: categoryName, count: 1 });
       }
-    });
-    
-    const { error } = await supabase
-      .from('collection_items')
-      .update(dbUpdates)
-      .eq('id', collectionItemId);
-    
-    if (error) {
-      console.error("Error updating collection item:", error);
-      throw error;
     }
-    
-    return true;
-  } catch (error) {
-    console.error("Error in updateCollectionItem:", error);
-    return false;
-  }
+  });
+  
+  return Array.from(categoryMap.values());
 }
 
-export async function updateCollectionItemImages(
-  collectionItemId: string,
-  obverseImage?: string,
-  reverseImage?: string
-): Promise<boolean> {
-  try {
-    const updates: any = {};
-    if (obverseImage !== undefined) updates.obverse_image = obverseImage;
-    if (reverseImage !== undefined) updates.reverse_image = reverseImage;
-    
-    if (Object.keys(updates).length === 0) return true; // Nothing to update
-    
-    const { error } = await supabase
-      .from('collection_items')
-      .update(updates)
-      .eq('id', collectionItemId);
-    
-    if (error) {
-      console.error("Error updating collection item images:", error);
-      throw error;
+export function getCountryCountsFromCollection(collection: CollectionItem[], banknotes: DetailedBanknote[]): { id: string; name: string; count: number }[] {
+  if (!collection || !banknotes) return [];
+  
+  const countryMap = new Map<string, { id: string, name: string, count: number }>();
+  
+  collection.forEach(item => {
+    const banknote = banknotes.find(b => b.id === item.banknoteId);
+    if (banknote?.country) {
+      const countryId = banknote.country;
+      const countryName = banknote.country;
+      const existing = countryMap.get(countryId);
+      
+      if (existing) {
+        existing.count += 1;
+      } else {
+        countryMap.set(countryId, { id: countryId, name: countryName, count: 1 });
+      }
     }
-    
-    return true;
-  } catch (error) {
-    console.error("Error in updateCollectionItemImages:", error);
-    return false;
-  }
+  });
+  
+  return Array.from(countryMap.values());
 }
 
 export async function deleteCollectionItem(itemId: string): Promise<boolean> {
@@ -406,46 +203,4 @@ export async function deleteCollectionItem(itemId: string): Promise<boolean> {
     console.error("Error in deleteCollectionItem:", error);
     return false;
   }
-}
-
-export function getCategoryCountsFromCollection(collection: CollectionItem[], banknotes: DetailedBanknote[]): { id: string, name: string, count: number }[] {
-  if (!collection || !banknotes) return [];
-
-  const categoryMap = new Map<string, number>();
-  
-  collection.forEach(item => {
-    const banknote = banknotes.find(b => b.id === item.banknoteId);
-    if (banknote?.category) {
-      const count = categoryMap.get(banknote.category) || 0;
-      categoryMap.set(banknote.category, count + 1);
-    }
-  });
-  
-  // Convert map to array of objects
-  return Array.from(categoryMap.entries()).map(([name, count]) => ({
-    id: name, // Using name as id since it's what we need for grouping
-    name,
-    count
-  }));
-}
-
-export function getCountryCountsFromCollection(collection: CollectionItem[], banknotes: DetailedBanknote[]): { id: string, name: string, count: number }[] {
-  if (!collection || !banknotes) return [];
-  
-  const countryMap = new Map<string, number>();
-  
-  collection.forEach(item => {
-    const banknote = banknotes.find(b => b.id === item.banknoteId);
-    if (banknote?.country) {
-      const count = countryMap.get(banknote.country) || 0;
-      countryMap.set(banknote.country, count + 1);
-    }
-  });
-  
-  // Convert map to array of objects
-  return Array.from(countryMap.entries()).map(([name, count]) => ({
-    id: name, // Using name as id since it's what we need for grouping
-    name,
-    count
-  }));
 }

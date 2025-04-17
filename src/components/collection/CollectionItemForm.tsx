@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { CollectionItem, BanknoteCondition } from '@/types';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -30,7 +31,13 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
 
   const [condition, setCondition] = useState<BanknoteCondition>(collectionItem.condition);
   const [purchasePrice, setPurchasePrice] = useState<string>(collectionItem.purchasePrice?.toString() || '');
-  const [purchaseDate, setPurchaseDate] = useState<string>(collectionItem.purchaseDate || '');
+  const [purchaseDate, setPurchaseDate] = useState<string>(
+    collectionItem.purchaseDate 
+      ? typeof collectionItem.purchaseDate === 'string' 
+        ? collectionItem.purchaseDate 
+        : new Date(collectionItem.purchaseDate).toISOString().split('T')[0] 
+      : ''
+  );
   const [salePrice, setSalePrice] = useState<string>(collectionItem.salePrice?.toString() || '');
   const [isForSale, setIsForSale] = useState<boolean>(collectionItem.isForSale);
   const [publicNote, setPublicNote] = useState<string>(collectionItem.publicNote || '');
@@ -101,7 +108,10 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="condition">Condition</Label>
-            <Select value={condition} onValueChange={setCondition}>
+            <Select 
+              defaultValue={condition} 
+              onValueChange={(value) => setCondition(value as BanknoteCondition)}
+            >
               <SelectTrigger id="condition">
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
@@ -156,12 +166,16 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
 
           <div>
             <Label htmlFor="isForSale">For Sale</Label>
-            {/*<Input
-              type="checkbox"
-              id="isForSale"
-              checked={isForSale}
-              onChange={(e) => setIsForSale(e.target.checked)}
-            />*/}
+            <div className="flex items-center mt-2">
+              <input
+                type="checkbox"
+                id="isForSale"
+                checked={isForSale}
+                onChange={(e) => setIsForSale(e.target.checked)}
+                className="mr-2"
+              />
+              <Label htmlFor="isForSale">List for sale</Label>
+            </div>
           </div>
         </div>
 

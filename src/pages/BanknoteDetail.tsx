@@ -162,6 +162,18 @@ export default function BanknoteDetail() {
     }
   };
 
+  const handleSaveEdit = (updatedItem: CollectionItem) => {
+    if (updatedItem) {
+      setCollectionItem(updatedItem);
+      toast.success("Collection item updated successfully!");
+    }
+  };
+  
+  const handleCancelEdit = () => {
+    // Just close the edit form
+    // No changes needed
+  };
+
   if (isLoading) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchUserCollection } from '@/services/collectionService';
@@ -22,16 +23,16 @@ const ProfileCollection = ({ userId }: ProfileCollectionProps) => {
   
   const { data: allBanknotes, isLoading: banknotesLoading } = useQuery({
     queryKey: ['banknotes'],
-    queryFn: fetchBanknotes
+    queryFn: () => fetchBanknotes()
   });
   
   const { data: collectionData, isLoading: collectionLoading } = useQuery({
     queryKey: ['collection', userId],
     queryFn: () => fetchUserCollection(userId),
     enabled: !!userId,
-    onSuccess: (data) => {
+    meta: { onSuccess: (data: CollectionItem[]) => {
       setCollection(data);
-    },
+    }}
   });
   
   const filteredItems = collection?.filter((item) => {

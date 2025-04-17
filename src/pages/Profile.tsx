@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getUserProfile } from "@/services/profileService";
@@ -30,11 +29,9 @@ export default function Profile() {
   const isOwnProfile = currentUser && profile && currentUser.id === profile.id;
   const userId = profile?.id || '';
 
-  // Fetch profile data
   useEffect(() => {
     async function loadProfile() {
       if (!id) {
-        // If no ID is provided in the URL, and user is logged in, show own profile
         if (currentUser) {
           navigate(`/profile/${currentUser.id}`);
         } else {
@@ -58,8 +55,6 @@ export default function Profile() {
 
     loadProfile();
   }, [id, currentUser, navigate]);
-
-  // Fetch collection data is now handled by ProfileCollection component
 
   const handleProfileUpdated = (updatedProfile: User) => {
     setProfile(updatedProfile);
@@ -91,7 +86,6 @@ export default function Profile() {
   return (
     <div className="page-container animate-fade-in">
       <div className="max-w-4xl mx-auto">
-        {/* Profile Header is always visible */}
         <ProfileHeader profile={profile} />
         
         {isEditing ? (
