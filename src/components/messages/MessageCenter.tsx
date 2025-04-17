@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
-import { useMessages } from '@/hooks/use-messages';
+import useMessages from '@/hooks/use-messages';
 import { useAuth } from '@/context/AuthContext';
 import { MessageList } from './MessageList';
-import { MessagePanel } from './MessagePanel';
+import MessagePanel from './MessagePanel';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, MessageCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
