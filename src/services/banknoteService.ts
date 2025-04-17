@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters } from '@/types';
 
@@ -180,7 +179,6 @@ export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote 
       printer: data.printer,
       type: data.type,
       category: data.category,
-      // Add these fields as requested by the DetailedBanknote type
       securityFeatures: [],
       watermark: '',
       signatures: [],
@@ -251,7 +249,3 @@ export async function fetchBanknotesByCountryId(countryId: string): Promise<Deta
     return [];
   }
 }
-
-// Add missing imports
-import { supabase } from '@/integrations/supabase/client';
-import { DetailedBanknote, BanknoteFilters } from '@/types';
