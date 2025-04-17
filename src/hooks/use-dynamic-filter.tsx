@@ -294,6 +294,23 @@ export const useDynamicFilter = <T extends FilterableItem>({
     return map;
   }, [effectiveTypes]);
 
+  // Create reverse maps for looking up IDs by name
+  const categoryIdByNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    effectiveCategories.forEach(cat => {
+      map.set(cat.name.toLowerCase(), cat.id);
+    });
+    return map;
+  }, [effectiveCategories]);
+
+  const typeIdByNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    effectiveTypes.forEach(type => {
+      map.set(normalizeType(type.name), type.id);
+    });
+    return map;
+  }, [effectiveTypes]);
+
   // Filter items based on criteria
   const filteredItems = useMemo(() => {
     console.log("useDynamicFilter: Filtering items", { 
@@ -329,10 +346,16 @@ export const useDynamicFilter = <T extends FilterableItem>({
     }
     
     // Convert selected category IDs to names for comparison
-    const selectedCategoryNames = currentFilters.categories.map(id => categoryNameMap.get(id)).filter(Boolean);
+    const selectedCategoryNames = currentFilters.categories
+      .map(id => categoryNameMap.get(id))
+      .filter(Boolean)
+      .map(name => name.toLowerCase());
     
-    // Convert selected type IDs to names for comparison
-    const selectedTypeNames = currentFilters.types.map(id => typeNameMap.get(id)).filter(Boolean);
+    // Convert selected type IDs to normalized names for comparison
+    const selectedTypeNames = currentFilters.types
+      .map(id => typeNameMap.get(id))
+      .filter(Boolean)
+      .map(name => normalizeType(name));
     
     // Log the names for debugging
     if (selectedCategoryNames.length > 0) {
@@ -369,58 +392,49 @@ export const useDynamicFilter = <T extends FilterableItem>({
           value.toLowerCase().includes(searchLower)
         );
 
-      // Category filter - match by name instead of ID
+      // Category filter - improved matching logic
       let matchesCategory = noCategories;
       
-      if (!matchesCategory && selectedCategoryNames.length > 0) {
-        // Try to match category name directly
-        if (banknote.category) {
-          matchesCategory = selectedCategoryNames.some(name => 
-            name.toLowerCase() === banknote.category?.toLowerCase()
-          );
+      if (!matchesCategory && banknote.category) {
+        // Try direct match by category name
+        const lowercaseCategory = banknote.category.toLowerCase();
+        matchesCategory = selectedCategoryNames.includes(lowercaseCategory);
+        
+        // If still no match and banknote has a series, try matching by series
+        if (!matchesCategory && banknote.series) {
+          matchesCategory = selectedCategoryNames.includes(banknote.series.toLowerCase());
         }
-        // Also try to match series as fallback (some banknotes might use series instead of category)
-        else if (banknote.series) {
-          matchesCategory = selectedCategoryNames.some(name => 
-            name.toLowerCase() === banknote.series?.toLowerCase()
-          );
-        }
+      } 
+      // If banknote only has series but no category
+      else if (!matchesCategory && banknote.series) {
+        matchesCategory = selectedCategoryNames.includes(banknote.series.toLowerCase());
       }
       
-      // Type filter - match by name instead of ID
+      // Type filter - improved matching logic
       let matchesType = noTypes;
       
-      if (!matchesType && selectedTypeNames.length > 0) {
-        if (banknote.type) {
-          // Try direct match first (case insensitive)
-          matchesType = selectedTypeNames.some(name => 
-            normalizeType(name) === normalizeType(banknote.type)
-          );
-          
-          // If still no match, try fuzzy matching with normalized types
-          if (!matchesType) {
-            const normalizedItemType = normalizeType(banknote.type);
-            matchesType = selectedTypeNames.some(name => {
-              const normalizedName = normalizeType(name);
-              return normalizedName === normalizedItemType || 
-                     normalizedItemType.includes(normalizedName) || 
-                     normalizedName.includes(normalizedItemType);
-            });
-          }
-        }
-        // If type is not specified, it's probably an "Issued note"
-        else {
-          matchesType = selectedTypeNames.some(name => 
-            normalizeType(name) === normalizeType("Issued note")
-          );
+      if (!matchesType) {
+        // Use normalized type for consistent comparison
+        const normalizedItemType = normalizeType(banknote.type || "Issued note");
+        
+        // Try direct match with normalized types
+        matchesType = selectedTypeNames.includes(normalizedItemType);
+        
+        // If no direct match, try fuzzy matching
+        if (!matchesType) {
+          matchesType = selectedTypeNames.some(typeName => {
+            return normalizedItemType.includes(typeName) || typeName.includes(normalizedItemType);
+          });
         }
       }
 
-      // Log filtering results for a sample of banknotes
+      // Debug output for random samples (to avoid flooding console)
       if (Math.random() < 0.05) {
         console.log(`Filtering banknote ${banknote.id}`, {
           type: banknote.type,
+          normalizedType: normalizeType(banknote.type || "Issued note"),
           category: banknote.category,
+          series: banknote.series,
           matchesSearch,
           matchesCategory,
           matchesType
@@ -519,13 +533,14 @@ export const useDynamicFilter = <T extends FilterableItem>({
       // Use category or series as the grouping key
       const categoryName = banknote.category || banknote.series || "Uncategorized";
       
-      // Find the category ID if possible
+      // Find the category ID if possible - either directly from the banknote or from the map
       let categoryId = '';
-      for (const [id, name] of categoryNameMap.entries()) {
-        if (name.toLowerCase() === categoryName.toLowerCase()) {
-          categoryId = id;
-          break;
-        }
+      if (banknote.categoryId) {
+        categoryId = String(banknote.categoryId);
+      } else {
+        // Look up category ID by name
+        const lowercaseName = categoryName.toLowerCase();
+        categoryId = categoryIdByNameMap.get(lowercaseName) || '';
       }
       
       if (!categoryMap.has(categoryName)) {
@@ -587,7 +602,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
     
     console.log("useDynamicFilter: Grouped", filteredItems.length, "items into", groups.length, "groups");
     return groups;
-  }, [filteredItems, filters.sort, effectiveCategories, isLoading, getBanknote, categoryNameMap]);
+  }, [filteredItems, filters.sort, effectiveCategories, isLoading, getBanknote, categoryIdByNameMap]);
 
   return {
     filteredItems,
@@ -606,7 +621,7 @@ const normalizeType = (type: string | undefined): string => {
   const lowerType = String(type).toLowerCase();
   
   // Handle common variations of types
-  if (lowerType.includes("issued") || lowerType === "issue") return "issued notes";
+  if (lowerType.includes("issued")) return "issued notes";
   if (lowerType.includes("specimen")) return "specimens";
   if (lowerType.includes("cancelled") || lowerType.includes("annule")) return "cancelled & annule";
   if (lowerType.includes("trial")) return "trial note";
