@@ -1,10 +1,23 @@
+
 // Update fetchBanknotes to use correct type mapping
+import { supabase } from "@/integrations/supabase/client";
+import { DetailedBanknote, BanknoteFilters } from '@/types';
+
 export async function fetchBanknotes(filters?: BanknoteFilters): Promise<DetailedBanknote[]> {
   try {
     const query = supabase
       .from('detailed_banknotes')
-      .select('*')
-      .$filter(filters);
+      .select('*');
+      
+    // Apply filters if provided
+    if (filters) {
+      if (filters.country_id) {
+        query.eq('country_id', filters.country_id);
+      }
+      if (filters.search) {
+        query.or(`face_value.ilike.%${filters.search}%,extended_pick_number.ilike.%${filters.search}%,banknote_description.ilike.%${filters.search}%`);
+      }
+    }
 
     const { data, error } = await query;
 
@@ -15,9 +28,33 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
 
     return data.map(banknote => ({
       ...banknote,
-      // Remove unsupported properties like faceValue
-      gradeCounts: undefined,
-      averagePrice: undefined
+      id: banknote.id,
+      catalogId: banknote.extended_pick_number || '',
+      country: banknote.country || '',
+      denomination: banknote.face_value || '',
+      year: banknote.gregorian_year || '',
+      series: banknote.category || '',
+      description: banknote.banknote_description || '',
+      obverseDescription: '',
+      reverseDescription: '',
+      imageUrls: [
+        banknote.front_picture || '',
+        banknote.back_picture || ''
+      ].filter(Boolean),
+      isApproved: banknote.is_approved || false,
+      isPending: banknote.is_pending || false,
+      createdAt: banknote.created_at || '',
+      updatedAt: banknote.updated_at || '',
+      pickNumber: banknote.pick_number,
+      turkCatalogNumber: banknote.turk_catalog_number,
+      sultanName: banknote.sultan_name,
+      sealNames: banknote.seal_names,
+      rarity: banknote.rarity,
+      printer: banknote.printer,
+      type: banknote.type,
+      category: banknote.category,
+      categoryId: '', // This will be populated when needed
+      typeId: '', // This will be populated when needed
     }));
   } catch (error) {
     console.error('Unexpected error in fetchBanknotes:', error);
@@ -57,61 +94,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       country: data.country || '',
       denomination: data.face_value || '',
       year: data.gregorian_year || '',
-      series: '',
-      description: data.banknote_description || '',
-      obverseDescription: '',
-      reverseDescription: '',
-      imageUrls: [
-        data.front_picture || '',
-        data.back_picture || ''
-      ].filter(Boolean),
-      isApproved: data.is_approved || false,
-      isPending: data.is_pending || false,
-      createdAt: data.created_at || '',
-      updatedAt: data.updated_at || '',
-      pickNumber: data.pick_number,
-      turkCatalogNumber: data.turk_catalog_number,
-      sultanName: data.sultan_name,
-      sealNames: data.seal_names,
-      rarity: data.rarity,
-      printer: data.printer,
-      type: data.type,
-      category: data.category
-    };
-    
-    return banknote;
-  } catch (error) {
-    console.error('Unexpected error in fetchBanknoteById:', error);
-    return null;
-  }
-}
-
-// Add the missing fetchBanknoteDetail function
-export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote | null> {
-  try {
-    const { data, error } = await supabase
-      .from('detailed_banknotes')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching banknote detail:', error);
-      return null;
-    }
-    
-    if (!data) {
-      return null;
-    }
-    
-    // Convert database fields to client-side model
-    const banknote: DetailedBanknote = {
-      id: data.id,
-      catalogId: data.extended_pick_number || '',
-      country: data.country || '',
-      denomination: data.face_value || '',
-      year: data.gregorian_year || '',
-      series: '',
+      series: data.category || '',
       description: data.banknote_description || '',
       obverseDescription: '',
       reverseDescription: '',
@@ -131,21 +114,23 @@ export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote 
       printer: data.printer,
       type: data.type,
       category: data.category,
-      // Add these fields as requested by the DetailedBanknote type
-      securityFeatures: [],
-      watermark: '',
-      signatures: [],
-      colors: [],
+      categoryId: '', // This will be populated when needed
+      typeId: '', // This will be populated when needed
     };
     
     return banknote;
   } catch (error) {
-    console.error('Unexpected error in fetchBanknoteDetail:', error);
+    console.error('Unexpected error in fetchBanknoteById:', error);
     return null;
   }
 }
 
-// Add the missing fetchBanknotesByCountryId function
+// Add the missing fetchBanknoteDetail function
+export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote | null> {
+  return fetchBanknoteById(id);
+}
+
+// Implement the fetchBanknotesByCountryId function correctly
 export async function fetchBanknotesByCountryId(countryId: string): Promise<DetailedBanknote[]> {
   try {
     if (!countryId) {
@@ -158,7 +143,7 @@ export async function fetchBanknotesByCountryId(countryId: string): Promise<Deta
     const { data, error } = await supabase
       .from('detailed_banknotes')
       .select('*')
-      .filter('country_id', 'eq', countryId);
+      .eq('country_id', countryId);
     
     if (error) {
       console.error('Error fetching banknotes by country ID:', error);
@@ -167,14 +152,19 @@ export async function fetchBanknotesByCountryId(countryId: string): Promise<Deta
     
     console.log(`Found ${data?.length || 0} banknotes for country ID: ${countryId}`);
     
+    if (!data || data.length === 0) {
+      console.warn(`No banknotes found for country ID: ${countryId}`);
+      return [];
+    }
+    
     // Convert database fields to client-side model
-    const banknotes = data?.map(item => ({
+    const banknotes = data.map(item => ({
       id: item.id,
       catalogId: item.extended_pick_number || '',
       country: item.country || '',
       denomination: item.face_value || '',
       year: item.gregorian_year || '',
-      series: '',
+      series: item.category || '',
       description: item.banknote_description || '',
       obverseDescription: '',
       reverseDescription: '',
@@ -194,7 +184,9 @@ export async function fetchBanknotesByCountryId(countryId: string): Promise<Deta
       printer: item.printer,
       type: item.type,
       category: item.category,
-    } as DetailedBanknote)) || [];
+      categoryId: '', // This will be populated later when mapping to categories
+      typeId: '', // This will be populated later when mapping to types
+    } as DetailedBanknote));
     
     return banknotes;
   } catch (error) {
@@ -202,7 +194,3 @@ export async function fetchBanknotesByCountryId(countryId: string): Promise<Deta
     return [];
   }
 }
-
-// Add missing imports
-import { supabase } from '@/integrations/supabase/client';
-import { DetailedBanknote, BanknoteFilters } from '@/types';

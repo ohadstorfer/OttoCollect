@@ -2,43 +2,43 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CountryData } from "@/types";
 
-export async function fetchCountriesForCatalog(): Promise<CountryData[]> {
+export async function fetchAllCountries(): Promise<CountryData[]> {
   try {
     const { data, error } = await supabase
       .from('countries')
-      .select('id, name, description, image_url');
+      .select('*')
+      .order('name');
     
     if (error) {
-      console.error("Error fetching countries for catalog:", error);
-      throw error;
+      console.error("Error fetching countries:", error);
+      return [];
     }
     
-    // Get banknote count for each country
-    const { data: banknoteData, error: countError } = await supabase
-      .from('detailed_banknotes')
-      .select('country, id');
-    
-    if (countError) {
-      console.error("Error fetching banknote counts:", countError);
-      throw countError;
-    }
-    
-    // Count banknotes per country
-    const countMap: Record<string, number> = {};
-    banknoteData?.forEach(item => {
-      countMap[item.country] = (countMap[item.country] || 0) + 1;
-    });
-    
-    // Combine data
-    return data.map(country => ({
-      id: country.id,
-      name: country.name,
-      description: country.description || '',
-      imageUrl: country.image_url || null,
-      banknoteCount: countMap[country.name] || 0
-    }));
+    return data || [];
   } catch (error) {
-    console.error('Error in fetchCountriesForCatalog:', error);
+    console.error("Error in fetchAllCountries:", error);
     return [];
+  }
+}
+
+export async function fetchCountryById(id: string): Promise<CountryData | null> {
+  try {
+    if (!id) return null;
+    
+    const { data, error } = await supabase
+      .from('countries')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error("Error fetching country by ID:", error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error in fetchCountryById:", error);
+    return null;
   }
 }
