@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters } from '@/types';
 
@@ -123,33 +124,37 @@ export async function fetchBanknotesByCountryId(
       );
     }
     
-    // Filter by categories if provided
+    // Get category names from category IDs
+    let categoryNames: string[] = [];
     if (filters?.categories && filters.categories.length > 0) {
-      // First get the actual category names from the category IDs
       const { data: categoryData } = await supabase
         .from('banknote_category_definitions')
         .select('name')
         .in('id', filters.categories);
       
       if (categoryData && categoryData.length > 0) {
-        const categoryNames = categoryData.map(cat => cat.name);
+        categoryNames = categoryData.map(cat => cat.name);
         console.log('Filtering by categories:', categoryNames);
-        query = query.in('category', categoryNames);
+        
+        // We don't use .in() because it requires exact matches
+        // Instead, we'll filter the results after fetching
       }
     }
     
-    // Filter by types if provided
+    // Get type names from type IDs
+    let typeNames: string[] = [];
     if (filters?.types && filters.types.length > 0) {
-      // First get the actual type names from the type IDs
       const { data: typeData } = await supabase
         .from('banknote_type_definitions')
         .select('name')
         .in('id', filters.types);
       
       if (typeData && typeData.length > 0) {
-        const typeNames = typeData.map(type => type.name);
+        typeNames = typeData.map(type => type.name);
         console.log('Filtering by types:', typeNames);
-        query = query.in('type', typeNames);
+        
+        // We don't use .in() because it requires exact matches
+        // Instead, we'll filter the results after fetching
       }
     }
     
@@ -161,12 +166,51 @@ export async function fetchBanknotesByCountryId(
       return [];
     }
     
-    console.log(`Found ${data?.length || 0} banknotes for country: ${country.name}`);
+    // Filter by categories and types after fetching (more flexible than using .in())
+    let filteredData = data || [];
+    
+    // Apply category filters if any
+    if (categoryNames.length > 0) {
+      filteredData = filteredData.filter(banknote => {
+        // Check if the banknote category matches any of the selected categories
+        return categoryNames.some(categoryName => 
+          banknote.category === categoryName || 
+          // Some banknotes might have their category stored in series
+          banknote.series === categoryName
+        );
+      });
+    }
+    
+    // Apply type filters if any
+    if (typeNames.length > 0) {
+      filteredData = filteredData.filter(banknote => {
+        // For type, we need more flexible matching since types can be stored in different formats
+        const itemType = (banknote.type || "").toLowerCase();
+        
+        return typeNames.some(typeName => {
+          const normalizedTypeName = typeName.toLowerCase();
+          
+          // Direct match
+          if (itemType === normalizedTypeName) return true;
+          
+          // Partial match (e.g., "Issued note" matches "Issued notes")
+          if (itemType.includes(normalizedTypeName) || normalizedTypeName.includes(itemType)) return true;
+          
+          // Special case for "Issued notes" which might be stored as just "note"
+          if (normalizedTypeName.includes("issued") && itemType.includes("note")) return true;
+          
+          return false;
+        });
+      });
+    }
+    
+    console.log(`Found ${filteredData.length} banknotes for country: ${country.name}`);
     
     // Convert database fields to client-side model
-    const banknotes = data?.map(item => ({
+    const banknotes = filteredData.map(item => ({
       id: item.id,
       catalogId: item.extended_pick_number || '',
+      extendedPickNumber: item.extended_pick_number || '', // Add this field for consistent naming
       country: item.country || '',
       denomination: item.face_value || '',
       year: item.gregorian_year || '',
@@ -190,7 +234,7 @@ export async function fetchBanknotesByCountryId(
       printer: item.printer,
       type: item.type,
       category: item.category,
-    } as DetailedBanknote)) || [];
+    } as DetailedBanknote));
     
     // Sort the banknotes if sort options are provided
     if (filters?.sort && filters.sort.length > 0) {

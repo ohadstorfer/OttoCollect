@@ -110,6 +110,7 @@ const CountryDetail = () => {
         
         const data = await fetchBanknotesByCountryId(countryId, filterParams);
         console.log("CountryDetail: Banknotes loaded:", data.length);
+        setBanknotes(data);
         
         // Group banknotes by category
         const grouped = groupBanknotesByCategory(
@@ -118,7 +119,6 @@ const CountryDetail = () => {
           filters.sort.includes("sultan")
         );
         
-        setBanknotes(data);
         setGroupedItems(grouped);
       } catch (error) {
         console.error("CountryDetail: Error fetching banknotes:", error);
@@ -127,6 +127,8 @@ const CountryDetail = () => {
           description: "Failed to load banknotes. Please try again later.",
           variant: "destructive",
         });
+        setBanknotes([]);
+        setGroupedItems([]);
       } finally {
         setLoading(false);
       }
