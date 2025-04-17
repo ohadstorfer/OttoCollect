@@ -1,17 +1,11 @@
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/AuthContext";
-import { MOCK_BANKNOTES } from "@/lib/constants";
-import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Search, Database, BookOpen, Users, DollarSign } from "lucide-react";
-import LatestForumPosts from "@/components/home/LatestForumPosts";
-import MarketplaceHighlights from "@/components/home/MarketplaceHighlights";
-import { fetchForumPosts } from "@/services/forumService";
-import { fetchMarketplaceItems } from "@/services/marketplaceService";
-import { ForumPost } from '@/types/forum';
-import { MarketplaceItem } from '@/types';
-import { useTheme } from "@/context/ThemeContext";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Container } from '@/components/ui/container';
+import { PageBackground } from '@/components/ui/page-background';
+import LatestForumPosts from '@/components/home/LatestForumPosts';
+import MarketplaceHighlights from '@/components/home/MarketplaceHighlights';
 
 const Index = () => {
   const { user } = useAuth();

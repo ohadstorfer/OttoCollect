@@ -12,8 +12,18 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
     // Apply filters if provided
     if (filters) {
       if (filters.country_id) {
-        query.eq('country_id', filters.country_id);
+        // Join with countries table to filter by country ID
+        const { data: countryData } = await supabase
+          .from('countries')
+          .select('name')
+          .eq('id', filters.country_id)
+          .single();
+          
+        if (countryData?.name) {
+          query.eq('country', countryData.name);
+        }
       }
+      
       if (filters.search) {
         query.or(`face_value.ilike.%${filters.search}%,extended_pick_number.ilike.%${filters.search}%,banknote_description.ilike.%${filters.search}%`);
       }
@@ -53,8 +63,21 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
       printer: banknote.printer,
       type: banknote.type,
       category: banknote.category,
-      categoryId: '', // This will be populated when needed
-      typeId: '', // This will be populated when needed
+      categoryId: '', // Will be populated later when needed
+      typeId: '', // Will be populated later when needed
+      colors: banknote.colors ? [banknote.colors] : [], // Convert string to array to match type
+      securityFeatures: [],
+      gradeCounts: {},
+      averagePrice: 0,
+      islamicYear: banknote.islamic_year || '',
+      gregorianYear: banknote.gregorian_year || '',
+      banknoteDescription: banknote.banknote_description || '',
+      historicalDescription: banknote.historical_description || '',
+      serialNumbering: banknote.serial_numbering || '',
+      securityElement: banknote.security_element || '',
+      signaturesFront: banknote.signatures_front || '',
+      signaturesBack: banknote.signatures_back || '',
+      signatures: []
     }));
   } catch (error) {
     console.error('Unexpected error in fetchBanknotes:', error);
@@ -62,7 +85,7 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
   }
 }
 
-// Add the missing fetchBanknoteById function
+// Fix fetchBanknoteById function
 export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | null> {
   try {
     if (!id) {
@@ -114,8 +137,21 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       printer: data.printer,
       type: data.type,
       category: data.category,
-      categoryId: '', // This will be populated when needed
-      typeId: '', // This will be populated when needed
+      categoryId: '', // Will be populated when needed
+      typeId: '', // Will be populated when needed
+      colors: data.colors ? [data.colors] : [], // Convert string to array to match type
+      securityFeatures: [],
+      gradeCounts: {},
+      averagePrice: 0,
+      islamicYear: data.islamic_year || '',
+      gregorianYear: data.gregorian_year || '',
+      banknoteDescription: data.banknote_description || '',
+      historicalDescription: data.historical_description || '',
+      serialNumbering: data.serial_numbering || '',
+      securityElement: data.security_element || '',
+      signaturesFront: data.signatures_front || '',
+      signaturesBack: data.signatures_back || '',
+      signatures: []
     };
     
     return banknote;
@@ -130,7 +166,7 @@ export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote 
   return fetchBanknoteById(id);
 }
 
-// Implement the fetchBanknotesByCountryId function correctly
+// Fix fetchBanknotesByCountryId function to correctly use country name from countries table
 export async function fetchBanknotesByCountryId(countryId: string): Promise<DetailedBanknote[]> {
   try {
     if (!countryId) {
@@ -139,21 +175,36 @@ export async function fetchBanknotesByCountryId(countryId: string): Promise<Deta
     }
     
     console.log(`Fetching banknotes for country ID: ${countryId}`);
+
+    // First, get the country name from the countries table
+    const { data: countryData, error: countryError } = await supabase
+      .from('countries')
+      .select('name')
+      .eq('id', countryId)
+      .single();
     
+    if (countryError || !countryData) {
+      console.error('Error fetching country name:', countryError);
+      return [];
+    }
+
+    console.log(`Found country name: ${countryData.name} for ID: ${countryId}`);
+    
+    // Then, use the country name to fetch banknotes
     const { data, error } = await supabase
       .from('detailed_banknotes')
       .select('*')
-      .eq('country_id', countryId);
+      .eq('country', countryData.name);
     
     if (error) {
-      console.error('Error fetching banknotes by country ID:', error);
+      console.error('Error fetching banknotes by country name:', error);
       return [];
     }
     
-    console.log(`Found ${data?.length || 0} banknotes for country ID: ${countryId}`);
+    console.log(`Found ${data?.length || 0} banknotes for country name: ${countryData.name}`);
     
     if (!data || data.length === 0) {
-      console.warn(`No banknotes found for country ID: ${countryId}`);
+      console.warn(`No banknotes found for country name: ${countryData.name}`);
       return [];
     }
     
@@ -184,8 +235,21 @@ export async function fetchBanknotesByCountryId(countryId: string): Promise<Deta
       printer: item.printer,
       type: item.type,
       category: item.category,
-      categoryId: '', // This will be populated later when mapping to categories
-      typeId: '', // This will be populated later when mapping to types
+      categoryId: '', // Will be populated later when mapping to categories
+      typeId: '', // Will be populated later when mapping to types
+      colors: item.colors ? [item.colors] : [], // Convert string to array to match type
+      securityFeatures: [],
+      gradeCounts: {},
+      averagePrice: 0,
+      islamicYear: item.islamic_year || '',
+      gregorianYear: item.gregorian_year || '',
+      banknoteDescription: item.banknote_description || '',
+      historicalDescription: item.historical_description || '',
+      serialNumbering: item.serial_numbering || '',
+      securityElement: item.security_element || '',
+      signaturesFront: item.signatures_front || '',
+      signaturesBack: item.signatures_back || '',
+      signatures: []
     } as DetailedBanknote));
     
     return banknotes;

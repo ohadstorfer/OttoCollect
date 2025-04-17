@@ -264,7 +264,11 @@ const Marketplace = () => {
                             className="animate-fade-in"
                             style={{ animationDelay: `${index * 100}ms` }}
                           >
-                            <MarketplaceItem item={item} />
+                            <MarketplaceItem 
+                              key={item.id} 
+                              item={item} 
+                              onContactSeller={() => setSelectedItem(item)}
+                            />
                           </div>
                         );
                       })}
@@ -283,7 +287,11 @@ const Marketplace = () => {
                       className="animate-fade-in"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <MarketplaceItem item={item} />
+                      <MarketplaceItem 
+                        key={item.id} 
+                        item={item} 
+                        onContactSeller={() => setSelectedItem(item)}
+                      />
                     </div>
                   );
                 })}

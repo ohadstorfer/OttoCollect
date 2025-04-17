@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
@@ -45,7 +46,7 @@ const ProfileCollection = ({
     enabled: !initialCollection && !!userId
   });
 
-  const { data: banknotes, isLoading: bannoteLoading } = useQuery({
+  const { data: fetchedBanknotes, isLoading: bannoteLoading } = useQuery({
     queryKey: ['banknotes'],
     queryFn: async () => {
       return await fetchBanknotes();
@@ -59,7 +60,7 @@ const ProfileCollection = ({
   });
 
   const userCollection = initialCollection || fetchedCollection || [];
-  const banknotes = initialBanknotes || banknotes || [];
+  const allBanknotes = initialBanknotes || fetchedBanknotes || [];
   const wishlistItems = initialWishlist || fetchedWishlist || [];
   const collectionLoading = initialLoading || collectionQueryLoading || bannoteLoading || wishlistQueryLoading;
 
@@ -76,7 +77,7 @@ const ProfileCollection = ({
   };
 
   const filteredCollection = userCollection.filter(item => {
-    const banknote = banknotes?.find(b => b.id === item.banknoteId);
+    const banknote = allBanknotes?.find(b => b.id === item.banknoteId);
     if (!banknote) return false;
 
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
@@ -86,7 +87,8 @@ const ProfileCollection = ({
     return matchesSearch;
   });
 
-  const missingItems = banknotes?.filter(banknote => 
+  // Find missing banknotes (banknotes not in user's collection)
+  const missingItems = allBanknotes?.filter(banknote => 
     !userCollection.some(item => item.banknoteId === banknote.id)
   ) || [];
 
@@ -98,7 +100,7 @@ const ProfileCollection = ({
     return matchesSearch;
   });
 
-  const filteredCatalog = banknotes?.filter(banknote => {
+  const filteredCatalog = allBanknotes?.filter(banknote => {
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
       banknote.country.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
       banknote.year.toLowerCase().includes(filter.searchTerm.toLowerCase());

@@ -43,16 +43,41 @@ export async function fetchCountryById(id: string): Promise<CountryData | null> 
   }
 }
 
-// Add the missing function that's being imported in Catalog.tsx
+// Implement the missing function that's being imported in Catalog.tsx
 export async function fetchCountriesForCatalog(): Promise<CountryData[]> {
-  // For now, this is just an alias for fetchAllCountries
-  // We can enhance this later if needed to include additional data like banknote counts
-  const countries = await fetchAllCountries();
-  
-  // Add banknote count property to each country
-  // This is a placeholder - in a real implementation, you would fetch this data from the database
-  return countries.map(country => ({
-    ...country,
-    banknoteCount: 0 // Placeholder value
-  }));
+  try {
+    const countries = await fetchAllCountries();
+    
+    // For each country, get the banknote count
+    const countriesWithCounts = await Promise.all(
+      countries.map(async (country) => {
+        // First, get the country name
+        const countryName = country.name;
+        
+        // Then get count of banknotes with this country name
+        const { count, error } = await supabase
+          .from('detailed_banknotes')
+          .select('*', { count: 'exact', head: true })
+          .eq('country', countryName);
+        
+        if (error) {
+          console.error(`Error counting banknotes for country ${countryName}:`, error);
+          return {
+            ...country,
+            banknoteCount: 0
+          };
+        }
+        
+        return {
+          ...country,
+          banknoteCount: count || 0
+        };
+      })
+    );
+    
+    return countriesWithCounts;
+  } catch (error) {
+    console.error("Error in fetchCountriesForCatalog:", error);
+    return [];
+  }
 }

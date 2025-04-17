@@ -107,64 +107,36 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
   return fetchUserCollection(userId);
 }
 
-export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): Promise<{
+export async function fetchBanknoteCategoriesAndTypes(collectionItems: CollectionItem[], banknotes: Banknote[]): Promise<{
   categories: { id: string; name: string; count: number }[];
   types: { id: string; name: string; count: number }[];
 }> {
-  try {
-    // Extract unique categories and types from collection items
-    const categoriesMap = new Map<string, { id: string; name: string; count: number }>();
-    const typesMap = new Map<string, { id: string; name: string; count: number }>();
-    
-    // Process each item to count categories and types
-    items.forEach(item => {
-      if (item.banknote?.category) {
-        const categoryId = item.banknote.category;
-        const categoryName = item.banknote.category; // Using category name as ID for now
-        
-        if (categoriesMap.has(categoryId)) {
-          const category = categoriesMap.get(categoryId)!;
-          category.count++;
-          categoriesMap.set(categoryId, category);
-        } else {
-          categoriesMap.set(categoryId, {
-            id: categoryId,
-            name: categoryName,
-            count: 1
-          });
-        }
+  const categories: Record<string, { name: string; count: number }> = {};
+  const types: Record<string, { name: string; count: number }> = {};
+  
+  collectionItems.forEach(item => {
+    const banknote = banknotes.find(b => b.id === item.banknoteId);
+    if (banknote) {
+      // Use categoryId if available, otherwise use a default category
+      const categoryName = banknote.categoryId || 'Uncategorized';
+      if (!categories[categoryName]) {
+        categories[categoryName] = { name: banknote.categoryId || 'Uncategorized', count: 0 };
       }
+      categories[categoryName].count += 1;
       
-      if (item.banknote?.type) {
-        const typeId = item.banknote.type;
-        const typeName = item.banknote.type; // Using type name as ID for now
-        
-        if (typesMap.has(typeId)) {
-          const type = typesMap.get(typeId)!;
-          type.count++;
-          typesMap.set(typeId, type);
-        } else {
-          typesMap.set(typeId, {
-            id: typeId,
-            name: typeName,
-            count: 1
-          });
-        }
+      // Use typeId if available, otherwise use a default type
+      const typeName = banknote.typeId || 'Unknown';
+      if (!types[typeName]) {
+        types[typeName] = { name: banknote.typeId || 'Unknown', count: 0 };
       }
-    });
-    
-    // Convert maps to arrays and sort by count (descending)
-    const categories = Array.from(categoriesMap.values())
-      .sort((a, b) => b.count - a.count);
-    
-    const types = Array.from(typesMap.values())
-      .sort((a, b) => b.count - a.count);
-    
-    return { categories, types };
-  } catch (error) {
-    console.error("Error extracting categories and types:", error);
-    return { categories: [], types: [] };
-  }
+      types[typeName].count += 1;
+    }
+  });
+  
+  return {
+    categories: Object.values(categories),
+    types: Object.values(types)
+  };
 }
 
 export async function fetchCollectionItem(itemId: string): Promise<CollectionItem | null> {
