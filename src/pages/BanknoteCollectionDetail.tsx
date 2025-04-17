@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -71,6 +72,7 @@ export default function BanknoteCollectionDetail() {
       if (foundItem) {
         setCollectionItem(foundItem);
       } else {
+        // If not in collection, redirect to catalog view with the correct path
         navigate(`/banknote-details/${id}`);
       }
     }
@@ -128,8 +130,10 @@ export default function BanknoteCollectionDetail() {
     );
   }
 
+  // Collection item is guaranteed to exist at this point
   const displayImages = [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[];
   if (displayImages.length === 0 && banknote.imageUrls && banknote.imageUrls.length > 0) {
+    // Fall back to catalog images if no collection images available
     displayImages.push(banknote.imageUrls[0]);
   }
 
@@ -184,7 +188,7 @@ export default function BanknoteCollectionDetail() {
               <CardContent className="p-0">
                 <CollectionItemForm
                   collectionItem={collectionItem}
-                  onSave={(updatedItem) => setCollectionItem(updatedItem)}
+                  onUpdate={(updatedItem) => setCollectionItem(updatedItem)}
                 />
               </CardContent>
             </Card>

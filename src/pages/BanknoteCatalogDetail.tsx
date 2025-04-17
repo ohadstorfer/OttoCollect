@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -139,7 +140,7 @@ export default function BanknoteCatalogDetail() {
       icon: <Building className="h-5 w-5" />,
       fields: [
         { label: "Printer", value: banknote.printer, icon: <PenTool className="h-4 w-4" /> },
-        { label: "Colors", value: Array.isArray(banknote.colors) ? banknote.colors.join(', ') : banknote.colors, icon: <PenTool className="h-4 w-4" /> },
+        { label: "Colors", value: banknote.colors, icon: <PenTool className="h-4 w-4" /> },
         { label: "Serial Numbering", value: banknote.serialNumbering, icon: <Hash className="h-4 w-4" /> }
       ]
     },

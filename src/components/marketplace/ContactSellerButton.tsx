@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { MessageCircle } from 'lucide-react';
+import { ContactSeller } from '@/components/messages/ContactSeller';
 import { MarketplaceItem } from '@/types';
 
 interface ContactSellerButtonProps {
@@ -9,19 +8,15 @@ interface ContactSellerButtonProps {
 }
 
 export function ContactSellerButton({ item }: ContactSellerButtonProps) {
-  const handleContactSeller = () => {
-    // Logic to contact seller would go here
-    console.log(`Contacting seller for item: ${item.id}`);
-  };
+  // Create a descriptive name for the banknote
+  const itemName = `${item.collectionItem.banknote.country} ${item.collectionItem.banknote.denomination} (${item.collectionItem.banknote.year})`;
   
   return (
-    <Button 
-      size="sm" 
-      variant="secondary"
-      onClick={handleContactSeller}
-    >
-      <MessageCircle className="h-4 w-4 mr-1" />
-      Contact
-    </Button>
+    <ContactSeller 
+      sellerId={item.sellerId}
+      sellerName={item.seller.username}
+      itemId={item.id}
+      itemName={itemName}
+    />
   );
 }

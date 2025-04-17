@@ -93,9 +93,9 @@ const Catalog = () => {
             <Link to={`/catalog/${encodeURIComponent(country.name)}`} key={country.id}>
               <Card className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50">
                 <div className="aspect-[4/3] overflow-hidden relative">
-                  {country.image_url ? (
+                  {country.imageUrl ? (
                     <img
-                      src={country.image_url}
+                      src={country.imageUrl}
                       alt={country.name}
                       className="w-full h-full object-cover"
                     />
@@ -107,8 +107,7 @@ const Catalog = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
                     <div className="p-4 text-white w-full">
                       <h3 className="text-xl font-bold">{country.name}</h3>
-                      {/* Use optional chaining to safely access banknoteCount which might not exist */}
-                      <p className="text-sm opacity-80">{(country as any).banknoteCount || 0} banknotes</p>
+                      <p className="text-sm opacity-80">{country.banknoteCount} banknotes</p>
                     </div>
                   </div>
                 </div>

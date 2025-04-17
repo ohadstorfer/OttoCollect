@@ -162,18 +162,6 @@ export default function BanknoteDetail() {
     }
   };
 
-  const handleSaveEdit = (updatedItem: CollectionItem) => {
-    if (updatedItem) {
-      setCollectionItem(updatedItem);
-      toast.success("Collection item updated successfully!");
-    }
-  };
-  
-  const handleCancelEdit = () => {
-    // Just close the edit form
-    // No changes needed
-  };
-
   if (isLoading) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
@@ -256,7 +244,7 @@ export default function BanknoteDetail() {
       icon: <Building className="h-5 w-5" />,
       fields: [
         { label: "Printer", value: banknote.printer, icon: <PenTool className="h-4 w-4" /> },
-        { label: "Colors", value: Array.isArray(banknote.colors) ? banknote.colors.join(', ') : banknote.colors, icon: <Palette className="h-4 w-4" /> },
+        { label: "Colors", value: banknote.colors, icon: <Palette className="h-4 w-4" /> },
         { label: "Serial Numbering", value: banknote.serialNumbering, icon: <Fingerprint className="h-4 w-4" /> }
       ]
     },
@@ -440,8 +428,7 @@ export default function BanknoteDetail() {
                 <CardContent className="p-0">
                   <CollectionItemForm 
                     collectionItem={collectionItem} 
-                    onSave={handleSaveEdit}
-                    onCancel={handleCancelEdit}
+                    onUpdate={(updatedItem) => setCollectionItem(updatedItem)}
                   />
                 </CardContent>
               </Card>

@@ -8,7 +8,6 @@ export interface Message {
   created_at: string;
   isRead: boolean;
   reference_item_id?: string;
-  is_read?: boolean;  // Database field name
   
   // Alias properties for compatibility
   senderId?: string;
@@ -70,19 +69,19 @@ export interface Banknote {
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
-  type?: string;
-  sultanName?: string;
-  extendedPickNumber?: string;
-  categoryId?: string;
-  typeId?: string;
+  type?: string; // Adding type for compatibility
+  sultanName?: string; // Adding sultanName for compatibility
+  extendedPickNumber?: string; // Adding extended pick number for compatibility
 }
 
 export interface DetailedBanknote extends Banknote {
   pickNumber?: string;
   turkCatalogNumber?: string;
+  sultanName?: string;
   sealNames?: string;
   rarity?: string;
   printer?: string;
+  type?: string;
   category?: string;
   securityFeatures?: string[];
   watermark?: string;
@@ -98,6 +97,7 @@ export interface DetailedBanknote extends Banknote {
   securityElement?: string;
   signaturesFront?: string;
   signaturesBack?: string;
+  extendedPickNumber?: string;
 }
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
@@ -126,7 +126,7 @@ export interface CollectionItem {
   banknote: Banknote;
   condition: BanknoteCondition;
   purchasePrice?: number;
-  purchaseDate?: string | Date;
+  purchaseDate?: string;
   location?: string;
   obverseImage?: string;
   reverseImage?: string;
@@ -149,26 +149,6 @@ export interface MarketplaceItem {
   status: 'Available' | 'Reserved' | 'Sold';
   createdAt: string;
   updatedAt: string;
-}
-
-// Add CountryData interface for compatibility
-export interface CountryData {
-  id: string;
-  name: string;
-  description?: string;
-  image_url?: string;
-  banknoteCount?: number;  // Add this property for display in the catalog
-}
-
-// Add WishlistItem interface for compatibility
-export interface WishlistItem {
-  id: string;
-  userId: string;
-  banknoteId: string;
-  banknote: Banknote;
-  priority: string;
-  note?: string;
-  createdAt: string;
 }
 
 // Import and re-export types from other files

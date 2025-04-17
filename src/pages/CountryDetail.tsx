@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
-import { DetailedBanknote } from "@/types";
+import { Banknote, DetailedBanknote } from "@/types";
 import { fetchBanknotesByCountryId } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ const CountryDetail = () => {
   const { user } = useAuth();
   const decodedCountryName = decodeURIComponent(country || "");
   
-  const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
+  const [banknotes, setBanknotes] = useState<Banknote[]>([]);
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -242,7 +242,7 @@ const CountryDetail = () => {
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {sultanGroup.items.map((banknote, index) => {
-                              const detailedBanknote = banknote as DetailedBanknote;
+                              const detailedBanknote = banknote as unknown as DetailedBanknote;
                               return (
                                 <BanknoteDetailCard
                                   key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
@@ -258,7 +258,7 @@ const CountryDetail = () => {
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {group.items.map((banknote, index) => {
-                        const detailedBanknote = banknote as DetailedBanknote;
+                        const detailedBanknote = banknote as unknown as DetailedBanknote;
                         return (
                           <BanknoteDetailCard
                             key={`banknote-${group.category}-${index}`}

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { addItemToMarketplace, removeItemFromMarketplace } from "@/services/marketplaceService";
+import { addToMarketplace, removeFromMarketplace } from "@/services/marketplaceService";
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -35,6 +36,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
   const [isAddingToMarketplace, setIsAddingToMarketplace] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Form state for adding to collection
   const [condition, setCondition] = useState<BanknoteCondition>("UNC");
   const [purchasePrice, setPurchasePrice] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
@@ -79,8 +81,9 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
         });
         setIsDialogOpen(false);
 
+        // If the user set a sale price, also add to marketplace
         if (salePrice && parseFloat(salePrice) > 0) {
-          await addItemToMarketplace(result.id, user.id);
+          await addToMarketplace(result.id, user.id);
         }
       } else {
         toast({
@@ -112,8 +115,9 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
           description: "Banknote removed from your collection.",
         });
 
+        // If the item was for sale, also remove from marketplace
         if (collectionItem.isForSale) {
-          await removeItemFromMarketplace(collectionItem.id);
+          await removeFromMarketplace(collectionItem.id);
         }
       } else {
         toast({
@@ -191,7 +195,8 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
     setIsAddingToMarketplace(true);
     try {
       if (collectionItem.isForSale) {
-        const result = await removeItemFromMarketplace(collectionItem.id);
+        // Remove from marketplace
+        const result = await removeFromMarketplace(collectionItem.id);
         if (result) {
           toast({
             title: "Success",
@@ -205,6 +210,7 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
           });
         }
       } else {
+        // Show dialog to set sale price
         setIsDialogOpen(true);
       }
     } catch (error) {
@@ -223,17 +229,20 @@ const BanknoteDetailCard = ({ banknote, collectionItem, wishlistItem, source = '
     navigate(`/banknote/${banknote.id}`, { state: { source: 'collection', itemId: collectionItem?.id } });
   };
 
+  // Determine which image to show, prioritizing obverse_image
   const displayImage = collectionItem?.obverseImage ||
     (banknote.imageUrls && banknote.imageUrls.length > 0
       ? banknote.imageUrls[0]
       : '/placeholder.svg');
   
   const handleCardClick = () => {
+    // Updated navigation to use different routes based on source
     if (source === 'catalog') {
       navigate(`/catalog-banknote/${banknote.id}`);
     } else if (source === 'collection') {
       navigate(`/collection-banknote/${banknote.id}`);
     } else {
+      // For any other sources, use the original route with state info
       navigate(`/banknote/${banknote.id}`, { state: { source, itemId: collectionItem?.id } });
     }
   };
