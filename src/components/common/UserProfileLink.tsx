@@ -46,22 +46,20 @@ export default function UserProfileLink({
   const getRankColor = (userRank?: UserRank) => {
     if (!userRank) return '';
     
-    switch (userRank) {
-      case 'Newbie':
-        return 'text-gray-500';
-      case 'Beginner Collector':
-        return 'text-green-600';
-      case 'Casual Collector':
-        return 'text-blue-600';
-      case 'Known Collector':
-        return 'text-purple-600';
-      case 'Advance Collector':
-        return 'text-indigo-600';
-      case 'Admin':
-      case 'Super Admin':
-        return 'text-red-600';
-      default:
-        return 'text-gray-500';
+    if (userRank.includes('Newbie')) {
+      return 'text-gray-500';
+    } else if (userRank.includes('Beginner')) {
+      return 'text-green-600';
+    } else if (userRank.includes('Casual')) {
+      return 'text-blue-600';
+    } else if (userRank.includes('Known')) {
+      return 'text-purple-600';
+    } else if (userRank.includes('Advance')) {
+      return 'text-indigo-600';
+    } else if (userRank.includes('Admin')) {
+      return 'text-red-600';
+    } else {
+      return 'text-gray-500';
     }
   };
 

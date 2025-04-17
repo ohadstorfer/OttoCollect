@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { DollarSign, Calendar, Tag, User } from "lucide-react";
 import { format, isValid, parseISO } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { MarketplaceItem } from '@/types';
 import { cn } from '@/lib/utils';
 import {

@@ -1,13 +1,13 @@
+
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MarketplaceItem as MarketplaceItemType } from "@/types";
+import { MarketplaceItem as MarketplaceItemType, UserRank } from "@/types";
 import { Eye, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ContactSellerButton } from "@/components/marketplace/ContactSellerButton";
-import { UserRank } from "@/types/filter";
 
 interface MarketplaceItemProps {
   item: MarketplaceItemType;

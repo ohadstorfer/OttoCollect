@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -64,7 +63,7 @@ export function MessagePanel({
     let currentDate = '';
     
     messages.forEach(message => {
-      const messageDate = new Date(message.createdAt).toDateString();
+      const messageDate = new Date(message.createdAt || message.created_at).toDateString();
       
       if (messageDate !== currentDate) {
         currentDate = messageDate;
@@ -160,7 +159,7 @@ export function MessagePanel({
                     `}>
                       <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                       <p className="text-[10px] mt-1 opacity-70 text-right">
-                        {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(message.createdAt || message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
