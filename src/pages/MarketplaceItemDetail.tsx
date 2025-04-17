@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquare, AlertCircle, User } from "lucide-react";
@@ -8,13 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getMarketplaceItemById } from "@/services/marketplaceService";
-import { MarketplaceItem } from "@/types";
+import { MarketplaceItem, UserRank } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ContactSeller } from "@/components/messages/ContactSeller";
 import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
 import { BanknoteProvider } from "@/context/BanknoteContext";
-import { UserRank } from "@/types/filter";
 
 const MarketplaceItemDetail = () => {
   console.log('Rendering MarketplaceItemDetail component');
@@ -108,7 +108,7 @@ const MarketplaceItemDetail = () => {
   console.log('Banknote data for detail view:', banknote);
   console.log('Image sources:', { obverseImage, reverseImage, banknoteImages: banknote.imageUrls });
 
-  const sellerRank = (marketplace?.seller?.rank || "Newbie") as UserRank;
+  const sellerRank = seller?.rank || "Newbie";
 
   return (
     <div className="container py-8">
@@ -171,7 +171,7 @@ const MarketplaceItemDetail = () => {
                       to={`/profile/${seller.id}`}
                       className="text-ottoman-500 hover:text-ottoman-600"
                     >
-                      {seller.username} <Badge variant="user" rank={sellerRank} />
+                      {seller.username} <Badge variant="user" rank={sellerRank as UserRank} />
                     </Link>
                   </div>
                   

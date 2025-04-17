@@ -69,6 +69,9 @@ export interface Banknote {
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
+  type?: string; // Adding type for compatibility
+  sultanName?: string; // Adding sultanName for compatibility
+  extendedPickNumber?: string; // Adding extended pick number for compatibility
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -86,6 +89,15 @@ export interface DetailedBanknote extends Banknote {
   colors?: string[];
   gradeCounts?: Record<BanknoteCondition, number>;
   averagePrice?: number;
+  islamicYear?: string;
+  gregorianYear?: string;
+  banknoteDescription?: string;
+  historicalDescription?: string;
+  serialNumbering?: string;
+  securityElement?: string;
+  signaturesFront?: string;
+  signaturesBack?: string;
+  extendedPickNumber?: string;
 }
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
@@ -143,4 +155,3 @@ export interface MarketplaceItem {
 export * from './message';
 export * from './forum';
 export * from './filter';
-

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
@@ -46,10 +45,11 @@ const ProfileCollection = ({
     enabled: !initialCollection && !!userId
   });
 
-  const { data: fetchedBanknotes, isLoading: banknotesQueryLoading } = useQuery({
+  const { data: banknotes, isLoading: bannoteLoading } = useQuery({
     queryKey: ['banknotes'],
-    queryFn: fetchBanknotes,
-    enabled: !initialBanknotes
+    queryFn: async () => {
+      return await fetchBanknotes();
+    }
   });
 
   const { data: fetchedWishlist, isLoading: wishlistQueryLoading } = useQuery({
@@ -59,9 +59,9 @@ const ProfileCollection = ({
   });
 
   const userCollection = initialCollection || fetchedCollection || [];
-  const banknotes = initialBanknotes || fetchedBanknotes || [];
+  const banknotes = initialBanknotes || banknotes || [];
   const wishlistItems = initialWishlist || fetchedWishlist || [];
-  const collectionLoading = initialLoading || collectionQueryLoading || banknotesQueryLoading || wishlistQueryLoading;
+  const collectionLoading = initialLoading || collectionQueryLoading || bannoteLoading || wishlistQueryLoading;
 
   const navigate = useNavigate();
   const [filter, setFilter] = useState<FilterState>({ searchTerm: '', isMissingOnly: false });

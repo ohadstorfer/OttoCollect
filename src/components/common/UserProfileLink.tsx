@@ -46,17 +46,17 @@ export default function UserProfileLink({
   const getRankColor = (userRank?: UserRank) => {
     if (!userRank) return '';
     
-    if (userRank.includes('Newbie')) {
+    if (userRank === 'Newbie') {
       return 'text-gray-500';
-    } else if (userRank.includes('Beginner')) {
+    } else if (userRank === 'Beginner Collector') {
       return 'text-green-600';
-    } else if (userRank.includes('Casual')) {
+    } else if (userRank === 'Casual Collector') {
       return 'text-blue-600';
-    } else if (userRank.includes('Known')) {
+    } else if (userRank === 'Known Collector') {
       return 'text-purple-600';
-    } else if (userRank.includes('Advance')) {
+    } else if (userRank === 'Advance Collector') {
       return 'text-indigo-600';
-    } else if (userRank.includes('Admin')) {
+    } else if (userRank === 'Admin' || userRank === 'Super Admin') {
       return 'text-red-600';
     } else {
       return 'text-gray-500';
