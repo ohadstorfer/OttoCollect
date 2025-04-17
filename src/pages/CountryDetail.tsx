@@ -36,7 +36,7 @@ const CountryDetail = () => {
     banknotes: banknotes.length 
   });
   
-  // Load country data and banknotes
+  // Load country data
   useEffect(() => {
     const loadCountryData = async () => {
       if (!decodedCountryName) {
@@ -63,29 +63,49 @@ const CountryDetail = () => {
         
         console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
-        
-        // Fetch banknotes
-        setLoading(true);
-        console.log("CountryDetail: Fetching banknotes for country", countryData.id);
-        const banknotesData = await fetchBanknotesByCountryId(countryData.id);
-        
-        console.log("CountryDetail: Banknotes loaded:", banknotesData.length);
-        setBanknotes(banknotesData);
-        
       } catch (error) {
-        console.error("CountryDetail: Error loading data:", error);
+        console.error("CountryDetail: Error loading country data:", error);
         toast({
           title: "Error",
-          description: "Failed to load banknotes. Please try again later.",
+          description: "Failed to load country data. Please try again later.",
           variant: "destructive",
         });
-      } finally {
-        setLoading(false);
       }
     };
 
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
+  
+  // Load banknotes when countryId changes
+  useEffect(() => {
+    const loadBanknotes = async () => {
+      if (!countryId) return;
+      
+      setLoading(true);
+      console.log("CountryDetail: Fetching banknotes for country", countryId);
+      
+      try {
+        const banknotesData = await fetchBanknotesByCountryId(countryId);
+        
+        console.log("CountryDetail: Banknotes loaded:", banknotesData.length);
+        setBanknotes(banknotesData);
+      } catch (error) {
+        console.error("Error fetching banknotes for country", countryId, ":", error);
+        toast({
+          title: "Error",
+          description: "Failed to load banknotes. Please try again later.",
+          variant: "destructive",
+        });
+        setBanknotes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (countryId) {
+      loadBanknotes();
+    }
+  }, [countryId, toast]);
 
   // Default filters with stable reference
   const [currentFilters, setCurrentFilters] = useState<DynamicFilterState>({

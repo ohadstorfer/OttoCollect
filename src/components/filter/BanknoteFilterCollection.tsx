@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
-import { fetchCategoriesByCountryId, fetchTypesByCountryId, fetchSortOptionsByCountryId } from "@/services/countryService";
+import { fetchCategoriesByCountryId, fetchTypesByCountryId, fetchSortOptionsByCountryId, saveUserFilterPreferences } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
 
 interface BanknoteFilterCollectionProps {
@@ -165,19 +165,52 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     onFilterChange(newFilters);
   };
 
-  // Mock save function since collection filters aren't stored in the database
-  const handleSaveFilters = () => {
-    console.log("BanknoteFilterCollection: Save filters (not implemented for collections)");
+  // Save filters to user preferences
+  const handleSaveFilters = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Not Logged In",
+        description: "You need to be logged in to save filter preferences.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log("BanknoteFilterCollection: Saving filter preferences");
     setIsSaving(true);
     
-    // Show toast notification
-    setTimeout(() => {
+    try {
+      const categoryIds = currentFilters.categories || [];
+      const typeIds = currentFilters.types || [];
+      const sortOptionIds = sortOptions
+        .filter(option => currentFilters.sort?.includes(option.fieldName || ''))
+        .map(option => option.id);
+        
+      if (countryId) {
+        // If we have a countryId, save to the database
+        await saveUserFilterPreferences(
+          user.id,
+          countryId,
+          categoryIds,
+          typeIds,
+          sortOptionIds
+        );
+      }
+      
       toast({
         title: "Success",
-        description: "Filter preferences saved for this session.",
+        description: "Filter preferences saved.",
       });
+    } catch (error) {
+      console.error("Error saving filter preferences:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save filter preferences.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSaving(false);
-    }, 500);
+    }
   };
 
   return (
@@ -190,7 +223,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       isLoading={isLoading || loading}
       className={className}
       onSaveFilters={handleSaveFilters}
-      saveButtonText={isSaving ? "Saving..." : "Save View Settings"}
+      saveButtonText={isSaving ? "Saving..." : "Save Filter Preferences"}
     />
   );
 };

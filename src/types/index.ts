@@ -1,4 +1,3 @@
-
 import { FilterCategoryOption } from "./filter";
 
 export interface User {
@@ -60,6 +59,32 @@ export interface Banknote {
 }
 
 export interface DetailedBanknote extends Banknote {
+  extendedPickNumber?: string;
+  pickNumber?: string;
+  turkCatalogNumber?: string;
+  denomination: string;
+  islamicYear?: string;
+  gregorianYear?: string;
+  signaturesFront?: string;
+  signaturesBack?: string;
+  sealNames?: string;
+  seal_pictures?: string[] | null;
+  signaturePictures?: string[] | null;
+  watermarkPicture?: string | null;
+  otherElementPictures?: string[] | null;
+  frontPicture?: string | null;
+  backPicture?: string | null;
+  sultanName?: string;
+  tughraPicture?: string | null;
+  printer?: string;
+  type?: string;
+  category?: string;
+  rarity?: string;
+  securityElement?: string;
+  colors?: string;
+  serialNumbering?: string;
+  banknoteDescription?: string;
+  historicalDescription?: string;
   gradeCounts: { [grade: string]: number };
   averagePrice: number | null;
 }
@@ -159,12 +184,20 @@ export interface ForumPost {
 export interface Message {
   id: string;
   senderId: string;
-  recipientId: string;
+  receiverId?: string;
   content: string;
   isRead: boolean;
-  createdAt: Date | string;
-  sender?: User;
-  recipient?: User;
+  createdAt: string;
+  isRead: boolean;
+  referenceItemId?: string;
+  sender?: {
+    username: string;
+    avatar_url?: string;
+  };
+  receiver?: {
+    username: string;
+    avatar_url?: string;
+  };
 }
 
 export type BanknoteDetailSource = "catalog" | "collection" | "marketplace";

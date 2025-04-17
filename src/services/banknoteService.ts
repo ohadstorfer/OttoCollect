@@ -1,5 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Banknote, DetailedBanknote } from '@/types';
+import { fetchCategoriesByCountryId, fetchTypesByCountryId } from '@/services/countryService';
 
 export async function fetchBanknotes(): Promise<Banknote[]> {
   try {
@@ -211,6 +213,7 @@ function transformDetailedToBanknote(detailed: any): Banknote {
     rarity: detailed.rarity || '',
     categoryId: '',  // Will be populated later if needed
     typeId: '',      // Will be populated later if needed
+    type: detailed.type || 'Issued note',
   };
 }
 
@@ -229,7 +232,7 @@ function transformToDetailedBanknote(data: any): DetailedBanknote {
     signaturesFront: data.signatures_front,
     signaturesBack: data.signatures_back,
     sealNames: data.seal_names,
-    sealPictures: data.seal_pictures,
+    seal_pictures: data.seal_pictures,
     signaturePictures: data.signature_pictures,
     watermarkPicture: data.watermark_picture,
     otherElementPictures: data.other_element_pictures,
@@ -263,10 +266,14 @@ export const mapBanknoteFromSupabase = (rawData: any): DetailedBanknote => {
     ].filter(Boolean),
     isApproved: rawData.is_approved === true,
     isPending: rawData.is_pending === true,
-    catalogNumber: rawData.pick_number || rawData.turk_catalog_number || '',
-    description: rawData.banknote_description || '',
-    category: rawData.category || '',
+    series: rawData.category || '',
     type: rawData.type || '',
+    catalogId: rawData.pick_number || rawData.turk_catalog_number || '',
+    description: rawData.banknote_description || '',
+    createdAt: rawData.created_at || '',
+    updatedAt: rawData.updated_at || '',
+    categoryId: '',
+    typeId: '',
   };
   
   return {
@@ -287,22 +294,22 @@ export const mapBanknoteFromSupabase = (rawData: any): DetailedBanknote => {
     historicalDescription: rawData.historical_description || '',
     frontDescription: rawData.banknote_description || '',
     backDescription: '',
-    frontImage: rawData.front_picture || '',
-    backImage: rawData.back_picture || '',
+    frontPicture: rawData.front_picture || '',
+    backPicture: rawData.back_picture || '',
     serialNumbering: rawData.serial_numbering || '',
     sealNames: rawData.seal_names || '',
     signaturesFront: rawData.signatures_front || '',
     signaturesBack: rawData.signatures_back || '',
     colors: rawData.colors || '',
-    watermark: rawData.watermark_picture || '',
+    watermarkPicture: rawData.watermark_picture || '',
     securityElement: rawData.security_element || '',
     printer: rawData.printer || '',
     category: rawData.category || '',
     type: rawData.type || '',
-    tughraImage: rawData.tughra_picture || '',
+    tughraPicture: rawData.tughra_picture || '',
     seal_pictures: rawData.seal_pictures || [],
-    signature_pictures: rawData.signature_pictures || [],
-    other_element_pictures: rawData.other_element_pictures || [],
+    signaturePictures: rawData.signature_pictures || [],
+    otherElementPictures: rawData.other_element_pictures || [],
     gradeCounts: {},
     averagePrice: 0,
   };

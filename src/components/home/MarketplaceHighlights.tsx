@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -45,7 +44,14 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
       return 'Unknown date';
     }
   };
-  
+
+  const displayDate = (dateString: string | Date): string => {
+    if (dateString instanceof Date) {
+      return formatDistanceToNow(dateString, { addSuffix: true });
+    }
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  };
+
   if (loading) {
     console.log('MarketplaceHighlights in loading state');
     return (
@@ -85,10 +91,6 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
             "glass-card p-5 cursor-pointer hover:shadow-lg transition-all border border-ottoman-800/50",
             index % 2 === 0 ? "fade-right" : "fade-left"
           )}
-          // style={{
-          //   animation: "floatRotate 4s ease-in-out infinite",
-          //   animationDelay: `${index * 150}ms`
-          // }}
           onClick={() => handleItemClick(item.id)}
         >
           <div className="flex gap-4">
@@ -168,10 +170,6 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
           <CarouselItem key={item.id}>
             <div 
               className="glass-card p-5 cursor-pointer hover:shadow-lg transition-all border border-ottoman-800/50 h-full"
-              // style={{
-              //   animation: "floatRotate 4s ease-in-out infinite",
-              //   animationDelay: `${index * 150}ms`
-              // }}
               onClick={() => handleItemClick(item.id)}
             >
               <div className="flex flex-col gap-4">

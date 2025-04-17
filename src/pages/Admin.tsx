@@ -6,11 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Shield, Users, Book, Image, Globe } from 'lucide-react';
+import { Shield, Users, Book, Image, Globe, Settings } from 'lucide-react';
 import UserManagement from '@/components/admin/UserManagement';
 import BanknotesManagement from '@/components/admin/BanknotesManagement';
 import ImageSuggestions from '@/components/admin/ImageSuggestions';
 import CountryManagement from '@/components/admin/CountryManagement';
+import CountryFilterSettings from '@/components/admin/CountryFilterSettings';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -40,7 +41,7 @@ const Admin = () => {
       
       <div className="max-w-6xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 mb-6">
+          <TabsList className="grid grid-cols-5 mb-6">
             <TabsTrigger value="users">
               <Users className="mr-2 h-4 w-4" />
               User Management
@@ -56,6 +57,10 @@ const Admin = () => {
             <TabsTrigger value="countries">
               <Globe className="mr-2 h-4 w-4" />
               Country Settings
+            </TabsTrigger>
+            <TabsTrigger value="filter-settings">
+              <Settings className="mr-2 h-4 w-4" />
+              Filter Settings
             </TabsTrigger>
           </TabsList>
 
@@ -94,6 +99,17 @@ const Admin = () => {
           
           <TabsContent value="countries">
             <CountryManagement />
+          </TabsContent>
+
+          <TabsContent value="filter-settings">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-serif">Country Filter Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CountryFilterSettings />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

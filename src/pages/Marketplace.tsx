@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
@@ -27,7 +27,6 @@ const Marketplace = () => {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Load real marketplace data
   const loadMarketplaceItems = async (showToast = false) => {
     console.log('Starting loadMarketplaceItems function');
     setLoading(true);
@@ -35,7 +34,6 @@ const Marketplace = () => {
     try {
       console.log("Starting to fetch marketplace items");
       
-      // First, synchronize the marketplace with collection items
       if (user?.role === 'Admin') {
         console.log('User is admin, synchronizing marketplace with collection');
         await synchronizeMarketplaceWithCollection();
@@ -80,13 +78,11 @@ const Marketplace = () => {
     loadMarketplaceItems();
   }, [toast]);
   
-  // Transform marketplace items for the filter
   const marketplaceItemsForFilter = marketplaceItems.map(item => ({
     ...item,
     banknote: item.collectionItem.banknote
   }));
 
-  // Use the banknote filter hook with the transformed items
   const { 
     filteredItems, 
     filters, 
@@ -101,11 +97,10 @@ const Marketplace = () => {
     }
   });
   
-  // When marketplace items load, update the categories filter to include all available categories
   useEffect(() => {
     if (marketplaceItems.length > 0 && availableCategories.length > 0) {
       const allCategories = availableCategories.map(c => c.id);
-      const allTypes = ["issued notes"];  // Add default type
+      const allTypes = ["issued notes"];
       
       setFilters({
         ...filters,
@@ -252,7 +247,6 @@ const Marketplace = () => {
             </div>
             
             {group.sultanGroups ? (
-              // If grouped by sultan
               <div className="space-y-6">
                 {console.log(`Rendering marketplace with sultan groups. ${group.sultanGroups.length} sultans`)}
                 {group.sultanGroups.map((sultanGroup, sultanIndex) => (
@@ -279,7 +273,6 @@ const Marketplace = () => {
                 ))}
               </div>
             ) : (
-              // If not grouped by sultan
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {console.log(`Rendering marketplace without sultan groups. ${group.items.length} items directly`)}
                 {group.items.map((item, index) => {
@@ -302,9 +295,25 @@ const Marketplace = () => {
     );
   };
 
+  const renderContentBasedOnState = (): React.ReactNode => {
+    console.log("Rendering marketplace content based on loading and filtered items:", {
+      loading,
+      error,
+      filteredCount: filteredItems.length
+    });
+    if (loading) {
+      return renderLoadingState();
+    } else if (error) {
+      return renderErrorState();
+    } else if (filteredItems.length === 0) {
+      return renderEmptyState();
+    } else {
+      return renderMarketplaceItems();
+    }
+  };
+
   return (
     <div className="min-h-screen animate-fade-in">
-      {/* Header */}
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden`}>
         <div className="absolute inset-0 -z-10">
           <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${
@@ -324,30 +333,17 @@ const Marketplace = () => {
         </div>
       </section>
       
-      {/* Marketplace Content */}
       <section className="py-8">
         <div className="container mx-auto px-4">
-          {/* Filter section */}
-          {renderFilterSection()}
-          
-          {/* Results header */}
-          {renderResults()}
-          
-          {/* Content states */}
-          {console.log("Rendering marketplace content based on loading and filtered items:", {
-            loading,
-            error,
-            filteredCount: filteredItems.length
-          })}
-          {loading ? (
-            renderLoadingState()
-          ) : error ? (
-            renderErrorState()
-          ) : filteredItems.length === 0 ? (
-            renderEmptyState()
-          ) : (
-            renderMarketplaceItems()
-          )}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <div className="flex-1">
+              {renderFilterSection()}
+            </div>
+            <div className="flex items-center gap-3">
+              {renderResults()}
+            </div>
+          </div>
+          {renderContentBasedOnState()}
         </div>
       </section>
     </div>

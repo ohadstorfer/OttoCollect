@@ -174,7 +174,7 @@ export type Database = {
       }
       banknote_type_definitions: {
         Row: {
-          country_id: string
+          country_id: string | null
           created_at: string
           description: string | null
           display_order: number
@@ -183,7 +183,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          country_id: string
+          country_id?: string | null
           created_at?: string
           description?: string | null
           display_order?: number
@@ -192,7 +192,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          country_id?: string
+          country_id?: string | null
           created_at?: string
           description?: string | null
           display_order?: number

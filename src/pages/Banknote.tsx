@@ -1,44 +1,44 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchBanknoteById } from '@/services/banknoteService';
-import { Banknote as BanknoteType, DetailedBanknote } from '@/types';
+import { DetailedBanknote } from '@/types';
+import { fetchBanknoteDetail } from '@/services/banknoteService';
+import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
 
 const Banknote = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
   const [banknote, setBanknote] = useState<DetailedBanknote | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const fetchBanknoteData = async () => {
-      if (!id) {
-        setError("Banknote ID is required");
-        setLoading(false);
-        return;
-      }
-
+    const loadBanknote = async () => {
+      if (!id) return;
+      
       try {
         setLoading(true);
-        const data = await fetchBanknoteById(id);
-        if (!data) {
-          setError("Banknote not found");
+        const data = await fetchBanknoteDetail(id);
+        if (data) {
+          setBanknote(data as DetailedBanknote);
         } else {
-          setBanknote(data);
+          throw new Error('Banknote not found');
         }
-      } catch (err) {
-        console.error("Error fetching banknote:", err);
-        setError("Failed to load banknote details");
+      } catch (error) {
+        console.error('Error loading banknote:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load banknote",
+          variant: "destructive"
+        });
+        navigate('/catalog');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBanknoteData();
+    loadBanknote();
   }, [id]);
 
   if (loading) {

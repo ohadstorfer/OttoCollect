@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ContactSellerButton } from "@/components/marketplace/ContactSellerButton";
+import { UserRank } from "@/types/filter";
 
 interface MarketplaceItemProps {
   item: MarketplaceItemType;
@@ -43,7 +44,8 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
     }
   };
   
-  // Determine which image to show
+  const sellerRank = (item.seller?.rank || "Newbie") as UserRank;
+  
   const displayImage = collectionItem.obverseImage || 
     (collectionItem.personalImages && collectionItem.personalImages.length > 0 
       ? collectionItem.personalImages[0] 
@@ -75,12 +77,10 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           />
         </div>
         
-        {/* Price tag */}
         <div className="absolute top-0 left-0 bg-ottoman-600/90 text-white px-3 py-1 flex items-center font-semibold">
           ${salePrice}
         </div>
         
-        {/* Status badge */}
         <div className="absolute top-2 right-2">
           {getStatusBadge()}
         </div>
@@ -113,7 +113,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           <span className="text-xs text-ottoman-400">Seller:</span>
           <div className="flex items-center gap-1">
             <span className="text-sm text-ottoman-200">{seller.username}</span>
-            <Badge variant="user" rank={seller.rank} className="ml-1" />
+            <Badge variant="user" rank={sellerRank} className="ml-1" />
           </div>
         </div>
       </CardContent>

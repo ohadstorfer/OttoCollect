@@ -1,4 +1,3 @@
-
 import React from "react";
 import { User } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -20,6 +19,8 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
   const [showMessageDialog, setShowMessageDialog] = React.useState(false);
   
   const isOwnProfile = user && profile && user.id === profile.id;
+  
+  const userRank = (profile?.rank || "Newbie") as UserRank;
   
   const handleMessageClick = () => {
     if (!user) {
@@ -51,7 +52,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             <h1 className="text-2xl font-serif font-semibold text-foreground">
               {profile.username}
             </h1>
-            <Badge variant="user" rank={profile.rank} showIcon />
+            <Badge variant="user" rank={userRank} showIcon />
           </div>
           
           <div className="text-sm text-muted-foreground max-w-xl">

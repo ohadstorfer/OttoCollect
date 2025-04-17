@@ -14,6 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ContactSeller } from "@/components/messages/ContactSeller";
 import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
 import { BanknoteProvider } from "@/context/BanknoteContext";
+import { UserRank } from "@/types/filter";
 
 const MarketplaceItemDetail = () => {
   console.log('Rendering MarketplaceItemDetail component');
@@ -107,6 +108,8 @@ const MarketplaceItemDetail = () => {
   console.log('Banknote data for detail view:', banknote);
   console.log('Image sources:', { obverseImage, reverseImage, banknoteImages: banknote.imageUrls });
 
+  const sellerRank = (marketplace?.seller?.rank || "Newbie") as UserRank;
+
   return (
     <div className="container py-8">
       <div className="flex items-center gap-2 mb-6">
@@ -168,7 +171,7 @@ const MarketplaceItemDetail = () => {
                       to={`/profile/${seller.id}`}
                       className="text-ottoman-500 hover:text-ottoman-600"
                     >
-                      {seller.username} <Badge variant="user" rank={seller.rank} />
+                      {seller.username} <Badge variant="user" rank={sellerRank} />
                     </Link>
                   </div>
                   
