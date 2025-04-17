@@ -192,7 +192,7 @@ export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote 
   }
 }
 
-// Add the missing fetchBanknotesByCountryId function
+// Fix the fetchBanknotesByCountryId function to use country name instead of country_id
 export async function fetchBanknotesByCountryId(countryId: string): Promise<DetailedBanknote[]> {
   try {
     if (!countryId) {
@@ -202,17 +202,32 @@ export async function fetchBanknotesByCountryId(countryId: string): Promise<Deta
     
     console.log(`Fetching banknotes for country ID: ${countryId}`);
     
-    const { data, error } = await supabase
-      .from('detailed_banknotes')
-      .select('*')
-      .filter('country_id', 'eq', countryId);
+    // First, get the country name using the country ID
+    const { data: country, error: countryError } = await supabase
+      .from('countries')
+      .select('name')
+      .eq('id', countryId)
+      .single();
     
-    if (error) {
-      console.error('Error fetching banknotes by country ID:', error);
+    if (countryError || !country) {
+      console.error('Error fetching country name:', countryError);
       return [];
     }
     
-    console.log(`Found ${data?.length || 0} banknotes for country ID: ${countryId}`);
+    console.log(`Found country name: ${country.name} for ID: ${countryId}`);
+    
+    // Then, filter banknotes by country name
+    const { data, error } = await supabase
+      .from('detailed_banknotes')
+      .select('*')
+      .eq('country', country.name);
+    
+    if (error) {
+      console.error('Error fetching banknotes by country:', error);
+      return [];
+    }
+    
+    console.log(`Found ${data?.length || 0} banknotes for country: ${country.name}`);
     
     // Convert database fields to client-side model
     const banknotes = data?.map(item => ({
