@@ -428,7 +428,8 @@ export default function BanknoteDetail() {
                 <CardContent className="p-0">
                   <CollectionItemForm 
                     collectionItem={collectionItem} 
-                    onUpdate={(updatedItem) => setCollectionItem(updatedItem)}
+                    onSave={handleSaveEdit}
+                    onCancel={handleCancelEdit}
                   />
                 </CardContent>
               </Card>

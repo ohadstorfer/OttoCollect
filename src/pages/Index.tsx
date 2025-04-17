@@ -43,8 +43,8 @@ const Index = () => {
 
       <Container className="py-12">
         <div className="grid md:grid-cols-2 gap-8">
-          <MarketplaceHighlights />
-          <LatestForumPosts />
+          <MarketplaceHighlights items={[]} />
+          <LatestForumPosts posts={[]} />
         </div>
       </Container>
     </div>

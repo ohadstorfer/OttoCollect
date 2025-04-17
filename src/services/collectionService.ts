@@ -407,3 +407,45 @@ export async function deleteCollectionItem(itemId: string): Promise<boolean> {
     return false;
   }
 }
+
+export function getCategoryCountsFromCollection(collection: CollectionItem[], banknotes: DetailedBanknote[]): { id: string, name: string, count: number }[] {
+  if (!collection || !banknotes) return [];
+
+  const categoryMap = new Map<string, number>();
+  
+  collection.forEach(item => {
+    const banknote = banknotes.find(b => b.id === item.banknoteId);
+    if (banknote?.category) {
+      const count = categoryMap.get(banknote.category) || 0;
+      categoryMap.set(banknote.category, count + 1);
+    }
+  });
+  
+  // Convert map to array of objects
+  return Array.from(categoryMap.entries()).map(([name, count]) => ({
+    id: name, // Using name as id since it's what we need for grouping
+    name,
+    count
+  }));
+}
+
+export function getCountryCountsFromCollection(collection: CollectionItem[], banknotes: DetailedBanknote[]): { id: string, name: string, count: number }[] {
+  if (!collection || !banknotes) return [];
+  
+  const countryMap = new Map<string, number>();
+  
+  collection.forEach(item => {
+    const banknote = banknotes.find(b => b.id === item.banknoteId);
+    if (banknote?.country) {
+      const count = countryMap.get(banknote.country) || 0;
+      countryMap.set(banknote.country, count + 1);
+    }
+  });
+  
+  // Convert map to array of objects
+  return Array.from(countryMap.entries()).map(([name, count]) => ({
+    id: name, // Using name as id since it's what we need for grouping
+    name,
+    count
+  }));
+}

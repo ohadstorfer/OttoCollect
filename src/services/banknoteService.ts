@@ -1,7 +1,7 @@
 
 // Update fetchBanknotes to use correct type mapping
 import { supabase } from "@/integrations/supabase/client";
-import { DetailedBanknote, BanknoteFilters } from '@/types';
+import { DetailedBanknote, BanknoteFilters, BanknoteCondition } from '@/types';
 
 export async function fetchBanknotes(filters?: BanknoteFilters): Promise<DetailedBanknote[]> {
   try {
@@ -36,49 +36,64 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
       return [];
     }
 
-    return data.map(banknote => ({
-      ...banknote,
-      id: banknote.id,
-      catalogId: banknote.extended_pick_number || '',
-      country: banknote.country || '',
-      denomination: banknote.face_value || '',
-      year: banknote.gregorian_year || '',
-      series: banknote.category || '',
-      description: banknote.banknote_description || '',
-      obverseDescription: '',
-      reverseDescription: '',
-      imageUrls: [
-        banknote.front_picture || '',
-        banknote.back_picture || ''
-      ].filter(Boolean),
-      isApproved: banknote.is_approved || false,
-      isPending: banknote.is_pending || false,
-      createdAt: banknote.created_at || '',
-      updatedAt: banknote.updated_at || '',
-      pickNumber: banknote.pick_number,
-      turkCatalogNumber: banknote.turk_catalog_number,
-      sultanName: banknote.sultan_name,
-      sealNames: banknote.seal_names,
-      rarity: banknote.rarity,
-      printer: banknote.printer,
-      type: banknote.type,
-      category: banknote.category,
-      categoryId: '', // Will be populated later when needed
-      typeId: '', // Will be populated later when needed
-      colors: banknote.colors ? [banknote.colors] : [], // Convert string to array to match type
-      securityFeatures: [],
-      gradeCounts: {},
-      averagePrice: 0,
-      islamicYear: banknote.islamic_year || '',
-      gregorianYear: banknote.gregorian_year || '',
-      banknoteDescription: banknote.banknote_description || '',
-      historicalDescription: banknote.historical_description || '',
-      serialNumbering: banknote.serial_numbering || '',
-      securityElement: banknote.security_element || '',
-      signaturesFront: banknote.signatures_front || '',
-      signaturesBack: banknote.signatures_back || '',
-      signatures: []
-    }));
+    return data.map(banknote => {
+      // Initialize default gradeCounts object
+      const defaultGradeCounts: Record<BanknoteCondition, number> = {
+        'UNC': 0,
+        'AU': 0,
+        'XF': 0,
+        'VF': 0,
+        'F': 0,
+        'VG': 0,
+        'G': 0,
+        'Fair': 0,
+        'Poor': 0
+      };
+
+      return {
+        ...banknote,
+        id: banknote.id,
+        catalogId: banknote.extended_pick_number || '',
+        country: banknote.country || '',
+        denomination: banknote.face_value || '',
+        year: banknote.gregorian_year || '',
+        series: banknote.category || '',
+        description: banknote.banknote_description || '',
+        obverseDescription: '',
+        reverseDescription: '',
+        imageUrls: [
+          banknote.front_picture || '',
+          banknote.back_picture || ''
+        ].filter(Boolean),
+        isApproved: banknote.is_approved || false,
+        isPending: banknote.is_pending || false,
+        createdAt: banknote.created_at || '',
+        updatedAt: banknote.updated_at || '',
+        pickNumber: banknote.pick_number,
+        turkCatalogNumber: banknote.turk_catalog_number,
+        sultanName: banknote.sultan_name,
+        sealNames: banknote.seal_names,
+        rarity: banknote.rarity,
+        printer: banknote.printer,
+        type: banknote.type,
+        category: banknote.category,
+        categoryId: '', // Will be populated later when needed
+        typeId: '', // Will be populated later when needed
+        colors: banknote.colors ? [banknote.colors] : [], // Convert string to array to match type
+        securityFeatures: [],
+        gradeCounts: defaultGradeCounts,
+        averagePrice: 0,
+        islamicYear: banknote.islamic_year || '',
+        gregorianYear: banknote.gregorian_year || '',
+        banknoteDescription: banknote.banknote_description || '',
+        historicalDescription: banknote.historical_description || '',
+        serialNumbering: banknote.serial_numbering || '',
+        securityElement: banknote.security_element || '',
+        signaturesFront: banknote.signatures_front || '',
+        signaturesBack: banknote.signatures_back || '',
+        signatures: []
+      };
+    });
   } catch (error) {
     console.error('Unexpected error in fetchBanknotes:', error);
     return [];
@@ -109,6 +124,19 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       console.log(`No banknote found with ID: ${id}`);
       return null;
     }
+    
+    // Initialize default gradeCounts object
+    const defaultGradeCounts: Record<BanknoteCondition, number> = {
+      'UNC': 0,
+      'AU': 0,
+      'XF': 0,
+      'VF': 0,
+      'F': 0,
+      'VG': 0,
+      'G': 0,
+      'Fair': 0,
+      'Poor': 0
+    };
     
     // Convert database fields to client-side model
     const banknote: DetailedBanknote = {
@@ -141,7 +169,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       typeId: '', // Will be populated when needed
       colors: data.colors ? [data.colors] : [], // Convert string to array to match type
       securityFeatures: [],
-      gradeCounts: {},
+      gradeCounts: defaultGradeCounts,
       averagePrice: 0,
       islamicYear: data.islamic_year || '',
       gregorianYear: data.gregorian_year || '',
@@ -208,6 +236,19 @@ export async function fetchBanknotesByCountryId(countryId: string): Promise<Deta
       return [];
     }
     
+    // Initialize default gradeCounts object
+    const defaultGradeCounts: Record<BanknoteCondition, number> = {
+      'UNC': 0,
+      'AU': 0,
+      'XF': 0,
+      'VF': 0,
+      'F': 0,
+      'VG': 0,
+      'G': 0,
+      'Fair': 0,
+      'Poor': 0
+    };
+    
     // Convert database fields to client-side model
     const banknotes = data.map(item => ({
       id: item.id,
@@ -239,7 +280,7 @@ export async function fetchBanknotesByCountryId(countryId: string): Promise<Deta
       typeId: '', // Will be populated later when mapping to types
       colors: item.colors ? [item.colors] : [], // Convert string to array to match type
       securityFeatures: [],
-      gradeCounts: {},
+      gradeCounts: defaultGradeCounts,
       averagePrice: 0,
       islamicYear: item.islamic_year || '',
       gregorianYear: item.gregorian_year || '',

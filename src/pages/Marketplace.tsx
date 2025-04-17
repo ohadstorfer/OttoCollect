@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import MarketplaceItem from "@/components/marketplace/MarketplaceItem";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import { fetchMarketplaceItems, synchronizeMarketplaceWithCollection } from "@/services/marketplaceService";
+import { fetchMarketplaceItems } from "@/services/marketplaceService";
 import { Spinner } from "@/components/ui/spinner";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -26,6 +27,7 @@ const Marketplace = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<MarketplaceItemType | null>(null);
 
   const loadMarketplaceItems = async (showToast = false) => {
     console.log('Starting loadMarketplaceItems function');
@@ -33,11 +35,6 @@ const Marketplace = () => {
     setError(null);
     try {
       console.log("Starting to fetch marketplace items");
-      
-      if (user?.role === 'Admin') {
-        console.log('User is admin, synchronizing marketplace with collection');
-        await synchronizeMarketplaceWithCollection();
-      }
       
       console.log('Calling fetchMarketplaceItems');
       const items = await fetchMarketplaceItems();
@@ -234,6 +231,10 @@ const Marketplace = () => {
   );
 
   const renderMarketplaceItems = () => {
+    if (groupedItems.length === 0) {
+      return renderEmptyState();
+    }
+
     return (
       <div className="space-y-8">
         {console.log(`Rendering ${groupedItems.length} marketplace grouped items`)}
@@ -256,22 +257,18 @@ const Marketplace = () => {
                       {sultanGroup.sultan}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {sultanGroup.items.map((item, index) => {
-                        console.log(`Rendering marketplace item card for index ${index}`);
-                        return (
-                          <div 
-                            key={`marketplace-item-${index}`}
-                            className="animate-fade-in"
-                            style={{ animationDelay: `${index * 100}ms` }}
-                          >
-                            <MarketplaceItem 
-                              key={item.id} 
-                              item={item} 
-                              onContactSeller={() => setSelectedItem(item)}
-                            />
-                          </div>
-                        );
-                      })}
+                      {sultanGroup.items.map((item, index) => (
+                        <div 
+                          key={`marketplace-item-${index}`}
+                          className="animate-fade-in"
+                          style={{ animationDelay: `${index * 100}ms` }}
+                        >
+                          <MarketplaceItem 
+                            key={item.id} 
+                            item={item as any}
+                          />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -279,22 +276,18 @@ const Marketplace = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {console.log(`Rendering marketplace without sultan groups. ${group.items.length} items directly`)}
-                {group.items.map((item, index) => {
-                  console.log(`Rendering marketplace item card for index ${index}`);
-                  return (
-                    <div 
-                      key={`marketplace-item-${index}`}
-                      className="animate-fade-in"
-                      style={{ animationDelay: `${index * 100}ms` }}
-                    >
-                      <MarketplaceItem 
-                        key={item.id} 
-                        item={item} 
-                        onContactSeller={() => setSelectedItem(item)}
-                      />
-                    </div>
-                  );
-                })}
+                {group.items.map((item, index) => (
+                  <div 
+                    key={`marketplace-item-${index}`}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <MarketplaceItem 
+                      key={item.id} 
+                      item={item as any}
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -303,12 +296,13 @@ const Marketplace = () => {
     );
   };
 
-  const renderContentBasedOnState = (): React.ReactNode => {
+  const renderContentBasedOnState = () => {
     console.log("Rendering marketplace content based on loading and filtered items:", {
       loading,
       error,
       filteredCount: filteredItems.length
     });
+
     if (loading) {
       return renderLoadingState();
     } else if (error) {

@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { MarketplaceItem, User } from "@/types";
+import { MarketplaceItem, User, CollectionItem } from "@/types";
 
 export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
   try {
@@ -7,9 +8,8 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
       .from('marketplace_items')
       .select(`
         *,
-        collection_item_id,
         collection_item:collection_items(*),
-        seller:seller_id(id, username, rank, avatar_url, email, role, points, created_at)
+        seller:profiles(id, username, rank, avatar_url, email, role, points, created_at)
       `)
       .eq('status', 'Available')
       .order('created_at', { ascending: false });
@@ -27,7 +27,24 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
     return data.map(item => {
       const mappedItem: MarketplaceItem = {
         id: item.id,
-        collectionItem: item.collection_item,
+        collectionItem: {
+          id: item.collection_item.id,
+          userId: item.collection_item.user_id,
+          banknoteId: item.collection_item.banknote_id,
+          condition: item.collection_item.condition,
+          purchasePrice: item.collection_item.purchase_price,
+          purchaseDate: item.collection_item.purchase_date,
+          salePrice: item.collection_item.sale_price,
+          isForSale: item.collection_item.is_for_sale,
+          obverseImage: item.collection_item.obverse_image,
+          reverseImage: item.collection_item.reverse_image,
+          publicNote: item.collection_item.public_note,
+          privateNote: item.collection_item.private_note,
+          location: item.collection_item.location,
+          createdAt: item.collection_item.created_at,
+          updatedAt: item.collection_item.updated_at,
+          orderIndex: item.collection_item.order_index
+        },
         sellerId: item.seller_id,
         seller: {
           id: item.seller.id,
@@ -42,7 +59,7 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           country: '',
           updatedAt: ''
         },
-        status: item.status,
+        status: item.status as "Available" | "Reserved" | "Sold",
         createdAt: item.created_at,
         updatedAt: item.updated_at
       };
@@ -61,7 +78,7 @@ export async function fetchMarketplaceItemById(id: string): Promise<MarketplaceI
       .select(`
         *,
         collection_item:collection_items(*),
-        seller:seller_id(id, username, rank, avatar_url, email, role, points, created_at)
+        seller:profiles(id, username, rank, avatar_url, email, role, points, created_at)
       `)
       .eq('id', id)
       .single();
@@ -77,7 +94,24 @@ export async function fetchMarketplaceItemById(id: string): Promise<MarketplaceI
     
     const mappedItem: MarketplaceItem = {
       id: data.id,
-      collectionItem: data.collection_item,
+      collectionItem: {
+        id: data.collection_item.id,
+        userId: data.collection_item.user_id,
+        banknoteId: data.collection_item.banknote_id,
+        condition: data.collection_item.condition,
+        purchasePrice: data.collection_item.purchase_price,
+        purchaseDate: data.collection_item.purchase_date,
+        salePrice: data.collection_item.sale_price,
+        isForSale: data.collection_item.is_for_sale,
+        obverseImage: data.collection_item.obverse_image,
+        reverseImage: data.collection_item.reverse_image,
+        publicNote: data.collection_item.public_note,
+        privateNote: data.collection_item.private_note,
+        location: data.collection_item.location,
+        createdAt: data.collection_item.created_at,
+        updatedAt: data.collection_item.updated_at,
+        orderIndex: data.collection_item.order_index
+      },
       sellerId: data.seller_id,
       seller: {
         id: data.seller.id,
@@ -92,7 +126,7 @@ export async function fetchMarketplaceItemById(id: string): Promise<MarketplaceI
         country: '',
         updatedAt: ''
       },
-      status: data.status,
+      status: data.status as "Available" | "Reserved" | "Sold",
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };
@@ -111,7 +145,7 @@ export async function fetchUserMarketplaceItems(userId: string): Promise<Marketp
       .select(`
         *,
         collection_item:collection_items(*),
-        seller:seller_id(id, username, rank, avatar_url, email, role, points, created_at)
+        seller:profiles(id, username, rank, avatar_url, email, role, points, created_at)
       `)
       .eq('seller_id', userId)
       .order('created_at', { ascending: false });
@@ -128,7 +162,24 @@ export async function fetchUserMarketplaceItems(userId: string): Promise<Marketp
     return data.map(item => {
       const mappedItem: MarketplaceItem = {
         id: item.id,
-        collectionItem: item.collection_item,
+        collectionItem: {
+          id: item.collection_item.id,
+          userId: item.collection_item.user_id,
+          banknoteId: item.collection_item.banknote_id,
+          condition: item.collection_item.condition,
+          purchasePrice: item.collection_item.purchase_price,
+          purchaseDate: item.collection_item.purchase_date,
+          salePrice: item.collection_item.sale_price,
+          isForSale: item.collection_item.is_for_sale,
+          obverseImage: item.collection_item.obverse_image,
+          reverseImage: item.collection_item.reverse_image,
+          publicNote: item.collection_item.public_note,
+          privateNote: item.collection_item.private_note,
+          location: item.collection_item.location,
+          createdAt: item.collection_item.created_at,
+          updatedAt: item.collection_item.updated_at,
+          orderIndex: item.collection_item.order_index
+        },
         sellerId: item.seller_id,
         seller: {
           id: item.seller.id,
@@ -143,7 +194,7 @@ export async function fetchUserMarketplaceItems(userId: string): Promise<Marketp
           country: '',
           updatedAt: ''
         },
-        status: item.status,
+        status: item.status as "Available" | "Reserved" | "Sold",
         createdAt: item.created_at,
         updatedAt: item.updated_at
       };
@@ -179,25 +230,8 @@ export async function addItemToMarketplace(collectionItemId: string, sellerId: s
   }
 }
 
-export async function removeItemFromMarketplace(marketplaceItemId: string, userId: string): Promise<boolean> {
+export async function removeItemFromMarketplace(marketplaceItemId: string): Promise<boolean> {
   try {
-    // First check if the user is the seller
-    const { data: itemData, error: fetchError } = await supabase
-      .from('marketplace_items')
-      .select('seller_id')
-      .eq('id', marketplaceItemId)
-      .single();
-    
-    if (fetchError) {
-      console.error('Error fetching marketplace item:', fetchError);
-      return false;
-    }
-    
-    if (itemData.seller_id !== userId) {
-      console.error('User is not the seller of this item');
-      return false;
-    }
-    
     // Delete the marketplace item
     const { error: deleteError } = await supabase
       .from('marketplace_items')
@@ -294,5 +328,3 @@ export async function fetchSellerInfo(sellerId: string): Promise<User | null> {
     return null;
   }
 }
-
-export { addItemToMarketplace, removeItemFromMarketplace } from '@/services/marketplaceService';

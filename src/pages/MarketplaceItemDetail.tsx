@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquare, AlertCircle, User } from "lucide-react";
@@ -8,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getMarketplaceItemById } from "@/services/marketplaceService";
+import { fetchMarketplaceItemById } from "@/services/marketplaceService";
 import { MarketplaceItem, UserRank } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -39,7 +38,7 @@ const MarketplaceItemDetail = () => {
       setLoading(true);
       try {
         // We're getting the marketplace item by its ID directly
-        const fetchedItem = await getMarketplaceItemById(id);
+        const fetchedItem = await fetchMarketplaceItemById(id);
         console.log('Fetched marketplace item result:', fetchedItem);
 
         if (!fetchedItem) {
