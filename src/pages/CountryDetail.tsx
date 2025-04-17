@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { Banknote, DetailedBanknote } from "@/types";
-import { fetchBanknotesByCountryId } from "@/services/banknoteService";
+import { fetchBanknotes, fetchBanknotesByCountryId } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
