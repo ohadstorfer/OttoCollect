@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -19,13 +18,12 @@ const CountryDetail = () => {
   const { user } = useAuth();
   const decodedCountryName = decodeURIComponent(country || "");
   
-  const [banknotes, setBanknotes] = useState<Banknote[]>([]);
+  const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
   const [hasInitialized, setHasInitialized] = useState(false);
   const { toast } = useToast();
   
-  // Track if we're currently updating filters
   const isUpdatingFilters = useRef(false);
   const isFirstRender = useRef(true);
   
@@ -36,7 +34,6 @@ const CountryDetail = () => {
     banknotes: banknotes.length 
   });
   
-  // Load country data
   useEffect(() => {
     const loadCountryData = async () => {
       if (!decodedCountryName) {
@@ -47,7 +44,6 @@ const CountryDetail = () => {
       console.log("CountryDetail: Loading country data for", decodedCountryName);
       
       try {
-        // Fetch country ID
         const countryData = await fetchCountryByName(decodedCountryName);
         
         if (!countryData) {
@@ -76,7 +72,6 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
   
-  // Load banknotes when countryId changes
   useEffect(() => {
     const loadBanknotes = async () => {
       if (!countryId) return;
@@ -85,8 +80,7 @@ const CountryDetail = () => {
       console.log("CountryDetail: Fetching banknotes for country", countryId);
       
       try {
-        const banknotesData = await fetchBanknotesByCountryId(countryId);
-        
+        const banknotesData = await fetchBanknotes({ country_id: countryId });
         console.log("CountryDetail: Banknotes loaded:", banknotesData.length);
         setBanknotes(banknotesData);
       } catch (error) {
@@ -107,7 +101,6 @@ const CountryDetail = () => {
     }
   }, [countryId, toast]);
 
-  // Default filters with stable reference
   const [currentFilters, setCurrentFilters] = useState<DynamicFilterState>({
     search: "",
     categories: [],
@@ -116,7 +109,6 @@ const CountryDetail = () => {
     country_id: ""
   });
 
-  // Sync countryId to filters when it changes
   useEffect(() => {
     if (countryId && !isUpdatingFilters.current) {
       console.log("CountryDetail: Updating country_id in filters", countryId);
@@ -138,7 +130,6 @@ const CountryDetail = () => {
     }
   }, [countryId]);
 
-  // Use the dynamic filter hook
   const { 
     filteredItems: filteredBanknotes,
     filters,
@@ -149,9 +140,9 @@ const CountryDetail = () => {
     items: banknotes,
     initialFilters: currentFilters,
     countryId,
-    categories: [], // These will be fetched by the filter component
-    types: [],      // These will be fetched by the filter component
-    sortOptions: [] // These will be fetched by the filter component
+    categories: [],
+    types: [],
+    sortOptions: []
   });
 
   console.log("CountryDetail: Filter state", { 
@@ -176,10 +167,9 @@ const CountryDetail = () => {
     
     isUpdatingFilters.current = true;
     
-    // Preserve countryId in filters
     const updatedFilters = {
       ...newFilters,
-      country_id: countryId // Make sure country_id is always set correctly
+      country_id: countryId
     };
     
     setCurrentFilters(prev => ({

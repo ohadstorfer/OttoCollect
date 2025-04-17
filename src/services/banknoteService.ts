@@ -1,10 +1,38 @@
+
+import { supabase } from '@/integrations/supabase/client';
+import { DetailedBanknote, BanknoteFilters } from '@/types';
+
 // Update fetchBanknotes to use correct type mapping
 export async function fetchBanknotes(filters?: BanknoteFilters): Promise<DetailedBanknote[]> {
   try {
-    const query = supabase
+    let query = supabase
       .from('detailed_banknotes')
-      .select('*')
-      .$filter(filters);
+      .select('*');
+    
+    // Apply filters if provided
+    if (filters?.country_id) {
+      const { data: country } = await supabase
+        .from('countries')
+        .select('name')
+        .eq('id', filters.country_id)
+        .single();
+        
+      if (country?.name) {
+        query = query.eq('country', country.name);
+      }
+    }
+    
+    if (filters?.search) {
+      query = query.ilike('extended_pick_number', `%${filters.search}%`);
+    }
+    
+    if (filters?.categories && filters.categories.length > 0) {
+      query = query.in('category', filters.categories);
+    }
+    
+    if (filters?.types && filters.types.length > 0) {
+      query = query.in('type', filters.types);
+    }
 
     const { data, error } = await query;
 
@@ -14,10 +42,31 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
     }
 
     return data.map(banknote => ({
-      ...banknote,
-      // Remove unsupported properties like faceValue
-      gradeCounts: undefined,
-      averagePrice: undefined
+      id: banknote.id,
+      catalogId: banknote.extended_pick_number || '',
+      country: banknote.country || '',
+      denomination: banknote.face_value || '',
+      year: banknote.gregorian_year || '',
+      series: '',
+      description: banknote.banknote_description || '',
+      obverseDescription: '',
+      reverseDescription: '',
+      imageUrls: [
+        banknote.front_picture || '',
+        banknote.back_picture || ''
+      ].filter(Boolean),
+      isApproved: banknote.is_approved || false,
+      isPending: banknote.is_pending || false,
+      createdAt: banknote.created_at || '',
+      updatedAt: banknote.updated_at || '',
+      pickNumber: banknote.pick_number,
+      turkCatalogNumber: banknote.turk_catalog_number,
+      sultanName: banknote.sultan_name,
+      sealNames: banknote.seal_names,
+      rarity: banknote.rarity,
+      printer: banknote.printer,
+      type: banknote.type,
+      category: banknote.category
     }));
   } catch (error) {
     console.error('Unexpected error in fetchBanknotes:', error);
