@@ -8,9 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { BanknoteFilterCatalog } from "@/components/filter/BanknoteFilterCatalog";
-import { useDynamicFilter } from "@/hooks/use-dynamic-filter";
-import { fetchCountryByName } from "@/services/countryService";
 import { DynamicFilterState } from "@/types/filter";
+import { fetchCountryByName } from "@/services/countryService";
 import { useAuth } from "@/context/AuthContext";
 
 const CountryDetail = () => {
@@ -22,19 +21,34 @@ const CountryDetail = () => {
   const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
-  const [hasInitialized, setHasInitialized] = useState(false);
   const { toast } = useToast();
   
+  const [filters, setFilters] = useState<DynamicFilterState>({
+    search: "",
+    categories: [],
+    types: [],
+    sort: ["extPick"],
+    country_id: ""
+  });
+  
+  const [groupedItems, setGroupedItems] = useState<Array<{
+    category: string;
+    categoryId: string;
+    items: DetailedBanknote[];
+    sultanGroups?: { sultan: string; items: DetailedBanknote[] }[];
+  }>>([]);
+  
   const isUpdatingFilters = useRef(false);
-  const isFirstRender = useRef(true);
   
   console.log("CountryDetail: Rendering with", { 
     country: decodedCountryName, 
     countryId, 
     loading, 
-    banknotes: banknotes.length 
+    banknotes: banknotes.length,
+    filters
   });
   
+  // Load country data and set country ID
   useEffect(() => {
     const loadCountryData = async () => {
       if (!decodedCountryName) {
@@ -60,13 +74,10 @@ const CountryDetail = () => {
         
         console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
-        
-        // Load banknotes immediately after getting country ID
-        const banknotesData = await fetchBanknotesByCountryId(countryData.id);
-        console.log("CountryDetail: Banknotes loaded:", banknotesData.length);
-        console.log("CountryDetail: Banknotes loaded:", banknotesData);
-        setBanknotes(banknotesData);
-        setLoading(false);
+        setFilters(prev => ({
+          ...prev,
+          country_id: countryData.id
+        }));
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
         toast({
@@ -74,67 +85,55 @@ const CountryDetail = () => {
           description: "Failed to load country data. Please try again later.",
           variant: "destructive",
         });
-        setLoading(false);
       }
     };
 
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
 
-  // Define initial filters
-  const [currentFilters, setCurrentFilters] = useState<DynamicFilterState>({
-    search: "",
-    categories: [], 
-    types: [], 
-    sort: ["extPick"],
-    country_id: ""
-  });
-
-  // Update filters when countryId changes
+  // Fetch banknotes with filters whenever filters change or country is loaded
   useEffect(() => {
-    if (countryId && !isUpdatingFilters.current) {
-      console.log("CountryDetail: Updating country_id in filters", countryId);
+    const fetchBanknotesWithFilters = async () => {
+      if (!countryId) return;
       
-      isUpdatingFilters.current = true;
-      setCurrentFilters(prev => ({
-        ...prev,
-        country_id: countryId
-      }));
+      console.log("CountryDetail: Fetching banknotes with filters", { countryId, filters });
+      setLoading(true);
       
-      setTimeout(() => {
-        isUpdatingFilters.current = false;
-      }, 100);
-      
-      if (!isFirstRender.current) {
-        setHasInitialized(true);
+      try {
+        // Convert to expected filter format
+        const filterParams = {
+          search: filters.search,
+          categories: filters.categories,
+          types: filters.types,
+          sort: filters.sort
+        };
+        
+        const data = await fetchBanknotesByCountryId(countryId, filterParams);
+        console.log("CountryDetail: Banknotes loaded:", data.length);
+        
+        // Group banknotes by category
+        const grouped = groupBanknotesByCategory(
+          data, 
+          filters.categories, 
+          filters.sort.includes("sultan")
+        );
+        
+        setBanknotes(data);
+        setGroupedItems(grouped);
+      } catch (error) {
+        console.error("CountryDetail: Error fetching banknotes:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load banknotes. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
-      isFirstRender.current = false;
-    }
-  }, [countryId]);
-
-  // Now use the dynamic filter hook
-  const { 
-    filteredItems: filteredBanknotes,
-    filters,
-    setFilters,
-    groupedItems,
-    isLoading: filterLoading
-  } = useDynamicFilter({
-    items: banknotes,
-    initialFilters: currentFilters,
-    countryId,
-    categories: [], // These arrays are empty because they'll be populated by the hook
-    types: [],
-    sortOptions: []
-  });
-
-  console.log("CountryDetail: Filter state", { 
-    currentFilters, 
-    hookFilters: filters, 
-    filterLoading,
-    filteredCount: filteredBanknotes.length,
-    groupedCount: groupedItems.length
-  });
+    };
+    
+    fetchBanknotesWithFilters();
+  }, [countryId, filters, toast]);
 
   const handleBack = () => {
     navigate('/catalog');
@@ -150,22 +149,82 @@ const CountryDetail = () => {
     
     isUpdatingFilters.current = true;
     
-    const updatedFilters = {
-      ...newFilters,
-      country_id: countryId
-    };
-    
-    setCurrentFilters(prev => ({
+    setFilters(prev => ({
       ...prev,
-      ...updatedFilters
+      ...newFilters,
+      country_id: countryId || prev.country_id
     }));
-    
-    setFilters(updatedFilters);
     
     setTimeout(() => {
       isUpdatingFilters.current = false;
     }, 100);
-  }, [setFilters, countryId]);
+  }, [countryId]);
+
+  // Group banknotes by category and optionally by sultan within each category
+  function groupBanknotesByCategory(
+    items: DetailedBanknote[], 
+    selectedCategoryIds: string[],
+    groupBySultan: boolean
+  ) {
+    const groups: Array<{
+      category: string;
+      categoryId: string;
+      items: DetailedBanknote[];
+      sultanGroups?: { sultan: string; items: DetailedBanknote[] }[];
+    }> = [];
+    
+    // Group banknotes by their category
+    const categoryMap = new Map<string, {
+      items: DetailedBanknote[];
+      categoryId: string;
+    }>();
+    
+    items.forEach(banknote => {
+      const category = banknote.category || 'Uncategorized';
+      
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, {
+          items: [],
+          categoryId: selectedCategoryIds.find(id => id === category) || ''
+        });
+      }
+      
+      categoryMap.get(category)?.items.push(banknote);
+    });
+    
+    // Convert map to array and sort alphabetically
+    Array.from(categoryMap.entries()).forEach(([category, { items, categoryId }]) => {
+      const group = {
+        category,
+        categoryId,
+        items,
+      };
+      
+      // If sorting by sultan, group banknotes by sultan within each category
+      if (groupBySultan) {
+        const sultanMap = new Map<string, DetailedBanknote[]>();
+        
+        items.forEach(banknote => {
+          const sultan = banknote.sultanName || 'Unknown';
+          
+          if (!sultanMap.has(sultan)) {
+            sultanMap.set(sultan, []);
+          }
+          
+          sultanMap.get(sultan)?.push(banknote);
+        });
+        
+        // Convert sultan map to array and sort by sultan name
+        group.sultanGroups = Array.from(sultanMap.entries())
+          .map(([sultan, items]) => ({ sultan, items }))
+          .sort((a, b) => a.sultan.localeCompare(b.sultan));
+      }
+      
+      groups.push(group);
+    });
+    
+    return groups.sort((a, b) => a.category.localeCompare(b.category));
+  }
 
   return (
     <div className="container py-8">
@@ -182,16 +241,16 @@ const CountryDetail = () => {
             countryId={countryId}
             onFilterChange={handleFilterChange}
             currentFilters={filters}
-            isLoading={loading || filterLoading}
+            isLoading={loading}
           />
         )}
 
         <div className="mt-6">
-          {loading || filterLoading ? (
+          {loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
             </div>
-          ) : filteredBanknotes.length === 0 ? (
+          ) : banknotes.length === 0 ? (
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-4">No banknotes found</h3>
               <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
@@ -214,32 +273,26 @@ const CountryDetail = () => {
                             </h3>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {sultanGroup.items.map((banknote, index) => {
-                              const detailedBanknote = banknote as unknown as DetailedBanknote;
-                              return (
-                                <BanknoteDetailCard
-                                  key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
-                                  banknote={detailedBanknote}
-                                  source="catalog"
-                                />
-                              );
-                            })}
+                            {sultanGroup.items.map((banknote, index) => (
+                              <BanknoteDetailCard
+                                key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                                banknote={banknote}
+                                source="catalog"
+                              />
+                            ))}
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {group.items.map((banknote, index) => {
-                        const detailedBanknote = banknote as unknown as DetailedBanknote;
-                        return (
-                          <BanknoteDetailCard
-                            key={`banknote-${group.category}-${index}`}
-                            banknote={detailedBanknote}
-                            source="catalog"
-                          />
-                        );
-                      })}
+                      {group.items.map((banknote, index) => (
+                        <BanknoteDetailCard
+                          key={`banknote-${group.category}-${index}`}
+                          banknote={banknote}
+                          source="catalog"
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
