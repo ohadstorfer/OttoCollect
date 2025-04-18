@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import { DetailedBanknote } from "@/types";
@@ -23,7 +23,7 @@ const CountryDetail = () => {
   const [countryId, setCountryId] = useState<string>("");
   const { toast } = useToast();
   
-  // Filter state
+  // Single source of truth for filters
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
     categories: [],
@@ -32,17 +32,8 @@ const CountryDetail = () => {
     country_id: ""
   });
   
-  // Grouped banknotes for display
-  const [groupedItems, setGroupedItems] = useState<Array<{
-    category: string;
-    categoryId: string;
-    items: DetailedBanknote[];
-    sultanGroups?: { sultan: string; items: DetailedBanknote[] }[];
-  }>>([]);
-  
-  // Prevent multiple simultaneous filter updates
-  const isUpdatingFilters = useRef(false);
-  const isInitialLoad = useRef(true);
+  // State to track if filters have been initialized from user preferences
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
   
   console.log("CountryDetail: Rendering with", { 
     country: decodedCountryName, 
@@ -95,77 +86,10 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
 
-  // Group banknotes by category and optionally by sultan within each category
-  const groupBanknotesByCategory = useCallback(
-    (
-      items: DetailedBanknote[], 
-      groupBySultan: boolean
-    ) => {
-      const groups: Array<{
-        category: string;
-        categoryId: string;
-        items: DetailedBanknote[];
-        sultanGroups?: { sultan: string; items: DetailedBanknote[] }[];
-      }> = [];
-      
-      // Group banknotes by their category
-      const categoryMap = new Map<string, {
-        items: DetailedBanknote[];
-        categoryId: string;
-      }>();
-      
-      items.forEach(banknote => {
-        const category = banknote.category || 'Uncategorized';
-        
-        if (!categoryMap.has(category)) {
-          categoryMap.set(category, {
-            items: [],
-            categoryId: ''
-          });
-        }
-        
-        categoryMap.get(category)?.items.push(banknote);
-      });
-      
-      // Convert map to array and sort alphabetically
-      Array.from(categoryMap.entries()).forEach(([category, { items, categoryId }]) => {
-        const group = {
-          category,
-          categoryId,
-          items,
-        };
-        
-        // If sorting by sultan, group banknotes by sultan within each category
-        if (groupBySultan) {
-          const sultanMap = new Map<string, DetailedBanknote[]>();
-          
-          items.forEach(banknote => {
-            const sultan = banknote.sultanName || 'Unknown';
-            
-            if (!sultanMap.has(sultan)) {
-              sultanMap.set(sultan, []);
-            }
-            
-            sultanMap.get(sultan)?.push(banknote);
-          });
-          
-          // Convert sultan map to array and sort by sultan name
-          group.sultanGroups = Array.from(sultanMap.entries())
-            .map(([sultan, items]) => ({ sultan, items }))
-            .sort((a, b) => a.sultan.localeCompare(b.sultan));
-        }
-        
-        groups.push(group);
-      });
-      
-      return groups.sort((a, b) => a.category.localeCompare(b.category));
-    }, []
-  );
-
-  // Fetch banknotes with filters whenever filters change or country is loaded
+  // Fetch banknotes whenever filters change or when countryId is first set
   useEffect(() => {
-    const fetchBanknotesWithFilters = async () => {
-      if (!countryId) return;
+    const fetchBanknotesData = async () => {
+      if (!countryId || !filtersInitialized) return;
       
       console.log("CountryDetail: Fetching banknotes with filters", { countryId, filters });
       setLoading(true);
@@ -183,15 +107,7 @@ const CountryDetail = () => {
         const data = await fetchBanknotesByCountryId(countryId, filterParams);
         console.log("CountryDetail: Banknotes loaded:", data.length);
         setBanknotes(data);
-        
-        // Group the banknotes for display
-        // We're now handling all filtering/sorting in the service layer
-        const grouped = groupBanknotesByCategory(data, filters.sort.includes("sultan"));
-        
-        setGroupedItems(grouped);
         setLoading(false);
-        // Clear the initial load flag after first successful fetch
-        isInitialLoad.current = false;
       } catch (error) {
         console.error("CountryDetail: Error fetching banknotes:", error);
         toast({
@@ -200,45 +116,81 @@ const CountryDetail = () => {
           variant: "destructive",
         });
         setBanknotes([]);
-        setGroupedItems([]);
         setLoading(false);
       }
     };
     
-    // Only fetch if we have a country ID and it's either the initial load or a filter has changed
-    if (countryId && isInitialLoad.current) {
-      fetchBanknotesWithFilters();
-    } else if (countryId && !isInitialLoad.current && !isUpdatingFilters.current) {
-      fetchBanknotesWithFilters();
-    }
-  }, [countryId, filters, toast, groupBanknotesByCategory]);
-
-  // Navigate back to catalog
-  const handleBack = () => {
-    navigate('/catalog');
-  };
+    fetchBanknotesData();
+  }, [countryId, filters, toast, filtersInitialized]);
 
   // Handle filter changes from the filter component
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    if (isUpdatingFilters.current) {
-      console.log("CountryDetail: Skipping filter change - update in progress");
-      return;
-    }
-    
     console.log("CountryDetail: Filter change", newFilters);
     
-    isUpdatingFilters.current = true;
+    // If this is the first filter initialization from user preferences, mark as initialized
+    if (!filtersInitialized && (newFilters.categories?.length || newFilters.types?.length)) {
+      setFiltersInitialized(true);
+    }
     
     setFilters(prev => ({
       ...prev,
       ...newFilters,
       country_id: countryId || prev.country_id
     }));
+  }, [countryId, filtersInitialized]);
+
+  // Navigate back to catalog
+  const handleBack = () => {
+    navigate('/catalog');
+  };
+
+  // Group banknotes for display
+  const groupedItems = useMemo(() => {
+    // Group banknotes by category and sultan if needed
+    const categoryMap = new Map();
     
-    setTimeout(() => {
-      isUpdatingFilters.current = false;
-    }, 100);
-  }, [countryId]);
+    banknotes.forEach(banknote => {
+      const category = banknote.category || 'Uncategorized';
+      
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, {
+          category,
+          categoryId: '',
+          items: []
+        });
+      }
+      
+      categoryMap.get(category).items.push(banknote);
+    });
+    
+    // Check if we should group by sultan
+    const groupBySultan = filters.sort.includes("sultan");
+    
+    // If sorting by sultan, create sultan groups within categories
+    if (groupBySultan) {
+      categoryMap.forEach((group) => {
+        const sultanMap = new Map();
+        
+        group.items.forEach(banknote => {
+          const sultan = banknote.sultanName || 'Unknown';
+          
+          if (!sultanMap.has(sultan)) {
+            sultanMap.set(sultan, []);
+          }
+          
+          sultanMap.get(sultan).push(banknote);
+        });
+        
+        // Convert sultan map to array and sort by sultan name
+        group.sultanGroups = Array.from(sultanMap.entries())
+          .map(([sultan, items]) => ({ sultan, items }))
+          .sort((a, b) => a.sultan.localeCompare(b.sultan));
+      });
+    }
+    
+    return Array.from(categoryMap.values())
+      .sort((a, b) => a.category.localeCompare(b.category));
+  }, [banknotes, filters.sort]);
 
   return (
     <div className="container py-8">

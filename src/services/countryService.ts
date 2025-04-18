@@ -1,175 +1,228 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { CategoryDefinition, TypeDefinition, SortOption, UserFilterPreference, Country, DynamicFilterState } from '@/types/filter';
+import { CountryData } from '@/types';
 
-// Fetch all countries
-export async function fetchCountries(): Promise<Country[]> {
+// Cache for country data to reduce duplicate calls
+const countryCache = new Map<string, any>();
+const categoryCache = new Map<string, any[]>();
+const typeCache = new Map<string, any[]>();
+const sortOptionCache = new Map<string, any[]>();
+const userPreferencesCache = new Map<string, any>();
+
+export async function fetchCountries(): Promise<CountryData[]> {
   try {
     const { data, error } = await supabase
       .from('countries')
       .select('*')
-      .order('name');
+      .order('name', { ascending: true });
 
-    if (error) throw error;
-    return data;
+    if (error) {
+      console.error('Error fetching countries:', error);
+      return [];
+    }
+
+    return data.map(country => ({
+      id: country.id,
+      name: country.name,
+      description: country.description || '',
+      imageUrl: country.image_url,
+      created_at: country.created_at,
+      updated_at: country.updated_at,
+    }));
   } catch (error) {
-    console.error('Error fetching countries:', error);
+    console.error('Unexpected error in fetchCountries:', error);
     return [];
   }
 }
 
-// Fetch country by name
-export async function fetchCountryByName(name: string): Promise<Country | null> {
+export async function fetchCountryById(id: string): Promise<CountryData | null> {
   try {
-    console.log("countryService: Fetching country by name:", name);
-    
-    // Try to use cached data first
-    const cacheKey = `country-by-name-${name}`;
-    const cachedData = sessionStorage.getItem(cacheKey);
-    
-    if (cachedData) {
-      console.log("countryService: Using cached data for", cacheKey);
-      return JSON.parse(cachedData);
+    // Check cache first
+    if (countryCache.has(id)) {
+      return countryCache.get(id);
     }
     
     const { data, error } = await supabase
       .from('countries')
       .select('*')
-      .eq('name', name)
+      .eq('id', id)
       .single();
 
     if (error) {
-      console.error("Error fetching country by name:", error);
-      throw error;
+      console.error('Error fetching country by ID:', error);
+      return null;
     }
 
+    const countryData = {
+      id: data.id,
+      name: data.name,
+      description: data.description || '',
+      imageUrl: data.image_url,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    };
+    
     // Cache the result
-    if (data) {
-      sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    countryCache.set(id, countryData);
+    
+    return countryData;
+  } catch (error) {
+    console.error('Unexpected error in fetchCountryById:', error);
+    return null;
+  }
+}
+
+export async function fetchCountryByName(name: string): Promise<CountryData | null> {
+  try {
+    const cacheKey = `country-by-name-${name}`;
+    
+    // Check cache first
+    if (countryCache.has(cacheKey)) {
+      console.log("countryService: Using cached data for", cacheKey);
+      return countryCache.get(cacheKey);
     }
     
-    return data;
+    console.log("countryService: Fetching country by name:", name);
+    
+    const { data, error } = await supabase
+      .from('countries')
+      .select('*')
+      .ilike('name', name)
+      .single();
+
+    if (error) {
+      console.error('Error fetching country by name:', error);
+      return null;
+    }
+
+    const countryData = {
+      id: data.id,
+      name: data.name,
+      description: data.description || '',
+      imageUrl: data.image_url,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    };
+    
+    // Cache the result
+    countryCache.set(cacheKey, countryData);
+    
+    return countryData;
   } catch (error) {
-    console.error(`Error fetching country by name ${name}:`, error);
+    console.error('Unexpected error in fetchCountryByName:', error);
     return null;
   }
 }
 
 // Fetch categories by country ID
-export async function fetchCategoriesByCountryId(countryId: string): Promise<CategoryDefinition[]> {
+export async function fetchCategoriesByCountryId(countryId: string) {
   try {
-    // Try to use cached data first
     const cacheKey = `categories-by-country-${countryId}`;
-    const cachedData = sessionStorage.getItem(cacheKey);
     
-    if (cachedData) {
+    // Check cache first
+    if (categoryCache.has(cacheKey)) {
       console.log("countryService: Using cached data for", cacheKey);
-      return JSON.parse(cachedData);
+      return categoryCache.get(cacheKey);
     }
     
     const { data, error } = await supabase
       .from('banknote_category_definitions')
       .select('*')
       .eq('country_id', countryId)
-      .order('display_order');
-
+      .order('display_order', { ascending: true });
+      
     if (error) {
-      console.error("Error fetching categories by country ID:", error);
-      throw error;
+      console.error('Error fetching categories by country ID:', error);
+      return [];
     }
     
     // Cache the result
-    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    categoryCache.set(cacheKey, data || []);
     
     return data || [];
   } catch (error) {
-    console.error(`Error fetching categories for country ${countryId}:`, error);
+    console.error('Error in fetchCategoriesByCountryId:', error);
     return [];
   }
 }
 
 // Fetch types by country ID
-export async function fetchTypesByCountryId(countryId: string): Promise<TypeDefinition[]> {
+export async function fetchTypesByCountryId(countryId: string) {
   try {
-    // Try to use cached data first
     const cacheKey = `types-by-country-${countryId}`;
-    const cachedData = sessionStorage.getItem(cacheKey);
     
-    if (cachedData) {
+    // Check cache first
+    if (typeCache.has(cacheKey)) {
       console.log("countryService: Using cached data for", cacheKey);
-      return JSON.parse(cachedData);
+      return typeCache.get(cacheKey);
     }
     
     const { data, error } = await supabase
       .from('banknote_type_definitions')
       .select('*')
       .eq('country_id', countryId)
-      .order('display_order');
-
+      .order('display_order', { ascending: true });
+      
     if (error) {
-      console.error("Error fetching types by country ID:", error);
-      throw error;
+      console.error('Error fetching types by country ID:', error);
+      return [];
     }
-
+    
     // Cache the result
-    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    typeCache.set(cacheKey, data || []);
     
     return data || [];
   } catch (error) {
-    console.error(`Error fetching types for country ${countryId}:`, error);
+    console.error('Error in fetchTypesByCountryId:', error);
     return [];
   }
 }
 
 // Fetch sort options by country ID
-export async function fetchSortOptionsByCountryId(countryId: string): Promise<SortOption[]> {
+export async function fetchSortOptionsByCountryId(countryId: string) {
   try {
-    // Try to use cached data first
     const cacheKey = `sort-options-by-country-${countryId}`;
-    const cachedData = sessionStorage.getItem(cacheKey);
     
-    if (cachedData) {
+    // Check cache first
+    if (sortOptionCache.has(cacheKey)) {
       console.log("countryService: Using cached data for", cacheKey);
-      return JSON.parse(cachedData);
+      return sortOptionCache.get(cacheKey);
     }
     
     const { data, error } = await supabase
       .from('banknote_sort_options')
       .select('*')
       .eq('country_id', countryId)
-      .order('display_order');
-
+      .order('display_order', { ascending: true });
+      
     if (error) {
-      console.error("Error fetching sort options by country ID:", error);
-      throw error;
+      console.error('Error fetching sort options by country ID:', error);
+      return [];
     }
-
+    
     // Cache the result
-    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    sortOptionCache.set(cacheKey, data || []);
     
     return data || [];
   } catch (error) {
-    console.error(`Error fetching sort options for country ${countryId}:`, error);
+    console.error('Error in fetchSortOptionsByCountryId:', error);
     return [];
   }
 }
 
 // Fetch user filter preferences
-export async function fetchUserFilterPreferences(userId: string, countryId: string): Promise<UserFilterPreference | null> {
-  if (!userId || !countryId) {
-    return null;
-  }
-  
+export async function fetchUserFilterPreferences(userId: string, countryId: string) {
   try {
-    console.log("countryService: Fetching filter preferences for user", userId, "and country", countryId);
+    const cacheKey = `user-preferences-${userId}-${countryId}`;
     
-    const cacheKey = `user-filter-preferences-${userId}-${countryId}`;
-    const cachedData = sessionStorage.getItem(cacheKey);
-    
-    if (cachedData) {
-      console.log("countryService: Using cached data for", cacheKey);
-      return JSON.parse(cachedData);
+    // Check cache first but only use it briefly
+    const cachedData = userPreferencesCache.get(cacheKey);
+    if (cachedData && (Date.now() - cachedData.timestamp < 30000)) { // 30 seconds cache
+      console.log("countryService: Using cached user preferences");
+      return cachedData.data;
     }
+    
+    console.log(`Fetching filter preferences for user ${userId} and country ${countryId}`);
     
     const { data, error } = await supabase
       .from('user_filter_preferences')
@@ -177,350 +230,89 @@ export async function fetchUserFilterPreferences(userId: string, countryId: stri
       .eq('user_id', userId)
       .eq('country_id', countryId)
       .single();
-
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
-      console.error("Error fetching user filter preferences:", error);
-      throw error;
-    }
-
-    if (data) {
-      console.log("countryService: Found user preferences:", {
-        categories: data.selected_categories.length,
-        types: data.selected_types.length,
-        sortOptions: data.selected_sort_options.length
-      });
-      sessionStorage.setItem(cacheKey, JSON.stringify(data));
+      
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No preferences found
+        console.log(`No preferences found for user ${userId} and country ${countryId}`);
+        return null;
+      }
+      console.error('Error fetching user filter preferences:', error);
+      return null;
     }
     
-    return data || null;
+    // Cache the result with timestamp
+    userPreferencesCache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+    
+    return data;
   } catch (error) {
-    console.error(`Error fetching filter preferences for user ${userId}:`, error);
+    console.error('Error in fetchUserFilterPreferences:', error);
     return null;
   }
 }
 
 // Save user filter preferences
 export async function saveUserFilterPreferences(
-  userId: string, 
-  countryId: string, 
-  categories: string[], 
-  types: string[],
-  sortOptions: string[]
-): Promise<UserFilterPreference | null> {
-  if (!userId || !countryId) {
-    console.error("countryService: Cannot save preferences without user ID and country ID");
-    return null;
-  }
-  
+  userId: string,
+  countryId: string,
+  selectedCategories: string[],
+  selectedTypes: string[],
+  selectedSortOptions: string[]
+) {
   try {
-    console.log("countryService: Saving preferences", { userId, countryId, categories, types, sortOptions });
+    console.log(`Saving filter preferences for user ${userId} and country ${countryId}`);
     
-    // First check if preferences already exist
-    const { data: existingPrefs, error: checkError } = await supabase
+    // First, check if preferences already exist
+    const { data: existingPrefs } = await supabase
       .from('user_filter_preferences')
       .select('id')
       .eq('user_id', userId)
       .eq('country_id', countryId)
-      .single();
-
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error("Error checking for existing user filter preferences:", checkError);
-      throw checkError;
-    }
-
+      .maybeSingle();
+      
     let result;
     
     if (existingPrefs) {
       // Update existing preferences
-      const { data, error } = await supabase
+      result = await supabase
         .from('user_filter_preferences')
         .update({
-          selected_categories: categories,
-          selected_types: types,
-          selected_sort_options: sortOptions,
+          selected_categories: selectedCategories,
+          selected_types: selectedTypes,
+          selected_sort_options: selectedSortOptions,
           updated_at: new Date().toISOString()
         })
-        .eq('id', existingPrefs.id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error updating user filter preferences:", error);
-        throw error;
-      }
-      
-      console.log("countryService: Successfully updated preferences");
-      result = data;
+        .eq('id', existingPrefs.id);
     } else {
       // Insert new preferences
-      const { data, error } = await supabase
+      result = await supabase
         .from('user_filter_preferences')
         .insert({
           user_id: userId,
           country_id: countryId,
-          selected_categories: categories,
-          selected_types: types,
-          selected_sort_options: sortOptions
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error creating user filter preferences:", error);
-        throw error;
-      }
-      
-      console.log("countryService: Successfully created preferences");
-      result = data;
-    }
-
-    // Update the cache
-    if (result) {
-      const cacheKey = `user-filter-preferences-${userId}-${countryId}`;
-      sessionStorage.setItem(cacheKey, JSON.stringify(result));
+          selected_categories: selectedCategories,
+          selected_types: selectedTypes,
+          selected_sort_options: selectedSortOptions
+        });
     }
     
-    return result || null;
-  } catch (error) {
-    console.error(`Error saving filter preferences for user ${userId}:`, error);
-    return null;
-  }
-}
-
-// Create a new category
-export async function createCategory(countryId: string, name: string, description?: string, displayOrder?: number): Promise<CategoryDefinition | null> {
-  try {
-    const { data, error } = await supabase
-      .from('banknote_category_definitions')
-      .insert({
-        country_id: countryId,
-        name,
-        description,
-        display_order: displayOrder || 0
-      })
-      .select()
-      .single();
-
+    const { error } = result;
+    
     if (error) {
-      console.error("Error creating category:", error);
-      throw error;
+      console.error('Error saving user filter preferences:', error);
+      return false;
     }
     
-    // Clear cache
-    sessionStorage.removeItem(`categories-by-country-${countryId}`);
-    
-    return data;
-  } catch (error) {
-    console.error(`Error creating category:`, error);
-    return null;
-  }
-}
-
-// Update a category
-export async function updateCategory(categoryId: string, countryId: string, updates: Partial<CategoryDefinition>): Promise<CategoryDefinition | null> {
-  try {
-    const { data, error } = await supabase
-      .from('banknote_category_definitions')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', categoryId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating category:", error);
-      throw error;
-    }
-    
-    // Clear cache
-    sessionStorage.removeItem(`categories-by-country-${countryId}`);
-    
-    return data;
-  } catch (error) {
-    console.error(`Error updating category:`, error);
-    return null;
-  }
-}
-
-// Delete a category
-export async function deleteCategory(categoryId: string, countryId: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('banknote_category_definitions')
-      .delete()
-      .eq('id', categoryId);
-
-    if (error) {
-      console.error("Error deleting category:", error);
-      throw error;
-    }
-    
-    // Clear cache
-    sessionStorage.removeItem(`categories-by-country-${countryId}`);
+    // Invalidate cache
+    const cacheKey = `user-preferences-${userId}-${countryId}`;
+    userPreferencesCache.delete(cacheKey);
     
     return true;
   } catch (error) {
-    console.error(`Error deleting category:`, error);
-    return false;
-  }
-}
-
-// Create, update, and delete type definitions
-export async function createType(countryId: string, name: string, description?: string, displayOrder?: number): Promise<TypeDefinition | null> {
-  try {
-    const { data, error } = await supabase
-      .from('banknote_type_definitions')
-      .insert({
-        country_id: countryId,
-        name,
-        description,
-        display_order: displayOrder || 0
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating type:", error);
-      throw error;
-    }
-    
-    // Clear cache
-    sessionStorage.removeItem(`types-by-country-${countryId}`);
-    
-    return data;
-  } catch (error) {
-    console.error(`Error creating type:`, error);
-    return null;
-  }
-}
-
-export async function updateType(typeId: string, countryId: string, updates: Partial<TypeDefinition>): Promise<TypeDefinition | null> {
-  try {
-    const { data, error } = await supabase
-      .from('banknote_type_definitions')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', typeId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating type:", error);
-      throw error;
-    }
-    
-    // Clear cache
-    sessionStorage.removeItem(`types-by-country-${countryId}`);
-    
-    return data;
-  } catch (error) {
-    console.error(`Error updating type:`, error);
-    return null;
-  }
-}
-
-export async function deleteType(typeId: string, countryId: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('banknote_type_definitions')
-      .delete()
-      .eq('id', typeId);
-
-    if (error) {
-      console.error("Error deleting type:", error);
-      throw error;
-    }
-    
-    // Clear cache
-    sessionStorage.removeItem(`types-by-country-${countryId}`);
-    
-    return true;
-  } catch (error) {
-    console.error(`Error deleting type:`, error);
-    return false;
-  }
-}
-
-// Create, update, and delete sort options
-export async function createSortOption(countryId: string, name: string, fieldName: string, isDefault: boolean = false, isRequired: boolean = false, displayOrder?: number): Promise<SortOption | null> {
-  try {
-    const { data, error } = await supabase
-      .from('banknote_sort_options')
-      .insert({
-        country_id: countryId,
-        name,
-        field_name: fieldName,
-        is_default: isDefault,
-        is_required: isRequired,
-        display_order: displayOrder || 0
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating sort option:", error);
-      throw error;
-    }
-    
-    // Clear cache
-    sessionStorage.removeItem(`sort-options-by-country-${countryId}`);
-    
-    return data;
-  } catch (error) {
-    console.error(`Error creating sort option:`, error);
-    return null;
-  }
-}
-
-export async function updateSortOption(sortOptionId: string, countryId: string, updates: Partial<SortOption>): Promise<SortOption | null> {
-  try {
-    const { data, error } = await supabase
-      .from('banknote_sort_options')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', sortOptionId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating sort option:", error);
-      throw error;
-    }
-    
-    // Clear cache
-    sessionStorage.removeItem(`sort-options-by-country-${countryId}`);
-    
-    return data;
-  } catch (error) {
-    console.error(`Error updating sort option:`, error);
-    return null;
-  }
-}
-
-export async function deleteSortOption(sortOptionId: string, countryId: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('banknote_sort_options')
-      .delete()
-      .eq('id', sortOptionId);
-
-    if (error) {
-      console.error("Error deleting sort option:", error);
-      throw error;
-    }
-    
-    // Clear cache
-    sessionStorage.removeItem(`sort-options-by-country-${countryId}`);
-    
-    return true;
-  } catch (error) {
-    console.error(`Error deleting sort option:`, error);
+    console.error('Error in saveUserFilterPreferences:', error);
     return false;
   }
 }
