@@ -1,12 +1,17 @@
 
 export interface Message {
   id: string;
-  senderId: string;
-  receiverId: string;
+  sender_id: string;
+  receiver_id: string;
   content: string;
-  referenceItemId?: string;
+  created_at: string;
   isRead: boolean;
-  createdAt: string;
+  reference_item_id?: string;
+  
+  // Alias properties for compatibility
+  senderId?: string;
+  receiverId?: string;
+  createdAt?: string;
 }
 
 export interface Conversation {
