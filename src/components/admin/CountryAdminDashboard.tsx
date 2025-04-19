@@ -90,7 +90,8 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
                 <BanknotesManagement 
                   countryId={countryId}
                   countryName={adminCountry.name}
-                  countryAdminMode={true}
+                  isCountryAdmin={true}
+                  disableCountrySelect={true}
                 />
               </CardContent>
             </Card>
@@ -105,7 +106,8 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
                 <ImageSuggestions 
                   countryId={countryId}
                   countryName={adminCountry.name}
-                  countryAdminMode={true}
+                  isCountryAdmin={true}
+                  disableCountrySelect={true}
                 />
               </CardContent>
             </Card>

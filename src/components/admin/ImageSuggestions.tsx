@@ -1,99 +1,103 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
-  Card, 
-  CardContent, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Search, Check, X } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Search, Loader2, Check, X, Image as ImageIcon } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
-import { getInitials } from '@/lib/utils';
-import { ImageSuggestion } from '@/types/forum';
+import { AdminComponentProps } from '@/types/admin';
 
-const ImageSuggestions = () => {
+interface ImageSuggestion {
+  id: string;
+  banknote_id: string;
+  banknote_catalog_id: string;
+  banknote_country: string;
+  banknote_denomination: string;
+  image_url: string;
+  image_type: 'front' | 'back' | 'other';
+  status: 'pending' | 'approved' | 'rejected';
+  submitted_by: string;
+  submitted_at: string;
+  user_name?: string;
+}
+
+interface ImageSuggestionsProps extends AdminComponentProps {}
+
+const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
+  countryId,
+  countryName,
+  isCountryAdmin,
+  disableCountrySelect
+}) => {
   const [suggestions, setSuggestions] = useState<ImageSuggestion[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalSuggestions, setTotalSuggestions] = useState<number>(0);
-  const [processingIds, setProcessingIds] = useState<Record<string, boolean>>({});
   
-  const PAGE_SIZE = 8;
-
+  const PAGE_SIZE = 10;
+  
   useEffect(() => {
-    fetchSuggestions();
-  }, [currentPage, searchQuery]);
+    fetchImageSuggestions();
+  }, [currentPage, searchQuery, countryId, countryName]);
 
-  const fetchSuggestions = async () => {
+  const fetchImageSuggestions = async () => {
     setLoading(true);
     try {
-      // Count pending image suggestions with direct query instead of RPC
-      const { count, error: countError } = await supabase
+      let query = supabase
         .from('image_suggestions')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-
-      if (countError) {
-        console.error("Error counting suggestions:", countError);
-        throw countError;
+        .select('*, profiles!image_suggestions_submitted_by_fkey(username)', { count: 'exact' });
+      
+      // Apply filters
+      if (searchQuery) {
+        query = query.or(`banknote_catalog_id.ilike.%${searchQuery}%,banknote_country.ilike.%${searchQuery}%`);
       }
       
+      // If in country admin mode, filter by country
+      if (isCountryAdmin && countryName) {
+        query = query.eq('banknote_country', countryName);
+      }
+      
+      // Get count first
+      const { count, error: countError } = await query;
+      
+      if (countError) throw countError;
       setTotalSuggestions(count || 0);
-
-      // Fetch the suggestions with pagination using direct query
-      const { data, error } = await supabase
-        .from('image_suggestions')
-        .select(`
-          *,
-          banknote:detailed_banknotes (id, country, pick_number, denomination),
-          user:profiles (id, username, avatar_url)
-        `)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1);
-
-      if (error) {
-        console.error("Error fetching suggestions:", error);
-        throw error;
-      }
-
-      if (Array.isArray(data)) {
-        // Map the data to our ImageSuggestion type
-        const mappedSuggestions: ImageSuggestion[] = data.map((item: any) => ({
-          id: item.id,
-          banknoteId: item.banknote_id,
-          userId: item.user_id,
-          banknote: {
-            catalogId: item.banknote?.pick_number || 'Unknown',
-            country: item.banknote?.country || 'Unknown',
-            denomination: item.banknote?.denomination || ''
-          },
-          user: {
-            username: item.user?.username || 'Unknown User',
-            avatarUrl: item.user?.avatar_url
-          },
-          imageUrl: item.image_url,
-          type: item.type,
-          status: item.status,
-          createdAt: item.created_at
-        }));
-
-        setSuggestions(mappedSuggestions);
-      } else {
-        console.error("Unexpected data format:", data);
-        setSuggestions([]);
-      }
+      
+      // Then get paginated data
+      const { data, error } = await query
+        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
+        .order('submitted_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      // Transform data
+      const transformedData = data.map(item => ({
+        id: item.id,
+        banknote_id: item.banknote_id,
+        banknote_catalog_id: item.banknote_catalog_id,
+        banknote_country: item.banknote_country,
+        banknote_denomination: item.banknote_denomination,
+        image_url: item.image_url,
+        image_type: item.image_type,
+        status: item.status,
+        submitted_by: item.submitted_by,
+        submitted_at: item.submitted_at,
+        user_name: item.profiles?.username
+      }));
+      
+      setSuggestions(transformedData);
     } catch (error) {
       console.error('Error fetching image suggestions:', error);
       toast.error('Failed to load image suggestions');
-      setSuggestions([]);
     } finally {
       setLoading(false);
     }
@@ -104,68 +108,55 @@ const ImageSuggestions = () => {
   };
 
   const handleApprove = async (suggestion: ImageSuggestion) => {
-    setProcessingIds(prev => ({ ...prev, [suggestion.id]: true }));
-    
     try {
-      // Update the image suggestion and the banknote directly
-      const { error } = await supabase
+      setLoading(true);
+      
+      // First update the banknote with the new image
+      const { error: banknoteError } = await supabase
+        .from('detailed_banknotes')
+        .update({
+          [suggestion.image_type === 'front' ? 'front_picture' : 'back_picture']: suggestion.image_url
+        })
+        .eq('id', suggestion.banknote_id);
+      
+      if (banknoteError) throw banknoteError;
+      
+      // Then update the suggestion status
+      const { error: suggestionError } = await supabase
         .from('image_suggestions')
         .update({ status: 'approved' })
         .eq('id', suggestion.id);
       
-      if (error) {
-        console.error("Error approving suggestion:", error);
-        throw error;
-      }
+      if (suggestionError) throw suggestionError;
       
-      // Update the banknote with the image
-      const updateField = suggestion.type === 'obverse' ? 'front_picture' : 'back_picture';
-      const { error: updateError } = await supabase
-        .from('detailed_banknotes')
-        .update({ [updateField]: suggestion.imageUrl })
-        .eq('id', suggestion.banknoteId);
-      
-      if (updateError) {
-        console.error("Error updating banknote:", updateError);
-        throw updateError;
-      }
-      
-      // Update local state
-      setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
-      
-      toast.success('Image suggestion approved and set as official catalog image');
+      toast.success('Image suggestion approved successfully');
+      fetchImageSuggestions();
     } catch (error) {
       console.error('Error approving image suggestion:', error);
       toast.error('Failed to approve image suggestion');
     } finally {
-      setProcessingIds(prev => ({ ...prev, [suggestion.id]: false }));
+      setLoading(false);
     }
   };
 
   const handleReject = async (suggestion: ImageSuggestion) => {
-    setProcessingIds(prev => ({ ...prev, [suggestion.id]: true }));
-    
     try {
-      // Update status directly
+      setLoading(true);
+      
       const { error } = await supabase
         .from('image_suggestions')
         .update({ status: 'rejected' })
         .eq('id', suggestion.id);
       
-      if (error) {
-        console.error("Error rejecting suggestion:", error);
-        throw error;
-      }
-      
-      // Update local state
-      setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+      if (error) throw error;
       
       toast.success('Image suggestion rejected');
+      fetchImageSuggestions();
     } catch (error) {
       console.error('Error rejecting image suggestion:', error);
       toast.error('Failed to reject image suggestion');
     } finally {
-      setProcessingIds(prev => ({ ...prev, [suggestion.id]: false }));
+      setLoading(false);
     }
   };
 
@@ -175,14 +166,14 @@ const ImageSuggestions = () => {
         <div className="relative max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search suggestions..."
+            placeholder="Search by catalog ID or country..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8"
           />
         </div>
         
-        <Button onClick={fetchSuggestions} variant="outline" disabled={loading}>
+        <Button onClick={fetchImageSuggestions} variant="outline" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -194,115 +185,109 @@ const ImageSuggestions = () => {
         </Button>
       </div>
 
-      {loading ? (
+      {loading && suggestions.length === 0 ? (
         <div className="flex justify-center py-10">
           <Loader2 className="h-8 w-8 animate-spin text-ottoman-600" />
         </div>
       ) : (
         <>
-          {suggestions.length === 0 ? (
-            <div className="text-center py-10 border rounded-lg">
-              <h3 className="text-lg font-medium">No pending image suggestions</h3>
-              <p className="text-muted-foreground mt-2">
-                All submitted image suggestions have been processed.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {suggestions.map((suggestion) => (
-                <Card key={suggestion.id} className="overflow-hidden">
-                  <CardHeader className="p-4">
-                    <CardTitle className="text-lg flex items-center justify-between">
-                      <div className="flex items-center">
-                        <span className="font-medium">{suggestion.banknote?.catalogId}</span>
-                        <span className="mx-2 text-muted-foreground">•</span>
-                        <span>{suggestion.banknote?.country}</span>
-                      </div>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        suggestion.type === 'obverse' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-purple-100 text-purple-800'
-                      }`}>
-                        {suggestion.type === 'obverse' ? 'Front' : 'Back'}
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  
-                  <div className="flex-1 p-4 pt-0">
-                    <div className="aspect-[3/2] bg-muted rounded overflow-hidden">
-                      <img
-                        src={suggestion.imageUrl}
-                        alt={`${suggestion.banknote?.denomination} ${suggestion.type === 'obverse' ? 'obverse' : 'reverse'}`}
-                        className="w-full h-full object-contain"
-                        onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.svg'}
-                      />
-                    </div>
-                  </div>
-                  
-                  <CardFooter className="p-4 pt-0 flex flex-col">
-                    <div className="flex items-center mb-3 w-full">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={suggestion.user?.avatarUrl} />
-                        <AvatarFallback>
-                          {getInitials(suggestion.user?.username || 'Unknown')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="ml-2 flex-1">
-                        <p className="text-sm font-medium">{suggestion.user?.username}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Submitted {new Date(suggestion.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between w-full">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleReject(suggestion)}
-                        disabled={processingIds[suggestion.id]}
-                      >
-                        {processingIds[suggestion.id] ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+          <div className="border rounded-md overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Catalog ID</TableHead>
+                  <TableHead>Country</TableHead>
+                  <TableHead>Denomination</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Submitted By</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {suggestions.length > 0 ? (
+                  suggestions.map((suggestion) => (
+                    <TableRow key={suggestion.id}>
+                      <TableCell>
+                        <div className="w-16 h-12 relative bg-muted rounded overflow-hidden">
+                          {suggestion.image_url ? (
+                            <img 
+                              src={suggestion.image_url} 
+                              alt={`${suggestion.image_type} of ${suggestion.banknote_catalog_id}`}
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">{suggestion.banknote_catalog_id}</TableCell>
+                      <TableCell>{suggestion.banknote_country}</TableCell>
+                      <TableCell>{suggestion.banknote_denomination}</TableCell>
+                      <TableCell>
+                        <span className="capitalize">{suggestion.image_type}</span>
+                      </TableCell>
+                      <TableCell>{suggestion.user_name || 'Unknown'}</TableCell>
+                      <TableCell>
+                        {suggestion.status === 'pending' ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            Pending
+                          </span>
+                        ) : suggestion.status === 'approved' ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Approved
+                          </span>
                         ) : (
-                          <>
-                            <X className="h-4 w-4 mr-1" />
-                            Reject
-                          </>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Rejected
+                          </span>
                         )}
-                      </Button>
-                      
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleApprove(suggestion)}
-                        disabled={processingIds[suggestion.id]}
-                      >
-                        {processingIds[suggestion.id] ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            <Check className="h-4 w-4 mr-1" />
-                            Approve
-                          </>
+                      </TableCell>
+                      <TableCell>
+                        {suggestion.status === 'pending' && (
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => handleApprove(suggestion)}
+                              disabled={loading}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleReject(suggestion)}
+                              disabled={loading}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-10">
+                      No image suggestions found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
           
-          {totalSuggestions > PAGE_SIZE && (
-            <div className="flex justify-center mt-6">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={Math.ceil(totalSuggestions / PAGE_SIZE)}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
+          <div className="flex justify-center mt-4">
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={Math.ceil(totalSuggestions / PAGE_SIZE)}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </>
       )}
     </div>

@@ -16,8 +16,16 @@ import { Banknote, DetailedBanknote } from '@/types';
 import { Search, Loader2, Plus, Edit, Check, X } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import BanknoteEditDialog from './BanknoteEditDialog';
+import { AdminComponentProps } from '@/types/admin';
 
-const BanknotesManagement = () => {
+interface BanknotesManagementProps extends AdminComponentProps {}
+
+const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
+  countryId,
+  countryName,
+  isCountryAdmin,
+  disableCountrySelect
+}) => {
   const [banknotes, setBanknotes] = useState<Banknote[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -31,25 +39,39 @@ const BanknotesManagement = () => {
   
   useEffect(() => {
     fetchBanknotes();
-  }, [currentPage, searchQuery]);
+  }, [currentPage, searchQuery, countryId]);
 
   const fetchBanknotes = async () => {
     setLoading(true);
     try {
-      // First get count for pagination
-      const { count, error: countError } = await supabase
+      let query = supabase
         .from('detailed_banknotes')
         .select('*', { count: 'exact', head: true })
         .ilike('country', `%${searchQuery}%`);
+
+      // If in country admin mode, filter by country
+      if (isCountryAdmin && countryName) {
+        query = query.eq('country', countryName);
+      }
+
+      // First get count for pagination
+      const { count, error: countError } = await query;
 
       if (countError) throw countError;
       setTotalBanknotes(count || 0);
 
       // Then fetch data with pagination
-      const { data, error } = await supabase
+      let dataQuery = supabase
         .from('detailed_banknotes')
         .select('*')
-        .ilike('country', `%${searchQuery}%`)
+        .ilike('country', `%${searchQuery}%`);
+
+      // If in country admin mode, filter by country
+      if (isCountryAdmin && countryName) {
+        dataQuery = dataQuery.eq('country', countryName);
+      }
+
+      const { data, error } = await dataQuery
         .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
         .order('country', { ascending: true })
         .order('face_value', { ascending: true });
