@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { fetchCountries } from "@/services/countryService";
+import { AdminComponentProps } from '@/types/admin';
 
 import CategoriesManager from "./filter/CategoriesManager";
 import TypesManager from "./filter/TypesManager";
@@ -15,24 +16,44 @@ interface Country {
   name: string;
 }
 
-const CountryFilterSettings: React.FC = () => {
+interface CountryFilterSettingsProps extends AdminComponentProps {}
+
+const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
+  countryId: initialCountryId,
+  isCountryAdmin,
+  disableCountrySelect
+}) => {
   const [countries, setCountries] = useState<Country[]>([]);
   const [selectedCountryId, setSelectedCountryId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("categories");
   
   useEffect(() => {
     const loadCountries = async () => {
-      const countriesData = await fetchCountries();
-      setCountries(countriesData);
-      
-      // Only set default country if none selected yet
-      if (countriesData.length > 0 && !selectedCountryId) {
-        setSelectedCountryId(countriesData[0].id);
+      if (isCountryAdmin && initialCountryId) {
+        // For country admins, only fetch their assigned country
+        const { data: country, error } = await supabase
+          .from('countries')
+          .select('*')
+          .eq('id', initialCountryId)
+          .single();
+        
+        if (!error && country) {
+          setCountries([country]);
+          setSelectedCountryId(country.id);
+        }
+      } else {
+        // For super admins, fetch all countries
+        const countriesData = await fetchCountries();
+        setCountries(countriesData);
+        
+        if (countriesData.length > 0 && !selectedCountryId) {
+          setSelectedCountryId(countriesData[0].id);
+        }
       }
     };
     
     loadCountries();
-  }, [selectedCountryId]);
+  }, [initialCountryId, isCountryAdmin, selectedCountryId]);
   
   const handleCountryChange = (value: string) => {
     setSelectedCountryId(value);
@@ -40,26 +61,28 @@ const CountryFilterSettings: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-6">
-        <Label htmlFor="country-select" className="text-lg font-medium mb-2 block">
-          Select Country
-        </Label>
-        <Select 
-          value={selectedCountryId}
-          onValueChange={handleCountryChange}
-        >
-          <SelectTrigger className="w-full md:w-80">
-            <SelectValue placeholder="Select a country" />
-          </SelectTrigger>
-          <SelectContent>
-            {countries.map((country) => (
-              <SelectItem key={country.id} value={country.id}>
-                {country.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {!disableCountrySelect && (
+        <div className="mb-6">
+          <Label htmlFor="country-select" className="text-lg font-medium mb-2 block">
+            Select Country
+          </Label>
+          <Select 
+            value={selectedCountryId}
+            onValueChange={handleCountryChange}
+          >
+            <SelectTrigger className="w-full md:w-80">
+              <SelectValue placeholder="Select a country" />
+            </SelectTrigger>
+            <SelectContent>
+              {countries.map((country) => (
+                <SelectItem key={country.id} value={country.id}>
+                  {country.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {selectedCountryId && (
         <Tabs value={activeTab} onValueChange={setActiveTab}>

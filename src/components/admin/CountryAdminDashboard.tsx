@@ -9,7 +9,6 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CountryData } from '@/types';
 
-// Define proper interfaces for the component props
 interface CountryAdminDashboardProps {
   countryId: string;
   countryName?: string;
@@ -88,7 +87,11 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
                 <CardTitle>Banknotes Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <BanknotesManagement countryName={adminCountry.name} countryFilter={adminCountry.name} />
+                <BanknotesManagement 
+                  countryId={countryId}
+                  countryName={adminCountry.name}
+                  countryAdminMode={true}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -99,7 +102,11 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
                 <CardTitle>Image Suggestions</CardTitle>
               </CardHeader>
               <CardContent>
-                <ImageSuggestions countryName={adminCountry.name} countryFilter={adminCountry.name} />
+                <ImageSuggestions 
+                  countryId={countryId}
+                  countryName={adminCountry.name}
+                  countryAdminMode={true}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -110,7 +117,11 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
                 <CardTitle>Country Filter Settings</CardTitle>
               </CardHeader>
               <CardContent>
-                <CountryFilterSettings countryId={adminCountry.id} isCountryAdmin={true} />
+                <CountryFilterSettings 
+                  countryId={adminCountry.id}
+                  isCountryAdmin={true}
+                  disableCountrySelect={true}
+                />
               </CardContent>
             </Card>
           </TabsContent>
