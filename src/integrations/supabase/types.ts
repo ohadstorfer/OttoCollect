@@ -136,7 +136,6 @@ export type Database = {
           is_default: boolean
           is_required: boolean
           name: string
-          select_one: boolean | null
           updated_at: string
         }
         Insert: {
@@ -149,7 +148,6 @@ export type Database = {
           is_default?: boolean
           is_required?: boolean
           name: string
-          select_one?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -162,7 +160,6 @@ export type Database = {
           is_default?: boolean
           is_required?: boolean
           name?: string
-          select_one?: boolean | null
           updated_at?: string
         }
         Relationships: [
@@ -388,7 +385,6 @@ export type Database = {
           signatures_back: string | null
           signatures_front: string | null
           sultan_name: string | null
-          team: string | null
           tughra_picture: string | null
           turk_catalog_number: string | null
           type: string | null
@@ -423,7 +419,6 @@ export type Database = {
           signatures_back?: string | null
           signatures_front?: string | null
           sultan_name?: string | null
-          team?: string | null
           tughra_picture?: string | null
           turk_catalog_number?: string | null
           type?: string | null
@@ -458,7 +453,6 @@ export type Database = {
           signatures_back?: string | null
           signatures_front?: string | null
           sultan_name?: string | null
-          team?: string | null
           tughra_picture?: string | null
           turk_catalog_number?: string | null
           type?: string | null
