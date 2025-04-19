@@ -237,7 +237,7 @@ const CountryDetail = () => {
                     <div className="space-y-6">
                       {group.sultanGroups.map((sultanGroup, sultanIndex) => (
                         <div key={`sultan-${sultanIndex}`} className="space-y-4">
-                          <div className="sticky top-[248px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
+                          <div className="sticky top-[230px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
                             <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
                               {sultanGroup.sultan}
                             </h3>
