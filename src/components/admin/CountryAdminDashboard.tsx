@@ -9,54 +9,45 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CountryData } from '@/types';
 
-// Define proper interfaces for the components
-interface CountryAdminDashboardProps {}
+// Define proper interfaces for the component props
+interface CountryAdminDashboardProps {
+  countryId: string;
+  countryName?: string;
+}
 
-const CountryAdminDashboard = ({}: CountryAdminDashboardProps) => {
+const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboardProps) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('banknotes');
   const [adminCountry, setAdminCountry] = useState<CountryData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (user) {
-      fetchAdminCountry();
+    if (countryId) {
+      fetchCountryData(countryId);
+    } else {
+      setLoading(false);
     }
-  }, [user]);
+  }, [countryId]);
 
-  const fetchAdminCountry = async () => {
-    if (!user || !user.role_id) return;
-
+  const fetchCountryData = async (id: string) => {
     try {
       setLoading(true);
-      // First get the role details
-      const { data: roleData, error: roleError } = await supabase
-        .from('roles')
-        .select('name')
-        .eq('id', user.role_id)
+      console.log("Fetching country data for ID:", id);
+      
+      // Get country details
+      const { data: country, error: countryError } = await supabase
+        .from('countries')
+        .select('*')
+        .eq('id', id)
         .single();
 
-      if (roleError) throw roleError;
-      
-      if (roleData) {
-        // Extract country name from role name (remove ' Admin' suffix)
-        const countryName = roleData.name.replace(' Admin', '');
-        console.log('Country admin for:', countryName);
-        
-        // Get country details
-        const { data: country, error: countryError } = await supabase
-          .from('countries')
-          .select('*')
-          .eq('name', countryName)
-          .single();
-
-        if (countryError) {
-          console.error('Error fetching country:', countryError);
-          throw countryError;
-        }
-        
-        setAdminCountry(country);
+      if (countryError) {
+        console.error('Error fetching country:', countryError);
+        throw countryError;
       }
+      
+      console.log("Country data retrieved:", country);
+      setAdminCountry(country);
     } catch (error) {
       console.error('Error fetching admin country:', error);
     } finally {
@@ -77,9 +68,11 @@ const CountryAdminDashboard = ({}: CountryAdminDashboardProps) => {
     );
   }
 
+  const displayName = countryName || adminCountry.name;
+
   return (
     <div className="page-container">
-      <h1 className="page-title">{adminCountry.name} Admin Dashboard</h1>
+      <h1 className="page-title">{displayName} Admin Dashboard</h1>
       
       <div className="max-w-6xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -90,15 +83,36 @@ const CountryAdminDashboard = ({}: CountryAdminDashboardProps) => {
           </TabsList>
 
           <TabsContent value="banknotes">
-            <BanknotesManagement countryFilter={adminCountry.name} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Banknotes Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BanknotesManagement countryFilter={adminCountry.name} />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="images">
-            <ImageSuggestions countryFilter={adminCountry.name} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Image Suggestions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ImageSuggestions countryFilter={adminCountry.name} />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="filters">
-            <CountryFilterSettings countryId={adminCountry.id} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Country Filter Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CountryFilterSettings countryId={adminCountry.id} />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

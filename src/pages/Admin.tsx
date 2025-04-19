@@ -17,43 +17,76 @@ import CountryAdminDashboard from '@/components/admin/CountryAdminDashboard';
 const Admin = () => {
   const { user } = useAuth();
   const [isCountryAdmin, setIsCountryAdmin] = useState<boolean>(false);
+  const [countryAdminName, setCountryAdminName] = useState<string>("");
+  const [countryId, setCountryId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>('users');
   const [loading, setLoading] = useState<boolean>(true);
   
   useEffect(() => {
     if (user) {
-      checkIfCountryAdmin();
+      checkAdminStatus();
     } else {
       setLoading(false);
     }
   }, [user]);
 
-  const checkIfCountryAdmin = async () => {
+  const checkAdminStatus = async () => {
     if (!user) {
       setLoading(false);
       return;
     }
     
     try {
-      // If the user has a role_id, check if it's a country admin role
+      console.log("Checking admin status for user:", user.id, "Role ID:", user.role_id);
+      
       if (user.role_id) {
-        console.log("Checking role for user:", user.id, "Role ID:", user.role_id);
-        
-        const { data, error } = await supabase
+        // First get the role details including is_country_admin flag
+        const { data: roleData, error: roleError } = await supabase
           .from('roles')
           .select('name, is_country_admin')
           .eq('id', user.role_id)
           .single();
           
-        if (!error && data) {
-          console.log('Role name:', data.name, 'Is country admin:', data.is_country_admin);
-          setIsCountryAdmin(data.is_country_admin === true);
-        } else {
-          console.error("Error fetching role:", error);
+        if (roleError) {
+          console.error("Error fetching role:", roleError);
+          setLoading(false);
+          return;
+        }
+        
+        if (!roleData) {
+          console.error("No role data found");
+          setLoading(false);
+          return;
+        }
+        
+        console.log('Role data:', roleData);
+        
+        const isAdmin = roleData.is_country_admin === true;
+        console.log('Is country admin flag from database:', isAdmin);
+        setIsCountryAdmin(isAdmin);
+        
+        // If they are a country admin, extract country name from role name and get country ID
+        if (isAdmin) {
+          const countryName = roleData.name.replace(' Admin', '');
+          setCountryAdminName(countryName);
+          
+          // Get country ID for the country name
+          const { data: countryData, error: countryError } = await supabase
+            .from('countries')
+            .select('id')
+            .eq('name', countryName)
+            .single();
+            
+          if (countryError) {
+            console.error("Error fetching country:", countryError);
+          } else if (countryData) {
+            console.log("Country data:", countryData);
+            setCountryId(countryData.id);
+          }
         }
       }
     } catch (error) {
-      console.error('Error checking country admin status:', error);
+      console.error('Error checking admin status:', error);
     } finally {
       setLoading(false);
     }
@@ -90,6 +123,8 @@ const Admin = () => {
   // Check if the user has any admin privileges
   const isSuperAdmin = user.role === 'Super Admin';
   
+  console.log("Admin checks - isSuperAdmin:", isSuperAdmin, "isCountryAdmin:", isCountryAdmin);
+  
   if (!isSuperAdmin && !isCountryAdmin) {
     return (
       <div className="page-container">
@@ -108,8 +143,9 @@ const Admin = () => {
   }
 
   // If user is a country admin, show the country-specific dashboard
-  if (isCountryAdmin && !isSuperAdmin) {
-    return <CountryAdminDashboard />;
+  if (isCountryAdmin && !isSuperAdmin && countryId) {
+    console.log("Showing country admin dashboard for:", countryAdminName, "ID:", countryId);
+    return <CountryAdminDashboard countryId={countryId} countryName={countryAdminName} />;
   }
 
   // Full admin dashboard for super admins
