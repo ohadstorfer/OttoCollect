@@ -135,16 +135,44 @@ const CountryDetail = () => {
     navigate('/catalog');
   };
 
+  // Find active grouping field
   const activeGroupingField = useMemo(() => {
     // Find a sort option with select_one=true that is currently active
-    const groupingOption = filters.sort.find(sortField => {
-      // This is likely coming from the options sent by the server
-      // where one of the sort options has select_one=true
-      return sortField && typeof sortField === 'string';
-    });
+    if (!filters.sort || filters.sort.length === 0) {
+      return null;
+    }
     
-    return groupingOption;
+    // Return the first grouping field in the sort array
+    return filters.sort.find(sortField => 
+      sortField === 'sultan' || sortField === 'faceValue'
+    );
   }, [filters.sort]);
+
+  // This function gets the correct value from the banknote based on the field name
+  const getBanknoteFieldValue = (banknote: any, fieldName: string): string => {
+    console.log("Getting field value", { fieldName, banknote });
+    
+    switch (fieldName) {
+      case 'sultan':
+        // Try different possible property names for sultan
+        return banknote.sultanName || 
+               banknote.sultan_name || 
+               banknote.sultan || 
+               "Unknown";
+               
+      case 'faceValue':
+        // Try different possible property names for face value
+        return banknote.denomination || 
+               banknote.face_value || 
+               banknote.faceValue || 
+               "Unknown";
+               
+      default:
+        // Try to access the field directly, or nested
+        const value = banknote[fieldName];
+        return value !== undefined && value !== null ? String(value) : "Unknown";
+    }
+  };
 
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
@@ -164,11 +192,14 @@ const CountryDetail = () => {
     });
     
     if (activeGroupingField) {
+      console.log("Active grouping field:", activeGroupingField);
+      
       categoryMap.forEach((group) => {
         const subGroupMap = new Map();
         
         group.items.forEach(banknote => {
-          const groupValue = banknote[activeGroupingField as keyof typeof banknote] || 'Unknown';
+          // Get the appropriate field value using our helper function
+          const groupValue = getBanknoteFieldValue(banknote, activeGroupingField);
           
           if (!subGroupMap.has(groupValue)) {
             subGroupMap.set(groupValue, []);
