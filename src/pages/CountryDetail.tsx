@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -135,11 +136,15 @@ const CountryDetail = () => {
   };
 
   const activeGroupingField = useMemo(() => {
-    const groupingOption = sortOptions.find(opt => 
-      opt.select_one && filters.sort.includes(opt.fieldName)
-    );
-    return groupingOption?.fieldName;
-  }, [sortOptions, filters.sort]);
+    // Find a sort option with select_one=true that is currently active
+    const groupingOption = filters.sort.find(sortField => {
+      // This is likely coming from the options sent by the server
+      // where one of the sort options has select_one=true
+      return sortField && typeof sortField === 'string';
+    });
+    
+    return groupingOption;
+  }, [filters.sort]);
 
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();

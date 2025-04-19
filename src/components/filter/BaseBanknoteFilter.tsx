@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ export type FilterOption = {
   count?: number;
   isRequired?: boolean;
   fieldName?: string;
+  select_one?: boolean;
 };
 
 export type BaseBanknoteFilterProps = {
@@ -271,6 +273,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     handleFilterChange({ sort: newSort });
   };
 
+  // Get general sort options (non select_one)
+  const generalSortOptions = sortOptions.filter(option => !option.select_one);
+  
+  // Get "select one" sort options
+  const selectOneSortOptions = sortOptions.filter(option => option.select_one);
+
   return (
     <div className={cn(
       "w-full space-y-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-4",
@@ -405,9 +413,10 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
               <SheetTitle>Sort Options</SheetTitle>
             </SheetHeader>
             <div className="py-4 space-y-6">
+              {/* General Sort Options */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium mb-3">General Options</h4>
-                {sortOptions.filter(option => !option.select_one).map(option => {
+                {generalSortOptions.map(option => {
                   const isFieldChecked = selectedSort.includes(option.fieldName || "");
                   return (
                     <div key={option.id} className="flex items-center space-x-2">
@@ -431,27 +440,30 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 })}
               </div>
 
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium mb-3">Group By (Select One)</h4>
-                {sortOptions.filter(option => option.select_one).map(option => {
-                  const isFieldChecked = selectedSort.includes(option.fieldName || "");
-                  return (
-                    <div key={option.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`sort-${option.id}`}
-                        checked={isFieldChecked}
-                        onCheckedChange={(checked) => handleSingleOptionChange(option.id, !!checked)}
-                      />
-                      <label 
-                        htmlFor={`sort-${option.id}`} 
-                        className="text-sm"
-                      >
-                        {option.name}
-                      </label>
-                    </div>
-                  );
-                })}
-              </div>
+              {/* Select One Sort Options */}
+              {selectOneSortOptions.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium mb-3">Group By (Select One)</h4>
+                  {selectOneSortOptions.map(option => {
+                    const isFieldChecked = selectedSort.includes(option.fieldName || "");
+                    return (
+                      <div key={option.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`sort-${option.id}`}
+                          checked={isFieldChecked}
+                          onCheckedChange={(checked) => handleSingleOptionChange(option.id, !!checked)}
+                        />
+                        <label 
+                          htmlFor={`sort-${option.id}`} 
+                          className="text-sm"
+                        >
+                          {option.name}
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               <SheetClose asChild>
                 <Button 

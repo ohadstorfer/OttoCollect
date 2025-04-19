@@ -39,6 +39,7 @@ export interface SortOption {
   display_order: number;
   created_at: string;
   updated_at: string;
+  select_one?: boolean;
 }
 
 export interface UserFilterPreference {

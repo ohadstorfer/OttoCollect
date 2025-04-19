@@ -83,7 +83,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
           id: sort.id,
           name: sort.name,
           fieldName: sort.field_name,
-          isRequired: sort.is_required
+          isRequired: sort.is_required,
+          select_one: sort.select_one
         }));
         
         setCategories(mappedCategories);
