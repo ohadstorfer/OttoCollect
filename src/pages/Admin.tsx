@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,13 +11,37 @@ import BanknotesManagement from '@/components/admin/BanknotesManagement';
 import ImageSuggestions from '@/components/admin/ImageSuggestions';
 import CountryManagement from '@/components/admin/CountryManagement';
 import CountryFilterSettings from '@/components/admin/CountryFilterSettings';
+import CountryAdminDashboard from '@/components/admin/CountryAdminDashboard';
 
 const Admin = () => {
   const { user } = useAuth();
+  const [isCountryAdmin, setIsCountryAdmin] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('users');
   
+  useEffect(() => {
+    if (user) {
+      checkIfCountryAdmin();
+    }
+  }, [user]);
+
+  const checkIfCountryAdmin = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('country_admins')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+        
+      setIsCountryAdmin(!!data);
+    } catch (error) {
+      console.error('Error checking country admin status:', error);
+    }
+  };
+
   // Check if user has admin access
-  if (!user || (user?.role !== 'Super Admin' && user?.role !== 'Admin')) {
+  if (!user || (user?.role !== 'Super Admin' && user?.role !== 'Admin' && !isCountryAdmin)) {
     return (
       <div className="page-container">
         <h1 className="page-title">Admin</h1>
@@ -35,6 +58,12 @@ const Admin = () => {
     );
   }
 
+  // If user is a country admin, show the country-specific dashboard
+  if (isCountryAdmin) {
+    return <CountryAdminDashboard />;
+  }
+
+  // Otherwise show the full admin dashboard for super admins
   return (
     <div className="page-container">
       <h1 className="page-title">Admin Dashboard</h1>

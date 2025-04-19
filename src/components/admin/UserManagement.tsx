@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { User, UserRole } from '@/types';
+import { User, UserRole, Country, CountryAdminAssignment } from '@/types';
 import { Search, Loader2 } from 'lucide-react';
 
 interface UserManagementProps {
@@ -22,12 +15,15 @@ interface UserManagementProps {
 
 const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
   const [users, setUsers] = useState<User[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [countryAdmins, setCountryAdmins] = useState<CountryAdminAssignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [updatingUsers, setUpdatingUsers] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState<string>('');
-  
+
   useEffect(() => {
     fetchUsers();
+    fetchCountries();
+    fetchCountryAdmins();
   }, []);
 
   const fetchUsers = async () => {
@@ -64,31 +60,121 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: UserRole) => {
-    setUpdatingUsers(prev => ({ ...prev, [userId]: true }));
+  const fetchCountries = async () => {
     try {
+      const { data, error } = await supabase
+        .from('countries')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      setCountries(data || []);
+    } catch (error) {
+      console.error('Error fetching countries:', error);
+      toast.error('Failed to load countries');
+    }
+  };
+
+  const fetchCountryAdmins = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('country_admins')
+        .select('*');
+      
+      if (error) throw error;
+      setCountryAdmins(data || []);
+    } catch (error) {
+      console.error('Error fetching country admins:', error);
+      toast.error('Failed to load country admin assignments');
+    }
+  };
+
+  const updateUserRole = async (userId: string, newRole: UserRole, countryId?: string) => {
+    try {
+      if (newRole === 'User' || newRole === 'Super Admin') {
+        await supabase
+          .from('country_admins')
+          .delete()
+          .eq('user_id', userId);
+      }
+
+      if (countryId) {
+        await supabase
+          .from('country_admins')
+          .delete()
+          .eq('user_id', userId);
+
+        await supabase
+          .from('country_admins')
+          .insert([{ user_id: userId, country_id: countryId }]);
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({ role: newRole })
         .eq('id', userId);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      setUsers(prevUsers =>
-        prevUsers.map(user =>
-          user.id === userId ? { ...user, role: newRole } : user
-        )
-      );
-
-      toast.success(`User role updated successfully`);
+      toast.success('User role updated successfully');
+      fetchUsers();
+      fetchCountryAdmins();
     } catch (error) {
       console.error('Error updating user role:', error);
       toast.error('Failed to update user role');
-    } finally {
-      setUpdatingUsers(prev => ({ ...prev, [userId]: false }));
     }
+  };
+
+  const getUserRoleOptions = () => {
+    const options = [
+      <SelectItem key="user" value="User">User</SelectItem>,
+      <SelectItem key="super-admin" value="Super Admin">Super Admin</SelectItem>
+    ];
+
+    countries.forEach(country => {
+      options.push(
+        <SelectItem 
+          key={`country-admin-${country.id}`} 
+          value={`country-admin-${country.id}`}
+        >
+          {country.name} Admin
+        </SelectItem>
+      );
+    });
+
+    return options;
+  };
+
+  const handleRoleChange = (userId: string, value: string) => {
+    if (value.startsWith('country-admin-')) {
+      const countryId = value.replace('country-admin-', '');
+      updateUserRole('Admin', userId, countryId);
+    } else {
+      updateUserRole(value as UserRole, userId);
+    }
+  };
+
+  const getCurrentRoleValue = (user: User) => {
+    if (user.role === 'Super Admin' || user.role === 'User') {
+      return user.role;
+    }
+
+    const countryAdmin = countryAdmins.find(ca => ca.user_id === user.id);
+    return countryAdmin ? `country-admin-${countryAdmin.country_id}` : user.role;
+  };
+
+  const getRoleDisplay = (user: User) => {
+    if (user.role === 'Super Admin' || user.role === 'User') {
+      return user.role;
+    }
+
+    const countryAdmin = countryAdmins.find(ca => ca.user_id === user.id);
+    if (countryAdmin) {
+      const country = countries.find(c => c.id === countryAdmin.country_id);
+      return country ? `${country.name} Admin` : 'Admin';
+    }
+
+    return user.role;
   };
 
   const filteredUsers = users.filter(user =>
@@ -150,7 +236,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                           'bg-blue-500 hover:bg-blue-600'
                         }
                       >
-                        {user.role}
+                        {getRoleDisplay(user)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -160,21 +246,18 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                       {isSuperAdmin ? (
                         <div className="flex items-center">
                           <Select
-                            value={user.role}
-                            onValueChange={(value) => updateUserRole(user.id, value as UserRole)}
-                            disabled={updatingUsers[user.id]}
+                            value={getCurrentRoleValue(user)}
+                            onValueChange={(value) => handleRoleChange(user.id, value)}
                           >
                             <SelectTrigger className="w-[150px]">
                               <SelectValue placeholder="Select role" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="User">User</SelectItem>
-                              <SelectItem value="Admin">Admin</SelectItem>
-                              <SelectItem value="Super Admin">Super Admin</SelectItem>
+                              {getUserRoleOptions()}
                             </SelectContent>
                           </Select>
 
-                          {updatingUsers[user.id] && (
+                          {loading && (
                             <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                           )}
                         </div>

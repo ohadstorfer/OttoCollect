@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -33,9 +32,18 @@ export type UserRank =
   | 'Admin'
   | 'Super Admin';
 
-// User related interfaces
+// Update UserRole type
 export type UserRole = 'User' | 'Admin' | 'Super Admin';
 
+// Add interface for country admin assignment
+export interface CountryAdminAssignment {
+  id: string;
+  user_id: string;
+  country_id: string;
+  created_at: string;
+}
+
+// User related interfaces
 export interface User {
   id: string;
   username: string;
