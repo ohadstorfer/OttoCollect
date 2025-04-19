@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ export type FilterOption = {
   count?: number;
   isRequired?: boolean;
   fieldName?: string;
+  select_one?: boolean;
 };
 
 export type BaseBanknoteFilterProps = {
@@ -53,13 +54,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   
-  // Local state for user selections
   const [search, setSearch] = useState(currentFilters.search || "");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
   const [selectedSort, setSelectedSort] = useState<string[]>(currentFilters.sort || []);
   
-  // Used to track local changes vs. external changes
   const isLocalChange = useRef(false);
   const prevFiltersRef = useRef<DynamicFilterState | null>(null);
 
@@ -71,7 +70,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     localState: { search, selectedCategories, selectedTypes, selectedSort }
   });
 
-  // Sync from external state only if it's different and not in the middle of a local change
   useEffect(() => {
     if (isLocalChange.current) {
       console.log("BaseBanknoteFilter: Skipping sync due to local changes being applied");
@@ -114,19 +112,16 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     [onFilterChange]
   );
 
-  // Notify parent component of filter changes
   const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
     console.log("BaseBanknoteFilter: Local filter change:", changes);
     
     isLocalChange.current = true;
     
-    // Update local state
     if (changes.search !== undefined) setSearch(changes.search);
     if (changes.categories !== undefined) setSelectedCategories(changes.categories);
     if (changes.types !== undefined) setSelectedTypes(changes.types);
     if (changes.sort !== undefined) setSelectedSort(changes.sort);
     
-    // Create a complete filter state with current local values + changes
     const newFilters = {
       search: changes.search !== undefined ? changes.search : search,
       categories: changes.categories !== undefined ? changes.categories : selectedCategories,
@@ -135,13 +130,10 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       country_id: currentFilters.country_id
     };
     
-    // Update the prevFiltersRef to avoid unnecessary syncs
     prevFiltersRef.current = { ...newFilters };
     
-    // Notify parent of changes
     onFilterChange(newFilters);
     
-    // Reset the local change flag after a short delay
     setTimeout(() => {
       isLocalChange.current = false;
     }, 200);
@@ -189,32 +181,27 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     
     const fieldName = sortOption.fieldName;
     
-    // Get required sort fields
     const requiredSortFields = sortOptions
       .filter(option => option.isRequired)
       .map(option => option.fieldName)
       .filter(Boolean) as string[];
     
-    // Create new sort array
     let newSort: string[];
     
     if (checked) {
-      // If checked, add this field (if not already present)
       if (!selectedSort.includes(fieldName)) {
         newSort = [...selectedSort, fieldName];
       } else {
-        newSort = [...selectedSort]; // Keep as is
+        newSort = [...selectedSort];
       }
     } else {
-      // If unchecked, remove this field (unless required)
       if (!requiredSortFields.includes(fieldName)) {
         newSort = selectedSort.filter(field => field !== fieldName);
       } else {
-        newSort = [...selectedSort]; // Keep as is for required fields
+        newSort = [...selectedSort];
       }
     }
     
-    // Ensure required fields are always included
     requiredSortFields.forEach(reqField => {
       if (!newSort.includes(reqField)) {
         newSort.push(reqField);
@@ -232,7 +219,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     debouncedSearch(value);
   };
 
-  // Apply current local filter state
   const applyFilters = () => {
     console.log("BaseBanknoteFilter: Applying all filters explicitly");
     handleFilterChange({
@@ -244,16 +230,13 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   };
 
   const handleSaveClick = () => {
-    // First apply the filters to ensure we're using the latest state
     applyFilters();
     
-    // Then call the parent's save function if provided
     if (onSaveFilters) {
       console.log("BaseBanknoteFilter: Calling onSaveFilters");
       onSaveFilters();
     }
     
-    // Close the sheets
     setIsCategorySheetOpen(false);
     setIsSortSheetOpen(false);
   };
@@ -263,6 +246,38 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     
   const allTypesSelected = types.length > 0 && 
     types.every(type => selectedTypes.includes(type.id));
+
+  const selectedSingleOption = useMemo(() => {
+    return sortOptions.find(opt => 
+      opt.select_one && selectedSort.includes(opt.fieldName || '')
+    );
+  }, [sortOptions, selectedSort]);
+
+  const handleSingleOptionChange = (optionId: string, checked: boolean) => {
+    const option = sortOptions.find(opt => opt.id === optionId);
+    if (!option?.fieldName) return;
+
+    const otherSingleOptions = sortOptions
+      .filter(opt => opt.select_one && opt.id !== optionId)
+      .map(opt => opt.fieldName)
+      .filter(Boolean) as string[];
+      
+    let newSort = selectedSort.filter(field => !otherSingleOptions.includes(field));
+    
+    if (checked) {
+      newSort.push(option.fieldName);
+    } else {
+      newSort = newSort.filter(field => field !== option.fieldName);
+    }
+    
+    handleFilterChange({ sort: newSort });
+  };
+
+  // Get general sort options (non select_one)
+  const generalSortOptions = sortOptions.filter(option => !option.select_one);
+  
+  // Get "select one" sort options
+  const selectOneSortOptions = sortOptions.filter(option => option.select_one);
 
   return (
     <div className={cn(
@@ -397,32 +412,62 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
             <SheetHeader>
               <SheetTitle>Sort Options</SheetTitle>
             </SheetHeader>
-            <div className="py-4 space-y-2">
-              {sortOptions.map(option => {
-                const isFieldChecked = selectedSort.includes(option.fieldName || "");
-                return (
-                  <div key={option.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`sort-${option.id}`}
-                      checked={isFieldChecked}
-                      disabled={option.isRequired}
-                      onCheckedChange={(checked) => handleSortChange(option.id, !!checked)}
-                    />
-                    <label 
-                      htmlFor={`sort-${option.id}`} 
-                      className={cn(
-                        "text-sm",
-                        option.isRequired && "opacity-50"
-                      )}
-                    >
-                      {option.name} {option.isRequired && "(Always)"}
-                    </label>
-                  </div>
-                );
-              })}
-              <SheetClose asChild className="mt-4">
+            <div className="py-4 space-y-6">
+              {/* General Sort Options */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium mb-3">General Options</h4>
+                {generalSortOptions.map(option => {
+                  const isFieldChecked = selectedSort.includes(option.fieldName || "");
+                  return (
+                    <div key={option.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`sort-${option.id}`}
+                        checked={isFieldChecked}
+                        disabled={option.isRequired}
+                        onCheckedChange={(checked) => handleSortChange(option.id, !!checked)}
+                      />
+                      <label 
+                        htmlFor={`sort-${option.id}`} 
+                        className={cn(
+                          "text-sm",
+                          option.isRequired && "opacity-50"
+                        )}
+                      >
+                        {option.name} {option.isRequired && "(Always)"}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Select One Sort Options */}
+              {selectOneSortOptions.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium mb-3">Group By (Select One)</h4>
+                  {selectOneSortOptions.map(option => {
+                    const isFieldChecked = selectedSort.includes(option.fieldName || "");
+                    return (
+                      <div key={option.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`sort-${option.id}`}
+                          checked={isFieldChecked}
+                          onCheckedChange={(checked) => handleSingleOptionChange(option.id, !!checked)}
+                        />
+                        <label 
+                          htmlFor={`sort-${option.id}`} 
+                          className="text-sm"
+                        >
+                          {option.name}
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <SheetClose asChild>
                 <Button 
-                  className="w-full bg-ottoman-600 hover:bg-ottoman-700 mt-4"
+                  className="w-full bg-ottoman-600 hover:bg-ottoman-700"
                   onClick={handleSaveClick}
                 >
                   <Save className="h-4 w-4 mr-2" />

@@ -388,7 +388,8 @@ export const createSortOption = async (
   isDefault: boolean = false,
   isRequired: boolean = false,
   displayOrder: number = 0,
-  description: string = ''
+  description: string = '',
+  selectOne: boolean = false
 ): Promise<boolean> => {
   const { error } = await supabase
     .from('banknote_sort_options')
@@ -399,7 +400,8 @@ export const createSortOption = async (
       is_default: isDefault,
       is_required: isRequired,
       display_order: displayOrder,
-      description
+      description,
+      select_one: selectOne
     }]);
 
   if (error) {
@@ -422,6 +424,7 @@ export const updateSortOption = async (
     is_required: boolean;
     display_order: number;
     description: string;
+    select_one: boolean;
   }>
 ): Promise<boolean> => {
   const { error } = await supabase

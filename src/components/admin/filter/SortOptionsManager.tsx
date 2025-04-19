@@ -38,6 +38,7 @@ interface SortOption {
   is_default: boolean;
   is_required: boolean;
   display_order: number;
+  select_one?: boolean;
 }
 
 interface SortOptionsManagerProps {
@@ -59,6 +60,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
   const [formDescription, setFormDescription] = useState('');
   const [formIsDefault, setFormIsDefault] = useState(false);
   const [formIsRequired, setFormIsRequired] = useState(false);
+  const [formIsSelectOne, setFormIsSelectOne] = useState(false);
   const [formOrder, setFormOrder] = useState(0);
   
   useEffect(() => {
@@ -101,7 +103,9 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
         formFieldName.trim(),
         formIsDefault,
         formIsRequired,
-        formOrder
+        formOrder,
+        formDescription.trim(),
+        formIsSelectOne
       );
       
       toast({
@@ -142,7 +146,8 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
           description: formDescription.trim(),
           is_default: formIsDefault,
           is_required: formIsRequired,
-          display_order: formOrder
+          display_order: formOrder,
+          select_one: formIsSelectOne
         }
       );
       
@@ -196,6 +201,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
     setFormDescription(sortOption.description || '');
     setFormIsDefault(sortOption.is_default);
     setFormIsRequired(sortOption.is_required);
+    setFormIsSelectOne(sortOption.select_one || false);
     setFormOrder(sortOption.display_order);
     setShowEditDialog(true);
   };
@@ -211,6 +217,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
     setFormDescription('');
     setFormIsDefault(false);
     setFormIsRequired(false);
+    setFormIsSelectOne(false);
     setFormOrder(sortOptions.length);
     setSelectedSortOption(null);
   };
@@ -304,6 +311,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
               <TableHead>Field Name</TableHead>
               <TableHead>Default</TableHead>
               <TableHead>Required</TableHead>
+              <TableHead>Select One</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -339,6 +347,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
                 <TableCell>{sortOption.field_name}</TableCell>
                 <TableCell>{sortOption.is_default ? 'Yes' : 'No'}</TableCell>
                 <TableCell>{sortOption.is_required ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{sortOption.select_one ? 'Yes' : 'No'}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-2">
                     <Button
@@ -415,6 +424,14 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
               />
               <Label htmlFor="isRequired">Required Sort Option</Label>
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isSelectOne"
+                checked={formIsSelectOne}
+                onCheckedChange={(checked) => setFormIsSelectOne(checked === true)}
+              />
+              <Label htmlFor="isSelectOne">Select One Option (Group By)</Label>
+            </div>
             <div>
               <Label htmlFor="order">Display Order</Label>
               <Input
@@ -483,6 +500,14 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
                 disabled={selectedSortOption?.is_required}
               />
               <Label htmlFor="edit-isRequired">Required Sort Option</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="edit-isSelectOne"
+                checked={formIsSelectOne}
+                onCheckedChange={(checked) => setFormIsSelectOne(checked === true)}
+              />
+              <Label htmlFor="edit-isSelectOne">Select One Option (Group By)</Label>
             </div>
             <div>
               <Label htmlFor="edit-order">Display Order</Label>
