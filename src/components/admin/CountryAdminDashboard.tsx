@@ -9,22 +9,14 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CountryData } from '@/types';
 
-interface BanknotesManagementProps {
-  countryFilter?: string;
-}
+// Define proper interfaces for the components
+interface CountryAdminDashboardProps {}
 
-interface ImageSuggestionsProps {
-  countryFilter?: string;
-}
-
-interface CountryFilterSettingsProps {
-  countryId?: string;
-}
-
-const CountryAdminDashboard = () => {
+const CountryAdminDashboard = ({}: CountryAdminDashboardProps) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('banknotes');
   const [adminCountry, setAdminCountry] = useState<CountryData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (user) {
@@ -36,6 +28,7 @@ const CountryAdminDashboard = () => {
     if (!user || !user.role_id) return;
 
     try {
+      setLoading(true);
       // First get the role details
       const { data: roleData, error: roleError } = await supabase
         .from('roles')
@@ -66,11 +59,22 @@ const CountryAdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error fetching admin country:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!adminCountry) {
+  if (loading) {
     return <div className="page-container p-8">Loading admin dashboard...</div>;
+  }
+
+  if (!adminCountry) {
+    return (
+      <div className="page-container p-8">
+        <h2 className="text-xl">Unable to load country data for admin dashboard</h2>
+        <p className="text-muted-foreground mt-2">Please contact support if this issue persists.</p>
+      </div>
+    );
   }
 
   return (

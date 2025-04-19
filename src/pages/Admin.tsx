@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,19 +18,27 @@ const Admin = () => {
   const { user } = useAuth();
   const [isCountryAdmin, setIsCountryAdmin] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('users');
+  const [loading, setLoading] = useState<boolean>(true);
   
   useEffect(() => {
     if (user) {
       checkIfCountryAdmin();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
   const checkIfCountryAdmin = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     
     try {
       // If the user has a role_id, check if it's a country admin role
       if (user.role_id) {
+        console.log("Checking role for user:", user.id, "Role ID:", user.role_id);
+        
         const { data, error } = await supabase
           .from('roles')
           .select('name')
@@ -41,15 +50,49 @@ const Admin = () => {
           const isAdmin = data.name.endsWith(' Admin') && data.name !== 'Super Admin';
           console.log('Role name:', data.name, 'Is country admin:', isAdmin);
           setIsCountryAdmin(isAdmin);
+        } else {
+          console.error("Error fetching role:", error);
         }
       }
     } catch (error) {
       console.error('Error checking country admin status:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Check if user has admin access - now looking for role_id instead of role property
-  if (!user || (user?.role !== 'Super Admin' && !isCountryAdmin)) {
+  if (loading) {
+    return (
+      <div className="page-container">
+        <div className="max-w-2xl mx-auto text-center p-8">
+          <p>Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has admin access
+  if (!user) {
+    return (
+      <div className="page-container">
+        <h1 className="page-title">Admin</h1>
+        
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="ottoman-card p-8 flex flex-col items-center">
+            <h2 className="text-2xl font-serif mb-4">Access Restricted</h2>
+            <p className="mb-6 text-muted-foreground">
+              You must be logged in to access this area.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Check if the user has any admin privileges
+  const isSuperAdmin = user.role === 'Super Admin';
+  
+  if (!isSuperAdmin && !isCountryAdmin) {
     return (
       <div className="page-container">
         <h1 className="page-title">Admin</h1>
@@ -67,7 +110,7 @@ const Admin = () => {
   }
 
   // If user is a country admin, show the country-specific dashboard
-  if (isCountryAdmin && user.role !== 'Super Admin') {
+  if (isCountryAdmin && !isSuperAdmin) {
     return <CountryAdminDashboard />;
   }
 
