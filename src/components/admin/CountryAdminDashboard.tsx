@@ -9,18 +9,6 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CountryData } from '@/types';
 
-interface BanknotesManagementProps {
-  countryFilter?: string;
-}
-
-interface ImageSuggestionsProps {
-  countryFilter?: string;
-}
-
-interface CountryFilterSettingsProps {
-  countryId?: string;
-}
-
 const CountryAdminDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('banknotes');

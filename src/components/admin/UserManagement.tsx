@@ -83,16 +83,25 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
     try {
       console.log(`Updating user ${userId} to role ${roleId}`);
       
+      // Update the user's role_id in the database
       const { error } = await supabase
         .from('profiles')
         .update({ role_id: roleId })
         .eq('id', userId);
 
       if (error) {
+        console.error('Error details:', error);
         throw error;
       }
 
-      toast.success('User role updated successfully');
+      // Get the name of the selected role
+      const selectedRole = roles.find(r => r.id === roleId);
+      
+      if (!selectedRole) {
+        throw new Error('Selected role not found');
+      }
+      
+      toast.success(`User role updated to ${selectedRole.name}`);
       
       // Update local state
       setUsers(users.map(user => 
@@ -100,7 +109,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
           ? { 
               ...user, 
               role_id: roleId, 
-              role: roles.find(r => r.id === roleId)?.name || user.role 
+              role: selectedRole.name 
             } 
           : user
       ));
@@ -171,7 +180,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                 <TableCell>
                   {isSuperAdmin && (
                     <Select
-                      value={user.role_id}
+                      value={user.role_id || undefined}
                       onValueChange={(value) => updateUserRole(user.id, value)}
                     >
                       <SelectTrigger className="w-[200px]">
