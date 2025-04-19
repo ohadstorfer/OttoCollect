@@ -291,6 +291,29 @@ export const useDynamicFilter = <T extends FilterableItem>({
     return map;
   }, [effectiveTypes]);
 
+  const getFieldValue = useCallback((banknote: any, fieldName: string): any => {
+    if (!banknote) return null;
+    
+    const camelCase = fieldName;
+    const snakeCase = fieldName.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    
+    const possibleNames = [
+      fieldName,
+      camelCase,
+      snakeCase,
+      `${fieldName}Name`,
+      `${snakeCase}_name`,
+    ];
+    
+    for (const name of possibleNames) {
+      if (banknote[name] !== undefined && banknote[name] !== null) {
+        return banknote[name];
+      }
+    }
+    
+    return null;
+  }, []);
+
   const filteredItems = useMemo(() => {
     console.log("useDynamicFilter: Filtering items", { 
       itemsCount: items.length, 
@@ -407,34 +430,6 @@ export const useDynamicFilter = <T extends FilterableItem>({
         let comparison = 0;
 
         switch (fieldName) {
-          case "sultan":
-            const sultanA = banknoteA.sultanName || banknoteA.sultan_name || banknoteA.sultan || "";
-            const sultanB = banknoteB.sultanName || banknoteB.sultan_name || banknoteB.sultan || "";
-            comparison = sultanA.localeCompare(sultanB);
-            break;
-
-          case "faceValue":
-            const valueA = banknoteA.denomination || banknoteA.face_value || banknoteA.faceValue || "";
-            const valueB = banknoteB.denomination || banknoteB.face_value || banknoteB.faceValue || "";
-            const isKurushA = String(valueA).toLowerCase().includes("kurush");
-            const isKurushB = String(valueB).toLowerCase().includes("kurush");
-            const isLiraA = String(valueA).toLowerCase().includes("lira");
-            const isLiraB = String(valueB).toLowerCase().includes("lira");
-
-            if (isKurushA && isLiraB) comparison = -1;
-            else if (isLiraA && isKurushB) comparison = 1;
-            else {
-              const numA = parseFloat(String(valueA).replace(/[^0-9.]/g, "")) || 0;
-              const numB = parseFloat(String(valueB).replace(/[^0-9.]/g, "")) || 0;
-              comparison = numA - numB;
-            }
-            break;
-
-          case "extPick":
-            comparison = String(banknoteA.extendedPickNumber || banknoteA.catalogId || banknoteA.extended_pick_number || "")
-              .localeCompare(String(banknoteB.extendedPickNumber || banknoteB.catalogId || banknoteB.extended_pick_number || ""));
-            break;
-            
           case "newest":
             if ('createdAt' in a && 'createdAt' in b) {
               const dateA = typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : 0;
@@ -444,13 +439,41 @@ export const useDynamicFilter = <T extends FilterableItem>({
             break;
             
           default:
-            const fieldA = banknoteA[fieldName];
-            const fieldB = banknoteB[fieldName];
-            if (fieldA !== undefined && fieldB !== undefined) {
-              if (typeof fieldA === 'string' && typeof fieldB === 'string') {
-                comparison = fieldA.localeCompare(fieldB);
-              } else {
-                comparison = Number(fieldA) - Number(fieldB);
+            const valueA = getFieldValue(banknoteA, fieldName);
+            const valueB = getFieldValue(banknoteB, fieldName);
+            
+            if (valueA !== null && valueB !== null) {
+              if (fieldName === 'faceValue' && 
+                  (typeof valueA === 'string' && typeof valueB === 'string')) {
+                const isKurushA = String(valueA).toLowerCase().includes("kurush");
+                const isKurushB = String(valueB).toLowerCase().includes("kurush");
+                const isLiraA = String(valueA).toLowerCase().includes("lira");
+                const isLiraB = String(valueB).toLowerCase().includes("lira");
+
+                if (isKurushA && isLiraB) comparison = -1;
+                else if (isLiraA && isKurushB) comparison = 1;
+                else {
+                  const numA = parseFloat(String(valueA).replace(/[^0-9.]/g, "")) || 0;
+                  const numB = parseFloat(String(valueB).replace(/[^0-9.]/g, "")) || 0;
+                  comparison = numA - numB;
+                }
+              }
+              else if (fieldName === 'extPick') {
+                comparison = String(
+                  banknoteA.extendedPickNumber || 
+                  banknoteA.catalogId || 
+                  banknoteA.extended_pick_number || ""
+                ).localeCompare(String(
+                  banknoteB.extendedPickNumber || 
+                  banknoteB.catalogId || 
+                  banknoteB.extended_pick_number || ""
+                ));
+              }
+              else if (typeof valueA === 'string' && typeof valueB === 'string') {
+                comparison = valueA.localeCompare(valueB);
+              } 
+              else {
+                comparison = Number(valueA) - Number(valueB);
               }
             }
             break;
@@ -458,13 +481,12 @@ export const useDynamicFilter = <T extends FilterableItem>({
 
         if (comparison !== 0) return comparison;
       }
-
       return 0;
     });
     
     console.log("useDynamicFilter: Sorted items count:", sorted.length);
     return sorted;
-  }, [items, filters, categoryNameMap, typeNameMap, isLoading, getBanknote]);
+  }, [items, filters, categoryNameMap, typeNameMap, isLoading, getBanknote, getFieldValue]);
 
   const groupedItems = useMemo(() => {
     console.log("useDynamicFilter: Grouping items", { 

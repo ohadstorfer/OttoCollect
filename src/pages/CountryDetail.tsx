@@ -142,36 +142,50 @@ const CountryDetail = () => {
       return null;
     }
     
-    // Return the first grouping field in the sort array
+    // Return any field that should be used for grouping (not just sultan or faceValue)
+    // This makes the component flexible for any sort field added in the future
     return filters.sort.find(sortField => 
-      sortField === 'sultan' || sortField === 'faceValue'
+      sortField !== 'extPick' && sortField !== 'newest'
     );
   }, [filters.sort]);
 
-  // This function gets the correct value from the banknote based on the field name
+  // This function dynamically gets any field value from the banknote
   const getBanknoteFieldValue = (banknote: any, fieldName: string): string => {
-    console.log("Getting field value", { fieldName, banknote });
+    if (!banknote) return "Unknown";
     
-    switch (fieldName) {
-      case 'sultan':
-        // Try different possible property names for sultan
-        return banknote.sultanName || 
-               banknote.sultan_name || 
-               banknote.sultan || 
-               "Unknown";
-               
-      case 'faceValue':
-        // Try different possible property names for face value
-        return banknote.denomination || 
-               banknote.face_value || 
-               banknote.faceValue || 
-               "Unknown";
-               
-      default:
-        // Try to access the field directly, or nested
-        const value = banknote[fieldName];
-        return value !== undefined && value !== null ? String(value) : "Unknown";
+    // Direct property access - try camelCase, snake_case and original name
+    const camelCase = fieldName;
+    const snakeCase = fieldName.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    
+    // Handle common field name variations 
+    const possibleNames = [
+      fieldName,                 // Original name (e.g., "team")
+      camelCase,                 // camelCase (e.g., "team")
+      snakeCase,                 // snake_case (e.g., "team")
+      `${fieldName}Name`,        // Common suffix (e.g., "teamName")
+      `${snakeCase}_name`,       // Common suffix with snake_case (e.g., "team_name")
+    ];
+    
+    // Try all possible property names
+    for (const name of possibleNames) {
+      if (banknote[name] !== undefined && banknote[name] !== null) {
+        return String(banknote[name]);
+      }
     }
+    
+    // Special handling for numeric values that might need parsing
+    if (fieldName === 'faceValue' || fieldName === 'denomination') {
+      // Try different possible property names for face value
+      const faceValueNames = ['denomination', 'face_value', 'faceValue'];
+      for (const name of faceValueNames) {
+        if (banknote[name] !== undefined && banknote[name] !== null) {
+          return String(banknote[name]);
+        }
+      }
+    }
+    
+    console.log(`Could not find field ${fieldName} in banknote:`, banknote);
+    return "Unknown";
   };
 
   const groupedItems = useMemo(() => {

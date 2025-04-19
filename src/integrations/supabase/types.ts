@@ -388,6 +388,7 @@ export type Database = {
           signatures_back: string | null
           signatures_front: string | null
           sultan_name: string | null
+          team: string | null
           tughra_picture: string | null
           turk_catalog_number: string | null
           type: string | null
@@ -422,6 +423,7 @@ export type Database = {
           signatures_back?: string | null
           signatures_front?: string | null
           sultan_name?: string | null
+          team?: string | null
           tughra_picture?: string | null
           turk_catalog_number?: string | null
           type?: string | null
@@ -456,6 +458,7 @@ export type Database = {
           signatures_back?: string | null
           signatures_front?: string | null
           sultan_name?: string | null
+          team?: string | null
           tughra_picture?: string | null
           turk_catalog_number?: string | null
           type?: string | null
