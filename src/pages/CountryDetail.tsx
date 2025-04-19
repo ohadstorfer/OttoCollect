@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -23,7 +22,6 @@ const CountryDetail = () => {
   const [countryId, setCountryId] = useState<string>("");
   const { toast } = useToast();
   
-  // Single source of truth for filters
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
     categories: [],
@@ -32,7 +30,6 @@ const CountryDetail = () => {
     country_id: ""
   });
   
-  // State to track if filters have been initialized from user preferences
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   
   console.log("CountryDetail: Rendering with", { 
@@ -43,7 +40,6 @@ const CountryDetail = () => {
     filters
   });
   
-  // Load country data and set country ID
   useEffect(() => {
     const loadCountryData = async () => {
       if (!decodedCountryName) {
@@ -86,7 +82,6 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
 
-  // Fetch banknotes whenever filters change or when countryId is first set
   useEffect(() => {
     const fetchBanknotesData = async () => {
       if (!countryId || !filtersInitialized) return;
@@ -95,7 +90,6 @@ const CountryDetail = () => {
       setLoading(true);
       
       try {
-        // Convert to expected filter format for API
         const filterParams = {
           search: filters.search,
           categories: filters.categories,
@@ -103,7 +97,6 @@ const CountryDetail = () => {
           sort: filters.sort
         };
         
-        // Fetch banknotes with server-side filtering
         const data = await fetchBanknotesByCountryId(countryId, filterParams);
         console.log("CountryDetail: Banknotes loaded:", data.length);
         setBanknotes(data);
@@ -123,11 +116,9 @@ const CountryDetail = () => {
     fetchBanknotesData();
   }, [countryId, filters, toast, filtersInitialized]);
 
-  // Handle filter changes from the filter component
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     console.log("CountryDetail: Filter change", newFilters);
     
-    // If this is the first filter initialization from user preferences, mark as initialized
     if (!filtersInitialized && (newFilters.categories?.length || newFilters.types?.length)) {
       setFiltersInitialized(true);
     }
@@ -139,14 +130,18 @@ const CountryDetail = () => {
     }));
   }, [countryId, filtersInitialized]);
 
-  // Navigate back to catalog
   const handleBack = () => {
     navigate('/catalog');
   };
 
-  // Group banknotes for display
+  const activeGroupingField = useMemo(() => {
+    const groupingOption = sortOptions.find(opt => 
+      opt.select_one && filters.sort.includes(opt.fieldName)
+    );
+    return groupingOption?.fieldName;
+  }, [sortOptions, filters.sort]);
+
   const groupedItems = useMemo(() => {
-    // Group banknotes by category and sultan if needed
     const categoryMap = new Map();
     
     banknotes.forEach(banknote => {
@@ -163,34 +158,29 @@ const CountryDetail = () => {
       categoryMap.get(category).items.push(banknote);
     });
     
-    // Check if we should group by sultan
-    const groupBySultan = filters.sort.includes("sultan");
-    
-    // If sorting by sultan, create sultan groups within categories
-    if (groupBySultan) {
+    if (activeGroupingField) {
       categoryMap.forEach((group) => {
-        const sultanMap = new Map();
+        const subGroupMap = new Map();
         
         group.items.forEach(banknote => {
-          const sultan = banknote.sultanName || 'Unknown';
+          const groupValue = banknote[activeGroupingField as keyof typeof banknote] || 'Unknown';
           
-          if (!sultanMap.has(sultan)) {
-            sultanMap.set(sultan, []);
+          if (!subGroupMap.has(groupValue)) {
+            subGroupMap.set(groupValue, []);
           }
           
-          sultanMap.get(sultan).push(banknote);
+          subGroupMap.get(groupValue).push(banknote);
         });
         
-        // Convert sultan map to array and sort by sultan name
-        group.sultanGroups = Array.from(sultanMap.entries())
-          .map(([sultan, items]) => ({ sultan, items }))
-          .sort((a, b) => a.sultan.localeCompare(b.sultan));
+        group.subGroups = Array.from(subGroupMap.entries())
+          .map(([groupValue, items]) => ({ groupValue, items }))
+          .sort((a, b) => String(a.groupValue).localeCompare(String(b.groupValue)));
       });
     }
     
     return Array.from(categoryMap.values())
       .sort((a, b) => a.category.localeCompare(b.category));
-  }, [banknotes, filters.sort]);
+  }, [banknotes, activeGroupingField]);
 
   return (
     <div className="container py-8">
@@ -202,7 +192,6 @@ const CountryDetail = () => {
       </div>
 
       <div className="bg-card border rounded-lg p-6 mb-6">
-        {/* Filter component */}
         {countryId && (
           <BanknoteFilterCatalog
             countryId={countryId}
@@ -212,7 +201,6 @@ const CountryDetail = () => {
           />
         )}
 
-        {/* Display banknotes */}
         <div className="mt-6">
           {loading ? (
             <div className="flex justify-center py-12">
@@ -227,25 +215,23 @@ const CountryDetail = () => {
             <div className="space-y-8">
               {groupedItems.map((group, groupIndex) => (
                 <div key={`group-${groupIndex}`} className="space-y-4">
-                  {/* Category header */}
                   <div className="sticky top-[184px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
                     <h2 className="text-xl font-bold">{group.category}</h2>
                   </div>
                   
-                  {/* Handle sultan grouping if present */}
-                  {group.sultanGroups && group.sultanGroups.length > 0 ? (
+                  {group.subGroups ? (
                     <div className="space-y-6">
-                      {group.sultanGroups.map((sultanGroup, sultanIndex) => (
-                        <div key={`sultan-${sultanIndex}`} className="space-y-4">
+                      {group.subGroups.map((subGroup, subGroupIndex) => (
+                        <div key={`subgroup-${subGroupIndex}`} className="space-y-4">
                           <div className="sticky top-[248px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
                             <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
-                              {sultanGroup.sultan}
+                              {subGroup.groupValue}
                             </h3>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {sultanGroup.items.map((banknote, index) => (
+                            {subGroup.items.map((banknote, index) => (
                               <BanknoteDetailCard
-                                key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                                key={`banknote-${group.category}-${subGroup.groupValue}-${index}`}
                                 banknote={banknote}
                                 source="catalog"
                               />
@@ -255,7 +241,6 @@ const CountryDetail = () => {
                       ))}
                     </div>
                   ) : (
-                    /* Display banknotes in a grid without sultan grouping */
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {group.items.map((banknote, index) => (
                         <BanknoteDetailCard
