@@ -9,6 +9,18 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CountryData } from '@/types';
 
+interface BanknotesManagementProps {
+  countryFilter?: string;
+}
+
+interface ImageSuggestionsProps {
+  countryFilter?: string;
+}
+
+interface CountryFilterSettingsProps {
+  countryId?: string;
+}
+
 const CountryAdminDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('banknotes');
@@ -21,7 +33,7 @@ const CountryAdminDashboard = () => {
   }, [user]);
 
   const fetchAdminCountry = async () => {
-    if (!user) return;
+    if (!user || !user.role_id) return;
 
     try {
       // First get the role details
@@ -36,6 +48,7 @@ const CountryAdminDashboard = () => {
       if (roleData) {
         // Extract country name from role name (remove ' Admin' suffix)
         const countryName = roleData.name.replace(' Admin', '');
+        console.log('Country admin for:', countryName);
         
         // Get country details
         const { data: country, error: countryError } = await supabase
@@ -44,7 +57,11 @@ const CountryAdminDashboard = () => {
           .eq('name', countryName)
           .single();
 
-        if (countryError) throw countryError;
+        if (countryError) {
+          console.error('Error fetching country:', countryError);
+          throw countryError;
+        }
+        
         setAdminCountry(country);
       }
     } catch (error) {
@@ -53,7 +70,7 @@ const CountryAdminDashboard = () => {
   };
 
   if (!adminCountry) {
-    return <div>Loading...</div>;
+    return <div className="page-container p-8">Loading admin dashboard...</div>;
   }
 
   return (

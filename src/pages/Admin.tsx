@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +37,10 @@ const Admin = () => {
           .single();
           
         if (!error && data) {
-          setIsCountryAdmin(data.name.endsWith(' Admin') && data.name !== 'Super Admin');
+          // Check if the role name ends with ' Admin' but is not 'Super Admin'
+          const isAdmin = data.name.endsWith(' Admin') && data.name !== 'Super Admin';
+          console.log('Role name:', data.name, 'Is country admin:', isAdmin);
+          setIsCountryAdmin(isAdmin);
         }
       }
     } catch (error) {
@@ -46,8 +48,8 @@ const Admin = () => {
     }
   };
 
-  // Check if user has admin access
-  if (!user || (user?.role !== 'Super Admin' && user?.role !== 'Admin' && !isCountryAdmin)) {
+  // Check if user has admin access - now looking for role_id instead of role property
+  if (!user || (user?.role !== 'Super Admin' && !isCountryAdmin)) {
     return (
       <div className="page-container">
         <h1 className="page-title">Admin</h1>
