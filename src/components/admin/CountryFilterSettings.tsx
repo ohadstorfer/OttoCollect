@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { fetchCountries } from "@/services/countryService";
 import { AdminComponentProps } from '@/types/admin';
+import { supabase } from '@/integrations/supabase/client';
 
 import CategoriesManager from "./filter/CategoriesManager";
 import TypesManager from "./filter/TypesManager";
