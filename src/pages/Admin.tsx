@@ -41,15 +41,13 @@ const Admin = () => {
         
         const { data, error } = await supabase
           .from('roles')
-          .select('name')
+          .select('name, is_country_admin')
           .eq('id', user.role_id)
           .single();
           
         if (!error && data) {
-          // Check if the role name ends with ' Admin' but is not 'Super Admin'
-          const isAdmin = data.name.endsWith(' Admin') && data.name !== 'Super Admin';
-          console.log('Role name:', data.name, 'Is country admin:', isAdmin);
-          setIsCountryAdmin(isAdmin);
+          console.log('Role name:', data.name, 'Is country admin:', data.is_country_admin);
+          setIsCountryAdmin(data.is_country_admin === true);
         } else {
           console.error("Error fetching role:", error);
         }
@@ -114,7 +112,7 @@ const Admin = () => {
     return <CountryAdminDashboard />;
   }
 
-  // Otherwise show the full admin dashboard for super admins
+  // Full admin dashboard for super admins
   return (
     <div className="page-container">
       <h1 className="page-title">Admin Dashboard</h1>
@@ -150,7 +148,7 @@ const Admin = () => {
                 <CardTitle className="text-xl font-serif">User Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <UserManagement isSuperAdmin={user?.role === 'Super Admin'} />
+                <UserManagement isSuperAdmin={isSuperAdmin} />
               </CardContent>
             </Card>
           </TabsContent>
