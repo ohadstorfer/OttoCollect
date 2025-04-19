@@ -1,3 +1,4 @@
+
 import { User, UserRank, UserRole } from "@/types";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -58,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*, roles(name, is_country_admin)")
         .eq("id", userId)
         .single();
 
@@ -71,6 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           username: data.username,
           email: data.email,
           role: data.role as UserRole,
+          role_id: data.role_id,
           rank: data.rank as UserRank,
           points: data.points,
           createdAt: data.created_at,
@@ -79,6 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ...(data.about && { about: data.about })
         };
         setUser(userProfile);
+        console.log("User profile loaded:", userProfile);
       }
     } catch (error) {
       console.error("Error in profile fetch:", error);

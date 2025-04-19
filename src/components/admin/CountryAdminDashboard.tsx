@@ -88,7 +88,7 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
                 <CardTitle>Banknotes Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <BanknotesManagement countryFilter={adminCountry.name} />
+                <BanknotesManagement countryName={adminCountry.name} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -99,7 +99,7 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
                 <CardTitle>Image Suggestions</CardTitle>
               </CardHeader>
               <CardContent>
-                <ImageSuggestions countryFilter={adminCountry.name} />
+                <ImageSuggestions countryName={adminCountry.name} />
               </CardContent>
             </Card>
           </TabsContent>

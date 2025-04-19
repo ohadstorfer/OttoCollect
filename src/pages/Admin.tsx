@@ -126,6 +126,7 @@ const Admin = () => {
   console.log("Admin checks - isSuperAdmin:", isSuperAdmin, "isCountryAdmin:", isCountryAdmin);
   
   if (!isSuperAdmin && !isCountryAdmin) {
+    console.log("User has no admin privileges:", user);
     return (
       <div className="page-container">
         <h1 className="page-title">Admin</h1>
