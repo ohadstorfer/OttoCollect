@@ -41,19 +41,21 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
 
       if (error) throw error;
 
-      setUsers(data.map(profile => ({
+      const formattedUsers: User[] = data.map(profile => ({
         id: profile.id,
         username: profile.username,
         email: profile.email,
-        role: profile.role,
-        role_id: profile.role_id,
-        rank: profile.rank,
+        role: profile.roles?.name || 'User',
+        role_id: profile.role_id || '',
+        rank: profile.rank as any,
         points: profile.points,
         createdAt: profile.created_at,
         avatarUrl: profile.avatar_url,
         country: profile.country,
         about: profile.about,
-      })));
+      }));
+      
+      setUsers(formattedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');
@@ -79,15 +81,29 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
 
   const updateUserRole = async (userId: string, roleId: string) => {
     try {
+      console.log(`Updating user ${userId} to role ${roleId}`);
+      
       const { error } = await supabase
         .from('profiles')
         .update({ role_id: roleId })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       toast.success('User role updated successfully');
-      fetchUsers();
+      
+      // Update local state
+      setUsers(users.map(user => 
+        user.id === userId 
+          ? { 
+              ...user, 
+              role_id: roleId, 
+              role: roles.find(r => r.id === roleId)?.name || user.role 
+            } 
+          : user
+      ));
     } catch (error) {
       console.error('Error updating user role:', error);
       toast.error('Failed to update user role');
@@ -96,7 +112,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
 
   const getRoleDisplay = (user: User) => {
     const role = roles.find(r => r.id === user.role_id);
-    return role?.name || 'Unknown Role';
+    return role?.name || user.role || 'Unknown Role';
   };
 
   const filteredUsers = users.filter(user =>

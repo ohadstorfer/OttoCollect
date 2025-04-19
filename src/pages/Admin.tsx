@@ -29,12 +29,18 @@ const Admin = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('country_admins')
-        .select('*')
-        .eq('user_id', user.id);
-        
-      setIsCountryAdmin(!!data && data.length > 0);
+      // If the user has a role_id, check if it's a country admin role
+      if (user.role_id) {
+        const { data, error } = await supabase
+          .from('roles')
+          .select('name')
+          .eq('id', user.role_id)
+          .single();
+          
+        if (!error && data) {
+          setIsCountryAdmin(data.name.endsWith(' Admin') && data.name !== 'Super Admin');
+        }
+      }
     } catch (error) {
       console.error('Error checking country admin status:', error);
     }
@@ -59,7 +65,7 @@ const Admin = () => {
   }
 
   // If user is a country admin, show the country-specific dashboard
-  if (isCountryAdmin && user.role === 'Admin') {
+  if (isCountryAdmin && user.role !== 'Super Admin') {
     return <CountryAdminDashboard />;
   }
 
