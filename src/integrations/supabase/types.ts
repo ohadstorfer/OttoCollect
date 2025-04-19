@@ -356,42 +356,6 @@ export type Database = {
         }
         Relationships: []
       }
-      country_admins: {
-        Row: {
-          country_id: string | null
-          created_at: string | null
-          id: string
-          user_id: string | null
-        }
-        Insert: {
-          country_id?: string | null
-          created_at?: string | null
-          id?: string
-          user_id?: string | null
-        }
-        Update: {
-          country_id?: string | null
-          created_at?: string | null
-          id?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "country_admins_country_id_fkey"
-            columns: ["country_id"]
-            isOneToOne: false
-            referencedRelation: "countries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "country_admins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       detailed_banknotes: {
         Row: {
           back_picture: string | null
@@ -747,6 +711,7 @@ export type Database = {
           points: number
           rank: string
           role: string
+          role_id: string | null
           updated_at: string
           username: string
         }
@@ -760,6 +725,7 @@ export type Database = {
           points?: number
           rank?: string
           role?: string
+          role_id?: string | null
           updated_at?: string
           username: string
         }
@@ -773,8 +739,35 @@ export type Database = {
           points?: number
           rank?: string
           role?: string
+          role_id?: string | null
           updated_at?: string
           username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -900,6 +893,7 @@ export type Database = {
           points: number
           rank: string
           role: string
+          role_id: string | null
           updated_at: string
           username: string
         }

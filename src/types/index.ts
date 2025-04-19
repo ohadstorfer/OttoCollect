@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -13,6 +12,12 @@ export interface Message {
   senderId?: string;
   receiverId?: string;
   createdAt?: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  created_at: string;
 }
 
 // Add explicit UserRank type
@@ -52,6 +57,7 @@ export interface User {
   avatarUrl?: string;
   about?: string;
   country?: string;
+  role_id: string;
   role: UserRole;
   rank: UserRank;
   points: number;

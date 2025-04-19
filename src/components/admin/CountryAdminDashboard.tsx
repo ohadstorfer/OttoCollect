@@ -9,18 +9,6 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CountryData } from '@/types';
 
-interface BanknotesManagementProps {
-  countryFilter?: string;
-}
-
-interface ImageSuggestionsProps {
-  countryFilter?: string;
-}
-
-interface CountryFilterSettingsProps {
-  countryId?: string;
-}
-
 const CountryAdminDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('banknotes');
@@ -36,19 +24,24 @@ const CountryAdminDashboard = () => {
     if (!user) return;
 
     try {
-      const { data: countryAdmin, error: adminError } = await supabase
-        .from('country_admins')
-        .select('country_id')
-        .eq('user_id', user.id)
+      // First get the role details
+      const { data: roleData, error: roleError } = await supabase
+        .from('roles')
+        .select('name')
+        .eq('id', user.role_id)
         .single();
 
-      if (adminError) throw adminError;
-
-      if (countryAdmin) {
+      if (roleError) throw roleError;
+      
+      if (roleData) {
+        // Extract country name from role name (remove ' Admin' suffix)
+        const countryName = roleData.name.replace(' Admin', '');
+        
+        // Get country details
         const { data: country, error: countryError } = await supabase
           .from('countries')
           .select('*')
-          .eq('id', countryAdmin.country_id)
+          .eq('name', countryName)
           .single();
 
         if (countryError) throw countryError;
