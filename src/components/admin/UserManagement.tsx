@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { User, UserRole, Country, CountryAdminAssignment } from '@/types';
+import { User, UserRole, CountryData, CountryAdminAssignment } from '@/types';
 import { Search, Loader2 } from 'lucide-react';
 
 interface UserManagementProps {
@@ -15,7 +16,7 @@ interface UserManagementProps {
 
 const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
   const [users, setUsers] = useState<User[]>([]);
-  const [countries, setCountries] = useState<Country[]>([]);
+  const [countries, setCountries] = useState<CountryData[]>([]);
   const [countryAdmins, setCountryAdmins] = useState<CountryAdminAssignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -92,23 +93,28 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
   const updateUserRole = async (userId: string, newRole: UserRole, countryId?: string) => {
     try {
       if (newRole === 'User' || newRole === 'Super Admin') {
+        // If changing to User or Super Admin, remove any country admin assignments
         await supabase
           .from('country_admins')
           .delete()
           .eq('user_id', userId);
       }
 
+      // If assigning a country admin role, first update to Admin role
       if (countryId) {
+        // First remove any existing country admin assignments
         await supabase
           .from('country_admins')
           .delete()
           .eq('user_id', userId);
 
+        // Then add the new country admin assignment
         await supabase
           .from('country_admins')
           .insert([{ user_id: userId, country_id: countryId }]);
       }
 
+      // Update the user's role in the profiles table
       const { error } = await supabase
         .from('profiles')
         .update({ role: newRole })

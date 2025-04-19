@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,10 +32,9 @@ const Admin = () => {
       const { data, error } = await supabase
         .from('country_admins')
         .select('*')
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
         
-      setIsCountryAdmin(!!data);
+      setIsCountryAdmin(!!data && data.length > 0);
     } catch (error) {
       console.error('Error checking country admin status:', error);
     }
@@ -59,7 +59,7 @@ const Admin = () => {
   }
 
   // If user is a country admin, show the country-specific dashboard
-  if (isCountryAdmin) {
+  if (isCountryAdmin && user.role === 'Admin') {
     return <CountryAdminDashboard />;
   }
 

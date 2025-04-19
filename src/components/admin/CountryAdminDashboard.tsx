@@ -7,12 +7,24 @@ import ImageSuggestions from './ImageSuggestions';
 import CountryFilterSettings from './CountryFilterSettings';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Country } from '@/types';
+import { CountryData } from '@/types';
+
+interface BanknotesManagementProps {
+  countryFilter?: string;
+}
+
+interface ImageSuggestionsProps {
+  countryFilter?: string;
+}
+
+interface CountryFilterSettingsProps {
+  countryId?: string;
+}
 
 const CountryAdminDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('banknotes');
-  const [adminCountry, setAdminCountry] = useState<Country | null>(null);
+  const [adminCountry, setAdminCountry] = useState<CountryData | null>(null);
 
   useEffect(() => {
     if (user) {
