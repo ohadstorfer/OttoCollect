@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +12,10 @@ interface BanknoteDetailCardProps {
   collectionItem?: CollectionItem;
   source?: 'catalog' | 'collection' | 'missing';
   ownerId?: string;
+  viewMode?: 'grid' | 'list';
 }
 
-const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCardProps) => {
+const BanknoteDetailCard = ({ banknote, source = 'catalog', viewMode = 'grid' }: BanknoteDetailCardProps) => {
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
 
@@ -29,10 +29,70 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
     }
   };
 
-  // Determine which image to show
   const displayImage = banknote.imageUrls && banknote.imageUrls.length > 0
     ? banknote.imageUrls[0]
     : '/placeholder.svg';
+
+  if (viewMode === 'list') {
+    return (
+      <Card
+        className={cn(
+          "overflow-hidden transition-all duration-300 cursor-pointer bg-card",
+          isHovering ? "shadow-lg" : ""
+        )}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        onClick={handleCardClick}
+      >
+        <div className="flex items-center p-2">
+          <div className="w-16 h-16 relative overflow-hidden rounded">
+            <img
+              src={displayImage}
+              alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          <div className="flex-1 ml-4">
+            <div className="flex justify-between items-start">
+              <h4 className="font-bold">{banknote.denomination}</h4>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="gap-1.5 flex flex-wrap items-center text-sm mt-1">
+              {banknote.extendedPickNumber && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
+                  {banknote.extendedPickNumber}
+                </Badge>
+              )}
+              {banknote.pickNumber && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
+                  {banknote.turkCatalogNumber}
+                </Badge>
+              )}
+              {banknote.year && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
+                  {banknote.year}
+                </Badge>
+              )}
+              {banknote.rarity && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800">
+                  {banknote.rarity}
+                </Badge>
+              )}
+            </div>
+
+            <div className="text-xs text-muted-foreground mt-1">
+              {banknote.sultanName && <span>Sultan: {banknote.sultanName}</span>}
+              {banknote.sealNames && <span className="ml-2">Seals: {banknote.sealNames}</span>}
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -44,12 +104,8 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
       onMouseLeave={() => setIsHovering(false)}
       onClick={handleCardClick}
     >
-
-
       <div className="relative">
-        {/* Top Header Section */}
         <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
-          {/* Title + Plus Button */}
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
@@ -57,7 +113,6 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
             </Button>
           </div>
 
-          {/* Info Bar / Badges */}
           <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
             {banknote.extendedPickNumber && (
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
@@ -85,10 +140,6 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
           </div>
         </div>
 
-
-
-
-        {/* Image Section */}
         <div className={cn(
           displayImage === "/placeholder.svg" ? "aspect-[4/2]" : "aspect-[4/2]",
           "overflow-hidden"
@@ -103,7 +154,6 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
           />
         </div>
 
-        {/* Footer Info */}
         <div className="p-3 bg-background border-t">
           {banknote.sultanName && (
             <p className="text-xs text-muted-foreground">

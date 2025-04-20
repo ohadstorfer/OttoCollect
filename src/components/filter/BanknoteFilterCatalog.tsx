@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
@@ -11,6 +10,8 @@ import {
   fetchUserFilterPreferences 
 } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid, LayoutList } from "lucide-react";
 
 interface BanknoteFilterCatalogProps {
   countryId: string;
@@ -18,6 +19,7 @@ interface BanknoteFilterCatalogProps {
   currentFilters: DynamicFilterState;
   isLoading?: boolean;
   className?: string;
+  onViewModeChange?: (mode: 'grid' | 'list') => void;
 }
 
 export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
@@ -26,6 +28,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   currentFilters,
   isLoading = false,
   className,
+  onViewModeChange
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -34,7 +37,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
   console.log("BanknoteFilterCatalog: Rendering with", { 
     countryId, 
     currentFilters,
@@ -45,7 +49,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     sortOptions: sortOptions.length
   });
 
-  // Load filter options and user preferences when countryId changes
   useEffect(() => {
     const loadFilterOptionsAndPreferences = async () => {
       if (!countryId) return;
@@ -54,21 +57,12 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
       setLoading(true);
       
       try {
-        // Fetch categories, types and sort options in parallel
-        console.log("BanknoteFilterCatalog: Fetching categories, types, and sort options");
         const [categoriesData, typesData, sortOptionsData] = await Promise.all([
           fetchCategoriesByCountryId(countryId),
           fetchTypesByCountryId(countryId),
           fetchSortOptionsByCountryId(countryId)
         ]);
         
-        console.log("BanknoteFilterCatalog: Fetched data:", { 
-          categories: categoriesData, 
-          types: typesData, 
-          sortOptions: sortOptionsData 
-        });
-        
-        // Map data to FilterOption format
         const mappedCategories = categoriesData.map(cat => ({
           id: cat.id,
           name: cat.name,
@@ -90,9 +84,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
         setTypes(mappedTypes);
         setSortOptions(mappedSortOptions);
         
-        console.log("BanknoteFilterCatalog: Filter options set successfully");
-        
-        // Try to fetch user preferences if user is logged in
         let userPreferences = null;
         if (user) {
           try {
@@ -103,13 +94,11 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
           }
         }
         
-        // Set default filters based on user preferences or sensible defaults
         const requiredSortFields = sortOptionsData
           .filter(opt => opt.is_required)
           .map(opt => opt.field_name || '');
           
         if (userPreferences) {
-          // Map IDs to field names for sort options
           const sortFieldNames = userPreferences.selected_sort_options
             .map(sortId => {
               const option = sortOptionsData.find(opt => opt.id === sortId);
@@ -117,12 +106,10 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             })
             .filter(Boolean) as string[];
           
-          // Ensure required sort fields are included
           const finalSortFields = Array.from(
             new Set([...sortFieldNames, ...requiredSortFields])
           );
           
-          // Apply user preferences
           onFilterChange({
             categories: userPreferences.selected_categories,
             types: userPreferences.selected_types,
@@ -130,7 +117,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             country_id: countryId
           });
         } else {
-          // Apply default filters
           const defaultCategoryIds = mappedCategories.map(cat => cat.id);
           const defaultTypeIds = mappedTypes
             .filter(type => type.name.toLowerCase().includes('issued'))
@@ -158,21 +144,17 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     loadFilterOptionsAndPreferences();
   }, [countryId, user, onFilterChange, toast]);
 
-  // Filter change handler
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
     console.log("BanknoteFilterCatalog: Filter change requested:", newFilters);
     
-    // Always add the countryId to filter changes
     const filtersWithCountryId = {
       ...newFilters,
       country_id: countryId
     };
     
-    // Pass changes to parent component
     onFilterChange(filtersWithCountryId);
   };
 
-  // Save filter preferences to the database
   const handleSaveFilters = async () => {
     if (!user?.id || !countryId) {
       toast({
@@ -187,7 +169,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
       setIsSaving(true);
       console.log("BanknoteFilterCatalog: Saving filter preferences to database", currentFilters);
 
-      // Map sort field names back to IDs
       const sortOptionIds = currentFilters.sort
         .map(fieldName => {
           const option = sortOptions.find(opt => opt.fieldName === fieldName);
@@ -227,17 +208,39 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     }
   };
 
+  const toggleViewMode = () => {
+    const newMode = viewMode === 'grid' ? 'list' : 'grid';
+    setViewMode(newMode);
+    onViewModeChange?.(newMode);
+  };
+
   return (
-    <BaseBanknoteFilter
-      categories={categories}
-      types={types}
-      sortOptions={sortOptions}
-      onFilterChange={handleFilterChange}
-      currentFilters={currentFilters}
-      isLoading={isLoading || loading || isSaving}
-      className={className}
-      onSaveFilters={handleSaveFilters}
-      saveButtonText={isSaving ? "Saving..." : "Save Filter Preferences"}
-    />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <BaseBanknoteFilter
+          categories={categories}
+          types={types}
+          sortOptions={sortOptions}
+          onFilterChange={handleFilterChange}
+          currentFilters={currentFilters}
+          isLoading={isLoading || loading || isSaving}
+          className={className}
+          onSaveFilters={handleSaveFilters}
+          saveButtonText={isSaving ? "Saving..." : "Save Filter Preferences"}
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleViewMode}
+          className="ml-2"
+        >
+          {viewMode === 'grid' ? (
+            <LayoutList className="h-4 w-4" />
+          ) : (
+            <LayoutGrid className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+    </div>
   );
 };
