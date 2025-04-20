@@ -10,6 +10,7 @@ import {
   fetchUserFilterPreferences 
 } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface BanknoteFilterCatalogProps {
   countryId: string;
@@ -212,7 +213,11 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className={cn(
+      "w-full space-y-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-4",
+      "sticky top-16 inset-x-0",
+      className
+    )}>
       <BaseBanknoteFilter
         categories={categories}
         types={types}
