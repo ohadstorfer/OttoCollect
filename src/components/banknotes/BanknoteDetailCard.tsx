@@ -48,7 +48,7 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
 
       <div className="relative">
         {/* Top Header Section */}
-        <div className="pt-2 pr-2 pb-4 pl-2 border-b">
+        <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
           {/* Title + Plus Button */}
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
