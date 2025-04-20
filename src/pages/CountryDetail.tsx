@@ -193,7 +193,7 @@ const CountryDetail = () => {
   }, [banknotes, filters.sort]);
 
   return (
-    <div className="container py-8">
+    <div className="w-full px-2 sm:px-6 py-8">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" onClick={handleBack} className="p-2">
           <ArrowLeft className="h-5 w-5" />
@@ -201,7 +201,7 @@ const CountryDetail = () => {
         <h1 className="text-3xl font-bold">{decodedCountryName} Banknotes</h1>
       </div>
 
-      <div className="bg-card border rounded-lg p-6 mb-6">
+      <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
         {/* Filter component */}
         {countryId && (
           <BanknoteFilterCatalog
@@ -242,7 +242,7 @@ const CountryDetail = () => {
                               {sultanGroup.sultan}
                             </h3>
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 px-2 sm:px-0">
                             {sultanGroup.items.map((banknote, index) => (
                               <BanknoteDetailCard
                                 key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
@@ -256,7 +256,7 @@ const CountryDetail = () => {
                     </div>
                   ) : (
                     /* Display banknotes in a grid without sultan grouping */
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 px-2 sm:px-0">
                       {group.items.map((banknote, index) => (
                         <BanknoteDetailCard
                           key={`banknote-${group.category}-${index}`}

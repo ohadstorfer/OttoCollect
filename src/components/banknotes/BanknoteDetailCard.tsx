@@ -48,7 +48,7 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
 
       <div className="relative">
         {/* Top Header Section */}
-        <div className="pt-2 pr-4 pb-4 pl-4 border-b">
+        <div className="pt-2 pr-2 pb-4 pl-2 border-b">
           {/* Title + Plus Button */}
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
@@ -58,7 +58,7 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
           </div>
 
           {/* Info Bar / Badges */}
-          <div className=" flex flex-wrap gap-1.5 items-center text-sm">
+          <div className=" sm:px-0 flex flex-wrap gap-1.5 items-center text-sm">
             {banknote.extendedPickNumber && (
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                 {banknote.extendedPickNumber}
@@ -75,7 +75,10 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
               </Badge>
             )}
             {banknote.rarity && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0">
+              <Badge
+                variant="secondary"
+                className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
+              >
                 {banknote.rarity}
               </Badge>
             )}
@@ -103,12 +106,12 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
         {/* Footer Info */}
         <div className="p-3 bg-background border-t">
           {banknote.sultanName && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Sultan: {banknote.sultanName}
             </p>
           )}
           {banknote.sealNames && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Seals: {banknote.sealNames}
             </p>
           )}
