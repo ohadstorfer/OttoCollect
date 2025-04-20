@@ -10,8 +10,6 @@ import {
   fetchUserFilterPreferences 
 } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { LayoutGrid, LayoutList } from "lucide-react";
 
 interface BanknoteFilterCatalogProps {
   countryId: string;
@@ -208,10 +206,9 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     }
   };
 
-  const toggleViewMode = () => {
-    const newMode = viewMode === 'grid' ? 'list' : 'grid';
-    setViewMode(newMode);
-    onViewModeChange?.(newMode);
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    onViewModeChange?.(mode);
   };
 
   return (
@@ -227,7 +224,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
         onSaveFilters={handleSaveFilters}
         saveButtonText={isSaving ? "Saving..." : "Save Filter Preferences"}
         viewMode={viewMode}
-        onViewModeChange={onViewModeChange}
+        onViewModeChange={handleViewModeChange}
       />
     </div>
   );

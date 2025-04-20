@@ -40,7 +40,8 @@ const CountryDetail = () => {
     countryId, 
     loading, 
     banknotes: banknotes.length,
-    filters
+    filters,
+    viewMode
   });
   
   useEffect(() => {
@@ -137,6 +138,11 @@ const CountryDetail = () => {
     navigate('/catalog');
   };
 
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    console.log("CountryDetail: View mode changed to", mode);
+    setViewMode(mode);
+  };
+
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
     
@@ -179,10 +185,6 @@ const CountryDetail = () => {
     return Array.from(categoryMap.values())
       .sort((a, b) => a.category.localeCompare(b.category));
   }, [banknotes, filters.sort]);
-
-  const handleViewModeChange = (mode: 'grid' | 'list') => {
-    setViewMode(mode);
-  };
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
