@@ -44,32 +44,47 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
       onMouseLeave={() => setIsHovering(false)}
       onClick={handleCardClick}
     >
+
+
       <div className="relative">
         {/* Top Header Section */}
         <div className="flex justify-between items-start p-4 border-b">
-          <h3 className="text-2xl font-bold">{banknote.denomination}</h3>
+          {/* Left Section: Title and Info Bar */}
+          <div className="flex flex-col">
+            <h4 className=" font-bold">{banknote.denomination}</h4>
+
+            {/* Info Bar */}
+            <div className="mt-1 px-0   flex flex-wrap gap-2 items-center text-sm">
+              {banknote.extendedPickNumber && (
+                <Badge variant="secondary" className="bg-muted text-muted-foreground border border-gray-300">
+                  {banknote.extendedPickNumber}
+                </Badge>
+              )}
+              {banknote.pickNumber && (
+                <Badge variant="secondary" className="bg-muted text-muted-foreground border border-gray-300">
+                  {banknote.turkCatalogNumber}
+                </Badge>
+              )}
+              {banknote.year && (
+                <Badge variant="secondary" className="bg-muted text-muted-foreground border border-gray-300">
+                  {banknote.year}
+                </Badge>
+              )}
+              {banknote.rarity && (
+                <Badge variant="secondary" className="bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200">
+                  {banknote.rarity}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Right Section: Button */}
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Plus className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Info Bar */}
-        <div className="px-4 py-2 bg-muted/20 flex flex-wrap gap-2 items-center text-sm">
-          {banknote.pickNumber && (
-            <span className="whitespace-nowrap">Pick: {banknote.pickNumber}</span>
-          )}
-          {banknote.extendedPickNumber && (
-            <span className="whitespace-nowrap">Turk: {banknote.extendedPickNumber}</span>
-          )}
-          {banknote.year && (
-            <span className="whitespace-nowrap">{banknote.year}</span>
-          )}
-          {banknote.rarity && (
-            <Badge variant="secondary" className="bg-red-100 text-red-800 hover:bg-red-200">
-              {banknote.rarity}
-            </Badge>
-          )}
-        </div>
+
 
         {/* Image Section */}
         <div className={cn(
@@ -87,7 +102,7 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
         </div>
 
         {/* Footer Info */}
-        <div className="p-4 bg-background border-t">
+        <div className="p-3 bg-background border-t">
           {banknote.sultanName && (
             <p className="text-sm text-muted-foreground">
               Sultan: {banknote.sultanName}

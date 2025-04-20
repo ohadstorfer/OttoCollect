@@ -6,7 +6,7 @@ import { UserRank } from "@/types"
 import { Shield, Award, Star } from "lucide-react"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
+  "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-gray-400",
   {
     variants: {
       variant: {
