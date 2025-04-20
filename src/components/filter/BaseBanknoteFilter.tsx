@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
@@ -17,6 +16,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { withHighlight } from "./withHighlight";
+import { Layout, LayoutGrid, LayoutList } from "lucide-react";
 
 export type FilterOption = {
   id: string;
@@ -36,6 +36,8 @@ export type BaseBanknoteFilterProps = {
   className?: string;
   onSaveFilters?: () => void;
   saveButtonText?: string;
+  viewMode?: 'grid' | 'list';
+  onViewModeChange?: (mode: 'grid' | 'list') => void;
 };
 
 export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
@@ -47,19 +49,19 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   isLoading = false,
   className,
   onSaveFilters,
-  saveButtonText = "Save Filter Preferences"
+  saveButtonText = "Save Filter Preferences",
+  viewMode = 'grid',
+  onViewModeChange
 }) => {
   const isMobile = useIsMobile();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   
-  // Local state for user selections
   const [search, setSearch] = useState(currentFilters.search || "");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
   const [selectedSort, setSelectedSort] = useState<string[]>(currentFilters.sort || []);
   
-  // Used to track local changes vs. external changes
   const isLocalChange = useRef(false);
   const prevFiltersRef = useRef<DynamicFilterState | null>(null);
 
@@ -71,7 +73,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     localState: { search, selectedCategories, selectedTypes, selectedSort }
   });
 
-  // Sync from external state only if it's different and not in the middle of a local change
   useEffect(() => {
     if (isLocalChange.current) {
       console.log("BaseBanknoteFilter: Skipping sync due to local changes being applied");
@@ -114,19 +115,16 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     [onFilterChange]
   );
 
-  // Notify parent component of filter changes
   const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
     console.log("BaseBanknoteFilter: Local filter change:", changes);
     
     isLocalChange.current = true;
     
-    // Update local state
     if (changes.search !== undefined) setSearch(changes.search);
     if (changes.categories !== undefined) setSelectedCategories(changes.categories);
     if (changes.types !== undefined) setSelectedTypes(changes.types);
     if (changes.sort !== undefined) setSelectedSort(changes.sort);
     
-    // Create a complete filter state with current local values + changes
     const newFilters = {
       search: changes.search !== undefined ? changes.search : search,
       categories: changes.categories !== undefined ? changes.categories : selectedCategories,
@@ -135,13 +133,10 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       country_id: currentFilters.country_id
     };
     
-    // Update the prevFiltersRef to avoid unnecessary syncs
     prevFiltersRef.current = { ...newFilters };
     
-    // Notify parent of changes
     onFilterChange(newFilters);
     
-    // Reset the local change flag after a short delay
     setTimeout(() => {
       isLocalChange.current = false;
     }, 200);
@@ -189,32 +184,27 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     
     const fieldName = sortOption.fieldName;
     
-    // Get required sort fields
     const requiredSortFields = sortOptions
       .filter(option => option.isRequired)
       .map(option => option.fieldName)
       .filter(Boolean) as string[];
     
-    // Create new sort array
     let newSort: string[];
     
     if (checked) {
-      // If checked, add this field (if not already present)
       if (!selectedSort.includes(fieldName)) {
         newSort = [...selectedSort, fieldName];
       } else {
-        newSort = [...selectedSort]; // Keep as is
+        newSort = [...selectedSort];
       }
     } else {
-      // If unchecked, remove this field (unless required)
       if (!requiredSortFields.includes(fieldName)) {
         newSort = selectedSort.filter(field => field !== fieldName);
       } else {
-        newSort = [...selectedSort]; // Keep as is for required fields
+        newSort = [...selectedSort];
       }
     }
     
-    // Ensure required fields are always included
     requiredSortFields.forEach(reqField => {
       if (!newSort.includes(reqField)) {
         newSort.push(reqField);
@@ -232,7 +222,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     debouncedSearch(value);
   };
 
-  // Apply current local filter state
   const applyFilters = () => {
     console.log("BaseBanknoteFilter: Applying all filters explicitly");
     handleFilterChange({
@@ -244,16 +233,13 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   };
 
   const handleSaveClick = () => {
-    // First apply the filters to ensure we're using the latest state
     applyFilters();
     
-    // Then call the parent's save function if provided
     if (onSaveFilters) {
       console.log("BaseBanknoteFilter: Calling onSaveFilters");
       onSaveFilters();
     }
     
-    // Close the sheets
     setIsCategorySheetOpen(false);
     setIsSortSheetOpen(false);
   };
@@ -267,17 +253,32 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   return (
     <div className={cn(
       "w-full space-y-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-4",
-      "sticky top-[64px] md:top-[72px] inset-x-0",
+      "sticky top-16 inset-x-0",
       className
     )}>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input
-          placeholder="Search banknotes..."
-          value={search}
-          onChange={handleSearchChange}
-          className="pl-10"
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search banknotes..."
+            value={search}
+            onChange={handleSearchChange}
+            className="pl-10"
+          />
+        </div>
+        {onViewModeChange && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onViewModeChange(viewMode === 'grid' ? 'list' : 'grid')}
+          >
+            {viewMode === 'grid' ? (
+              <LayoutList className="h-4 w-4" />
+            ) : (
+              <LayoutGrid className="h-4 w-4" />
+            )}
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">

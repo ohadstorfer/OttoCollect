@@ -216,31 +216,19 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <BaseBanknoteFilter
-          categories={categories}
-          types={types}
-          sortOptions={sortOptions}
-          onFilterChange={handleFilterChange}
-          currentFilters={currentFilters}
-          isLoading={isLoading || loading || isSaving}
-          className={className}
-          onSaveFilters={handleSaveFilters}
-          saveButtonText={isSaving ? "Saving..." : "Save Filter Preferences"}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleViewMode}
-          className="ml-2"
-        >
-          {viewMode === 'grid' ? (
-            <LayoutList className="h-4 w-4" />
-          ) : (
-            <LayoutGrid className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
+      <BaseBanknoteFilter
+        categories={categories}
+        types={types}
+        sortOptions={sortOptions}
+        onFilterChange={handleFilterChange}
+        currentFilters={currentFilters}
+        isLoading={isLoading || loading || isSaving}
+        className={className}
+        onSaveFilters={handleSaveFilters}
+        saveButtonText={isSaving ? "Saving..." : "Save Filter Preferences"}
+        viewMode={viewMode}
+        onViewModeChange={onViewModeChange}
+      />
     </div>
   );
 };
