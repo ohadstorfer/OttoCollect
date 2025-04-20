@@ -58,7 +58,7 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
           </div>
 
           {/* Info Bar / Badges */}
-          <div className=" sm:px-0 flex flex-wrap gap-1.5 items-center text-sm">
+          <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
             {banknote.extendedPickNumber && (
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                 {banknote.extendedPickNumber}
