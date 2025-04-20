@@ -48,47 +48,46 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCard
 
       <div className="relative">
         {/* Top Header Section */}
-        <div className="flex justify-between items-start p-4 border-b">
-          {/* Left Section: Title and Info Bar */}
-          <div className="flex flex-col">
-            <h4 className=" font-bold">{banknote.denomination}</h4>
-
-            {/* Info Bar */}
-            <div className="mt-1 px-0   flex flex-wrap gap-2 items-center text-sm">
-              {banknote.extendedPickNumber && (
-                <Badge variant="secondary" className="bg-muted text-muted-foreground border border-gray-300">
-                  {banknote.extendedPickNumber}
-                </Badge>
-              )}
-              {banknote.pickNumber && (
-                <Badge variant="secondary" className="bg-muted text-muted-foreground border border-gray-300">
-                  {banknote.turkCatalogNumber}
-                </Badge>
-              )}
-              {banknote.year && (
-                <Badge variant="secondary" className="bg-muted text-muted-foreground border border-gray-300">
-                  {banknote.year}
-                </Badge>
-              )}
-              {banknote.rarity && (
-                <Badge variant="secondary" className="bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200">
-                  {banknote.rarity}
-                </Badge>
-              )}
-            </div>
+        <div className="pt-2 pr-4 pb-4 pl-4 border-b">
+          {/* Title + Plus Button */}
+          <div className="flex justify-between items-start">
+            <h4 className="font-bold">{banknote.denomination}</h4>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
 
-          {/* Right Section: Button */}
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Plus className="h-4 w-4" />
-          </Button>
+          {/* Info Bar / Badges */}
+          <div className=" flex flex-wrap gap-1.5 items-center text-sm">
+            {banknote.extendedPickNumber && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                {banknote.extendedPickNumber}
+              </Badge>
+            )}
+            {banknote.pickNumber && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                {banknote.turkCatalogNumber}
+              </Badge>
+            )}
+            {banknote.year && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                {banknote.year}
+              </Badge>
+            )}
+            {banknote.rarity && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0">
+                {banknote.rarity}
+              </Badge>
+            )}
+          </div>
         </div>
+
 
 
 
         {/* Image Section */}
         <div className={cn(
-          displayImage === "/placeholder.svg" ? "aspect-[4/2]" : "aspect-[4/3]",
+          displayImage === "/placeholder.svg" ? "aspect-[4/2]" : "aspect-[4/2]",
           "overflow-hidden"
         )}>
           <img
