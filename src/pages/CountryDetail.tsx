@@ -248,18 +248,26 @@ const CountryDetail = () => {
       return Number.MAX_SAFE_INTEGER;
     }
     
-    // Case-insensitive comparison
     const normalizedValue = value.toLowerCase().trim();
+    
     const field = sortFieldOrders.find(f => 
       String(f.name).toLowerCase().trim() === normalizedValue
     );
     
     if (field) {
-      console.log(`Found sort order for "${value}": ${field.display_order}`);
+      console.log(`Found exact sort order for "${value}": ${field.display_order}`);
       return field.display_order;
     }
     
-    console.log(`Sort value "${value}" not found in sort fields, using MAX_SAFE_INTEGER`);
+    for (const sortField of sortFieldOrders) {
+      if (normalizedValue.includes(sortField.name.toLowerCase().trim()) || 
+          String(sortField.name).toLowerCase().trim().includes(normalizedValue)) {
+        console.log(`Found partial match sort order for "${value}" with "${sortField.name}": ${sortField.display_order}`);
+        return sortField.display_order;
+      }
+    }
+    
+    console.log(`No match found for "${value}" in sort fields, using MAX_SAFE_INTEGER`);
     return Number.MAX_SAFE_INTEGER;
   }, [sortFieldOrders]);
 
@@ -304,6 +312,7 @@ const CountryDetail = () => {
                 const primarySort = filters.sort?.[0];
                 let aField = "";
                 let bField = "";
+                
                 if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
                   aField = a.denomination || a.face_value || "";
                   bField = b.denomination || b.face_value || "";
@@ -314,10 +323,16 @@ const CountryDetail = () => {
                   aField = a[primarySort] || "";
                   bField = b[primarySort] || "";
                 }
+                
                 const aOrder = getDynamicSortOrder(aField);
                 const bOrder = getDynamicSortOrder(bField);
-                if (aOrder !== bOrder) return aOrder - bOrder;
+                
+                if (aOrder !== bOrder) {
+                  console.log(`Sorting ${aField} (${aOrder}) vs ${bField} (${bOrder})`);
+                  return aOrder - bOrder;
+                }
               }
+              
               const aOrder = getCurrencyOrder(a.denomination || a.face_value);
               const bOrder = getCurrencyOrder(b.denomination || b.face_value);
               if (aOrder !== bOrder) return aOrder - bOrder;
@@ -325,17 +340,22 @@ const CountryDetail = () => {
               const aVal = parseFaceValue(a.denomination || a.face_value);
               const bVal = parseFaceValue(b.denomination || b.face_value);
               if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
+              
               return (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
             })
-          }))
-          .sort((a, b) => {
-            if (sortFieldOrders.length > 0) {
-              const aOrder = getDynamicSortOrder(a.sultan);
-              const bOrder = getDynamicSortOrder(b.sultan);
-              return aOrder - bOrder;
-            }
-            return a.sultan.localeCompare(b.sultan);
-          });
+          }));
+        
+        sultanGroups.sort((a, b) => {
+          const aOrder = getDynamicSortOrder(a.sultan);
+          const bOrder = getDynamicSortOrder(b.sultan);
+          
+          if (aOrder !== bOrder) {
+            console.log(`Sorting sultan groups: ${a.sultan} (${aOrder}) vs ${b.sultan} (${bOrder})`);
+            return aOrder - bOrder;
+          }
+          
+          return a.sultan.localeCompare(b.sultan);
+        });
 
         group.sultanGroups = sultanGroups;
       });
@@ -360,6 +380,7 @@ const CountryDetail = () => {
             const primarySort = filters.sort?.[0];
             let aField = "";
             let bField = "";
+            
             if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
               aField = a.denomination || a.face_value || "";
               bField = b.denomination || b.face_value || "";
@@ -370,10 +391,16 @@ const CountryDetail = () => {
               aField = a[primarySort] || "";
               bField = b[primarySort] || "";
             }
+            
             const aOrder = getDynamicSortOrder(aField);
             const bOrder = getDynamicSortOrder(bField);
-            if (aOrder !== bOrder) return aOrder - bOrder;
+            
+            if (aOrder !== bOrder) {
+              console.log(`Sorting ${aField} (${aOrder}) vs ${bField} (${bOrder})`);
+              return aOrder - bOrder;
+            }
           }
+          
           const aOrder = getCurrencyOrder(a.denomination || a.face_value);
           const bOrder = getCurrencyOrder(b.denomination || b.face_value);
           if (aOrder !== bOrder) return aOrder - bOrder;
@@ -381,6 +408,7 @@ const CountryDetail = () => {
           const aVal = parseFaceValue(a.denomination || a.face_value);
           const bVal = parseFaceValue(b.denomination || b.face_value);
           if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
+          
           return (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
         });
       });
