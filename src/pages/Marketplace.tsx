@@ -259,38 +259,36 @@ const Marketplace = () => {
               <div className="space-y-6">
                 {console.log(`Rendering marketplace with sultan groups. ${group.sultanGroups.length} sultans`)}
                 {[...group.sultanGroups]
-                  .slice() // avoid mutating the original
                   .sort((a, b) => {
                     const orderA = SULTAN_DISPLAY_ORDER[a.sultan] ?? 999;
                     const orderB = SULTAN_DISPLAY_ORDER[b.sultan] ?? 999;
-                    // If both sultans not in map, fall back to alpha
                     if (orderA === orderB) {
                       return a.sultan.localeCompare(b.sultan);
                     }
                     return orderA - orderB;
                   })
                   .map((sultanGroup, sultanIndex) => (
-                  <div key={`sultan-${sultanIndex}`} className="space-y-4">
-                    {console.log(`Rendering marketplace sultan group ${sultanIndex}: ${sultanGroup.sultan} with ${sultanGroup.items.length} items`)}
-                    <h3 className={`text-lg font-semibold pl-4 border-l-4 ${theme === 'light' ? 'border-ottoman-600 text-ottoman-700' : 'border-ottoman-400 text-ottoman-300'}`}>
-                      {sultanGroup.sultan}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {sultanGroup.items.map((item, index) => {
-                        console.log(`Rendering marketplace item card for index ${index}`);
-                        return (
-                          <div 
-                            key={`marketplace-item-${index}`}
-                            className="animate-fade-in"
-                            style={{ animationDelay: `${index * 100}ms` }}
-                          >
-                            <MarketplaceItem item={item} />
-                          </div>
-                        );
-                      })}
+                    <div key={`sultan-${sultanIndex}`} className="space-y-4">
+                      {console.log(`Rendering marketplace sultan group ${sultanIndex}: ${sultanGroup.sultan} with ${sultanGroup.items.length} items`)}
+                      <h3 className={`text-lg font-semibold pl-4 border-l-4 ${theme === 'light' ? 'border-ottoman-600 text-ottoman-700' : 'border-ottoman-400 text-ottoman-300'}`}>
+                        {sultanGroup.sultan}
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {sultanGroup.items.map((item, index) => {
+                          console.log(`Rendering marketplace item card for index ${index}`);
+                          return (
+                            <div
+                              key={`marketplace-item-${index}`}
+                              className="animate-fade-in"
+                              style={{ animationDelay: `${index * 100}ms` }}
+                            >
+                              <MarketplaceItem item={item} />
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -298,7 +296,7 @@ const Marketplace = () => {
                 {group.items.map((item, index) => {
                   console.log(`Rendering marketplace item card for index ${index}`);
                   return (
-                    <div 
+                    <div
                       key={`marketplace-item-${index}`}
                       className="animate-fade-in"
                       style={{ animationDelay: `${index * 100}ms` }}
