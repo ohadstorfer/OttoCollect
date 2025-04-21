@@ -88,6 +88,7 @@ export interface Banknote {
   type?: string; // Adding type for compatibility
   sultanName?: string; // Adding sultanName for compatibility
   extendedPickNumber?: string; // Adding extended pick number for compatibility
+  category?: string; // Adding category field for compatibility
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -102,7 +103,7 @@ export interface DetailedBanknote extends Banknote {
   securityFeatures?: string[];
   watermark?: string;
   signatures?: string[];
-  colors?: string[];
+  colors?: string | string[]; // Updated to accept either string or string array
   gradeCounts?: Record<BanknoteCondition, number>;
   averagePrice?: number;
   islamicYear?: string;
@@ -114,6 +115,7 @@ export interface DetailedBanknote extends Banknote {
   signaturesFront?: string;
   signaturesBack?: string;
   extendedPickNumber?: string;
+  face_value?: string; // Added for compatibility
 }
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
@@ -165,6 +167,15 @@ export interface MarketplaceItem {
   status: 'Available' | 'Reserved' | 'Sold';
   createdAt: string;
   updatedAt: string;
+}
+
+export interface WishlistItem {
+  id: string;
+  userId: string;
+  banknoteId: string;
+  note?: string;
+  priority: string;
+  createdAt?: string;
 }
 
 // Import and re-export types from other files
