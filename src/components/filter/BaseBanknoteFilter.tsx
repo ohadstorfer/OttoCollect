@@ -260,9 +260,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
   return (
     <div className={cn(
-      "w-full space-y-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-4",
-      "sticky top-16 inset-x-0",
-      className
+      "w-full space-y-1.5"
     )}>
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
