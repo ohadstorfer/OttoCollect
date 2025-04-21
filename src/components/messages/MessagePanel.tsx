@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +14,7 @@ interface MessagePanelProps {
   recipientId?: string;
   recipientData?: Partial<User>;
   isLoading?: boolean;
-  onSendMessage?: (message: Omit<Message, 'id' | 'createdAt'>) => Promise<boolean>;
+  onSendMessage?: (message: Partial<Message>) => Promise<boolean>;
   referenceItemId?: string;
 }
 

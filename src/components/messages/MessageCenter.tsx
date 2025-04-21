@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import useMessages from '@/hooks/use-messages';
 import { useAuth } from '@/context/AuthContext';
@@ -6,6 +7,7 @@ import MessagePanel from './MessagePanel';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, MessageCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { User } from '@/types';
 
 export function MessageCenter() {
   const { user } = useAuth();
@@ -85,7 +87,7 @@ export function MessageCenter() {
               messages={currentMessages}
               currentUserId={user?.id}
               recipientId={activeConversation}
-              recipientData={activeRecipientData}
+              recipientData={activeRecipientData as Partial<User>}
               isLoading={isLoading}
               onSendMessage={sendMessage}
             />

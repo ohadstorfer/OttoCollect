@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +9,7 @@ import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import { Input } from '@/components/ui/input';
 import BanknoteCard from '@/components/banknotes/BanknoteCard';
 import { Spinner } from '@/components/ui/spinner';
-import { CollectionItem, Banknote } from '@/types';
+import { CollectionItem, Banknote, WishlistItem } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { fetchUserCollection } from '@/services/collectionService';
 import { fetchBanknotes } from '@/services/banknoteService';
@@ -19,7 +20,7 @@ interface ProfileCollectionProps {
   userId: string;
   userCollection?: CollectionItem[];
   banknotes?: Banknote[];
-  wishlistItems?: any[];
+  wishlistItems?: WishlistItem[];
   collectionLoading?: boolean;
   isCurrentUser: boolean;
 }
@@ -45,11 +46,12 @@ const ProfileCollection = ({
     enabled: !initialCollection && !!userId
   });
 
-  const { data: banknotes, isLoading: bannoteLoading } = useQuery({
+  const { data: fetchedBanknotes, isLoading: bannoteLoading } = useQuery({
     queryKey: ['banknotes'],
     queryFn: async () => {
       return await fetchBanknotes();
-    }
+    },
+    enabled: !initialBanknotes
   });
 
   const { data: fetchedWishlist, isLoading: wishlistQueryLoading } = useQuery({
@@ -59,7 +61,7 @@ const ProfileCollection = ({
   });
 
   const userCollection = initialCollection || fetchedCollection || [];
-  const banknotes = initialBanknotes || banknotes || [];
+  const banknoteList = initialBanknotes || fetchedBanknotes || [];
   const wishlistItems = initialWishlist || fetchedWishlist || [];
   const collectionLoading = initialLoading || collectionQueryLoading || bannoteLoading || wishlistQueryLoading;
 
@@ -76,7 +78,7 @@ const ProfileCollection = ({
   };
 
   const filteredCollection = userCollection.filter(item => {
-    const banknote = banknotes?.find(b => b.id === item.banknoteId);
+    const banknote = banknoteList?.find(b => b.id === item.banknoteId);
     if (!banknote) return false;
 
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
@@ -86,7 +88,7 @@ const ProfileCollection = ({
     return matchesSearch;
   });
 
-  const missingItems = banknotes?.filter(banknote => 
+  const missingItems = banknoteList?.filter(banknote => 
     !userCollection.some(item => item.banknoteId === banknote.id)
   ) || [];
 
@@ -98,7 +100,7 @@ const ProfileCollection = ({
     return matchesSearch;
   });
 
-  const filteredCatalog = banknotes?.filter(banknote => {
+  const filteredCatalog = banknoteList?.filter(banknote => {
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
       banknote.country.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
       banknote.year.toLowerCase().includes(filter.searchTerm.toLowerCase());
@@ -126,7 +128,7 @@ const ProfileCollection = ({
         </TabsTrigger>
         <TabsTrigger value="catalog">
           <Info className="h-4 w-4 mr-2" />
-          Catalog ({banknotes?.length || 0})
+          Catalog ({banknoteList?.length || 0})
         </TabsTrigger>
         <TabsTrigger value="wishlist">
           <Star className="h-4 w-4 mr-2" />
@@ -163,7 +165,7 @@ const ProfileCollection = ({
         ) : filteredCollection.length > 0 ? (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredCollection.map(item => {
-              const banknote = banknotes?.find(b => b.id === item.banknoteId);
+              const banknote = banknoteList?.find(b => b.id === item.banknoteId);
               if (!banknote) return null;
 
               return (
@@ -249,7 +251,7 @@ const ProfileCollection = ({
           </div>
         ) : wishlistItems.length > 0 ? (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {wishlistItems.map((item: any) => {
+            {wishlistItems.map((item: WishlistItem) => {
               const banknote = item.detailed_banknotes;
               if (!banknote) return null;
 
