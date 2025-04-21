@@ -809,6 +809,38 @@ export type Database = {
         }
         Relationships: []
       }
+      sort_fields: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: number
+          name: string | null
+          sort_option: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: number
+          name?: string | null
+          sort_option?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: number
+          name?: string | null
+          sort_option?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sort_fields_sort_option_fkey"
+            columns: ["sort_option"]
+            isOneToOne: false
+            referencedRelation: "banknote_sort_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_badges: {
         Row: {
           awarded_at: string

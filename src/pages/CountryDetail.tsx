@@ -39,6 +39,8 @@ const CountryDetail = () => {
 
   const [currencies, setCurrencies] = useState<{ id: string, name: string, display_order: number }[]>([]);
 
+  const [sortFieldOrders, setSortFieldOrders] = useState<{ name: string; display_order: number }[]>([]);
+
   useEffect(() => {
     const loadCountryData = async () => {
       if (!decodedCountryName) {
@@ -136,6 +138,45 @@ const CountryDetail = () => {
     fetchBanknotesData();
   }, [countryId, filters, toast, filtersInitialized]);
 
+  useEffect(() => {
+    const loadSortFields = async () => {
+      const primarySort = filters.sort?.[0] || "";
+      if (!primarySort) {
+        setSortFieldOrders([]);
+        return;
+      }
+      try {
+        const { data: sortOptions, error: sortOptError } = await supabase
+          .from("banknote_sort_options")
+          .select("id,field_name")
+          .eq("field_name", primarySort)
+          .eq("country_id", countryId);
+        if (sortOptError || !sortOptions || sortOptions.length === 0) {
+          setSortFieldOrders([]);
+          return;
+        }
+        const optionId = sortOptions[0].id;
+        const { data: sortFields, error: sortFieldError } = await supabase
+          .from("sort_fields")
+          .select("name,display_order")
+          .eq("sort_option", optionId)
+          .order("display_order", { ascending: true });
+        if (sortFieldError || !sortFields) {
+          setSortFieldOrders([]);
+          return;
+        }
+        setSortFieldOrders(sortFields as { name: string; display_order: number }[]);
+      } catch (error) {
+        setSortFieldOrders([]);
+      }
+    };
+    if (countryId && filters.sort && filters.sort.length > 0) {
+      loadSortFields();
+    } else {
+      setSortFieldOrders([]);
+    }
+  }, [countryId, filters.sort]);
+
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     console.log("CountryDetail: Filter change", newFilters);
     
@@ -176,6 +217,15 @@ const CountryDetail = () => {
     return NaN;
   };
 
+  const getDynamicSortOrder = useCallback((value: string | undefined) => {
+    if (!value || sortFieldOrders.length === 0) return Number.MAX_SAFE_INTEGER;
+    const field = sortFieldOrders.find(f =>
+      value.toLowerCase() === String(f.name).toLowerCase()
+    );
+    if (field) return field.display_order;
+    return Number.MAX_SAFE_INTEGER;
+  }, [sortFieldOrders]);
+
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
 
@@ -213,6 +263,24 @@ const CountryDetail = () => {
           .map(([sultan, items]) => ({
             sultan,
             items: [...items].sort((a, b) => {
+              if (sortFieldOrders.length > 0) {
+                const primarySort = filters.sort?.[0];
+                let aField = "";
+                let bField = "";
+                if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
+                  aField = a.denomination || a.face_value || "";
+                  bField = b.denomination || b.face_value || "";
+                } else if (primarySort === "sultan") {
+                  aField = a.sultanName || "";
+                  bField = b.sultanName || "";
+                } else {
+                  aField = a[primarySort] || "";
+                  bField = b[primarySort] || "";
+                }
+                const aOrder = getDynamicSortOrder(aField);
+                const bOrder = getDynamicSortOrder(bField);
+                if (aOrder !== bOrder) return aOrder - bOrder;
+              }
               const aOrder = getCurrencyOrder(a.denomination || a.face_value);
               const bOrder = getCurrencyOrder(b.denomination || b.face_value);
               if (aOrder !== bOrder) return aOrder - bOrder;
@@ -244,6 +312,24 @@ const CountryDetail = () => {
     if (!groupBySultan) {
       groupArray.forEach(group => {
         group.items = [...group.items].sort((a, b) => {
+          if (sortFieldOrders.length > 0) {
+            const primarySort = filters.sort?.[0];
+            let aField = "";
+            let bField = "";
+            if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
+              aField = a.denomination || a.face_value || "";
+              bField = b.denomination || b.face_value || "";
+            } else if (primarySort === "sultan") {
+              aField = a.sultanName || "";
+              bField = b.sultanName || "";
+            } else {
+              aField = a[primarySort] || "";
+              bField = b[primarySort] || "";
+            }
+            const aOrder = getDynamicSortOrder(aField);
+            const bOrder = getDynamicSortOrder(bField);
+            if (aOrder !== bOrder) return aOrder - bOrder;
+          }
           const aOrder = getCurrencyOrder(a.denomination || a.face_value);
           const bOrder = getCurrencyOrder(b.denomination || b.face_value);
           if (aOrder !== bOrder) return aOrder - bOrder;
@@ -257,7 +343,16 @@ const CountryDetail = () => {
     }
 
     return groupArray;
-  }, [banknotes, filters.sort, categoryOrder, currencies]);
+  }, [
+    banknotes,
+    filters.sort,
+    categoryOrder,
+    currencies,
+    sortFieldOrders,
+    getDynamicSortOrder,
+    getCurrencyOrder,
+    parseFaceValue
+  ]);
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
