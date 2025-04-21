@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import useMessages from '@/hooks/use-messages';
 import { useAuth } from '@/context/AuthContext';
@@ -6,6 +7,7 @@ import MessagePanel from './MessagePanel';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, MessageCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { UserRank } from '@/types';
 
 export function MessageCenter() {
   const { user } = useAuth();
@@ -40,6 +42,12 @@ export function MessageCenter() {
   const activeRecipientData = activeConversation 
     ? conversations.find(c => c.otherUserId === activeConversation)?.otherUser 
     : undefined;
+    
+  // Convert string rank to UserRank
+  const typedRecipientData = activeRecipientData ? {
+    ...activeRecipientData,
+    rank: activeRecipientData.rank as UserRank
+  } : undefined;
 
   return (
     <div className="flex flex-col h-[calc(100vh-200px)] min-h-[500px] w-full rounded-lg border shadow-sm overflow-hidden bg-card">
@@ -85,7 +93,7 @@ export function MessageCenter() {
               messages={currentMessages}
               currentUserId={user?.id}
               recipientId={activeConversation}
-              recipientData={activeRecipientData}
+              recipientData={typedRecipientData}
               isLoading={isLoading}
               onSendMessage={sendMessage}
             />

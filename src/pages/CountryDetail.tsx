@@ -363,19 +363,19 @@ const CountryDetail = () => {
           let comparison = 0;
 
           if (fieldName === "faceValue") {
-            const aOrder = getCurrencyOrder(a.denomination || a.face_value);
-            const bOrder = getCurrencyOrder(b.denomination || b.face_value);
+            const aOrder = getCurrencyOrder(a.denomination || a.denomination);
+            const bOrder = getCurrencyOrder(b.denomination || b.denomination);
             if (aOrder !== bOrder) return aOrder - bOrder;
 
-            const aVal = parseFaceValue(a.denomination || a.face_value);
-            const bVal = parseFaceValue(b.denomination || b.face_value);
+            const aVal = parseFaceValue(a.denomination || a.denomination);
+            const bVal = parseFaceValue(b.denomination || b.denomination);
             if (!isNaN(aVal) && !isNaN(bVal) && aVal !== bVal) return aVal - bVal;
             
-            comparison = (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
+            comparison = (a.denomination || a.denomination || "").localeCompare(b.denomination || b.denomination || "");
           } 
           else if (fieldName === "extPick") {
-            comparison = String(a.extendedPickNumber || a.catalogId || a.extended_pick_number || "")
-              .localeCompare(String(b.extendedPickNumber || b.catalogId || b.extended_pick_number || ""));
+            comparison = String(a.extendedPickNumber || a.catalogId || a.extendedPickNumber || "")
+              .localeCompare(String(b.extendedPickNumber || b.catalogId || b.extendedPickNumber || ""));
           }
           else if (fieldName in a && fieldName in b) {
             const valueA = a[fieldName as keyof DetailedBanknote] || "";
@@ -389,8 +389,8 @@ const CountryDetail = () => {
           if (comparison !== 0) return comparison;
         }
 
-        return String(a.extendedPickNumber || a.catalogId || a.extended_pick_number || "")
-          .localeCompare(String(b.extendedPickNumber || b.catalogId || b.extended_pick_number || ""));
+        return String(a.extendedPickNumber || a.catalogId || a.extendedPickNumber || "")
+          .localeCompare(String(b.extendedPickNumber || b.catalogId || b.extendedPickNumber || ""));
       });
     }
   }, [

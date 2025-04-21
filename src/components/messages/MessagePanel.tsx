@@ -31,18 +31,15 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Use provided messages if available, otherwise fetch our own
   useEffect(() => {
     if (messages && messages.length > 0) {
       setLocalMessages(messages);
     } else if (currentUserId && recipientId && !onSendMessage) {
-      // Only fetch our own messages if we're not being provided messages and a send handler
       fetchMessages();
     }
   }, [messages, currentUserId, recipientId, onSendMessage]);
 
   useEffect(() => {
-    // Scroll to the bottom when messages change
     scrollToBottom();
   }, [localMessages, messages]);
 
@@ -76,7 +73,6 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
       isRead: msg.is_read,
       reference_item_id: msg.reference_item_id,
       
-      // Add alias properties for compatibility
       senderId: msg.sender_id,
       receiverId: msg.receiver_id,
       createdAt: msg.created_at
@@ -92,17 +88,16 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     if (!userId) return;
 
     if (onSendMessage) {
-      // Use the provided send function if available
       await onSendMessage({
         sender_id: userId,
         receiver_id: recipientId || '',
         content: newMessage.trim(),
         isRead: false,
-        reference_item_id: referenceItemId
+        reference_item_id: referenceItemId,
+        created_at: new Date().toISOString()
       });
       setNewMessage('');
     } else {
-      // Otherwise, handle sending ourselves
       const messageData = {
         sender_id: userId,
         receiver_id: recipientId || '',
@@ -134,7 +129,6 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     }
   };
 
-  // Determine which messages to display
   const displayMessages = messages && messages.length > 0 ? messages : localMessages;
   const effectiveUserId = currentUserId || user?.id;
 

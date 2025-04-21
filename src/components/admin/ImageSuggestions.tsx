@@ -32,6 +32,10 @@ interface ImageSuggestion {
   user_name?: string;
 }
 
+interface UserProfile {
+  username?: string;
+}
+
 interface ImageSuggestionsProps extends AdminComponentProps {}
 
 const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
@@ -59,7 +63,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
         .from('image_suggestions')
         .select(`
           *,
-          profiles:user_id(username)
+          profiles:user_id (username)
         `, { count: 'exact' });
       
       // Apply filters
@@ -103,12 +107,14 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             .eq('id', suggestion.banknote_id)
             .single();
           
+          const profiles = suggestion.profiles as UserProfile | null;
+          
           return {
             id: suggestion.id,
             banknote_id: suggestion.banknote_id,
             user_id: suggestion.user_id,
             image_url: suggestion.image_url,
-            type: suggestion.type,
+            type: suggestion.type as 'obverse' | 'reverse' | 'other',
             status: suggestion.status as 'pending' | 'approved' | 'rejected',
             created_at: suggestion.created_at,
             updated_at: suggestion.updated_at,
@@ -116,8 +122,8 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             banknote_catalog_id: banknoteData?.extended_pick_number || '',
             banknote_country: banknoteData?.country || '',
             banknote_denomination: banknoteData?.face_value || '',
-            user_name: suggestion.profiles?.username || 'Unknown'
-          };
+            user_name: profiles?.username || 'Unknown'
+          } as ImageSuggestion;
         })
       );
       
