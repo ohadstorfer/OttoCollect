@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -13,6 +12,15 @@ import { fetchCountryByName, fetchCategoriesByCountryId } from "@/services/count
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+
+const SULTAN_DISPLAY_ORDER: Record<string, number> = {
+  AbdulMecid: 1,
+  AbdulAziz: 2,
+  Murad: 3,
+  AbdulHamid: 4,
+  "M.Resad": 5,
+  "M.Vahdeddin": 6,
+};
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -152,7 +160,6 @@ const CountryDetail = () => {
       console.log("Loading sort option info for field:", primarySortField);
 
       try {
-        // 1. First, get the sort option ID for the selected field name
         const { data: sortOptions, error: sortOptError } = await supabase
           .from("banknote_sort_options")
           .select("id, field_name")
@@ -178,7 +185,6 @@ const CountryDetail = () => {
         console.log("Found sort option ID:", sortOptionId, "for field:", primarySortField);
         setActiveSortOptionId(sortOptionId);
 
-        // 2. Get all sort fields for this option ID
         const { data: fieldData, error: fieldError } = await supabase
           .from("sort_fields")
           .select("name, display_order")
@@ -248,16 +254,13 @@ const CountryDetail = () => {
     return NaN;
   };
 
-  // Get the display order for a value from the sort_fields table
   const getDisplayOrderFromSortFields = (value: string | undefined): number => {
     if (!value || sortFields.length === 0) {
-      return Number.MAX_SAFE_INTEGER; // Default to the end if no match
+      return Number.MAX_SAFE_INTEGER;
     }
 
-    // Normalize the input value for comparison
     const normalizedValue = value.trim().toLowerCase();
     
-    // First try exact match
     const exactMatch = sortFields.find(field => 
       field.name.trim().toLowerCase() === normalizedValue
     );
@@ -267,7 +270,6 @@ const CountryDetail = () => {
       return exactMatch.display_order;
     }
     
-    // Then try partial matches
     for (const field of sortFields) {
       const fieldNameLower = field.name.trim().toLowerCase();
       if (normalizedValue.includes(fieldNameLower) || fieldNameLower.includes(normalizedValue)) {
@@ -280,7 +282,6 @@ const CountryDetail = () => {
     return Number.MAX_SAFE_INTEGER;
   };
 
-  // GroupedItems implementation with proper sorting
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
 
@@ -314,12 +315,10 @@ const CountryDetail = () => {
           sultanMap.get(sultan).push(banknote);
         });
 
-        // Sort items within each sultan group using display_order
         const sultanGroups = Array.from(sultanMap.entries())
           .map(([sultan, items]) => ({
             sultan,
             items: [...items].sort((a, b) => {
-              // Primary sort by the selected sort field
               if (sortFields.length > 0) {
                 const primarySort = filters.sort?.[0];
                 let aField = "";
@@ -341,12 +340,10 @@ const CountryDetail = () => {
                 }
               }
               
-              // Secondary sort by currency
               const aOrder = getCurrencyOrder(a.denomination || a.face_value);
               const bOrder = getCurrencyOrder(b.denomination || b.face_value);
               if (aOrder !== bOrder) return aOrder - bOrder;
 
-              // Tertiary sort by face value
               const aVal = parseFaceValue(a.denomination || a.face_value);
               const bVal = parseFaceValue(b.denomination || b.face_value);
               if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
@@ -354,17 +351,11 @@ const CountryDetail = () => {
               return (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
             })
           }));
-        
-        // Sort sultan groups by display_order from sort_fields
+
         sultanGroups.sort((a, b) => {
-          const aOrder = getDisplayOrderFromSortFields(a.sultan);
-          const bOrder = getDisplayOrderFromSortFields(b.sultan);
-          
-          if (aOrder !== bOrder) {
-            console.log(`Sorting sultan groups: ${a.sultan} (${aOrder}) vs ${b.sultan} (${bOrder})`);
-            return aOrder - bOrder;
-          }
-          
+          const aOrder = SULTAN_DISPLAY_ORDER[a.sultan] || Number.MAX_SAFE_INTEGER;
+          const bOrder = SULTAN_DISPLAY_ORDER[b.sultan] || Number.MAX_SAFE_INTEGER;
+          if (aOrder !== bOrder) return aOrder - bOrder;
           return a.sultan.localeCompare(b.sultan);
         });
 
@@ -374,7 +365,6 @@ const CountryDetail = () => {
 
     const groupArray = Array.from(categoryMap.values());
 
-    // Sort categories by their display order
     if (categoryOrder.length > 0) {
       groupArray.sort((a, b) => {
         const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
@@ -385,11 +375,9 @@ const CountryDetail = () => {
       groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
 
-    // Sort items within each category if not grouping by sultan
     if (!groupBySultan) {
       groupArray.forEach(group => {
         group.items = [...group.items].sort((a, b) => {
-          // Primary sort by the selected sort field
           if (sortFields.length > 0) {
             const primarySort = filters.sort?.[0];
             let aField = "";
@@ -410,17 +398,14 @@ const CountryDetail = () => {
             const bOrder = getDisplayOrderFromSortFields(bField);
             
             if (aOrder !== bOrder) {
-              console.log(`Sorting ${aField} (${aOrder}) vs ${bField} (${bOrder})`);
               return aOrder - bOrder;
             }
           }
           
-          // Secondary sort by currency
           const aOrder = getCurrencyOrder(a.denomination || a.face_value);
           const bOrder = getCurrencyOrder(b.denomination || b.face_value);
           if (aOrder !== bOrder) return aOrder - bOrder;
 
-          // Tertiary sort by face value
           const aVal = parseFaceValue(a.denomination || a.face_value);
           const bVal = parseFaceValue(b.denomination || b.face_value);
           if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
