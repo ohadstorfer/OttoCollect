@@ -37,8 +37,7 @@ export type UserRank =
   | 'Master'
   | 'Grandmaster'
   | 'Admin'
-  | 'Super Admin'
-  | string; // Add string to make it more flexible
+  | 'Super Admin';
 
 // Update UserRole type to allow any string since roles are now dynamic
 export type UserRole = string;
@@ -91,17 +90,6 @@ export interface Banknote {
   extendedPickNumber?: string; // Adding extended pick number for compatibility
 }
 
-export interface SortField {
-  name: string;
-  display_order: number;
-}
-
-export interface Currency {
-  id: string;
-  name: string;
-  display_order: number;
-}
-
 export interface DetailedBanknote extends Banknote {
   pickNumber?: string;
   turkCatalogNumber?: string;
@@ -127,8 +115,8 @@ export interface DetailedBanknote extends Banknote {
   signaturesBack?: string;
   extendedPickNumber?: string;
   // Added fields for server-provided sort info
-  _sortFields?: SortField[];
-  _currencies?: Currency[];
+  _sortFields?: { name: string; display_order: number }[];
+  _currencies?: { id: string; name: string; display_order: number }[];
 }
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
@@ -180,32 +168,6 @@ export interface MarketplaceItem {
   status: 'Available' | 'Reserved' | 'Sold';
   createdAt: string;
   updatedAt: string;
-}
-
-// Add WishlistItem interface
-export interface WishlistItem {
-  id: string;
-  banknote_id: string;
-  user_id: string;
-  priority: string;
-  note?: string;
-  detailed_banknotes?: DetailedBanknote;
-  created_at: string;
-}
-
-// Define ImageSuggestion interface
-export interface ImageSuggestion {
-  id: string;
-  banknote_id: string;
-  banknote_catalog_id: string;
-  banknote_country: string;
-  banknote_denomination: string;
-  image_url: string;
-  image_type: 'front' | 'back' | 'other';
-  status: 'pending' | 'approved' | 'rejected';
-  submitted_by: string;
-  submitted_at: string;
-  user_name?: string;
 }
 
 // Import and re-export types from other files

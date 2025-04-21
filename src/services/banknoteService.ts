@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { DetailedBanknote, BanknoteFilters, SortField, Currency } from '@/types';
+import { DetailedBanknote, BanknoteFilters } from '@/types';
 
 export async function fetchBanknotes(filters?: BanknoteFilters): Promise<DetailedBanknote[]> {
   try {
@@ -164,12 +163,11 @@ export async function fetchBanknotesByCountryId(
               return [];
             }
             
-            // Map the database response to client model with sort fields
-            return data.map(item => {
-              const banknote = mapBanknoteFromDatabase(item);
-              banknote._sortFields = sultanSortFields as SortField[];
-              return banknote;
-            });
+            // Attach sort fields to the response for client-side ordering
+            return data.map(banknote => ({
+              ...banknote,
+              _sortFields: sultanSortFields
+            }));
           }
         } 
         // For currency/denomination sorting
@@ -177,7 +175,7 @@ export async function fetchBanknotesByCountryId(
           // Get currency display orders first
           const { data: currencies, error: currencyError } = await supabase
             .from('currencies')
-            .select('id, name, display_order')
+            .select('name, display_order')
             .eq('country_id', countryId)
             .order('display_order', { ascending: true });
           
@@ -204,13 +202,12 @@ export async function fetchBanknotesByCountryId(
             return [];
           }
           
-          // Map the database response to client model with sort fields and currencies
-          return data.map(item => {
-            const banknote = mapBanknoteFromDatabase(item);
-            banknote._sortFields = faceValueSortFields as SortField[] || [];
-            banknote._currencies = currencies as Currency[] || [];
-            return banknote;
-          });
+          // Return the data with sort fields and currencies for client-side sorting
+          return data.map(banknote => ({
+            ...banknote,
+            _sortFields: faceValueSortFields || [],
+            _currencies: currencies || []
+          }));
         }
         // For other sort options that can be handled with direct sorting
         else {
@@ -232,15 +229,14 @@ export async function fetchBanknotesByCountryId(
           
           if (sortFieldsError) {
             console.error("Error fetching sort fields:", sortFieldsError);
-            return data.map(item => mapBanknoteFromDatabase(item));
+            return data;
           }
           
-          // Map the database response to client model with sort fields
-          return data.map(item => {
-            const banknote = mapBanknoteFromDatabase(item);
-            banknote._sortFields = sortFields as SortField[] || [];
-            return banknote;
-          });
+          // Return data with attached sort fields for client-side sorting
+          return data.map(banknote => ({
+            ...banknote,
+            _sortFields: sortFields || []
+          }));
         }
       }
     }
@@ -254,7 +250,7 @@ export async function fetchBanknotesByCountryId(
     }
     
     console.log(`Fetched ${data.length} banknotes for country ID ${countryId}`);
-    return data.map(item => mapBanknoteFromDatabase(item));
+    return data;
   } catch (error) {
     console.error("Error in fetchBanknotesByCountryId:", error);
     return [];
@@ -354,7 +350,5 @@ function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     signaturesFront: item.signatures_front,
     signaturesBack: item.signatures_back,
     colors: item.colors,
-    _sortFields: item._sortFields,
-    _currencies: item._currencies
   } as DetailedBanknote;
 }

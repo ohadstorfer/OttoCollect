@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Table, 
@@ -15,7 +14,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { Search, Loader2, Check, X, Image as ImageIcon } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import { AdminComponentProps } from '@/types/admin';
-import { ImageSuggestion } from '@/types';
+
+interface ImageSuggestion {
+  id: string;
+  banknote_id: string;
+  banknote_catalog_id: string;
+  banknote_country: string;
+  banknote_denomination: string;
+  image_url: string;
+  image_type: 'front' | 'back' | 'other';
+  status: 'pending' | 'approved' | 'rejected';
+  submitted_by: string;
+  submitted_at: string;
+  user_name?: string;
+}
 
 interface ImageSuggestionsProps extends AdminComponentProps {}
 
@@ -42,27 +54,16 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
     try {
       let query = supabase
         .from('image_suggestions')
-        .select(`
-          id,
-          banknote_id,
-          image_url,
-          type,
-          status,
-          user_id,
-          created_at,
-          updated_at,
-          detailed_banknotes:banknote_id(id, extended_pick_number, country, face_value),
-          profiles:user_id(username)
-        `, { count: 'exact' });
+        .select('*, profiles!image_suggestions_submitted_by_fkey(username)', { count: 'exact' });
       
       // Apply filters
       if (searchQuery) {
-        query = query.or(`detailed_banknotes.extended_pick_number.ilike.%${searchQuery}%,detailed_banknotes.country.ilike.%${searchQuery}%`);
+        query = query.or(`banknote_catalog_id.ilike.%${searchQuery}%,banknote_country.ilike.%${searchQuery}%`);
       }
       
       // If in country admin mode, filter by country
       if (isCountryAdmin && countryName) {
-        query = query.eq('detailed_banknotes.country', countryName);
+        query = query.eq('banknote_country', countryName);
       }
       
       // Get count first
@@ -74,28 +75,26 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       // Then get paginated data
       const { data, error } = await query
         .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
-        .order('created_at', { ascending: false });
+        .order('submitted_at', { ascending: false });
       
       if (error) throw error;
-
+      
       // Transform data
-      if (data) {
-        const transformedData: ImageSuggestion[] = data.map(item => ({
-          id: item.id,
-          banknote_id: item.banknote_id,
-          banknote_catalog_id: item.detailed_banknotes?.extended_pick_number || '',
-          banknote_country: item.detailed_banknotes?.country || '',
-          banknote_denomination: item.detailed_banknotes?.face_value || '',
-          image_url: item.image_url,
-          image_type: item.type as 'front' | 'back' | 'other',
-          status: item.status as 'pending' | 'approved' | 'rejected',
-          submitted_by: item.user_id,
-          submitted_at: item.created_at,
-          user_name: item.profiles?.username
-        }));
-        
-        setSuggestions(transformedData);
-      }
+      const transformedData = data.map(item => ({
+        id: item.id,
+        banknote_id: item.banknote_id,
+        banknote_catalog_id: item.banknote_catalog_id,
+        banknote_country: item.banknote_country,
+        banknote_denomination: item.banknote_denomination,
+        image_url: item.image_url,
+        image_type: item.image_type,
+        status: item.status,
+        submitted_by: item.submitted_by,
+        submitted_at: item.submitted_at,
+        user_name: item.profiles?.username
+      }));
+      
+      setSuggestions(transformedData);
     } catch (error) {
       console.error('Error fetching image suggestions:', error);
       toast.error('Failed to load image suggestions');
