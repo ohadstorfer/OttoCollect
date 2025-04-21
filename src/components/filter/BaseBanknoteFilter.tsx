@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
@@ -263,17 +262,33 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       className
     )}>
       <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-1 w-full sm:max-w-[400px]">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search banknotes..."
-            value={search}
-            onChange={handleSearchChange}
-            className="pl-10"
-          />
+        <div className="flex gap-2 flex-1">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search banknotes..."
+              value={search}
+              onChange={handleSearchChange}
+              className="pl-10"
+            />
+          </div>
+          {onViewModeChange && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleViewMode}
+              aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+            >
+              {viewMode === 'grid' ? (
+                <LayoutList className="h-4 w-4" />
+              ) : (
+                <LayoutGrid className="h-4 w-4" />
+              )}
+            </Button>
+          )}
         </div>
         
-        <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-4">
+        <div className="grid grid-cols-2 sm:flex gap-2">
           <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
             <SheetTrigger asChild>
               <Button 
@@ -413,22 +428,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
               </div>
             </SheetContent>
           </Sheet>
-
-          {onViewModeChange && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleViewMode}
-              aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
-              className="ml-auto"
-            >
-              {viewMode === 'grid' ? (
-                <LayoutList className="h-4 w-4" />
-              ) : (
-                <LayoutGrid className="h-4 w-4" />
-              )}
-            </Button>
-          )}
         </div>
       </div>
     </div>
