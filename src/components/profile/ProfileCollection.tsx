@@ -1,87 +1,279 @@
-
-import React, { useState, useEffect } from 'react';
-import { CollectionItem } from '@/types';
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useNavigate } from 'react-router-dom';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Grid, PlusSquare, Search, Star, Info } from 'lucide-react';
+import CollectionItemCard from '@/components/collection/CollectionItemCard';
+import { Input } from '@/components/ui/input';
+import BanknoteCard from '@/components/banknotes/BanknoteCard';
+import { Spinner } from '@/components/ui/spinner';
+import { CollectionItem, Banknote } from '@/types';
+import { useQuery } from '@tanstack/react-query';
 import { fetchUserCollection } from '@/services/collectionService';
-import { useToast } from '@/hooks/use-toast';
+import { fetchBanknotes } from '@/services/banknoteService';
+import { fetchUserWishlist } from '@/services/wishlistService';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ProfileCollectionProps {
   userId: string;
+  userCollection?: CollectionItem[];
+  banknotes?: Banknote[];
+  wishlistItems?: any[];
+  collectionLoading?: boolean;
+  isCurrentUser: boolean;
 }
 
-const ProfileCollection: React.FC<ProfileCollectionProps> = ({ userId }) => {
-  const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+interface FilterState {
+  searchTerm: string;
+  isMissingOnly: boolean;
+}
 
-  useEffect(() => {
-    const loadCollection = async () => {
-      try {
-        setLoading(true);
-        const items = await fetchUserCollection(userId);
-        setCollectionItems(items);
-      } catch (error) {
-        console.error("Failed to load collection:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load user collection",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+const ProfileCollection = ({ 
+  userId, 
+  userCollection: initialCollection, 
+  banknotes: initialBanknotes, 
+  wishlistItems: initialWishlist, 
+  collectionLoading: initialLoading,
+  isCurrentUser
+}: ProfileCollectionProps) => {
+  const { theme } = useTheme();
+  
+  const { data: fetchedCollection, isLoading: collectionQueryLoading } = useQuery({
+    queryKey: ['userCollection', userId],
+    queryFn: () => fetchUserCollection(userId),
+    enabled: !initialCollection && !!userId
+  });
 
-    loadCollection();
-  }, [userId, toast]);
-
-  // Group banknotes by category
-  const groupedByCategoryItems = collectionItems.reduce((acc, item) => {
-    const category = item.banknote.category || 'Uncategorized';
-    if (!acc[category]) {
-      acc[category] = [];
+  const { data: banknotes, isLoading: bannoteLoading } = useQuery({
+    queryKey: ['banknotes'],
+    queryFn: async () => {
+      return await fetchBanknotes();
     }
-    acc[category].push(item);
-    return acc;
-  }, {} as Record<string, CollectionItem[]>);
+  });
 
-  // Get unique categories
-  const categories = Object.keys(groupedByCategoryItems);
+  const { data: fetchedWishlist, isLoading: wishlistQueryLoading } = useQuery({
+    queryKey: ['userWishlist', userId],
+    queryFn: () => fetchUserWishlist(userId),
+    enabled: !initialWishlist && !!userId
+  });
 
-  if (loading) {
-    return <div>Loading collection...</div>;
-  }
+  const userCollection = initialCollection || fetchedCollection || [];
+  const banknotes = initialBanknotes || banknotes || [];
+  const wishlistItems = initialWishlist || fetchedWishlist || [];
+  const collectionLoading = initialLoading || collectionQueryLoading || bannoteLoading || wishlistQueryLoading;
 
-  if (collectionItems.length === 0) {
-    return <div>This user has no banknotes in their collection.</div>;
-  }
+  const navigate = useNavigate();
+  const [filter, setFilter] = useState<FilterState>({ searchTerm: '', isMissingOnly: false });
+  const [activeTab, setActiveTab] = useState<"collection" | "missing" | "catalog" | "wishlist">("collection");
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilter(prev => ({ ...prev, searchTerm: e.target.value }));
+  };
+
+  const toggleMissingOnly = () => {
+    setFilter(prev => ({ ...prev, isMissingOnly: !prev.isMissingOnly }));
+  };
+
+  const filteredCollection = userCollection.filter(item => {
+    const banknote = banknotes?.find(b => b.id === item.banknoteId);
+    if (!banknote) return false;
+
+    const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
+      banknote.country.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
+      banknote.year.toLowerCase().includes(filter.searchTerm.toLowerCase());
+
+    return matchesSearch;
+  });
+
+  const missingItems = banknotes?.filter(banknote => 
+    !userCollection.some(item => item.banknoteId === banknote.id)
+  ) || [];
+
+  const filteredMissing = missingItems.filter(banknote => {
+    const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
+      banknote.country.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
+      banknote.year.toLowerCase().includes(filter.searchTerm.toLowerCase());
+
+    return matchesSearch;
+  });
+
+  const filteredCatalog = banknotes?.filter(banknote => {
+    const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
+      banknote.country.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
+      banknote.year.toLowerCase().includes(filter.searchTerm.toLowerCase());
+
+    return matchesSearch;
+  }) || [];
+
+  const emptyStateMessages = {
+    collection: "No items in collection yet.",
+    missing: "No missing items are being tracked.",
+    catalog: "No catalog entries match the current filters.",
+    wishlist: "No items on the wishlist yet."
+  };
 
   return (
-    <div className="space-y-8">
-      {categories.map(category => (
-        <div key={category} className="space-y-4">
-          <h3 className="text-lg font-medium">{category}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {groupedByCategoryItems[category].map(item => (
+    <Tabs defaultValue="collection" className="w-full" onValueChange={(value) => setActiveTab(value as "collection" | "missing" | "catalog" | "wishlist")}>
+      <TabsList className="grid w-full grid-cols-4">
+        <TabsTrigger value="collection">
+          <Grid className="h-4 w-4 mr-2" />
+          Collection ({userCollection.length})
+        </TabsTrigger>
+        <TabsTrigger value="missing">
+          <PlusSquare className="h-4 w-4 mr-2" />
+          Missing ({missingItems.length})
+        </TabsTrigger>
+        <TabsTrigger value="catalog">
+          <Info className="h-4 w-4 mr-2" />
+          Catalog ({banknotes?.length || 0})
+        </TabsTrigger>
+        <TabsTrigger value="wishlist">
+          <Star className="h-4 w-4 mr-2" />
+          Wishlist ({wishlistItems?.length || 0})
+        </TabsTrigger>
+      </TabsList>
+      <div className="mt-4 flex items-center justify-between">
+        <div className="flex-1">
+          <Input
+            type="search"
+            placeholder="Search denomination, country, year..."
+            value={filter.searchTerm}
+            onChange={handleSearchChange}
+            className={theme === 'light' ? 'bg-white/80' : ''}
+          />
+        </div>
+        {activeTab === "missing" && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-2"
+            onClick={toggleMissingOnly}
+          >
+            {filter.isMissingOnly ? "Show All" : "Show Missing Only"}
+          </Button>
+        )}
+      </div>
+
+      <TabsContent value="collection" className="mt-6">
+        {collectionLoading ? (
+          <div className="flex justify-center">
+            <Spinner />
+          </div>
+        ) : filteredCollection.length > 0 ? (
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredCollection.map(item => {
+              const banknote = banknotes?.find(b => b.id === item.banknoteId);
+              if (!banknote) return null;
+
+              return (
+                <CollectionItemCard
+                  key={item.id}
+                  item={item}
+                  banknote={banknote}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <Card className={`p-6 text-center ${theme === 'light' ? 'bg-white/90' : ''}`}>
+            <p>{emptyStateMessages.collection}</p>
+            {isCurrentUser && (
+              <Button onClick={() => navigate('/catalog')} className="mt-4">
+                Browse Catalog
+              </Button>
+            )}
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="missing" className="mt-6">
+        {collectionLoading ? (
+          <div className="flex justify-center">
+            <Spinner />
+          </div>
+        ) : filteredMissing.length > 0 ? (
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredMissing.map(banknote => (
               <div 
-                key={item.id} 
-                className="border rounded-md p-2 hover:shadow-md transition-shadow cursor-pointer"
+                key={banknote.id} 
+                onClick={() => navigate(`/banknote-details/${banknote.id}`)}
+                className="cursor-pointer"
               >
-                <div className="aspect-[3/2] overflow-hidden rounded mb-2">
-                  <img 
-                    src={item.obverseImage || item.banknote.imageUrls?.[0] || '/placeholder-banknote.png'} 
-                    alt={item.banknote.denomination} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <p className="font-medium truncate">{item.banknote.denomination}</p>
-                <p className="text-sm text-muted-foreground truncate">{item.banknote.country}, {item.condition}</p>
+                <BanknoteCard banknote={banknote} />
               </div>
             ))}
           </div>
-        </div>
-      ))}
-    </div>
+        ) : (
+          <Card className={`p-6 text-center ${theme === 'light' ? 'bg-white/90' : ''}`}>
+            <p>{emptyStateMessages.missing}</p>
+            {isCurrentUser && (
+              <Button onClick={() => navigate('/catalog')} className="mt-4">
+                Browse Catalog
+              </Button>
+            )}
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="catalog" className="mt-6">
+        {collectionLoading ? (
+          <div className="flex justify-center">
+            <Spinner />
+          </div>
+        ) : filteredCatalog.length > 0 ? (
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredCatalog.map(banknote => (
+              <BanknoteCard
+                key={banknote.id}
+                banknote={banknote}
+              />
+            ))}
+          </div>
+        ) : (
+          <Card className={`p-6 text-center ${theme === 'light' ? 'bg-white/90' : ''}`}>
+            <p>{emptyStateMessages.catalog}</p>
+            {isCurrentUser && (
+              <Button onClick={() => navigate('/catalog')}>
+                Browse Catalog
+              </Button>
+            )}
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="wishlist" className="mt-6">
+        {collectionLoading ? (
+          <div className="flex justify-center">
+            <Spinner />
+          </div>
+        ) : wishlistItems.length > 0 ? (
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {wishlistItems.map((item: any) => {
+              const banknote = item.detailed_banknotes;
+              if (!banknote) return null;
+
+              return (
+                <BanknoteCard
+                  key={item.id}
+                  banknote={banknote}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <Card className={`p-6 text-center ${theme === 'light' ? 'bg-white/90' : ''}`}>
+            <p>{emptyStateMessages.wishlist}</p>
+            {isCurrentUser && (
+              <Button onClick={() => navigate('/catalog')}>
+                Browse Catalog
+              </Button>
+            )}
+          </Card>
+        )}
+      </TabsContent>
+    </Tabs>
   );
 };
 
-export default ProfileCollection;
+export { ProfileCollection };

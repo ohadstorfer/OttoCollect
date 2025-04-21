@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Table, 
@@ -20,7 +21,7 @@ interface ImageSuggestion {
   banknote_id: string;
   user_id: string;
   image_url: string;
-  type: 'obverse' | 'reverse' | 'other'; // Restricted to these specific values
+  type: 'obverse' | 'reverse' | 'other'; // Matches database constraint
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
   updated_at: string;
@@ -58,7 +59,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
         .from('image_suggestions')
         .select(`
           *,
-          profiles(username)
+          profiles:user_id(username)
         `, { count: 'exact' });
       
       // Apply filters
@@ -69,6 +70,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       
       // If in country admin mode, filter by country
       if (isCountryAdmin && countryName) {
+        // We need to join with detailed_banknotes to filter by country
         // This will be done in post-processing
       }
       
@@ -106,7 +108,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             banknote_id: suggestion.banknote_id,
             user_id: suggestion.user_id,
             image_url: suggestion.image_url,
-            type: suggestion.type as 'obverse' | 'reverse' | 'other', // Cast to the appropriate type
+            type: suggestion.type,
             status: suggestion.status as 'pending' | 'approved' | 'rejected',
             created_at: suggestion.created_at,
             updated_at: suggestion.updated_at,
@@ -115,7 +117,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             banknote_country: banknoteData?.country || '',
             banknote_denomination: banknoteData?.face_value || '',
             user_name: suggestion.profiles?.username || 'Unknown'
-          } as ImageSuggestion; // Cast to ImageSuggestion to ensure type safety
+          };
         })
       );
       

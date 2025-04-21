@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -93,14 +92,13 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     if (!userId) return;
 
     if (onSendMessage) {
-      // Use the provided send function if available, ensuring the message has the correct type
+      // Use the provided send function if available
       await onSendMessage({
         sender_id: userId,
         receiver_id: recipientId || '',
         content: newMessage.trim(),
         isRead: false,
-        reference_item_id: referenceItemId,
-        created_at: new Date().toISOString() // Add created_at field that was missing
+        reference_item_id: referenceItemId
       });
       setNewMessage('');
     } else {

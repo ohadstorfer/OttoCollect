@@ -1,39 +1,45 @@
-import { User, UserRank } from "@/types";
+
 import { supabase } from "@/integrations/supabase/client";
+import { User, UserRole, UserRank } from "@/types";
+import { toast } from "sonner";
 
-export const fetchUserProfile = async (userId: string): Promise<User | null> => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+// Get a user profile by ID
+export async function getUserProfile(userId: string): Promise<User | null> {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
 
-  if (error) {
-    console.error("Error fetching user profile:", error);
+    if (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
+    }
+
+    if (!data) return null;
+
+    const userProfile: User = {
+      id: data.id,
+      username: data.username,
+      email: data.email,
+      role: data.role as UserRole,
+      rank: data.rank as UserRank,
+      points: data.points,
+      createdAt: data.created_at,
+      avatarUrl: data.avatar_url || '/placeholder-brown.svg',
+      ...(data.country && { country: data.country }),
+      ...(data.about && { about: data.about }),
+    };
+
+    return userProfile;
+  } catch (error) {
+    console.error("Error in getUserProfile:", error);
     return null;
   }
+}
 
-  if (!data) {
-    return null;
-  }
-
-  // Return a properly formatted User object with all required properties
-  return {
-    id: data.id,
-    username: data.username,
-    email: data.email,
-    role: data.role || "User",
-    role_id: data.role_id || "", // Add the missing role_id
-    rank: data.rank as UserRank,
-    points: data.points,
-    avatarUrl: data.avatar_url,
-    about: data.about || "",
-    country: data.country || "",
-    createdAt: data.created_at,
-    updatedAt: data.updated_at
-  };
-};
-
+// Update a user's profile
 export async function updateUserProfile(
   userId: string,
   updates: { about?: string | null; username?: string }
@@ -59,6 +65,7 @@ export async function updateUserProfile(
   }
 }
 
+// Upload a new avatar image
 export async function uploadAvatar(
   userId: string,
   file: File

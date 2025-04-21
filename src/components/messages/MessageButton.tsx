@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare } from "lucide-react";
-import { getUnreadMessagesCount, subscribeToMessages } from '@/services/messageService';
+import { getUnreadMessagesCount } from '@/services/messageService';
+import { subscribeToMessages } from '@/services/messageService';
 
 interface MessageButtonProps {
   userId?: string;

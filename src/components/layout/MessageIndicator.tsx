@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { MessageSquare } from 'lucide-react';
-import { getUnreadMessagesCount, subscribeToMessages } from '@/services/messageService';
+import { getUnreadMessagesCount } from '@/services/messageService';
+import { subscribeToMessages } from '@/services/messageService';
 import { useState, useEffect } from 'react';
 
 export function MessageIndicator() {
