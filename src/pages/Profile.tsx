@@ -1,13 +1,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getUserProfile } from "@/services/profileService";
+import { fetchUserProfile } from "@/services/profileService";
 import { Spinner } from "@/components/ui/spinner";
 import { User } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
-import { ProfileCollection } from "@/components/profile/ProfileCollection";
+import ProfileCollection from "@/components/profile/ProfileCollection";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ export default function Profile() {
       }
 
       setLoading(true);
-      const profileData = await getUserProfile(id);
+      const profileData = await fetchUserProfile(id);
       
       if (profileData) {
         setProfile(profileData);
