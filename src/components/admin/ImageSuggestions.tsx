@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Table, 
@@ -18,14 +19,16 @@ import { AdminComponentProps } from '@/types/admin';
 interface ImageSuggestion {
   id: string;
   banknote_id: string;
-  banknote_catalog_id: string;
-  banknote_country: string;
-  banknote_denomination: string;
+  user_id: string;
   image_url: string;
-  image_type: 'front' | 'back' | 'other';
+  type: 'obverse' | 'reverse' | 'other'; // Matches database constraint
   status: 'pending' | 'approved' | 'rejected';
-  submitted_by: string;
-  submitted_at: string;
+  created_at: string;
+  updated_at: string;
+  // Extended properties from join
+  banknote_catalog_id?: string;
+  banknote_country?: string;
+  banknote_denomination?: string;
   user_name?: string;
 }
 
@@ -54,16 +57,21 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
     try {
       let query = supabase
         .from('image_suggestions')
-        .select('*, profiles!image_suggestions_submitted_by_fkey(username)', { count: 'exact' });
+        .select(`
+          *,
+          profiles:user_id(username)
+        `, { count: 'exact' });
       
       // Apply filters
       if (searchQuery) {
-        query = query.or(`banknote_catalog_id.ilike.%${searchQuery}%,banknote_country.ilike.%${searchQuery}%`);
+        // We can only filter by fields in the image_suggestions table directly
+        query = query.ilike('type', `%${searchQuery}%`);
       }
       
       // If in country admin mode, filter by country
       if (isCountryAdmin && countryName) {
-        query = query.eq('banknote_country', countryName);
+        // We need to join with detailed_banknotes to filter by country
+        // This will be done in post-processing
       }
       
       // Get count first
@@ -75,26 +83,50 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       // Then get paginated data
       const { data, error } = await query
         .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
-        .order('submitted_at', { ascending: false });
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      // Transform data
-      const transformedData = data.map(item => ({
-        id: item.id,
-        banknote_id: item.banknote_id,
-        banknote_catalog_id: item.banknote_catalog_id,
-        banknote_country: item.banknote_country,
-        banknote_denomination: item.banknote_denomination,
-        image_url: item.image_url,
-        image_type: item.image_type,
-        status: item.status,
-        submitted_by: item.submitted_by,
-        submitted_at: item.submitted_at,
-        user_name: item.profiles?.username
-      }));
+      if (!data) {
+        setSuggestions([]);
+        setLoading(false);
+        return;
+      }
       
-      setSuggestions(transformedData);
+      // Get the banknote details for each suggestion
+      const suggestionsWithDetails = await Promise.all(
+        data.map(async (suggestion) => {
+          // Get banknote details
+          const { data: banknoteData } = await supabase
+            .from('detailed_banknotes')
+            .select('extended_pick_number, country, face_value')
+            .eq('id', suggestion.banknote_id)
+            .single();
+          
+          return {
+            id: suggestion.id,
+            banknote_id: suggestion.banknote_id,
+            user_id: suggestion.user_id,
+            image_url: suggestion.image_url,
+            type: suggestion.type,
+            status: suggestion.status as 'pending' | 'approved' | 'rejected',
+            created_at: suggestion.created_at,
+            updated_at: suggestion.updated_at,
+            // Joined data
+            banknote_catalog_id: banknoteData?.extended_pick_number || '',
+            banknote_country: banknoteData?.country || '',
+            banknote_denomination: banknoteData?.face_value || '',
+            user_name: suggestion.profiles?.username || 'Unknown'
+          };
+        })
+      );
+      
+      // If country filter is applied, filter locally
+      const filteredSuggestions = isCountryAdmin && countryName
+        ? suggestionsWithDetails.filter(s => s.banknote_country === countryName)
+        : suggestionsWithDetails;
+      
+      setSuggestions(filteredSuggestions);
     } catch (error) {
       console.error('Error fetching image suggestions:', error);
       toast.error('Failed to load image suggestions');
@@ -115,7 +147,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       const { error: banknoteError } = await supabase
         .from('detailed_banknotes')
         .update({
-          [suggestion.image_type === 'front' ? 'front_picture' : 'back_picture']: suggestion.image_url
+          [suggestion.type === 'obverse' ? 'front_picture' : 'back_picture']: suggestion.image_url
         })
         .eq('id', suggestion.banknote_id);
       
@@ -214,7 +246,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                           {suggestion.image_url ? (
                             <img 
                               src={suggestion.image_url} 
-                              alt={`${suggestion.image_type} of ${suggestion.banknote_catalog_id}`}
+                              alt={`${suggestion.type} of ${suggestion.banknote_catalog_id}`}
                               className="w-full h-full object-contain"
                             />
                           ) : (
@@ -228,7 +260,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                       <TableCell>{suggestion.banknote_country}</TableCell>
                       <TableCell>{suggestion.banknote_denomination}</TableCell>
                       <TableCell>
-                        <span className="capitalize">{suggestion.image_type}</span>
+                        <span className="capitalize">{suggestion.type}</span>
                       </TableCell>
                       <TableCell>{suggestion.user_name || 'Unknown'}</TableCell>
                       <TableCell>
