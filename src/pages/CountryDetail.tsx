@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { BanknoteFilterCatalog } from "@/components/filter/BanknoteFilterCatalog";
 import { DynamicFilterState } from "@/types/filter";
-import { fetchCountryByName } from "@/services/countryService";
+import { fetchCountryByName, fetchCategoriesByCountryId } from "@/services/countryService";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ const CountryDetail = () => {
   });
   
   const [filtersInitialized, setFiltersInitialized] = useState(false);
+  const [categoryOrder, setCategoryOrder] = useState<{ name: string, order: number }[]>([]);
   
   console.log("CountryDetail: Rendering with", { 
     country: decodedCountryName, 
@@ -41,7 +43,8 @@ const CountryDetail = () => {
     loading, 
     banknotes: banknotes.length,
     filters,
-    viewMode
+    viewMode,
+    categoryOrder
   });
   
   useEffect(() => {
@@ -73,6 +76,15 @@ const CountryDetail = () => {
           ...prev,
           country_id: countryData.id
         }));
+        
+        // Fetch category definitions to get their display order
+        const categories = await fetchCategoriesByCountryId(countryData.id);
+        const orderMap = categories.map(cat => ({
+          name: cat.name,
+          order: cat.display_order
+        }));
+        setCategoryOrder(orderMap);
+        console.log("CategoryOrder loaded:", orderMap);
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
         toast({
@@ -182,9 +194,26 @@ const CountryDetail = () => {
       });
     }
     
-    return Array.from(categoryMap.values())
-      .sort((a, b) => a.category.localeCompare(b.category));
-  }, [banknotes, filters.sort]);
+    // Get the categories from the map as an array
+    const groupArray = Array.from(categoryMap.values());
+    
+    // Sort the groups based on the category order we fetched earlier
+    if (categoryOrder.length > 0) {
+      groupArray.sort((a, b) => {
+        // Find the display order for each category
+        const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
+        const orderB = categoryOrder.find(c => c.name === b.category)?.order ?? Number.MAX_SAFE_INTEGER;
+        
+        // Sort by the display_order
+        return orderA - orderB;
+      });
+    } else {
+      // Fallback to alphabetical sort if no order is defined
+      groupArray.sort((a, b) => a.category.localeCompare(b.category));
+    }
+    
+    return groupArray;
+  }, [banknotes, filters.sort, categoryOrder]);
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
