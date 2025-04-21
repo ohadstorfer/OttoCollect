@@ -114,9 +114,6 @@ export interface DetailedBanknote extends Banknote {
   signaturesFront?: string;
   signaturesBack?: string;
   extendedPickNumber?: string;
-  // Added fields for server-provided sort info
-  _sortFields?: { name: string; display_order: number }[];
-  _currencies?: { id: string; name: string; display_order: number }[];
 }
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';

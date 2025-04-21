@@ -123,13 +123,6 @@ const CountryDetail = () => {
         
         const data = await fetchBanknotesByCountryId(countryId, filterParams);
         console.log("CountryDetail: Banknotes loaded:", data.length);
-        
-        // Check if we have sort fields from the server
-        if (data.length > 0 && data[0]._sortFields) {
-          console.log("Server provided sort fields:", data[0]._sortFields);
-          setSortFields(data[0]._sortFields);
-        }
-        
         setBanknotes(data);
         setLoading(false);
       } catch (error) {
@@ -146,6 +139,74 @@ const CountryDetail = () => {
     
     fetchBanknotesData();
   }, [countryId, filters, toast, filtersInitialized]);
+
+  useEffect(() => {
+    const loadSortOptionInfo = async () => {
+      if (!filters.sort || filters.sort.length === 0 || !countryId) {
+        setSortFields([]);
+        setActiveSortOptionId("");
+        return;
+      }
+
+      const primarySortField = filters.sort[0];
+      console.log("Loading sort option info for field:", primarySortField);
+
+      try {
+        // 1. First, get the sort option ID for the selected field name
+        const { data: sortOptions, error: sortOptError } = await supabase
+          .from("banknote_sort_options")
+          .select("id, field_name")
+          .eq("field_name", primarySortField)
+          .eq("country_id", countryId)
+          .limit(1);
+
+        if (sortOptError) {
+          console.error("Error fetching sort option:", sortOptError);
+          setSortFields([]);
+          setActiveSortOptionId("");
+          return;
+        }
+
+        if (!sortOptions || sortOptions.length === 0) {
+          console.log("No sort option found for field:", primarySortField);
+          setSortFields([]);
+          setActiveSortOptionId("");
+          return;
+        }
+
+        const sortOptionId = sortOptions[0].id;
+        console.log("Found sort option ID:", sortOptionId, "for field:", primarySortField);
+        setActiveSortOptionId(sortOptionId);
+
+        // 2. Get all sort fields for this option ID
+        const { data: fieldData, error: fieldError } = await supabase
+          .from("sort_fields")
+          .select("name, display_order")
+          .eq("sort_option", sortOptionId)
+          .order("display_order", { ascending: true });
+
+        if (fieldError) {
+          console.error("Error fetching sort fields:", fieldError);
+          setSortFields([]);
+          return;
+        }
+
+        if (fieldData && fieldData.length > 0) {
+          console.log(`Loaded ${fieldData.length} sort fields for option ID ${sortOptionId}:`, fieldData);
+          setSortFields(fieldData);
+        } else {
+          console.log("No sort fields found for option ID:", sortOptionId);
+          setSortFields([]);
+        }
+      } catch (error) {
+        console.error("Error in loadSortOptionInfo:", error);
+        setSortFields([]);
+        setActiveSortOptionId("");
+      }
+    };
+
+    loadSortOptionInfo();
+  }, [countryId, filters.sort]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     console.log("CountryDetail: Filter change", newFilters);
@@ -170,7 +231,24 @@ const CountryDetail = () => {
     setViewMode(mode);
   };
 
-  // Function to get the display order for a value from server-provided sort fields
+  const getCurrencyOrder = (denomination: string | undefined) => {
+    if (!denomination || currencies.length === 0) return Number.MAX_SAFE_INTEGER;
+    const currencyObj = currencies.find(
+      c => denomination.toLowerCase().includes(c.name.toLowerCase())
+    );
+    return currencyObj ? currencyObj.display_order : Number.MAX_SAFE_INTEGER;
+  };
+
+  const parseFaceValue = (denomination: string | undefined) => {
+    if (!denomination) return NaN;
+    const match = denomination.match(/(\d+(\.\d+)?)/);
+    if (match) {
+      return parseFloat(match[0]);
+    }
+    return NaN;
+  };
+
+  // Get the display order for a value from the sort_fields table
   const getDisplayOrderFromSortFields = (value: string | undefined): number => {
     if (!value || sortFields.length === 0) {
       return Number.MAX_SAFE_INTEGER; // Default to the end if no match
@@ -202,26 +280,7 @@ const CountryDetail = () => {
     return Number.MAX_SAFE_INTEGER;
   };
 
-  // Function to get currency display order from the currencies list
-  const getCurrencyOrder = (denomination: string | undefined) => {
-    if (!denomination || currencies.length === 0) return Number.MAX_SAFE_INTEGER;
-    const currencyObj = currencies.find(
-      c => denomination.toLowerCase().includes(c.name.toLowerCase())
-    );
-    return currencyObj ? currencyObj.display_order : Number.MAX_SAFE_INTEGER;
-  };
-
-  // Parse face value for sorting
-  const parseFaceValue = (denomination: string | undefined) => {
-    if (!denomination) return NaN;
-    const match = denomination.match(/(\d+(\.\d+)?)/);
-    if (match) {
-      return parseFloat(match[0]);
-    }
-    return NaN;
-  };
-
-  // GroupedItems implementation using server-provided sort fields
+  // GroupedItems implementation with proper sorting
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
 
@@ -261,29 +320,31 @@ const CountryDetail = () => {
             sultan,
             items: [...items].sort((a, b) => {
               // Primary sort by the selected sort field
-              const primarySort = filters.sort?.[0];
-              let aField = "";
-              let bField = "";
-              
-              if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
-                aField = a.denomination || a.face_value || "";
-                bField = b.denomination || b.face_value || "";
-              } else {
-                aField = a[primarySort] || "";
-                bField = b[primarySort] || "";
-              }
-              
-              const aOrder = getDisplayOrderFromSortFields(aField);
-              const bOrder = getDisplayOrderFromSortFields(bField);
-              
-              if (aOrder !== bOrder) {
-                return aOrder - bOrder;
+              if (sortFields.length > 0) {
+                const primarySort = filters.sort?.[0];
+                let aField = "";
+                let bField = "";
+                
+                if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
+                  aField = a.denomination || a.face_value || "";
+                  bField = b.denomination || b.face_value || "";
+                } else {
+                  aField = a[primarySort] || "";
+                  bField = b[primarySort] || "";
+                }
+                
+                const aOrder = getDisplayOrderFromSortFields(aField);
+                const bOrder = getDisplayOrderFromSortFields(bField);
+                
+                if (aOrder !== bOrder) {
+                  return aOrder - bOrder;
+                }
               }
               
               // Secondary sort by currency
-              const aOrder2 = getCurrencyOrder(a.denomination || a.face_value);
-              const bOrder2 = getCurrencyOrder(b.denomination || b.face_value);
-              if (aOrder2 !== bOrder2) return aOrder2 - bOrder2;
+              const aOrder = getCurrencyOrder(a.denomination || a.face_value);
+              const bOrder = getCurrencyOrder(b.denomination || b.face_value);
+              if (aOrder !== bOrder) return aOrder - bOrder;
 
               // Tertiary sort by face value
               const aVal = parseFaceValue(a.denomination || a.face_value);
@@ -329,33 +390,35 @@ const CountryDetail = () => {
       groupArray.forEach(group => {
         group.items = [...group.items].sort((a, b) => {
           // Primary sort by the selected sort field
-          const primarySort = filters.sort?.[0];
-          let aField = "";
-          let bField = "";
-          
-          if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
-            aField = a.denomination || a.face_value || "";
-            bField = b.denomination || b.face_value || "";
-          } else if (primarySort === "sultan") {
-            aField = a.sultanName || "";
-            bField = b.sultanName || "";
-          } else {
-            aField = a[primarySort] || "";
-            bField = b[primarySort] || "";
-          }
-          
-          const aOrder = getDisplayOrderFromSortFields(aField);
-          const bOrder = getDisplayOrderFromSortFields(bField);
-          
-          if (aOrder !== bOrder) {
-            console.log(`Sorting ${aField} (${aOrder}) vs ${bField} (${bOrder})`);
-            return aOrder - bOrder;
+          if (sortFields.length > 0) {
+            const primarySort = filters.sort?.[0];
+            let aField = "";
+            let bField = "";
+            
+            if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
+              aField = a.denomination || a.face_value || "";
+              bField = b.denomination || b.face_value || "";
+            } else if (primarySort === "sultan") {
+              aField = a.sultanName || "";
+              bField = b.sultanName || "";
+            } else {
+              aField = a[primarySort] || "";
+              bField = b[primarySort] || "";
+            }
+            
+            const aOrder = getDisplayOrderFromSortFields(aField);
+            const bOrder = getDisplayOrderFromSortFields(bField);
+            
+            if (aOrder !== bOrder) {
+              console.log(`Sorting ${aField} (${aOrder}) vs ${bField} (${bOrder})`);
+              return aOrder - bOrder;
+            }
           }
           
           // Secondary sort by currency
-          const aOrder2 = getCurrencyOrder(a.denomination || a.face_value);
-          const bOrder2 = getCurrencyOrder(b.denomination || b.face_value);
-          if (aOrder2 !== bOrder2) return aOrder2 - bOrder2;
+          const aOrder = getCurrencyOrder(a.denomination || a.face_value);
+          const bOrder = getCurrencyOrder(b.denomination || b.face_value);
+          if (aOrder !== bOrder) return aOrder - bOrder;
 
           // Tertiary sort by face value
           const aVal = parseFaceValue(a.denomination || a.face_value);
