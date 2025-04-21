@@ -248,19 +248,32 @@ const CountryDetail = () => {
 
   const getCurrencyOrder = (denomination: string | undefined) => {
     if (!denomination || currencies.length === 0) return Number.MAX_SAFE_INTEGER;
-    const currencyObj = currencies.find(
-      c => denomination.toLowerCase().includes(c.name.toLowerCase())
-    );
-    return currencyObj ? currencyObj.display_order : Number.MAX_SAFE_INTEGER;
+    
+    const denominationLower = denomination.toLowerCase();
+    
+    for (const currency of currencies) {
+      if (denominationLower.includes(currency.name.toLowerCase())) {
+        console.log(`Matched ${denomination} to currency ${currency.name} with order ${currency.display_order}`);
+        return currency.display_order;
+      }
+    }
+    
+    console.log(`No currency match found for ${denomination}, returning max order`);
+    return Number.MAX_SAFE_INTEGER;
   };
 
   const parseFaceValue = (denomination: string | undefined) => {
-    if (!denomination) return NaN;
+    if (!denomination) return 0;
+    
     const match = denomination.match(/(\d+(\.\d+)?)/);
     if (match) {
-      return parseFloat(match[0]);
+      const value = parseFloat(match[0]);
+      console.log(`Parsed value ${value} from ${denomination}`);
+      return value;
     }
-    return NaN;
+    
+    console.log(`No numeric value found in ${denomination}, returning 0`);
+    return 0;
   };
 
   const getDisplayOrderFromSortFields = (value: string | undefined): number => {
@@ -363,19 +376,25 @@ const CountryDetail = () => {
           let comparison = 0;
 
           if (fieldName === "faceValue") {
-            const aOrder = getCurrencyOrder(a.denomination || a.denomination);
-            const bOrder = getCurrencyOrder(b.denomination || b.denomination);
-            if (aOrder !== bOrder) return aOrder - bOrder;
-
-            const aVal = parseFaceValue(a.denomination || a.denomination);
-            const bVal = parseFaceValue(b.denomination || b.denomination);
-            if (!isNaN(aVal) && !isNaN(bVal) && aVal !== bVal) return aVal - bVal;
+            const aOrder = getCurrencyOrder(a.denomination);
+            const bOrder = getCurrencyOrder(b.denomination);
             
-            comparison = (a.denomination || a.denomination || "").localeCompare(b.denomination || b.denomination || "");
+            if (aOrder !== bOrder) {
+              return aOrder - bOrder;
+            }
+            
+            const aVal = parseFaceValue(a.denomination);
+            const bVal = parseFaceValue(b.denomination);
+            
+            if (aVal !== bVal) {
+              return aVal - bVal;
+            }
+            
+            comparison = (a.denomination || "").localeCompare(b.denomination || "");
           } 
           else if (fieldName === "extPick") {
-            comparison = String(a.extendedPickNumber || a.catalogId || a.extendedPickNumber || "")
-              .localeCompare(String(b.extendedPickNumber || b.catalogId || b.extendedPickNumber || ""));
+            comparison = (a.extendedPickNumber || a.catalogId || "")
+              .localeCompare(b.extendedPickNumber || b.catalogId || "");
           }
           else if (fieldName in a && fieldName in b) {
             const valueA = a[fieldName as keyof DetailedBanknote] || "";
@@ -389,16 +408,15 @@ const CountryDetail = () => {
           if (comparison !== 0) return comparison;
         }
 
-        return String(a.extendedPickNumber || a.catalogId || a.extendedPickNumber || "")
-          .localeCompare(String(b.extendedPickNumber || b.catalogId || b.extendedPickNumber || ""));
+        return (a.extendedPickNumber || a.catalogId || "")
+          .localeCompare(b.extendedPickNumber || b.catalogId || "");
       });
     }
   }, [
     banknotes,
     filters.sort,
     categoryOrder,
-    currencies,
-    sortFields
+    currencies
   ]);
 
   return (
