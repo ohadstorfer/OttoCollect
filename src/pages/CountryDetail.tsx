@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -39,7 +40,8 @@ const CountryDetail = () => {
 
   const [currencies, setCurrencies] = useState<{ id: string, name: string, display_order: number }[]>([]);
 
-  const [sortFieldOrders, setSortFieldOrders] = useState<{ name: string; display_order: number }[]>([]);
+  const [sortFields, setSortFields] = useState<{ name: string; display_order: number }[]>([]);
+  const [activeSortOptionId, setActiveSortOptionId] = useState<string>("");
 
   useEffect(() => {
     const loadCountryData = async () => {
@@ -139,67 +141,71 @@ const CountryDetail = () => {
   }, [countryId, filters, toast, filtersInitialized]);
 
   useEffect(() => {
-    const loadSortFields = async () => {
-      const primarySort = filters.sort?.[0] || "";
-      if (!primarySort || !countryId) {
-        setSortFieldOrders([]);
+    const loadSortOptionInfo = async () => {
+      if (!filters.sort || filters.sort.length === 0 || !countryId) {
+        setSortFields([]);
+        setActiveSortOptionId("");
         return;
       }
 
-      console.log("Loading sort fields for:", primarySort);
-      
+      const primarySortField = filters.sort[0];
+      console.log("Loading sort option info for field:", primarySortField);
+
       try {
+        // 1. First, get the sort option ID for the selected field name
         const { data: sortOptions, error: sortOptError } = await supabase
           .from("banknote_sort_options")
           .select("id, field_name")
-          .eq("field_name", primarySort)
-          .eq("country_id", countryId);
-          
+          .eq("field_name", primarySortField)
+          .eq("country_id", countryId)
+          .limit(1);
+
         if (sortOptError) {
-          console.error("Error loading sort options:", sortOptError);
-          setSortFieldOrders([]);
+          console.error("Error fetching sort option:", sortOptError);
+          setSortFields([]);
+          setActiveSortOptionId("");
           return;
         }
-        
+
         if (!sortOptions || sortOptions.length === 0) {
-          console.log("No sort options found for:", primarySort);
-          setSortFieldOrders([]);
+          console.log("No sort option found for field:", primarySortField);
+          setSortFields([]);
+          setActiveSortOptionId("");
           return;
         }
-        
-        const optionId = sortOptions[0].id;
-        console.log("Found sort option ID:", optionId);
-        
-        const { data: sortFields, error: sortFieldError } = await supabase
+
+        const sortOptionId = sortOptions[0].id;
+        console.log("Found sort option ID:", sortOptionId, "for field:", primarySortField);
+        setActiveSortOptionId(sortOptionId);
+
+        // 2. Get all sort fields for this option ID
+        const { data: fieldData, error: fieldError } = await supabase
           .from("sort_fields")
           .select("name, display_order")
-          .eq("sort_option", optionId)
+          .eq("sort_option", sortOptionId)
           .order("display_order", { ascending: true });
-          
-        if (sortFieldError) {
-          console.error("Error loading sort fields:", sortFieldError);
-          setSortFieldOrders([]);
+
+        if (fieldError) {
+          console.error("Error fetching sort fields:", fieldError);
+          setSortFields([]);
           return;
         }
-        
-        if (sortFields && sortFields.length > 0) {
-          console.log("Loaded sort fields:", sortFields);
-          setSortFieldOrders(sortFields as { name: string; display_order: number }[]);
+
+        if (fieldData && fieldData.length > 0) {
+          console.log(`Loaded ${fieldData.length} sort fields for option ID ${sortOptionId}:`, fieldData);
+          setSortFields(fieldData);
         } else {
-          console.log("No sort fields found for option ID:", optionId);
-          setSortFieldOrders([]);
+          console.log("No sort fields found for option ID:", sortOptionId);
+          setSortFields([]);
         }
       } catch (error) {
-        console.error("Error in loadSortFields:", error);
-        setSortFieldOrders([]);
+        console.error("Error in loadSortOptionInfo:", error);
+        setSortFields([]);
+        setActiveSortOptionId("");
       }
     };
-    
-    if (countryId && filters.sort && filters.sort.length > 0) {
-      loadSortFields();
-    } else {
-      setSortFieldOrders([]);
-    }
+
+    loadSortOptionInfo();
   }, [countryId, filters.sort]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
@@ -242,35 +248,39 @@ const CountryDetail = () => {
     return NaN;
   };
 
-  const getDynamicSortOrder = useCallback((value: string | undefined) => {
-    if (!value || sortFieldOrders.length === 0) {
-      console.log(`Sort value "${value}" not found in sort fields, using MAX_SAFE_INTEGER`);
-      return Number.MAX_SAFE_INTEGER;
+  // Get the display order for a value from the sort_fields table
+  const getDisplayOrderFromSortFields = (value: string | undefined): number => {
+    if (!value || sortFields.length === 0) {
+      return Number.MAX_SAFE_INTEGER; // Default to the end if no match
     }
+
+    // Normalize the input value for comparison
+    const normalizedValue = value.trim().toLowerCase();
     
-    const normalizedValue = value.toLowerCase().trim();
-    
-    const field = sortFieldOrders.find(f => 
-      String(f.name).toLowerCase().trim() === normalizedValue
+    // First try exact match
+    const exactMatch = sortFields.find(field => 
+      field.name.trim().toLowerCase() === normalizedValue
     );
     
-    if (field) {
-      console.log(`Found exact sort order for "${value}": ${field.display_order}`);
-      return field.display_order;
+    if (exactMatch) {
+      console.log(`Found exact display order for "${value}": ${exactMatch.display_order}`);
+      return exactMatch.display_order;
     }
     
-    for (const sortField of sortFieldOrders) {
-      if (normalizedValue.includes(sortField.name.toLowerCase().trim()) || 
-          String(sortField.name).toLowerCase().trim().includes(normalizedValue)) {
-        console.log(`Found partial match sort order for "${value}" with "${sortField.name}": ${sortField.display_order}`);
-        return sortField.display_order;
+    // Then try partial matches
+    for (const field of sortFields) {
+      const fieldNameLower = field.name.trim().toLowerCase();
+      if (normalizedValue.includes(fieldNameLower) || fieldNameLower.includes(normalizedValue)) {
+        console.log(`Found partial match display order for "${value}" with "${field.name}": ${field.display_order}`);
+        return field.display_order;
       }
     }
     
-    console.log(`No match found for "${value}" in sort fields, using MAX_SAFE_INTEGER`);
+    console.log(`No display order found for "${value}" in sort fields, using MAX_SAFE_INTEGER`);
     return Number.MAX_SAFE_INTEGER;
-  }, [sortFieldOrders]);
+  };
 
+  // GroupedItems implementation with proper sorting
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
 
@@ -304,11 +314,13 @@ const CountryDetail = () => {
           sultanMap.get(sultan).push(banknote);
         });
 
+        // Sort items within each sultan group using display_order
         const sultanGroups = Array.from(sultanMap.entries())
           .map(([sultan, items]) => ({
             sultan,
             items: [...items].sort((a, b) => {
-              if (sortFieldOrders.length > 0) {
+              // Primary sort by the selected sort field
+              if (sortFields.length > 0) {
                 const primarySort = filters.sort?.[0];
                 let aField = "";
                 let bField = "";
@@ -316,27 +328,25 @@ const CountryDetail = () => {
                 if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
                   aField = a.denomination || a.face_value || "";
                   bField = b.denomination || b.face_value || "";
-                } else if (primarySort === "sultan") {
-                  aField = a.sultanName || "";
-                  bField = b.sultanName || "";
                 } else {
                   aField = a[primarySort] || "";
                   bField = b[primarySort] || "";
                 }
                 
-                const aOrder = getDynamicSortOrder(aField);
-                const bOrder = getDynamicSortOrder(bField);
+                const aOrder = getDisplayOrderFromSortFields(aField);
+                const bOrder = getDisplayOrderFromSortFields(bField);
                 
                 if (aOrder !== bOrder) {
-                  console.log(`Sorting ${aField} (${aOrder}) vs ${bField} (${bOrder})`);
                   return aOrder - bOrder;
                 }
               }
               
+              // Secondary sort by currency
               const aOrder = getCurrencyOrder(a.denomination || a.face_value);
               const bOrder = getCurrencyOrder(b.denomination || b.face_value);
               if (aOrder !== bOrder) return aOrder - bOrder;
 
+              // Tertiary sort by face value
               const aVal = parseFaceValue(a.denomination || a.face_value);
               const bVal = parseFaceValue(b.denomination || b.face_value);
               if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
@@ -345,9 +355,10 @@ const CountryDetail = () => {
             })
           }));
         
+        // Sort sultan groups by display_order from sort_fields
         sultanGroups.sort((a, b) => {
-          const aOrder = getDynamicSortOrder(a.sultan);
-          const bOrder = getDynamicSortOrder(b.sultan);
+          const aOrder = getDisplayOrderFromSortFields(a.sultan);
+          const bOrder = getDisplayOrderFromSortFields(b.sultan);
           
           if (aOrder !== bOrder) {
             console.log(`Sorting sultan groups: ${a.sultan} (${aOrder}) vs ${b.sultan} (${bOrder})`);
@@ -363,6 +374,7 @@ const CountryDetail = () => {
 
     const groupArray = Array.from(categoryMap.values());
 
+    // Sort categories by their display order
     if (categoryOrder.length > 0) {
       groupArray.sort((a, b) => {
         const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
@@ -373,10 +385,12 @@ const CountryDetail = () => {
       groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
 
+    // Sort items within each category if not grouping by sultan
     if (!groupBySultan) {
       groupArray.forEach(group => {
         group.items = [...group.items].sort((a, b) => {
-          if (sortFieldOrders.length > 0) {
+          // Primary sort by the selected sort field
+          if (sortFields.length > 0) {
             const primarySort = filters.sort?.[0];
             let aField = "";
             let bField = "";
@@ -392,8 +406,8 @@ const CountryDetail = () => {
               bField = b[primarySort] || "";
             }
             
-            const aOrder = getDynamicSortOrder(aField);
-            const bOrder = getDynamicSortOrder(bField);
+            const aOrder = getDisplayOrderFromSortFields(aField);
+            const bOrder = getDisplayOrderFromSortFields(bField);
             
             if (aOrder !== bOrder) {
               console.log(`Sorting ${aField} (${aOrder}) vs ${bField} (${bOrder})`);
@@ -401,10 +415,12 @@ const CountryDetail = () => {
             }
           }
           
+          // Secondary sort by currency
           const aOrder = getCurrencyOrder(a.denomination || a.face_value);
           const bOrder = getCurrencyOrder(b.denomination || b.face_value);
           if (aOrder !== bOrder) return aOrder - bOrder;
 
+          // Tertiary sort by face value
           const aVal = parseFaceValue(a.denomination || a.face_value);
           const bVal = parseFaceValue(b.denomination || b.face_value);
           if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
@@ -420,10 +436,7 @@ const CountryDetail = () => {
     filters.sort,
     categoryOrder,
     currencies,
-    sortFieldOrders,
-    getDynamicSortOrder,
-    getCurrencyOrder,
-    parseFaceValue
+    sortFields
   ]);
 
   return (
