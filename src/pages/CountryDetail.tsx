@@ -141,35 +141,60 @@ const CountryDetail = () => {
   useEffect(() => {
     const loadSortFields = async () => {
       const primarySort = filters.sort?.[0] || "";
-      if (!primarySort) {
+      if (!primarySort || !countryId) {
         setSortFieldOrders([]);
         return;
       }
+
+      console.log("Loading sort fields for:", primarySort);
+      
       try {
         const { data: sortOptions, error: sortOptError } = await supabase
           .from("banknote_sort_options")
-          .select("id,field_name")
+          .select("id, field_name")
           .eq("field_name", primarySort)
           .eq("country_id", countryId);
-        if (sortOptError || !sortOptions || sortOptions.length === 0) {
+          
+        if (sortOptError) {
+          console.error("Error loading sort options:", sortOptError);
           setSortFieldOrders([]);
           return;
         }
+        
+        if (!sortOptions || sortOptions.length === 0) {
+          console.log("No sort options found for:", primarySort);
+          setSortFieldOrders([]);
+          return;
+        }
+        
         const optionId = sortOptions[0].id;
+        console.log("Found sort option ID:", optionId);
+        
         const { data: sortFields, error: sortFieldError } = await supabase
           .from("sort_fields")
-          .select("name,display_order")
+          .select("name, display_order")
           .eq("sort_option", optionId)
           .order("display_order", { ascending: true });
-        if (sortFieldError || !sortFields) {
+          
+        if (sortFieldError) {
+          console.error("Error loading sort fields:", sortFieldError);
           setSortFieldOrders([]);
           return;
         }
-        setSortFieldOrders(sortFields as { name: string; display_order: number }[]);
+        
+        if (sortFields && sortFields.length > 0) {
+          console.log("Loaded sort fields:", sortFields);
+          setSortFieldOrders(sortFields as { name: string; display_order: number }[]);
+        } else {
+          console.log("No sort fields found for option ID:", optionId);
+          setSortFieldOrders([]);
+        }
       } catch (error) {
+        console.error("Error in loadSortFields:", error);
         setSortFieldOrders([]);
       }
     };
+    
     if (countryId && filters.sort && filters.sort.length > 0) {
       loadSortFields();
     } else {
@@ -218,11 +243,23 @@ const CountryDetail = () => {
   };
 
   const getDynamicSortOrder = useCallback((value: string | undefined) => {
-    if (!value || sortFieldOrders.length === 0) return Number.MAX_SAFE_INTEGER;
-    const field = sortFieldOrders.find(f =>
-      value.toLowerCase() === String(f.name).toLowerCase()
+    if (!value || sortFieldOrders.length === 0) {
+      console.log(`Sort value "${value}" not found in sort fields, using MAX_SAFE_INTEGER`);
+      return Number.MAX_SAFE_INTEGER;
+    }
+    
+    // Case-insensitive comparison
+    const normalizedValue = value.toLowerCase().trim();
+    const field = sortFieldOrders.find(f => 
+      String(f.name).toLowerCase().trim() === normalizedValue
     );
-    if (field) return field.display_order;
+    
+    if (field) {
+      console.log(`Found sort order for "${value}": ${field.display_order}`);
+      return field.display_order;
+    }
+    
+    console.log(`Sort value "${value}" not found in sort fields, using MAX_SAFE_INTEGER`);
     return Number.MAX_SAFE_INTEGER;
   }, [sortFieldOrders]);
 
@@ -291,7 +328,14 @@ const CountryDetail = () => {
               return (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
             })
           }))
-          .sort((a, b) => a.sultan.localeCompare(b.sultan));
+          .sort((a, b) => {
+            if (sortFieldOrders.length > 0) {
+              const aOrder = getDynamicSortOrder(a.sultan);
+              const bOrder = getDynamicSortOrder(b.sultan);
+              return aOrder - bOrder;
+            }
+            return a.sultan.localeCompare(b.sultan);
+          });
 
         group.sultanGroups = sultanGroups;
       });
