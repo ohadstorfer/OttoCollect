@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
@@ -17,7 +16,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { withHighlight } from "./withHighlight";
-import { LayoutGrid, LayoutList } from "lucide-react";
+import { LayoutGrid, LayoutList, Sliders } from "lucide-react";
 
 export type FilterOption = {
   id: string;
@@ -260,18 +259,20 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
   return (
     <div className={cn(
-      "w-full space-y-1.5"
+      "w-full space-y-1.5",
+      "flex items-center gap-2" // Change layout to flex
     )}>
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        <Input
+          placeholder="Search banknotes..."
+          value={search}
+          onChange={handleSearchChange}
+          className="pl-10"
+        />
+      </div>
+
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search banknotes..."
-            value={search}
-            onChange={handleSearchChange}
-            className="pl-10"
-          />
-        </div>
         {onViewModeChange && (
           <Button
             variant="outline"
@@ -286,9 +287,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
             )}
           </Button>
         )}
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
         <Sheet 
           open={isCategorySheetOpen} 
           onOpenChange={setIsCategorySheetOpen}
@@ -296,16 +295,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
           <SheetTrigger asChild>
             <Button 
               variant="outline" 
-              className="w-full justify-between"
+              size="icon"
               disabled={isLoading}
+              aria-label="Filter options"
             >
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <span>Filter</span>
-              </div>
-              {isLoading && (
-                <span className="animate-spin ml-2">⊚</span>
-              )}
+              <Filter className="h-4 w-4" />
             </Button>
           </SheetTrigger>
           <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
@@ -389,16 +383,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
           <SheetTrigger asChild>
             <Button 
               variant="outline" 
-              className="w-full justify-between"
+              size="icon"
               disabled={isLoading}
+              aria-label="Sort options"
             >
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <span>Sort</span>
-              </div>
-              {isLoading && (
-                <span className="animate-spin ml-2">⊚</span>
-              )}
+              <Sliders className="h-4 w-4" />
             </Button>
           </SheetTrigger>
           <SheetContent side={isMobile ? "bottom" : "right"} className="w-full sm:max-w-md">
