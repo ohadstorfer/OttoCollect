@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -13,6 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
+// These constants define the order in which sultans should be displayed
 const SULTAN_DISPLAY_ORDER: Record<string, number> = {
   AbdulMecid: 1,
   AbdulAziz: 2,
@@ -246,6 +248,9 @@ const CountryDetail = () => {
     setViewMode(mode);
   };
 
+  /**
+   * Get the currency display order for sorting banknotes 
+   */
   const getCurrencyOrder = (denomination: string | undefined) => {
     if (!denomination || currencies.length === 0) return Number.MAX_SAFE_INTEGER;
     const currencyObj = currencies.find(
@@ -254,6 +259,9 @@ const CountryDetail = () => {
     return currencyObj ? currencyObj.display_order : Number.MAX_SAFE_INTEGER;
   };
 
+  /**
+   * Extract the numeric face value from the denomination string
+   */
   const parseFaceValue = (denomination: string | undefined) => {
     if (!denomination) return NaN;
     const match = denomination.match(/(\d+(\.\d+)?)/);
@@ -263,6 +271,9 @@ const CountryDetail = () => {
     return NaN;
   };
 
+  /**
+   * Get display order from sort fields configuration
+   */
   const getDisplayOrderFromSortFields = (value: string | undefined): number => {
     if (!value || sortFields.length === 0) {
       return Number.MAX_SAFE_INTEGER;
@@ -275,23 +286,71 @@ const CountryDetail = () => {
     );
     
     if (exactMatch) {
-      console.log(`Found exact display order for "${value}": ${exactMatch.display_order}`);
       return exactMatch.display_order;
     }
     
     for (const field of sortFields) {
       const fieldNameLower = field.name.trim().toLowerCase();
       if (normalizedValue.includes(fieldNameLower) || fieldNameLower.includes(normalizedValue)) {
-        console.log(`Found partial match display order for "${value}" with "${field.name}": ${field.display_order}`);
         return field.display_order;
       }
     }
     
-    console.log(`No display order found for "${value}" in sort fields, using MAX_SAFE_INTEGER`);
     return Number.MAX_SAFE_INTEGER;
   };
 
+  /**
+   * Compare two banknotes based on the active sort options
+   */
+  const compareBanknotes = (a: DetailedBanknote, b: DetailedBanknote): number => {
+    // Get the primary sort field
+    const primarySort = filters.sort?.[0] || "extPick";
+    
+    if (primarySort === "faceValue") {
+      // First compare by face value
+      const aVal = parseFaceValue(a.denomination || a.face_value);
+      const bVal = parseFaceValue(b.denomination || b.face_value);
+      
+      if (!isNaN(aVal) && !isNaN(bVal) && aVal !== bVal) {
+        return aVal - bVal;
+      }
+      
+      // If face values are equal or can't be parsed, sort by currency
+      const aOrder = getCurrencyOrder(a.denomination || a.face_value);
+      const bOrder = getCurrencyOrder(b.denomination || b.face_value);
+      
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+    } else if (sortFields.length > 0) {
+      // Use field-specific sorting if sort fields are available
+      let aField = "";
+      let bField = "";
+      
+      if (primarySort === "currency" || primarySort === "denomination") {
+        aField = a.denomination || a.face_value || "";
+        bField = b.denomination || b.face_value || "";
+      } else {
+        aField = a[primarySort] || "";
+        bField = b[primarySort] || "";
+      }
+      
+      const aOrder = getDisplayOrderFromSortFields(aField);
+      const bOrder = getDisplayOrderFromSortFields(bField);
+      
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+    }
+    
+    // Always fall back to extended pick number as the final sort criteria
+    return (a.extendedPickNumber || a.extended_pick_number || "")
+      .localeCompare(b.extendedPickNumber || b.extended_pick_number || "");
+  };
+
   const groupedItems = useMemo(() => {
+    console.log("Recalculating grouped items with sort options:", filters.sort);
+    // Step 1: Group banknotes by category
     const categoryMap = new Map();
 
     banknotes.forEach(banknote => {
@@ -308,6 +367,7 @@ const CountryDetail = () => {
       categoryMap.get(category).items.push(banknote);
     });
 
+    // Step 2: Convert map to array and sort categories by display order
     const groupArray = Array.from(categoryMap.values());
 
     if (categoryOrder.length > 0) {
@@ -320,66 +380,53 @@ const CountryDetail = () => {
       groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
 
+    // Step 3: Process each category group
+    const showSultanGroups = filters.sort?.includes("sultan") || false;
+    
     groupArray.forEach(group => {
-      const sultanMap = new Map();
+      if (showSultanGroups) {
+        // Step 3a: If sultan sorting is enabled, group by sultan first
+        const sultanMap = new Map();
 
-      group.items.forEach(banknote => {
-        const sultan = banknote.sultanName || 'Unknown';
+        group.items.forEach(banknote => {
+          const sultan = banknote.sultanName || 'Unknown';
 
-        if (!sultanMap.has(sultan)) {
-          sultanMap.set(sultan, []);
-        }
-
-        sultanMap.get(sultan).push(banknote);
-      });
-
-      group.sultanGroups = SULTAN_DISPLAY_LIST
-        .map(sultanName => {
-          const items = sultanMap.get(sultanName) || [];
-          return items.length > 0 ? { sultan: sultanName, items } : null;
-        })
-        .filter(Boolean)
-        .concat(
-          Array.from(sultanMap.entries())
-            .filter(([sultan]) => !SULTAN_DISPLAY_LIST.includes(sultan))
-            .map(([sultan, items]) => ({ sultan, items }))
-            .sort((a, b) => a.sultan.localeCompare(b.sultan))
-        );
-
-      group.sultanGroups.forEach(sultanGroup => {
-        sultanGroup.items.sort((a, b) => {
-          if (sortFields.length > 0) {
-            const primarySort = filters.sort?.[0];
-            let aField = "";
-            let bField = "";
-            
-            if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
-              aField = a.denomination || a.face_value || "";
-              bField = b.denomination || b.face_value || "";
-            } else {
-              aField = a[primarySort] || "";
-              bField = b[primarySort] || "";
-            }
-            
-            const aOrder = getDisplayOrderFromSortFields(aField);
-            const bOrder = getDisplayOrderFromSortFields(bField);
-            
-            if (aOrder !== bOrder) {
-              return aOrder - bOrder;
-            }
+          if (!sultanMap.has(sultan)) {
+            sultanMap.set(sultan, []);
           }
-          
-          const aOrder = getCurrencyOrder(a.denomination || a.face_value);
-          const bOrder = getCurrencyOrder(b.denomination || b.face_value);
-          if (aOrder !== bOrder) return aOrder - bOrder;
 
-          const aVal = parseFaceValue(a.denomination || a.face_value);
-          const bVal = parseFaceValue(b.denomination || b.face_value);
-          if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
-          
-          return (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
+          sultanMap.get(sultan).push(banknote);
         });
-      });
+
+        // Create sultan groups with predefined order
+        group.sultanGroups = SULTAN_DISPLAY_LIST
+          .map(sultanName => {
+            const items = sultanMap.get(sultanName) || [];
+            return items.length > 0 ? { sultan: sultanName, items } : null;
+          })
+          .filter(Boolean)
+          .concat(
+            // Add any sultans not in the predefined list
+            Array.from(sultanMap.entries())
+              .filter(([sultan]) => !SULTAN_DISPLAY_LIST.includes(sultan))
+              .map(([sultan, items]) => ({ sultan, items }))
+              .sort((a, b) => a.sultan.localeCompare(b.sultan))
+          );
+
+        // Sort items within each sultan group
+        group.sultanGroups.forEach(sultanGroup => {
+          sultanGroup.items.sort(compareBanknotes);
+        });
+      } else {
+        // Step 3b: If sultan sorting is disabled, just sort within category
+        group.items.sort(compareBanknotes);
+        
+        // Create a single sultan group with all items to maintain component structure
+        group.sultanGroups = [{
+          sultan: '',  // Empty sultan name for when not grouping by sultan
+          items: group.items
+        }];
+      }
     });
 
     return groupArray;
@@ -432,11 +479,13 @@ const CountryDetail = () => {
                   <div className="space-y-6">
                     {group.sultanGroups.map((sultanGroup, sultanIndex) => (
                       <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
-                        <div className="sticky top-[200px] sm:top-[155px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b  w-[98%] mx-auto sm:w-auto sm:mx-0 px-6 md:px-0">
-                          <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
-                            {sultanGroup.sultan}
-                          </h3>
-                        </div>
+                        {filters.sort?.includes("sultan") && sultanGroup.sultan && (
+                          <div className="sticky top-[200px] sm:top-[155px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b  w-[98%] mx-auto sm:w-auto sm:mx-0 px-6 md:px-0">
+                            <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
+                              {sultanGroup.sultan}
+                            </h3>
+                          </div>
+                        )}
                         <div className={cn(
                           viewMode === 'grid'
                             ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
