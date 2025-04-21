@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -12,20 +11,21 @@ import { DynamicFilterState } from "@/types/filter";
 import { fetchCountryByName, fetchCategoriesByCountryId } from "@/services/countryService";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const CountryDetail = () => {
   const { country } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const decodedCountryName = decodeURIComponent(country || "");
-  
+
   const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
   const { toast } = useToast();
-  
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  
+
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
     categories: [],
@@ -33,32 +33,24 @@ const CountryDetail = () => {
     sort: ["extPick"],
     country_id: ""
   });
-  
+
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [categoryOrder, setCategoryOrder] = useState<{ name: string, order: number }[]>([]);
-  
-  console.log("CountryDetail: Rendering with", { 
-    country: decodedCountryName, 
-    countryId, 
-    loading, 
-    banknotes: banknotes.length,
-    filters,
-    viewMode,
-    categoryOrder
-  });
-  
+
+  const [currencies, setCurrencies] = useState<{ id: string, name: string, display_order: number }[]>([]);
+
   useEffect(() => {
     const loadCountryData = async () => {
       if (!decodedCountryName) {
         console.log("CountryDetail: No country name provided");
         return;
       }
-      
+
       console.log("CountryDetail: Loading country data for", decodedCountryName);
-      
+
       try {
         const countryData = await fetchCountryByName(decodedCountryName);
-        
+
         if (!countryData) {
           console.error("CountryDetail: Country not found:", decodedCountryName);
           toast({
@@ -69,22 +61,34 @@ const CountryDetail = () => {
           navigate('/catalog');
           return;
         }
-        
+
         console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
         setFilters(prev => ({
           ...prev,
           country_id: countryData.id
         }));
-        
-        // Fetch category definitions to get their display order
+
         const categories = await fetchCategoriesByCountryId(countryData.id);
         const orderMap = categories.map(cat => ({
           name: cat.name,
           order: cat.display_order
         }));
         setCategoryOrder(orderMap);
-        console.log("CategoryOrder loaded:", orderMap);
+
+        const { data: currencyRows, error: currencyError } = await supabase
+          .from("currencies")
+          .select("id, name, display_order")
+          .eq("country_id", countryData.id)
+          .order("display_order", { ascending: true });
+
+        if (currencyError) {
+          console.error("Error fetching currencies:", currencyError);
+          setCurrencies([]);
+        } else if (currencyRows) {
+          setCurrencies(currencyRows);
+          console.log("Loaded currencies:", currencyRows);
+        }
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
         toast({
@@ -155,12 +159,29 @@ const CountryDetail = () => {
     setViewMode(mode);
   };
 
+  const getCurrencyOrder = (denomination: string | undefined) => {
+    if (!denomination || currencies.length === 0) return Number.MAX_SAFE_INTEGER;
+    const currencyObj = currencies.find(
+      c => denomination.toLowerCase().includes(c.name.toLowerCase())
+    );
+    return currencyObj ? currencyObj.display_order : Number.MAX_SAFE_INTEGER;
+  };
+
+  const parseFaceValue = (denomination: string | undefined) => {
+    if (!denomination) return NaN;
+    const match = denomination.match(/(\d+(\.\d+)?)/);
+    if (match) {
+      return parseFloat(match[0]);
+    }
+    return NaN;
+  };
+
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
-    
+
     banknotes.forEach(banknote => {
       const category = banknote.category || 'Uncategorized';
-      
+
       if (!categoryMap.has(category)) {
         categoryMap.set(category, {
           category,
@@ -168,52 +189,75 @@ const CountryDetail = () => {
           items: []
         });
       }
-      
+
       categoryMap.get(category).items.push(banknote);
     });
-    
+
     const groupBySultan = filters.sort.includes("sultan");
-    
+
     if (groupBySultan) {
       categoryMap.forEach((group) => {
         const sultanMap = new Map();
-        
+
         group.items.forEach(banknote => {
           const sultan = banknote.sultanName || 'Unknown';
-          
+
           if (!sultanMap.has(sultan)) {
             sultanMap.set(sultan, []);
           }
-          
+
           sultanMap.get(sultan).push(banknote);
         });
-        
-        group.sultanGroups = Array.from(sultanMap.entries())
-          .map(([sultan, items]) => ({ sultan, items }))
+
+        const sultanGroups = Array.from(sultanMap.entries())
+          .map(([sultan, items]) => ({
+            sultan,
+            items: [...items].sort((a, b) => {
+              const aOrder = getCurrencyOrder(a.denomination || a.face_value);
+              const bOrder = getCurrencyOrder(b.denomination || b.face_value);
+              if (aOrder !== bOrder) return aOrder - bOrder;
+
+              const aVal = parseFaceValue(a.denomination || a.face_value);
+              const bVal = parseFaceValue(b.denomination || b.face_value);
+              if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
+              return (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
+            })
+          }))
           .sort((a, b) => a.sultan.localeCompare(b.sultan));
+
+        group.sultanGroups = sultanGroups;
       });
     }
-    
-    // Get the categories from the map as an array
+
     const groupArray = Array.from(categoryMap.values());
-    
-    // Sort the groups based on the category order we fetched earlier
+
     if (categoryOrder.length > 0) {
       groupArray.sort((a, b) => {
-        // Find the display order for each category
         const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
         const orderB = categoryOrder.find(c => c.name === b.category)?.order ?? Number.MAX_SAFE_INTEGER;
-        
-        // Sort by the display_order
         return orderA - orderB;
       });
     } else {
-      // Fallback to alphabetical sort if no order is defined
       groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
-    
+
+    if (!groupBySultan) {
+      groupArray.forEach(group => {
+        group.items = [...group.items].sort((a, b) => {
+          const aOrder = getCurrencyOrder(a.denomination || a.face_value);
+          const bOrder = getCurrencyOrder(b.denomination || b.face_value);
+          if (aOrder !== bOrder) return aOrder - bOrder;
+
+          const aVal = parseFaceValue(a.denomination || a.face_value);
+          const bVal = parseFaceValue(b.denomination || b.face_value);
+          if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
+          return (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
+        });
+      });
+    }
+
     return groupArray;
-  }, [banknotes, filters.sort, categoryOrder]);
+  }, [banknotes, filters.sort, categoryOrder, currencies]);
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
@@ -252,7 +296,7 @@ const CountryDetail = () => {
                   <div className="sticky top-[210px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-auto -mx-6 md:mx-0 px-6 md:px-0 ">
                     <h2 className="text-xl font-bold">{group.category}</h2>
                   </div>
-                  
+
                   {group.sultanGroups && group.sultanGroups.length > 0 ? (
                     <div className="space-y-6">
                       {group.sultanGroups.map((sultanGroup, sultanIndex) => (
@@ -263,8 +307,8 @@ const CountryDetail = () => {
                             </h3>
                           </div>
                           <div className={cn(
-                            viewMode === 'grid' 
-                              ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4" 
+                            viewMode === 'grid'
+                              ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
                               : "flex flex-col space-y-2",
                             "px-2 sm:px-0"
                           )}>
@@ -282,8 +326,8 @@ const CountryDetail = () => {
                     </div>
                   ) : (
                     <div className={cn(
-                      viewMode === 'grid' 
-                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4" 
+                      viewMode === 'grid'
+                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
                         : "flex flex-col space-y-2",
                       "px-2 sm:px-0"
                     )}>
