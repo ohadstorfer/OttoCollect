@@ -35,22 +35,20 @@ export function ContactSeller({ sellerId, sellerName, itemId, itemName }: Contac
     
     setIsSending(true);
     try {
-      const result = await sendMessage(user.id, sellerId, message, itemId);
+      await sendMessage(user.id, sellerId, message, itemId);
       
-      if (result) {
-        toast({
-          title: "Message Sent",
-          description: `Your message has been sent to ${sellerName}.`,
-        });
-        setMessage('');
-        setIsOpen(false);
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to send your message. Please try again.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Message Sent",
+        description: `Your message has been sent to ${sellerName}.`,
+      });
+      setMessage('');
+      setIsOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send your message. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSending(false);
     }
