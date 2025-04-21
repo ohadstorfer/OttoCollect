@@ -308,70 +308,6 @@ const CountryDetail = () => {
       categoryMap.get(category).items.push(banknote);
     });
 
-    const groupBySultan = filters.sort.includes("sultan");
-
-    if (groupBySultan) {
-      categoryMap.forEach((group) => {
-        const sultanMap = new Map();
-
-        group.items.forEach(banknote => {
-          const sultan = banknote.sultanName || 'Unknown';
-
-          if (!sultanMap.has(sultan)) {
-            sultanMap.set(sultan, []);
-          }
-
-          sultanMap.get(sultan).push(banknote);
-        });
-
-        const sultanGroups = Array.from(sultanMap.entries())
-          .map(([sultan, items]) => ({
-            sultan,
-            items: [...items].sort((a, b) => {
-              if (sortFields.length > 0) {
-                const primarySort = filters.sort?.[0];
-                let aField = "";
-                let bField = "";
-                
-                if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
-                  aField = a.denomination || a.face_value || "";
-                  bField = b.denomination || b.face_value || "";
-                } else {
-                  aField = a[primarySort] || "";
-                  bField = b[primarySort] || "";
-                }
-                
-                const aOrder = getDisplayOrderFromSortFields(aField);
-                const bOrder = getDisplayOrderFromSortFields(bField);
-                
-                if (aOrder !== bOrder) {
-                  return aOrder - bOrder;
-                }
-              }
-              
-              const aOrder = getCurrencyOrder(a.denomination || a.face_value);
-              const bOrder = getCurrencyOrder(b.denomination || b.face_value);
-              if (aOrder !== bOrder) return aOrder - bOrder;
-
-              const aVal = parseFaceValue(a.denomination || a.face_value);
-              const bVal = parseFaceValue(b.denomination || b.face_value);
-              if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
-              
-              return (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
-            })
-          }));
-
-        sultanGroups.sort((a, b) => {
-          const aOrder = SULTAN_DISPLAY_ORDER[a.sultan] || Number.MAX_SAFE_INTEGER;
-          const bOrder = SULTAN_DISPLAY_ORDER[b.sultan] || Number.MAX_SAFE_INTEGER;
-          if (aOrder !== bOrder) return aOrder - bOrder;
-          return a.sultan.localeCompare(b.sultan);
-        });
-
-        group.sultanGroups = sultanGroups;
-      });
-    }
-
     const groupArray = Array.from(categoryMap.values());
 
     if (categoryOrder.length > 0) {
@@ -384,9 +320,34 @@ const CountryDetail = () => {
       groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
 
-    if (!groupBySultan) {
-      groupArray.forEach(group => {
-        group.items = [...group.items].sort((a, b) => {
+    groupArray.forEach(group => {
+      const sultanMap = new Map();
+
+      group.items.forEach(banknote => {
+        const sultan = banknote.sultanName || 'Unknown';
+
+        if (!sultanMap.has(sultan)) {
+          sultanMap.set(sultan, []);
+        }
+
+        sultanMap.get(sultan).push(banknote);
+      });
+
+      group.sultanGroups = SULTAN_DISPLAY_LIST
+        .map(sultanName => {
+          const items = sultanMap.get(sultanName) || [];
+          return items.length > 0 ? { sultan: sultanName, items } : null;
+        })
+        .filter(Boolean)
+        .concat(
+          Array.from(sultanMap.entries())
+            .filter(([sultan]) => !SULTAN_DISPLAY_LIST.includes(sultan))
+            .map(([sultan, items]) => ({ sultan, items }))
+            .sort((a, b) => a.sultan.localeCompare(b.sultan))
+        );
+
+      group.sultanGroups.forEach(sultanGroup => {
+        sultanGroup.items.sort((a, b) => {
           if (sortFields.length > 0) {
             const primarySort = filters.sort?.[0];
             let aField = "";
@@ -395,9 +356,6 @@ const CountryDetail = () => {
             if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
               aField = a.denomination || a.face_value || "";
               bField = b.denomination || b.face_value || "";
-            } else if (primarySort === "sultan") {
-              aField = a.sultanName || "";
-              bField = b.sultanName || "";
             } else {
               aField = a[primarySort] || "";
               bField = b[primarySort] || "";
@@ -422,7 +380,7 @@ const CountryDetail = () => {
           return (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
         });
       });
-    }
+    });
 
     return groupArray;
   }, [
@@ -467,67 +425,36 @@ const CountryDetail = () => {
             <div className="space-y-8">
               {groupedItems.map((group, groupIndex) => (
                 <div key={`group-${groupIndex}`} className="space-y-4">
-                  <div className="sticky top-[210px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-auto -mx-6 md:mx-0 px-6 md:px-0 ">
+                  <div className="sticky top-[210px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-auto -mx-6 md:mx-0 px-6 md:px-0">
                     <h2 className="text-xl font-bold">{group.category}</h2>
                   </div>
 
-                  {group.sultanGroups && group.sultanGroups.length > 0 ? (
-                    <div className="space-y-6">
-                      {SULTAN_DISPLAY_LIST
-                        .map(sultanName =>
-                          group.sultanGroups.find(g => g.sultan === sultanName)
-                        )
-                        .filter(Boolean)
-                        .concat(
-                          // Add any sultanGroups not explicitly in the SULTAN_DISPLAY_LIST, sorted alphabetically
-                          group.sultanGroups.filter(
-                            g => !SULTAN_DISPLAY_LIST.includes(g.sultan)
-                          ).sort((a, b) => a.sultan.localeCompare(b.sultan))
-                        )
-                        .map((sultanGroup, sultanIndex) =>
-                        sultanGroup && (
-                          <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
-                            <div className="sticky top-[255px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto  -mx-6 md:mx-0 px-6 md:px-0">
-                              <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
-                                {sultanGroup.sultan}
-                              </h3>
-                            </div>
-                            <div className={cn(
-                              viewMode === 'grid'
-                                ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
-                                : "flex flex-col space-y-2",
-                              "px-2 sm:px-0"
-                            )}>
-                              {sultanGroup.items.map((banknote, index) => (
-                                <BanknoteDetailCard
-                                  key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
-                                  banknote={banknote}
-                                  source="catalog"
-                                  viewMode={viewMode}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  ) : (
-                    <div className={cn(
-                      viewMode === 'grid'
-                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
-                        : "flex flex-col space-y-2",
-                      "px-2 sm:px-0"
-                    )}>
-                      {group.items.map((banknote, index) => (
-                        <BanknoteDetailCard
-                          key={`banknote-${group.category}-${index}`}
-                          banknote={banknote}
-                          source="catalog"
-                          viewMode={viewMode}
-                        />
-                      ))}
-                    </div>
-                  )}
+                  <div className="space-y-6">
+                    {group.sultanGroups.map((sultanGroup, sultanIndex) => (
+                      <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
+                        <div className="sticky top-[255px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto -mx-6 md:mx-0 px-6 md:px-0">
+                          <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
+                            {sultanGroup.sultan}
+                          </h3>
+                        </div>
+                        <div className={cn(
+                          viewMode === 'grid'
+                            ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
+                            : "flex flex-col space-y-2",
+                          "px-2 sm:px-0"
+                        )}>
+                          {sultanGroup.items.map((banknote, index) => (
+                            <BanknoteDetailCard
+                              key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                              banknote={banknote}
+                              source="catalog"
+                              viewMode={viewMode}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
