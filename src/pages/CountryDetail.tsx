@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -11,8 +12,6 @@ import { DynamicFilterState } from "@/types/filter";
 import { fetchCountryByName, fetchCategoriesByCountryId } from "@/services/countryService";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import { fetchCurrenciesForCountry, CurrencyDefinition } from "@/services/currencyService";
-import { groupBanknotesByCurrency } from "@/utils/currencySort";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -23,7 +22,6 @@ const CountryDetail = () => {
   const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
-  const [currencies, setCurrencies] = useState<CurrencyDefinition[]>([]);
   const { toast } = useToast();
   
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -79,10 +77,6 @@ const CountryDetail = () => {
           country_id: countryData.id
         }));
         
-        // Fetch currency definitions
-        const currencies = await fetchCurrenciesForCountry(countryData.id);
-        setCurrencies(currencies);
-
         // Fetch category definitions to get their display order
         const categories = await fetchCategoriesByCountryId(countryData.id);
         const orderMap = categories.map(cat => ({
@@ -161,10 +155,65 @@ const CountryDetail = () => {
     setViewMode(mode);
   };
 
-  const currencyGroups = useMemo(() => {
-    if (!currencies.length || !banknotes.length) return [];
-    return groupBanknotesByCurrency(banknotes, currencies);
-  }, [banknotes, currencies]);
+  const groupedItems = useMemo(() => {
+    const categoryMap = new Map();
+    
+    banknotes.forEach(banknote => {
+      const category = banknote.category || 'Uncategorized';
+      
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, {
+          category,
+          categoryId: '',
+          items: []
+        });
+      }
+      
+      categoryMap.get(category).items.push(banknote);
+    });
+    
+    const groupBySultan = filters.sort.includes("sultan");
+    
+    if (groupBySultan) {
+      categoryMap.forEach((group) => {
+        const sultanMap = new Map();
+        
+        group.items.forEach(banknote => {
+          const sultan = banknote.sultanName || 'Unknown';
+          
+          if (!sultanMap.has(sultan)) {
+            sultanMap.set(sultan, []);
+          }
+          
+          sultanMap.get(sultan).push(banknote);
+        });
+        
+        group.sultanGroups = Array.from(sultanMap.entries())
+          .map(([sultan, items]) => ({ sultan, items }))
+          .sort((a, b) => a.sultan.localeCompare(b.sultan));
+      });
+    }
+    
+    // Get the categories from the map as an array
+    const groupArray = Array.from(categoryMap.values());
+    
+    // Sort the groups based on the category order we fetched earlier
+    if (categoryOrder.length > 0) {
+      groupArray.sort((a, b) => {
+        // Find the display order for each category
+        const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
+        const orderB = categoryOrder.find(c => c.name === b.category)?.order ?? Number.MAX_SAFE_INTEGER;
+        
+        // Sort by the display_order
+        return orderA - orderB;
+      });
+    } else {
+      // Fallback to alphabetical sort if no order is defined
+      groupArray.sort((a, b) => a.category.localeCompare(b.category));
+    }
+    
+    return groupArray;
+  }, [banknotes, filters.sort, categoryOrder]);
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
@@ -198,26 +247,56 @@ const CountryDetail = () => {
             </div>
           ) : (
             <div className="space-y-8">
-              {currencyGroups.map((group, groupIndex) => (
-                <div key={`currency-group-${group.currency}-${groupIndex}`} className="space-y-4">
-                  <div className="sticky top-[210px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-auto -mx-6 md:mx-0 px-6 md:px-0">
-                    <h2 className="text-xl font-bold">{group.currencyDisplay}</h2>
+              {groupedItems.map((group, groupIndex) => (
+                <div key={`group-${groupIndex}`} className="space-y-4">
+                  <div className="sticky top-[210px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-auto -mx-6 md:mx-0 px-6 md:px-0 ">
+                    <h2 className="text-xl font-bold">{group.category}</h2>
                   </div>
-                  <div className={cn(
-                    viewMode === 'grid' 
-                      ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
-                      : "flex flex-col space-y-2",
-                    "px-2 sm:px-0"
-                  )}>
-                    {group.items.map((banknote, index) => (
-                      <BanknoteDetailCard
-                        key={`banknote-${group.currency}-${index}`}
-                        banknote={banknote}
-                        source="catalog"
-                        viewMode={viewMode}
-                      />
-                    ))}
-                  </div>
+                  
+                  {group.sultanGroups && group.sultanGroups.length > 0 ? (
+                    <div className="space-y-6">
+                      {group.sultanGroups.map((sultanGroup, sultanIndex) => (
+                        <div key={`sultan-${sultanIndex}`} className="space-y-4">
+                          <div className="sticky top-[255px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto  -mx-6 md:mx-0 px-6 md:px-0">
+                            <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
+                              {sultanGroup.sultan}
+                            </h3>
+                          </div>
+                          <div className={cn(
+                            viewMode === 'grid' 
+                              ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4" 
+                              : "flex flex-col space-y-2",
+                            "px-2 sm:px-0"
+                          )}>
+                            {sultanGroup.items.map((banknote, index) => (
+                              <BanknoteDetailCard
+                                key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                                banknote={banknote}
+                                source="catalog"
+                                viewMode={viewMode}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={cn(
+                      viewMode === 'grid' 
+                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4" 
+                        : "flex flex-col space-y-2",
+                      "px-2 sm:px-0"
+                    )}>
+                      {group.items.map((banknote, index) => (
+                        <BanknoteDetailCard
+                          key={`banknote-${group.category}-${index}`}
+                          banknote={banknote}
+                          source="catalog"
+                          viewMode={viewMode}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

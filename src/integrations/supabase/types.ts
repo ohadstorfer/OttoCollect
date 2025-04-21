@@ -356,41 +356,6 @@ export type Database = {
         }
         Relationships: []
       }
-      currencies: {
-        Row: {
-          country_id: string
-          created_at: string
-          display_order: number
-          id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          country_id: string
-          created_at?: string
-          display_order: number
-          id?: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          country_id?: string
-          created_at?: string
-          display_order?: number
-          id?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "currencies_country_id_fkey"
-            columns: ["country_id"]
-            isOneToOne: false
-            referencedRelation: "countries"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       detailed_banknotes: {
         Row: {
           back_picture: string | null
@@ -919,10 +884,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      extract_numeric_value: {
-        Args: { face_value: string }
-        Returns: number
-      }
       get_current_user: {
         Args: Record<PropertyKey, never>
         Returns: {
