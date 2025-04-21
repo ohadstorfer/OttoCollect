@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { 
   CategoryDefinition, 
@@ -78,6 +77,30 @@ export const fetchCountryByName = async (name: string): Promise<Country | null> 
 
   if (error) {
     console.error(`Error fetching country "${name}":`, error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
+ * Fetch a country by ID
+ */
+export const fetchCountryDetail = async (id: string): Promise<any | null> => {
+  // Check cache first
+  if (cache.countries) {
+    const country = cache.countries.find(c => c.id === id);
+    if (country) return country;
+  }
+
+  const { data, error } = await supabase
+    .from('countries')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error(`Error fetching country with ID "${id}":`, error);
     return null;
   }
 

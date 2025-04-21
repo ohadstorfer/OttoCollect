@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -109,7 +110,7 @@ const CountryDetail = () => {
 
   const parseFaceValue = (denomination: string | undefined) => {
     if (!denomination) return NaN;
-    const match = denomination.match(/(\\d+(\\.\\d+)?)/) || [];
+    const match = denomination.match(/(\d+(\.\d+)?)/) || [];
     if (match[0]) {
       return parseFloat(match[0]);
     }
@@ -137,7 +138,7 @@ const CountryDetail = () => {
     }));
 
     sultanGroups.forEach(sultanGroup => {
-      sultanGroup.items.sort((a, b) => {
+      sultanGroup.items.sort((a: DetailedBanknote, b: DetailedBanknote) => {
         if (sortFields.length > 0) {
           const primarySort = filters.sort?.[0];
           let aField = "";
@@ -147,8 +148,8 @@ const CountryDetail = () => {
             aField = a.denomination || "";
             bField = b.denomination || "";
           } else {
-            aField = a[primarySort] || "";
-            bField = b[primarySort] || "";
+            aField = a[primarySort as keyof DetailedBanknote]?.toString() || "";
+            bField = b[primarySort as keyof DetailedBanknote]?.toString() || "";
           }
           
           const aOrder = getDisplayOrderFromSortFields(aField);
@@ -192,9 +193,6 @@ const CountryDetail = () => {
     const selectedSort = e.target.value;
     setFilters(prev => ({ ...prev, sort: [selectedSort] }));
   };
-  
-  const aExtPick = a.extendedPickNumber || "";
-  const bExtPick = b.extendedPickNumber || "";
 
   return (
     <div className="page-container max-w-7xl mx-auto py-10">
@@ -264,7 +262,7 @@ const CountryDetail = () => {
               {sultanGroups.map((group) => (
                 <div key={group.sultanName} className="space-y-4">
                   <h2 className="text-2xl font-semibold">{group.sultanName}</h2>
-                  <BanknoteGrid banknotes={group.items} />
+                  <BanknoteGrid banknotes={group.items as DetailedBanknote[]} />
                 </div>
               ))}
             </div>

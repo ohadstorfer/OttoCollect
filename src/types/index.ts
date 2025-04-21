@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -120,6 +119,14 @@ export interface DetailedBanknote extends Banknote {
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
 
+// Define BanknoteFilterState interface
+export interface BanknoteFilterState {
+  search: string;
+  categories: string[];
+  types: string[];
+  sort: string[];
+}
+
 export interface BanknoteFilters {
   country_id?: string;
   search?: string;
@@ -128,15 +135,6 @@ export interface BanknoteFilters {
   sort?: string[];
 }
 
-export interface BanknoteFilterState {
-  search: string;
-  categories: string[];
-  types: string[];
-  sort: string[];
-  country_id?: string;
-}
-
-// Collection related interfaces
 export interface CollectionItem {
   id: string;
   userId: string;
