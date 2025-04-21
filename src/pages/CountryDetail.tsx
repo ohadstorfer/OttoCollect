@@ -171,24 +171,37 @@ const CountryDetail = () => {
       groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
 
-    // Add sultan groups if needed
-    if (showSultanGroups) {
-      groupArray.forEach(group => {
-        const sultanMap = new Map();
-        
-        group.items.forEach(banknote => {
-          const sultan = banknote.sultanName || 'Unknown';
-          if (!sultanMap.has(sultan)) {
-            sultanMap.set(sultan, []);
-          }
-          sultanMap.get(sultan).push(banknote);
-        });
+// Add sultan groups if needed
+if (showSultanGroups) {
+  const sultanOrder = [
+    "AbdulMecid",
+    "AbdulAziz",
+    "Murad",
+    "AbdulHamid",
+    "M.Resad",
+    "M.Vahdeddin"
+  ];
 
-        group.sultanGroups = Array.from(sultanMap.entries())
-          .map(([sultan, items]) => ({ sultan, items }))
-          .sort((a, b) => a.sultan.localeCompare(b.sultan));
+  groupArray.forEach(group => {
+    const sultanMap = new Map();
+
+    group.items.forEach(banknote => {
+      const sultan = banknote.sultanName || 'Unknown';
+      if (!sultanMap.has(sultan)) {
+        sultanMap.set(sultan, []);
+      }
+      sultanMap.get(sultan).push(banknote);
+    });
+
+    group.sultanGroups = Array.from(sultanMap.entries())
+      .map(([sultan, items]) => ({ sultan, items }))
+      .sort((a, b) => {
+        const indexA = sultanOrder.indexOf(a.sultan);
+        const indexB = sultanOrder.indexOf(b.sultan);
+        return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
       });
-    }
+  });
+}
 
     return groupArray;
   }, [sortedBanknotes, filters.sort, categoryOrder]);
