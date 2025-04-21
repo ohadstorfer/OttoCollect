@@ -22,6 +22,15 @@ const SULTAN_DISPLAY_ORDER: Record<string, number> = {
   "M.Vahdeddin": 6,
 };
 
+const SULTAN_DISPLAY_LIST = [
+  "AbdulMecid",
+  "AbdulAziz",
+  "Murad",
+  "AbdulHamid",
+  "M.Resad",
+  "M.Vahdeddin",
+];
+
 const CountryDetail = () => {
   const { country } = useParams();
   const navigate = useNavigate();
@@ -464,30 +473,43 @@ const CountryDetail = () => {
 
                   {group.sultanGroups && group.sultanGroups.length > 0 ? (
                     <div className="space-y-6">
-                      {group.sultanGroups.map((sultanGroup, sultanIndex) => (
-                        <div key={`sultan-${sultanIndex}`} className="space-y-4">
-                          <div className="sticky top-[255px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto  -mx-6 md:mx-0 px-6 md:px-0">
-                            <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
-                              {sultanGroup.sultan}
-                            </h3>
+                      {SULTAN_DISPLAY_LIST
+                        .map(sultanName =>
+                          group.sultanGroups.find(g => g.sultan === sultanName)
+                        )
+                        .filter(Boolean)
+                        .concat(
+                          // Add any sultanGroups not explicitly in the SULTAN_DISPLAY_LIST, sorted alphabetically
+                          group.sultanGroups.filter(
+                            g => !SULTAN_DISPLAY_LIST.includes(g.sultan)
+                          ).sort((a, b) => a.sultan.localeCompare(b.sultan))
+                        )
+                        .map((sultanGroup, sultanIndex) =>
+                        sultanGroup && (
+                          <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
+                            <div className="sticky top-[255px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto  -mx-6 md:mx-0 px-6 md:px-0">
+                              <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
+                                {sultanGroup.sultan}
+                              </h3>
+                            </div>
+                            <div className={cn(
+                              viewMode === 'grid'
+                                ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
+                                : "flex flex-col space-y-2",
+                              "px-2 sm:px-0"
+                            )}>
+                              {sultanGroup.items.map((banknote, index) => (
+                                <BanknoteDetailCard
+                                  key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                                  banknote={banknote}
+                                  source="catalog"
+                                  viewMode={viewMode}
+                                />
+                              ))}
+                            </div>
                           </div>
-                          <div className={cn(
-                            viewMode === 'grid'
-                              ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
-                              : "flex flex-col space-y-2",
-                            "px-2 sm:px-0"
-                          )}>
-                            {sultanGroup.items.map((banknote, index) => (
-                              <BanknoteDetailCard
-                                key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
-                                banknote={banknote}
-                                source="catalog"
-                                viewMode={viewMode}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      )}
                     </div>
                   ) : (
                     <div className={cn(
