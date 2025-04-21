@@ -16,6 +16,15 @@ import { useTheme } from "@/context/ThemeContext";
 import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
 import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
 
+const SULTAN_DISPLAY_ORDER: Record<string, number> = {
+  AbdulMecid: 1,
+  AbdulAziz: 2,
+  Murad: 3,
+  AbdulHamid: 4,
+  "M.Resad": 5,
+  "M.Vahdeddin": 6
+};
+
 const Marketplace = () => {
   console.log("### Marketplace RENDERING ###");
   
@@ -245,11 +254,22 @@ const Marketplace = () => {
                 {group.category}
               </h2>
             </div>
-            
+
             {group.sultanGroups ? (
               <div className="space-y-6">
                 {console.log(`Rendering marketplace with sultan groups. ${group.sultanGroups.length} sultans`)}
-                {group.sultanGroups.map((sultanGroup, sultanIndex) => (
+                {[...group.sultanGroups]
+                  .slice() // avoid mutating the original
+                  .sort((a, b) => {
+                    const orderA = SULTAN_DISPLAY_ORDER[a.sultan] ?? 999;
+                    const orderB = SULTAN_DISPLAY_ORDER[b.sultan] ?? 999;
+                    // If both sultans not in map, fall back to alpha
+                    if (orderA === orderB) {
+                      return a.sultan.localeCompare(b.sultan);
+                    }
+                    return orderA - orderB;
+                  })
+                  .map((sultanGroup, sultanIndex) => (
                   <div key={`sultan-${sultanIndex}`} className="space-y-4">
                     {console.log(`Rendering marketplace sultan group ${sultanIndex}: ${sultanGroup.sultan} with ${sultanGroup.items.length} items`)}
                     <h3 className={`text-lg font-semibold pl-4 border-l-4 ${theme === 'light' ? 'border-ottoman-600 text-ottoman-700' : 'border-ottoman-400 text-ottoman-300'}`}>
