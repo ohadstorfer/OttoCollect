@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
@@ -72,12 +73,51 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
           name: type.name,
         }));
         
-        const mappedSortOptions = sortOptionsData.map(sort => ({
-          id: sort.id,
-          name: sort.name,
-          fieldName: sort.field_name,
-          isRequired: sort.is_required
-        }));
+        // Make sure we have the sultan sort option
+        let hasSultanOption = false;
+        let hasFaceValueOption = false;
+        let hasPickOption = false;
+        
+        const mappedSortOptions = sortOptionsData.map(sort => {
+          if (sort.field_name === "sultan") hasSultanOption = true;
+          if (sort.field_name === "faceValue") hasFaceValueOption = true;
+          if (sort.field_name === "extPick") hasPickOption = true;
+          
+          return {
+            id: sort.id,
+            name: sort.name,
+            fieldName: sort.field_name,
+            isRequired: sort.is_required
+          };
+        });
+        
+        // Add default sort options if they don't exist
+        if (!hasSultanOption) {
+          mappedSortOptions.push({
+            id: "sultan-default",
+            name: "Sultan",
+            fieldName: "sultan",
+            isRequired: false
+          });
+        }
+        
+        if (!hasFaceValueOption) {
+          mappedSortOptions.push({
+            id: "facevalue-default",
+            name: "Face Value",
+            fieldName: "faceValue",
+            isRequired: false
+          });
+        }
+        
+        if (!hasPickOption) {
+          mappedSortOptions.push({
+            id: "extpick-default",
+            name: "Catalog Number",
+            fieldName: "extPick",
+            isRequired: true
+          });
+        }
         
         setCategories(mappedCategories);
         setTypes(mappedTypes);
@@ -93,9 +133,15 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
           }
         }
         
+        // Always ensure extPick is included in the sort options
         const requiredSortFields = sortOptionsData
           .filter(opt => opt.is_required)
           .map(opt => opt.field_name || '');
+          
+        // Make sure extPick is always included as a fallback sort 
+        if (!requiredSortFields.includes('extPick')) {
+          requiredSortFields.push('extPick');
+        }
           
         if (userPreferences) {
           const sortFieldNames = userPreferences.selected_sort_options
@@ -105,6 +151,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             })
             .filter(Boolean) as string[];
           
+          // Ensure extPick is always included in the sort, after user choices
           const finalSortFields = Array.from(
             new Set([...sortFieldNames, ...requiredSortFields])
           );
@@ -145,6 +192,13 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
 
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
     console.log("BanknoteFilterCatalog: Filter change requested:", newFilters);
+    
+    if (newFilters.sort) {
+      // Ensure extPick is always included as a fallback sort
+      if (!newFilters.sort.includes('extPick')) {
+        newFilters.sort = [...newFilters.sort, 'extPick'];
+      }
+    }
     
     const filtersWithCountryId = {
       ...newFilters,

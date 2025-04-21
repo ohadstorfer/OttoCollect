@@ -275,24 +275,22 @@ const CountryDetail = () => {
     );
     
     if (exactMatch) {
-      console.log(`Found exact display order for "${value}": ${exactMatch.display_order}`);
       return exactMatch.display_order;
     }
     
     for (const field of sortFields) {
       const fieldNameLower = field.name.trim().toLowerCase();
       if (normalizedValue.includes(fieldNameLower) || fieldNameLower.includes(normalizedValue)) {
-        console.log(`Found partial match display order for "${value}" with "${field.name}": ${field.display_order}`);
         return field.display_order;
       }
     }
     
-    console.log(`No display order found for "${value}" in sort fields, using MAX_SAFE_INTEGER`);
     return Number.MAX_SAFE_INTEGER;
   };
 
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
+    const showSultanGroups = filters.sort.includes('sultan');
 
     banknotes.forEach(banknote => {
       const category = banknote.category || 'Uncategorized';
@@ -321,68 +319,80 @@ const CountryDetail = () => {
     }
 
     groupArray.forEach(group => {
-      const sultanMap = new Map();
+      if (showSultanGroups) {
+        const sultanMap = new Map();
 
-      group.items.forEach(banknote => {
-        const sultan = banknote.sultanName || 'Unknown';
+        group.items.forEach(banknote => {
+          const sultan = banknote.sultanName || 'Unknown';
 
-        if (!sultanMap.has(sultan)) {
-          sultanMap.set(sultan, []);
-        }
-
-        sultanMap.get(sultan).push(banknote);
-      });
-
-      group.sultanGroups = SULTAN_DISPLAY_LIST
-        .map(sultanName => {
-          const items = sultanMap.get(sultanName) || [];
-          return items.length > 0 ? { sultan: sultanName, items } : null;
-        })
-        .filter(Boolean)
-        .concat(
-          Array.from(sultanMap.entries())
-            .filter(([sultan]) => !SULTAN_DISPLAY_LIST.includes(sultan))
-            .map(([sultan, items]) => ({ sultan, items }))
-            .sort((a, b) => a.sultan.localeCompare(b.sultan))
-        );
-
-      group.sultanGroups.forEach(sultanGroup => {
-        sultanGroup.items.sort((a, b) => {
-          if (sortFields.length > 0) {
-            const primarySort = filters.sort?.[0];
-            let aField = "";
-            let bField = "";
-            
-            if (primarySort === "faceValue" || primarySort === "currency" || primarySort === "denomination") {
-              aField = a.denomination || a.face_value || "";
-              bField = b.denomination || b.face_value || "";
-            } else {
-              aField = a[primarySort] || "";
-              bField = b[primarySort] || "";
-            }
-            
-            const aOrder = getDisplayOrderFromSortFields(aField);
-            const bOrder = getDisplayOrderFromSortFields(bField);
-            
-            if (aOrder !== bOrder) {
-              return aOrder - bOrder;
-            }
+          if (!sultanMap.has(sultan)) {
+            sultanMap.set(sultan, []);
           }
-          
-          const aOrder = getCurrencyOrder(a.denomination || a.face_value);
-          const bOrder = getCurrencyOrder(b.denomination || b.face_value);
-          if (aOrder !== bOrder) return aOrder - bOrder;
 
-          const aVal = parseFaceValue(a.denomination || a.face_value);
-          const bVal = parseFaceValue(b.denomination || b.face_value);
-          if (!isNaN(aVal) && !isNaN(bVal)) return aVal - bVal;
-          
-          return (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
+          sultanMap.get(sultan).push(banknote);
         });
-      });
+
+        group.sultanGroups = SULTAN_DISPLAY_LIST
+          .map(sultanName => {
+            const items = sultanMap.get(sultanName) || [];
+            return items.length > 0 ? { sultan: sultanName, items } : null;
+          })
+          .filter(Boolean)
+          .concat(
+            Array.from(sultanMap.entries())
+              .filter(([sultan]) => !SULTAN_DISPLAY_LIST.includes(sultan))
+              .map(([sultan, items]) => ({ sultan, items }))
+              .sort((a, b) => a.sultan.localeCompare(b.sultan))
+          );
+
+        group.sultanGroups.forEach(sultanGroup => {
+          sortBanknotesWithinGroup(sultanGroup.items);
+        });
+      } else {
+        sortBanknotesWithinGroup(group.items);
+      }
     });
 
     return groupArray;
+
+    function sortBanknotesWithinGroup(banknotes: DetailedBanknote[]) {
+      banknotes.sort((a, b) => {
+        for (const fieldName of filters.sort || []) {
+          if (fieldName === 'sultan') continue;
+          
+          let comparison = 0;
+
+          if (fieldName === "faceValue") {
+            const aOrder = getCurrencyOrder(a.denomination || a.face_value);
+            const bOrder = getCurrencyOrder(b.denomination || b.face_value);
+            if (aOrder !== bOrder) return aOrder - bOrder;
+
+            const aVal = parseFaceValue(a.denomination || a.face_value);
+            const bVal = parseFaceValue(b.denomination || b.face_value);
+            if (!isNaN(aVal) && !isNaN(bVal) && aVal !== bVal) return aVal - bVal;
+            
+            comparison = (a.denomination || a.face_value || "").localeCompare(b.denomination || b.face_value || "");
+          } 
+          else if (fieldName === "extPick") {
+            comparison = String(a.extendedPickNumber || a.catalogId || a.extended_pick_number || "")
+              .localeCompare(String(b.extendedPickNumber || b.catalogId || b.extended_pick_number || ""));
+          }
+          else if (fieldName in a && fieldName in b) {
+            const valueA = a[fieldName as keyof DetailedBanknote] || "";
+            const valueB = b[fieldName as keyof DetailedBanknote] || "";
+            
+            if (typeof valueA === 'string' && typeof valueB === 'string') {
+              comparison = valueA.localeCompare(valueB);
+            }
+          }
+
+          if (comparison !== 0) return comparison;
+        }
+
+        return String(a.extendedPickNumber || a.catalogId || a.extended_pick_number || "")
+          .localeCompare(String(b.extendedPickNumber || b.catalogId || b.extended_pick_number || ""));
+      });
+    }
   }, [
     banknotes,
     filters.sort,
@@ -430,30 +440,48 @@ const CountryDetail = () => {
                   </div>
 
                   <div className="space-y-6">
-                    {group.sultanGroups.map((sultanGroup, sultanIndex) => (
-                      <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
-                        <div className="sticky top-[200px] sm:top-[170px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto -mx-6 md:mx-0 px-6 md:px-0">
-                          <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
-                            {sultanGroup.sultan}
-                          </h3>
+                    {filters.sort.includes('sultan') && group.sultanGroups ? (
+                      group.sultanGroups.map((sultanGroup, sultanIndex) => (
+                        <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
+                          <div className="sticky top-[200px] sm:top-[170px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto -mx-6 md:mx-0 px-6 md:px-0">
+                            <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
+                              {sultanGroup.sultan}
+                            </h3>
+                          </div>
+                          <div className={cn(
+                            viewMode === 'grid'
+                              ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
+                              : "flex flex-col space-y-2",
+                            "px-2 sm:px-0"
+                          )}>
+                            {sultanGroup.items.map((banknote, index) => (
+                              <BanknoteDetailCard
+                                key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                                banknote={banknote}
+                                source="catalog"
+                                viewMode={viewMode}
+                              />
+                            ))}
+                          </div>
                         </div>
-                        <div className={cn(
-                          viewMode === 'grid'
-                            ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
-                            : "flex flex-col space-y-2",
-                          "px-2 sm:px-0"
-                        )}>
-                          {sultanGroup.items.map((banknote, index) => (
-                            <BanknoteDetailCard
-                              key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
-                              banknote={banknote}
-                              source="catalog"
-                              viewMode={viewMode}
-                            />
-                          ))}
-                        </div>
+                      ))
+                    ) : (
+                      <div className={cn(
+                        viewMode === 'grid'
+                          ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
+                          : "flex flex-col space-y-2",
+                        "px-2 sm:px-0"
+                      )}>
+                        {group.items.map((banknote, index) => (
+                          <BanknoteDetailCard
+                            key={`banknote-${group.category}-${index}`}
+                            banknote={banknote}
+                            source="catalog"
+                            viewMode={viewMode}
+                          />
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               ))}
