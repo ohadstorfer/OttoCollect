@@ -13,11 +13,11 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
         status,
         createdAt:created_at,
         updatedAt:updated_at,
-        collection_item (
+        collection_items!collection_item_id (
           *,
-          banknote (*)
+          banknote:banknote_id(*)
         ),
-        seller:profiles (
+        seller:profiles!seller_id (
           id,
           username,
           rank,
@@ -59,11 +59,11 @@ export async function fetchMarketplaceItemById(itemId: string): Promise<Marketpl
         status,
         createdAt:created_at,
         updatedAt:updated_at,
-        collection_item (
+        collection_items!collection_item_id (
           *,
-          banknote (*)
+          banknote:banknote_id(*)
         ),
-        seller:profiles (
+        seller:profiles!seller_id (
           id,
           username,
           rank,
@@ -110,11 +110,11 @@ export async function fetchMarketplaceItemsBySellerId(sellerId: string): Promise
           status,
           createdAt:created_at,
           updatedAt:updated_at,
-          collection_item (
+          collection_items!collection_item_id (
             *,
-            banknote (*)
+            banknote:banknote_id(*)
           ),
-          seller:profiles (
+          seller:profiles!seller_id (
             id,
             username,
             rank,
@@ -218,15 +218,20 @@ export async function updateMarketplaceItemStatus(itemId: string, status: 'Avail
         status,
         createdAt:created_at,
         updatedAt:updated_at,
-        collection_item (
+        collection_items!collection_item_id (
           *,
-          banknote (*)
+          banknote:banknote_id(*)
         ),
-        seller:profiles (
+        seller:profiles!seller_id (
           id,
           username,
           rank,
-          avatar_url
+          avatar_url,
+          email,
+          role_id,
+          role,
+          points,
+          created_at
         )
       `)
       .single();
@@ -341,20 +346,27 @@ export async function synchronizeMarketplaceWithCollection(): Promise<boolean> {
 
 // Helper function to map database fields to client-side model
 function mapMarketplaceItemFromDatabase(item: any): MarketplaceItem {
+  // Rename collection_items to collectionItem for consistency
+  const collectionItem = item.collection_items || {};
+  const seller = item.seller || {};
+  
   return {
     id: item.id,
-    collectionItem: item.collection_item,
+    collectionItem: {
+      ...collectionItem,
+      banknote: collectionItem.banknote || {}
+    },
     sellerId: item.seller_id || item.sellerId,
     seller: {
-      id: item.seller?.id || '',
-      username: item.seller?.username || '',
-      rank: item.seller?.rank || '',
-      email: item.seller?.email || '',
-      role_id: item.seller?.role_id || '',
-      role: item.seller?.role || '',
-      points: item.seller?.points || 0,
-      createdAt: item.seller?.created_at || '',
-      avatarUrl: item.seller?.avatar_url || ''
+      id: seller.id || '',
+      username: seller.username || '',
+      rank: seller.rank || '',
+      email: seller.email || '',
+      role_id: seller.role_id || '',
+      role: seller.role || '',
+      points: seller.points || 0,
+      createdAt: seller.created_at || '',
+      avatarUrl: seller.avatar_url || ''
     },
     status: item.status,
     createdAt: item.created_at || item.createdAt,

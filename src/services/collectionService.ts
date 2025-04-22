@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { CollectionItem, Banknote, BanknoteCondition } from '@/types';
 
@@ -24,7 +25,7 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
         orderIndex:order_index,
         createdAt:created_at,
         updatedAt:updated_at,
-        banknote (
+        banknote:banknote_id (
           *
         )
       `)
@@ -72,7 +73,7 @@ export async function fetchCollectionItemById(itemId: string): Promise<Collectio
         orderIndex:order_index,
         createdAt:created_at,
         updatedAt:updated_at,
-        banknote (
+        banknote:banknote_id (
           *
         )
       `)
@@ -153,7 +154,7 @@ export async function createCollectionItem(
         orderIndex:order_index,
         createdAt:created_at,
         updatedAt:updated_at,
-        banknote (
+        banknote:banknote_id (
           *
         )
       `)
@@ -179,9 +180,9 @@ export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]) {
     const unique = new Map();
     
     array.forEach(item => {
-      if (item.banknote && item.banknote[key]) {
+      if (item.banknote && item.banknote[key as keyof typeof item.banknote]) {
         // Make sure the property exists before trying to access it
-        const value = item.banknote[key];
+        const value = item.banknote[key as keyof typeof item.banknote];
         if (!unique.has(value)) {
           unique.set(value, {
             id: value,
@@ -205,10 +206,9 @@ export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]) {
   return { categories, types };
 }
 
-// Fix the toISOString error in updateCollectionItem function
 export async function updateCollectionItem(itemId: string, updates: {
   condition?: string;
-  purchaseDate?: string; // Change from Date to string to avoid toISOString error
+  purchaseDate?: string;
   purchasePrice?: number;
   privateNote?: string;
   publicNote?: string;
@@ -217,12 +217,11 @@ export async function updateCollectionItem(itemId: string, updates: {
   location?: string;
 }): Promise<boolean> {
   try {
-    // No need to call toISOString() since purchaseDate is already a string
     const { error } = await supabase
       .from('collection_items')
       .update({
         condition: updates.condition,
-        purchase_date: updates.purchaseDate, // purchaseDate is already a string
+        purchase_date: updates.purchaseDate,
         purchase_price: updates.purchasePrice,
         private_note: updates.privateNote,
         public_note: updates.publicNote,
@@ -312,18 +311,18 @@ function mapCollectionItemFromDatabase(item: any): CollectionItem {
   } as CollectionItem;
 }
 
-// Add the missing exports to fix import errors
-export function fetchUserCollection(userId: string) {
+// Add explicit exports for functions that are being imported elsewhere
+export function fetchUserCollection(userId: string): Promise<CollectionItem[]> {
   return fetchUserCollectionItems(userId);
 }
 
-export function uploadCollectionImage(file: File, userId: string, collectionItemId?: string) {
+export function uploadCollectionImage(file: File, userId: string, collectionItemId?: string): Promise<string> {
   // Implementation of uploadCollectionImage function
   return Promise.resolve('image_url_placeholder');
 }
 
-// For the toISOString error on line 362
-const formatDate = (dateValue: string | Date | null): string | null => {
+// Helper function for date formatting
+export const formatDate = (dateValue: string | Date | null): string | null => {
   if (!dateValue) return null;
   
   try {

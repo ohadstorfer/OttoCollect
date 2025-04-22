@@ -2,15 +2,19 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Message } from '@/types';
 
-// Fix the property name issue and export the function
-export async function sendMessage(senderId: string, receiverId: string, content: string, referenceItemId?: string) {
+export async function sendMessage(
+  senderId: string,
+  receiverId: string,
+  content: string,
+  referenceItemId?: string
+): Promise<Message | null> {
   try {
     const { data, error } = await supabase
       .from('messages')
       .insert({
         sender_id: senderId,
         receiver_id: receiverId,
-        content: content,
+        content,
         reference_item_id: referenceItemId
       })
       .select()
@@ -21,14 +25,70 @@ export async function sendMessage(senderId: string, receiverId: string, content:
       return null;
     }
 
-    return data;
-  } catch (err) {
-    console.error('Unexpected error in sendMessage:', err);
+    return {
+      id: data.id,
+      senderId: data.sender_id,
+      receiverId: data.receiver_id,
+      content: data.content,
+      referenceItemId: data.reference_item_id,
+      isRead: data.is_read,
+      createdAt: data.created_at
+    };
+  } catch (error) {
+    console.error('Unexpected error in sendMessage:', error);
     return null;
   }
 }
 
-// Add missing functions needed by MessageIndicator and MessageButton
+export async function getMessages(userId: string): Promise<Message[]> {
+  try {
+    // Get all messages where user is either sender or receiver
+    const { data, error } = await supabase
+      .from('messages')
+      .select()
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching messages:', error);
+      return [];
+    }
+
+    return data.map(message => ({
+      id: message.id,
+      senderId: message.sender_id,
+      receiverId: message.receiver_id,
+      content: message.content,
+      referenceItemId: message.reference_item_id,
+      isRead: message.is_read,
+      createdAt: message.created_at
+    }));
+  } catch (error) {
+    console.error('Unexpected error in getMessages:', error);
+    return [];
+  }
+}
+
+export async function markAsRead(messageId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('messages')
+      .update({ is_read: true })
+      .eq('id', messageId);
+      
+    if (error) {
+      console.error('Error marking message as read:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Unexpected error in markAsRead:', error);
+    return false;
+  }
+}
+
+// Add missing functions
 export async function getUnreadMessagesCount(userId: string): Promise<number> {
   try {
     const { count, error } = await supabase
@@ -43,26 +103,70 @@ export async function getUnreadMessagesCount(userId: string): Promise<number> {
     }
     
     return count || 0;
-  } catch (err) {
-    console.error('Unexpected error in getUnreadMessagesCount:', err);
+  } catch (error) {
+    console.error('Unexpected error in getUnreadMessagesCount:', error);
     return 0;
   }
 }
 
-export function subscribeToMessages(userId: string, callback: () => void) {
-  const subscription = supabase
-    .channel('messages-channel')
-    .on('postgres_changes', { 
-      event: 'INSERT', 
-      schema: 'public', 
-      table: 'messages',
-      filter: `receiver_id=eq.${userId}` 
-    }, () => {
-      callback();
-    })
+// Function to subscribe to new messages
+export function subscribeToMessages(userId: string, onNewMessage: (message: Message) => void) {
+  return supabase
+    .channel('messages')
+    .on(
+      'postgres_changes',
+      { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'messages',
+        filter: `receiver_id=eq.${userId}`
+      },
+      (payload) => {
+        const message = payload.new as any;
+        onNewMessage({
+          id: message.id,
+          senderId: message.sender_id,
+          receiverId: message.receiver_id,
+          content: message.content,
+          referenceItemId: message.reference_item_id,
+          isRead: message.is_read,
+          createdAt: message.created_at
+        });
+      }
+    )
     .subscribe();
+}
+
+export async function getConversations(userId: string) {
+  // A more complex query to get distinct conversations
+  // This is a placeholder implementation
+  try {
+    const { data: sent, error: sentError } = await supabase
+      .from('messages')
+      .select('receiver_id')
+      .eq('sender_id', userId)
+      .order('created_at', { ascending: false });
+      
+    const { data: received, error: receivedError } = await supabase
+      .from('messages')
+      .select('sender_id')
+      .eq('receiver_id', userId)
+      .order('created_at', { ascending: false });
+      
+    if (sentError || receivedError) {
+      console.error('Error fetching conversations:', sentError || receivedError);
+      return [];
+    }
     
-  return () => {
-    subscription.unsubscribe();
-  };
+    // Combine unique user IDs
+    const userIds = new Set([
+      ...sent.map(msg => msg.receiver_id),
+      ...received.map(msg => msg.sender_id)
+    ]);
+    
+    return Array.from(userIds);
+  } catch (error) {
+    console.error('Unexpected error in getConversations:', error);
+    return [];
+  }
 }

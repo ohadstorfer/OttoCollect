@@ -69,7 +69,7 @@ export async function fetchBanknotesByCountryId(
       return [];
     }
     
-    // Build the base query - simplified to avoid issues with extract_pick_components
+    // Build the base query
     let query = supabase
       .from('detailed_banknotes')
       .select('*')
@@ -95,7 +95,7 @@ export async function fetchBanknotesByCountryId(
       query = query.in('type', filters.types);
     }
 
-    // Apply simple sorting to avoid issues with the extract_pick_components function
+    // Apply sorting based on the sort fields
     if (filters?.sort && filters.sort.length > 0) {
       for (const sortField of filters.sort) {
         switch (sortField) {
