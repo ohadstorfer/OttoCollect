@@ -33,12 +33,11 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
       return [];
     }
 
-    // Map the data to the CollectionItem interface
     const collectionItems: CollectionItem[] = data.map(item => ({
       id: item.id,
       userId: item.user_id,
       banknoteId: item.banknote_id,
-      banknote: item.banknotes as Banknote, // Include the fetched banknote data
+      banknote: item.banknotes as Banknote,
       condition: item.condition as BanknoteCondition,
       purchasePrice: item.purchase_price || undefined,
       purchaseDate: item.purchase_date || undefined,
@@ -99,12 +98,11 @@ export async function fetchCollectionItemById(id: string): Promise<CollectionIte
       return null;
     }
 
-    // Map the data to the CollectionItem interface
     const collectionItem: CollectionItem = {
       id: data.id,
       userId: data.user_id,
       banknoteId: data.banknote_id,
-      banknote: data.banknotes as Banknote, // Include the fetched banknote data
+      banknote: data.banknotes as Banknote,
       condition: data.condition as BanknoteCondition,
       purchasePrice: data.purchase_price || undefined,
       purchaseDate: data.purchase_date || undefined,
@@ -127,6 +125,8 @@ export async function fetchCollectionItemById(id: string): Promise<CollectionIte
     return null;
   }
 }
+
+export const fetchCollectionItem = fetchCollectionItemById;
 
 export async function insertCollectionItem(collectionItem: Omit<CollectionItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<CollectionItem | null> {
   try {
@@ -156,7 +156,6 @@ export async function insertCollectionItem(collectionItem: Omit<CollectionItem, 
       return null;
     }
 
-    // Map the inserted data to the CollectionItem interface
     const insertedItem: CollectionItem = {
       id: data.id,
       userId: data.user_id,
@@ -212,7 +211,6 @@ export async function updateCollectionItem(id: string, collectionItem: Partial<C
       return null;
     }
 
-    // Map the updated data to the CollectionItem interface
     const updatedItem: CollectionItem = {
       id: data.id,
       userId: data.user_id,
@@ -260,14 +258,12 @@ export async function deleteCollectionItem(id: string): Promise<boolean> {
   }
 }
 
-// Helper function to extract categories and types from collection items
 export async function fetchBanknoteCategoriesAndTypes(
   collectionItems: CollectionItem[]
 ): Promise<{
   categories: { id: string; name: string; count: number }[];
   types: { id: string; name: string; count: number }[];
 }> {
-  // Group by category
   const groupByCategory = (banknotes: Banknote[]) => {
     const groups: { [key: string]: Banknote[] } = {};
     banknotes.forEach(banknote => {
@@ -278,7 +274,6 @@ export async function fetchBanknoteCategoriesAndTypes(
     return groups;
   };
 
-  // Group by type
   const groupByType = (banknotes: Banknote[]) => {
     const groups: { [key: string]: Banknote[] } = {};
     banknotes.forEach(banknote => {
@@ -289,24 +284,20 @@ export async function fetchBanknoteCategoriesAndTypes(
     return groups;
   };
 
-  // Extract banknotes from collection items
   const banknotes = collectionItems.map(item => item.banknote);
 
-  // Group banknotes by category and type
   const categoriesGrouped = groupByCategory(banknotes);
   const typesGrouped = groupByType(banknotes);
 
-  // Convert category groups to desired format
   const categories = Object.entries(categoriesGrouped).map(([name, items]) => ({
     name,
-    id: name, // You might want to generate a unique ID here
+    id: name,
     count: items.length,
   }));
 
-  // Convert type groups to desired format
   const types = Object.entries(typesGrouped).map(([name, items]) => ({
     name,
-    id: name, // You might want to generate a unique ID here
+    id: name,
     count: items.length,
   }));
 
@@ -348,10 +339,9 @@ export async function saveCollectionItem(collectionItem: CollectionItem): Promis
       order_index: collectionItem.orderIndex,
     };
 
-    // Convert purchase date
     if (collectionItem.purchaseDate) {
       const purchaseDate = new Date(collectionItem.purchaseDate);
-      if (!isNaN(purchaseDate.getTime())) {  // Check if it's a valid date
+      if (!isNaN(purchaseDate.getTime())) {
         formattedItem.purchase_date = purchaseDate.toISOString();
       }
     }
@@ -359,7 +349,6 @@ export async function saveCollectionItem(collectionItem: CollectionItem): Promis
     let data, error;
 
     if (collectionItem.id) {
-      // Update existing item
       const updateResult = await supabase
         .from('collection_items')
         .update(formattedItem)
@@ -369,7 +358,6 @@ export async function saveCollectionItem(collectionItem: CollectionItem): Promis
       data = updateResult.data;
       error = updateResult.error;
     } else {
-      // Insert new item
       const insertResult = await supabase
         .from('collection_items')
         .insert(formattedItem)
@@ -390,3 +378,5 @@ export async function saveCollectionItem(collectionItem: CollectionItem): Promis
     return null;
   }
 }
+
+export const fetchUserCollection = fetchUserCollectionItems;

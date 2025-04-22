@@ -162,17 +162,7 @@ export interface MarketplaceItem {
   id: string;
   collectionItem: CollectionItem;
   sellerId: string;
-  seller: {
-    id: string;
-    username: string;
-    rank: string;
-    avatar_url: string;
-    email?: string;
-    role_id?: string;
-    role?: string;
-    points?: number;
-    createdAt?: string;
-  };
+  seller: User;
   status: 'Available' | 'Reserved' | 'Sold';
   createdAt: string;
   updatedAt: string;

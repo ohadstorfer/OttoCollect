@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { MarketplaceItem, UserRank } from "@/types";
+import { MarketplaceItem, UserRank, User } from "@/types";
 import { fetchCollectionItem } from "./collectionService";
 
 export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
@@ -292,7 +293,7 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
       collectionItemId: data.collection_item_id,
       collectionItem: collectionItem,
       sellerId: data.seller_id,
-      seller,
+      seller: seller as unknown as User,
       status: data.status,
       createdAt: data.created_at,
       updatedAt: data.updated_at
