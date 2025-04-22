@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,13 +14,24 @@ interface BanknoteDetailCardProps {
   source?: 'catalog' | 'collection' | 'missing';
   ownerId?: string;
   viewMode?: 'grid' | 'list';
+  onNavigateToDetail?: () => void;
 }
 
-const BanknoteDetailCard = ({ banknote, source = 'catalog', viewMode = 'grid' }: BanknoteDetailCardProps) => {
+const BanknoteDetailCard = ({ 
+  banknote, 
+  source = 'catalog', 
+  viewMode = 'grid',
+  onNavigateToDetail 
+}: BanknoteDetailCardProps) => {
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
 
   const handleCardClick = () => {
+    // Call the navigation callback if provided
+    if (onNavigateToDetail) {
+      onNavigateToDetail();
+    }
+    
     if (source === 'catalog') {
       navigate(`/catalog-banknote/${banknote.id}`);
     } else if (source === 'collection') {
