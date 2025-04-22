@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
@@ -46,7 +45,7 @@ const ProfileCollection = ({
     enabled: !initialCollection && !!userId
   });
 
-  const { data: fetchedBanknotes, isLoading: bannoteLoading } = useQuery({
+  const { data: banknotes, isLoading: bannoteLoading } = useQuery({
     queryKey: ['banknotes'],
     queryFn: async () => {
       return await fetchBanknotes();
@@ -60,7 +59,7 @@ const ProfileCollection = ({
   });
 
   const userCollection = initialCollection || fetchedCollection || [];
-  const banknotesData = initialBanknotes || fetchedBanknotes || [];
+  const banknotes = initialBanknotes || banknotes || [];
   const wishlistItems = initialWishlist || fetchedWishlist || [];
   const collectionLoading = initialLoading || collectionQueryLoading || bannoteLoading || wishlistQueryLoading;
 
@@ -77,7 +76,7 @@ const ProfileCollection = ({
   };
 
   const filteredCollection = userCollection.filter(item => {
-    const banknote = banknotesData?.find(b => b.id === item.banknoteId);
+    const banknote = banknotes?.find(b => b.id === item.banknoteId);
     if (!banknote) return false;
 
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
@@ -87,7 +86,7 @@ const ProfileCollection = ({
     return matchesSearch;
   });
 
-  const missingItems = banknotesData?.filter(banknote => 
+  const missingItems = banknotes?.filter(banknote => 
     !userCollection.some(item => item.banknoteId === banknote.id)
   ) || [];
 
@@ -99,7 +98,7 @@ const ProfileCollection = ({
     return matchesSearch;
   });
 
-  const filteredCatalog = banknotesData?.filter(banknote => {
+  const filteredCatalog = banknotes?.filter(banknote => {
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
       banknote.country.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
       banknote.year.toLowerCase().includes(filter.searchTerm.toLowerCase());
@@ -127,7 +126,7 @@ const ProfileCollection = ({
         </TabsTrigger>
         <TabsTrigger value="catalog">
           <Info className="h-4 w-4 mr-2" />
-          Catalog ({banknotesData?.length || 0})
+          Catalog ({banknotes?.length || 0})
         </TabsTrigger>
         <TabsTrigger value="wishlist">
           <Star className="h-4 w-4 mr-2" />
@@ -164,7 +163,7 @@ const ProfileCollection = ({
         ) : filteredCollection.length > 0 ? (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredCollection.map(item => {
-              const banknote = banknotesData?.find(b => b.id === item.banknoteId);
+              const banknote = banknotes?.find(b => b.id === item.banknoteId);
               if (!banknote) return null;
 
               return (

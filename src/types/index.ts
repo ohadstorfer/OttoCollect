@@ -88,7 +88,6 @@ export interface Banknote {
   type?: string; // Adding type for compatibility
   sultanName?: string; // Adding sultanName for compatibility
   extendedPickNumber?: string; // Adding extended pick number for compatibility
-  category?: string; // Adding category field
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -166,18 +165,6 @@ export interface MarketplaceItem {
   status: 'Available' | 'Reserved' | 'Sold';
   createdAt: string;
   updatedAt: string;
-  collectionItemId?: string;
-}
-
-// Add WishlistItem interface
-export interface WishlistItem {
-  id: string;
-  user_id: string;
-  banknote_id: string;
-  note?: string;
-  priority: string;
-  created_at: string;
-  detailed_banknotes?: DetailedBanknote;
 }
 
 // Import and re-export types from other files

@@ -72,7 +72,7 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
   );
 };
 
-const BanknoteFixed = () => {
+export default function BankNote() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -151,14 +151,6 @@ const BanknoteFixed = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const getOrganizedImageSrc = (imageUrls: string[] | string | undefined): string => {
-    if (!imageUrls) return "/placeholder.svg";
-    if (Array.isArray(imageUrls) && imageUrls.length > 0) {
-      return imageUrls[0];
-    }
-    return typeof imageUrls === 'string' ? imageUrls : "/placeholder.svg";
   };
 
   if (banknoteLoading) {
@@ -360,7 +352,7 @@ const BanknoteFixed = () => {
                               <LabelValuePair
                                 key={fieldIndex}
                                 label={field.label}
-                                value={field.value && typeof field.value === 'object' ? field.value.join(', ') : field.value}
+                                value={field.value}
                                 icon={field.icon}
                               />
                             ))}
@@ -449,6 +441,4 @@ const BanknoteFixed = () => {
       )}
     </div>
   );
-};
-
-export default BanknoteFixed;
+} 

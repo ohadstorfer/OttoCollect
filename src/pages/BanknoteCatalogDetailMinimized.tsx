@@ -47,7 +47,7 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
   );
 };
 
-const BanknoteCatalogDetailMinimized = () => {
+export default function BanknoteCatalogDetailMinimized() {
   const routeParams = useParams<{ id: string }>();
   const { banknoteId } = useBanknoteContext();
   
@@ -93,14 +93,6 @@ const BanknoteCatalogDetailMinimized = () => {
   };
 
   const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
-
-  const getOrganizedImageSrc = (imageUrls: string[] | string | undefined): string => {
-    if (!imageUrls) return "/placeholder.svg";
-    if (Array.isArray(imageUrls) && imageUrls.length > 0) {
-      return imageUrls[0];
-    }
-    return typeof imageUrls === 'string' ? imageUrls : "/placeholder.svg";
-  };
 
   const detailGroups = [
     {
@@ -172,7 +164,7 @@ const BanknoteCatalogDetailMinimized = () => {
                             <LabelValuePair
                               key={fieldIndex}
                               label={field.label}
-                              value={field.value && typeof field.value === 'object' ? field.value.join(', ') : field.value}
+                              value={field.value}
                               icon={field.icon}
                             />
                           ))}
@@ -303,6 +295,4 @@ const BanknoteCatalogDetailMinimized = () => {
       )}
     </div>
   );
-};
-
-export default BanknoteCatalogDetailMinimized;
+}

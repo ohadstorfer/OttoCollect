@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailedBanknote } from "@/types";
 import { fetchBanknotesByCountryId } from "@/services/banknoteService";
@@ -13,8 +12,6 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
-import { useBanknotePersistence } from "@/hooks/use-banknote-persistence";
-import { Currency } from "@/types/banknote";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -26,7 +23,7 @@ const CountryDetail = () => {
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [currencies, setCurrencies] = useState<{ id: string, name: string, display_order: number }[]>([]);
   const [categoryOrder, setCategoryOrder] = useState<{ name: string, order: number }[]>([]);
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
@@ -35,54 +32,12 @@ const CountryDetail = () => {
     sort: ["extPick"],
     country_id: ""
   });
-  
-  // Track if initial data is loaded to prevent unnecessary fetches
-  const initialDataLoadedRef = useRef<boolean>(false);
-  const shouldFetchBanknotesRef = useRef<boolean>(false);
-  
-  const { 
-    storedState, 
-    isReturningFromDetail, 
-    persistState, 
-    markNavigatingToDetail,
-    restoreScrollPosition,
-    isDataFresh,
-    scrollContainerRef
-  } = useBanknotePersistence({
-    countryId: countryId || '',
-    countryName: decodedCountryName
-  });
-  
-  // Load stored state once on initial render if returning from detail page
-  useEffect(() => {
-    if (!initialDataLoadedRef.current && countryId && storedState && isReturningFromDetail) {
-      console.log("CountryDetail: Restoring from persistence", storedState);
-      setFilters(storedState.filters);
-      setBanknotes(storedState.banknotes);
-      setViewMode(storedState.viewMode);
-      setCurrencies(storedState.currencies);
-      setLoading(false);
-      initialDataLoadedRef.current = true;
-      shouldFetchBanknotesRef.current = false;
-    } else if (!initialDataLoadedRef.current) {
-      shouldFetchBanknotesRef.current = true;
-    }
-  }, [countryId, storedState, isReturningFromDetail]);
-  
-  // Restore scroll position after data is loaded
-  useEffect(() => {
-    if (!loading && isReturningFromDetail && banknotes.length > 0 && initialDataLoadedRef.current) {
-      restoreScrollPosition();
-    }
-  }, [loading, isReturningFromDetail, banknotes.length, restoreScrollPosition]);
 
-  // Load country data only once when country name changes
+  // Load country data and currencies
   useEffect(() => {
     const loadCountryData = async () => {
-      if (!decodedCountryName) return;
-      
-      // Skip fetching if returning with fresh data
-      if (isReturningFromDetail && storedState && isDataFresh() && initialDataLoadedRef.current) {
+      if (!decodedCountryName) {
+        console.log("CountryDetail: No country name provided");
         return;
       }
 
@@ -118,12 +73,13 @@ const CountryDetail = () => {
 
         const { data: currencyRows, error: currencyError } = await supabase
           .from("currencies")
-          .select("id, name, display_order, country_id, created_at, updated_at")
+          .select("id, name, display_order")
           .eq("country_id", countryData.id)
           .order("display_order", { ascending: true });
 
         if (currencyError) {
           console.error("Error fetching currencies:", currencyError);
+          setCurrencies([]);
         } else if (currencyRows) {
           setCurrencies(currencyRows);
           console.log("Loaded currencies:", currencyRows);
@@ -139,24 +95,13 @@ const CountryDetail = () => {
     };
 
     loadCountryData();
-  }, [decodedCountryName, navigate, toast, isReturningFromDetail, storedState, isDataFresh]);
+  }, [decodedCountryName, navigate, toast]);
 
-  // Fetch banknotes only when filters change or country changes (but not on stored state restoration)
+  // Load banknotes when filters change
   useEffect(() => {
     const fetchBanknotesData = async () => {
-      // Skip fetching if we're returning from detail and have data, or if country ID isn't set
-      if (!countryId || !filters.country_id) return;
-      
-      // Skip fetch if returning from details with fresh data
-      if (isReturningFromDetail && storedState && initialDataLoadedRef.current && isDataFresh()) {
-        return;
-      }
+      if (!countryId) return;
 
-      // Skip fetch if we shouldn't be fetching (based on our ref)
-      if (!shouldFetchBanknotesRef.current && initialDataLoadedRef.current) {
-        return;
-      }
-      
       console.log("CountryDetail: Fetching banknotes with filters", { countryId, filters });
       setLoading(true);
 
@@ -172,13 +117,6 @@ const CountryDetail = () => {
         console.log("CountryDetail: Banknotes loaded:", data.length);
         setBanknotes(data);
         setLoading(false);
-        initialDataLoadedRef.current = true;
-        shouldFetchBanknotesRef.current = false;
-        
-        // Only persist state when we fetch new data and have currency information
-        if (currencies.length > 0) {
-          persistState(filters, data, viewMode, currencies);
-        }
       } catch (error) {
         console.error("CountryDetail: Error fetching banknotes:", error);
         toast({
@@ -192,8 +130,9 @@ const CountryDetail = () => {
     };
 
     fetchBanknotesData();
-  }, [countryId, filters.country_id, filters.categories, filters.types, filters.sort, filters.search, persistState, currencies, viewMode, isReturningFromDetail, storedState, isDataFresh]);
+  }, [countryId, filters, toast]);
 
+  // Use the custom sorting hook
   const sortedBanknotes = useBanknoteSorting({
     banknotes,
     currencies,
@@ -213,6 +152,7 @@ const CountryDetail = () => {
       "M.Vahdeddin"
     ];
   
+    // 1. Group banknotes by category
     sortedBanknotes.forEach(banknote => {
       const category = banknote.category || 'Uncategorized';
   
@@ -229,6 +169,7 @@ const CountryDetail = () => {
   
     const groupArray = Array.from(categoryMap.values());
   
+    // 2. Sort category groups if order is provided
     if (categoryOrder.length > 0) {
       groupArray.sort((a, b) => {
         const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
@@ -239,6 +180,7 @@ const CountryDetail = () => {
       groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
   
+    // 3. If sorting by sultan, group and sort inside each category group
     if (showSultanGroups) {
       groupArray.forEach(group => {
         const sultanMap = new Map();
@@ -265,7 +207,6 @@ const CountryDetail = () => {
   }, [sortedBanknotes, filters.sort, categoryOrder]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    shouldFetchBanknotesRef.current = true;
     setFilters(prev => ({
       ...prev,
       ...newFilters,
@@ -277,23 +218,12 @@ const CountryDetail = () => {
     navigate('/catalog');
   };
 
-  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
-    
-    if (countryId && banknotes.length > 0) {
-      persistState(filters, banknotes, mode, currencies);
-    }
-  }, [countryId, banknotes, persistState, filters, currencies]);
-  
-  const handleNavigateToDetail = useCallback(() => {
-    if (countryId && banknotes.length > 0) {
-      markNavigatingToDetail();
-      persistState(filters, banknotes, viewMode, currencies);
-    }
-  }, [markNavigatingToDetail, persistState, filters, banknotes, viewMode, currencies, countryId]);
+  };
 
   return (
-    <div className="w-full px-2 sm:px-6 py-8" ref={scrollContainerRef}>
+    <div className="w-full px-2 sm:px-6 py-8">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" onClick={handleBack} className="p-2">
           <ArrowLeft className="h-5 w-5" />
@@ -327,7 +257,6 @@ const CountryDetail = () => {
               groups={groupedItems}
               showSultanGroups={filters.sort.includes('sultan')}
               viewMode={viewMode}
-              onBanknoteClick={handleNavigateToDetail}
             />
           )}
         </div>
