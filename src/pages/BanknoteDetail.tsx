@@ -286,9 +286,7 @@ export default function BanknoteDetail() {
             {isInCollection && <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />}
           </h1>
           <div className="flex items-center justify-between">
-            <p className="text-xl text-muted-foreground">
-              {banknote.country}, {banknote.year}
-            </p>
+            <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
             {isInCollection && (
               <Button 
                 variant="outline" 
@@ -515,7 +513,7 @@ export default function BanknoteDetail() {
             Back
           </Button>
           <div className="flex gap-3">
-            {viewMode === 'catalog' ? (
+            {viewMode === 'catalog' && (
               isInCollection ? (
                 <Button 
                   variant="secondary" 
@@ -528,31 +526,11 @@ export default function BanknoteDetail() {
               ) : (
                 <Button onClick={() => navigate('/auth')}>Sign in to collect</Button>
               )
-            ) : (
+            )}
+            {viewMode === 'collection' && (
               <Button variant="secondary" onClick={toggleViewMode}>
                 View Catalog Entry
               </Button>
-            )}
-            {user && !isInCollection && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="outline"
-                    size="icon" 
-                    onClick={handleToggleWishlist}
-                    disabled={isAddingToWishlist}
-                  >
-                    {wishlistItem ? (
-                      <StarOff className="h-4 w-4" />
-                    ) : (
-                      <Star className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {wishlistItem ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                </TooltipContent>
-              </Tooltip>
             )}
           </div>
         </div>
