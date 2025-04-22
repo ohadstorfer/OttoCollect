@@ -327,6 +327,13 @@ export type Database = {
             referencedRelation: "detailed_banknotes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "collection_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "sorted_banknotes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       countries: {
@@ -665,6 +672,13 @@ export type Database = {
             referencedRelation: "detailed_banknotes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "image_suggestions_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "sorted_banknotes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       marketplace_items: {
@@ -944,16 +958,74 @@ export type Database = {
             referencedRelation: "detailed_banknotes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "wishlist_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "sorted_banknotes"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      sorted_banknotes: {
+        Row: {
+          back_picture: string | null
+          banknote_description: string | null
+          base_num: number | null
+          category: string | null
+          colors: string | null
+          country: string | null
+          created_at: string | null
+          extended_pick_number: string | null
+          face_value: string | null
+          front_picture: string | null
+          gregorian_year: string | null
+          historical_description: string | null
+          id: string | null
+          is_approved: boolean | null
+          is_pending: boolean | null
+          islamic_year: string | null
+          letter_type: string | null
+          letter_value: string | null
+          other_element_pictures: string[] | null
+          pick_number: string | null
+          printer: string | null
+          rarity: string | null
+          seal_names: string | null
+          seal_pictures: string[] | null
+          security_element: string | null
+          serial_numbering: string | null
+          signature_pictures: string[] | null
+          signatures_back: string | null
+          signatures_front: string | null
+          suffix_num: number | null
+          sultan_name: string | null
+          trailing_text: string | null
+          tughra_picture: string | null
+          turk_catalog_number: string | null
+          type: string | null
+          updated_at: string | null
+          watermark_picture: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       extract_numeric_value: {
         Args: { face_value: string }
         Returns: number
+      }
+      extract_pick_components: {
+        Args: { pick_number: string }
+        Returns: {
+          base_num: number
+          capital_letter: string
+          group_letter: string
+          suffix_num: number
+          suffix_text: string
+        }[]
       }
       get_current_user: {
         Args: Record<PropertyKey, never>
@@ -979,6 +1051,16 @@ export type Database = {
       is_super_admin: {
         Args: { user_uuid: string }
         Returns: boolean
+      }
+      parse_extended_pick_number: {
+        Args: { pick_number: string }
+        Returns: {
+          base_num: number
+          letter_type: string
+          letter_value: string
+          suffix_num: number
+          trailing_text: string
+        }[]
       }
     }
     Enums: {
