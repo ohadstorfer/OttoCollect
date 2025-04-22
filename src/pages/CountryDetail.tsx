@@ -139,14 +139,23 @@ const CountryDetail = () => {
     sortFields: filters.sort
   });
 
-  // Group banknotes by category
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
     const showSultanGroups = filters.sort.includes('sultan');
-
+  
+    const sultanOrder = [
+      "AbdulMecid",
+      "AbdulAziz",
+      "Murad",
+      "AbdulHamid",
+      "M.Resad",
+      "M.Vahdeddin"
+    ];
+  
+    // 1. Group banknotes by category
     sortedBanknotes.forEach(banknote => {
       const category = banknote.category || 'Uncategorized';
-
+  
       if (!categoryMap.has(category)) {
         categoryMap.set(category, {
           category,
@@ -154,13 +163,13 @@ const CountryDetail = () => {
           items: []
         });
       }
-
+  
       categoryMap.get(category).items.push(banknote);
     });
-
+  
     const groupArray = Array.from(categoryMap.values());
-
-    // Sort groups by category order
+  
+    // 2. Sort category groups if order is provided
     if (categoryOrder.length > 0) {
       groupArray.sort((a, b) => {
         const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
@@ -170,39 +179,30 @@ const CountryDetail = () => {
     } else {
       groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
-
-// Add sultan groups if needed
-if (showSultanGroups) {
-  const sultanOrder = [
-    "AbdulMecid",
-    "AbdulAziz",
-    "Murad",
-    "AbdulHamid",
-    "M.Resad",
-    "M.Vahdeddin"
-  ];
-
-  groupArray.forEach(group => {
-    const sultanMap = new Map();
-
-    group.items.forEach(banknote => {
-      const sultan = banknote.sultanName || 'Unknown';
-      if (!sultanMap.has(sultan)) {
-        sultanMap.set(sultan, []);
-      }
-      sultanMap.get(sultan).push(banknote);
-    });
-
-    group.sultanGroups = Array.from(sultanMap.entries())
-      .map(([sultan, items]) => ({ sultan, items }))
-      .sort((a, b) => {
-        const indexA = sultanOrder.indexOf(a.sultan);
-        const indexB = sultanOrder.indexOf(b.sultan);
-        return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+  
+    // 3. If sorting by sultan, group and sort inside each category group
+    if (showSultanGroups) {
+      groupArray.forEach(group => {
+        const sultanMap = new Map();
+  
+        group.items.forEach(banknote => {
+          const sultan = banknote.sultanName || 'Unknown';
+          if (!sultanMap.has(sultan)) {
+            sultanMap.set(sultan, []);
+          }
+          sultanMap.get(sultan).push(banknote);
+        });
+  
+        group.sultanGroups = Array.from(sultanMap.entries())
+          .map(([sultan, items]) => ({ sultan, items }))
+          .sort((a, b) => {
+            const indexA = sultanOrder.findIndex(name => name.toLowerCase() === a.sultan.toLowerCase());
+            const indexB = sultanOrder.findIndex(name => name.toLowerCase() === b.sultan.toLowerCase());
+            return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+          });
       });
-  });
-}
-
+    }
+  
     return groupArray;
   }, [sortedBanknotes, filters.sort, categoryOrder]);
 
