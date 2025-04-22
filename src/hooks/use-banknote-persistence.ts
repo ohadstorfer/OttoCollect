@@ -32,13 +32,14 @@ export const useBanknotePersistence = ({ countryId, countryName }: UseBanknotePe
   const [isReturningFromDetail, setIsReturningFromDetail] = useState<boolean>(false);
   const [storedState, setStoredState] = useState<StoredCatalogState | null>(null);
   
-  // Load persisted data on initial mount
+  // Load persisted data on initial mount only when countryId changes
   useEffect(() => {
+    if (!countryId) return;
+    
     try {
       const stored = sessionStorage.getItem(storageKey);
       if (stored) {
         const parsedState = JSON.parse(stored) as StoredCatalogState;
-        setStoredState(parsedState);
         
         // Check if we're returning from a detail page
         const navState = sessionStorage.getItem(`${storageKey}_nav`);
@@ -46,12 +47,16 @@ export const useBanknotePersistence = ({ countryId, countryName }: UseBanknotePe
           setIsReturningFromDetail(true);
           // Reset the navigation state
           sessionStorage.setItem(`${storageKey}_nav`, 'list');
+          setStoredState(parsedState);
+        } else if (!storedState) {
+          // Only set stored state if it hasn't been set yet
+          setStoredState(parsedState);
         }
       }
     } catch (error) {
       console.error('Error loading persisted banknote state:', error);
     }
-  }, [storageKey]);
+  }, [countryId, storageKey]);
 
   // Save data to session storage
   const persistState = useCallback((
@@ -60,6 +65,8 @@ export const useBanknotePersistence = ({ countryId, countryName }: UseBanknotePe
     viewMode: 'grid' | 'list',
     currencies: Currency[]
   ) => {
+    if (!countryId) return;
+    
     try {
       const scrollPosition = window.scrollY;
       
@@ -73,16 +80,24 @@ export const useBanknotePersistence = ({ countryId, countryName }: UseBanknotePe
       };
       
       sessionStorage.setItem(storageKey, JSON.stringify(stateToStore));
-      setStoredState(stateToStore);
+      
+      // Only update the state if it's different to avoid re-renders
+      if (!storedState || 
+          JSON.stringify(storedState.filters) !== JSON.stringify(filters) ||
+          storedState.viewMode !== viewMode ||
+          storedState.lastFetched !== stateToStore.lastFetched) {
+        setStoredState(stateToStore);
+      }
     } catch (error) {
       console.error('Error persisting banknote state:', error);
     }
-  }, [storageKey]);
+  }, [countryId, storageKey, storedState]);
 
   // Mark that we're navigating to a detail page
   const markNavigatingToDetail = useCallback(() => {
+    if (!countryId) return;
     sessionStorage.setItem(`${storageKey}_nav`, 'detail');
-  }, [storageKey]);
+  }, [countryId, storageKey]);
   
   // Restore scroll position after data is loaded
   const restoreScrollPosition = useCallback(() => {
