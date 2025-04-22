@@ -73,6 +73,14 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
   );
 };
 
+const getOrganizedImageSrc = (imageUrls: string[] | string | undefined): string => {
+  if (!imageUrls) return "/placeholder.svg";
+  if (Array.isArray(imageUrls) && imageUrls.length > 0) {
+    return imageUrls[0];
+  }
+  return typeof imageUrls === 'string' ? imageUrls : "/placeholder.svg";
+};
+
 export default function BanknoteDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

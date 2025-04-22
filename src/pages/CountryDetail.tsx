@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailedBanknote } from "@/types";
 import { fetchBanknotesByCountryId } from "@/services/banknoteService";
@@ -37,7 +37,8 @@ const CountryDetail = () => {
   });
   
   // Track if initial data is loaded to prevent unnecessary fetches
-  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const initialDataLoadedRef = useRef<boolean>(false);
+  const shouldFetchBanknotesRef = useRef<boolean>(false);
   
   const { 
     storedState, 
@@ -54,28 +55,34 @@ const CountryDetail = () => {
   
   // Load stored state once on initial render if returning from detail page
   useEffect(() => {
-    if (countryId && storedState && isReturningFromDetail && !initialDataLoaded) {
+    if (!initialDataLoadedRef.current && countryId && storedState && isReturningFromDetail) {
       console.log("CountryDetail: Restoring from persistence", storedState);
       setFilters(storedState.filters);
       setBanknotes(storedState.banknotes);
       setViewMode(storedState.viewMode);
       setCurrencies(storedState.currencies);
       setLoading(false);
-      setInitialDataLoaded(true);
+      initialDataLoadedRef.current = true;
+      shouldFetchBanknotesRef.current = false;
+    } else if (!initialDataLoadedRef.current) {
+      shouldFetchBanknotesRef.current = true;
     }
-  }, [countryId, storedState, isReturningFromDetail, initialDataLoaded]);
+  }, [countryId, storedState, isReturningFromDetail]);
   
   // Restore scroll position after data is loaded
   useEffect(() => {
-    if (!loading && isReturningFromDetail && banknotes.length > 0 && initialDataLoaded) {
+    if (!loading && isReturningFromDetail && banknotes.length > 0 && initialDataLoadedRef.current) {
       restoreScrollPosition();
     }
-  }, [loading, isReturningFromDetail, banknotes, restoreScrollPosition, initialDataLoaded]);
+  }, [loading, isReturningFromDetail, banknotes.length, restoreScrollPosition]);
 
   // Load country data only once when country name changes
   useEffect(() => {
     const loadCountryData = async () => {
-      if (!decodedCountryName || (isReturningFromDetail && storedState && isDataFresh())) {
+      if (!decodedCountryName) return;
+      
+      // Skip fetching if returning with fresh data
+      if (isReturningFromDetail && storedState && isDataFresh() && initialDataLoadedRef.current) {
         return;
       }
 
@@ -139,7 +146,16 @@ const CountryDetail = () => {
     const fetchBanknotesData = async () => {
       // Skip fetching if we're returning from detail and have data, or if country ID isn't set
       if (!countryId || !filters.country_id) return;
-      if (isReturningFromDetail && storedState && initialDataLoaded && isDataFresh()) return;
+      
+      // Skip fetch if returning from details with fresh data
+      if (isReturningFromDetail && storedState && initialDataLoadedRef.current && isDataFresh()) {
+        return;
+      }
+
+      // Skip fetch if we shouldn't be fetching (based on our ref)
+      if (!shouldFetchBanknotesRef.current && initialDataLoadedRef.current) {
+        return;
+      }
       
       console.log("CountryDetail: Fetching banknotes with filters", { countryId, filters });
       setLoading(true);
@@ -156,7 +172,8 @@ const CountryDetail = () => {
         console.log("CountryDetail: Banknotes loaded:", data.length);
         setBanknotes(data);
         setLoading(false);
-        setInitialDataLoaded(true);
+        initialDataLoadedRef.current = true;
+        shouldFetchBanknotesRef.current = false;
         
         // Only persist state when we fetch new data and have currency information
         if (currencies.length > 0) {
@@ -174,11 +191,8 @@ const CountryDetail = () => {
       }
     };
 
-    // Only fetch banknotes if we're not returning from detail with fresh data
-    if (!(isReturningFromDetail && storedState && initialDataLoaded && isDataFresh())) {
-      fetchBanknotesData();
-    }
-  }, [countryId, filters.country_id, persistState, currencies, viewMode, isReturningFromDetail, storedState, initialDataLoaded, isDataFresh]);
+    fetchBanknotesData();
+  }, [countryId, filters.country_id, filters.categories, filters.types, filters.sort, filters.search, persistState, currencies, viewMode, isReturningFromDetail, storedState, isDataFresh]);
 
   const sortedBanknotes = useBanknoteSorting({
     banknotes,
@@ -251,27 +265,25 @@ const CountryDetail = () => {
   }, [sortedBanknotes, filters.sort, categoryOrder]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    shouldFetchBanknotesRef.current = true;
     setFilters(prev => ({
       ...prev,
       ...newFilters,
       country_id: countryId || prev.country_id
     }));
-    
-    // Since filters changed, we need to refetch even if returning from detail
-    setInitialDataLoaded(false);
   }, [countryId]);
 
   const handleBack = () => {
     navigate('/catalog');
   };
 
-  const handleViewModeChange = (mode: 'grid' | 'list') => {
+  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
     setViewMode(mode);
     
     if (countryId && banknotes.length > 0) {
       persistState(filters, banknotes, mode, currencies);
     }
-  };
+  }, [countryId, banknotes, persistState, filters, currencies]);
   
   const handleNavigateToDetail = useCallback(() => {
     if (countryId && banknotes.length > 0) {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -53,7 +52,7 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
   );
 };
 
-export default function BanknoteCatalogDetail() {
+const BanknoteCatalogDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -64,6 +63,14 @@ export default function BanknoteCatalogDetail() {
     queryFn: () => fetchBanknoteDetail(id || ""),
     enabled: !!id,
   });
+
+  const getOrganizedImageSrc = (imageUrls: string[] | string | undefined): string => {
+    if (!imageUrls) return "/placeholder.svg";
+    if (Array.isArray(imageUrls) && imageUrls.length > 0) {
+      return imageUrls[0];
+    }
+    return typeof imageUrls === 'string' ? imageUrls : "/placeholder.svg";
+  };
 
   if (banknoteLoading) {
     return (
@@ -337,4 +344,6 @@ export default function BanknoteCatalogDetail() {
       )}
     </div>
   );
-}
+};
+
+export default BanknoteCatalogDetail;
