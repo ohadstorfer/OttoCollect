@@ -69,13 +69,10 @@ export async function fetchBanknotesByCountryId(
       return [];
     }
     
-    // Build the base query with sorting using our new function
+    // Build the base query - simplified to avoid issues with extract_pick_components
     let query = supabase
       .from('detailed_banknotes')
-      .select(`
-        *,
-        pick_components:extract_pick_components(extended_pick_number)
-      `)
+      .select('*')
       .eq('country', country.name);
 
     // Apply search filter if provided
@@ -98,37 +95,27 @@ export async function fetchBanknotesByCountryId(
       query = query.in('type', filters.types);
     }
 
-    // Apply sorting - our function handles the extPick case specially
+    // Apply simple sorting to avoid issues with the extract_pick_components function
     if (filters?.sort && filters.sort.length > 0) {
-      const orderBy = [];
-      
       for (const sortField of filters.sort) {
         switch (sortField) {
           case "extPick":
-            orderBy.push(
-              'pick_components->base_num',
-              'pick_components->capital_letter',
-              'pick_components->group_letter',
-              'pick_components->suffix_num',
-              'pick_components->suffix_text'
-            );
+            query = query.order('extended_pick_number', { ascending: true });
             break;
           case "newest":
-            orderBy.push({ column: 'created_at', order: 'desc' });
+            query = query.order('created_at', { ascending: false });
             break;
           case "sultan":
-            orderBy.push('sultan_name');
+            query = query.order('sultan_name', { ascending: true });
             break;
           case "faceValue":
-            orderBy.push('face_value');
+            query = query.order('face_value', { ascending: true });
             break;
         }
       }
-      
-      if (orderBy.length > 0) {
-        // Fix spread argument issue by explicitly spreading the array into arguments
-        query = query.order.apply(query, orderBy);
-      }
+    } else {
+      // Default sorting
+      query = query.order('extended_pick_number', { ascending: true });
     }
 
     const { data, error } = await query;

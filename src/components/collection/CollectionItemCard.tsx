@@ -3,23 +3,25 @@ import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CollectionItem } from '@/types';
+import { CollectionItem, Banknote } from '@/types';
 import { Edit, Star, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export interface CollectionItemCardProps {
-  collectionItem: CollectionItem;
+  item: CollectionItem;
+  banknote: Banknote;
   onItemEdit?: () => void;
   onCollectionUpdated?: () => Promise<void>;
 }
 
 const CollectionItemCard: React.FC<CollectionItemCardProps> = ({ 
-  collectionItem, 
+  item, 
+  banknote,
   onItemEdit,
   onCollectionUpdated
 }) => {
   const navigate = useNavigate();
-  const { banknote, condition, isForSale, salePrice } = collectionItem;
+  const { condition, isForSale, salePrice } = item;
   
   const handleCardClick = () => {
     navigate(`/banknotes/${banknote.id}?source=collection`);
@@ -40,7 +42,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       <div className="relative aspect-video overflow-hidden bg-muted">
         <img 
           src={
-            collectionItem.obverseImage || 
+            item.obverseImage || 
             (Array.isArray(banknote.imageUrls) ? banknote.imageUrls[0] : banknote.imageUrls) || 
             '/placeholder.svg'
           } 
