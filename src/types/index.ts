@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -181,4 +180,11 @@ export interface CountryData {
   banknoteCount?: number;
   created_at?: string;
   updated_at?: string;
+}
+
+// Add Currency type
+export interface Currency {
+  id: string;
+  name: string;
+  display_order: number;
 }

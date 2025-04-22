@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters } from '@/types';
 
@@ -69,50 +68,15 @@ export async function fetchBanknotesByCountryId(
       return [];
     }
     
-    console.log(`Found country name: ${country.name} for ID: ${countryId}`);
-    
-    // Get category names from category IDs
-    let categoryNames: string[] = [];
-    if (filters?.categories && filters.categories.length > 0) {
-      try {
-        const { data: categoryData } = await supabase
-          .from('banknote_category_definitions')
-          .select('name')
-          .in('id', filters.categories);
-        
-        if (categoryData && categoryData.length > 0) {
-          categoryNames = categoryData.map(cat => cat.name);
-          console.log('Filtering by categories:', categoryNames);
-        }
-      } catch (err) {
-        console.error('Error fetching category names:', err);
-      }
-    }
-    
-    // Get type names from type IDs
-    let typeNames: string[] = [];
-    if (filters?.types && filters.types.length > 0) {
-      try {
-        const { data: typeData } = await supabase
-          .from('banknote_type_definitions')
-          .select('name')
-          .in('id', filters.types);
-        
-        if (typeData && typeData.length > 0) {
-          typeNames = typeData.map(type => type.name);
-          console.log('Filtering by types:', typeNames);
-        }
-      } catch (err) {
-        console.error('Error fetching type names:', err);
-      }
-    }
-    
-    // Build the query with the country filter
+    // Build the base query with sorting using our new function
     let query = supabase
       .from('detailed_banknotes')
-      .select('*')
+      .select(`
+        *,
+        pick_components:extract_pick_components(extended_pick_number)
+      `)
       .eq('country', country.name);
-    
+
     // Apply search filter if provided
     if (filters?.search && filters.search.trim() !== '') {
       const searchTerm = filters.search.toLowerCase();
@@ -123,112 +87,57 @@ export async function fetchBanknotesByCountryId(
         `sultan_name.ilike.%${searchTerm}%`
       );
     }
-    
-    // Execute the query to get all banknotes for this country
+
+    // Apply category and type filters
+    if (filters?.categories && filters.categories.length > 0) {
+      query = query.in('category', filters.categories);
+    }
+
+    if (filters?.types && filters.types.length > 0) {
+      query = query.in('type', filters.types);
+    }
+
+    // Apply sorting - our function handles the extPick case specially
+    if (filters?.sort && filters.sort.length > 0) {
+      const orderBy = [];
+      
+      for (const sortField of filters.sort) {
+        switch (sortField) {
+          case "extPick":
+            orderBy.push(
+              'pick_components->base_num',
+              'pick_components->capital_letter',
+              'pick_components->group_letter',
+              'pick_components->suffix_num',
+              'pick_components->suffix_text'
+            );
+            break;
+          case "newest":
+            orderBy.push({ column: 'created_at', order: 'desc' });
+            break;
+          case "sultan":
+            orderBy.push('sultan_name');
+            break;
+          case "faceValue":
+            orderBy.push('face_value');
+            break;
+        }
+      }
+      
+      if (orderBy.length > 0) {
+        query = query.order(...orderBy);
+      }
+    }
+
     const { data, error } = await query;
-    
+
     if (error) {
       console.error('Error fetching banknotes by country:', error);
       return [];
     }
-    
-    // Filter by category and type on the server side
-    let filteredData = [...data];
-    
-    // Apply category filters if any
-    if (categoryNames.length > 0) {
-      const lowerCaseCategories = categoryNames.map(cat => cat.toLowerCase());
-      
-      filteredData = filteredData.filter(banknote => {
-        const itemCategory = (banknote.category || "").toLowerCase();
-        return lowerCaseCategories.some(categoryName => 
-          itemCategory === categoryName.toLowerCase() ||
-          itemCategory.includes(categoryName.toLowerCase()) ||
-          categoryName.toLowerCase().includes(itemCategory)
-        );
-      });
-    }
-    
-    // Apply type filters if any
-    if (typeNames.length > 0) {
-      const lowerCaseTypes = typeNames.map(type => type.toLowerCase());
-      
-      filteredData = filteredData.filter(banknote => {
-        const itemType = (banknote.type || "").toLowerCase();
-        return lowerCaseTypes.some(typeName => {
-          const normalizedTypeName = typeName.toLowerCase();
-          // Direct match
-          if (itemType === normalizedTypeName) return true;
-          
-          // Special case for "Issued notes" which might be stored as "Issued note"
-          if ((normalizedTypeName === "issued notes" && itemType === "issued note") ||
-              (normalizedTypeName === "issued note" && itemType === "issued notes")) {
-            return true;
-          }
-          
-          // Partial match (more flexible)
-          return itemType.includes(normalizedTypeName) || normalizedTypeName.includes(itemType);
-        });
-      });
-    }
-    
-    console.log(`Found ${filteredData.length} banknotes for country: ${country.name}`);
-    
+
     // Map database fields to client-side model
-    const banknotes = filteredData.map(mapBanknoteFromDatabase);
-    
-    // Sort the banknotes if sort options are provided
-    if (filters?.sort && filters.sort.length > 0) {
-      console.log('Sorting banknotes by:', filters.sort);
-      
-      banknotes.sort((a, b) => {
-        // Apply sorting based on selected criteria
-        for (const fieldName of filters.sort) {
-          let comparison = 0;
-
-          switch (fieldName) {
-            case "sultan":
-              comparison = (a.sultanName || "")
-                .localeCompare(b.sultanName || "");
-              break;
-
-            case "faceValue":
-              const valueA = a.denomination || "";
-              const valueB = b.denomination || "";
-              const isKurushA = String(valueA).toLowerCase().includes("kurush");
-              const isKurushB = String(valueB).toLowerCase().includes("kurush");
-              const isLiraA = String(valueA).toLowerCase().includes("lira");
-              const isLiraB = String(valueB).toLowerCase().includes("lira");
-
-              if (isKurushA && isLiraB) comparison = -1;
-              else if (isLiraA && isKurushB) comparison = 1;
-              else {
-                const numA = parseFloat(String(valueA).replace(/[^0-9.]/g, "")) || 0;
-                const numB = parseFloat(String(valueB).replace(/[^0-9.]/g, "")) || 0;
-                comparison = numA - numB;
-              }
-              break;
-
-            case "extPick":
-              comparison = (a.extendedPickNumber || "")
-                .localeCompare(b.extendedPickNumber || "");
-              break;
-              
-            case "newest":
-              const dateA = new Date(a.createdAt || "").getTime();
-              const dateB = new Date(b.createdAt || "").getTime();
-              comparison = dateB - dateA; // Newest first
-              break;
-          }
-
-          if (comparison !== 0) return comparison;
-        }
-
-        return 0;
-      });
-    }
-    
-    return banknotes;
+    return data.map(mapBanknoteFromDatabase);
   } catch (error) {
     console.error('Unexpected error in fetchBanknotesByCountryId:', error);
     return [];
