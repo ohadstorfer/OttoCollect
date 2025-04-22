@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,8 +33,9 @@ export default function Members() {
           id: profile.id,
           username: profile.username,
           email: profile.email,
-          role: profile.role as UserRole, // Cast to UserRole type
-          rank: profile.rank as UserRank, // Cast to UserRank type
+          role_id: profile.role_id || '',  // Add role_id with default empty string
+          role: profile.role as UserRole, 
+          rank: profile.rank as UserRank,
           points: profile.points,
           createdAt: profile.created_at,
           avatarUrl: profile.avatar_url,

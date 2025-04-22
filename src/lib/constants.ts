@@ -68,4 +68,6 @@ export const MOCK_USERS = [
   },
 ];
 
+export const MOCK_BANKNOTES = [];
+
 export const DEFAULT_IMAGE_URL = '/placeholder.svg';

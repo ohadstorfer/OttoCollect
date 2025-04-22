@@ -1,55 +1,82 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreVertical } from 'lucide-react';
-import { CollectionItem, Banknote } from '@/types';
-import { formatCurrency } from '@/lib/formatters';
+import { CollectionItem } from '@/types';
+import { Edit, Star, DollarSign } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface CollectionItemCardProps {
-  item: CollectionItem;
-  banknote: Banknote;
+export interface CollectionItemCardProps {
+  collectionItem: CollectionItem;
+  onItemEdit?: () => void;
+  onCollectionUpdated?: () => Promise<void>;
 }
 
-const CollectionItemCard = ({ item, banknote }: CollectionItemCardProps) => {
+const CollectionItemCard: React.FC<CollectionItemCardProps> = ({ 
+  collectionItem, 
+  onItemEdit,
+  onCollectionUpdated
+}) => {
+  const navigate = useNavigate();
+  const { banknote, condition, isForSale, salePrice } = collectionItem;
+  
+  const handleCardClick = () => {
+    navigate(`/banknotes/${banknote.id}?source=collection`);
+  };
+  
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onItemEdit) {
+      onItemEdit();
+    }
+  };
+  
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-md h-full">
-      <div className="aspect-video relative overflow-hidden">
-        <img
-          src={item.obverseImage || banknote.imageUrls[0] || '/placeholder.svg'}
-          alt={banknote.denomination}
-          className="w-full h-full object-cover"
+    <Card 
+      className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer border-ottoman-200/20"
+      onClick={handleCardClick}
+    >
+      <div className="relative aspect-video overflow-hidden bg-muted">
+        <img 
+          src={
+            collectionItem.obverseImage || 
+            (Array.isArray(banknote.imageUrls) ? banknote.imageUrls[0] : banknote.imageUrls) || 
+            '/placeholder.svg'
+          } 
+          alt={`${banknote.country} ${banknote.denomination}`}
+          className="w-full h-full object-contain"
         />
-        {item.isForSale && (
-          <Badge className="absolute top-2 right-2 bg-ottoman-500 text-white">
-            For Sale
-          </Badge>
+        {isForSale && (
+          <div className="absolute top-2 right-2">
+            <Badge variant="destructive" className="flex items-center gap-1">
+              <DollarSign className="h-3 w-3" />
+              For Sale
+            </Badge>
+          </div>
         )}
       </div>
+      
       <CardContent className="p-3">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-medium text-lg leading-tight">{banknote.denomination}</h3>
-            <p className="text-sm text-muted-foreground">
-              {banknote.country}, {banknote.year}
-            </p>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="secondary" className="text-xs">
-                {item.condition}
-              </Badge>
-              {item.isForSale && (
-                <Badge variant="outline" className="text-ottoman-500 font-medium text-xs">
-                  {formatCurrency(item.salePrice || 0)}
-                </Badge>
-              )}
-            </div>
-          </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
+        <h3 className="font-medium truncate">{banknote.denomination}</h3>
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>{banknote.country}, {banknote.year}</span>
+          <Badge variant="outline" className="text-xs">{condition}</Badge>
         </div>
       </CardContent>
+      
+      <CardFooter className="p-3 pt-0 flex justify-between">
+        <div>
+          {isForSale && salePrice && (
+            <span className="font-semibold text-ottoman-500">${salePrice}</span>
+          )}
+        </div>
+        {onItemEdit && (
+          <Button size="sm" variant="ghost" onClick={handleEditClick}>
+            <Edit className="h-4 w-4 mr-1" /> Edit
+          </Button>
+        )}
+      </CardFooter>
     </Card>
   );
 };

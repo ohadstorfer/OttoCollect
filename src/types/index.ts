@@ -79,16 +79,16 @@ export interface Banknote {
   description?: string;
   obverseDescription?: string;
   reverseDescription?: string;
-  imageUrls: string[];
+  imageUrls: string | string[];  // Update to allow both string and string[]
   isApproved: boolean;
   isPending: boolean;
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
-  type?: string; // Adding type for compatibility
-  sultanName?: string; // Adding sultanName for compatibility
-  extendedPickNumber?: string; // Adding extended pick number for compatibility
-  category?: string; // Add category field for compatibility
+  type?: string;
+  sultanName?: string;
+  extendedPickNumber?: string;
+  category?: string;
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -162,17 +162,7 @@ export interface MarketplaceItem {
   id: string;
   collectionItem: CollectionItem;
   sellerId: string;
-  seller: {
-    id: string;
-    username: string;
-    rank: string;
-    email?: string;
-    role_id?: string;
-    role?: UserRole;
-    points?: number;
-    createdAt?: string;
-    avatarUrl?: string;
-  };
+  seller: User;
   status: 'Available' | 'Reserved' | 'Sold';
   createdAt: string;
   updatedAt: string;
@@ -187,6 +177,7 @@ export interface WishlistItem {
   priority: string;
   created_at: string;
   detailed_banknotes?: DetailedBanknote;
+  banknote?: Banknote;  // Add this to support CollectionProfileNew usage
 }
 
 // Import and re-export types from other files

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { MarketplaceItem, CollectionItem, User } from '@/types';
 
@@ -20,7 +21,12 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           id,
           username,
           rank,
-          avatar_url
+          avatar_url,
+          email,
+          role_id,
+          role,
+          points,
+          created_at
         )
       `);
 
@@ -61,11 +67,16 @@ export async function fetchMarketplaceItemById(itemId: string): Promise<Marketpl
           id,
           username,
           rank,
-          avatar_url
+          avatar_url,
+          email,
+          role_id,
+          role,
+          points,
+          created_at
         )
       `)
       .eq('id', itemId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching marketplace item by ID:', error);
@@ -84,6 +95,9 @@ export async function fetchMarketplaceItemById(itemId: string): Promise<Marketpl
     return null;
   }
 }
+
+// Alias for getMarketplaceItemById to maintain compatibility
+export const getMarketplaceItemById = fetchMarketplaceItemById;
 
 export async function fetchMarketplaceItemsBySellerId(sellerId: string): Promise<MarketplaceItem[]> {
     try {
@@ -104,7 +118,12 @@ export async function fetchMarketplaceItemsBySellerId(sellerId: string): Promise
             id,
             username,
             rank,
-            avatar_url
+            avatar_url,
+            email,
+            role_id,
+            role,
+            points,
+            created_at
           )
         `)
         .eq('seller_id', sellerId);
@@ -127,35 +146,31 @@ export async function fetchMarketplaceItemsBySellerId(sellerId: string): Promise
     }
   }
 
-export async function createMarketplaceItem(collectionItemId: string, sellerId: string): Promise<MarketplaceItem | null> {
+// Add missing functions needed by CollectionItemForm and Marketplace components
+export async function addToMarketplace(collectionItemId: string, sellerId: string): Promise<MarketplaceItem | null> {
   try {
+    // First, get the banknote_id from the collection_item
+    const { data: collectionItem, error: collectionError } = await supabase
+      .from('collection_items')
+      .select('banknote_id')
+      .eq('id', collectionItemId)
+      .single();
+    
+    if (collectionError || !collectionItem) {
+      console.error('Error getting collection item:', collectionError);
+      return null;
+    }
+
+    // Insert the marketplace item
     const { data, error } = await supabase
       .from('marketplace_items')
-      .insert([
-        {
-          collection_item_id: collectionItemId,
-          seller_id: sellerId,
-          status: 'Available' // Set initial status
-        }
-      ])
-      .select(`
-        id,
-        collectionItemId:collection_item_id,
-        sellerId:seller_id,
-        status,
-        createdAt:created_at,
-        updatedAt:updated_at,
-        collection_item (
-          *,
-          banknote (*)
-        ),
-        seller:profiles (
-          id,
-          username,
-          rank,
-          avatar_url
-        )
-      `)
+      .insert({
+        collection_item_id: collectionItemId,
+        seller_id: sellerId,
+        status: 'Available', // Set initial status
+        banknote_id: collectionItem.banknote_id
+      })
+      .select()
       .single();
 
     if (error) {
@@ -163,11 +178,30 @@ export async function createMarketplaceItem(collectionItemId: string, sellerId: 
       return null;
     }
 
-    // Map database fields to client-side model
-    return mapMarketplaceItemFromDatabase(data);
+    // Fetch the complete marketplace item with all relations
+    return await fetchMarketplaceItemById(data.id);
   } catch (error) {
-    console.error('Unexpected error in createMarketplaceItem:', error);
+    console.error('Unexpected error in addToMarketplace:', error);
     return null;
+  }
+}
+
+export async function removeFromMarketplace(collectionItemId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('marketplace_items')
+      .delete()
+      .eq('collection_item_id', collectionItemId);
+
+    if (error) {
+      console.error('Error removing item from marketplace:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Unexpected error in removeFromMarketplace:', error);
+    return false;
   }
 }
 
@@ -229,25 +263,101 @@ export async function deleteMarketplaceItem(itemId: string): Promise<boolean> {
   }
 }
 
+// Synchronization function for admin use
+export async function synchronizeMarketplaceWithCollection(): Promise<boolean> {
+  try {
+    // Find collection items marked as 'for sale' but not in marketplace
+    const { data: forSaleItems, error: forSaleError } = await supabase
+      .from('collection_items')
+      .select('id, user_id, banknote_id')
+      .eq('is_for_sale', true)
+      .not('id', 'in', 
+        supabase.from('marketplace_items').select('collection_item_id')
+      );
+    
+    if (forSaleError) {
+      console.error('Error finding for-sale items:', forSaleError);
+      return false;
+    }
+    
+    if (forSaleItems && forSaleItems.length > 0) {
+      // Prepare the items to insert
+      const itemsToInsert = forSaleItems.map(item => ({
+        collection_item_id: item.id,
+        seller_id: item.user_id,
+        status: 'Available',
+        banknote_id: item.banknote_id
+      }));
+      
+      // Insert the items in batches of 10 to avoid payload size limits
+      for (let i = 0; i < itemsToInsert.length; i += 10) {
+        const batch = itemsToInsert.slice(i, i + 10);
+        const { error: insertError } = await supabase
+          .from('marketplace_items')
+          .insert(batch);
+        
+        if (insertError) {
+          console.error(`Error inserting batch ${i/10 + 1}:`, insertError);
+        }
+      }
+    }
+    
+    // Find marketplace items whose collection items are no longer for sale
+    const { data: outdatedItems, error: outdatedError } = await supabase
+      .from('marketplace_items')
+      .select('id, collection_item_id')
+      .not('collection_item_id', 'in',
+        supabase.from('collection_items').select('id').eq('is_for_sale', true)
+      );
+      
+    if (outdatedError) {
+      console.error('Error finding outdated marketplace items:', outdatedError);
+      return false;
+    }
+    
+    if (outdatedItems && outdatedItems.length > 0) {
+      const idsToRemove = outdatedItems.map(item => item.id);
+      
+      // Delete in batches of 10
+      for (let i = 0; i < idsToRemove.length; i += 10) {
+        const batch = idsToRemove.slice(i, i + 10);
+        const { error: deleteError } = await supabase
+          .from('marketplace_items')
+          .delete()
+          .in('id', batch);
+          
+        if (deleteError) {
+          console.error(`Error deleting batch ${i/10 + 1}:`, deleteError);
+        }
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Unexpected error in synchronizeMarketplaceWithCollection:', error);
+    return false;
+  }
+}
+
 // Helper function to map database fields to client-side model
 function mapMarketplaceItemFromDatabase(item: any): MarketplaceItem {
   return {
     id: item.id,
     collectionItem: item.collection_item,
-    sellerId: item.seller_id,
+    sellerId: item.seller_id || item.sellerId,
     seller: {
       id: item.seller?.id || '',
       username: item.seller?.username || '',
       rank: item.seller?.rank || '',
-      email: item.seller?.email,
-      role_id: item.seller?.role_id,
-      role: item.seller?.role,
-      points: item.seller?.points,
-      createdAt: item.seller?.created_at,
-      avatarUrl: item.seller?.avatar_url
+      email: item.seller?.email || '',
+      role_id: item.seller?.role_id || '',
+      role: item.seller?.role || '',
+      points: item.seller?.points || 0,
+      createdAt: item.seller?.created_at || '',
+      avatarUrl: item.seller?.avatar_url || ''
     },
     status: item.status,
-    createdAt: item.created_at,
-    updatedAt: item.updated_at
+    createdAt: item.created_at || item.createdAt,
+    updatedAt: item.updated_at || item.updatedAt
   } as MarketplaceItem;
 }
