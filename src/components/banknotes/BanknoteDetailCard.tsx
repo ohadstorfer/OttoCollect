@@ -119,7 +119,7 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog', viewMode = 'grid' }:
                 {banknote.extendedPickNumber}
               </Badge>
             )}
-            {banknote.pickNumber && (
+            {banknote.turkCatalogNumber && (
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                 {banknote.turkCatalogNumber}
               </Badge>
