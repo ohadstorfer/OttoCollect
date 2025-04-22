@@ -1,6 +1,7 @@
 
 import { useMemo } from 'react';
-import { DetailedBanknote, Currency } from '@/types';
+import { DetailedBanknote } from '@/types';
+import { Currency } from '@/types/banknote';
 
 interface UseBanknoteSortingProps {
   banknotes: DetailedBanknote[];
@@ -53,7 +54,8 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
             break;
 
           case "extPick":
-            comparison = (a.extendedPickNumber || "").localeCompare(b.extendedPickNumber || "");
+            // No need for custom sorting here as data should already be sorted by the database
+            comparison = 0;
             break;
             
           case "newest":
@@ -68,8 +70,7 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
         if (comparison !== 0) return comparison;
       }
 
-      // Fallback to catalog number
-      return (a.extendedPickNumber || "").localeCompare(b.extendedPickNumber || "");
+      return 0;
     });
   }, [banknotes, currencies, sortFields]);
 };

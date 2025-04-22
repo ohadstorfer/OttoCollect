@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters } from '@/types';
 
@@ -106,9 +107,9 @@ export async function fetchBanknotesByCountryId(
       }
     }
     
-    // Build the query with the country filter
+    // Build the query with the country filter - using the sorted_banknotes view
     let query = supabase
-      .from('detailed_banknotes')
+      .from('sorted_banknotes')
       .select('*')
       .eq('country', country.name);
     
@@ -175,168 +176,7 @@ export async function fetchBanknotesByCountryId(
     
     // Map database fields to client-side model
     const banknotes = filteredData.map(mapBanknoteFromDatabase);
-
-    // === Begin: NEW extendedPickNumber natural sorting logic ===
-    function parsePickNumber(value: string) {
-      // Example: "25a1f" => { base: 25, group: 'a', suffixNum: 1, suffixText: 'f', groupIsUpper: false }
-      //          "25A"   => { base: 25, group: 'A', suffixNum: 0, suffixText: '', groupIsUpper: true }
-      //          "25"    => { base: 25, group: '', suffixNum: 0, suffixText: '', groupIsUpper: false }
-      //          "25a"   => { base: 25, group: 'a', suffixNum: 0, suffixText: '', groupIsUpper: false }
-      // Regex matches: base, group (single letter), suffix number, trailing text
-      const match = String(value).match(/^(\d+)([a-zA-Z]?)(\d*)([a-zA-Z]*)$/) || [];
-      const base = match[1] ? parseInt(match[1], 10) : 0;
-      const group = match[2] || '';
-      const suffixNum = match[3] ? parseInt(match[3], 10) : 0;
-      const suffixText = match[4] || '';
-      const groupIsUpper = group === group.toUpperCase() && !!group && /[A-Z]/.test(group);
-      const groupIsLower = group === group.toLowerCase() && !!group && /[a-z]/.test(group);
-      return { base, group, groupIsUpper, groupIsLower, suffixNum, suffixText };
-    }
-
-    function compareExtPickNatural(a: DetailedBanknote, b: DetailedBanknote) {
-      const partA = parsePickNumber(a.extendedPickNumber ?? '');
-      const partB = parsePickNumber(b.extendedPickNumber ?? '');
-      // 1. Compare base number
-      if (partA.base !== partB.base) return partA.base - partB.base;
-      // 2. Plain number comes before all grouped
-      const aPlain = !partA.group;
-      const bPlain = !partB.group;
-      if (aPlain && !bPlain) return -1;
-      if (!aPlain && bPlain) return 1;
-      // 3. Lowercase groups ("a", "b", "c") before uppercase
-      if (partA.groupIsLower && partB.groupIsUpper) return -1;
-      if (partA.groupIsUpper && partB.groupIsLower) return 1;
-      // 4. Compare group letters (lower/upper as per order above)
-      if (partA.group !== partB.group) return partA.group.localeCompare(partB.group);
-      // 5. Suffix numerics
-      if (partA.suffixNum !== partB.suffixNum) return partA.suffixNum - partB.suffixNum;
-      // 6. Suffix text (like 'f')
-      if (partA.suffixText !== partB.suffixText) return partA.suffixText.localeCompare(partB.suffixText);
-      return 0;
-    }
-
-    // If extPick is the first in sort, use natural method as primary
-    if (filters?.sort?.length && filters.sort[0] === "extPick") {
-      banknotes.sort((a, b) => {
-        // First, extPick natural sort
-        const cmp = compareExtPickNatural(a, b);
-        if (cmp !== 0) return cmp;
-        // Then, fallback to remaining sort fields (skipping extPick)
-        for (const fieldName of (filters.sort.slice(1) || [])) {
-          let comparison = 0;
-          switch (fieldName) {
-            case "sultan":
-              comparison = (a.sultanName || "")
-                .localeCompare(b.sultanName || "");
-              break;
-            case "faceValue":
-              const valueA = a.denomination || "";
-              const valueB = b.denomination || "";
-              const isKurushA = String(valueA).toLowerCase().includes("kurush");
-              const isKurushB = String(valueB).toLowerCase().includes("kurush");
-              const isLiraA = String(valueA).toLowerCase().includes("lira");
-              const isLiraB = String(valueB).toLowerCase().includes("lira");
-
-              if (isKurushA && isLiraB) comparison = -1;
-              else if (isLiraA && isKurushB) comparison = 1;
-              else {
-                const numA = parseFloat(String(valueA).replace(/[^0-9.]/g, "")) || 0;
-                const numB = parseFloat(String(valueB).replace(/[^0-9.]/g, "")) || 0;
-                comparison = numA - numB;
-              }
-              break;
-            case "newest":
-              const dateA = new Date(a.createdAt || "").getTime();
-              const dateB = new Date(b.createdAt || "").getTime();
-              comparison = dateB - dateA; // Newest first
-              break;
-          }
-          if (comparison !== 0) return comparison;
-        }
-        return 0;
-      });
-    } else if (filters?.sort && filters.sort.includes("extPick")) {
-      // If extPick somewhere else, only use for that slot
-      banknotes.sort((a, b) => {
-        for (const fieldName of filters.sort) {
-          let comparison = 0;
-          switch (fieldName) {
-            case "extPick":
-              comparison = compareExtPickNatural(a, b);
-              break;
-            case "sultan":
-              comparison = (a.sultanName || "")
-                .localeCompare(b.sultanName || "");
-              break;
-            case "faceValue":
-              const valueA = a.denomination || "";
-              const valueB = b.denomination || "";
-              const isKurushA = String(valueA).toLowerCase().includes("kurush");
-              const isKurushB = String(valueB).toLowerCase().includes("kurush");
-              const isLiraA = String(valueA).toLowerCase().includes("lira");
-              const isLiraB = String(valueB).toLowerCase().includes("lira");
-
-              if (isKurushA && isLiraB) comparison = -1;
-              else if (isLiraA && isKurushB) comparison = 1;
-              else {
-                const numA = parseFloat(String(valueA).replace(/[^0-9.]/g, "")) || 0;
-                const numB = parseFloat(String(valueB).replace(/[^0-9.]/g, "")) || 0;
-                comparison = numA - numB;
-              }
-              break;
-            case "newest":
-              const dateA = new Date(a.createdAt || "").getTime();
-              const dateB = new Date(b.createdAt || "").getTime();
-              comparison = dateB - dateA; // Newest first
-              break;
-          }
-          if (comparison !== 0) return comparison;
-        }
-        return 0;
-      });
-    } else if (filters?.sort && filters.sort.length) {
-      // No extPick, do normal for others
-      banknotes.sort((a, b) => {
-        for (const fieldName of filters.sort) {
-          let comparison = 0;
-          switch (fieldName) {
-            case "sultan":
-              comparison = (a.sultanName || "")
-                .localeCompare(b.sultanName || "");
-              break;
-            case "faceValue":
-              const valueA = a.denomination || "";
-              const valueB = b.denomination || "";
-              const isKurushA = String(valueA).toLowerCase().includes("kurush");
-              const isKurushB = String(valueB).toLowerCase().includes("kurush");
-              const isLiraA = String(valueA).toLowerCase().includes("lira");
-              const isLiraB = String(valueB).toLowerCase().includes("lira");
-
-              if (isKurushA && isLiraB) comparison = -1;
-              else if (isLiraA && isKurushB) comparison = 1;
-              else {
-                const numA = parseFloat(String(valueA).replace(/[^0-9.]/g, "")) || 0;
-                const numB = parseFloat(String(valueB).replace(/[^0-9.]/g, "")) || 0;
-                comparison = numA - numB;
-              }
-              break;
-            case "extPick":
-              // fallback in case (should not hit here, but for safety)
-              comparison = compareExtPickNatural(a, b);
-              break;
-            case "newest":
-              const dateA = new Date(a.createdAt || "").getTime();
-              const dateB = new Date(b.createdAt || "").getTime();
-              comparison = dateB - dateA; // Newest first
-              break;
-          }
-          if (comparison !== 0) return comparison;
-        }
-        return 0;
-      });
-    }
-    // === End: extendedPickNumber sorting ===
-
+    
     return banknotes;
   } catch (error) {
     console.error('Unexpected error in fetchBanknotesByCountryId:', error);
