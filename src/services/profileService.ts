@@ -1,108 +1,117 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { User } from '@/types';
+import { supabase } from "@/integrations/supabase/client";
+import { User, UserRole, UserRank } from "@/types";
+import { toast } from "sonner";
 
-export async function fetchUserProfile(userId: string): Promise<User | null> {
+// Get a user profile by ID
+export async function getUserProfile(userId: string): Promise<User | null> {
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select(`
-        id,
-        username,
-        rank,
-        avatar_url,
-        email,
-        role_id,
-        role,
-        points,
-        created_at
-      `)
-      .eq('id', userId)
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
       .single();
 
     if (error) {
-      console.error('Error fetching user profile:', error);
+      console.error("Error fetching user profile:", error);
       return null;
     }
 
-    if (!data) {
-      console.log(`No user profile found with ID: ${userId}`);
-      return null;
-    }
+    if (!data) return null;
 
-    return {
+    const userProfile: User = {
       id: data.id,
       username: data.username,
-      rank: data.rank,
-      avatarUrl: data.avatar_url,
       email: data.email,
-      role_id: data.role_id,
-      role: data.role,
+      role: data.role as UserRole,
+      rank: data.rank as UserRank,
       points: data.points,
-      createdAt: data.created_at
+      createdAt: data.created_at,
+      avatarUrl: data.avatar_url || '/placeholder-brown.svg',
+      ...(data.country && { country: data.country }),
+      ...(data.about && { about: data.about }),
     };
+
+    return userProfile;
   } catch (error) {
-    console.error('Unexpected error in fetchUserProfile:', error);
+    console.error("Error in getUserProfile:", error);
     return null;
   }
 }
 
-// Add missing exports
-export async function updateUserProfile(userId: string, updates: {
-  username?: string;
-  about?: string;
-  country?: string;
-}): Promise<boolean> {
+// Update a user's profile
+export async function updateUserProfile(
+  userId: string,
+  updates: { about?: string | null; username?: string }
+): Promise<boolean> {
   try {
     const { error } = await supabase
-      .from('profiles')
-      .update({
-        username: updates.username,
-        about: updates.about,
-        country: updates.country,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId);
-    
+      .from("profiles")
+      .update(updates)
+      .eq("id", userId);
+
     if (error) {
-      console.error('Error updating user profile:', error);
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
       return false;
     }
-    
+
+    toast.success("Profile updated successfully");
     return true;
   } catch (error) {
-    console.error('Unexpected error in updateUserProfile:', error);
+    console.error("Error in updateUserProfile:", error);
+    toast.error("Failed to update profile");
     return false;
   }
 }
 
-export async function uploadAvatar(userId: string, file: File): Promise<string | null> {
+// Upload a new avatar image
+export async function uploadAvatar(
+  userId: string,
+  file: File
+): Promise<string | null> {
   try {
+    // Create a unique file name
     const fileExt = file.name.split('.').pop();
-    const fileName = `${userId}-${Math.random()}.${fileExt}`;
-    const filePath = `avatars/${fileName}`;
-    
-    // This is a placeholder since we don't have the actual supabase storage setup
-    // const { error } = await supabase.storage
-    //   .from('avatars')
-    //   .upload(filePath, file);
-    
-    // if (error) {
-    //   console.error('Error uploading avatar:', error);
-    //   return null;
-    // }
-    
-    // const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-    // return data.publicUrl;
-    
-    // For now, return a placeholder
-    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`;
+    const fileName = `${userId}/${Date.now()}.${fileExt}`;
+
+    // Upload the file to Supabase storage
+    const { error: uploadError, data } = await supabase.storage
+      .from('profile_pictures')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error("Error uploading avatar:", uploadError);
+      toast.error("Failed to upload avatar");
+      return null;
+    }
+
+    // Get the public URL
+    const { data: urlData } = supabase.storage
+      .from('profile_pictures')
+      .getPublicUrl(fileName);
+
+    const avatarUrl = urlData.publicUrl;
+
+    // Update the user's profile with the new avatar URL
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", userId);
+
+    if (updateError) {
+      console.error("Error updating avatar URL:", updateError);
+      toast.error("Failed to update avatar");
+      return null;
+    }
+
+    return avatarUrl;
   } catch (error) {
-    console.error('Unexpected error in uploadAvatar:', error);
+    console.error("Error in uploadAvatar:", error);
+    toast.error("Failed to upload avatar");
     return null;
   }
-}
-
-export function getUserProfile(userId: string) {
-  return fetchUserProfile(userId);
 }

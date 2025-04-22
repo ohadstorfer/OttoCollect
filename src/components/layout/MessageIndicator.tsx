@@ -8,7 +8,6 @@ import { MessageSquare } from 'lucide-react';
 import { getUnreadMessagesCount } from '@/services/messageService';
 import { subscribeToMessages } from '@/services/messageService';
 import { useState, useEffect } from 'react';
-import { RealtimeChannel } from '@supabase/supabase-js';
 
 export function MessageIndicator() {
   const { user } = useAuth();
@@ -34,14 +33,12 @@ export function MessageIndicator() {
     fetchUnreadCount();
     
     // Subscribe to new messages
-    const channel = subscribeToMessages(user.id, () => {
+    const unsubscribe = subscribeToMessages(user.id, () => {
       setUnreadCount(prev => prev + 1);
     });
     
     return () => {
-      if (channel) {
-        channel.unsubscribe();
-      }
+      unsubscribe();
     };
   }, [user]);
   

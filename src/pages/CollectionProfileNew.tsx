@@ -1,355 +1,355 @@
+import { useState, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
+import { Button } from "@/components/ui/button";
+import { CollectionItem, WishlistItem, Banknote } from "@/types";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { fetchUserCollection } from "@/services/collectionService";
+import { fetchUserWishlist } from "@/services/wishlistService";
+import { fetchBanknotes } from "@/services/banknoteService";
+import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
+import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
 
-import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useQuery } from '@tanstack/react-query';
-import { fetchUserCollection } from '@/services/collectionService';
-import { fetchUserWishlist } from '@/services/wishlistService';
-import { CollectionItem, Banknote, WishlistItem } from '@/types';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useNavigate } from 'react-router-dom';
-import { PlusCircle, ListChecks, Star, StarOff, Clock, ArrowUp, DollarSign, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-interface CollectionProfileProps {
+interface CollectionProfileNewProps {
   userId: string;
   isCurrentUser: boolean;
 }
 
-// Helper function to format date in a friendly way
-const formatDate = (dateString?: string) => {
-  if (!dateString) return 'Unknown date';
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffTime = Math.abs(now.getTime() - date.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) {
-    return 'Today';
-  } else if (diffDays === 1) {
-    return 'Yesterday';
-  } else if (diffDays < 8) {
-    return `${diffDays} days ago`;
-  } else if (diffDays < 30) {
-    const weeks = Math.floor(diffDays / 7);
-    return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
-  } else {
-    return new Date(dateString).toLocaleDateString();
-  }
-};
-
-export default function CollectionProfileNew({ userId, isCurrentUser }: CollectionProfileProps) {
+const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewProps) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<string>('collection');
+  const { toast } = useToast();
+  const initialTab = searchParams.get("tab") || "collection";
   
-  // Fetch collection items
+  const [loading, setLoading] = useState(true);
+  const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [missingItems, setMissingItems] = useState<Banknote[]>([]);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (userId) {
+        setLoading(true);
+        try {
+          console.log("Loading user collection and wishlist");
+          
+          const collection = await fetchUserCollection(userId);
+          const wishlist = await fetchUserWishlist(userId);
+          const allBanknotes = await fetchBanknotes();
+          
+          console.log("Loaded collection items:", collection.length);
+          console.log("Loaded wishlist items:", wishlist.length);
+          console.log("Loaded all banknotes:", allBanknotes.length);
+          
+          setCollectionItems(collection);
+          setWishlistItems(wishlist);
+          
+          // Calculate missing banknotes
+          const collectionBanknoteIds = new Set(collection.map(item => item.banknoteId));
+          const wishlistBanknoteIds = new Set(wishlist.map(item => item.banknoteId));
+          
+          const missingBanknotes = allBanknotes.filter(banknote => 
+            !collectionBanknoteIds.has(banknote.id) && 
+            banknote.isApproved && 
+            !banknote.isPending
+          );
+          
+          setMissingItems(missingBanknotes);
+          console.log("Missing banknotes:", missingBanknotes.length);
+          
+        } catch (error) {
+          console.error("Error loading user data:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load collection. Please try again later.",
+            variant: "destructive",
+          });
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [userId, toast]);
+
+  // Collection filter
   const { 
-    data: collectionItems, 
-    isLoading: isCollectionLoading,
-    refetch: refetchCollection
-  } = useQuery({
-    queryKey: ['userCollection', userId],
-    queryFn: () => fetchUserCollection(userId),
-    enabled: !!userId
+    filteredItems: filteredCollection, 
+    filters: collectionFilters, 
+    setFilters: setCollectionFilters,
+    availableCategories: collectionCategories,
+    availableTypes: collectionTypes
+  } = useBanknoteFilter({
+    items: collectionItems,
+    initialFilters: {
+      sort: ["newest", "extPick"]
+    }
   });
-  
-  // Fetch wishlist items
-  const {
-    data: wishlistItems,
-    isLoading: isWishlistLoading,
-    refetch: refetchWishlist
-  } = useQuery({
-    queryKey: ['userWishlist', userId],
-    queryFn: () => fetchUserWishlist(userId),
-    enabled: !!userId && activeTab === 'wishlist'
+
+  // Missing filter
+  const { 
+    filteredItems: filteredMissing, 
+    filters: missingFilters, 
+    setFilters: setMissingFilters,
+    availableCategories: missingCategories,
+    availableTypes: missingTypes
+  } = useBanknoteFilter({
+    items: missingItems,
+    initialFilters: {
+      sort: ["extPick"]
+    }
   });
-  
-  // Collection stats
-  const collectionStats = {
-    total: collectionItems?.length || 0,
-    forSale: collectionItems?.filter(item => item.isForSale).length || 0
+
+  // Wishlist filter
+  const { 
+    filteredItems: filteredWishlist, 
+    filters: wishlistFilters, 
+    setFilters: setWishlistFilters,
+    availableCategories: wishlistCategories,
+    availableTypes: wishlistTypes
+  } = useBanknoteFilter({
+    items: wishlistItems,
+    initialFilters: {
+      sort: ["newest", "extPick"]
+    }
+  });
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
   };
-  
-  // Wishlist stats
-  const wishlistStats = {
-    total: wishlistItems?.length || 0,
-    highPriority: wishlistItems?.filter(item => item.priority === 'high').length || 0
-  };
-  
-  const handleAddToCollection = () => {
+
+  const handleBrowseCatalog = () => {
     navigate('/catalog');
   };
-  
-  const handleViewAll = (tab: string) => {
-    if (tab === 'collection') {
-      navigate(`/collection/user/${userId}`);
-    } else if (tab === 'wishlist') {
-      navigate(`/wishlist/user/${userId}`);
-    }
+
+  const signIn = () => {
+    navigate('/auth');
   };
-  
-  // Prepare items for rendering
-  const collectionDisplay = collectionItems?.slice(0, 6) || [];
-  
-  // Type-safe version of wishlist display
-  const wishlistDisplay = wishlistItems?.slice(0, 6).map(item => ({
-    id: item.id,
-    banknote_id: item.banknote_id,
-    priority: item.priority,
-    note: item.note,
-    banknote: item.detailed_banknotes || item.banknote
-  })) || [];
-  
+
+  const title = isCurrentUser ? "My Collection" : "User Collection";
+
   return (
-    <div className="p-4">
-      <Tabs defaultValue="collection" value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex justify-between items-center mb-4">
-          <TabsList>
-            <TabsTrigger value="collection" className="relative">
-              Collection
-              {collectionStats.total > 0 && (
-                <Badge className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
-                  {collectionStats.total}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="wishlist">
-              Wishlist
-              {wishlistStats.total > 0 && (
-                <Badge variant="outline" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
-                  {wishlistStats.total}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-          
-          {isCurrentUser && (
-            <div>
-              {activeTab === 'collection' && (
-                <Button onClick={handleAddToCollection} size="sm" className="gap-1">
-                  <PlusCircle className="h-4 w-4" />
-                  Add Item
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
+    <div className="container py-8">
+      <h1 className="text-3xl font-bold mb-6">{title}</h1>
+
+      {!userId && (
+        <Alert variant="default" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Authentication Required</AlertTitle>
+          <AlertDescription>
+            You need to sign in to access your collection and wishlist.
+          </AlertDescription>
+          <Button onClick={signIn} className="mt-2" variant="outline">Sign In</Button>
+        </Alert>
+      )}
+
+      <Tabs defaultValue={initialTab} onValueChange={handleTabChange}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="collection">My Banknotes</TabsTrigger>
+          <TabsTrigger value="wishlist">Wish List</TabsTrigger>
+          <TabsTrigger value="missing">Missing</TabsTrigger>
+          <TabsTrigger value="stats">Statistics</TabsTrigger>
+        </TabsList>
         
-        <TabsContent value="collection" className="mt-0">
-          {isCollectionLoading ? (
-            <div className="py-8 flex justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : collectionStats.total === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="mb-4 rounded-full bg-muted p-3">
-                  <Star className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-medium">No items in collection yet</h3>
-                <p className="text-sm text-muted-foreground mt-1 mb-4 max-w-xs">
-                  {isCurrentUser 
-                    ? "Start building your collection by adding banknotes from the catalog."
-                    : "This user hasn't added any banknotes to their collection yet."}
-                </p>
-                {isCurrentUser && (
-                  <Button onClick={handleAddToCollection}>
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Browse Catalog
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                {collectionDisplay.map((item) => (
-                  <CollectionItemCard key={item.id} item={item} />
+        <TabsContent value="collection">
+          <div className="bg-card border rounded-lg p-6 mb-6">
+            <BanknoteFilter
+              categories={collectionCategories}
+              availableTypes={collectionTypes}
+              onFilterChange={setCollectionFilters}
+              isLoading={loading}
+              defaultSort={["newest", "extPick"]}
+            />
+
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+              </div>
+            ) : !userId ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">You need to sign in to view your collection</h3>
+                <Button onClick={signIn}>Sign In</Button>
+              </div>
+            ) : filteredCollection.length === 0 ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">Your collection is empty</h3>
+                <p className="text-muted-foreground mb-6">Start adding banknotes to your collection by browsing the catalog.</p>
+                <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
+                {filteredCollection.map((item) => (
+                  <BanknoteDetailCard
+                    key={item.id}
+                    banknote={item.banknote}
+                    collectionItem={item}
+                    source="collection"
+                    ownerId={userId}
+                  />
                 ))}
               </div>
-              
-              {collectionStats.total > 6 && (
-                <div className="text-center mt-4">
-                  <Button 
-                    variant="outline"
-                    onClick={() => handleViewAll('collection')}
-                  >
-                    View All ({collectionStats.total})
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
+            )}
+          </div>
         </TabsContent>
         
-        <TabsContent value="wishlist" className="mt-0">
-          {isWishlistLoading ? (
-            <div className="py-8 flex justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : wishlistStats.total === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="mb-4 rounded-full bg-muted p-3">
-                  <ListChecks className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-medium">No items in wishlist yet</h3>
-                <p className="text-sm text-muted-foreground mt-1 mb-4 max-w-xs">
-                  {isCurrentUser 
-                    ? "Add banknotes to your wishlist to keep track of items you want to collect."
-                    : "This user hasn't added any banknotes to their wishlist yet."}
-                </p>
-                {isCurrentUser && (
-                  <Button onClick={() => navigate('/catalog')}>
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Browse Catalog
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                {wishlistDisplay.map((item) => (
-                  <WishlistItemCard key={item.id} item={item} />
+        <TabsContent value="wishlist">
+          <div className="bg-card border rounded-lg p-6 mb-6">
+            <BanknoteFilter
+              categories={wishlistCategories}
+              availableTypes={wishlistTypes}
+              onFilterChange={setWishlistFilters}
+              isLoading={loading}
+              defaultSort={["newest", "extPick"]}
+            />
+            
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+              </div>
+            ) : !userId ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">You need to sign in to view your wishlist</h3>
+                <Button onClick={signIn}>Sign In</Button>
+              </div>
+            ) : filteredWishlist.length === 0 ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">Your wishlist is empty</h3>
+                <p className="text-muted-foreground mb-6">Add banknotes to your wishlist while browsing the catalog.</p>
+                <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
+                {filteredWishlist.map((item) => (
+                  <Card key={item.id} className="overflow-hidden">
+                    <div className="aspect-[3/2]">
+                      <img
+                        src={item.banknote.imageUrls[0] || '/placeholder.svg'}
+                        alt={`${item.banknote.country} ${item.banknote.denomination}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <CardHeader className="p-4">
+                      <div className="flex justify-between">
+                        <div>
+                          <h3 className="font-semibold">{item.banknote.denomination}</h3>
+                          <p className="text-sm text-muted-foreground">{item.banknote.country}, {item.banknote.year}</p>
+                        </div>
+                        <div className={`px-2 py-1 text-xs rounded-full ${
+                          item.priority === 'High' ? 'bg-red-100 text-red-800' :
+                          item.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {item.priority}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      {item.note && (
+                        <p className="text-sm text-muted-foreground">{item.note}</p>
+                      )}
+                      <div className="flex justify-end mt-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => navigate(`/collection-item/${item.banknote.id}`)}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
-              
-              {wishlistStats.total > 6 && (
-                <div className="text-center mt-4">
-                  <Button 
-                    variant="outline"
-                    onClick={() => handleViewAll('wishlist')}
-                  >
-                    View All ({wishlistStats.total})
-                  </Button>
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="missing">
+          <div className="bg-card border rounded-lg p-6 mb-6">
+            <BanknoteFilter
+              categories={missingCategories}
+              availableTypes={missingTypes}
+              onFilterChange={setMissingFilters}
+              isLoading={loading}
+              defaultSort={["extPick"]}
+            />
+
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+              </div>
+            ) : !userId ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">You need to sign in to view missing banknotes</h3>
+                <Button onClick={signIn}>Sign In</Button>
+              </div>
+            ) : filteredMissing.length === 0 ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">You have all available banknotes in your collection!</h3>
+                <p className="text-muted-foreground mb-6">Congratulations! You've collected everything in our catalog.</p>
+                <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
+                {filteredMissing.map((banknote) => (
+                  <BanknoteDetailCard
+                    key={banknote.id}
+                    banknote={banknote}
+                    source="missing"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="stats">
+          <div className="bg-card border rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4">Collection Statistics</h2>
+            
+            {!userId ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">Sign in to view your statistics</h3>
+                <Button onClick={signIn}>Sign In</Button>
+              </div>
+            ) : loading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-muted p-4 rounded-lg">
+                  <h3 className="font-medium">Collection Size</h3>
+                  <p className="text-2xl font-bold">{collectionItems.length}</p>
                 </div>
-              )}
-            </>
-          )}
+                
+                <div className="bg-muted p-4 rounded-lg">
+                  <h3 className="font-medium">Countries</h3>
+                  <p className="text-2xl font-bold">
+                    {new Set(collectionItems.map(item => item.banknote.country)).size}
+                  </p>
+                </div>
+                
+                <div className="bg-muted p-4 rounded-lg">
+                  <h3 className="font-medium">Total Value</h3>
+                  <p className="text-2xl font-bold">
+                    ${collectionItems.reduce((sum, item) => sum + (item.purchasePrice || 0), 0).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
   );
-}
-
-// Collection Item Card
-interface CollectionItemCardProps {
-  item: CollectionItem;
-}
-
-const CollectionItemCard: React.FC<CollectionItemCardProps> = ({ item }) => {
-  const navigate = useNavigate();
-  const { banknote, condition, isForSale, salePrice, createdAt } = item;
-  
-  const handleClick = () => {
-    navigate(`/banknotes/${banknote.id}?source=collection`);
-  };
-  
-  return (
-    <Card 
-      className="overflow-hidden hover:bg-muted/50 hover:shadow-sm transition-all cursor-pointer"
-      onClick={handleClick}
-    >
-      <div className="aspect-[4/3] overflow-hidden bg-muted flex items-center justify-center">
-        <img 
-          src={item.obverseImage || (Array.isArray(banknote.imageUrls) ? banknote.imageUrls[0] : banknote.imageUrls) || '/placeholder.svg'} 
-          alt={`${banknote.denomination}`}
-          className="w-full h-full object-contain"
-        />
-        {isForSale && (
-          <Badge variant="destructive" className="absolute top-2 right-2 flex items-center gap-1">
-            <DollarSign className="h-3 w-3" />
-            ${salePrice}
-          </Badge>
-        )}
-      </div>
-      
-      <CardContent className="p-3">
-        <h3 className="font-medium truncate">{banknote.denomination}</h3>
-        <div className="flex items-center justify-between text-sm text-muted-foreground mt-1">
-          <span>{banknote.country}, {banknote.year}</span>
-          <Badge variant="outline" className="text-xs">{condition}</Badge>
-        </div>
-        <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center">
-            <Clock className="h-3 w-3 mr-1" />
-            {formatDate(createdAt)}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
 };
 
-// Wishlist Item Card
-interface WishlistItemCardProps {
-  item: {
-    id: string;
-    banknote_id: string;
-    priority: string;
-    note?: string;
-    banknote?: Banknote;
-  };
-}
-
-const WishlistItemCard: React.FC<WishlistItemCardProps> = ({ item }) => {
-  const navigate = useNavigate();
-  
-  // Safety check for banknote data
-  if (!item.banknote) {
-    return null;
-  }
-  
-  const { banknote, priority, note } = item;
-  
-  const handleClick = () => {
-    navigate(`/banknotes/${banknote.id}?source=wishlist`);
-  };
-  
-  const priorityColors = {
-    high: "bg-red-100 text-red-800 border-red-200",
-    medium: "bg-amber-100 text-amber-800 border-amber-200",
-    low: "bg-green-100 text-green-800 border-green-200"
-  };
-  
-  return (
-    <Card 
-      className="overflow-hidden hover:bg-muted/50 hover:shadow-sm transition-all cursor-pointer"
-      onClick={handleClick}
-    >
-      <div className="aspect-[4/3] overflow-hidden bg-muted flex items-center justify-center">
-        <img 
-          src={Array.isArray(banknote.imageUrls) ? banknote.imageUrls[0] : banknote.imageUrls} 
-          alt={`${banknote.denomination}`}
-          className="w-full h-full object-contain"
-        />
-        <Badge 
-          className={cn(
-            "absolute top-2 right-2", 
-            priority === "high" ? priorityColors.high :
-            priority === "medium" ? priorityColors.medium :
-            priorityColors.low
-          )}
-        >
-          {priority === "high" && <ArrowUp className="h-3 w-3 mr-1" />}
-          {priority} priority
-        </Badge>
-      </div>
-      
-      <CardContent className="p-3">
-        <h3 className="font-medium truncate">{banknote.denomination}</h3>
-        <div className="flex items-center justify-between text-sm text-muted-foreground mt-1">
-          <span>{banknote.country}, {banknote.year}</span>
-        </div>
-        {note && (
-          <div className="mt-2 text-xs text-muted-foreground line-clamp-2">
-            Note: {note}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+export default CollectionProfileNew;

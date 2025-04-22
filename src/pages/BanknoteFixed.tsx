@@ -394,24 +394,6 @@ export default function BankNote() {
                     )}
                   </div>
                 )}
-                
-                {banknote.seal_pictures && Array.isArray(banknote.seal_pictures) && banknote.seal_pictures.map((url, idx) => (
-                  <div key={idx} className="mb-4">
-                    <img src={url} alt={`Seal ${idx + 1}`} className="w-full h-auto" />
-                    <p className="text-center text-sm text-muted-foreground mt-2">
-                      Seal {idx + 1}
-                    </p>
-                  </div>
-                ))}
-                
-                {banknote.signature_pictures && Array.isArray(banknote.signature_pictures) && banknote.signature_pictures.map((url, idx) => (
-                  <div key={idx} className="mb-4">
-                    <img src={url} alt={`Signature ${idx + 1}`} className="w-full h-auto" />
-                    <p className="text-center text-sm text-muted-foreground mt-2">
-                      Signature {idx + 1}
-                    </p>
-                  </div>
-                ))}
               </CardContent>
             </Card>
           </div>
@@ -459,4 +441,4 @@ export default function BankNote() {
       )}
     </div>
   );
-}
+} 

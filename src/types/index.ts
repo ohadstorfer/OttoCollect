@@ -79,16 +79,15 @@ export interface Banknote {
   description?: string;
   obverseDescription?: string;
   reverseDescription?: string;
-  imageUrls: string | string[];  // Update to allow both string and string[]
+  imageUrls: string[];
   isApproved: boolean;
   isPending: boolean;
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
-  type?: string;
-  sultanName?: string;
-  extendedPickNumber?: string;
-  category?: string;
+  type?: string; // Adding type for compatibility
+  sultanName?: string; // Adding sultanName for compatibility
+  extendedPickNumber?: string; // Adding extended pick number for compatibility
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -168,18 +167,6 @@ export interface MarketplaceItem {
   updatedAt: string;
 }
 
-// WishlistItem interface
-export interface WishlistItem {
-  id: string;
-  user_id: string;
-  banknote_id: string;
-  note?: string;
-  priority: string;
-  created_at: string;
-  detailed_banknotes?: DetailedBanknote;
-  banknote?: Banknote;  // Add this to support CollectionProfileNew usage
-}
-
 // Import and re-export types from other files
 export * from './message';
 export * from './forum';
@@ -194,11 +181,4 @@ export interface CountryData {
   banknoteCount?: number;
   created_at?: string;
   updated_at?: string;
-}
-
-// Add Currency type
-export interface Currency {
-  id: string;
-  name: string;
-  display_order: number;
 }

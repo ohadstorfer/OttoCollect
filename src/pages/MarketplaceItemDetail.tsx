@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquare, AlertCircle, User } from "lucide-react";
@@ -7,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fetchMarketplaceItemById } from "@/services/marketplaceService";
+import { getMarketplaceItemById } from "@/services/marketplaceService";
 import { MarketplaceItem, UserRank } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -38,7 +39,7 @@ const MarketplaceItemDetail = () => {
       setLoading(true);
       try {
         // We're getting the marketplace item by its ID directly
-        const fetchedItem = await fetchMarketplaceItemById(id);
+        const fetchedItem = await getMarketplaceItemById(id);
         console.log('Fetched marketplace item result:', fetchedItem);
 
         if (!fetchedItem) {
@@ -122,6 +123,13 @@ const MarketplaceItemDetail = () => {
         </div>
       </div>
 
+      {/* Status indicator */}
+      {/* <div className="mb-6">
+        <Badge variant={status === "Available" ? "primary" : status === "Reserved" ? "secondary" : "destructive"}>
+          {status}
+        </Badge>
+      </div> */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left column: Images */}
         <div>
@@ -134,9 +142,7 @@ const MarketplaceItemDetail = () => {
             <TabsContent value="obverse">
               <div className="aspect-[4/3] overflow-hidden rounded-lg border">
                 <img
-                  src={obverseImage || 
-                    (Array.isArray(banknote.imageUrls) ? banknote.imageUrls[0] : banknote.imageUrls) || 
-                    '/placeholder.svg'}
+                  src={obverseImage || banknote.imageUrls[0] || '/placeholder.svg'}
                   alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - front`}
                   className="w-full h-full object-contain"
                 />
@@ -146,10 +152,7 @@ const MarketplaceItemDetail = () => {
             <TabsContent value="reverse">
               <div className="aspect-[4/3] overflow-hidden rounded-lg border">
                 <img
-                  src={reverseImage || 
-                    (Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 1 
-                      ? banknote.imageUrls[1] 
-                      : '/placeholder.svg')}
+                  src={reverseImage || banknote.imageUrls[1] || '/placeholder.svg'}
                   alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - back`}
                   className="w-full h-full object-contain"
                 />
@@ -212,6 +215,8 @@ const MarketplaceItemDetail = () => {
                 <div className="text-3xl font-bold text-ottoman-500">
                   ${salePrice}
                 </div>
+
+                
               </div>
 
               {publicNote && (

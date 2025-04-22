@@ -955,16 +955,6 @@ export type Database = {
         Args: { face_value: string }
         Returns: number
       }
-      extract_pick_components: {
-        Args: { pick_number: string }
-        Returns: {
-          base_num: number
-          capital_letter: string
-          group_letter: string
-          suffix_num: number
-          suffix_text: string
-        }[]
-      }
       get_current_user: {
         Args: Record<PropertyKey, never>
         Returns: {
