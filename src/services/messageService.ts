@@ -27,12 +27,17 @@ export async function sendMessage(
 
     return {
       id: data.id,
+      sender_id: data.sender_id,
+      receiver_id: data.receiver_id,
+      content: data.content,
+      reference_item_id: data.reference_item_id,
+      isRead: data.is_read,
+      created_at: data.created_at,
+      // Alias properties for compatibility
       senderId: data.sender_id,
       receiverId: data.receiver_id,
-      content: data.content,
-      referenceItemId: data.reference_item_id,
-      isRead: data.is_read,
-      createdAt: data.created_at
+      createdAt: data.created_at,
+      referenceItemId: data.reference_item_id
     };
   } catch (error) {
     console.error('Unexpected error in sendMessage:', error);
@@ -56,12 +61,17 @@ export async function getMessages(userId: string): Promise<Message[]> {
 
     return data.map(message => ({
       id: message.id,
+      sender_id: message.sender_id,
+      receiver_id: message.receiver_id,
+      content: message.content,
+      reference_item_id: message.reference_item_id,
+      isRead: message.is_read,
+      created_at: message.created_at,
+      // Alias properties for compatibility
       senderId: message.sender_id,
       receiverId: message.receiver_id,
-      content: message.content,
-      referenceItemId: message.reference_item_id,
-      isRead: message.is_read,
-      createdAt: message.created_at
+      createdAt: message.created_at,
+      referenceItemId: message.reference_item_id
     }));
   } catch (error) {
     console.error('Unexpected error in getMessages:', error);
@@ -88,7 +98,6 @@ export async function markAsRead(messageId: string): Promise<boolean> {
   }
 }
 
-// Add missing functions
 export async function getUnreadMessagesCount(userId: string): Promise<number> {
   try {
     const { count, error } = await supabase
@@ -109,7 +118,7 @@ export async function getUnreadMessagesCount(userId: string): Promise<number> {
   }
 }
 
-// Function to subscribe to new messages
+// Function to subscribe to new messages - returns the RealtimeChannel
 export function subscribeToMessages(userId: string, onNewMessage: (message: Message) => void) {
   return supabase
     .channel('messages')
@@ -125,12 +134,17 @@ export function subscribeToMessages(userId: string, onNewMessage: (message: Mess
         const message = payload.new as any;
         onNewMessage({
           id: message.id,
+          sender_id: message.sender_id,
+          receiver_id: message.receiver_id,
+          content: message.content,
+          reference_item_id: message.reference_item_id,
+          isRead: message.is_read,
+          created_at: message.created_at,
+          // Alias properties for compatibility
           senderId: message.sender_id,
           receiverId: message.receiver_id,
-          content: message.content,
-          referenceItemId: message.reference_item_id,
-          isRead: message.is_read,
-          createdAt: message.created_at
+          createdAt: message.created_at,
+          referenceItemId: message.reference_item_id
         });
       }
     )

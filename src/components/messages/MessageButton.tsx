@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare } from "lucide-react";
-import { getUnreadMessagesCount } from '@/services/messageService';
-import { subscribeToMessages } from '@/services/messageService';
+import { getUnreadMessagesCount, subscribeToMessages } from '@/services/messageService';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 interface MessageButtonProps {
   userId?: string;
@@ -27,12 +27,15 @@ export function MessageButton({ userId, onClick }: MessageButtonProps) {
     fetchUnreadCount();
     
     // Subscribe to new messages
-    const unsubscribe = subscribeToMessages(userId, () => {
+    const channel = subscribeToMessages(userId, () => {
       setUnreadCount(prev => prev + 1);
     });
     
+    // Cleanup subscription on unmount
     return () => {
-      unsubscribe();
+      if (channel) {
+        channel.unsubscribe();
+      }
     };
   }, [userId]);
   

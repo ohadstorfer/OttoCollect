@@ -1,371 +1,242 @@
-
-import React from 'react';
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
+import { DetailedBanknote } from '@/types';
+import { fetchBanknotes } from '@/services/banknoteService';
 import { Button } from "@/components/ui/button";
-import { MarketplaceItem as MarketplaceItemType } from "@/types";
-import { SortAsc, AlertCircle, RefreshCw } from "lucide-react";
-import MarketplaceItem from "@/components/marketplace/MarketplaceItem";
-import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
-import { cn } from "@/lib/utils";
-import { fetchMarketplaceItems, synchronizeMarketplaceWithCollection } from "@/services/marketplaceService";
-import { Spinner } from "@/components/ui/spinner";
-import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card } from "@/components/ui/card";
-import { useTheme } from "@/context/ThemeContext";
-import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
-import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
+import { Link, useNavigate } from 'react-router-dom';
+import { useMediaQuery } from 'react-responsive';
+import { AlertTriangle, ShoppingBasket } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Slider } from "@/components/ui/slider"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import { cn } from '@/lib/utils';
+import { ChevronDown } from 'lucide-react';
 
-const SULTAN_DISPLAY_ORDER: Record<string, number> = {
-  AbdulMecid: 1,
-  AbdulAziz: 2,
-  Murad: 3,
-  AbdulHamid: 4,
-  "M.Resad": 5,
-  "M.Vahdeddin": 6
-};
+interface MarketplaceItem extends DetailedBanknote {
+  price: number;
+  isSold: boolean;
+}
 
-const Marketplace = () => {
-  console.log("### Marketplace RENDERING ###");
-  
+interface UserFilters {
+  priceRange: [number, number];
+  showSoldItems: boolean;
+}
+
+export default function Marketplace() {
   const { user } = useAuth();
-  const { theme } = useTheme();
-  const { toast } = useToast();
-  const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItemType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const navigate = useNavigate();
+  const [banknotes, setBanknotes] = useState<MarketplaceItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [userFilters, setUserFilters] = useState<UserFilters>({
+    priceRange: [0, 1000],
+    showSoldItems: false,
+  });
 
-  const loadMarketplaceItems = async (showToast = false) => {
-    console.log('Starting loadMarketplaceItems function');
-    setLoading(true);
-    setError(null);
+  const isDesktopOrLarger = useMediaQuery({ query: '(min-width: 1024px)' });
+
+  const fetchMarketplaceItems = useCallback(async () => {
+    setIsLoading(true);
     try {
-      console.log("Starting to fetch marketplace items");
-      
-      if (user?.role === 'Admin') {
-        console.log('User is admin, synchronizing marketplace with collection');
-        await synchronizeMarketplaceWithCollection();
-      }
-      
-      console.log('Calling fetchMarketplaceItems');
-      const items = await fetchMarketplaceItems();
-      console.log("Fetched marketplace items:", items.length);
-      console.log("Sample marketplace item:", items.length > 0 ? items[0] : "No items");
-      
-      if (items.length === 0) {
-        console.log("No marketplace items found");
-        if (showToast) {
-          toast({
-            title: "No Items Found",
-            description: "There are currently no items available in the marketplace.",
-            variant: "default"
-          });
-        }
-      }
-      
-      console.log('Setting marketplace items in state');
-      setMarketplaceItems(items);
-      
-    } catch (err) {
-      console.error("Error loading marketplace items:", err);
-      setError("Failed to load marketplace items. Please try again later.");
-      toast({
-        title: "Error",
-        description: "Failed to load marketplace items. Please try again later.",
-        variant: "destructive"
-      });
+      const fetchedBanknotes = await fetchBanknotes();
+      // Mock prices and sold status
+      const marketplaceItems = fetchedBanknotes.map(banknote => ({
+        ...banknote,
+        price: Math.floor(Math.random() * 1000), // Random price up to 1000
+        isSold: Math.random() < 0.2, // 20% chance of being sold
+      }));
+      setBanknotes(marketplaceItems);
+    } catch (error) {
+      console.error("Failed to fetch banknotes:", error);
     } finally {
-      console.log('Finishing loadMarketplaceItems, setting loading to false');
-      setLoading(false);
-      setIsRefreshing(false);
+      setIsLoading(false);
     }
-  };
-  
+  }, []);
+
   useEffect(() => {
-    console.log('Initial useEffect for loadMarketplaceItems running');
-    loadMarketplaceItems();
-  }, [toast]);
-  
-  const marketplaceItemsForFilter = marketplaceItems.map(item => ({
-    ...item,
-    banknote: item.collectionItem.banknote
-  }));
+    fetchMarketplaceItems();
+  }, [fetchMarketplaceItems]);
 
-  const { 
-    filteredItems, 
-    filters, 
-    setFilters,
-    availableCategories,
-    availableTypes,
-    groupedItems
-  } = useBanknoteFilter({
-    items: marketplaceItemsForFilter,
-    initialFilters: {
-      sort: ["extPick"]
-    }
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const updatePriceRange = (value: number[]) => {
+    setUserFilters(prev => ({ ...prev, priceRange: [value[0], value[1]] }));
+  };
+
+  const toggleSoldItems = (checked: boolean) => {
+    setUserFilters(prev => ({ ...prev, showSoldItems: checked }));
+  };
+
+  const filteredItems = banknotes.filter(item => {
+    const searchRegex = new RegExp(searchQuery, 'i');
+    const matchesSearch = searchRegex.test(item.extendedPickNumber) || searchRegex.test(item.banknoteDescription);
+    const matchesPriceRange = item.price >= userFilters.priceRange[0] && item.price <= userFilters.priceRange[1];
+    const matchesSoldStatus = userFilters.showSoldItems || !item.isSold;
+
+    return matchesSearch && matchesPriceRange && matchesSoldStatus;
   });
-  
-  useEffect(() => {
-    if (marketplaceItems.length > 0 && availableCategories.length > 0) {
-      const allCategories = availableCategories.map(c => c.id);
-      const allTypes = ["issued notes"];
-      
-      setFilters({
-        ...filters,
-        categories: allCategories,
-        types: allTypes
-      });
-    }
-  }, [marketplaceItems, availableCategories.length]);
-
-  console.log("useBanknoteFilter results for marketplace:", {
-    filteredItems: filteredItems.length,
-    filters,
-    availableCategories: availableCategories.length,
-    availableTypes: availableTypes.length,
-    groupedItems: groupedItems.length
-  });
-
-  const handleRefresh = () => {
-    console.log('Manual refresh triggered');
-    setIsRefreshing(true);
-    loadMarketplaceItems(true);
-  };
-
-  const handleFilterChange = (newFilters: any) => {
-    console.log("Filter changed in Marketplace:", newFilters);
-    setFilters(newFilters);
-  };
-
-  // Fix the ReactNode rendering issues by returning components directly
-  const renderFilterSection = () => (
-    <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'} sticky top-[64px] z-50`}>
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-            Filters & Sorting
-          </h3>
-          
-          <div className="flex items-center gap-3">
-            {user && (
-              <Link to="/collection?filter=forsale">
-                <Button className="ottoman-button">
-                  <SortAsc className="h-4 w-4 mr-2" />
-                  My Listings
-                </Button>
-              </Link>
-            )}
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
-            >
-              {isRefreshing ? (
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              Refresh
-            </Button>
-          </div>
-        </div>
-
-        {console.log("Rendering BanknoteFilter in Marketplace with props:", {
-          categoriesCount: availableCategories.length,
-          typesCount: availableTypes.length,
-          loading
-        })}
-        <BanknoteFilter
-          categories={availableCategories}
-          availableTypes={availableTypes}
-          onFilterChange={handleFilterChange}
-          isLoading={loading}
-          defaultSort={["extPick"]}
-        />
-      </div>
-    </Card>
-  );
-
-  const renderResults = () => (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-      <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
-        Showing <span className={`font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{filteredItems.length}</span> items for sale
-      </p>
-    </div>
-  );
-
-  const renderLoadingState = () => (
-    <div className="flex flex-col items-center justify-center py-20 space-y-4">
-      <Spinner size="lg" />
-      <p className="dark:text-ottoman-300 text-ottoman-600">Loading marketplace items...</p>
-    </div>
-  );
-
-  const renderErrorState = () => (
-    <Alert variant="destructive" className="mb-6">
-      <AlertCircle className="h-4 w-4" />
-      <AlertTitle>Error</AlertTitle>
-      <AlertDescription>
-        {error}
-        <Button 
-          variant="outline" 
-          className="mt-4 dark:border-ottoman-700 border-ottoman-300 dark:text-ottoman-200 text-ottoman-800"
-          onClick={handleRefresh}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Try Again
-        </Button>
-      </AlertDescription>
-    </Alert>
-  );
-
-  const renderEmptyState = () => (
-    <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
-      <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
-        No Items Found
-      </h3>
-      <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
-        { "There are currently no items available in the marketplace"}
-      </p>
-      <div className="space-x-4">
-        <Button 
-          className="ottoman-button"
-          onClick={handleRefresh}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
-    </Card>
-  );
-
-  const renderMarketplaceItems = () => (
-    <div className="space-y-8">
-      {console.log(`Rendering ${groupedItems.length} marketplace grouped items`)}
-      {groupedItems.map((group, groupIndex) => (
-        <div key={`group-${groupIndex}`} className="space-y-4">
-          {console.log(`Rendering marketplace group ${groupIndex}: ${group.category} with ${group.items.length} items`)}
-          <div className="sticky top-[168px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b">
-            <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-              {group.category}
-            </h2>
-          </div>
-
-          {group.sultanGroups ? (
-            <div className="space-y-6">
-              {console.log(`Rendering marketplace with sultan groups. ${group.sultanGroups.length} sultans`)}
-              {[...group.sultanGroups]
-                .sort((a, b) => {
-                  const orderA = SULTAN_DISPLAY_ORDER[a.sultan] ?? 999;
-                  const orderB = SULTAN_DISPLAY_ORDER[b.sultan] ?? 999;
-                  if (orderA === orderB) {
-                    return a.sultan.localeCompare(b.sultan);
-                  }
-                  return orderA - orderB;
-                })
-                .map((sultanGroup, sultanIndex) => (
-                  <div key={`sultan-${sultanIndex}`} className="space-y-4">
-                    {console.log(`Rendering marketplace sultan group ${sultanIndex}: ${sultanGroup.sultan} with ${sultanGroup.items.length} items`)}
-                    <h3 className={`text-lg font-semibold pl-4 border-l-4 ${theme === 'light' ? 'border-ottoman-600 text-ottoman-700' : 'border-ottoman-400 text-ottoman-300'}`}>
-                      {sultanGroup.sultan}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {sultanGroup.items.map((item, index) => (
-                        <div
-                          key={`marketplace-item-${index}`}
-                          className="animate-fade-in"
-                          style={{ animationDelay: `${index * 100}ms` }}
-                        >
-                          <MarketplaceItem item={item} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {console.log(`Rendering marketplace without sultan groups. ${group.items.length} items directly`)}
-              {group.items.map((item, index) => (
-                <div
-                  key={`marketplace-item-${index}`}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <MarketplaceItem item={item} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-
-  // Fixed ReactNode rendering by returning a JSX element directly
-  const renderContentBasedOnState = () => {
-    console.log("Rendering marketplace content based on loading and filtered items:", {
-      loading,
-      error,
-      filteredCount: filteredItems.length
-    });
-    
-    if (loading) {
-      return renderLoadingState();
-    } 
-    
-    if (error) {
-      return renderErrorState();
-    } 
-    
-    if (filteredItems.length === 0) {
-      return renderEmptyState();
-    } 
-    
-    return renderMarketplaceItems();
-  };
 
   return (
-    <div className="min-h-screen animate-fade-in">
-      <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden`}>
-        <div className="absolute inset-0 -z-10">
-          <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${
-            theme === 'light'
-              ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
-              : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
-          } shadow-xl ring-1 ring-inset`} aria-hidden="true" />
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
-            Marketplace
-          </h1>
-          <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
-            Browse and purchase Ottoman banknotes from fellow collectors
-          </p>
-        </div>
-      </section>
-      
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <div className="flex-1">
-              {renderFilterSection()}
+    <div className="page-container">
+      <h1 className="page-title">Marketplace</h1>
+
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <Input
+          type="search"
+          placeholder="Search banknotes..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="flex-grow"
+        />
+        {isDesktopOrLarger && user ? (
+          <Button onClick={() => navigate('/collection')} variant="outline" className="ml-auto">
+            Manage Your Items
+          </Button>
+        ) : null}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Price Range</CardTitle>
+            <CardDescription>Filter by price range</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="min">Min</Label>
+              <Input id="min" value={userFilters.priceRange[0].toString()} className="w-24" readOnly />
+              <Label htmlFor="max">Max</Label>
+              <Input id="max" value={userFilters.priceRange[1].toString()} className="w-24" readOnly />
             </div>
-            <div className="flex items-center gap-3">
-              {renderResults()}
+            <Slider
+              defaultValue={userFilters.priceRange}
+              max={1000}
+              step={10}
+              onValueChange={updatePriceRange}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Filters</CardTitle>
+            <CardDescription>Customize your search</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="sold"
+                  checked={userFilters.showSoldItems}
+                  onCheckedChange={toggleSoldItems}
+                />
+                <Label htmlFor="sold">Show Sold Items</Label>
+              </div>
+              {userFilters.showSoldItems && (
+                <div className="text-amber-500 flex items-center gap-1 text-sm">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Including sold items</span>
+                </div>
+              )}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Sort By</CardTitle>
+            <CardDescription>Sort the marketplace items</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  Latest <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  Price: Low to High
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Price: High to Low
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Date Added: Newest
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Date Added: Oldest
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {!isLoading && filteredItems.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="mb-4 text-muted-foreground">
+              <ShoppingBasket className="h-12 w-12 mx-auto opacity-50" />
+            </div>
+            <h3 className="text-lg font-medium">No marketplace items found</h3>
+            <p className="text-muted-foreground mt-2">Try adjusting your filters or check back later</p>
           </div>
-          {renderContentBasedOnState()}
+        ) : null}
+        {filteredItems.map(item => (
+          <Card key={item.id}>
+            <CardHeader>
+              <CardTitle>{item.extendedPickNumber}</CardTitle>
+              <CardDescription>{item.banknoteDescription}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <img
+                src={item.imageUrls[0]}
+                alt={item.banknoteDescription}
+                className="w-full h-32 object-cover rounded-md mb-4"
+              />
+              <p className="text-sm text-gray-600">Price: ${item.price}</p>
+              <p className="text-sm text-gray-500">
+                {item.isSold ? 'Sold' : 'Available'}
+              </p>
+            </CardContent>
+            <CardFooter className="flex justify-between items-center">
+              <Link to={`/banknote/${item.id}`}>
+                <Button>View Details</Button>
+              </Link>
+              {user ? (
+                <>
+                  <Button onClick={() => navigate('/collection')} variant="outline">
+                    Manage Your Items
+                  </Button>
+                </>
+              ) : null}
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+
+      {!isDesktopOrLarger && user ? (
+        <div className="mb-4">
+          <Button onClick={() => navigate('/collection')} variant="outline">
+            Manage Your Items
+          </Button>
         </div>
-      </section>
+      ) : null}
     </div>
   );
-};
-
-export default Marketplace;
+}
