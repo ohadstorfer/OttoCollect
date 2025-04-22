@@ -31,20 +31,11 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
         if (orderDiff !== 0) return orderDiff;
       }
 
-      // Then sort by face value within same currency
-      const extractNumericValue = (value: string) => {
-        const match = value.match(/(\d+(\.\d+)?)/);
-        return match ? parseFloat(match[0]) : 0;
-      };
-
-      const valueA = extractNumericValue(a.denomination || '');
-      const valueB = extractNumericValue(b.denomination || '');
+      // We don't need to sort by face value explicitly here, as the banknotes are 
+      // already pre-sorted by the extended_pick_number in the database, which 
+      // inherently sorts by the numeric value correctly
       
-      if (valueA !== valueB) {
-        return valueA - valueB;
-      }
-
-      // Apply additional sort fields
+      // Only apply additional sorts if they are specifically requested
       for (const fieldName of sortFields) {
         let comparison = 0;
 
@@ -56,6 +47,19 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
           case "extPick":
             // No need for custom sorting here as data should already be sorted by the database
             comparison = 0;
+            break;
+            
+          case "faceValue":
+            // Apply face value sorting only if explicitly requested
+            const extractNumericValue = (value: string) => {
+              const match = value.match(/(\d+(\.\d+)?)/);
+              return match ? parseFloat(match[0]) : 0;
+            };
+
+            const valueA = extractNumericValue(a.denomination || '');
+            const valueB = extractNumericValue(b.denomination || '');
+            
+            comparison = valueA - valueB;
             break;
             
           case "newest":

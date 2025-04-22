@@ -169,8 +169,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             .filter(type => type.name.toLowerCase().includes('issued'))
             .map(t => t.id);
             
-          // For new users, default to sorting by face value first, then catalog number
-          const defaultSort = ['faceValue', 'extPick'];
+          // For new users, default to sorting by extPick only since it comes pre-sorted from the DB
+          const defaultSort = ['extPick']; // Remove faceValue from default sort
           
           onFilterChange({
             categories: defaultCategoryIds,
@@ -198,10 +198,23 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     console.log("BanknoteFilterCatalog: Filter change requested:", newFilters);
     
     if (newFilters.sort) {
+      // Get only the required sort fields that must be included
+      const requiredSortFields = sortOptions
+        .filter(opt => opt.isRequired)
+        .map(opt => opt.fieldName || '')
+        .filter(Boolean);
+      
       // Ensure extPick is always included as a fallback sort
-      if (!newFilters.sort.includes('extPick')) {
+      if (!requiredSortFields.includes('extPick') && !newFilters.sort.includes('extPick')) {
         newFilters.sort = [...newFilters.sort, 'extPick'];
       }
+      
+      // Add other required sort fields if they're missing
+      requiredSortFields.forEach(fieldName => {
+        if (!newFilters.sort.includes(fieldName)) {
+          newFilters.sort.push(fieldName);
+        }
+      });
     }
     
     // Add country_id to filters
