@@ -360,7 +360,7 @@ const BanknoteFixed = () => {
                               <LabelValuePair
                                 key={fieldIndex}
                                 label={field.label}
-                                value={field.value}
+                                value={field.value && typeof field.value === 'object' ? field.value.join(', ') : field.value}
                                 icon={field.icon}
                               />
                             ))}

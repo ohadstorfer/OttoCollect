@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/message";
 import { Conversation } from "@/types/message";
@@ -155,17 +154,16 @@ export async function sendMessage(
   referenceItemId?: string
 ): Promise<Message | null> {
   try {
-    const newMessage = {
-      sender_id: senderId,
-      receiver_id: receiverId,
+    const message = {
       content,
-      reference_item_id: referenceItemId,
-      is_read: false
+      receiver_id: receiverId,
+      sender_id: senderId,
+      reference_item_id: referenceItemId
     };
     
     const { data, error } = await supabase
       .from('messages')
-      .insert(newMessage)
+      .insert(message)
       .select()
       .single();
       

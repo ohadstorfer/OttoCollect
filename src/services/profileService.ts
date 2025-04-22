@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole, UserRank } from "@/types";
 import { toast } from "sonner";
@@ -19,11 +18,14 @@ export async function getUserProfile(userId: string): Promise<User | null> {
 
     if (!data) return null;
 
-    const userProfile: User = {
+    const userData: User = { 
+      about: data.about || '',
+      country: data.country || '',
       id: data.id,
       username: data.username,
       email: data.email,
       role: data.role as UserRole,
+      role_id: data.role_id || '',  // Add role_id
       rank: data.rank as UserRank,
       points: data.points,
       createdAt: data.created_at,
@@ -32,7 +34,7 @@ export async function getUserProfile(userId: string): Promise<User | null> {
       ...(data.about && { about: data.about }),
     };
 
-    return userProfile;
+    return userData;
   } catch (error) {
     console.error("Error in getUserProfile:", error);
     return null;
