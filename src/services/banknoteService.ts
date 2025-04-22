@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters } from '@/types';
 
@@ -125,7 +126,8 @@ export async function fetchBanknotesByCountryId(
       }
       
       if (orderBy.length > 0) {
-        query = query.order(...orderBy);
+        // Fix spread argument issue by explicitly spreading the array into arguments
+        query = query.order.apply(query, orderBy);
       }
     }
 
@@ -212,10 +214,16 @@ function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     description: item.banknote_description || '',
     obverseDescription: '',
     reverseDescription: '',
-    imageUrls: [
-      item.front_picture || '',
-      item.back_picture || ''
-    ].filter(Boolean),
+    imageUrls: Array.isArray(item.front_picture) || Array.isArray(item.back_picture) ? 
+      // Handle array cases
+      [...(Array.isArray(item.front_picture) ? item.front_picture : [item.front_picture]), 
+       ...(Array.isArray(item.back_picture) ? item.back_picture : [item.back_picture])]
+        .filter(Boolean) :
+      // Handle string cases
+      [
+        item.front_picture || '',
+        item.back_picture || ''
+      ].filter(Boolean),
     isApproved: item.is_approved || false,
     isPending: item.is_pending || false,
     createdAt: item.created_at || '',

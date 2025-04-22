@@ -1,8 +1,8 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { CollectionItem } from "@/types";
+import { CollectionItem, BanknoteCondition } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 import { fetchBanknoteById } from "@/services/banknoteService";
-import { BanknoteCondition } from "@/types";
 import type { Database } from "@/integrations/supabase/types";
 
 // Type definition for collection items table insert
@@ -118,9 +118,9 @@ export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): 
     
     // Process each item to count categories and types
     items.forEach(item => {
-      if (item.banknote?.category) {
-        const categoryId = item.banknote.category;
-        const categoryName = item.banknote.category; // Using category name as ID for now
+      if (item.banknote?.series) {
+        const categoryId = item.banknote.series;
+        const categoryName = item.banknote.series; // Using series as category name
         
         if (categoriesMap.has(categoryId)) {
           const category = categoriesMap.get(categoryId)!;
@@ -354,10 +354,13 @@ export async function updateCollectionItem(
     if (updates.privateNote !== undefined) dbUpdates.private_note = updates.privateNote;
     if (updates.purchasePrice !== undefined) dbUpdates.purchase_price = updates.purchasePrice;
     if (updates.purchaseDate !== undefined) {
-      // Convert Date object to ISO string if it's a Date
-      dbUpdates.purchase_date = typeof updates.purchaseDate === 'string' 
-        ? updates.purchaseDate 
-        : updates.purchaseDate.toISOString();
+      // Handle purchase date properly
+      if (typeof updates.purchaseDate === 'string') {
+        dbUpdates.purchase_date = updates.purchaseDate;
+      } else if (updates.purchaseDate && typeof updates.purchaseDate === 'object' && 'toISOString' in updates.purchaseDate) {
+        // Only call toISOString if it exists
+        dbUpdates.purchase_date = updates.purchaseDate.toISOString();
+      }
     }
     if (updates.location !== undefined) dbUpdates.location = updates.location;
     if (updates.obverseImage !== undefined) dbUpdates.obverse_image = updates.obverseImage;

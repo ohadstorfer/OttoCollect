@@ -45,7 +45,7 @@ const ProfileCollection = ({
     enabled: !initialCollection && !!userId
   });
 
-  const { data: banknotes, isLoading: bannoteLoading } = useQuery({
+  const { data: fetchedBanknotes, isLoading: banknoteLoading } = useQuery({
     queryKey: ['banknotes'],
     queryFn: async () => {
       return await fetchBanknotes();
@@ -59,9 +59,9 @@ const ProfileCollection = ({
   });
 
   const userCollection = initialCollection || fetchedCollection || [];
-  const banknotes = initialBanknotes || banknotes || [];
+  const banknotes = initialBanknotes || fetchedBanknotes || [];
   const wishlistItems = initialWishlist || fetchedWishlist || [];
-  const collectionLoading = initialLoading || collectionQueryLoading || bannoteLoading || wishlistQueryLoading;
+  const collectionLoading = initialLoading || collectionQueryLoading || banknoteLoading || wishlistQueryLoading;
 
   const navigate = useNavigate();
   const [filter, setFilter] = useState<FilterState>({ searchTerm: '', isMissingOnly: false });

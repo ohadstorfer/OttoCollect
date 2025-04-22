@@ -1,3 +1,4 @@
+
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -87,6 +88,7 @@ export interface Banknote {
   type?: string; // Adding type for compatibility
   sultanName?: string; // Adding sultanName for compatibility
   extendedPickNumber?: string; // Adding extended pick number for compatibility
+  category?: string; // Add category field for compatibility
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -160,10 +162,31 @@ export interface MarketplaceItem {
   id: string;
   collectionItem: CollectionItem;
   sellerId: string;
-  seller: User;
+  seller: {
+    id: string;
+    username: string;
+    rank: string;
+    email?: string;
+    role_id?: string;
+    role?: UserRole;
+    points?: number;
+    createdAt?: string;
+    avatarUrl?: string;
+  };
   status: 'Available' | 'Reserved' | 'Sold';
   createdAt: string;
   updatedAt: string;
+}
+
+// WishlistItem interface
+export interface WishlistItem {
+  id: string;
+  user_id: string;
+  banknote_id: string;
+  note?: string;
+  priority: string;
+  created_at: string;
+  detailed_banknotes?: DetailedBanknote;
 }
 
 // Import and re-export types from other files
