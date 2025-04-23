@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
@@ -36,7 +35,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   console.log("BanknoteFilterCatalog: Rendering with", { 
@@ -195,8 +193,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   }, [countryId, user, onFilterChange, toast]);
 
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
-    console.log("BanknoteFilterCatalog: Filter change requested:", newFilters);
-    
     if (newFilters.sort) {
       // Get only the required sort fields that must be included
       const requiredSortFields = sortOptions
@@ -222,71 +218,34 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
       ...newFilters,
       country_id: countryId
     };
-    
-    onFilterChange(filtersWithCountryId);
-  };
 
-  const handleSaveFilters = async () => {
-    if (!user?.id || !countryId) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to save filter preferences.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      console.log("BanknoteFilterCatalog: Saving filter preferences to database", currentFilters);
-
-      const sortOptionIds = currentFilters.sort
+    // Save user preferences automatically with each change
+    if (user?.id) {
+      console.log("BanknoteFilterCatalog: Auto-saving filter preferences");
+      const sortOptionIds = filtersWithCountryId.sort
         .map(fieldName => {
           const option = sortOptions.find(opt => opt.fieldName === fieldName);
           return option ? option.id : null;
         })
         .filter(Boolean) as string[];
-      
-      const success = await saveUserFilterPreferences(
+
+      saveUserFilterPreferences(
         user.id,
         countryId,
-        currentFilters.categories || [],
-        currentFilters.types || [],
+        filtersWithCountryId.categories || [],
+        filtersWithCountryId.types || [],
         sortOptionIds
-      );
-      
-      if (success) {
-        toast({
-          title: "Success",
-          description: "Filter preferences saved successfully.",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to save filter preferences.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error saving filter preferences:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save filter preferences.",
-        variant: "destructive",
+      ).catch(error => {
+        console.error("Error saving filter preferences:", error);
       });
-    } finally {
-      setIsSaving(false);
     }
-  };
-
-  const handleViewModeChange = (mode: 'grid' | 'list') => {
-    setViewMode(mode);
-    onViewModeChange?.(mode);
+    
+    onFilterChange(filtersWithCountryId);
   };
 
   return (
     <div className={cn(
-      "w-full  bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-1.5",
+      "w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-1.5",
       "sticky top-16 inset-x-0",
       className
     )}>
@@ -296,12 +255,10 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
         sortOptions={sortOptions}
         onFilterChange={handleFilterChange}
         currentFilters={currentFilters}
-        isLoading={isLoading || loading || isSaving}
+        isLoading={isLoading || loading}
         className={className}
-        onSaveFilters={handleSaveFilters}
-        saveButtonText={isSaving ? "Saving..." : "Save Filter Preferences"}
         viewMode={viewMode}
-        onViewModeChange={handleViewModeChange}
+        onViewModeChange={onViewModeChange}
       />
     </div>
   );

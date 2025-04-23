@@ -133,8 +133,13 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     };
     
     prevFiltersRef.current = { ...newFilters };
-    
     onFilterChange(newFilters);
+
+    // Automatically save preferences after each change
+    if (onSaveFilters) {
+      console.log("BaseBanknoteFilter: Auto-saving filter preferences");
+      onSaveFilters();
+    }
     
     setTimeout(() => {
       isLocalChange.current = false;
@@ -365,11 +370,10 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 </div>
                 <SheetClose asChild>
                   <Button 
-                    className="w-full bg-ottoman-600 hover:bg-ottoman-700"
-                    onClick={handleSaveClick}
+                    className="w-full"
+                    onClick={() => setIsCategorySheetOpen(false)}
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    {saveButtonText}
+                    Close
                   </Button>
                 </SheetClose>
               </div>
@@ -418,11 +422,10 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 })}
                 <SheetClose asChild className="mt-4">
                   <Button 
-                    className="w-full bg-ottoman-600 hover:bg-ottoman-700 mt-4"
-                    onClick={handleSaveClick}
+                    className="w-full mt-4"
+                    onClick={() => setIsSortSheetOpen(false)}
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    {saveButtonText}
+                    Close
                   </Button>
                 </SheetClose>
               </div>
