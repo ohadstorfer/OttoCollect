@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -102,7 +101,7 @@ export interface DetailedBanknote extends Banknote {
   securityFeatures?: string[];
   watermark?: string;
   signatures?: string[];
-  colors?: string[];
+  colors?: string;
   gradeCounts?: Record<BanknoteCondition, number>;
   averagePrice?: number;
   islamicYear?: string;
@@ -114,6 +113,7 @@ export interface DetailedBanknote extends Banknote {
   signaturesFront?: string;
   signaturesBack?: string;
   extendedPickNumber?: string;
+  country_id?: string; // Add this missing field
 }
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';

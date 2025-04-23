@@ -15,22 +15,37 @@ interface SessionState {
 export const useBanknoteSession = (countryId: string) => {
   const [sessionState, setSessionState] = useState<SessionState | null>(null);
   const isInitialMount = useRef(true);
+  const hasLoadedFromSession = useRef(false);
   const sessionKey = `banknote-session-${countryId}`;
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-  // Load session state on mount
+  // Load session state on mount - only once
   useEffect(() => {
+    if (!countryId) return;
+
     if (isInitialMount.current) {
       const savedState = sessionStorage.getItem(sessionKey);
       if (savedState) {
-        const parsed = JSON.parse(savedState) as SessionState;
-        if (parsed.countryId === countryId && 
-            Date.now() - parsed.timestamp < CACHE_DURATION) {
-          setSessionState(parsed);
-          if (parsed.scrollPosition) {
-            window.scrollTo(0, parsed.scrollPosition);
+        try {
+          const parsed = JSON.parse(savedState) as SessionState;
+          if (parsed.countryId === countryId && 
+              Date.now() - parsed.timestamp < CACHE_DURATION) {
+            console.log("useBanknoteSession: Restoring cached state");
+            setSessionState(parsed);
+            hasLoadedFromSession.current = true;
+            
+            // Wait a bit to restore scroll position (after render)
+            if (parsed.scrollPosition) {
+              setTimeout(() => {
+                window.scrollTo(0, parsed.scrollPosition);
+              }, 100);
+            }
+          } else {
+            console.log("useBanknoteSession: Cache expired, removing");
+            sessionStorage.removeItem(sessionKey);
           }
-        } else {
+        } catch (err) {
+          console.error("useBanknoteSession: Error parsing session data", err);
           sessionStorage.removeItem(sessionKey);
         }
       }
@@ -62,6 +77,7 @@ export const useBanknoteSession = (countryId: string) => {
   const clearState = () => {
     sessionStorage.removeItem(sessionKey);
     setSessionState(null);
+    hasLoadedFromSession.current = false;
   };
 
   const saveScrollPosition = () => {
@@ -75,6 +91,7 @@ export const useBanknoteSession = (countryId: string) => {
     saveState,
     clearState,
     saveScrollPosition,
-    isInitialMount: isInitialMount.current
+    isInitialMount: isInitialMount.current,
+    hasLoadedFromSession: hasLoadedFromSession.current
   };
 };

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailedBanknote } from "@/types";
@@ -13,6 +14,7 @@ import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import { useBanknoteSession } from "@/hooks/useBanknoteSession";
 import { cn } from "@/lib/utils";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
+import { Currency } from "@/types/banknote";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -23,7 +25,7 @@ const CountryDetail = () => {
   const [countryId, setCountryId] = useState<string>("");
   const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [currencies, setCurrencies] = useState<{ id: string; name: string; display_order: number }[]>([]);
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [categoryOrder, setCategoryOrder] = useState<{ name: string; order: number }[]>([]);
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
@@ -32,13 +34,17 @@ const CountryDetail = () => {
     sort: ["extPick"],
     country_id: ""
   });
+  
+  const initialLoadComplete = useRef(false);
+  const filtersChanged = useRef(false);
+  const categoryLoadComplete = useRef(false);
 
   const {
     sessionState,
     saveState,
     clearState,
     saveScrollPosition,
-    isInitialMount
+    hasLoadedFromSession
   } = useBanknoteSession(countryId);
 
   // Load initial country data
@@ -68,7 +74,11 @@ const CountryDetail = () => {
           country_id: countryData.id
         }));
         
+        if (categoryLoadComplete.current) return;
+        
         // Load categories and currencies
+        categoryLoadComplete.current = true;
+        
         const categories = await fetchCategoriesByCountryId(countryData.id);
         setCategoryOrder(categories.map(cat => ({
           name: cat.name,
@@ -77,7 +87,7 @@ const CountryDetail = () => {
 
         const { data: currencyRows, error: currencyError } = await supabase
           .from("currencies")
-          .select("id, name, display_order")
+          .select("id, name, display_order, country_id, created_at, updated_at")
           .eq("country_id", countryData.id)
           .order("display_order", { ascending: true });
 
@@ -105,16 +115,25 @@ const CountryDetail = () => {
       if (!countryId) return;
       
       // If we have valid session state, use it
-      if (sessionState && !isInitialMount) {
+      if (sessionState && hasLoadedFromSession && !filtersChanged.current) {
+        console.log("CountryDetail: Using cached banknotes from session");
         setBanknotes(sessionState.banknotes);
         setFilters(sessionState.filters);
         setViewMode(sessionState.viewMode);
         setLoading(false);
+        initialLoadComplete.current = true;
+        return;
+      }
+      
+      // Prevent duplicate fetches
+      if (!filtersChanged.current && initialLoadComplete.current) {
+        console.log("CountryDetail: Skipping fetch, initial load already complete");
         return;
       }
 
       setLoading(true);
       try {
+        console.log("CountryDetail: Fetching banknotes from API");
         const data = await fetchBanknotesByCountryId(countryId, filters);
         setBanknotes(data);
         saveState({ 
@@ -123,6 +142,8 @@ const CountryDetail = () => {
           viewMode,
           scrollPosition: window.scrollY 
         });
+        filtersChanged.current = false;
+        initialLoadComplete.current = true;
       } catch (error) {
         console.error("Error fetching banknotes:", error);
         toast({
@@ -136,7 +157,7 @@ const CountryDetail = () => {
     };
 
     loadBanknotes();
-  }, [countryId, filters, sessionState, isInitialMount, saveState, viewMode, toast]);
+  }, [countryId, filters, sessionState, hasLoadedFromSession, saveState, viewMode, toast]);
 
   // Save state when leaving the page
   useEffect(() => {
@@ -146,14 +167,24 @@ const CountryDetail = () => {
   }, [saveScrollPosition]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    filtersChanged.current = true;
+    
     setFilters(prev => {
       const updated = {
         ...prev,
         ...newFilters,
         country_id: countryId || prev.country_id
       };
-      // Clear session cache when filters change
-      clearState();
+      
+      // Only clear the session if we're changing substantive filters
+      if (
+        newFilters.categories || 
+        newFilters.types || 
+        (newFilters.search !== undefined && newFilters.search !== prev.search)
+      ) {
+        clearState();
+      }
+      
       return updated;
     });
   }, [countryId, clearState]);

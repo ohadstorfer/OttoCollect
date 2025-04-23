@@ -23,14 +23,19 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog', viewMode = 'grid' }:
   const handleCardClick = () => {
     // Save scroll position before navigating
     const scrollY = window.scrollY;
-    const sessionKey = `banknote-session-${banknote.country_id}`;
+    const sessionKey = `banknote-session-${banknote.country}`;
     const savedState = sessionStorage.getItem(sessionKey);
+    
     if (savedState) {
-      const parsed = JSON.parse(savedState);
-      sessionStorage.setItem(sessionKey, JSON.stringify({
-        ...parsed,
-        scrollPosition: scrollY
-      }));
+      try {
+        const parsed = JSON.parse(savedState);
+        sessionStorage.setItem(sessionKey, JSON.stringify({
+          ...parsed,
+          scrollPosition: scrollY
+        }));
+      } catch (err) {
+        console.error("Error updating session storage:", err);
+      }
     }
 
     if (source === 'catalog') {
