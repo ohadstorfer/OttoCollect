@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +21,18 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog', viewMode = 'grid' }:
   const [isHovering, setIsHovering] = useState(false);
 
   const handleCardClick = () => {
+    // Save scroll position before navigating
+    const scrollY = window.scrollY;
+    const sessionKey = `banknote-session-${banknote.country_id}`;
+    const savedState = sessionStorage.getItem(sessionKey);
+    if (savedState) {
+      const parsed = JSON.parse(savedState);
+      sessionStorage.setItem(sessionKey, JSON.stringify({
+        ...parsed,
+        scrollPosition: scrollY
+      }));
+    }
+
     if (source === 'catalog') {
       navigate(`/catalog-banknote/${banknote.id}`);
     } else if (source === 'collection') {

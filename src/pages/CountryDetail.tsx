@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailedBanknote } from "@/types";
 import { fetchBanknotesByCountryId } from "@/services/banknoteService";
@@ -8,9 +8,10 @@ import { ArrowLeft } from "lucide-react";
 import { BanknoteFilterCatalog } from "@/components/filter/BanknoteFilterCatalog";
 import { DynamicFilterState } from "@/types/filter";
 import { fetchCountryByName, fetchCategoriesByCountryId } from "@/services/countryService";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
+import { useBanknoteSession } from "@/hooks/useBanknoteSession";
+import { cn } from "@/lib/utils";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 
 const CountryDetail = () => {
@@ -18,13 +19,12 @@ const CountryDetail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const decodedCountryName = decodeURIComponent(country || "");
-
-  const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
+  const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [currencies, setCurrencies] = useState<{ id: string, name: string, display_order: number }[]>([]);
-  const [categoryOrder, setCategoryOrder] = useState<{ name: string, order: number }[]>([]);
+  const [currencies, setCurrencies] = useState<{ id: string; name: string; display_order: number }[]>([]);
+  const [categoryOrder, setCategoryOrder] = useState<{ name: string; order: number }[]>([]);
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
     categories: [],
@@ -33,7 +33,15 @@ const CountryDetail = () => {
     country_id: ""
   });
 
-  // Load country data and currencies
+  const {
+    sessionState,
+    saveState,
+    clearState,
+    saveScrollPosition,
+    isInitialMount
+  } = useBanknoteSession(countryId);
+
+  // Load initial country data
   useEffect(() => {
     const loadCountryData = async () => {
       if (!decodedCountryName) {
@@ -41,11 +49,8 @@ const CountryDetail = () => {
         return;
       }
 
-      console.log("CountryDetail: Loading country data for", decodedCountryName);
-
       try {
         const countryData = await fetchCountryByName(decodedCountryName);
-
         if (!countryData) {
           console.error("CountryDetail: Country not found:", decodedCountryName);
           toast({
@@ -57,19 +62,18 @@ const CountryDetail = () => {
           return;
         }
 
-        console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
         setFilters(prev => ({
           ...prev,
           country_id: countryData.id
         }));
-
+        
+        // Load categories and currencies
         const categories = await fetchCategoriesByCountryId(countryData.id);
-        const orderMap = categories.map(cat => ({
+        setCategoryOrder(categories.map(cat => ({
           name: cat.name,
           order: cat.display_order
-        }));
-        setCategoryOrder(orderMap);
+        })));
 
         const { data: currencyRows, error: currencyError } = await supabase
           .from("currencies")
@@ -79,10 +83,8 @@ const CountryDetail = () => {
 
         if (currencyError) {
           console.error("Error fetching currencies:", currencyError);
-          setCurrencies([]);
         } else if (currencyRows) {
           setCurrencies(currencyRows);
-          console.log("Loaded currencies:", currencyRows);
         }
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
@@ -97,42 +99,70 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
 
-  // Load banknotes when filters change
+  // Restore or fetch banknotes
   useEffect(() => {
-    const fetchBanknotesData = async () => {
+    const loadBanknotes = async () => {
       if (!countryId) return;
-
-      console.log("CountryDetail: Fetching banknotes with filters", { countryId, filters });
-      setLoading(true);
-
-      try {
-        const filterParams = {
-          search: filters.search,
-          categories: filters.categories,
-          types: filters.types,
-          sort: filters.sort
-        };
-
-        const data = await fetchBanknotesByCountryId(countryId, filterParams);
-        console.log("CountryDetail: Banknotes loaded:", data.length);
-        setBanknotes(data);
+      
+      // If we have valid session state, use it
+      if (sessionState && !isInitialMount) {
+        setBanknotes(sessionState.banknotes);
+        setFilters(sessionState.filters);
+        setViewMode(sessionState.viewMode);
         setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const data = await fetchBanknotesByCountryId(countryId, filters);
+        setBanknotes(data);
+        saveState({ 
+          banknotes: data, 
+          filters, 
+          viewMode,
+          scrollPosition: window.scrollY 
+        });
       } catch (error) {
-        console.error("CountryDetail: Error fetching banknotes:", error);
+        console.error("Error fetching banknotes:", error);
         toast({
           title: "Error",
           description: "Failed to load banknotes. Please try again later.",
           variant: "destructive",
         });
-        setBanknotes([]);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchBanknotesData();
-  }, [countryId, filters, toast]);
+    loadBanknotes();
+  }, [countryId, filters, sessionState, isInitialMount, saveState, viewMode, toast]);
 
-  // Use the custom sorting hook
+  // Save state when leaving the page
+  useEffect(() => {
+    return () => {
+      saveScrollPosition();
+    };
+  }, [saveScrollPosition]);
+
+  const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    setFilters(prev => {
+      const updated = {
+        ...prev,
+        ...newFilters,
+        country_id: countryId || prev.country_id
+      };
+      // Clear session cache when filters change
+      clearState();
+      return updated;
+    });
+  }, [countryId, clearState]);
+
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    saveState({ viewMode: mode });
+  };
+
   const sortedBanknotes = useBanknoteSorting({
     banknotes,
     currencies,
@@ -206,20 +236,8 @@ const CountryDetail = () => {
     return groupArray;
   }, [sortedBanknotes, filters.sort, categoryOrder]);
 
-  const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters,
-      country_id: countryId || prev.country_id
-    }));
-  }, [countryId]);
-
   const handleBack = () => {
     navigate('/catalog');
-  };
-
-  const handleViewModeChange = (mode: 'grid' | 'list') => {
-    setViewMode(mode);
   };
 
   return (
