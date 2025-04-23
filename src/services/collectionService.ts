@@ -1,8 +1,8 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { CollectionItem } from "@/types";
+import { CollectionItem, BanknoteCondition, Banknote } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 import { fetchBanknoteById } from "@/services/banknoteService";
-import { BanknoteCondition } from "@/types";
 import type { Database } from "@/integrations/supabase/types";
 
 // Type definition for collection items table insert
@@ -118,9 +118,10 @@ export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): 
     
     // Process each item to count categories and types
     items.forEach(item => {
-      if (item.banknote?.category) {
-        const categoryId = item.banknote.category;
-        const categoryName = item.banknote.category; // Using category name as ID for now
+      // Check for banknote.series which we're using as category
+      if (item.banknote?.series) {
+        const categoryId = item.banknote.series;
+        const categoryName = item.banknote.series;
         
         if (categoriesMap.has(categoryId)) {
           const category = categoriesMap.get(categoryId)!;
@@ -137,7 +138,7 @@ export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): 
       
       if (item.banknote?.type) {
         const typeId = item.banknote.type;
-        const typeName = item.banknote.type; // Using type name as ID for now
+        const typeName = item.banknote.type;
         
         if (typesMap.has(typeId)) {
           const type = typesMap.get(typeId)!;
@@ -354,10 +355,10 @@ export async function updateCollectionItem(
     if (updates.privateNote !== undefined) dbUpdates.private_note = updates.privateNote;
     if (updates.purchasePrice !== undefined) dbUpdates.purchase_price = updates.purchasePrice;
     if (updates.purchaseDate !== undefined) {
-      // Convert Date object to ISO string if it's a Date
-      dbUpdates.purchase_date = typeof updates.purchaseDate === 'string' 
-        ? updates.purchaseDate 
-        : updates.purchaseDate.toISOString();
+      // Handle string or Date and convert appropriately
+      dbUpdates.purchase_date = typeof updates.purchaseDate === 'object' && updates.purchaseDate instanceof Date
+        ? updates.purchaseDate.toISOString()
+        : updates.purchaseDate;
     }
     if (updates.location !== undefined) dbUpdates.location = updates.location;
     if (updates.obverseImage !== undefined) dbUpdates.obverse_image = updates.obverseImage;

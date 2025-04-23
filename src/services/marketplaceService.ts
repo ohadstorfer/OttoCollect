@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { MarketplaceItem, UserRank } from "@/types";
+import { MarketplaceItem, User, UserRank } from "@/types";
 import { fetchCollectionItem } from "./collectionService";
 
 export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
@@ -65,12 +66,23 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           
           console.log(`Successfully processed marketplace item ${item.id}`);
           
+          // Use type assertion to adapt the seller format
           return {
             id: item.id,
             collectionItemId: item.collection_item_id,
             collectionItem: collectionItem,
             sellerId: item.seller_id,
-            seller,
+            seller: {
+              id: seller.id,
+              username: seller.username,
+              rank: seller.rank as UserRank,
+              avatarUrl: seller.avatar_url,
+              role_id: '', // Default value for required field
+              role: 'User', // Default user role
+              email: '', // Default value for required field
+              points: 0, // Default value for required field
+              createdAt: item.created_at, // Using item creation date as fallback
+            },
             status: item.status,
             createdAt: item.created_at,
             updatedAt: item.updated_at
@@ -287,12 +299,23 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
     
     console.log(`Successfully fetched and processed marketplace item ${id}`);
     
+    // Use type assertion to adapt the seller format
     return {
       id: data.id,
       collectionItemId: data.collection_item_id,
       collectionItem: collectionItem,
       sellerId: data.seller_id,
-      seller,
+      seller: {
+        id: seller.id,
+        username: seller.username,
+        rank: seller.rank as UserRank,
+        avatarUrl: seller.avatar_url,
+        role_id: '', // Default value for required field
+        role: 'User', // Default user role
+        email: '', // Default value for required field
+        points: 0, // Default value for required field
+        createdAt: data.created_at, // Using item creation date as fallback
+      },
       status: data.status,
       createdAt: data.created_at,
       updatedAt: data.updated_at
@@ -347,12 +370,23 @@ export async function getMarketplaceItemForCollectionItem(
       avatar_url: null
     };
     
+    // Use type assertion to adapt the seller format
     return {
       id: data.id,
       collectionItemId: data.collection_item_id,
       collectionItem: collectionItem,
       sellerId: data.seller_id,
-      seller,
+      seller: {
+        id: seller.id,
+        username: seller.username,
+        rank: seller.rank as UserRank,
+        avatarUrl: seller.avatar_url,
+        role_id: '', // Default value for required field
+        role: 'User', // Default user role 
+        email: '', // Default value for required field
+        points: 0, // Default value for required field
+        createdAt: data.created_at, // Using item creation date as fallback
+      },
       status: data.status,
       createdAt: data.created_at,
       updatedAt: data.updated_at
