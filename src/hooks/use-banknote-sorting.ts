@@ -1,23 +1,11 @@
 
 import { useMemo } from 'react';
 import { DetailedBanknote } from '@/types';
-
-interface Currency {
-  id: string;
-  name: string;
-  display_order: number;
-  country_id?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+import { Currency } from '@/types/banknote';
 
 interface UseBanknoteSortingProps {
   banknotes: DetailedBanknote[];
-  currencies: {
-    id: string;
-    name: string;
-    display_order: number;
-  }[];
+  currencies: Currency[];
   sortFields: string[];
 }
 
@@ -42,6 +30,10 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
         const orderDiff = currencyA.display_order - currencyB.display_order;
         if (orderDiff !== 0) return orderDiff;
       }
+
+      // We don't need to sort by face value explicitly here, as the banknotes are 
+      // already pre-sorted by the extended_pick_number in the database, which 
+      // inherently sorts by the numeric value correctly
       
       // Only apply additional sorts if they are specifically requested
       for (const fieldName of sortFields) {

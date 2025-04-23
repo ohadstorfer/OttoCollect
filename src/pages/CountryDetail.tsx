@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailedBanknote } from "@/types";
@@ -12,8 +11,7 @@ import { fetchCountryByName, fetchCategoriesByCountryId } from "@/services/count
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
-import { useBanknoteSessionStorage } from "@/hooks/use-banknote-SessionStorage";
-import { useBanknoteSorting } from "@/hooks/use-banknote-sorting"; // Fixed import
+import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -21,8 +19,7 @@ const CountryDetail = () => {
   const { toast } = useToast();
   const decodedCountryName = decodeURIComponent(country || "");
 
-  const [rawBanknotes, setRawBanknotes] = useState<DetailedBanknote[]>([]);
-  const [processedBanknotes, setProcessedBanknotes] = useState<DetailedBanknote[]>([]);
+  const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -36,24 +33,19 @@ const CountryDetail = () => {
     country_id: ""
   });
 
-  // Get session storage handlers
-  const {
-    saveScrollPosition,
-    getSavedScrollPosition,
-    clearReturningFlag
-  } = useBanknoteSessionStorage(countryId);
 
-  // Save scroll position on scroll
+
+
   useEffect(() => {
-    if (!loading) { // Only track scroll after initial load
-      const handleScroll = () => {
-        saveScrollPosition();
-      };
+    const handleScroll = () => {
+      sessionStorage.setItem('scrollY', window.scrollY.toString());
+    };
+  
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-    }
-  }, [loading, saveScrollPosition]);
+  
 
   // Load country data and currencies
   useEffect(() => {
@@ -119,27 +111,6 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
 
-  // Process banknotes when raw data or filters change
-  const processBanknotes = useCallback(() => {
-    try {
-      // Do any processing needed on the raw banknotes here
-      // We'll set the processed banknotes directly without calling useBanknoteSorting here
-      setProcessedBanknotes(rawBanknotes);
-      
-      // After processing is complete and component is mounted, restore scroll position
-      const savedPosition = getSavedScrollPosition();
-      if (savedPosition) {
-        window.scrollTo({ top: savedPosition, behavior: 'auto' });
-      }
-      
-      setLoading(false);
-    } catch (error) {
-      console.error("Error processing banknotes:", error);
-      setProcessedBanknotes([]);
-      setLoading(false);
-    }
-  }, [rawBanknotes, getSavedScrollPosition]);
-
   // Load banknotes when filters change
   useEffect(() => {
     const fetchBanknotesData = async () => {
@@ -158,8 +129,8 @@ const CountryDetail = () => {
 
         const data = await fetchBanknotesByCountryId(countryId, filterParams);
         console.log("CountryDetail: Banknotes loaded:", data.length);
-        setRawBanknotes(data);
-        processBanknotes();
+        setBanknotes(data);
+        setLoading(false);
       } catch (error) {
         console.error("CountryDetail: Error fetching banknotes:", error);
         toast({
@@ -167,18 +138,17 @@ const CountryDetail = () => {
           description: "Failed to load banknotes. Please try again later.",
           variant: "destructive",
         });
-        setRawBanknotes([]);
-        setProcessedBanknotes([]);
+        setBanknotes([]);
         setLoading(false);
       }
     };
 
     fetchBanknotesData();
-  }, [countryId, filters, toast, processBanknotes]);
+  }, [countryId, filters, toast]);
 
-  // Use the custom sorting hook - properly using it inside the component body
+  // Use the custom sorting hook
   const sortedBanknotes = useBanknoteSorting({
-    banknotes: processedBanknotes,
+    banknotes,
     currencies,
     sortFields: filters.sort
   });
@@ -291,7 +261,7 @@ const CountryDetail = () => {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
             </div>
-          ) : processedBanknotes.length === 0 ? (
+          ) : banknotes.length === 0 ? (
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-4">No banknotes found</h3>
               <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
