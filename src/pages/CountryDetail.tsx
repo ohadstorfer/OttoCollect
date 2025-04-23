@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
+import { useBanknoteSessionStorage } from "@/hooks/use-banknote-SessionStorage";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -19,7 +20,8 @@ const CountryDetail = () => {
   const { toast } = useToast();
   const decodedCountryName = decodeURIComponent(country || "");
 
-  const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
+  const [rawBanknotes, setRawBanknotes] = useState<DetailedBanknote[]>([]);
+  const [processedBanknotes, setProcessedBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -33,19 +35,42 @@ const CountryDetail = () => {
     country_id: ""
   });
 
+  // Get session storage handlers
+  const {
+    saveScrollPosition,
+    getSavedScrollPosition,
+    clearReturningFlag
+  } = useBanknoteSessionStorage(countryId);
 
+  // Process banknotes when raw data or filters change
+  const processBanknotes = useCallback(async () => {
+    const sorted = useBanknoteSorting({
+      banknotes: rawBanknotes,
+      currencies,
+      sortFields: filters.sort
+    });
+    setProcessedBanknotes(sorted);
+    
+    // After processing is complete and component is mounted, restore scroll position
+    const savedPosition = getSavedScrollPosition();
+    if (savedPosition) {
+      window.scrollTo({ top: savedPosition, behavior: 'auto' });
+    }
+    
+    setLoading(false);
+  }, [rawBanknotes, currencies, filters.sort, getSavedScrollPosition]);
 
-
+  // Save scroll position on scroll
   useEffect(() => {
-    const handleScroll = () => {
-      sessionStorage.setItem('scrollY', window.scrollY.toString());
-    };
-  
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (!loading) { // Only track scroll after initial load
+      const handleScroll = () => {
+        saveScrollPosition();
+      };
 
-  
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [loading, saveScrollPosition]);
 
   // Load country data and currencies
   useEffect(() => {
@@ -129,8 +154,8 @@ const CountryDetail = () => {
 
         const data = await fetchBanknotesByCountryId(countryId, filterParams);
         console.log("CountryDetail: Banknotes loaded:", data.length);
-        setBanknotes(data);
-        setLoading(false);
+        setRawBanknotes(data);
+        await processBanknotes();
       } catch (error) {
         console.error("CountryDetail: Error fetching banknotes:", error);
         toast({
@@ -138,13 +163,14 @@ const CountryDetail = () => {
           description: "Failed to load banknotes. Please try again later.",
           variant: "destructive",
         });
-        setBanknotes([]);
+        setRawBanknotes([]);
+        setProcessedBanknotes([]);
         setLoading(false);
       }
     };
 
     fetchBanknotesData();
-  }, [countryId, filters, toast]);
+  }, [countryId, filters, toast, processBanknotes]);
 
   // Use the custom sorting hook
   const sortedBanknotes = useBanknoteSorting({
@@ -261,7 +287,7 @@ const CountryDetail = () => {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
             </div>
-          ) : banknotes.length === 0 ? (
+          ) : processedBanknotes.length === 0 ? (
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-4">No banknotes found</h3>
               <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
