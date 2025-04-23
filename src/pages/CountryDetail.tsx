@@ -33,6 +33,20 @@ const CountryDetail = () => {
     country_id: ""
   });
 
+
+
+
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('scrollY', window.scrollY.toString());
+    };
+  
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  
+
   // Load country data and currencies
   useEffect(() => {
     const loadCountryData = async () => {
