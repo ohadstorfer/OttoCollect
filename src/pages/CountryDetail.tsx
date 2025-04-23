@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { DetailedBanknote } from "@/types";
+import { DetailedBanknote, Currency } from "@/types";
 import { fetchBanknotesByCountryId } from "@/services/banknoteService";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,12 @@ const CountryDetail = () => {
   const { toast } = useToast();
   const decodedCountryName = decodeURIComponent(country || "");
 
-  const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
+  const [rawBanknotes, setRawBanknotes] = useState<DetailedBanknote[]>([]);
+  const [processedBanknotes, setProcessedBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [currencies, setCurrencies] = useState<{ id: string, name: string, display_order: number }[]>([]);
+  const [currencies, setCurrencies] = useState<Pick<Currency, 'id' | 'name' | 'display_order'>[]>([]);
   const [categoryOrder, setCategoryOrder] = useState<{ name: string, order: number }[]>([]);
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
@@ -97,6 +98,29 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
 
+  // Process banknotes based on filters
+  const processBanknotes = async (banknotesToProcess: DetailedBanknote[]) => {
+    try {
+      const filterParams = {
+        search: filters.search,
+        categories: filters.categories,
+        types: filters.types,
+        sort: filters.sort
+      };
+
+      const sortedBanknotes = useBanknoteSorting({
+        banknotes: banknotesToProcess,
+        currencies,
+        sortFields: filters.sort
+      });
+
+      setProcessedBanknotes(sortedBanknotes);
+    } catch (error) {
+      console.error("Error processing banknotes:", error);
+      setProcessedBanknotes([]);
+    }
+  };
+
   // Load banknotes when filters change
   useEffect(() => {
     const fetchBanknotesData = async () => {
@@ -115,7 +139,10 @@ const CountryDetail = () => {
 
         const data = await fetchBanknotesByCountryId(countryId, filterParams);
         console.log("CountryDetail: Banknotes loaded:", data.length);
-        setBanknotes(data);
+        setRawBanknotes(data);
+        
+        // Process the banknotes before marking as not loading
+        await processBanknotes(data);
         setLoading(false);
       } catch (error) {
         console.error("CountryDetail: Error fetching banknotes:", error);
@@ -124,38 +151,28 @@ const CountryDetail = () => {
           description: "Failed to load banknotes. Please try again later.",
           variant: "destructive",
         });
-        setBanknotes([]);
+        setRawBanknotes([]);
+        setProcessedBanknotes([]);
         setLoading(false);
       }
     };
 
     fetchBanknotesData();
-  }, [countryId, filters, toast]);
+  }, [countryId, filters, toast, currencies]);
 
-  // Use the custom sorting hook
-  const sortedBanknotes = useBanknoteSorting({
-    banknotes,
-    currencies,
-    sortFields: filters.sort
-  });
-
+  // Group items by category
   const groupedItems = useMemo(() => {
-    const categoryMap = new Map();
+    if (loading || processedBanknotes.length === 0) {
+      return [];
+    }
+
     const showSultanGroups = filters.sort.includes('sultan');
-  
-    const sultanOrder = [
-      "AbdulMecid",
-      "AbdulAziz",
-      "Murad",
-      "AbdulHamid",
-      "M.Resad",
-      "M.Vahdeddin"
-    ];
-  
-    // 1. Group banknotes by category
-    sortedBanknotes.forEach(banknote => {
+    const categoryMap = new Map();
+
+    // Group banknotes by category
+    processedBanknotes.forEach(banknote => {
       const category = banknote.category || 'Uncategorized';
-  
+      
       if (!categoryMap.has(category)) {
         categoryMap.set(category, {
           category,
@@ -163,28 +180,26 @@ const CountryDetail = () => {
           items: []
         });
       }
-  
+      
       categoryMap.get(category).items.push(banknote);
     });
-  
+
     const groupArray = Array.from(categoryMap.values());
-  
-    // 2. Sort category groups if order is provided
+
+    // Sort category groups if order is provided
     if (categoryOrder.length > 0) {
       groupArray.sort((a, b) => {
         const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
         const orderB = categoryOrder.find(c => c.name === b.category)?.order ?? Number.MAX_SAFE_INTEGER;
         return orderA - orderB;
       });
-    } else {
-      groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
-  
-    // 3. If sorting by sultan, group and sort inside each category group
+
+    // If sorting by sultan, create sultan groups within each category
     if (showSultanGroups) {
       groupArray.forEach(group => {
         const sultanMap = new Map();
-  
+        
         group.items.forEach(banknote => {
           const sultan = banknote.sultanName || 'Unknown';
           if (!sultanMap.has(sultan)) {
@@ -192,19 +207,15 @@ const CountryDetail = () => {
           }
           sultanMap.get(sultan).push(banknote);
         });
-  
+        
         group.sultanGroups = Array.from(sultanMap.entries())
           .map(([sultan, items]) => ({ sultan, items }))
-          .sort((a, b) => {
-            const indexA = sultanOrder.findIndex(name => name.toLowerCase() === a.sultan.toLowerCase());
-            const indexB = sultanOrder.findIndex(name => name.toLowerCase() === b.sultan.toLowerCase());
-            return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
-          });
+          .sort((a, b) => a.sultan.localeCompare(b.sultan));
       });
     }
-  
+
     return groupArray;
-  }, [sortedBanknotes, filters.sort, categoryOrder]);
+  }, [processedBanknotes, filters.sort, categoryOrder, loading]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     setFilters(prev => ({
@@ -247,7 +258,7 @@ const CountryDetail = () => {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
             </div>
-          ) : banknotes.length === 0 ? (
+          ) : processedBanknotes.length === 0 ? (
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-4">No banknotes found</h3>
               <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
