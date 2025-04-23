@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import { useBanknoteSessionStorage } from "@/hooks/use-banknote-SessionStorage";
+import { useBanknoteSorting } from "@/hooks/use-banknote-sorting"; // Fixed import
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -175,7 +176,7 @@ const CountryDetail = () => {
     fetchBanknotesData();
   }, [countryId, filters, toast, processBanknotes]);
 
-  // Use the custom sorting hook - it's safe to use here in the component body
+  // Use the custom sorting hook - properly using it inside the component body
   const sortedBanknotes = useBanknoteSorting({
     banknotes: processedBanknotes,
     currencies,
