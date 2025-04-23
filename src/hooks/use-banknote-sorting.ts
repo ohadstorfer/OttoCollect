@@ -42,10 +42,6 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
         const orderDiff = currencyA.display_order - currencyB.display_order;
         if (orderDiff !== 0) return orderDiff;
       }
-
-      // We don't need to sort by face value explicitly here, as the banknotes are 
-      // already pre-sorted by the extended_pick_number in the database, which 
-      // inherently sorts by the numeric value correctly
       
       // Only apply additional sorts if they are specifically requested
       for (const fieldName of sortFields) {

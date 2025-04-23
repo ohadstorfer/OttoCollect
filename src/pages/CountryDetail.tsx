@@ -12,7 +12,6 @@ import { fetchCountryByName, fetchCategoriesByCountryId } from "@/services/count
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
-import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteSessionStorage } from "@/hooks/use-banknote-SessionStorage";
 
 const CountryDetail = () => {
@@ -42,24 +41,6 @@ const CountryDetail = () => {
     getSavedScrollPosition,
     clearReturningFlag
   } = useBanknoteSessionStorage(countryId);
-
-  // Process banknotes when raw data or filters change
-  const processBanknotes = useCallback(async () => {
-    const sorted = useBanknoteSorting({
-      banknotes: rawBanknotes,
-      currencies,
-      sortFields: filters.sort
-    });
-    setProcessedBanknotes(sorted);
-    
-    // After processing is complete and component is mounted, restore scroll position
-    const savedPosition = getSavedScrollPosition();
-    if (savedPosition) {
-      window.scrollTo({ top: savedPosition, behavior: 'auto' });
-    }
-    
-    setLoading(false);
-  }, [rawBanknotes, currencies, filters.sort, getSavedScrollPosition]);
 
   // Save scroll position on scroll
   useEffect(() => {
@@ -137,6 +118,27 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
 
+  // Process banknotes when raw data or filters change
+  const processBanknotes = useCallback(() => {
+    try {
+      // Do any processing needed on the raw banknotes here
+      // We'll set the processed banknotes directly without calling useBanknoteSorting here
+      setProcessedBanknotes(rawBanknotes);
+      
+      // After processing is complete and component is mounted, restore scroll position
+      const savedPosition = getSavedScrollPosition();
+      if (savedPosition) {
+        window.scrollTo({ top: savedPosition, behavior: 'auto' });
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error("Error processing banknotes:", error);
+      setProcessedBanknotes([]);
+      setLoading(false);
+    }
+  }, [rawBanknotes, getSavedScrollPosition]);
+
   // Load banknotes when filters change
   useEffect(() => {
     const fetchBanknotesData = async () => {
@@ -156,7 +158,7 @@ const CountryDetail = () => {
         const data = await fetchBanknotesByCountryId(countryId, filterParams);
         console.log("CountryDetail: Banknotes loaded:", data.length);
         setRawBanknotes(data);
-        await processBanknotes();
+        processBanknotes();
       } catch (error) {
         console.error("CountryDetail: Error fetching banknotes:", error);
         toast({
@@ -173,7 +175,7 @@ const CountryDetail = () => {
     fetchBanknotesData();
   }, [countryId, filters, toast, processBanknotes]);
 
-  // Use the custom sorting hook - Fix: Using processedBanknotes instead of banknotes
+  // Use the custom sorting hook - it's safe to use here in the component body
   const sortedBanknotes = useBanknoteSorting({
     banknotes: processedBanknotes,
     currencies,
