@@ -10,7 +10,7 @@ const mapDbMessageToMessage = (dbMessage: any): Message => {
     senderId: dbMessage.sender_id,
     receiverId: dbMessage.receiver_id,
     content: dbMessage.content,
-    reference_item_id: dbMessage.reference_item_id,
+    referenceItemId: dbMessage.reference_item_id,
     isRead: dbMessage.is_read,
     createdAt: dbMessage.created_at,
   };

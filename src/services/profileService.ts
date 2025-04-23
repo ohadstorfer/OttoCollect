@@ -23,7 +23,6 @@ export async function getUserProfile(userId: string): Promise<User | null> {
       id: data.id,
       username: data.username,
       email: data.email,
-      role_id: data.role_id || '', // Ensure role_id is included
       role: data.role as UserRole,
       rank: data.rank as UserRank,
       points: data.points,

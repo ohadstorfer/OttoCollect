@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
@@ -95,59 +96,34 @@ const SimpleImageUpload = ({ imageUrl, onImageUploaded, side }: {
 };
 
 interface CollectionItemFormProps {
-  collectionItem?: CollectionItem; // Make this optional to support both editing and creating
-  initialItem?: CollectionItem; // Add this for backward compatibility 
+  collectionItem: CollectionItem;
   onUpdate?: (updatedItem: CollectionItem) => void;
-  onSave?: (item: CollectionItem) => void;
-  onCancel?: () => void;
 }
 
-export default function CollectionItemForm({ 
-  collectionItem, 
-  initialItem,
-  onUpdate,
-  onSave,
-  onCancel
-}: CollectionItemFormProps) {
+export default function CollectionItemForm({ collectionItem, onUpdate }: CollectionItemFormProps) {
   const { user } = useAuth();
-  const itemToEdit = collectionItem || initialItem;
-  
-  const [condition, setCondition] = useState<BanknoteCondition>(
-    itemToEdit?.condition || "UNC"
-  );
+  const [condition, setCondition] = useState<BanknoteCondition>(collectionItem.condition || "UNC");
   const [purchaseDate, setPurchaseDate] = useState<Date | undefined>(
-    itemToEdit?.purchaseDate ? new Date(itemToEdit.purchaseDate) : undefined
+    collectionItem.purchaseDate ? new Date(collectionItem.purchaseDate) : undefined
   );
   const [purchasePrice, setPurchasePrice] = useState<string>(
-    itemToEdit?.purchasePrice ? itemToEdit.purchasePrice.toString() : ''
+    collectionItem.purchasePrice ? collectionItem.purchasePrice.toString() : ''
   );
-  const [privateNote, setPrivateNote] = useState<string>(
-    itemToEdit?.privateNote || ''
-  );
-  const [publicNote, setPublicNote] = useState<string>(
-    itemToEdit?.publicNote || ''
-  );
-  const [isForSale, setIsForSale] = useState(
-    itemToEdit?.isForSale || false
-  );
+  const [privateNote, setPrivateNote] = useState<string>(collectionItem.privateNote || '');
+  const [publicNote, setPublicNote] = useState<string>(collectionItem.publicNote || '');
+  const [isForSale, setIsForSale] = useState(collectionItem.isForSale);
   const [salePrice, setSalePrice] = useState<string>(
-    itemToEdit?.salePrice ? itemToEdit.salePrice.toString() : ''
+    collectionItem.salePrice ? collectionItem.salePrice.toString() : ''
   );
-  const [location, setLocation] = useState<string>(
-    itemToEdit?.location || ''
-  );
-  const [obverseImage, setObverseImage] = useState<string>(
-    itemToEdit?.obverseImage || ''
-  );
-  const [reverseImage, setReverseImage] = useState<string>(
-    itemToEdit?.reverseImage || ''
-  );
+  const [location, setLocation] = useState<string>(collectionItem.location || '');
+  const [obverseImage, setObverseImage] = useState<string | null>(collectionItem.obverseImage || null);
+  const [reverseImage, setReverseImage] = useState<string | null>(collectionItem.reverseImage || null);
   const [loading, setLoading] = useState(false);
 
   // If the item's "forSale" status changes, we need to make sure the form reflects this
   useEffect(() => {
-    setIsForSale(itemToEdit?.isForSale || false);
-  }, [itemToEdit?.isForSale]);
+    setIsForSale(collectionItem.isForSale);
+  }, [collectionItem.isForSale]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -170,7 +146,7 @@ export default function CollectionItemForm({
         location
       };
       
-      const success = await updateCollectionItem(itemToEdit?.id || '', updates);
+      const success = await updateCollectionItem(collectionItem.id, updates);
       
       if (!success) {
         toast.error("Failed to update collection item");
@@ -178,30 +154,30 @@ export default function CollectionItemForm({
       }
       
       // Update images separately if they changed
-      if (obverseImage !== itemToEdit?.obverseImage || 
-          reverseImage !== itemToEdit?.reverseImage) {
+      if (obverseImage !== collectionItem.obverseImage || 
+          reverseImage !== collectionItem.reverseImage) {
         await updateCollectionItemImages(
-          itemToEdit?.id || '',
+          collectionItem.id,
           obverseImage || undefined,
           reverseImage || undefined
         );
       }
       
       // Handle marketplace listing
-      if (isForSale && !itemToEdit?.isForSale) {
+      if (isForSale && !collectionItem.isForSale) {
         // Item wasn't for sale before but now is
-        await addToMarketplace(itemToEdit?.id || '', user.id);
-      } else if (!isForSale && itemToEdit?.isForSale) {
+        await addToMarketplace(collectionItem.id, user.id);
+      } else if (!isForSale && collectionItem.isForSale) {
         // Item was for sale before but now isn't
         // We need to find the marketplace item and remove it
         // This is simplified and would need to be expanded with actual marketplace item lookups
-        await removeFromMarketplace(itemToEdit?.id || '', itemToEdit?.id || '');
+        await removeFromMarketplace(collectionItem.id, collectionItem.id);
       }
 
       // Update the local state in the parent component
       if (onUpdate) {
         onUpdate({
-          ...itemToEdit,
+          ...collectionItem,
           condition,
           purchaseDate: purchaseDate ? purchaseDate.toISOString() : undefined,
           purchasePrice: purchasePrice ? parseFloat(purchasePrice) : undefined,
@@ -401,11 +377,6 @@ export default function CollectionItemForm({
         <Button type="submit" disabled={loading}>
           {loading ? "Saving..." : "Save Changes"}
         </Button>
-        {onCancel && (
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
       </div>
     </form>
   );

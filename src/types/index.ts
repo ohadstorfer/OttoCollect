@@ -88,7 +88,6 @@ export interface Banknote {
   type?: string; // Adding type for compatibility
   sultanName?: string; // Adding sultanName for compatibility
   extendedPickNumber?: string; // Adding extended pick number for compatibility
-  category?: string; // Adding category for compatibility
 }
 
 export interface DetailedBanknote extends Banknote {
@@ -103,7 +102,7 @@ export interface DetailedBanknote extends Banknote {
   securityFeatures?: string[];
   watermark?: string;
   signatures?: string[];
-  colors?: string;
+  colors?: string[];
   gradeCounts?: Record<BanknoteCondition, number>;
   averagePrice?: number;
   islamicYear?: string;
@@ -115,7 +114,6 @@ export interface DetailedBanknote extends Banknote {
   signaturesFront?: string;
   signaturesBack?: string;
   extendedPickNumber?: string;
-  country_id?: string; // Add this missing field
 }
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
@@ -163,31 +161,10 @@ export interface MarketplaceItem {
   id: string;
   collectionItem: CollectionItem;
   sellerId: string;
-  seller: {
-    id: string;
-    username: string;
-    rank: UserRank;
-    avatarUrl?: string;
-    email?: string;
-    role?: UserRole;
-    role_id?: string;
-    points?: number;
-    createdAt?: string;
-  };
+  seller: User;
   status: 'Available' | 'Reserved' | 'Sold';
   createdAt: string;
   updatedAt: string;
-}
-
-// Add WishlistItem interface that was missing
-export interface WishlistItem {
-  id: string;
-  userId: string;
-  banknoteId: string;
-  banknote: Banknote;
-  priority: 'Low' | 'Medium' | 'High';
-  note?: string;
-  createdAt: string;
 }
 
 // Import and re-export types from other files

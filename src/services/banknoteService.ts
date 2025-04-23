@@ -246,7 +246,6 @@ function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     catalogId: item.extended_pick_number || '',
     extendedPickNumber: item.extended_pick_number || '', 
     country: item.country || '',
-    country_id: item.country_id || '', // Add this line to fix the error
     denomination: item.face_value || '',
     year: item.gregorian_year || '',
     series: item.category || '', // Use category as series

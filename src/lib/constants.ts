@@ -1,4 +1,3 @@
-// If this file doesn't exist yet, create it with our mock data
 import { BanknoteCondition, UserRank } from '@/types';
 
 // Fix the UserRank point values by using a partial record
@@ -70,24 +69,3 @@ export const MOCK_USERS = [
 ];
 
 export const DEFAULT_IMAGE_URL = '/placeholder.svg';
-
-import { Banknote } from '@/types';
-
-export const MOCK_BANKNOTES: Banknote[] = [
-  {
-    id: '1',
-    catalogId: 'P001',
-    country: 'Sample Country',
-    denomination: '100',
-    year: '2000',
-    description: 'Sample banknote',
-    imageUrls: ['/placeholder.svg'],
-    isApproved: true,
-    isPending: false,
-    createdAt: '2023-01-01',
-    updatedAt: '2023-01-01',
-    category: 'test'
-  }
-];
-
-// Add other constants as needed

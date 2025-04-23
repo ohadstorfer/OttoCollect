@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
@@ -46,7 +45,7 @@ const ProfileCollection = ({
     enabled: !initialCollection && !!userId
   });
 
-  const { data: fetchedBanknotes, isLoading: banknoteLoading } = useQuery({
+  const { data: banknotes, isLoading: bannoteLoading } = useQuery({
     queryKey: ['banknotes'],
     queryFn: async () => {
       return await fetchBanknotes();
@@ -59,10 +58,10 @@ const ProfileCollection = ({
     enabled: !initialWishlist && !!userId
   });
 
-  const collection = initialCollection || fetchedCollection || [];
-  const banknoteList = initialBanknotes || fetchedBanknotes || [];
-  const wishlist = initialWishlist || fetchedWishlist || [];
-  const collectionLoading = initialLoading || collectionQueryLoading || banknoteLoading || wishlistQueryLoading;
+  const userCollection = initialCollection || fetchedCollection || [];
+  const banknotes = initialBanknotes || banknotes || [];
+  const wishlistItems = initialWishlist || fetchedWishlist || [];
+  const collectionLoading = initialLoading || collectionQueryLoading || bannoteLoading || wishlistQueryLoading;
 
   const navigate = useNavigate();
   const [filter, setFilter] = useState<FilterState>({ searchTerm: '', isMissingOnly: false });
@@ -76,8 +75,8 @@ const ProfileCollection = ({
     setFilter(prev => ({ ...prev, isMissingOnly: !prev.isMissingOnly }));
   };
 
-  const filteredCollection = collection.filter(item => {
-    const banknote = banknoteList?.find(b => b.id === item.banknoteId);
+  const filteredCollection = userCollection.filter(item => {
+    const banknote = banknotes?.find(b => b.id === item.banknoteId);
     if (!banknote) return false;
 
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
@@ -87,8 +86,8 @@ const ProfileCollection = ({
     return matchesSearch;
   });
 
-  const missingItems = banknoteList?.filter(banknote => 
-    !collection.some(item => item.banknoteId === banknote.id)
+  const missingItems = banknotes?.filter(banknote => 
+    !userCollection.some(item => item.banknoteId === banknote.id)
   ) || [];
 
   const filteredMissing = missingItems.filter(banknote => {
@@ -99,7 +98,7 @@ const ProfileCollection = ({
     return matchesSearch;
   });
 
-  const filteredCatalog = banknoteList?.filter(banknote => {
+  const filteredCatalog = banknotes?.filter(banknote => {
     const matchesSearch = banknote.denomination.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
       banknote.country.toLowerCase().includes(filter.searchTerm.toLowerCase()) ||
       banknote.year.toLowerCase().includes(filter.searchTerm.toLowerCase());
