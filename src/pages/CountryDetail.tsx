@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailedBanknote } from "@/types";
 import { fetchBanknotesByCountryId } from "@/services/banknoteService";
@@ -12,29 +12,19 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
-import { useBanknoteSession } from "@/hooks/use-banknote-session";
-import { useAuth } from "@/context/AuthContext";
 
 const CountryDetail = () => {
   const { country } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
   const decodedCountryName = decodeURIComponent(country || "");
-  const [countryId, setCountryId] = useState<string>("");
-  const scrollPositionRef = useRef(0);
-  const initialLoadRef = useRef(false);
-
-  const { sessionState, saveState, hasValidState } = useBanknoteSession(countryId);
 
   const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>(
-    sessionState?.filters?.viewMode || 'grid'
-  );
+  const [countryId, setCountryId] = useState<string>("");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currencies, setCurrencies] = useState<{ id: string, name: string, display_order: number }[]>([]);
   const [categoryOrder, setCategoryOrder] = useState<{ name: string, order: number }[]>([]);
-
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
     categories: [],
@@ -43,6 +33,7 @@ const CountryDetail = () => {
     country_id: ""
   });
 
+  // Load country data and currencies
   useEffect(() => {
     const loadCountryData = async () => {
       if (!decodedCountryName) {
@@ -93,13 +84,6 @@ const CountryDetail = () => {
           setCurrencies(currencyRows);
           console.log("Loaded currencies:", currencyRows);
         }
-
-        if (hasValidState && sessionState?.filters) {
-          setFilters(sessionState.filters);
-          if (sessionState.scrollPosition) {
-            window.scrollTo(0, sessionState.scrollPosition);
-          }
-        }
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
         toast({
@@ -111,8 +95,9 @@ const CountryDetail = () => {
     };
 
     loadCountryData();
-  }, [decodedCountryName, navigate, toast, hasValidState, sessionState]);
+  }, [decodedCountryName, navigate, toast]);
 
+  // Load banknotes when filters change
   useEffect(() => {
     const fetchBanknotesData = async () => {
       if (!countryId) return;
@@ -147,13 +132,14 @@ const CountryDetail = () => {
     fetchBanknotesData();
   }, [countryId, filters, toast]);
 
+  // Use the custom sorting hook
   const sortedBanknotes = useBanknoteSorting({
     banknotes,
     currencies,
     sortFields: filters.sort
   });
 
-  const groupedItems = useCallback(() => {
+  const groupedItems = useMemo(() => {
     const categoryMap = new Map();
     const showSultanGroups = filters.sort.includes('sultan');
   
@@ -166,6 +152,7 @@ const CountryDetail = () => {
       "M.Vahdeddin"
     ];
   
+    // 1. Group banknotes by category
     sortedBanknotes.forEach(banknote => {
       const category = banknote.category || 'Uncategorized';
   
@@ -182,6 +169,7 @@ const CountryDetail = () => {
   
     const groupArray = Array.from(categoryMap.values());
   
+    // 2. Sort category groups if order is provided
     if (categoryOrder.length > 0) {
       groupArray.sort((a, b) => {
         const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
@@ -192,6 +180,7 @@ const CountryDetail = () => {
       groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
   
+    // 3. If sorting by sultan, group and sort inside each category group
     if (showSultanGroups) {
       groupArray.forEach(group => {
         const sultanMap = new Map();
@@ -217,23 +206,13 @@ const CountryDetail = () => {
     return groupArray;
   }, [sortedBanknotes, filters.sort, categoryOrder]);
 
-  useEffect(() => {
-    return () => {
-      if (initialLoadRef.current) {
-        saveState({ scrollPosition: window.scrollY });
-      }
-    };
-  }, [saveState]);
-
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    const updatedFilters = {
-      ...filters,
+    setFilters(prev => ({
+      ...prev,
       ...newFilters,
-      country_id: countryId
-    };
-    setFilters(updatedFilters);
-    saveState({ filters: updatedFilters });
-  }, [countryId, filters, saveState]);
+      country_id: countryId || prev.country_id
+    }));
+  }, [countryId]);
 
   const handleBack = () => {
     navigate('/catalog');
@@ -241,9 +220,6 @@ const CountryDetail = () => {
 
   const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
-    saveState({ 
-      filters: { ...filters, viewMode: mode }
-    });
   };
 
   return (
@@ -278,7 +254,7 @@ const CountryDetail = () => {
             </div>
           ) : (
             <BanknoteGroups
-              groups={groupedItems()}
+              groups={groupedItems}
               showSultanGroups={filters.sort.includes('sultan')}
               viewMode={viewMode}
             />

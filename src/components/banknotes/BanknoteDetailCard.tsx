@@ -20,9 +20,6 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog', viewMode = 'grid' }:
   const [isHovering, setIsHovering] = useState(false);
 
   const handleCardClick = () => {
-    const scrollPosition = window.scrollY;
-    sessionStorage.setItem('banknote_catalog_scroll', scrollPosition.toString());
-
     if (source === 'catalog') {
       navigate(`/catalog-banknote/${banknote.id}`);
     } else if (source === 'collection') {
