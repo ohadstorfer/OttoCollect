@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailedBanknote } from "@/types";
@@ -172,9 +173,9 @@ const CountryDetail = () => {
     fetchBanknotesData();
   }, [countryId, filters, toast, processBanknotes]);
 
-  // Use the custom sorting hook
+  // Use the custom sorting hook - Fix: Using processedBanknotes instead of banknotes
   const sortedBanknotes = useBanknoteSorting({
-    banknotes,
+    banknotes: processedBanknotes,
     currencies,
     sortFields: filters.sort
   });
