@@ -33,9 +33,6 @@ const CountryDetail = () => {
     country_id: ""
   });
 
-
-
-
   useEffect(() => {
     const handleScroll = () => {
       sessionStorage.setItem('scrollY', window.scrollY.toString());
@@ -45,9 +42,6 @@ const CountryDetail = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  
-
-  // Load country data and currencies
   useEffect(() => {
     const loadCountryData = async () => {
       if (!decodedCountryName) {
@@ -111,7 +105,6 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast]);
 
-  // Load banknotes when filters change
   useEffect(() => {
     const fetchBanknotesData = async () => {
       if (!countryId) return;
@@ -146,7 +139,6 @@ const CountryDetail = () => {
     fetchBanknotesData();
   }, [countryId, filters, toast]);
 
-  // Use the custom sorting hook
   const sortedBanknotes = useBanknoteSorting({
     banknotes,
     currencies,
@@ -166,7 +158,6 @@ const CountryDetail = () => {
       "M.Vahdeddin"
     ];
   
-    // 1. Group banknotes by category
     sortedBanknotes.forEach(banknote => {
       const category = banknote.category || 'Uncategorized';
   
@@ -183,7 +174,6 @@ const CountryDetail = () => {
   
     const groupArray = Array.from(categoryMap.values());
   
-    // 2. Sort category groups if order is provided
     if (categoryOrder.length > 0) {
       groupArray.sort((a, b) => {
         const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
@@ -194,7 +184,6 @@ const CountryDetail = () => {
       groupArray.sort((a, b) => a.category.localeCompare(b.category));
     }
   
-    // 3. If sorting by sultan, group and sort inside each category group
     if (showSultanGroups) {
       groupArray.forEach(group => {
         const sultanMap = new Map();
@@ -271,6 +260,8 @@ const CountryDetail = () => {
               groups={groupedItems}
               showSultanGroups={filters.sort.includes('sultan')}
               viewMode={viewMode}
+              countryId={countryId}
+              isLoading={loading}
             />
           )}
         </div>

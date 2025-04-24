@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from './BanknoteDetailCard';
 import { cn } from '@/lib/utils';
+import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
 
 interface BanknoteGroupsProps {
   groups: {
@@ -12,15 +12,21 @@ interface BanknoteGroupsProps {
   }[];
   showSultanGroups: boolean;
   viewMode: 'grid' | 'list';
+  countryId: string;
+  isLoading?: boolean;
 }
 
 export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   groups,
   showSultanGroups,
-  viewMode
+  viewMode,
+  countryId,
+  isLoading = false
 }) => {
+  const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
+
   return (
-    <div className="space-y-8">
+    <div ref={containerRef} className="space-y-8">
       {groups.map((group, groupIndex) => (
         <div key={`group-${groupIndex}`} className="space-y-4">
           <div className="sticky top-[155px] sm:top-[105px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-auto -mx-6 md:mx-0 px-6 md:px-0">
