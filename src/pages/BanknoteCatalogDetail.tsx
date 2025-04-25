@@ -39,6 +39,8 @@ interface LabelValuePairProps {
   iconClassNames?: string;
 }
 
+
+
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
   if (!value) return null;
   
@@ -58,6 +60,11 @@ export default function BanknoteCatalogDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+  
 
   const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
