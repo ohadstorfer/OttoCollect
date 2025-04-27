@@ -2,17 +2,23 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
-import { fetchCategoriesByCountryId, fetchTypesByCountryId, fetchSortOptionsByCountryId } from "@/services/countryService";
+import { 
+  fetchCategoriesByCountryId, 
+  fetchTypesByCountryId, 
+  fetchSortOptionsByCountryId, 
+  saveUserFilterPreferences, 
+  fetchUserFilterPreferences 
+} from "@/services/countryService";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface BanknoteFilterMarketplaceProps {
-  countryId?: string;
+  countryId: string;
   onFilterChange: (filters: Partial<DynamicFilterState>) => void;
   currentFilters: DynamicFilterState;
   isLoading?: boolean;
   className?: string;
-  // Additional marketplace-specific props can be added here
-  marketplaceCategories?: { id: string; name: string; count: number }[];
-  marketplaceTypes?: { id: string; name: string; count: number }[];
+  onViewModeChange?: (mode: 'grid' | 'list') => void;
 }
 
 export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps> = ({
@@ -21,37 +27,33 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
   currentFilters,
   isLoading = false,
   className,
-  marketplaceCategories = [],
-  marketplaceTypes = [],
+  onViewModeChange
 }) => {
+  const { toast } = useToast();
   const { user } = useAuth();
-  const [categories, setCategories] = useState<FilterOption[]>(marketplaceCategories);
-  const [types, setTypes] = useState<FilterOption[]>(marketplaceTypes);
+  const [categories, setCategories] = useState<FilterOption[]>([]);
+  const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  console.log("BanknoteFilterMarketplace: Rendering with", { 
+    countryId, 
+    currentFilters,
+    isLoading, 
+    loading,
+    categories: categories.length,
+    types: types.length,
+    sortOptions: sortOptions.length
+  });
 
   useEffect(() => {
-    // If no countryId provided, use the marketplace categories and types directly
-    if (!countryId) {
-      setCategories(marketplaceCategories);
-      setTypes(marketplaceTypes);
+    const loadFilterOptionsAndPreferences = async () => {
+      if (!countryId) return;
       
-      // Set default sort options for marketplace
-      setSortOptions([
-        { id: "extPick", name: "Catalog Number", fieldName: "extPick", isRequired: true },
-        { id: "price", name: "Price (Low to High)", fieldName: "price" },
-        { id: "newest", name: "Newly Listed", fieldName: "newest" },
-        { id: "sultan", name: "Sultan", fieldName: "sultan" },
-        { id: "faceValue", name: "Face Value", fieldName: "faceValue" }
-      ]);
-      
-      setLoading(false);
-      return;
-    }
-    
-    // Otherwise load from the database for the specific country
-    const loadFilterOptions = async () => {
+      console.log("BanknoteFilterMarketplace: Loading filter options for country:", countryId);
       setLoading(true);
+      
       try {
         const [categoriesData, typesData, sortOptionsData] = await Promise.all([
           fetchCategoriesByCountryId(countryId),
@@ -59,71 +61,205 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
           fetchSortOptionsByCountryId(countryId)
         ]);
         
-        setCategories(categoriesData.map(cat => ({
+        const mappedCategories = categoriesData.map(cat => ({
           id: cat.id,
           name: cat.name,
-        })));
+        }));
         
-        setTypes(typesData.map(type => ({
+        const mappedTypes = typesData.map(type => ({
           id: type.id,
           name: type.name,
-        })));
+        }));
         
-        // Enhance sort options for marketplace
-        const marketplaceSorts = [
-          { id: "price", name: "Price (Low to High)", fieldName: "price" },
-          { id: "newest", name: "Newly Listed", fieldName: "newest" }
-        ];
+        // Make sure we have all the necessary sort options
+        let hasSultanOption = false;
+        let hasFaceValueOption = false;
+        let hasPickOption = false;
         
-        setSortOptions([
-          ...marketplaceSorts,
-          ...sortOptionsData.map(sort => ({
+        const mappedSortOptions = sortOptionsData.map(sort => {
+          if (sort.field_name === "sultan") hasSultanOption = true;
+          if (sort.field_name === "faceValue") hasFaceValueOption = true;
+          if (sort.field_name === "extPick") hasPickOption = true;
+          
+          return {
             id: sort.id,
             name: sort.name,
             fieldName: sort.field_name,
             isRequired: sort.is_required
-          }))
-        ]);
+          };
+        });
+        
+        // Add default sort options if they don't exist
+        if (!hasSultanOption) {
+          mappedSortOptions.push({
+            id: "sultan-default",
+            name: "Sultan",
+            fieldName: "sultan",
+            isRequired: false
+          });
+        }
+        
+        if (!hasFaceValueOption) {
+          mappedSortOptions.push({
+            id: "facevalue-default",
+            name: "Face Value",
+            fieldName: "faceValue",
+            isRequired: false
+          });
+        }
+        
+        if (!hasPickOption) {
+          mappedSortOptions.push({
+            id: "extpick-default",
+            name: "Catalog Number",
+            fieldName: "extPick",
+            isRequired: true
+          });
+        }
+        
+        setCategories(mappedCategories);
+        setTypes(mappedTypes);
+        setSortOptions(mappedSortOptions);
+        
+        let userPreferences = null;
+        if (user) {
+          try {
+            userPreferences = await fetchUserFilterPreferences(user.id, countryId);
+            console.log("BanknoteFilterMarketplace: User preferences loaded", userPreferences);
+          } catch (err) {
+            console.error("Error fetching user preferences:", err);
+          }
+        }
+        
+        // Always ensure extPick is included in the sort options for fallback sorting
+        const requiredSortFields = sortOptionsData
+          .filter(opt => opt.is_required)
+          .map(opt => opt.field_name || '');
+          
+        // Make sure extPick is always included as a fallback sort 
+        if (!requiredSortFields.includes('extPick')) {
+          requiredSortFields.push('extPick');
+        }
+          
+        if (userPreferences) {
+          const sortFieldNames = userPreferences.selected_sort_options
+            .map(sortId => {
+              const option = sortOptionsData.find(opt => opt.id === sortId);
+              return option ? option.field_name : null;
+            })
+            .filter(Boolean) as string[];
+          
+          // Ensure extPick is always included in the sort, after user choices
+          const finalSortFields = Array.from(
+            new Set([...sortFieldNames, ...requiredSortFields])
+          );
+          
+          onFilterChange({
+            categories: userPreferences.selected_categories,
+            types: userPreferences.selected_types,
+            sort: finalSortFields,
+            country_id: countryId
+          });
+        } else {
+          // Set default filters if no user preferences are found
+          const defaultCategoryIds = mappedCategories.map(cat => cat.id);
+          const defaultTypeIds = mappedTypes
+            .filter(type => type.name.toLowerCase().includes('issued'))
+            .map(t => t.id);
+            
+          // For new users, default to sorting by extPick only since it comes pre-sorted from the DB
+          const defaultSort = ['extPick']; // Remove faceValue from default sort
+          
+          onFilterChange({
+            categories: defaultCategoryIds,
+            types: defaultTypeIds,
+            sort: defaultSort,
+            country_id: countryId
+          });
+        }
       } catch (error) {
         console.error("Error loading filter options:", error);
-        
-        // Fallback to marketplace data
-        setCategories(marketplaceCategories);
-        setTypes(marketplaceTypes);
-        
-        // Set default sort options
-        setSortOptions([
-          { id: "extPick", name: "Catalog Number", fieldName: "extPick", isRequired: true },
-          { id: "price", name: "Price (Low to High)", fieldName: "price" },
-          { id: "newest", name: "Newly Listed", fieldName: "newest" },
-          { id: "sultan", name: "Sultan", fieldName: "sultan" },
-          { id: "faceValue", name: "Face Value", fieldName: "faceValue" }
-        ]);
+        toast({
+          title: "Error",
+          description: "Failed to load filter options.",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    loadFilterOptions();
-  }, [countryId, marketplaceCategories, marketplaceTypes]);
+    loadFilterOptionsAndPreferences();
+  }, [countryId, user, onFilterChange, toast]);
 
-  // Update categories and types when marketplaceCategories and marketplaceTypes change
-  useEffect(() => {
-    if (!countryId) {
-      setCategories(marketplaceCategories);
-      setTypes(marketplaceTypes);
+  const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
+    if (newFilters.sort) {
+      // Get only the required sort fields that must be included
+      const requiredSortFields = sortOptions
+        .filter(opt => opt.isRequired)
+        .map(opt => opt.fieldName || '')
+        .filter(Boolean);
+      
+      // Ensure extPick is always included as a fallback sort
+      if (!requiredSortFields.includes('extPick') && !newFilters.sort.includes('extPick')) {
+        newFilters.sort = [...newFilters.sort, 'extPick'];
+      }
+      
+      // Add other required sort fields if they're missing
+      requiredSortFields.forEach(fieldName => {
+        if (!newFilters.sort.includes(fieldName)) {
+          newFilters.sort.push(fieldName);
+        }
+      });
     }
-  }, [marketplaceCategories, marketplaceTypes, countryId]);
+    
+    // Add country_id to filters
+    const filtersWithCountryId = {
+      ...newFilters,
+      country_id: countryId
+    };
+
+    // Save user preferences automatically with each change
+    if (user?.id) {
+      console.log("BanknoteFilterMarketplace: Auto-saving filter preferences");
+      const sortOptionIds = filtersWithCountryId.sort
+        .map(fieldName => {
+          const option = sortOptions.find(opt => opt.fieldName === fieldName);
+          return option ? option.id : null;
+        })
+        .filter(Boolean) as string[];
+
+      saveUserFilterPreferences(
+        user.id,
+        countryId,
+        filtersWithCountryId.categories || [],
+        filtersWithCountryId.types || [],
+        sortOptionIds
+      ).catch(error => {
+        console.error("Error saving filter preferences:", error);
+      });
+    }
+    
+    onFilterChange(filtersWithCountryId);
+  };
 
   return (
-    <BaseBanknoteFilter
-      categories={categories}
-      types={types}
-      sortOptions={sortOptions}
-      onFilterChange={onFilterChange}
-      currentFilters={currentFilters}
-      isLoading={isLoading || loading}
-      className={className}
-    />
+    <div className={cn(
+      "w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-1.5",
+      "sticky top-16 inset-x-0",
+      className
+    )}>
+      <BaseBanknoteFilter
+        categories={categories}
+        types={types}
+        sortOptions={sortOptions}
+        onFilterChange={handleFilterChange}
+        currentFilters={currentFilters}
+        isLoading={isLoading || loading}
+        className={className}
+        viewMode={viewMode}
+        onViewModeChange={onViewModeChange}
+      />
+    </div>
   );
 };
