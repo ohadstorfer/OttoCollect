@@ -12,6 +12,7 @@ import {
 } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BanknoteFilterMarketplaceProps {
   onFilterChange: (filters: Partial<DynamicFilterState>) => void;
@@ -19,6 +20,7 @@ interface BanknoteFilterMarketplaceProps {
   isLoading?: boolean;
   className?: string;
   onViewModeChange?: (mode: 'grid' | 'list') => void;
+  viewMode?: 'grid' | 'list';
 }
 
 export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps> = ({
@@ -26,7 +28,8 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
   currentFilters,
   isLoading = false,
   className,
-  onViewModeChange
+  onViewModeChange,
+  viewMode = 'grid'
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -96,7 +99,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
         if (user) {
           try {
             // Note: You might want to adjust this to store marketplace-specific preferences
-            userPreferences = await fetchUserFilterPreferences(user.id);
+            userPreferences = await fetchUserFilterPreferences(user.id, 'marketplace');
           } catch (err) {
             console.error("Error fetching user preferences:", err);
           }
