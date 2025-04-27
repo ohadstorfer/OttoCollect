@@ -17,6 +17,8 @@ interface BanknoteFilterMarketplaceProps {
   className?: string;
   onViewModeChange?: (mode: 'grid' | 'list') => void;
   viewMode?: 'grid' | 'list';
+  availableCategories?: FilterOption[];
+  availableTypes?: FilterOption[];
 }
 
 export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps> = ({
@@ -25,7 +27,9 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
   isLoading = false,
   className,
   onViewModeChange,
-  viewMode = 'grid'
+  viewMode = 'grid',
+  availableCategories: externalCategories,
+  availableTypes: externalTypes,
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -63,33 +67,56 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
             sort: userPreferences.sort || ['extPick']
           });
         } else {
+          // Use marketplace categories and types directly instead of trying to filter by name
+          const defaultCategories = mappedCategories.map(cat => cat.id);
+          const defaultTypes = mappedTypes
+            .filter(type => type.name.toLowerCase().includes('issue'))
+            .map(t => t.id);
+          
+          console.log("Using default filters:", { 
+            categories: defaultCategories,
+            types: defaultTypes
+          });
+          
           // Set default filters if no user preferences are found
           onFilterChange({
-            categories: mappedCategories.map(cat => cat.id),
-            types: mappedTypes
-              .filter(type => type.name.toLowerCase().includes('issued'))
-              .map(t => t.id),
+            categories: defaultCategories,
+            types: defaultTypes,
             sort: ['extPick']
           });
         }
       }
     } catch (err) {
       console.error("Error handling user preferences:", err);
-      // Use defaults on error
+      // Use defaults on error - but with properly mapped IDs
+      const defaultCategories = mappedCategories.map(cat => cat.id);
+      const defaultTypes = mappedTypes
+        .filter(type => type.name.toLowerCase().includes('issue'))
+        .map(t => t.id);
+      
       onFilterChange({
-        categories: mappedCategories.map(cat => cat.id),
-        types: mappedTypes
-          .filter(type => type.name.toLowerCase().includes('issued'))
-          .map(t => t.id),
+        categories: defaultCategories,
+        types: defaultTypes,
         sort: ['extPick']
       });
     }
   }, [user, onFilterChange]);
 
+  // Handle external category/type updates
+  useEffect(() => {
+    if (externalCategories && externalCategories.length > 0) {
+      setCategories(externalCategories);
+    }
+    
+    if (externalTypes && externalTypes.length > 0) {
+      setTypes(externalTypes);
+    }
+  }, [externalCategories, externalTypes]);
+
   // Load filter options once on component mount
   useEffect(() => {
-    // Skip if already loaded
-    if (initialLoadComplete) {
+    // Skip if already loaded or if external categories/types are provided
+    if (initialLoadComplete || (externalCategories && externalTypes)) {
       return;
     }
     
@@ -168,7 +195,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     };
 
     loadFilterOptions();
-  }, [loadUserPreferences, toast, initialLoadComplete]);
+  }, [loadUserPreferences, toast, initialLoadComplete, externalCategories, externalTypes]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {

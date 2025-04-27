@@ -115,21 +115,37 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           (value as string).toLowerCase().includes(searchLower)
         );
 
-      // Category filter - make sure series exists before checking
-      const matchesCategory = noCategories || (
-        banknote.series && 
-        filters.categories?.some(category => 
+      // Category filter - initially show all items when filter is empty
+      let matchesCategory = noCategories;
+      
+      // If series exists and categories are selected, check match
+      if (!noCategories && banknote.series) {
+        // Create a normalized version of the series for comparison
+        const seriesId = banknote.series.toLowerCase().replace(/\s+/g, '-');
+        
+        // Try to match by direct ID first, then by series name (case-insensitive)
+        matchesCategory = filters.categories.some(category => 
+          category === seriesId || 
+          category.toLowerCase() === seriesId ||
           banknote.series?.toLowerCase() === category.toLowerCase()
-        )
-      );
+        );
+      }
 
       // Type filter - ensure we have valid types before comparison
       const normalizedItemType = normalizeType(banknote.type || "issued note");
-      const matchesType = noTypes || 
-        filters.types?.some(type => {
-          const normalizedFilterType = normalizeType(type);
-          return normalizedItemType === normalizedFilterType;
+      
+      // Initial assume no match if filter is applied
+      let matchesType = noTypes;
+      
+      // If filters exist, check for matches
+      if (!noTypes) {
+        // Try direct match first
+        matchesType = filters.types.some(type => {
+          // Try direct match by ID or normalized comparison
+          return type.toLowerCase() === normalizedItemType || 
+                 normalizeType(type) === normalizedItemType;
         });
+      }
 
       const result = matchesSearch && matchesCategory && matchesType;
       
@@ -293,14 +309,15 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       const banknote = getBanknote(item);
       // Make sure banknote and series exist before using them
       if (banknote?.series) {
-        if (!categories.has(banknote.series)) {
-          categories.set(banknote.series, { 
+        const id = banknote.series.toLowerCase().replace(/\s+/g, '-');
+        if (!categories.has(id)) {
+          categories.set(id, { 
             name: banknote.series, 
             count: 1 
           });
         } else {
-          const current = categories.get(banknote.series)!;
-          categories.set(banknote.series, { 
+          const current = categories.get(id)!;
+          categories.set(id, { 
             ...current, 
             count: current.count + 1 
           });
@@ -339,7 +356,8 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     
     // Initialize with default types even if count is 0
     defaultTypes.forEach(type => {
-      types.set(normalizeType(type), {
+      const normalizedType = normalizeType(type);
+      types.set(normalizedType, {
         name: type,
         count: 0
       });
@@ -357,14 +375,15 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
         const normalizedType = normalizeType(typeToUse);
         
         if (normalizedType) {
-          if (!types.has(normalizedType)) {
-            types.set(normalizedType, { 
+          const typeId = normalizedType.toLowerCase().replace(/\s+/g, '-');
+          if (!types.has(typeId)) {
+            types.set(typeId, { 
               name: typeToUse, 
               count: 1 
             });
           } else {
-            const current = types.get(normalizedType)!;
-            types.set(normalizedType, { 
+            const current = types.get(typeId)!;
+            types.set(typeId, { 
               ...current, 
               count: current.count + 1 
             });
@@ -374,7 +393,9 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     });
 
     const result = Array.from(types.entries())
-      .map(([id, { name, count }]) => ({ id, name, count }));
+      .map(([id, { name, count }]) => ({ id, name, count }))
+      .filter(type => type.count > 0 || defaultTypes.some(dt => 
+        normalizeType(dt) === id));
     
     console.log(`Found ${result.length} available types`);
     result.forEach(type => {
@@ -400,7 +421,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     if (newFilters.categories !== undefined) {
       if (!filters.categories || 
           newFilters.categories.length !== filters.categories.length ||
-          !newFilters.categories.every(c => filters.categories.includes(c))) {
+          !newFilters.categories.every(c => filters.categories?.includes(c))) {
         hasChanged = true;
       }
     }
@@ -408,7 +429,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     if (newFilters.types !== undefined) {
       if (!filters.types || 
           newFilters.types.length !== filters.types.length ||
-          !newFilters.types.every(t => filters.types.includes(t))) {
+          !newFilters.types.every(t => filters.types?.includes(t))) {
         hasChanged = true;
       }
     }
@@ -416,7 +437,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     if (newFilters.sort !== undefined) {
       if (!filters.sort || 
           newFilters.sort.length !== filters.sort.length ||
-          !newFilters.sort.every(s => filters.sort.includes(s))) {
+          !newFilters.sort.every(s => filters.sort?.includes(s))) {
         hasChanged = true;
       }
     }

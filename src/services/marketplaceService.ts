@@ -1,6 +1,28 @@
+
+// This fixes the conversion from the Supabase seller format to the User type in MarketplaceItem
 import { supabase } from "@/integrations/supabase/client";
-import { MarketplaceItem, UserRank } from "@/types";
+import { MarketplaceItem, UserRank, User } from "@/types";
 import { fetchCollectionItem } from "./collectionService";
+
+// Add user type adaptations to fix typescript errors
+const adaptSellerToUserType = (seller: { 
+  id: string; 
+  username: string; 
+  rank: string; 
+  avatar_url: string | null; 
+}): User => {
+  return {
+    id: seller.id,
+    username: seller.username,
+    email: "", // Required by User type but not used in UI context
+    avatarUrl: seller.avatar_url || undefined,
+    role_id: "", // Required by User type but not used in UI context 
+    role: "User", // Default role
+    rank: seller.rank as UserRank,
+    points: 0, // Default points
+    createdAt: new Date().toISOString(), // Default creation date
+  };
+};
 
 export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
   try {
@@ -56,12 +78,15 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           }
           
           // Fallback seller data if we can't find the profile
-          const seller = sellerData || {
+          const sellerInfo = sellerData || {
             id: item.seller_id,
             username: "Unknown User",
             rank: "Newbie" as UserRank,
             avatar_url: null
           };
+          
+          // Convert seller data to User type
+          const seller = adaptSellerToUserType(sellerInfo);
           
           console.log(`Successfully processed marketplace item ${item.id}`);
           
@@ -278,12 +303,15 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
     }
     
     // Fallback seller data if we can't find the profile
-    const seller = sellerData || {
+    const sellerInfo = sellerData || {
       id: data.seller_id,
       username: "Unknown User",
       rank: "Newbie" as UserRank,
       avatar_url: null
     };
+    
+    // Convert seller data to User type
+    const seller = adaptSellerToUserType(sellerInfo);
     
     console.log(`Successfully fetched and processed marketplace item ${id}`);
     
@@ -340,12 +368,15 @@ export async function getMarketplaceItemForCollectionItem(
       console.log(`Error fetching seller data: ${sellerError.message}`);
     }
     
-    const seller = sellerData || {
+    const sellerInfo = sellerData || {
       id: data.seller_id,
       username: "Unknown User",
       rank: "Newbie" as UserRank,
       avatar_url: null
     };
+    
+    // Convert seller data to User type
+    const seller = adaptSellerToUserType(sellerInfo);
     
     return {
       id: data.id,

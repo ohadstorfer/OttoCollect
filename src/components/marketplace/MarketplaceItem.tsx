@@ -44,7 +44,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
     }
   };
   
-  const sellerRank = (item.seller?.rank || "Newbie") as UserRank;
+  const sellerRank = (seller?.rank || "Newbie") as UserRank;
   
   const displayImage = collectionItem.obverseImage || 
     (collectionItem.personalImages && collectionItem.personalImages.length > 0 
@@ -120,7 +120,6 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
       
       <CardFooter className="p-4 pt-2 flex justify-between">
         <Button 
-          // variant="ghost" 
           size="sm"
           className="text-ottoman-300 text-ottoman-100 bg-ottoman-700/50 hover:bg-ottoman-800/50"
           onClick={handleViewDetails}
@@ -129,8 +128,6 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           Details
         </Button>
 
-        
-        
         <ContactSellerButton item={item} />
       </CardFooter>
     </Card>

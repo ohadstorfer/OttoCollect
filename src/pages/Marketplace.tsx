@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { useTheme } from "@/context/ThemeContext";
 import { BanknoteFilterMarketplace } from "@/components/filter/BanknoteFilterMarketplace";
 import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
+import { FilterOption } from "@/components/filter/BaseBanknoteFilter";
 
 const SULTAN_DISPLAY_ORDER: Record<string, number> = {
   AbdulMecid: 1,
@@ -35,6 +36,8 @@ const Marketplace = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState<FilterOption[]>([]);
+  const [availableTypes, setAvailableTypes] = useState<FilterOption[]>([]);
 
   const loadMarketplaceItems = useCallback(async (showToast = false) => {
     console.log('Starting loadMarketplaceItems function');
@@ -63,6 +66,30 @@ const Marketplace = () => {
           });
         }
       }
+      
+      // Extract available categories and types from fetched items
+      const categoryMap = new Map<string, FilterOption>();
+      const typeMap = new Map<string, FilterOption>();
+      
+      items.forEach(item => {
+        const { series, type } = item.collectionItem?.banknote || {};
+        
+        // Process category (series)
+        if (series) {
+          const id = series.toLowerCase().replace(/\s+/g, '-');
+          categoryMap.set(id, { id, name: series });
+        }
+        
+        // Process type
+        if (type) {
+          const id = type.toLowerCase().replace(/\s+/g, '-');
+          typeMap.set(id, { id, name: type });
+        }
+      });
+      
+      // Update available filters
+      setAvailableCategories(Array.from(categoryMap.values()));
+      setAvailableTypes(Array.from(typeMap.values()));
       
       console.log('Setting marketplace items in state');
       setMarketplaceItems(items);
@@ -100,8 +127,6 @@ const Marketplace = () => {
     filteredItems, 
     filters, 
     setFilters,
-    availableCategories,
-    availableTypes,
     groupedItems
   } = useBanknoteFilter({
     items: marketplaceItemsForFilter,
@@ -109,6 +134,16 @@ const Marketplace = () => {
       sort: ["extPick"]
     }
   });
+
+  // Log the current state to debug items filtering
+  useEffect(() => {
+    console.log("Current marketplace state:", {
+      itemsCount: marketplaceItems.length,
+      filteredItemsCount: filteredItems.length,
+      currentFilters: filters,
+      groupedItemsCount: groupedItems.length
+    });
+  }, [marketplaceItems, filteredItems, filters, groupedItems]);
 
   const handleRefresh = () => {
     console.log('Manual refresh triggered');
@@ -162,19 +197,21 @@ const Marketplace = () => {
             onFilterChange={handleFilterChange}
             currentFilters={filters}
             isLoading={loading}
+            availableCategories={availableCategories}
+            availableTypes={availableTypes}
           />
         </div>
       </Card>
     );
-  }, [theme, user, handleRefresh, isRefreshing, handleFilterChange, filters, loading]);
+  }, [theme, user, handleRefresh, isRefreshing, handleFilterChange, filters, loading, availableCategories, availableTypes]);
 
   const resultsSection = useMemo(() => {
     return (
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-        <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
-          Showing <span className={`font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{filteredItems.length}</span> items for sale
-        </p>
-      </div>
+      <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
+        Showing <span className={`font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
+          {filteredItems.length}
+        </span> items for sale
+      </p>
     );
   }, [theme, filteredItems.length]);
 
@@ -216,7 +253,9 @@ const Marketplace = () => {
           No Items Found
         </h3>
         <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
-          { "There are currently no items available in the marketplace"}
+          {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search) 
+            ? "No items match your current filters. Try adjusting your criteria."
+            : "There are currently no items available in the marketplace"}
         </p>
         <div className="space-x-4">
           <Button 
@@ -226,12 +265,24 @@ const Marketplace = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
+          {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search) && (
+            <Button 
+              variant="outline" 
+              onClick={() => setFilters({ categories: [], types: [], search: "", sort: ["extPick"] })}
+            >
+              Clear Filters
+            </Button>
+          )}
         </div>
       </Card>
     );
-  }, [handleRefresh]);
+  }, [handleRefresh, filters, setFilters]);
 
   const marketplaceItemsSection = useMemo(() => {
+    if (!filteredItems || filteredItems.length === 0) {
+      return null;
+    }
+
     return (
       <div className="space-y-8">
         {groupedItems.map((group, groupIndex) => (
@@ -289,19 +340,19 @@ const Marketplace = () => {
         ))}
       </div>
     );
-  }, [groupedItems, theme]);
+  }, [groupedItems, theme, filteredItems]);
 
   const contentSection = useMemo(() => {
     if (loading) {
       return loadingSection;
     } else if (error) {
       return errorSection;
-    } else if (filteredItems.length === 0) {
+    } else if (!filteredItems || filteredItems.length === 0) {
       return emptySection;
     } else {
       return marketplaceItemsSection;
     }
-  }, [loading, error, filteredItems.length, loadingSection, errorSection, emptySection, marketplaceItemsSection]);
+  }, [loading, error, filteredItems, loadingSection, errorSection, emptySection, marketplaceItemsSection]);
 
   return (
     <div className="min-h-screen animate-fade-in">
