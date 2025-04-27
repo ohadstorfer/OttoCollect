@@ -1,12 +1,8 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
-import { 
-  saveUserFilterPreferences, 
-  fetchUserFilterPreferences 
-} from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,8 +33,66 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
   const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  
+  // Use a memoized function to load user preferences to avoid re-renders
+  const loadUserPreferences = useCallback(async (
+    mappedCategories: FilterOption[], 
+    mappedTypes: FilterOption[]
+  ) => {
+    try {
+      if (user) {
+        // Get user preferences from localStorage to avoid UUID issues
+        const savedPreferencesStr = localStorage.getItem(`${MARKETPLACE_PREFERENCES_KEY}-${user.id}`);
+        let userPreferences = null;
+        
+        if (savedPreferencesStr) {
+          try {
+            userPreferences = JSON.parse(savedPreferencesStr);
+            console.log("Loaded marketplace preferences from localStorage:", userPreferences);
+          } catch (err) {
+            console.error("Error parsing saved preferences:", err);
+          }
+        }
+        
+        if (userPreferences) {
+          onFilterChange({
+            search: userPreferences.search || "",
+            categories: userPreferences.categories || [],
+            types: userPreferences.types || [],
+            sort: userPreferences.sort || ['extPick']
+          });
+        } else {
+          // Set default filters if no user preferences are found
+          onFilterChange({
+            categories: mappedCategories.map(cat => cat.id),
+            types: mappedTypes
+              .filter(type => type.name.toLowerCase().includes('issued'))
+              .map(t => t.id),
+            sort: ['extPick']
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Error handling user preferences:", err);
+      // Use defaults on error
+      onFilterChange({
+        categories: mappedCategories.map(cat => cat.id),
+        types: mappedTypes
+          .filter(type => type.name.toLowerCase().includes('issued'))
+          .map(t => t.id),
+        sort: ['extPick']
+      });
+    }
+  }, [user, onFilterChange]);
 
+  // Load filter options once on component mount
   useEffect(() => {
+    // Skip if already loaded
+    if (initialLoadComplete) {
+      return;
+    }
+    
     const loadFilterOptions = async () => {
       setLoading(true);
       
@@ -95,51 +149,12 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
         setTypes(mappedTypes);
         setSortOptions(sortOptions);
         
-        // Load user preferences from localStorage instead of database for marketplace
-        if (user) {
-          try {
-            // Get user preferences from localStorage to avoid UUID issues
-            const savedPreferencesStr = localStorage.getItem(`${MARKETPLACE_PREFERENCES_KEY}-${user.id}`);
-            let userPreferences = null;
-            
-            if (savedPreferencesStr) {
-              try {
-                userPreferences = JSON.parse(savedPreferencesStr);
-                console.log("Loaded marketplace preferences from localStorage:", userPreferences);
-              } catch (err) {
-                console.error("Error parsing saved preferences:", err);
-              }
-            }
-            
-            if (userPreferences) {
-              onFilterChange({
-                search: userPreferences.search || "",
-                categories: userPreferences.categories || [],
-                types: userPreferences.types || [],
-                sort: userPreferences.sort || ['extPick']
-              });
-            } else {
-              // Set default filters if no user preferences are found
-              onFilterChange({
-                categories: mappedCategories.map(cat => cat.id),
-                types: mappedTypes
-                  .filter(type => type.name.toLowerCase().includes('issued'))
-                  .map(t => t.id),
-                sort: ['extPick']
-              });
-            }
-          } catch (err) {
-            console.error("Error handling user preferences:", err);
-            // Use defaults on error
-            onFilterChange({
-              categories: mappedCategories.map(cat => cat.id),
-              types: mappedTypes
-                .filter(type => type.name.toLowerCase().includes('issued'))
-                .map(t => t.id),
-              sort: ['extPick']
-            });
-          }
-        }
+        // Load user preferences
+        await loadUserPreferences(mappedCategories, mappedTypes);
+        
+        // Mark initial load as complete
+        setInitialLoadComplete(true);
+        
       } catch (error) {
         console.error("Error loading filter options:", error);
         toast({
@@ -153,9 +168,9 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     };
 
     loadFilterOptions();
-  }, [user, onFilterChange, toast]);
+  }, [loadUserPreferences, toast, initialLoadComplete]);
 
-  const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
+  const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
       // Ensure extPick is always included
       if (!newFilters.sort.includes('extPick')) {
@@ -178,7 +193,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     }
     
     onFilterChange(newFilters);
-  };
+  }, [onFilterChange, currentFilters, user]);
 
   return (
     <div className={cn(
@@ -193,7 +208,6 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
         onFilterChange={handleFilterChange}
         currentFilters={currentFilters}
         isLoading={isLoading || loading}
-        className={className}
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
       />

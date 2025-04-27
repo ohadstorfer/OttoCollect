@@ -1,6 +1,5 @@
 
-import React from 'react';
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
 import { SortAsc, AlertCircle, RefreshCw } from "lucide-react";
@@ -37,7 +36,7 @@ const Marketplace = () => {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const loadMarketplaceItems = async (showToast = false) => {
+  const loadMarketplaceItems = useCallback(async (showToast = false) => {
     console.log('Starting loadMarketplaceItems function');
     setLoading(true);
     setError(null);
@@ -81,19 +80,21 @@ const Marketplace = () => {
       setLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [toast, user?.role]);
   
   useEffect(() => {
     console.log('Initial useEffect for loadMarketplaceItems running');
     loadMarketplaceItems();
-  }, [toast]);
+  }, [loadMarketplaceItems]);
   
   // Transform marketplace items to have the banknote property at the top level
   // This allows useBanknoteFilter to work correctly
-  const marketplaceItemsForFilter = marketplaceItems.map(item => ({
-    ...item,
-    banknote: item.collectionItem?.banknote
-  }));
+  const marketplaceItemsForFilter = useMemo(() => {
+    return marketplaceItems.map(item => ({
+      ...item,
+      banknote: item.collectionItem?.banknote
+    }));
+  }, [marketplaceItems]);
 
   const { 
     filteredItems, 
@@ -108,29 +109,6 @@ const Marketplace = () => {
       sort: ["extPick"]
     }
   });
-  
-  useEffect(() => {
-    if (marketplaceItems.length > 0 && availableCategories.length > 0) {
-      const allCategories = availableCategories.map(c => c.id);
-      const allTypes = availableTypes
-        .filter(type => type.name.toLowerCase().includes('issued'))
-        .map(t => t.id);
-      
-      setFilters({
-        ...filters,
-        categories: allCategories,
-        types: allTypes
-      });
-    }
-  }, [marketplaceItems, availableCategories.length, availableTypes]);
-
-  console.log("useBanknoteFilter results for marketplace:", {
-    filteredItems: filteredItems.length,
-    filters,
-    availableCategories: availableCategories.length,
-    availableTypes: availableTypes.length,
-    groupedItems: groupedItems.length
-  });
 
   const handleRefresh = () => {
     console.log('Manual refresh triggered');
@@ -138,12 +116,13 @@ const Marketplace = () => {
     loadMarketplaceItems(true);
   };
 
-  const handleFilterChange = (newFilters: any) => {
+  const handleFilterChange = useCallback((newFilters: any) => {
     console.log("Filter changed in Marketplace:", newFilters);
     setFilters(newFilters);
-  };
+  }, [setFilters]);
 
-  const renderFilterSection = () => {
+  // Memoize components to avoid unnecessary re-renders
+  const filterSection = useMemo(() => {
     return (
       <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'} sticky top-[64px] z-50`}>
         <div className="p-4">
@@ -187,9 +166,9 @@ const Marketplace = () => {
         </div>
       </Card>
     );
-  };
+  }, [theme, user, handleRefresh, isRefreshing, handleFilterChange, filters, loading]);
 
-  const renderResults = () => {
+  const resultsSection = useMemo(() => {
     return (
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
@@ -197,18 +176,20 @@ const Marketplace = () => {
         </p>
       </div>
     );
-  };
+  }, [theme, filteredItems.length]);
 
-  const renderLoadingState = () => {
+  const loadingSection = useMemo(() => {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
         <Spinner size="lg" />
         <p className="dark:text-ottoman-300 text-ottoman-600">Loading marketplace items...</p>
       </div>
     );
-  };
+  }, []);
 
-  const renderErrorState = () => {
+  const errorSection = useMemo(() => {
+    if (!error) return null;
+    
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
@@ -226,9 +207,9 @@ const Marketplace = () => {
         </AlertDescription>
       </Alert>
     );
-  };
+  }, [error, handleRefresh]);
 
-  const renderEmptyState = () => {
+  const emptySection = useMemo(() => {
     return (
       <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
         <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
@@ -248,9 +229,9 @@ const Marketplace = () => {
         </div>
       </Card>
     );
-  };
+  }, [handleRefresh]);
 
-  const renderMarketplaceItems = () => {
+  const marketplaceItemsSection = useMemo(() => {
     return (
       <div className="space-y-8">
         {groupedItems.map((group, groupIndex) => (
@@ -308,19 +289,19 @@ const Marketplace = () => {
         ))}
       </div>
     );
-  };
+  }, [groupedItems, theme]);
 
-  const renderContentBasedOnState = () => {
+  const contentSection = useMemo(() => {
     if (loading) {
-      return renderLoadingState();
+      return loadingSection;
     } else if (error) {
-      return renderErrorState();
+      return errorSection;
     } else if (filteredItems.length === 0) {
-      return renderEmptyState();
+      return emptySection;
     } else {
-      return renderMarketplaceItems();
+      return marketplaceItemsSection;
     }
-  };
+  }, [loading, error, filteredItems.length, loadingSection, errorSection, emptySection, marketplaceItemsSection]);
 
   return (
     <div className="min-h-screen animate-fade-in">
@@ -347,13 +328,13 @@ const Marketplace = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
             <div className="flex-1">
-              {renderFilterSection()}
+              {filterSection}
             </div>
             <div className="flex items-center gap-3">
-              {renderResults()}
+              {resultsSection}
             </div>
           </div>
-          {renderContentBasedOnState()}
+          {contentSection}
         </div>
       </section>
     </div>

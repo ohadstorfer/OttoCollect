@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Banknote, BanknoteFilterState } from "@/types";
 
 interface UseBanknoteFilterProps<T> {
@@ -16,7 +16,7 @@ interface GroupItem<T> {
 interface UseBanknoteFilterResult<T> {
   filteredItems: T[];
   filters: BanknoteFilterState;
-  setFilters: (filters: BanknoteFilterState) => void;
+  setFilters: (filters: Partial<BanknoteFilterState>) => void;
   availableCategories: { id: string; name: string; count: number }[];
   availableTypes: { id: string; name: string; count: number }[];
   groupedItems: GroupItem<T>[];
@@ -27,7 +27,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
   initialFilters = {},
 }: UseBanknoteFilterProps<T>): UseBanknoteFilterResult<T> => {
   console.log("### useBanknoteFilter INITIALIZED ###");
-  console.log(`Input items count: ${items.length}`);
+  console.log(`Input items count: ${items?.length || 0}`);
   console.log("Initial filters:", initialFilters);
 
   const [filters, setFilters] = useState<BanknoteFilterState>({
@@ -44,16 +44,18 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     selectedSort: filters.sort,
   });
 
-  // Extract banknote from item
-  const getBanknote = (item: T): Banknote | undefined => {
+  // Extract banknote from item safely
+  const getBanknote = useCallback((item: T | undefined | null): Banknote | undefined => {
+    if (!item) return undefined;
+    
     if ((item as any).banknote) {
       return (item as any).banknote;
     }
     return item as Banknote;
-  };
+  }, []);
 
   // Normalize types for consistent comparison
-  const normalizeType = (type: string | undefined): string => {
+  const normalizeType = useCallback((type: string | undefined): string => {
     if (!type) return "";
     
     // Convert to lowercase for case-insensitive comparison
@@ -71,11 +73,15 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     
     // Default case - return the original type if no match
     return lowerType;
-  };
+  }, []);
 
   // Filter items based on criteria
   const filteredItems = useMemo(() => {
     console.log("### FILTERING ITEMS ###");
+    
+    // Ensure items array exists
+    const validItems = items || [];
+    
     console.log("Current filters:", {
       search: filters.search,
       categories: filters.categories,
@@ -90,10 +96,10 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     // If both categories and types are empty, return all items
     if (noCategories && noTypes && !filters.search) {
       console.log("No filters selected, returning all items");
-      return items;
+      return validItems;
     }
     
-    const filtered = items.filter((item) => {
+    const filtered = validItems.filter((item) => {
       const banknote = getBanknote(item);
       if (!banknote) {
         return false;
@@ -134,7 +140,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       return result;
     });
     
-    console.log(`Filtering complete: ${filtered.length} items matched out of ${items.length}`);
+    console.log(`Filtering complete: ${filtered.length} items matched out of ${validItems.length}`);
     
     // Sort the filtered items
     const sorted = [...filtered].sort((a, b) => {
@@ -197,7 +203,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     
     console.log(`Sorting complete: ${sorted.length} items`);
     return sorted;
-  }, [items, filters]);
+  }, [items, filters, getBanknote, normalizeType]);
 
   // Group items by category and optionally by sultan within category
   const groupedItems = useMemo(() => {
@@ -206,6 +212,11 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     console.log(`Grouping by sultan: ${sortBySultan}`);
     
     const groups: GroupItem<T>[] = [];
+    
+    // Ensure we have items to group
+    if (!filteredItems || filteredItems.length === 0) {
+      return groups;
+    }
     
     // Group filtered items by category
     const categoryMap = new Map<string, T[]>();
@@ -268,14 +279,17 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     
     console.log(`Grouping complete: ${groups.length} groups created`);
     return groups;
-  }, [filteredItems, filters.sort]);
+  }, [filteredItems, filters.sort, getBanknote]);
 
   // Calculate available categories and their counts
   const availableCategories = useMemo(() => {
     console.log("### CALCULATING AVAILABLE CATEGORIES ###");
     const categories = new Map<string, { name: string; count: number }>();
     
-    items.forEach(item => {
+    // Ensure items array exists
+    const validItems = items || [];
+    
+    validItems.forEach(item => {
       const banknote = getBanknote(item);
       // Make sure banknote and series exist before using them
       if (banknote?.series) {
@@ -303,7 +317,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     });
     
     return result;
-  }, [items]);
+  }, [items, getBanknote]);
 
   // Calculate available types and their counts
   const availableTypes = useMemo(() => {
@@ -331,8 +345,11 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       });
     });
     
+    // Ensure items array exists
+    const validItems = items || [];
+    
     // Count the actual types in items
-    items.forEach(item => {
+    validItems.forEach(item => {
       const banknote = getBanknote(item);
       if (banknote) {
         // If type is not specified, assume it's an "Issued note"
@@ -365,15 +382,54 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     });
     
     return result;
-  }, [items]);
+  }, [items, getBanknote, normalizeType]);
 
-  // Handle filter changes
-  const handleFilterChange = (newFilters: BanknoteFilterState) => {
+  // Handle filter changes - memoize to prevent unnecessary re-renders
+  const handleFilterChange = useCallback((newFilters: Partial<BanknoteFilterState>) => {
     console.log("### FILTER CHANGED ###");
     console.log("Old filters:", filters);
     console.log("New filters:", newFilters);
-    setFilters(newFilters);
-  };
+    
+    // Detect if there's a real change to avoid unnecessary state updates
+    let hasChanged = false;
+    
+    if (newFilters.search !== undefined && newFilters.search !== filters.search) {
+      hasChanged = true;
+    }
+    
+    if (newFilters.categories !== undefined) {
+      if (!filters.categories || 
+          newFilters.categories.length !== filters.categories.length ||
+          !newFilters.categories.every(c => filters.categories.includes(c))) {
+        hasChanged = true;
+      }
+    }
+    
+    if (newFilters.types !== undefined) {
+      if (!filters.types || 
+          newFilters.types.length !== filters.types.length ||
+          !newFilters.types.every(t => filters.types.includes(t))) {
+        hasChanged = true;
+      }
+    }
+    
+    if (newFilters.sort !== undefined) {
+      if (!filters.sort || 
+          newFilters.sort.length !== filters.sort.length ||
+          !newFilters.sort.every(s => filters.sort.includes(s))) {
+        hasChanged = true;
+      }
+    }
+    
+    if (hasChanged) {
+      setFilters(prevFilters => ({
+        ...prevFilters,
+        ...newFilters,
+      }));
+    } else {
+      console.log("No actual filter change detected, skipping update");
+    }
+  }, [filters]);
 
   return {
     filteredItems,
