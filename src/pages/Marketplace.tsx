@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { useTheme } from "@/context/ThemeContext";
-import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
+import { BanknoteFilterMarketplace } from "@/components/filter/BanknoteFilterMarketplace";
 import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
 
 const SULTAN_DISPLAY_ORDER: Record<string, number> = {
@@ -173,17 +173,10 @@ const Marketplace = () => {
           </div>
         </div>
 
-        {console.log("Rendering BanknoteFilter in Marketplace with props:", {
-          categoriesCount: availableCategories.length,
-          typesCount: availableTypes.length,
-          loading
-        })}
-        <BanknoteFilter
-          categories={availableCategories}
-          availableTypes={availableTypes}
+        <BanknoteFilterMarketplace
           onFilterChange={handleFilterChange}
+          currentFilters={filters}
           isLoading={loading}
-          defaultSort={["extPick"]}
         />
       </div>
     </Card>
