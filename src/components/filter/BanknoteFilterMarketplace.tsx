@@ -4,15 +4,15 @@ import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
 import { 
-  fetchCategoriesByCountryId, 
-  fetchTypesByCountryId, 
-  fetchSortOptionsByCountryId, 
   saveUserFilterPreferences, 
   fetchUserFilterPreferences 
 } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+
+// Create marketplace preferences key constant to avoid typos
+const MARKETPLACE_PREFERENCES_KEY = 'marketplace-filters';
 
 interface BanknoteFilterMarketplaceProps {
   onFilterChange: (filters: Partial<DynamicFilterState>) => void;
@@ -95,31 +95,50 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
         setTypes(mappedTypes);
         setSortOptions(sortOptions);
         
-        let userPreferences = null;
+        // Load user preferences from localStorage instead of database for marketplace
         if (user) {
           try {
-            // Note: You might want to adjust this to store marketplace-specific preferences
-            userPreferences = await fetchUserFilterPreferences(user.id, 'marketplace');
+            // Get user preferences from localStorage to avoid UUID issues
+            const savedPreferencesStr = localStorage.getItem(`${MARKETPLACE_PREFERENCES_KEY}-${user.id}`);
+            let userPreferences = null;
+            
+            if (savedPreferencesStr) {
+              try {
+                userPreferences = JSON.parse(savedPreferencesStr);
+                console.log("Loaded marketplace preferences from localStorage:", userPreferences);
+              } catch (err) {
+                console.error("Error parsing saved preferences:", err);
+              }
+            }
+            
+            if (userPreferences) {
+              onFilterChange({
+                search: userPreferences.search || "",
+                categories: userPreferences.categories || [],
+                types: userPreferences.types || [],
+                sort: userPreferences.sort || ['extPick']
+              });
+            } else {
+              // Set default filters if no user preferences are found
+              onFilterChange({
+                categories: mappedCategories.map(cat => cat.id),
+                types: mappedTypes
+                  .filter(type => type.name.toLowerCase().includes('issued'))
+                  .map(t => t.id),
+                sort: ['extPick']
+              });
+            }
           } catch (err) {
-            console.error("Error fetching user preferences:", err);
+            console.error("Error handling user preferences:", err);
+            // Use defaults on error
+            onFilterChange({
+              categories: mappedCategories.map(cat => cat.id),
+              types: mappedTypes
+                .filter(type => type.name.toLowerCase().includes('issued'))
+                .map(t => t.id),
+              sort: ['extPick']
+            });
           }
-        }
-        
-        if (userPreferences) {
-          onFilterChange({
-            categories: userPreferences.selected_categories,
-            types: userPreferences.selected_types,
-            sort: ['extPick', 'country', 'faceValue']
-          });
-        } else {
-          // Set default filters if no user preferences are found
-          onFilterChange({
-            categories: mappedCategories.map(cat => cat.id),
-            types: mappedTypes
-              .filter(type => type.name.toLowerCase().includes('issued'))
-              .map(t => t.id),
-            sort: ['extPick']
-          });
         }
       } catch (error) {
         console.error("Error loading filter options:", error);
@@ -144,23 +163,18 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
       }
     }
     
-    // Save user preferences automatically with each change
+    // Save user preferences to localStorage instead of database
     if (user?.id) {
-      console.log("Auto-saving filter preferences");
-      const sortOptionIds = newFilters.sort?.map(fieldName => {
-        const option = sortOptions.find(opt => opt.fieldName === fieldName);
-        return option ? option.id : null;
-      }).filter(Boolean) as string[];
-
-      saveUserFilterPreferences(
-        user.id,
-        'marketplace', // Use a special identifier for marketplace preferences
-        newFilters.categories || [],
-        newFilters.types || [],
-        sortOptionIds
-      ).catch(error => {
-        console.error("Error saving filter preferences:", error);
-      });
+      console.log("Auto-saving marketplace filter preferences to localStorage");
+      localStorage.setItem(
+        `${MARKETPLACE_PREFERENCES_KEY}-${user.id}`, 
+        JSON.stringify({
+          search: newFilters.search || currentFilters.search,
+          categories: newFilters.categories || currentFilters.categories,
+          types: newFilters.types || currentFilters.types,
+          sort: newFilters.sort || currentFilters.sort
+        })
+      );
     }
     
     onFilterChange(newFilters);

@@ -84,8 +84,8 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     });
     
     // When no filters are selected, show all items
-    const noCategories = filters.categories.length === 0;
-    const noTypes = filters.types.length === 0;
+    const noCategories = !filters.categories || filters.categories.length === 0;
+    const noTypes = !filters.types || filters.types.length === 0;
     
     // If both categories and types are empty, return all items
     if (noCategories && noTypes && !filters.search) {
@@ -104,15 +104,15 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
 
       // Search filter
       const matchesSearch = !filters.search || Object.values(banknote)
+        .filter(value => value !== null && value !== undefined && typeof value === 'string')
         .some(value => 
-          typeof value === 'string' && 
-          value.toLowerCase().includes(searchLower)
+          (value as string).toLowerCase().includes(searchLower)
         );
 
       // Category filter - make sure series exists before checking
       const matchesCategory = noCategories || (
         banknote.series && 
-        filters.categories.some(category => 
+        filters.categories?.some(category => 
           banknote.series?.toLowerCase() === category.toLowerCase()
         )
       );
@@ -120,7 +120,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       // Type filter - ensure we have valid types before comparison
       const normalizedItemType = normalizeType(banknote.type || "issued note");
       const matchesType = noTypes || 
-        filters.types.some(type => {
+        filters.types?.some(type => {
           const normalizedFilterType = normalizeType(type);
           return normalizedItemType === normalizedFilterType;
         });
@@ -144,7 +144,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       if (!banknoteA || !banknoteB) return 0;
       
       // Apply sorting based on selected criteria
-      for (const sortOption of filters.sort) {
+      for (const sortOption of filters.sort || []) {
         let comparison = 0;
 
         switch (sortOption) {
@@ -202,7 +202,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
   // Group items by category and optionally by sultan within category
   const groupedItems = useMemo(() => {
     console.log("### GROUPING ITEMS ###");
-    const sortBySultan = filters.sort.includes("sultan");
+    const sortBySultan = filters.sort?.includes("sultan") || false;
     console.log(`Grouping by sultan: ${sortBySultan}`);
     
     const groups: GroupItem<T>[] = [];
