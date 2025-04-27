@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { fetchUserProfile } from "@/services/profileService";
+import { getUserProfile } from "@/services/profileService"; // Fixed function name
 import { fetchUserCollection } from "@/services/collectionService";
 import { CollectionItem, User } from "@/types";
 import { Spinner } from "@/components/ui/spinner";
@@ -8,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CollectionItemCard } from "@/components/collection/CollectionItemCard";
+import CollectionItemCard from "@/components/collection/CollectionItemCard"; // Fixed import
 import { BanknoteCondition } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -42,7 +43,7 @@ export const ProfileCollection: React.FC<ProfileCollectionProps> = ({ userId, us
         let userProfile: User | null = null;
         
         if (targetUserId) {
-          userProfile = await fetchUserProfile(targetUserId);
+          userProfile = await getUserProfile(targetUserId); // Fixed function call
         } else if (targetUsername) {
           // TODO: Implement fetchUserProfileByUsername if needed
           setError("Fetching by username not implemented yet");
@@ -106,7 +107,7 @@ export const ProfileCollection: React.FC<ProfileCollectionProps> = ({ userId, us
   }
   
   // Filter collection based on active tab
-  const filteredBanknotes = collection.filter(item => {
+  const filteredItems = collection.filter(item => {
     if (activeTab === "all") return true;
     if (activeTab === "forsale") return item.isForSale;
     
@@ -182,7 +183,7 @@ export const ProfileCollection: React.FC<ProfileCollectionProps> = ({ userId, us
             </div>
             
             <TabsContent value={activeTab} className="p-4">
-              {filteredBanknotes.length === 0 ? (
+              {filteredItems.length === 0 ? (
                 <div className="text-center py-8">
                   <p className={theme === 'light' ? "text-ottoman-700" : "text-ottoman-300"}>
                     No banknotes found in this category.
@@ -190,7 +191,7 @@ export const ProfileCollection: React.FC<ProfileCollectionProps> = ({ userId, us
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredBanknotes.map(item => (
+                  {filteredItems.map(item => (
                     <CollectionItemCard
                       key={item.id}
                       item={item}

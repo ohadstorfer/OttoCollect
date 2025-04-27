@@ -14,9 +14,9 @@ const adaptSellerToUserType = (seller: {
   return {
     id: seller.id,
     username: seller.username,
-    email: "", // Required by User type but not used in UI context
+    email: "", // Required by User type
     avatarUrl: seller.avatar_url || undefined,
-    role_id: "", // Required by User type but not used in UI context 
+    role_id: "", // Required by User type 
     role: "User", // Default role
     rank: seller.rank as UserRank,
     points: 0, // Default points

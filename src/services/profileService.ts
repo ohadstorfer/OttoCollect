@@ -24,6 +24,7 @@ export async function getUserProfile(userId: string): Promise<User | null> {
       username: data.username,
       email: data.email,
       role: data.role as UserRole,
+      role_id: data.role_id || "", // Add the missing role_id property
       rank: data.rank as UserRank,
       points: data.points,
       createdAt: data.created_at,

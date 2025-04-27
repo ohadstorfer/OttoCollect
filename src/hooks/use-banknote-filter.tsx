@@ -309,15 +309,15 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       const banknote = getBanknote(item);
       // Make sure banknote and series exist before using them
       if (banknote?.series) {
-        const id = banknote.series.toLowerCase().replace(/\s+/g, '-');
-        if (!categories.has(id)) {
-          categories.set(id, { 
+        const seriesId = banknote.series.toLowerCase().replace(/\s+/g, '-');
+        if (!categories.has(seriesId)) {
+          categories.set(seriesId, { 
             name: banknote.series, 
             count: 1 
           });
         } else {
-          const current = categories.get(id)!;
-          categories.set(id, { 
+          const current = categories.get(seriesId)!;
+          categories.set(seriesId, { 
             ...current, 
             count: current.count + 1 
           });
@@ -393,9 +393,9 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     });
 
     const result = Array.from(types.entries())
-      .map(([id, { name, count }]) => ({ id, name, count }))
+      .map(([typeId, { name, count }]) => ({ id: typeId, name, count }))
       .filter(type => type.count > 0 || defaultTypes.some(dt => 
-        normalizeType(dt) === id));
+        normalizeType(dt) === type.id));
     
     console.log(`Found ${result.length} available types`);
     result.forEach(type => {
