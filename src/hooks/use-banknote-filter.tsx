@@ -99,7 +99,8 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
         return false;
       }
       
-      const searchLower = filters.search.toLowerCase();
+      // Fix for the TypeError: ensure search term is defined before using toLowerCase()
+      const searchLower = (filters.search || "").toLowerCase();
 
       // Search filter
       const matchesSearch = !filters.search || Object.values(banknote)
@@ -108,20 +109,20 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           value.toLowerCase().includes(searchLower)
         );
 
-      // Category filter
-      const matchesCategory = noCategories || 
-        filters.categories.some(category => {
-          return banknote.series && 
-            banknote.series.toLowerCase() === category.toLowerCase();
-        });
+      // Category filter - make sure series exists before checking
+      const matchesCategory = noCategories || (
+        banknote.series && 
+        filters.categories.some(category => 
+          banknote.series?.toLowerCase() === category.toLowerCase()
+        )
+      );
 
-      // Type filter
+      // Type filter - ensure we have valid types before comparison
       const normalizedItemType = normalizeType(banknote.type || "issued note");
       const matchesType = noTypes || 
         filters.types.some(type => {
           const normalizedFilterType = normalizeType(type);
-          const isMatch = normalizedItemType === normalizedFilterType;
-          return isMatch;
+          return normalizedItemType === normalizedFilterType;
         });
 
       const result = matchesSearch && matchesCategory && matchesType;
@@ -148,8 +149,8 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
 
         switch (sortOption) {
           case "sultan":
-            comparison = (banknoteA.sultanName || "")
-              .localeCompare(banknoteB.sultanName || "");
+            comparison = ((banknoteA.sultanName || "")
+              .localeCompare(banknoteB.sultanName || ""));
             break;
 
           case "faceValue":
@@ -170,8 +171,8 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
             break;
 
           case "extPick":
-            comparison = (banknoteA.extendedPickNumber || banknoteA.catalogId || "")
-              .localeCompare(banknoteB.extendedPickNumber || banknoteB.catalogId || "");
+            comparison = ((banknoteA.extendedPickNumber || banknoteA.catalogId || "")
+              .localeCompare(banknoteB.extendedPickNumber || banknoteB.catalogId || ""));
             break;
           case "newest":
             if (a && b && 'createdAt' in a && 'createdAt' in b) {
@@ -179,6 +180,12 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
               const dateB = new Date((b.createdAt as string) || "").getTime();
               comparison = dateB - dateA;
             }
+            break;
+          case "country":
+            // Add country sorting
+            const countryA = banknoteA.country || "";
+            const countryB = banknoteB.country || "";
+            comparison = countryA.localeCompare(countryB);
             break;
         }
 
@@ -204,6 +211,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     const categoryMap = new Map<string, T[]>();
     filteredItems.forEach(item => {
       const banknote = getBanknote(item);
+      // Make sure banknote and series exist before using them
       if (!banknote || !banknote.series) return;
       
       const category = banknote.series;
@@ -269,6 +277,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     
     items.forEach(item => {
       const banknote = getBanknote(item);
+      // Make sure banknote and series exist before using them
       if (banknote?.series) {
         if (!categories.has(banknote.series)) {
           categories.set(banknote.series, { 

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -138,102 +139,112 @@ const Marketplace = () => {
     setFilters(newFilters);
   };
 
-  const renderFilterSection = () => (
-    <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'} sticky top-[64px] z-50`}>
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-            Filters & Sorting
-          </h3>
-          
-          <div className="flex items-center gap-3">
-            {user && (
-              <Link to="/collection?filter=forsale">
-                <Button className="ottoman-button">
-                  <SortAsc className="h-4 w-4 mr-2" />
-                  My Listings
-                </Button>
-              </Link>
-            )}
+  const renderFilterSection = () => {
+    return (
+      <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'} sticky top-[64px] z-50`}>
+        <div className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
+              Filters & Sorting
+            </h3>
             
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
-            >
-              {isRefreshing ? (
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
+            <div className="flex items-center gap-3">
+              {user && (
+                <Link to="/collection?filter=forsale">
+                  <Button className="ottoman-button">
+                    <SortAsc className="h-4 w-4 mr-2" />
+                    My Listings
+                  </Button>
+                </Link>
               )}
-              Refresh
-            </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
+              >
+                {isRefreshing ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                Refresh
+              </Button>
+            </div>
           </div>
+
+          <BanknoteFilterMarketplace
+            onFilterChange={handleFilterChange}
+            currentFilters={filters}
+            isLoading={loading}
+          />
         </div>
+      </Card>
+    );
+  };
 
-        <BanknoteFilterMarketplace
-          onFilterChange={handleFilterChange}
-          currentFilters={filters}
-          isLoading={loading}
-        />
+  const renderResults = () => {
+    return (
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
+          Showing <span className={`font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{filteredItems.length}</span> items for sale
+        </p>
       </div>
-    </Card>
-  );
+    );
+  };
 
-  const renderResults = () => (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-      <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
-        Showing <span className={`font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{filteredItems.length}</span> items for sale
-      </p>
-    </div>
-  );
-
-  const renderLoadingState = () => (
-    <div className="flex flex-col items-center justify-center py-20 space-y-4">
-      <Spinner size="lg" />
-      <p className="dark:text-ottoman-300 text-ottoman-600">Loading marketplace items...</p>
-    </div>
-  );
-
-  const renderErrorState = () => (
-    <Alert variant="destructive" className="mb-6">
-      <AlertCircle className="h-4 w-4" />
-      <AlertTitle>Error</AlertTitle>
-      <AlertDescription>
-        {error}
-        <Button 
-          variant="outline" 
-          className="mt-4 dark:border-ottoman-700 border-ottoman-300 dark:text-ottoman-200 text-ottoman-800"
-          onClick={handleRefresh}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Try Again
-        </Button>
-      </AlertDescription>
-    </Alert>
-  );
-
-  const renderEmptyState = () => (
-    <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
-      <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
-        No Items Found
-      </h3>
-      <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
-        { "There are currently no items available in the marketplace"}
-      </p>
-      <div className="space-x-4">
-        <Button 
-          className="ottoman-button"
-          onClick={handleRefresh}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+  const renderLoadingState = () => {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <Spinner size="lg" />
+        <p className="dark:text-ottoman-300 text-ottoman-600">Loading marketplace items...</p>
       </div>
-    </Card>
-  );
+    );
+  };
+
+  const renderErrorState = () => {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          {error}
+          <Button 
+            variant="outline" 
+            className="mt-4 dark:border-ottoman-700 border-ottoman-300 dark:text-ottoman-200 text-ottoman-800"
+            onClick={handleRefresh}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try Again
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  };
+
+  const renderEmptyState = () => {
+    return (
+      <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
+        <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
+          No Items Found
+        </h3>
+        <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
+          { "There are currently no items available in the marketplace"}
+        </p>
+        <div className="space-x-4">
+          <Button 
+            className="ottoman-button"
+            onClick={handleRefresh}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </Card>
+    );
+  };
 
   const renderMarketplaceItems = () => {
     return (
@@ -306,12 +317,13 @@ const Marketplace = () => {
     );
   };
 
-  const renderContentBasedOnState = (): React.ReactNode => {
+  const renderContentBasedOnState = () => {
     console.log("Rendering marketplace content based on loading and filtered items:", {
       loading,
       error,
       filteredCount: filteredItems.length
     });
+    
     if (loading) {
       return renderLoadingState();
     } else if (error) {
