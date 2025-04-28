@@ -268,7 +268,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     )}>
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="flex gap-2 flex-1">
-          <div className="relative flex-1">
+          <div className="relative w-full sm:w-[300px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search banknotes..."
