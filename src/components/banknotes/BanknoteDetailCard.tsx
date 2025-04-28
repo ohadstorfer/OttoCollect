@@ -12,12 +12,13 @@ interface BanknoteDetailCardProps {
   collectionItem?: CollectionItem;
   source?: 'catalog' | 'collection' | 'missing';
   ownerId?: string;
-  viewMode?: 'grid' | 'list';
+  // viewMode?: 'grid' | 'list';
 }
 
-const BanknoteDetailCard = ({ banknote, source = 'catalog', viewMode = 'grid' }: BanknoteDetailCardProps) => {
+const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCardProps) => {
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const handleCardClick = () => {
     if (source === 'catalog') {
@@ -97,7 +98,7 @@ const BanknoteDetailCard = ({ banknote, source = 'catalog', viewMode = 'grid' }:
   return (
     <Card
       className={cn(
-        "overflow-hidden transition-all duration-300 cursor-pointer bg-card",
+        "overflow-hidden transition-all duration-300 cursor-pointer bg-card self-start",
         isHovering ? "shadow-lg" : ""
       )}
       onMouseEnter={() => setIsHovering(true)}

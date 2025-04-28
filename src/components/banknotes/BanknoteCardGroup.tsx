@@ -40,15 +40,23 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
         <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
+            <div className="flex items-center text-sm ">
+            <LayoutList className="h-4 w-4 mr-1" />
+            <span>{count}</span>
+            </div>
           </div>
 
           <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
-            {banknote.extendedPickNumber && (
+            {baseNumber && (
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                {banknote.extendedPickNumber}
+                {baseNumber}
               </Badge>
             )}
           </div>
+
+          
+          
+
         </div>
           
         <CardContent className="p-0">
@@ -71,6 +79,7 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
             )}
           </div>
         </CardContent>
+        
       </Card>
     ),
   }));
@@ -84,11 +93,11 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
       onClick={handleClick}
     >
       {/* Added proper height and margin to the container to prevent overflow issues */}
-      <div className="mb-2 h-[180px] relative">
-        <CardStack items={stackItems} offset={6} />
-      </div>
       
-      <div className="bg-card border rounded-md p-3 shadow-sm transition-shadow group-hover:shadow-md mt-auto">
+        <CardStack items={stackItems} offset={6} />
+      
+      
+      {/* <div className="bg-card border rounded-md p-3 shadow-sm transition-shadow group-hover:shadow-md mt-auto">
         <div className="flex items-center justify-between mb-1">
           <div className="font-medium text-lg">{baseNumber}</div>
           <div className="flex items-center text-sm text-muted-foreground">
@@ -97,7 +106,7 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
           </div>
         </div>
         <div className="text-sm text-muted-foreground truncate">{denomination}</div>
-      </div>
+      </div> */}
     </div>
   );
 };
