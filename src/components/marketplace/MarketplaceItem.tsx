@@ -86,7 +86,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         </div>
       </div>
       
-      <CardHeader className="p-4 pb-2">
+      <CardHeader className="pt-2.5 pb-0 px-4">
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-lg font-serif font-semibold text-parchment-500">
@@ -102,7 +102,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         </div>
       </CardHeader>
       
-      <CardContent className="p-4 pt-2">
+      <CardContent className="pt-0 pb-1 px-4">
         {publicNote && (
           <p className="text-sm text-ottoman-200 line-clamp-2 mb-2">
             {publicNote}
@@ -118,7 +118,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         </div>
       </CardContent>
       
-      <CardFooter className="p-4 pt-2 flex justify-between">
+      <CardFooter className="pt-2 pb-0 px-4 flex justify-between">
         <Button 
           size="sm"
           className="text-ottoman-300 text-ottoman-100 bg-ottoman-700/50 hover:bg-ottoman-800/50"
