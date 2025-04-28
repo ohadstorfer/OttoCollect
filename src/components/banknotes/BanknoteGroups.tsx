@@ -6,7 +6,7 @@ import { BanknoteCardGroup } from './BanknoteCardGroup';
 import { BanknoteGroupDialog } from './BanknoteGroupDialog';
 import { cn } from '@/lib/utils';
 import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
-import { BanknoteGroupData, getBanknoteGroupData } from '@/utils/banknoteGrouping';
+import { BanknoteGroupData, getMixedBanknoteItems, MixedBanknoteItem } from '@/utils/banknoteGrouping';
 
 interface BanknoteGroupsProps {
   groups: {
@@ -86,29 +86,30 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                 "px-2 sm:px-0"
               )}>
                 {groupMode ? (
-                  // Group mode display
+                  // Group mode display using the new getMixedBanknoteItems function
                   (() => {
-                    const { singles, groups: banknoteGroups } = getBanknoteGroupData(group.items);
+                    const mixedItems = getMixedBanknoteItems(group.items);
                     
-                    return (
-                      <>
-                        {singles.map((banknote, index) => (
+                    return mixedItems.map((item, index) => {
+                      if (item.type === 'single') {
+                        return (
                           <BanknoteDetailCard
-                            key={`single-${group.category}-${banknote.id || index}`}
-                            banknote={banknote}
+                            key={`single-${group.category}-${item.banknote.id || index}`}
+                            banknote={item.banknote}
                             source="catalog"
                             viewMode={viewMode}
                           />
-                        ))}
-                        {banknoteGroups.map((banknoteGroup, index) => (
+                        );
+                      } else {
+                        return (
                           <BanknoteCardGroup
-                            key={`group-${group.category}-${banknoteGroup.baseNumber}`}
-                            group={banknoteGroup}
+                            key={`group-${group.category}-${item.group.baseNumber}`}
+                            group={item.group}
                             onClick={handleGroupClick}
                           />
-                        ))}
-                      </>
-                    );
+                        );
+                      }
+                    });
                   })()
                 ) : (
                   // Normal display

@@ -1,4 +1,3 @@
-
 import { DetailedBanknote } from "@/types";
 
 interface BanknoteGroup {
@@ -86,4 +85,75 @@ export const getBanknoteGroupData = (
   });
   
   return { singles, groups };
+};
+
+export type MixedBanknoteItem = 
+  | { type: 'single'; banknote: DetailedBanknote }
+  | { type: 'group'; group: BanknoteGroupData };
+
+/**
+ * Returns a mixed array of single banknotes and groups, preserving the original sort order
+ * based on the extendedPickNumber. Groups are formed when multiple banknotes share the same
+ * base pick number.
+ */
+export const getMixedBanknoteItems = (banknotes: DetailedBanknote[]): MixedBanknoteItem[] => {
+  // First, identify which banknotes belong to groups
+  const banknoteMap = new Map<string, DetailedBanknote[]>();
+  
+  // Group banknotes by their base pick number
+  banknotes.forEach(banknote => {
+    if (!banknote.extendedPickNumber) return;
+    
+    // Extract the base number using regex
+    const baseMatch = banknote.extendedPickNumber.match(/^(\d+[A-Z]?)/);
+    const baseNumber = baseMatch ? baseMatch[1] : banknote.extendedPickNumber;
+    
+    if (!banknoteMap.has(baseNumber)) {
+      banknoteMap.set(baseNumber, [banknote]);
+    } else {
+      banknoteMap.get(baseNumber)?.push(banknote);
+    }
+  });
+  
+  // Process the banknotes in their original order to maintain sort order
+  const mixedItems: MixedBanknoteItem[] = [];
+  const processedBaseNumbers = new Set<string>();
+  
+  for (const banknote of banknotes) {
+    if (!banknote.extendedPickNumber) {
+      // Just add banknotes without pick numbers as singles
+      mixedItems.push({ type: 'single', banknote });
+      continue;
+    }
+    
+    // Extract the base number again
+    const baseMatch = banknote.extendedPickNumber.match(/^(\d+[A-Z]?)/);
+    const baseNumber = baseMatch ? baseMatch[1] : banknote.extendedPickNumber;
+    
+    // Skip if we've already processed this base number
+    if (processedBaseNumbers.has(baseNumber)) continue;
+    
+    // Mark this base number as processed
+    processedBaseNumbers.add(baseNumber);
+    
+    // Get all banknotes with this base number
+    const groupBanknotes = banknoteMap.get(baseNumber) || [];
+    
+    // If there's only one, add it as a single
+    if (groupBanknotes.length === 1) {
+      mixedItems.push({ type: 'single', banknote: groupBanknotes[0] });
+    } else {
+      // Otherwise, add it as a group
+      mixedItems.push({ 
+        type: 'group', 
+        group: {
+          baseNumber,
+          items: groupBanknotes,
+          count: groupBanknotes.length
+        }
+      });
+    }
+  }
+  
+  return mixedItems;
 };
