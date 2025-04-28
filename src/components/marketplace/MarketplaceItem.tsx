@@ -66,7 +66,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
       onMouseLeave={() => setIsHovering(false)}
     >
       <div className="relative">
-        <div className="aspect-[4/3] overflow-hidden">
+        <div className="aspect-[4/2] overflow-hidden">
           <img
             src={displayImage}
             alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}

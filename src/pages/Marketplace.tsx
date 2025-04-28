@@ -28,7 +28,7 @@ const SULTAN_DISPLAY_ORDER: Record<string, number> = {
 
 const Marketplace = () => {
   console.log("### Marketplace RENDERING ###");
-  
+
   const { user } = useAuth();
   const { theme } = useTheme();
   const { toast } = useToast();
@@ -45,17 +45,17 @@ const Marketplace = () => {
     setError(null);
     try {
       console.log("Starting to fetch marketplace items");
-      
+
       if (user?.role === 'Admin') {
         console.log('User is admin, synchronizing marketplace with collection');
         await synchronizeMarketplaceWithCollection();
       }
-      
+
       console.log('Calling fetchMarketplaceItems');
       const items = await fetchMarketplaceItems();
       console.log("Fetched marketplace items:", items.length);
       console.log("Sample marketplace item:", items.length > 0 ? items[0] : "No items");
-      
+
       if (items.length === 0) {
         console.log("No marketplace items found");
         if (showToast) {
@@ -66,34 +66,34 @@ const Marketplace = () => {
           });
         }
       }
-      
+
       // Extract available categories and types from fetched items
       const categoryMap = new Map<string, FilterOption>();
       const typeMap = new Map<string, FilterOption>();
-      
+
       items.forEach(item => {
         const { series, type } = item.collectionItem?.banknote || {};
-        
+
         // Process category (series)
         if (series) {
           const id = series.toLowerCase().replace(/\s+/g, '-');
           categoryMap.set(id, { id, name: series });
         }
-        
+
         // Process type
         if (type) {
           const id = type.toLowerCase().replace(/\s+/g, '-');
           typeMap.set(id, { id, name: type });
         }
       });
-      
+
       // Update available filters
       setAvailableCategories(Array.from(categoryMap.values()));
       setAvailableTypes(Array.from(typeMap.values()));
-      
+
       console.log('Setting marketplace items in state');
       setMarketplaceItems(items);
-      
+
     } catch (err) {
       console.error("Error loading marketplace items:", err);
       setError("Failed to load marketplace items. Please try again later.");
@@ -108,12 +108,12 @@ const Marketplace = () => {
       setIsRefreshing(false);
     }
   }, [toast, user?.role]);
-  
+
   useEffect(() => {
     console.log('Initial useEffect for loadMarketplaceItems running');
     loadMarketplaceItems();
   }, [loadMarketplaceItems]);
-  
+
   // Transform marketplace items to have the banknote property at the top level
   // This allows useBanknoteFilter to work correctly
   const marketplaceItemsForFilter = useMemo(() => {
@@ -123,9 +123,9 @@ const Marketplace = () => {
     }));
   }, [marketplaceItems]);
 
-  const { 
-    filteredItems, 
-    filters, 
+  const {
+    filteredItems,
+    filters,
     setFilters,
     groupedItems
   } = useBanknoteFilter({
@@ -157,63 +157,55 @@ const Marketplace = () => {
   }, [setFilters]);
 
   // Memoize components to avoid unnecessary re-renders
-  const filterSection = useMemo(() => {
-    return (
-      <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'} sticky top-[64px] z-50`}>
-        <div className="p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-              Filters & Sorting
-            </h3>
-            
-            <div className="flex items-center gap-3">
-              {user && (
-                <Link to="/collection?filter=forsale">
-                  <Button className="ottoman-button">
-                    <SortAsc className="h-4 w-4 mr-2" />
-                    My Listings
-                  </Button>
-                </Link>
-              )}
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
-              >
-                {isRefreshing ? (
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                )}
-                Refresh
-              </Button>
-            </div>
-          </div>
+  // const filterSection = useMemo(() => {
+  //   return (
+  //     <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'} sticky top-[64px] z-50`}>
+  //       <div className="p-4">
+  //         <div className="flex justify-between items-center mb-4">
+  //           <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
+  //             Filters & Sorting
+  //           </h3>
 
-          <BanknoteFilterMarketplace
-            onFilterChange={handleFilterChange}
-            currentFilters={filters}
-            isLoading={loading}
-            availableCategories={availableCategories}
-            availableTypes={availableTypes}
-          />
-        </div>
-      </Card>
-    );
-  }, [theme, user, handleRefresh, isRefreshing, handleFilterChange, filters, loading, availableCategories, availableTypes]);
+  //           <div className="flex items-center gap-3">
+  //             {user && (
+  //               <Link to="/collection?filter=forsale">
+  //                 <Button className="ottoman-button">
+  //                   <SortAsc className="h-4 w-4 mr-2" />
+  //                   My Listings
+  //                 </Button>
+  //               </Link>
+  //             )}
 
-  const resultsSection = useMemo(() => {
-    return (
-      <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} mb-4 sm:mb-0`}>
-        Showing <span className={`font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
-          {filteredItems.length}
-        </span> items for sale
-      </p>
-    );
-  }, [theme, filteredItems.length]);
+  //             <Button 
+  //               variant="outline" 
+  //               size="sm"
+  //               onClick={handleRefresh}
+  //               disabled={isRefreshing}
+  //               className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
+  //             >
+  //               {isRefreshing ? (
+  //                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+  //               ) : (
+  //                 <RefreshCw className="h-4 w-4 mr-2" />
+  //               )}
+  //               Refresh
+  //             </Button>
+  //           </div>
+  //         </div>
+
+  //         <BanknoteFilterMarketplace
+  //           onFilterChange={handleFilterChange}
+  //           currentFilters={filters}
+  //           isLoading={loading}
+  //           availableCategories={availableCategories}
+  //           availableTypes={availableTypes}
+  //         />
+  //       </div>
+  //     </Card>
+  //   );
+  // }, [theme, user, handleRefresh, isRefreshing, handleFilterChange, filters, loading, availableCategories, availableTypes]);
+
+
 
   const loadingSection = useMemo(() => {
     return (
@@ -226,15 +218,15 @@ const Marketplace = () => {
 
   const errorSection = useMemo(() => {
     if (!error) return null;
-    
+
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>
           {error}
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="mt-4 dark:border-ottoman-700 border-ottoman-300 dark:text-ottoman-200 text-ottoman-800"
             onClick={handleRefresh}
           >
@@ -253,12 +245,12 @@ const Marketplace = () => {
           No Items Found
         </h3>
         <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
-          {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search) 
+          {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search)
             ? "No items match your current filters. Try adjusting your criteria."
             : "There are currently no items available in the marketplace"}
         </p>
         <div className="space-x-4">
-          <Button 
+          <Button
             className="ottoman-button"
             onClick={handleRefresh}
           >
@@ -266,8 +258,8 @@ const Marketplace = () => {
             Refresh
           </Button>
           {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search) && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setFilters({ categories: [], types: [], search: "", sort: ["extPick"] })}
             >
               Clear Filters
@@ -287,7 +279,7 @@ const Marketplace = () => {
       <div className="space-y-8">
         {groupedItems.map((group, groupIndex) => (
           <div key={`group-${groupIndex}`} className="space-y-4">
-            <div className="sticky top-[168px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b">
+            <div className="sticky top-[150px] sm:top-[100px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b">
               <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
                 {group.category}
               </h2>
@@ -358,13 +350,12 @@ const Marketplace = () => {
     <div className="min-h-screen animate-fade-in">
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden`}>
         <div className="absolute inset-0 -z-10">
-          <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${
-            theme === 'light'
+          <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${theme === 'light'
               ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
               : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
-          } shadow-xl ring-1 ring-inset`} aria-hidden="true" />
+            } shadow-xl ring-1 ring-inset`} aria-hidden="true" />
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
             Marketplace
@@ -374,20 +365,23 @@ const Marketplace = () => {
           </p>
         </div>
       </section>
-      
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <div className="flex-1">
-              {filterSection}
-            </div>
-            <div className="flex items-center gap-3">
-              {resultsSection}
-            </div>
+
+      <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
+        <section className="py-8">
+          <div className="container mx-auto px-4">
+              <BanknoteFilterMarketplace
+                onFilterChange={handleFilterChange}
+                currentFilters={filters}
+                isLoading={loading}
+                availableCategories={availableCategories}
+                availableTypes={availableTypes}
+              />
+
+            
+            {contentSection}
           </div>
-          {contentSection}
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 };
