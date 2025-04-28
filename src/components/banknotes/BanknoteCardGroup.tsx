@@ -7,6 +7,8 @@ import { LayoutList } from "lucide-react";
 import { DetailedBanknote } from "@/types";
 import { BanknoteGroupData } from "@/utils/banknoteGrouping";
 import { cn } from "@/lib/utils";
+import { Badge } from "../ui/badge";
+
 
 export interface BanknoteCardGroupProps {
   group: BanknoteGroupData;
@@ -35,10 +37,29 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
     id: banknote.id || `stack-item-${index}`,
     content: (
       <Card className="w-full h-full shadow-md overflow-hidden">
+
+<div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
+
+        <div className="flex justify-between items-start">
+            <h4 className="font-bold">{banknote.denomination}</h4>
+          </div>
+
+          <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
+            {banknote.extendedPickNumber && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                {banknote.extendedPickNumber}
+              </Badge>
+            )}
+            
+          </div>
+
+
+          </div>
+          
         <CardContent className="p-0">
           <div className="w-full">
             {banknote.imageUrls?.[0] ? (
-              <AspectRatio ratio={3/2}>
+              <AspectRatio ratio={4/2}>
                 <img 
                   src={banknote.imageUrls[0]} 
                   alt={`Banknote ${banknote.extendedPickNumber}`}
@@ -46,10 +67,11 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
                 />
               </AspectRatio>
             ) : (
-              <AspectRatio ratio={3/2}>
-                <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
-                  No Image
-                </div>
+              <AspectRatio ratio={4/2}>
+                <img 
+                  src={'/placeholder.svg'} 
+                  className="w-full h-full object-cover"
+                />
               </AspectRatio>
             )}
           </div>
