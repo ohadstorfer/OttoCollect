@@ -24,7 +24,7 @@ interface BanknoteFilterMarketplaceProps {
 export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps> = ({
   onFilterChange,
   currentFilters,
-  isLoading = false,
+  // isLoading = false,
   className,
   onViewModeChange,
   viewMode = 'grid',
@@ -36,8 +36,34 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
   const [categories, setCategories] = useState<FilterOption[]>([]);
   const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+
+  useEffect(() => {
+    // Always set sort options for the marketplace filter
+    setSortOptions([
+      {
+        id: "faceValue",
+        name: "Face Value",
+        fieldName: "faceValue",
+        isRequired: false
+      },
+      {
+        id: "extPick",
+        name: "Extended Pick",
+        fieldName: "extPick",
+        isRequired: true
+      }
+      // ,
+      // {
+      //   id: "country",
+      //   name: "Country",
+      //   fieldName: "country",
+      //   isRequired: false
+      // }
+    ]);
+  }, []);
   
   // Use a memoized function to load user preferences to avoid re-renders
   const loadUserPreferences = useCallback(async (
@@ -111,6 +137,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     if (externalTypes && externalTypes.length > 0) {
       setTypes(externalTypes);
     }
+    setIsLoading(false);
   }, [externalCategories, externalTypes]);
 
   // Load filter options once on component mount
@@ -121,7 +148,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     }
     
     const loadFilterOptions = async () => {
-      setLoading(true);
+      setIsLoading(true);
       
       try {
         // Get all categories and types
@@ -190,7 +217,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
           variant: "destructive",
         });
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -222,6 +249,11 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     onFilterChange(newFilters);
   }, [onFilterChange, currentFilters, user]);
 
+
+
+  
+
+
   return (
     <div className={cn(
       "w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-1.5",
@@ -234,7 +266,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
         sortOptions={sortOptions}
         onFilterChange={handleFilterChange}
         currentFilters={currentFilters}
-        isLoading={isLoading || loading}
+        isLoading={isLoading}
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
       />
