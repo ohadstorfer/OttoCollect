@@ -25,8 +25,8 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
   
   // Use the first banknote for display information
   const firstBanknote = items[0];
-  const imageUrl = firstBanknote.imageUrls?.[0] || ''; // Use imageUrls which is part of DetailedBanknote
-  const denomination = firstBanknote.denomination || ''; // Use denomination which is part of DetailedBanknote
+  const imageUrl = firstBanknote.imageUrls?.[0] || '';
+  const denomination = firstBanknote.denomination || '';
   
   const handleClick = () => {
     if (onClick) onClick(group);
@@ -37,10 +37,8 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
     id: banknote.id || `stack-item-${index}`,
     content: (
       <Card className="w-full h-full shadow-md overflow-hidden">
-
-<div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
-
-        <div className="flex justify-between items-start">
+        <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
+          <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
           </div>
 
@@ -50,11 +48,8 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
                 {banknote.extendedPickNumber}
               </Badge>
             )}
-            
           </div>
-
-
-          </div>
+        </div>
           
         <CardContent className="p-0">
           <div className="w-full">
@@ -83,14 +78,17 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
   return (
     <div 
       className={cn(
-        "group cursor-pointer transition-all",
+        "group cursor-pointer transition-all flex flex-col",
         className
       )}
       onClick={handleClick}
     >
-      <CardStack items={stackItems} offset={6} className="mb-2" />
+      {/* Added proper height and margin to the container to prevent overflow issues */}
+      <div className="mb-2 h-[180px] relative">
+        <CardStack items={stackItems} offset={6} />
+      </div>
       
-      <div className="bg-card border rounded-md p-3 shadow-sm transition-shadow group-hover:shadow-md">
+      <div className="bg-card border rounded-md p-3 shadow-sm transition-shadow group-hover:shadow-md mt-auto">
         <div className="flex items-center justify-between mb-1">
           <div className="font-medium text-lg">{baseNumber}</div>
           <div className="flex items-center text-sm text-muted-foreground">

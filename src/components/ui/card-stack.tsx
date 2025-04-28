@@ -22,8 +22,19 @@ export const CardStack: React.FC<CardStackProps> = ({
 }) => {
   if (!items.length) return null;
 
+  // Calculate total height needed based on number of items and offset
+  const stackHeight = items.length > 1 ? 
+    (items.length - 1) * offset + 100 : // 100 is base card height percentage
+    100;
+
   return (
-    <div className={cn("relative", className)}>
+    <div 
+      className={cn("relative w-full", className)}
+      style={{ 
+        // Set a specific height to contain all stacked items
+        paddingBottom: `${stackHeight}%`,
+      }}
+    >
       {items.map((card, index) => {
         // Only show top 3 cards for performance
         if (index > 3) return null;
@@ -38,7 +49,7 @@ export const CardStack: React.FC<CardStackProps> = ({
             className="absolute transition-all duration-300"
             style={{
               zIndex,
-              top,
+              top: `${top}%`,
               transform: `scale(${scale})`,
               transformOrigin: "top center",
               width: "100%",
