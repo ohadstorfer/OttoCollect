@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardStack } from "@/components/ui/card-stack";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Stack } from "lucide-react";
+import { LayoutList } from "lucide-react";
 import { DetailedBanknote } from "@/types";
 import { BanknoteGroupData } from "@/utils/banknoteGrouping";
 import { cn } from "@/lib/utils";
@@ -72,7 +72,7 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
         <div className="flex items-center justify-between mb-1">
           <div className="font-medium text-lg">{baseNumber}</div>
           <div className="flex items-center text-sm text-muted-foreground">
-            <Stack className="h-4 w-4 mr-1" />
+            <LayoutList className="h-4 w-4 mr-1" />
             <span>{count}</span>
           </div>
         </div>
