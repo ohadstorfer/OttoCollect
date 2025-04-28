@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,7 @@ import {
   LayoutGrid, 
   LayoutList, 
   Save,
-  Stack
+  Layers
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
@@ -318,7 +319,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 aria-label={`Toggle group mode ${groupMode ? 'off' : 'on'}`}
                 title="Group similar banknotes"
               >
-                <Stack className="h-4 w-4" />
+                <Layers className="h-4 w-4" />
               </Button>
             )}
           </div>

@@ -23,8 +23,8 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
   
   // Use the first banknote for display information
   const firstBanknote = items[0];
-  const imageUrl = firstBanknote.imageUrls?.[0] || firstBanknote.front_picture || '';
-  const denomination = firstBanknote.denomination || firstBanknote.face_value || '';
+  const imageUrl = firstBanknote.imageUrls?.[0] || ''; // Use imageUrls which is part of DetailedBanknote
+  const denomination = firstBanknote.denomination || ''; // Use denomination which is part of DetailedBanknote
   
   const handleClick = () => {
     if (onClick) onClick(group);
@@ -37,10 +37,10 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
       <Card className="w-full h-full shadow-md overflow-hidden">
         <CardContent className="p-0">
           <div className="w-full">
-            {banknote.imageUrls?.[0] || banknote.front_picture ? (
+            {banknote.imageUrls?.[0] ? (
               <AspectRatio ratio={3/2}>
                 <img 
-                  src={banknote.imageUrls?.[0] || banknote.front_picture || ''} 
+                  src={banknote.imageUrls[0]} 
                   alt={`Banknote ${banknote.extendedPickNumber}`}
                   className="w-full h-full object-cover"
                 />

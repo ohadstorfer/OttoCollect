@@ -35,8 +35,8 @@ export const groupBanknotesByExtendedPick = (banknotes: DetailedBanknote[]): Map
         items: [banknote],
         count: 1,
         key: `group-${baseNumber}`,
-        displayImage: banknote.imageUrls?.[0] || banknote.front_picture || '',
-        denomination: banknote.denomination || banknote.face_value,
+        displayImage: banknote.imageUrls?.[0] || '',
+        denomination: banknote.denomination,
       });
     } else {
       // Add banknote to existing group
@@ -45,12 +45,12 @@ export const groupBanknotesByExtendedPick = (banknotes: DetailedBanknote[]): Map
       group.count++;
       
       // Use the first item's image and denomination if not already set
-      if (!group.displayImage && (banknote.imageUrls?.[0] || banknote.front_picture)) {
-        group.displayImage = banknote.imageUrls?.[0] || banknote.front_picture || '';
+      if (!group.displayImage && banknote.imageUrls?.[0]) {
+        group.displayImage = banknote.imageUrls[0];
       }
       
       if (!group.denomination) {
-        group.denomination = banknote.denomination || banknote.face_value;
+        group.denomination = banknote.denomination;
       }
     }
   });
