@@ -3,7 +3,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, LayoutGrid, LayoutList, Save } from "lucide-react";
+import { 
+  Search, 
+  Filter, 
+  LayoutGrid, 
+  LayoutList, 
+  Save,
+  Stack
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
 import { DynamicFilterState } from "@/types/filter";
@@ -37,6 +44,8 @@ export type BaseBanknoteFilterProps = {
   saveButtonText?: string;
   viewMode?: 'grid' | 'list';
   onViewModeChange?: (mode: 'grid' | 'list') => void;
+  groupMode?: boolean;
+  onGroupModeChange?: (mode: boolean) => void;
 };
 
 export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
@@ -50,7 +59,9 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   onSaveFilters,
   saveButtonText = "Save Filter Preferences",
   viewMode = 'grid',
-  onViewModeChange
+  onViewModeChange,
+  groupMode = false,
+  onGroupModeChange
 }) => {
   const isMobile = useIsMobile();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
@@ -233,6 +244,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     }
   };
 
+  const toggleGroupMode = () => {
+    if (onGroupModeChange) {
+      onGroupModeChange(!groupMode);
+    }
+  };
+
   const applyFilters = () => {
     console.log("BaseBanknoteFilter: Applying all filters explicitly");
     handleFilterChange({
@@ -277,20 +294,34 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
               className="pl-10"
             />
           </div>
-          {onViewModeChange && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleViewMode}
-              aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
-            >
-              {viewMode === 'grid' ? (
-                <LayoutList className="h-4 w-4" />
-              ) : (
-                <LayoutGrid className="h-4 w-4" />
-              )}
-            </Button>
-          )}
+          <div className="flex gap-1">
+            {onViewModeChange && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleViewMode}
+                aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+              >
+                {viewMode === 'grid' ? (
+                  <LayoutList className="h-4 w-4" />
+                ) : (
+                  <LayoutGrid className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+            
+            {onGroupModeChange && (
+              <Button
+                variant={groupMode ? "default" : "outline"}
+                size="icon"
+                onClick={toggleGroupMode}
+                aria-label={`Toggle group mode ${groupMode ? 'off' : 'on'}`}
+                title="Group similar banknotes"
+              >
+                <Stack className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
         
         <div className="grid grid-cols-2 sm:flex gap-2">

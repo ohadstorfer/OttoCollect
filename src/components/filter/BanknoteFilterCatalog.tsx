@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
@@ -19,6 +20,8 @@ interface BanknoteFilterCatalogProps {
   isLoading?: boolean;
   className?: string;
   onViewModeChange?: (mode: 'grid' | 'list') => void;
+  groupMode?: boolean;
+  onGroupModeChange?: (mode: boolean) => void;
 }
 
 export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
@@ -27,7 +30,9 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   currentFilters,
   isLoading = false,
   className,
-  onViewModeChange
+  onViewModeChange,
+  groupMode = false,
+  onGroupModeChange
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -242,6 +247,19 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     
     onFilterChange(filtersWithCountryId);
   };
+  
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    if (onViewModeChange) {
+      onViewModeChange(mode);
+    }
+  };
+  
+  const handleGroupModeChange = (mode: boolean) => {
+    if (onGroupModeChange) {
+      onGroupModeChange(mode);
+    }
+  };
 
   return (
     <div className={cn(
@@ -258,7 +276,9 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
         isLoading={isLoading || loading}
         className={className}
         viewMode={viewMode}
-        onViewModeChange={onViewModeChange}
+        onViewModeChange={handleViewModeChange}
+        groupMode={groupMode}
+        onGroupModeChange={handleGroupModeChange}
       />
     </div>
   );

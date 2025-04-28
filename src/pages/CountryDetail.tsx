@@ -13,6 +13,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 
+interface CurrencyWithDisplayOrder {
+  id: string;
+  name: string;
+  display_order: number;
+  country_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 const CountryDetail = () => {
   const { country } = useParams();
   const navigate = useNavigate();
@@ -23,7 +32,8 @@ const CountryDetail = () => {
   const [loading, setLoading] = useState(true);
   const [countryId, setCountryId] = useState<string>("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [currencies, setCurrencies] = useState<{ id: string, name: string, display_order: number }[]>([]);
+  const [groupMode, setGroupMode] = useState(false);
+  const [currencies, setCurrencies] = useState<CurrencyWithDisplayOrder[]>([]);
   const [categoryOrder, setCategoryOrder] = useState<{ name: string, order: number }[]>([]);
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
@@ -89,7 +99,7 @@ const CountryDetail = () => {
           console.error("Error fetching currencies:", currencyError);
           setCurrencies([]);
         } else if (currencyRows) {
-          setCurrencies(currencyRows);
+          setCurrencies(currencyRows as CurrencyWithDisplayOrder[]);
           console.log("Loaded currencies:", currencyRows);
         }
       } catch (error) {
@@ -224,6 +234,10 @@ const CountryDetail = () => {
   const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
   };
+  
+  const handleGroupModeChange = (mode: boolean) => {
+    setGroupMode(mode);
+  };
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
@@ -242,6 +256,8 @@ const CountryDetail = () => {
             currentFilters={filters}
             isLoading={loading}
             onViewModeChange={handleViewModeChange}
+            groupMode={groupMode}
+            onGroupModeChange={handleGroupModeChange}
           />
         )}
 
@@ -262,6 +278,7 @@ const CountryDetail = () => {
               viewMode={viewMode}
               countryId={countryId}
               isLoading={loading}
+              groupMode={groupMode}
             />
           )}
         </div>
