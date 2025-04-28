@@ -270,69 +270,30 @@ const Marketplace = () => {
     );
   }, [handleRefresh, filters, setFilters]);
 
+
+
   const marketplaceItemsSection = useMemo(() => {
-    if (!filteredItems || filteredItems.length === 0) {
-      return null;
-    }
+  if (!filteredItems || filteredItems.length === 0) {
+    return null;
+  }
 
-    return (
-      <div className="space-y-8">
-        {groupedItems.map((group, groupIndex) => (
-          <div key={`group-${groupIndex}`} className="space-y-4">
-            <div className="sticky top-[150px] sm:top-[100px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b">
-              <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-                {group.category}
-              </h2>
-            </div>
+  // Flatten all items from all groups
+  const allItems = groupedItems.flatMap(group => group.items);
 
-            {group.sultanGroups ? (
-              <div className="space-y-6">
-                {[...group.sultanGroups]
-                  .sort((a, b) => {
-                    const orderA = SULTAN_DISPLAY_ORDER[a.sultan] ?? 999;
-                    const orderB = SULTAN_DISPLAY_ORDER[b.sultan] ?? 999;
-                    if (orderA === orderB) {
-                      return a.sultan.localeCompare(b.sultan);
-                    }
-                    return orderA - orderB;
-                  })
-                  .map((sultanGroup, sultanIndex) => (
-                    <div key={`sultan-${sultanIndex}`} className="space-y-4">
-                      <h3 className={`text-lg font-semibold pl-4 border-l-4 ${theme === 'light' ? 'border-ottoman-600 text-ottoman-700' : 'border-ottoman-400 text-ottoman-300'}`}>
-                        {sultanGroup.sultan}
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {sultanGroup.items.map((item, index) => (
-                          <div
-                            key={`marketplace-item-${index}`}
-                            className="animate-fade-in"
-                            style={{ animationDelay: `${index * 100}ms` }}
-                          >
-                            <MarketplaceItem item={item} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {group.items.map((item, index) => (
-                  <div
-                    key={`marketplace-item-${index}`}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <MarketplaceItem item={item} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  }, [groupedItems, theme, filteredItems]);
+  return (
+    <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      {allItems.map((item, index) => (
+        <div
+          key={`marketplace-item-${index}`}
+          className="animate-fade-in"
+          style={{ animationDelay: `${index * 100}ms` }}
+        >
+          <MarketplaceItem item={item} />
+        </div>
+      ))}
+    </div>
+  );
+}, [groupedItems, theme, filteredItems]);
 
   const contentSection = useMemo(() => {
     if (loading) {
