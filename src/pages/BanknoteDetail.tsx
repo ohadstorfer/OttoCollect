@@ -244,7 +244,7 @@ export default function BanknoteDetail() {
       icon: <Building className="h-5 w-5" />,
       fields: [
         { label: "Printer", value: banknote.printer, icon: <PenTool className="h-4 w-4" /> },
-        { label: "Colors", value: Array.isArray(banknote.colors) ? banknote.colors.join(', ') : banknote.colors, icon: <Palette className="h-4 w-4" /> },
+        { label: "Colors", value: banknote.colors, icon: <Palette className="h-4 w-4" /> },
         { label: "Serial Numbering", value: banknote.serialNumbering, icon: <Fingerprint className="h-4 w-4" /> }
       ]
     },

@@ -127,17 +127,10 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
         setSortOptions(mappedSortOptions);
         
         let userPreferences = null;
-        let userGroupMode = false;
         if (user) {
           try {
             userPreferences = await fetchUserFilterPreferences(user.id, countryId);
             console.log("BanknoteFilterCatalog: User preferences loaded", userPreferences);
-            if (userPreferences && userPreferences.group_mode !== undefined) {
-              userGroupMode = userPreferences.group_mode;
-              if (onGroupModeChange) {
-                onGroupModeChange(userGroupMode);
-              }
-            }
           } catch (err) {
             console.error("Error fetching user preferences:", err);
           }
@@ -202,7 +195,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     };
 
     loadFilterOptionsAndPreferences();
-  }, [countryId, user, onFilterChange, toast, onGroupModeChange]);
+  }, [countryId, user, onFilterChange, toast]);
 
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
@@ -246,8 +239,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
         countryId,
         filtersWithCountryId.categories || [],
         filtersWithCountryId.types || [],
-        sortOptionIds,
-        groupMode
+        sortOptionIds
       ).catch(error => {
         console.error("Error saving filter preferences:", error);
       });
@@ -266,25 +258,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   const handleGroupModeChange = (mode: boolean) => {
     if (onGroupModeChange) {
       onGroupModeChange(mode);
-    }
-    
-    // Save the group mode preference to the database
-    if (user?.id) {
-      saveUserFilterPreferences(
-        user.id,
-        countryId,
-        currentFilters.categories || [],
-        currentFilters.types || [],
-        currentFilters.sort
-          .map(fieldName => {
-            const option = sortOptions.find(opt => opt.fieldName === fieldName);
-            return option ? option.id : null;
-          })
-          .filter(Boolean) as string[],
-        mode
-      ).catch(error => {
-        console.error("Error saving group mode preference:", error);
-      });
     }
   };
 

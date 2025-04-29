@@ -13,3 +13,15 @@ export interface Message {
   receiverId?: string;
   createdAt?: string;
 }
+
+export interface Conversation {
+  otherUserId: string;
+  otherUser: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank: string;
+  };
+  lastMessage: Message;
+  unreadCount: number;
+}

@@ -1,4 +1,3 @@
-
 import { BanknoteCondition, UserRank } from '@/types';
 
 // Fix the UserRank point values by using a partial record
@@ -27,32 +26,6 @@ export const BANKNOTE_CONDITIONS: Record<BanknoteCondition, string> = {
   'Poor': 'Poor'
 };
 
-// Add the MOCK_BANKNOTES constant
-export const MOCK_BANKNOTES = [
-  {
-    id: '1',
-    country: 'Ottoman Empire',
-    denomination: '5 Kurush',
-    year: '1327 (1909)',
-    imageUrls: ['/images/placeholder-banknote.jpg'],
-    isApproved: true,
-    isPending: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: '2',
-    country: 'Ottoman Empire',
-    denomination: '10 Kurush',
-    year: '1332 (1914)',
-    imageUrls: ['/images/placeholder-banknote.jpg'],
-    isApproved: true,
-    isPending: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-];
-
 export const MOCK_USERS = [
   {
     id: 'user-1',
@@ -66,7 +39,6 @@ export const MOCK_USERS = [
     points: 1250,
     createdAt: '2023-01-15T12:00:00Z',
     updatedAt: '2023-03-10T14:30:00Z',
-    role_id: 'role-1'
   },
   {
     id: 'user-2',
@@ -80,7 +52,6 @@ export const MOCK_USERS = [
     points: 150,
     createdAt: '2023-02-01T08:00:00Z',
     updatedAt: '2023-04-05T10:15:00Z',
-    role_id: 'role-2'
   },
   {
     id: 'user-3',
@@ -94,7 +65,6 @@ export const MOCK_USERS = [
     points: 9999,
     createdAt: '2022-11-20T10:00:00Z',
     updatedAt: '2023-04-20T16:45:00Z',
-    role_id: 'role-3'
   },
 ];
 

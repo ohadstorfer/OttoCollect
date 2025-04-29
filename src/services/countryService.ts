@@ -200,8 +200,7 @@ export const saveUserFilterPreferences = async (
   countryId: string,
   selectedCategories: string[],
   selectedTypes: string[],
-  selectedSortOptions: string[],
-  groupMode: boolean = false
+  selectedSortOptions: string[]
 ): Promise<boolean> => {
   // Check if preferences already exist
   const existingPrefs = await fetchUserFilterPreferences(userId, countryId);
@@ -215,7 +214,6 @@ export const saveUserFilterPreferences = async (
         selected_categories: selectedCategories,
         selected_types: selectedTypes,
         selected_sort_options: selectedSortOptions,
-        group_mode: groupMode,
         updated_at: new Date().toISOString()
       })
       .eq('id', existingPrefs.id);
@@ -228,8 +226,7 @@ export const saveUserFilterPreferences = async (
         country_id: countryId,
         selected_categories: selectedCategories,
         selected_types: selectedTypes,
-        selected_sort_options: selectedSortOptions,
-        group_mode: groupMode
+        selected_sort_options: selectedSortOptions
       }]);
   }
 
