@@ -1,5 +1,5 @@
 
-import React, { useCallback } from "react";
+import React, { useCallback, memo } from "react";
 import { BanknoteFilterCatalog } from "@/components/filter/BanknoteFilterCatalog";
 import { DynamicFilterState } from "@/types/filter";
 
@@ -13,7 +13,8 @@ interface CountryFilterSectionProps {
   onGroupModeChange: (mode: boolean) => void;
 }
 
-export const CountryFilterSection: React.FC<CountryFilterSectionProps> = ({
+// Use React.memo to prevent unnecessary re-renders
+export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   countryId,
   filters,
   onFilterChange,
@@ -22,6 +23,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = ({
   groupMode,
   onGroupModeChange
 }) => {
+  // Memoize handleFilterChange to prevent it from causing re-renders
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     onFilterChange(newFilters);
   }, [onFilterChange]);
@@ -37,4 +39,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = ({
       onGroupModeChange={onGroupModeChange}
     />
   ) : null;
-};
+});
+
+// Add a display name for the memoized component
+CountryFilterSection.displayName = 'CountryFilterSection';

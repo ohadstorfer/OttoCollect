@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
@@ -24,7 +24,8 @@ interface BanknoteFilterCatalogProps {
   onGroupModeChange?: (mode: boolean) => void;
 }
 
-export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
+// Use React.memo to prevent unnecessary re-renders
+export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(({
   countryId,
   onFilterChange,
   currentFilters,
@@ -41,9 +42,12 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  // Add refs to track the initial load and avoid the infinite loop
-  const initialLoadComplete = React.useRef(false);
-  const ignoreNextGroupModeChange = React.useRef(false);
+  
+  // Add refs to track states and prevent render loops
+  const initialLoadComplete = useRef(false);
+  const ignoreNextGroupModeChange = useRef(false);
+  const isFetchingFilter = useRef(false);
+  const lastCountryId = useRef("");
 
   console.log("BanknoteFilterCatalog: Rendering with", { 
     countryId, 
@@ -57,11 +61,19 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   });
 
   useEffect(() => {
+    // Skip if no countryId or if we're already fetching
+    if (!countryId || isFetchingFilter.current) return;
+    
+    // Skip if we already loaded options for this country
+    if (lastCountryId.current === countryId && initialLoadComplete.current) {
+      console.log("BanknoteFilterCatalog: Already loaded options for this country, skipping");
+      return;
+    }
+    
     const loadFilterOptionsAndPreferences = async () => {
-      if (!countryId) return;
-      
       console.log("BanknoteFilterCatalog: Loading filter options for country:", countryId);
       setLoading(true);
+      isFetchingFilter.current = true;
       
       try {
         const [categoriesData, typesData, sortOptionsData] = await Promise.all([
@@ -138,7 +150,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             
             // Set group mode if it's defined in preferences, but only during initial load
             // and only notify the parent if the value is different from current groupMode
-            if (userPreferences && typeof userPreferences.group_mode === 'boolean' && 
+            if (userPreferences && 
+                typeof userPreferences.group_mode === 'boolean' && 
                 onGroupModeChange && 
                 userPreferences.group_mode !== groupMode && 
                 !initialLoadComplete.current) {
@@ -148,9 +161,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
               
               // Call the parent's onGroupModeChange
               onGroupModeChange(userPreferences.group_mode);
-              
-              // Mark initial load as complete to prevent future automatic updates
-              initialLoadComplete.current = true;
             }
           } catch (err) {
             console.error("Error fetching user preferences:", err);
@@ -167,7 +177,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
           requiredSortFields.push('extPick');
         }
           
-        if (userPreferences) {
+        if (userPreferences && !initialLoadComplete.current) {
           const sortFieldNames = userPreferences.selected_sort_options
             .map(sortId => {
               const option = sortOptionsData.find(opt => opt.id === sortId);
@@ -185,7 +195,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             types: userPreferences.selected_types,
             sort: finalSortFields,
           });
-        } else {
+        } else if (!initialLoadComplete.current) {
           // Set default filters if no user preferences are found
           const defaultCategoryIds = mappedCategories.map(cat => cat.id);
           const defaultTypeIds = mappedTypes
@@ -201,6 +211,10 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             sort: defaultSort,
           });
         }
+        
+        // Mark as complete to prevent repeated loads
+        initialLoadComplete.current = true;
+        lastCountryId.current = countryId;
       } catch (error) {
         console.error("Error loading filter options:", error);
         toast({
@@ -210,14 +224,15 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
         });
       } finally {
         setLoading(false);
+        isFetchingFilter.current = false;
       }
     };
 
     loadFilterOptionsAndPreferences();
     // groupMode is NOT included in the dependency array because it would cause infinite loops
-  }, [countryId, user, onFilterChange, toast, onGroupModeChange]);
+  }, [countryId, user, onFilterChange, toast, onGroupModeChange]); // groupMode removed from dependencies
 
-  const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
+  const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
       // Get only the required sort fields that must be included
       const requiredSortFields = sortOptions
@@ -268,16 +283,16 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     }
     
     onFilterChange(newFilters);
-  };
+  }, [onFilterChange, sortOptions, user, countryId, currentFilters, groupMode]);
   
-  const handleViewModeChange = (mode: 'grid' | 'list') => {
+  const handleViewModeChange = React.useCallback((mode: 'grid' | 'list') => {
     setViewMode(mode);
     if (onViewModeChange) {
       onViewModeChange(mode);
     }
-  };
+  }, [onViewModeChange]);
   
-  const handleGroupModeChange = (mode: boolean) => {
+  const handleGroupModeChange = React.useCallback((mode: boolean) => {
     // If we're set to ignore the next change, skip this call
     if (ignoreNextGroupModeChange.current) {
       ignoreNextGroupModeChange.current = false;
@@ -322,7 +337,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     if (onGroupModeChange) {
       onGroupModeChange(mode);
     }
-  };
+  }, [onGroupModeChange, groupMode, user, countryId, currentFilters.categories, currentFilters.sort, currentFilters.types, sortOptions]);
 
   return (
     <div className={cn(
@@ -345,4 +360,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
       />
     </div>
   );
-};
+});
+
+// Add a display name for the memoized component
+BanknoteFilterCatalog.displayName = 'BanknoteFilterCatalog';

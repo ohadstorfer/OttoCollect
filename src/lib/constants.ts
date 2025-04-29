@@ -68,4 +68,41 @@ export const MOCK_USERS = [
   },
 ];
 
+export const MOCK_BANKNOTES = [
+  {
+    id: "1",
+    catalogId: "P001",
+    country: "Ottoman Empire",
+    denomination: "5 Kurush",
+    year: "1876",
+    series: "First Series",
+    imageUrls: ["/placeholder.svg"],
+    isApproved: true,
+    isPending: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    type: "Issued notes",
+    category: "Sultan Abdülhamid II",
+    sultanName: "Sultan Abdülhamid II",
+    extendedPickNumber: "P001",
+  },
+  {
+    id: "2",
+    catalogId: "P002",
+    country: "Ottoman Empire",
+    denomination: "10 Kurush",
+    year: "1876",
+    series: "First Series",
+    imageUrls: ["/placeholder.svg"],
+    isApproved: true,
+    isPending: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    type: "Issued notes",
+    category: "Sultan Abdülhamid II",
+    sultanName: "Sultan Abdülhamid II",
+    extendedPickNumber: "P002",
+  }
+];
+
 export const DEFAULT_IMAGE_URL = '/placeholder.svg';

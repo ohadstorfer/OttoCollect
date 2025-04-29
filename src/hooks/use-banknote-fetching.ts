@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DetailedBanknote } from "@/types";
 import { DynamicFilterState } from "@/types/filter";
@@ -10,17 +10,44 @@ interface UseBanknoteFetchingProps {
   filters: DynamicFilterState;
 }
 
-export const useBanknoteFetching = ({ countryId, filters }: UseBanknoteFetchingProps) => {
+interface UseBanknoteFetchingResult {
+  banknotes: DetailedBanknote[];
+  loading: boolean;
+}
+
+export const useBanknoteFetching = ({ 
+  countryId, 
+  filters 
+}: UseBanknoteFetchingProps): UseBanknoteFetchingResult => {
   const { toast } = useToast();
   const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const isFetchingRef = useRef<boolean>(false);
+  const lastFetchKey = useRef<string>("");
 
   useEffect(() => {
+    // Skip empty countryId
+    if (!countryId) return;
+    
+    // Create a cache key from countryId and filters
+    const fetchKey = countryId + JSON.stringify(filters);
+    
+    // Skip duplicate fetches with same parameters
+    if (fetchKey === lastFetchKey.current) {
+      console.log("UseBanknoteFetching: Skipping duplicate fetch with same parameters");
+      return;
+    }
+    
+    // Skip if already fetching
+    if (isFetchingRef.current) {
+      console.log("UseBanknoteFetching: Fetch already in progress, skipping");
+      return;
+    }
+    
     const fetchBanknotesData = async () => {
-      if (!countryId) return;
-
       console.log("CountryDetail: Fetching banknotes with filters", { countryId, filters });
       setLoading(true);
+      isFetchingRef.current = true;
 
       try {
         const filterParams = {
@@ -32,8 +59,10 @@ export const useBanknoteFetching = ({ countryId, filters }: UseBanknoteFetchingP
 
         const data = await fetchBanknotesByCountryId(countryId, filterParams);
         console.log("CountryDetail: Banknotes loaded:", data.length);
+        
+        // Only update state if component is still mounted
         setBanknotes(data);
-        setLoading(false);
+        lastFetchKey.current = fetchKey;
       } catch (error) {
         console.error("CountryDetail: Error fetching banknotes:", error);
         toast({
@@ -42,7 +71,9 @@ export const useBanknoteFetching = ({ countryId, filters }: UseBanknoteFetchingP
           variant: "destructive",
         });
         setBanknotes([]);
+      } finally {
         setLoading(false);
+        isFetchingRef.current = false;
       }
     };
 

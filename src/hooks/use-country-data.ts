@@ -4,7 +4,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { fetchCountryByName, fetchCategoriesByCountryId, fetchUserFilterPreferences } from "@/services/countryService";
 import { supabase } from "@/integrations/supabase/client";
-import { CategoryDefinition, Currency } from "@/types";
+import { CategoryDefinition } from "@/types";
+
+// Define Currency type directly since it's missing from imports
+interface Currency {
+  id: string;
+  name: string;
+  display_order: number;
+  country_id: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 interface UseCountryDataProps {
   countryName: string;
@@ -34,9 +44,10 @@ export const useCountryData = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [groupMode, setGroupMode] = useState<boolean>(false);
   
-  // Add refs to track if we've loaded preferences already
+  // Add refs to track states and prevent render loops
   const hasLoadedPreferences = useRef<boolean>(false);
   const isGroupModeChanging = useRef<boolean>(false);
+  const initialLoadComplete = useRef<boolean>(false);
   
   useEffect(() => {
     const loadCountryData = async () => {
@@ -87,7 +98,7 @@ export const useCountryData = ({
         }
 
         // Try to load group mode from user preferences - but only if we haven't loaded it already
-        if (user?.id && !hasLoadedPreferences.current) {
+        if (user?.id && !hasLoadedPreferences.current && !initialLoadComplete.current) {
           try {
             const preferences = await fetchUserFilterPreferences(user.id, countryData.id);
             if (preferences && typeof preferences.group_mode === 'boolean') {
@@ -98,7 +109,7 @@ export const useCountryData = ({
           } catch (err) {
             console.error("Error loading group mode from preferences:", err);
           }
-        } else if (!user && !hasLoadedPreferences.current) {
+        } else if (!user && !hasLoadedPreferences.current && !initialLoadComplete.current) {
           // If no user is logged in, try to load from session storage
           try {
             const savedMode = sessionStorage.getItem(`groupMode-${countryData.id}`);
@@ -113,6 +124,7 @@ export const useCountryData = ({
           }
         }
         
+        initialLoadComplete.current = true;
         setLoading(false);
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
@@ -126,7 +138,7 @@ export const useCountryData = ({
     };
 
     loadCountryData();
-  }, [countryName, navigate, toast, user]);
+  }, [countryName, navigate, toast, user]); // Removed onGroupModeChange from dependencies
 
   const handleGroupModeChange = (mode: boolean) => {
     // Prevent re-renders if the mode hasn't changed
