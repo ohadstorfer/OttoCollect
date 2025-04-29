@@ -1,3 +1,4 @@
+
 import { BanknoteCondition, UserRank } from '@/types';
 
 // Fix the UserRank point values by using a partial record
@@ -26,7 +27,7 @@ export const BANKNOTE_CONDITIONS: Record<BanknoteCondition, string> = {
   'Poor': 'Poor'
 };
 
-// Add the missing MOCK_BANKNOTES constant if it's needed
+// Add the MOCK_BANKNOTES constant
 export const MOCK_BANKNOTES = [
   {
     id: '1',
@@ -65,6 +66,7 @@ export const MOCK_USERS = [
     points: 1250,
     createdAt: '2023-01-15T12:00:00Z',
     updatedAt: '2023-03-10T14:30:00Z',
+    role_id: 'role-1'
   },
   {
     id: 'user-2',
@@ -78,6 +80,7 @@ export const MOCK_USERS = [
     points: 150,
     createdAt: '2023-02-01T08:00:00Z',
     updatedAt: '2023-04-05T10:15:00Z',
+    role_id: 'role-2'
   },
   {
     id: 'user-3',
@@ -91,6 +94,7 @@ export const MOCK_USERS = [
     points: 9999,
     createdAt: '2022-11-20T10:00:00Z',
     updatedAt: '2023-04-20T16:45:00Z',
+    role_id: 'role-3'
   },
 ];
 

@@ -58,6 +58,7 @@ export * from './message';
 export * from './forum';
 export * from './filter';
 export * from './wishlist';
+export * from './marketplace';
 
 // Add CountryData type
 export interface CountryData {
@@ -68,4 +69,12 @@ export interface CountryData {
   banknoteCount?: number;
   created_at?: string;
   updated_at?: string;
+}
+
+// Add MOCK_BANKNOTES constant to lib/constants.ts
+export interface CurrencyWithDisplayOrder {
+  id: string;
+  name: string;
+  country_id?: string;
+  display_order: number;
 }
