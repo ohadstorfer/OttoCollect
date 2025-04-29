@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailedBanknote } from "@/types";
@@ -40,7 +41,8 @@ const CountryDetail = () => {
     categories: [],
     types: [],
     sort: ["extPick"],
-    country_id: ""
+    country_id: "",
+    group_mode: false
   });
 
   useEffect(() => {
@@ -220,11 +222,21 @@ const CountryDetail = () => {
   }, [sortedBanknotes, filters.sort, categoryOrder]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters,
-      country_id: countryId || prev.country_id
-    }));
+    setFilters(prev => {
+      // Track if group mode has changed
+      const hasGroupModeChanged = newFilters.group_mode !== undefined && newFilters.group_mode !== prev.group_mode;
+      
+      // If group mode changed in filters, update the local state
+      if (hasGroupModeChanged) {
+        setGroupMode(newFilters.group_mode!);
+      }
+      
+      return {
+        ...prev,
+        ...newFilters,
+        country_id: countryId || prev.country_id
+      };
+    });
   }, [countryId]);
 
   const handleBack = () => {
@@ -236,11 +248,17 @@ const CountryDetail = () => {
   };
   
   const handleGroupModeChange = (mode: boolean) => {
+    console.log("Setting group mode to:", mode);
     setGroupMode(mode);
+    
+    // Also update filters to include group_mode
+    handleFilterChange({
+      group_mode: mode
+    });
   };
 
   return (
-    <div className="w-full px-2 sm:px-6 py-8">
+    <div className="w-full overflow-x-hidden px-2 sm:px-6 py-8">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" onClick={handleBack} className="p-2">
           <ArrowLeft className="h-5 w-5" />
@@ -248,7 +266,7 @@ const CountryDetail = () => {
         <h1 className="text-3xl font-bold">{decodedCountryName} Banknotes</h1>
       </div>
 
-      <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
+      <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto overflow-hidden">
         {countryId && (
           <BanknoteFilterCatalog
             countryId={countryId}
@@ -261,7 +279,7 @@ const CountryDetail = () => {
           />
         )}
 
-        <div className="mt-6">
+        <div className="mt-6 overflow-hidden">
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
