@@ -1,16 +1,24 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { DetailedBanknote, CollectionItem, BanknoteDetailCardProps } from "@/types";
+import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
 
-const BanknoteDetailCard = ({ banknote, source = 'catalog', viewMode = 'grid' }: BanknoteDetailCardProps) => {
+interface BanknoteDetailCardProps {
+  banknote: DetailedBanknote;
+  collectionItem?: CollectionItem;
+  source?: 'catalog' | 'collection' | 'missing';
+  ownerId?: string;
+  // viewMode?: 'grid' | 'list';
+}
+
+const BanknoteDetailCard = ({ banknote, source = 'catalog' }: BanknoteDetailCardProps) => {
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const handleCardClick = () => {
     if (source === 'catalog') {

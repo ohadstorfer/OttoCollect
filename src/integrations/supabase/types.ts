@@ -888,7 +888,6 @@ export type Database = {
         Row: {
           country_id: string
           created_at: string
-          group_mode: boolean
           id: string
           selected_categories: string[] | null
           selected_sort_options: string[] | null
@@ -899,7 +898,6 @@ export type Database = {
         Insert: {
           country_id: string
           created_at?: string
-          group_mode?: boolean
           id?: string
           selected_categories?: string[] | null
           selected_sort_options?: string[] | null
@@ -910,7 +908,6 @@ export type Database = {
         Update: {
           country_id?: string
           created_at?: string
-          group_mode?: boolean
           id?: string
           selected_categories?: string[] | null
           selected_sort_options?: string[] | null

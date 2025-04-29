@@ -1,50 +1,73 @@
 
-// Add this to your DetailedBanknote interface or extend it
-export interface DetailedBanknote {
+// Remove duplicate isRead declaration and consolidate
+export interface Message {
   id: string;
-  country: string;
-  denomination: string;
-  imageUrls?: string[];
-  year?: string;
-  pickNumber?: string;
-  extendedPickNumber?: string;
-  extended_pick_number?: string; // Legacy property
-  turkCatalogNumber?: string;
-  rarity?: string;
-  sultanName?: string;
-  sealNames?: string;
-  category?: string;
-  type?: string;
-  catalogId?: string;
-  isPending?: boolean;
-  isApproved?: boolean;
-  faceValue?: string;
-  face_value?: string; // Legacy property
-  createdAt?: string;
-  created_at?: string; // Legacy property
-  updatedAt?: string;
-  updated_at?: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+  isRead: boolean;
+  reference_item_id?: string;
   
-  // Additional properties for catalog details
-  islamicYear?: string;
-  islamic_year?: string;
-  gregorianYear?: string;
-  gregorian_year?: string;
-  signaturesFront?: string;
-  signatures_front?: string;
-  signaturesBack?: string;
-  signatures_back?: string;
-  printer?: string;
-  colors?: string;
-  serialNumbering?: string;
-  serial_numbering?: string;
-  securityElement?: string;
-  security_element?: string;
-  banknoteDescription?: string;
-  banknote_description?: string;
-  historicalDescription?: string;
-  historical_description?: string;
+  // Alias properties for compatibility
+  senderId?: string;
+  receiverId?: string;
+  createdAt?: string;
 }
+
+export interface Role {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+// Add explicit UserRank type
+export type UserRank = 
+  | 'Newbie' 
+  | 'Bronze' 
+  | 'Silver' 
+  | 'Gold' 
+  | 'Platinum' 
+  | 'Super Collector'
+  | 'Beginner Collector'
+  | 'Casual Collector'
+  | 'Known Collector'
+  | 'Advance Collector'
+  | 'Expert'
+  | 'Master'
+  | 'Grandmaster'
+  | 'Admin'
+  | 'Super Admin';
+
+// Update UserRole type to allow any string since roles are now dynamic
+export type UserRole = string;
+
+// Add interface for country admin assignment
+export interface CountryAdminAssignment {
+  id: string;
+  user_id: string;
+  country_id: string;
+  created_at: string;
+}
+
+// User related interfaces
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  avatarUrl?: string;
+  about?: string;
+  country?: string;
+  role_id: string;
+  role: UserRole;
+  rank: UserRank;
+  points: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// Banknote related interfaces
+export type BanknoteCondition = 'UNC' | 'AU' | 'XF' | 'VF' | 'F' | 'VG' | 'G' | 'Fair' | 'Poor';
 
 export interface Banknote {
   id: string;
@@ -61,100 +84,46 @@ export interface Banknote {
   isPending: boolean;
   createdAt: string;
   updatedAt: string;
-  createdBy: string;
+  createdBy?: string;
+  type?: string; // Adding type for compatibility
+  sultanName?: string; // Adding sultanName for compatibility
+  extendedPickNumber?: string; // Adding extended pick number for compatibility
 }
 
-export interface CollectionItem {
-  id: string;
-  userId: string;
-  banknoteId: string;
-  banknote: DetailedBanknote;
-  condition: BanknoteCondition;
-  purchaseDate?: string;
-  purchasePrice?: number;
-  salePrice?: number;
-  isForSale: boolean;
-  publicNote?: string;
-  privateNote?: string;
-  location?: string;
-  obverseImage?: string;
-  reverseImage?: string;
-  createdAt: string;
-  updatedAt: string;
-  orderIndex?: number;
+export interface DetailedBanknote extends Banknote {
+  pickNumber?: string;
+  turkCatalogNumber?: string;
+  sultanName?: string;
+  sealNames?: string;
+  rarity?: string;
+  printer?: string;
+  type?: string;
+  category?: string;
+  securityFeatures?: string[];
+  watermark?: string;
+  signatures?: string[];
+  colors?: string[];
+  gradeCounts?: Record<BanknoteCondition, number>;
+  averagePrice?: number;
+  islamicYear?: string;
+  gregorianYear?: string;
+  banknoteDescription?: string;
+  historicalDescription?: string;
+  serialNumbering?: string;
+  securityElement?: string;
+  signaturesFront?: string;
+  signaturesBack?: string;
+  extendedPickNumber?: string;
 }
 
-export type BanknoteCondition = 
-  | 'UNC' 
-  | 'AU' 
-  | 'XF' 
-  | 'VF' 
-  | 'F' 
-  | 'VG' 
-  | 'G' 
-  | 'Fair' 
-  | 'Poor';
+export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
 
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  avatarUrl?: string;
-  about?: string;
-  country?: string;
-  role: string;
-  role_id?: string;
-  rank: UserRank;
-  points: number;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export type UserRank = 
-  | 'Newbie'
-  | 'Beginner Collector'
-  | 'Casual Collector'
-  | 'Known Collector'
-  | 'Advance Collector'
-  | 'Expert'
-  | 'Master'
-  | 'Admin'
-  | 'Super Admin';
-
-export type UserRole = 
-  | 'User'
-  | 'Admin'
-  | 'Super Admin'
-  | 'Country Admin';
-
-export interface Role {
-  id: string;
-  name: string;
-  is_country_admin?: boolean;
-  created_at?: string;
-}
-
-export interface CountryData {
-  id: string;
-  name: string;
-  description?: string;
-  image_url?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface MarketplaceItem {
-  id: string;
-  sellerId: string;
-  banknoteId: string;
-  collectionItemId: string;
-  banknote: DetailedBanknote;
-  seller: User;
-  price: number;
-  condition: BanknoteCondition;
-  status: 'Available' | 'Sold' | 'Reserved';
-  createdAt: string;
-  updatedAt: string;
+export interface BanknoteFilters {
+  country_id?: string;
+  search?: string;
+  categories?: string[];
+  types?: string[];
+  sort?: string[];
 }
 
 export interface BanknoteFilterState {
@@ -163,12 +132,53 @@ export interface BanknoteFilterState {
   types: string[];
   sort: string[];
   country_id?: string;
-  group_mode?: boolean;
 }
 
-// Re-export types from other files
-export * from './banknote.d';
+// Collection related interfaces
+export interface CollectionItem {
+  id: string;
+  userId: string;
+  banknoteId: string;
+  banknote: Banknote;
+  condition: BanknoteCondition;
+  purchasePrice?: number;
+  purchaseDate?: string;
+  location?: string;
+  obverseImage?: string;
+  reverseImage?: string;
+  personalImages?: string[];
+  publicNote?: string;
+  privateNote?: string;
+  isForSale: boolean;
+  salePrice?: number;
+  orderIndex?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Marketplace related interfaces
+export interface MarketplaceItem {
+  id: string;
+  collectionItem: CollectionItem;
+  sellerId: string;
+  seller: User;
+  status: 'Available' | 'Reserved' | 'Sold';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Import and re-export types from other files
 export * from './message';
 export * from './forum';
 export * from './filter';
-export * from './admin';
+
+// Add CountryData type if it doesn't exist
+export interface CountryData {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string | null;
+  banknoteCount?: number;
+  created_at?: string;
+  updated_at?: string;
+}

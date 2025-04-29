@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
@@ -41,13 +41,22 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  // Load filter options only once when countryId changes
+  console.log("BanknoteFilterCatalog: Rendering with", { 
+    countryId, 
+    currentFilters,
+    isLoading, 
+    loading,
+    categories: categories.length,
+    types: types.length,
+    sortOptions: sortOptions.length
+  });
+
   useEffect(() => {
     const loadFilterOptionsAndPreferences = async () => {
       if (!countryId) return;
       
+      console.log("BanknoteFilterCatalog: Loading filter options for country:", countryId);
       setLoading(true);
       
       try {
@@ -121,6 +130,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
         if (user) {
           try {
             userPreferences = await fetchUserFilterPreferences(user.id, countryId);
+            console.log("BanknoteFilterCatalog: User preferences loaded", userPreferences);
           } catch (err) {
             console.error("Error fetching user preferences:", err);
           }
@@ -149,25 +159,12 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             new Set([...sortFieldNames, ...requiredSortFields])
           );
           
-          // Update group mode from user preferences if provided
-          const retrievedGroupMode = userPreferences.group_mode !== undefined ? 
-            userPreferences.group_mode : 
-            groupMode;
-            
-          if (onGroupModeChange && retrievedGroupMode !== groupMode) {
-            onGroupModeChange(retrievedGroupMode);
-          }
-          
-          // Only update filters if this is the first load
-          if (!initialLoadComplete) {
-            onFilterChange({
-              categories: userPreferences.selected_categories,
-              types: userPreferences.selected_types,
-              sort: finalSortFields,
-              country_id: countryId,
-              group_mode: retrievedGroupMode
-            });
-          }
+          onFilterChange({
+            categories: userPreferences.selected_categories,
+            types: userPreferences.selected_types,
+            sort: finalSortFields,
+            country_id: countryId
+          });
         } else {
           // Set default filters if no user preferences are found
           const defaultCategoryIds = mappedCategories.map(cat => cat.id);
@@ -178,19 +175,13 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
           // For new users, default to sorting by extPick only since it comes pre-sorted from the DB
           const defaultSort = ['extPick']; // Remove faceValue from default sort
           
-          // Only update filters if this is the first load
-          if (!initialLoadComplete) {
-            onFilterChange({
-              categories: defaultCategoryIds,
-              types: defaultTypeIds,
-              sort: defaultSort,
-              country_id: countryId,
-              group_mode: groupMode
-            });
-          }
+          onFilterChange({
+            categories: defaultCategoryIds,
+            types: defaultTypeIds,
+            sort: defaultSort,
+            country_id: countryId
+          });
         }
-        
-        setInitialLoadComplete(true);
       } catch (error) {
         console.error("Error loading filter options:", error);
         toast({
@@ -204,9 +195,9 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     };
 
     loadFilterOptionsAndPreferences();
-  }, [countryId, user, toast, onFilterChange, groupMode, onGroupModeChange]);
+  }, [countryId, user, onFilterChange, toast]);
 
-  const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+  const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
       // Get only the required sort fields that must be included
       const requiredSortFields = sortOptions
@@ -227,17 +218,17 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
       });
     }
     
-    // Add country_id to filters and ensure group_mode is included
+    // Add country_id to filters
     const filtersWithCountryId = {
       ...newFilters,
-      country_id: countryId,
-      group_mode: newFilters.group_mode !== undefined ? newFilters.group_mode : groupMode
+      country_id: countryId
     };
 
     // Save user preferences automatically with each change
     if (user?.id) {
+      console.log("BanknoteFilterCatalog: Auto-saving filter preferences");
       const sortOptionIds = filtersWithCountryId.sort
-        ?.map(fieldName => {
+        .map(fieldName => {
           const option = sortOptions.find(opt => opt.fieldName === fieldName);
           return option ? option.id : null;
         })
@@ -248,33 +239,27 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
         countryId,
         filtersWithCountryId.categories || [],
         filtersWithCountryId.types || [],
-        sortOptionIds || [],
-        filtersWithCountryId.group_mode || false
+        sortOptionIds
       ).catch(error => {
         console.error("Error saving filter preferences:", error);
       });
     }
     
     onFilterChange(filtersWithCountryId);
-  }, [countryId, groupMode, onFilterChange, sortOptions, user]);
+  };
   
-  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
     if (onViewModeChange) {
       onViewModeChange(mode);
     }
-  }, [onViewModeChange]);
+  };
   
-  const handleGroupModeChange = useCallback((mode: boolean) => {
+  const handleGroupModeChange = (mode: boolean) => {
     if (onGroupModeChange) {
       onGroupModeChange(mode);
-      
-      // Also update filters to include group_mode
-      handleFilterChange({
-        group_mode: mode
-      });
     }
-  }, [onGroupModeChange, handleFilterChange]);
+  };
 
   return (
     <div className={cn(

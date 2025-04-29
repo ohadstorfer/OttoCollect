@@ -1,4 +1,3 @@
-
 import { DetailedBanknote } from "@/types";
 
 interface BanknoteGroup {
@@ -157,22 +156,4 @@ export const getMixedBanknoteItems = (banknotes: DetailedBanknote[]): MixedBankn
   }
   
   return mixedItems;
-};
-
-/**
- * Returns a structure of sultan groups, each containing mixed banknote items (singles and groups)
- * This allows for both sultan grouping and pick number grouping at the same time
- */
-export const getMixedBanknoteItemsBySultan = (
-  sultanGroups: { sultan: string; items: DetailedBanknote[] }[]
-): { sultan: string; mixedItems: MixedBanknoteItem[] }[] => {
-  return sultanGroups.map(sultanGroup => {
-    // For each sultan group, create mixed items (singles and groups)
-    const mixedItems = getMixedBanknoteItems(sultanGroup.items);
-    
-    return {
-      sultan: sultanGroup.sultan,
-      mixedItems
-    };
-  });
 };

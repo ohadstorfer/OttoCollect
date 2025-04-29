@@ -6,12 +6,7 @@ import { BanknoteCardGroup } from './BanknoteCardGroup';
 import { BanknoteGroupDialog } from './BanknoteGroupDialog';
 import { cn } from '@/lib/utils';
 import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
-import { 
-  BanknoteGroupData, 
-  getMixedBanknoteItems, 
-  MixedBanknoteItem, 
-  getMixedBanknoteItemsBySultan 
-} from '@/utils/banknoteGrouping';
+import { BanknoteGroupData, getMixedBanknoteItems, MixedBanknoteItem } from '@/utils/banknoteGrouping';
 
 interface BanknoteGroupsProps {
   groups: {
@@ -57,7 +52,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
 
           <div className="space-y-6">
             {showSultanGroups && group.sultanGroups && !groupMode ? (
-              // Sultan groups - original display without grouping
+              // Sultan groups - original display
               group.sultanGroups.map((sultanGroup, sultanIndex) => (
                 <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
                   <div className="sticky top-[200px] sm:top-[150px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto -mx-6 md:mx-0 px-6 md:px-0">
@@ -82,51 +77,8 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                   </div>
                 </div>
               ))
-            ) : showSultanGroups && group.sultanGroups && groupMode ? (
-              // Sultan groups WITH grouping (new mode combining both)
-              (() => {
-                // Get sultan groups with mixed items (singles and groups)
-                const sultanMixedItems = getMixedBanknoteItemsBySultan(group.sultanGroups);
-                
-                return sultanMixedItems.map((sultanGroup, sultanIndex) => (
-                  <div key={`sultan-group-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
-                    <div className="sticky top-[200px] sm:top-[150px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto -mx-6 md:mx-0 px-6 md:px-0">
-                      <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
-                        {sultanGroup.sultan}
-                      </h3>
-                    </div>
-                    <div className={cn(
-                      viewMode === 'grid'
-                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
-                        : "flex flex-col space-y-2",
-                      "px-2 sm:px-0"
-                    )}>
-                      {sultanGroup.mixedItems.map((item, itemIndex) => {
-                        if (item.type === 'single') {
-                          return (
-                            <BanknoteDetailCard
-                              key={`single-${group.category}-${sultanGroup.sultan}-${item.banknote.id || itemIndex}`}
-                              banknote={item.banknote}
-                              source="catalog"
-                              viewMode={viewMode}
-                            />
-                          );
-                        } else {
-                          return (
-                            <BanknoteCardGroup
-                              key={`group-${group.category}-${sultanGroup.sultan}-${item.group.baseNumber}`}
-                              group={item.group}
-                              onClick={handleGroupClick}
-                            />
-                          );
-                        }
-                      })}
-                    </div>
-                  </div>
-                ));
-              })()
             ) : (
-              // Normal display (no sultan groups) or group mode without sultan sorting
+              // Normal or grouped display
               <div className={cn(
                 viewMode === 'grid'
                   ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
@@ -134,7 +86,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                 "px-2 sm:px-0"
               )}>
                 {groupMode ? (
-                  // Group mode display using the getMixedBanknoteItems function
+                  // Group mode display using the new getMixedBanknoteItems function
                   (() => {
                     const mixedItems = getMixedBanknoteItems(group.items);
                     

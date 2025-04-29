@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailedBanknote } from "@/types";
@@ -41,10 +40,8 @@ const CountryDetail = () => {
     categories: [],
     types: [],
     sort: ["extPick"],
-    country_id: "",
-    group_mode: false
+    country_id: ""
   });
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,14 +77,10 @@ const CountryDetail = () => {
 
         console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
-        
-        // Don't update filters until user preferences are loaded
-        if (!initialLoadComplete) {
-          setFilters(prev => ({
-            ...prev,
-            country_id: countryData.id
-          }));
-        }
+        setFilters(prev => ({
+          ...prev,
+          country_id: countryData.id
+        }));
 
         const categories = await fetchCategoriesByCountryId(countryData.id);
         const orderMap = categories.map(cat => ({
@@ -109,8 +102,6 @@ const CountryDetail = () => {
           setCurrencies(currencyRows as CurrencyWithDisplayOrder[]);
           console.log("Loaded currencies:", currencyRows);
         }
-        
-        setInitialLoadComplete(true);
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
         toast({
@@ -126,7 +117,7 @@ const CountryDetail = () => {
 
   useEffect(() => {
     const fetchBanknotesData = async () => {
-      if (!countryId || !initialLoadComplete) return;
+      if (!countryId) return;
 
       console.log("CountryDetail: Fetching banknotes with filters", { countryId, filters });
       setLoading(true);
@@ -156,17 +147,17 @@ const CountryDetail = () => {
     };
 
     fetchBanknotesData();
-  }, [countryId, filters, toast, initialLoadComplete]);
+  }, [countryId, filters, toast]);
 
   const sortedBanknotes = useBanknoteSorting({
     banknotes,
-    currencies: currencies as any,
-    sortFields: filters.sort || []
+    currencies,
+    sortFields: filters.sort
   });
 
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
-    const showSultanGroups = filters.sort?.includes('sultan');
+    const showSultanGroups = filters.sort.includes('sultan');
   
     const sultanOrder = [
       "AbdulMecid",
@@ -229,22 +220,11 @@ const CountryDetail = () => {
   }, [sortedBanknotes, filters.sort, categoryOrder]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    console.log("CountryDetail: Filter change", newFilters);
-    setFilters(prev => {
-      // Track if group mode has changed
-      const hasGroupModeChanged = newFilters.group_mode !== undefined && newFilters.group_mode !== prev.group_mode;
-      
-      // If group mode changed in filters, update the local state
-      if (hasGroupModeChanged) {
-        setGroupMode(newFilters.group_mode!);
-      }
-      
-      return {
-        ...prev,
-        ...newFilters,
-        country_id: countryId || prev.country_id
-      };
-    });
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters,
+      country_id: countryId || prev.country_id
+    }));
   }, [countryId]);
 
   const handleBack = () => {
@@ -255,18 +235,12 @@ const CountryDetail = () => {
     setViewMode(mode);
   };
   
-  const handleGroupModeChange = useCallback((mode: boolean) => {
-    console.log("Setting group mode to:", mode);
+  const handleGroupModeChange = (mode: boolean) => {
     setGroupMode(mode);
-    
-    // Also update filters to include group_mode
-    handleFilterChange({
-      group_mode: mode
-    });
-  }, [handleFilterChange]);
+  };
 
   return (
-    <div className="w-full overflow-x-hidden px-2 sm:px-6 py-8">
+    <div className="w-full px-2 sm:px-6 py-8">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" onClick={handleBack} className="p-2">
           <ArrowLeft className="h-5 w-5" />
@@ -274,7 +248,7 @@ const CountryDetail = () => {
         <h1 className="text-3xl font-bold">{decodedCountryName} Banknotes</h1>
       </div>
 
-      <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto overflow-hidden">
+      <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
         {countryId && (
           <BanknoteFilterCatalog
             countryId={countryId}
@@ -287,7 +261,7 @@ const CountryDetail = () => {
           />
         )}
 
-        <div className="mt-6 overflow-hidden">
+        <div className="mt-6">
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
@@ -300,7 +274,7 @@ const CountryDetail = () => {
           ) : (
             <BanknoteGroups
               groups={groupedItems}
-              showSultanGroups={filters.sort?.includes('sultan') || false}
+              showSultanGroups={filters.sort.includes('sultan')}
               viewMode={viewMode}
               countryId={countryId}
               isLoading={loading}

@@ -22,16 +22,16 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
   className,
 }) => {
   const { baseNumber, items, count } = group;
-  
+
   // Use the first banknote for display information
   const firstBanknote = items[0];
   const imageUrl = firstBanknote.imageUrls?.[0] || '';
   const denomination = firstBanknote.denomination || '';
-  
+
   const handleClick = () => {
     if (onClick) onClick(group);
   };
-  
+
   // Generate stack items
   const stackItems = items.slice(0, 4).map((banknote, index) => ({
     id: banknote.id || `stack-item-${index}`,
@@ -40,9 +40,9 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
         <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
-            <div className="flex items-center text-sm ">
-            <LayoutList className="h-4 w-4 mr-1" />
-            <span>{count}</span>
+            <div className="pt-2 pr-1 flex items-center text-sm ">
+              <span>{count}</span>
+              <LayoutList className="h-4 w-4 mr-1" />
             </div>
           </div>
 
@@ -54,38 +54,38 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
             )}
           </div>
 
-          
-          
+
+
 
         </div>
-          
+
         <CardContent className="p-0">
           <div className="w-full">
             {banknote.imageUrls?.[0] ? (
-              <AspectRatio ratio={4/2}>
-                <img 
-                  src={banknote.imageUrls[0]} 
+              <AspectRatio ratio={4 / 2}>
+                <img
+                  src={banknote.imageUrls[0]}
                   alt={`Banknote ${banknote.extendedPickNumber}`}
                   className="w-full h-full object-cover"
                 />
               </AspectRatio>
             ) : (
-              <AspectRatio ratio={4/2}>
-                <img 
-                  src={'/placeholder.svg'} 
+              <AspectRatio ratio={4 / 2}>
+                <img
+                  src={'/placeholder.svg'}
                   className="w-full h-full object-cover"
                 />
               </AspectRatio>
             )}
           </div>
         </CardContent>
-        
+
       </Card>
     ),
   }));
-  
+
   return (
-    <div 
+    <div
       className={cn(
         "group cursor-pointer transition-all flex flex-col",
         className
@@ -93,10 +93,10 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
       onClick={handleClick}
     >
       {/* Added proper height and margin to the container to prevent overflow issues */}
-      
-        <CardStack items={stackItems} offset={6} />
-      
-      
+
+      <CardStack items={stackItems} offset={6} />
+
+
       {/* <div className="bg-card border rounded-md p-3 shadow-sm transition-shadow group-hover:shadow-md mt-auto">
         <div className="flex items-center justify-between mb-1">
           <div className="font-medium text-lg">{baseNumber}</div>
