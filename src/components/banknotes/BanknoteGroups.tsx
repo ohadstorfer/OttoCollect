@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from './BanknoteDetailCard';
@@ -77,6 +76,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                         key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
                         banknote={banknote}
                         source="catalog"
+                        viewMode={viewMode}
                       />
                     ))}
                   </div>
@@ -108,6 +108,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                               key={`single-${group.category}-${sultanGroup.sultan}-${item.banknote.id || itemIndex}`}
                               banknote={item.banknote}
                               source="catalog"
+                              viewMode={viewMode}
                             />
                           );
                         } else {
@@ -144,6 +145,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                             key={`single-${group.category}-${item.banknote.id || index}`}
                             banknote={item.banknote}
                             source="catalog"
+                            viewMode={viewMode}
                           />
                         );
                       } else {
@@ -164,6 +166,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                       key={`banknote-${group.category}-${index}`}
                       banknote={banknote}
                       source="catalog"
+                      viewMode={viewMode}
                     />
                   ))
                 )}
@@ -185,4 +188,3 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
     </div>
   );
 };
-

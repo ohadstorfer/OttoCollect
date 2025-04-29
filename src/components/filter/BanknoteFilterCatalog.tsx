@@ -43,23 +43,11 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  console.log("BanknoteFilterCatalog: Rendering with", { 
-    countryId, 
-    currentFilters,
-    isLoading, 
-    loading,
-    categories: categories.length,
-    types: types.length,
-    sortOptions: sortOptions.length,
-    groupMode
-  });
-
   // Load filter options only once when countryId changes
   useEffect(() => {
     const loadFilterOptionsAndPreferences = async () => {
       if (!countryId) return;
       
-      console.log("BanknoteFilterCatalog: Loading filter options for country:", countryId);
       setLoading(true);
       
       try {
@@ -133,7 +121,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
         if (user) {
           try {
             userPreferences = await fetchUserFilterPreferences(user.id, countryId);
-            console.log("BanknoteFilterCatalog: User preferences loaded", userPreferences);
           } catch (err) {
             console.error("Error fetching user preferences:", err);
           }
@@ -217,7 +204,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     };
 
     loadFilterOptionsAndPreferences();
-  }, [countryId, user, toast, onGroupModeChange]);
+  }, [countryId, user, toast, onFilterChange, groupMode, onGroupModeChange]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
@@ -249,7 +236,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
 
     // Save user preferences automatically with each change
     if (user?.id) {
-      console.log("BanknoteFilterCatalog: Auto-saving filter preferences", filtersWithCountryId);
       const sortOptionIds = filtersWithCountryId.sort
         ?.map(fieldName => {
           const option = sortOptions.find(opt => opt.fieldName === fieldName);

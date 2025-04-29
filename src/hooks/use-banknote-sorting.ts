@@ -43,8 +43,8 @@ export const useBanknoteSorting = ({
 
           case 'faceValue':
             // Extract currency information
-            const valueA = a.denomination || a.face_value || '';
-            const valueB = b.denomination || b.face_value || '';
+            const valueA = a.denomination || a.faceValue || '';
+            const valueB = b.denomination || b.faceValue || '';
             
             // Check for kurush vs lira (kurush comes before lira)
             const isKurushA = String(valueA).toLowerCase().includes('kurush');
@@ -65,16 +65,16 @@ export const useBanknoteSorting = ({
           case 'extPick':
             // Compare by extended pick number
             comparison = 
-              String(a.extendedPickNumber || a.catalogId || a.extended_pick_number || '')
+              String(a.extendedPickNumber || a.catalogId || a.extendedPickNumber || '')
                 .localeCompare(
-                  String(b.extendedPickNumber || b.catalogId || b.extended_pick_number || '')
+                  String(b.extendedPickNumber || b.catalogId || b.extendedPickNumber || '')
                 );
             break;
             
           case 'newest':
             // Compare by creation date if available
-            const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-            const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
             comparison = dateB - dateA; // Newest first
             break;
             

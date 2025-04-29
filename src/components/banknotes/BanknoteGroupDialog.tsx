@@ -51,7 +51,7 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
                   key={`grid-banknote-${banknote.id || index}`}
                   banknote={banknote}
                   source="catalog"
-                  viewMode={viewMode}
+                  viewMode="grid"
                 />
               ))}
             </div>
