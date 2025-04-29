@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
@@ -208,7 +207,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     };
 
     loadFilterOptionsAndPreferences();
-  }, [countryId, user, onFilterChange, toast, onGroupModeChange, groupMode]);
+  }, [countryId, user, onFilterChange, toast, onGroupModeChange]);
 
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
