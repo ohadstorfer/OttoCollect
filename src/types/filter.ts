@@ -1,3 +1,4 @@
+
 export interface Country {
   id: string;
   name: string;
@@ -47,6 +48,7 @@ export interface UserFilterPreference {
   selected_categories: string[];
   selected_types: string[];
   selected_sort_options: string[];
+  group_mode: boolean;
   created_at: string;
   updated_at: string;
 }

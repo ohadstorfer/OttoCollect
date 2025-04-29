@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { BanknoteFilterCatalog } from "@/components/filter/BanknoteFilterCatalog";
 import { DynamicFilterState } from "@/types/filter";
-import { fetchCountryByName, fetchCategoriesByCountryId } from "@/services/countryService";
+import { fetchCountryByName, fetchCategoriesByCountryId, fetchUserFilterPreferences } from "@/services/countryService";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
+import { useAuth } from "@/context/AuthContext";
 
 interface CurrencyWithDisplayOrder {
   id: string;
@@ -26,6 +27,7 @@ const CountryDetail = () => {
   const { country } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const decodedCountryName = decodeURIComponent(country || "");
 
   const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
@@ -102,6 +104,18 @@ const CountryDetail = () => {
           setCurrencies(currencyRows as CurrencyWithDisplayOrder[]);
           console.log("Loaded currencies:", currencyRows);
         }
+        
+        // Load user group mode preference if user is logged in
+        if (user && countryData.id) {
+          try {
+            const userPrefs = await fetchUserFilterPreferences(user.id, countryData.id);
+            if (userPrefs && userPrefs.group_mode !== undefined) {
+              setGroupMode(userPrefs.group_mode);
+            }
+          } catch (error) {
+            console.error("Error loading user preferences:", error);
+          }
+        }
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
         toast({
@@ -113,7 +127,7 @@ const CountryDetail = () => {
     };
 
     loadCountryData();
-  }, [decodedCountryName, navigate, toast]);
+  }, [decodedCountryName, navigate, toast, user]);
 
   useEffect(() => {
     const fetchBanknotesData = async () => {
