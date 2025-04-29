@@ -1,3 +1,4 @@
+
 export interface Country {
   id: string;
   name: string;
@@ -47,6 +48,7 @@ export interface UserFilterPreference {
   selected_categories: string[];
   selected_types: string[];
   selected_sort_options: string[];
+  group_mode: boolean; // Added this field
   created_at: string;
   updated_at: string;
 }
@@ -62,7 +64,7 @@ export interface DynamicFilterState {
   categories: string[];
   types: string[];
   sort: string[];
-  country_id?: string;
+  country_id?: string; // Make sure country_id is included here
 }
 
 export interface FilterableItem {

@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { BanknoteFilterCatalog } from "@/components/filter/BanknoteFilterCatalog";
 import { DynamicFilterState } from "@/types/filter";
-import { fetchCountryByName, fetchCategoriesByCountryId } from "@/services/countryService";
+import { fetchCountryByName, fetchCategoriesByCountryId, fetchUserFilterPreferences } from "@/services/countryService";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
+import { useAuth } from "@/context/AuthContext";
 
 interface CurrencyWithDisplayOrder {
   id: string;
@@ -26,6 +27,7 @@ const CountryDetail = () => {
   const { country } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const decodedCountryName = decodeURIComponent(country || "");
 
   const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
@@ -40,7 +42,6 @@ const CountryDetail = () => {
     categories: [],
     types: [],
     sort: ["extPick"],
-    country_id: ""
   });
 
   useEffect(() => {
@@ -78,8 +79,7 @@ const CountryDetail = () => {
         console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
         setFilters(prev => ({
-          ...prev,
-          country_id: countryData.id
+          ...prev
         }));
 
         const categories = await fetchCategoriesByCountryId(countryData.id);
@@ -102,6 +102,31 @@ const CountryDetail = () => {
           setCurrencies(currencyRows as CurrencyWithDisplayOrder[]);
           console.log("Loaded currencies:", currencyRows);
         }
+
+        // Try to load group mode from user preferences
+        if (user?.id) {
+          try {
+            const preferences = await fetchUserFilterPreferences(user.id, countryData.id);
+            if (preferences && typeof preferences.group_mode === 'boolean') {
+              console.log("CountryDetail: Loaded group mode from preferences:", preferences.group_mode);
+              setGroupMode(preferences.group_mode);
+            }
+          } catch (err) {
+            console.error("Error loading group mode from preferences:", err);
+          }
+        } else {
+          // If no user is logged in, try to load from session storage
+          try {
+            const savedMode = sessionStorage.getItem(`groupMode-${countryData.id}`);
+            if (savedMode !== null) {
+              const parsedMode = JSON.parse(savedMode);
+              console.log("CountryDetail: Loaded group mode from session storage:", parsedMode);
+              setGroupMode(parsedMode);
+            }
+          } catch (err) {
+            console.error("Error loading group mode from session storage:", err);
+          }
+        }
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
         toast({
@@ -113,7 +138,7 @@ const CountryDetail = () => {
     };
 
     loadCountryData();
-  }, [decodedCountryName, navigate, toast]);
+  }, [decodedCountryName, navigate, toast, user]);
 
   useEffect(() => {
     const fetchBanknotesData = async () => {
@@ -222,10 +247,9 @@ const CountryDetail = () => {
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     setFilters(prev => ({
       ...prev,
-      ...newFilters,
-      country_id: countryId || prev.country_id
+      ...newFilters
     }));
-  }, [countryId]);
+  }, []);
 
   const handleBack = () => {
     navigate('/catalog');
@@ -236,7 +260,18 @@ const CountryDetail = () => {
   };
   
   const handleGroupModeChange = (mode: boolean) => {
+    console.log("CountryDetail: Group mode changed to", mode);
     setGroupMode(mode);
+    
+    // Store in session storage as a fallback for non-logged in users
+    // (logged-in users' preferences are saved via BanknoteFilterCatalog)
+    if (!user) {
+      try {
+        sessionStorage.setItem(`groupMode-${countryId}`, JSON.stringify(mode));
+      } catch (e) {
+        console.error("Unable to store group mode in session storage:", e);
+      }
+    }
   };
 
   return (
