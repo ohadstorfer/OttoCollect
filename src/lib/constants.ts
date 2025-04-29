@@ -26,6 +26,32 @@ export const BANKNOTE_CONDITIONS: Record<BanknoteCondition, string> = {
   'Poor': 'Poor'
 };
 
+// Add the missing MOCK_BANKNOTES constant if it's needed
+export const MOCK_BANKNOTES = [
+  {
+    id: '1',
+    country: 'Ottoman Empire',
+    denomination: '5 Kurush',
+    year: '1327 (1909)',
+    imageUrls: ['/images/placeholder-banknote.jpg'],
+    isApproved: true,
+    isPending: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: '2',
+    country: 'Ottoman Empire',
+    denomination: '10 Kurush',
+    year: '1332 (1914)',
+    imageUrls: ['/images/placeholder-banknote.jpg'],
+    isApproved: true,
+    isPending: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+
 export const MOCK_USERS = [
   {
     id: 'user-1',
