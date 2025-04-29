@@ -41,6 +41,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  // Add a ref to track the initial load and avoid the infinite loop
+  const initialLoadComplete = React.useRef(false);
 
   console.log("BanknoteFilterCatalog: Rendering with", { 
     countryId, 
@@ -50,7 +52,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     categories: categories.length,
     types: types.length,
     sortOptions: sortOptions.length,
-    groupMode // Log the current groupMode
+    groupMode
   });
 
   useEffect(() => {
@@ -133,9 +135,16 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             userPreferences = await fetchUserFilterPreferences(user.id, countryId);
             console.log("BanknoteFilterCatalog: User preferences loaded", userPreferences);
             
-            // Set group mode if it's defined in preferences
-            if (userPreferences && typeof userPreferences.group_mode === 'boolean' && onGroupModeChange) {
+            // Set group mode if it's defined in preferences, but only during initial load
+            // FIX: Only update group mode if it's different from current groupMode
+            // and only notify the parent if initialLoadComplete is false (first load only)
+            if (userPreferences && typeof userPreferences.group_mode === 'boolean' && 
+                onGroupModeChange && 
+                userPreferences.group_mode !== groupMode && 
+                !initialLoadComplete.current) {
               onGroupModeChange(userPreferences.group_mode);
+              // Mark initial load as complete to prevent future automatic updates
+              initialLoadComplete.current = true;
             }
           } catch (err) {
             console.error("Error fetching user preferences:", err);
@@ -199,7 +208,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     };
 
     loadFilterOptionsAndPreferences();
-  }, [countryId, user, onFilterChange, toast, onGroupModeChange]);
+  }, [countryId, user, onFilterChange, toast, onGroupModeChange, groupMode]);
 
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {

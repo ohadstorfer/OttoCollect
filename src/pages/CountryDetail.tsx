@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailedBanknote } from "@/types";
@@ -13,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useAuth } from "@/context/AuthContext";
+import { Currency } from "@/types/banknote";
 
 interface CurrencyWithDisplayOrder {
   id: string;
@@ -35,7 +37,7 @@ const CountryDetail = () => {
   const [countryId, setCountryId] = useState<string>("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [groupMode, setGroupMode] = useState(false);
-  const [currencies, setCurrencies] = useState<CurrencyWithDisplayOrder[]>([]);
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [categoryOrder, setCategoryOrder] = useState<{ name: string, order: number }[]>([]);
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
@@ -43,6 +45,9 @@ const CountryDetail = () => {
     types: [],
     sort: ["extPick"],
   });
+  
+  // Add a ref to track if we've loaded preferences already
+  const hasLoadedPreferences = React.useRef(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,7 +96,7 @@ const CountryDetail = () => {
 
         const { data: currencyRows, error: currencyError } = await supabase
           .from("currencies")
-          .select("id, name, display_order")
+          .select("id, name, display_order, country_id")
           .eq("country_id", countryData.id)
           .order("display_order", { ascending: true });
 
@@ -99,22 +104,24 @@ const CountryDetail = () => {
           console.error("Error fetching currencies:", currencyError);
           setCurrencies([]);
         } else if (currencyRows) {
-          setCurrencies(currencyRows as CurrencyWithDisplayOrder[]);
+          // Cast to Currency[] to fix type error
+          setCurrencies(currencyRows as Currency[]);
           console.log("Loaded currencies:", currencyRows);
         }
 
-        // Try to load group mode from user preferences
-        if (user?.id) {
+        // Try to load group mode from user preferences - but only if we haven't loaded it already
+        if (user?.id && !hasLoadedPreferences.current) {
           try {
             const preferences = await fetchUserFilterPreferences(user.id, countryData.id);
             if (preferences && typeof preferences.group_mode === 'boolean') {
               console.log("CountryDetail: Loaded group mode from preferences:", preferences.group_mode);
               setGroupMode(preferences.group_mode);
+              hasLoadedPreferences.current = true;
             }
           } catch (err) {
             console.error("Error loading group mode from preferences:", err);
           }
-        } else {
+        } else if (!user && !hasLoadedPreferences.current) {
           // If no user is logged in, try to load from session storage
           try {
             const savedMode = sessionStorage.getItem(`groupMode-${countryData.id}`);
@@ -122,6 +129,7 @@ const CountryDetail = () => {
               const parsedMode = JSON.parse(savedMode);
               console.log("CountryDetail: Loaded group mode from session storage:", parsedMode);
               setGroupMode(parsedMode);
+              hasLoadedPreferences.current = true;
             }
           } catch (err) {
             console.error("Error loading group mode from session storage:", err);
@@ -140,6 +148,7 @@ const CountryDetail = () => {
     loadCountryData();
   }, [decodedCountryName, navigate, toast, user]);
 
+  // Separate effect to fetch banknotes when filters or countryId change
   useEffect(() => {
     const fetchBanknotesData = async () => {
       if (!countryId) return;
@@ -172,6 +181,8 @@ const CountryDetail = () => {
     };
 
     fetchBanknotesData();
+    // Note: groupMode is NOT included in the dependency array because changing groupMode
+    // should not trigger a refetch of banknotes - it only affects how they are displayed
   }, [countryId, filters, toast]);
 
   const sortedBanknotes = useBanknoteSorting({
