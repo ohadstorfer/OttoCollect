@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
+import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -14,17 +15,27 @@ interface BanknoteDetailCardProps {
   source?: 'catalog' | 'collection' | 'missing';
   ownerId?: string;
   viewMode?: 'grid' | 'list';
+  countryId?: string;
+  fromGroup?: boolean;
 }
 
 const BanknoteDetailCard = ({ 
   banknote, 
   source = 'catalog',
-  viewMode = 'grid'
+  viewMode = 'grid',
+  countryId,
+  fromGroup = false
 }: BanknoteDetailCardProps) => {
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
+  const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   
   const handleCardClick = () => {
+    // Set the navigation flag to know we're coming from a group dialog
+    if (countryId) {
+      setNavigatingToDetail(banknote.id);
+    }
+    
     if (source === 'catalog') {
       navigate(`/catalog-banknote/${banknote.id}`);
     } else if (source === 'collection') {

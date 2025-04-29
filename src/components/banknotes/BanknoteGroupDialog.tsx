@@ -19,6 +19,7 @@ export interface BanknoteGroupDialogProps {
   groupBaseNumber: string;
   banknotes: DetailedBanknote[];
   viewMode?: "grid" | "list";
+  countryId?: string;
 }
 
 export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
@@ -27,6 +28,7 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
   groupBaseNumber,
   banknotes,
   viewMode = "grid",
+  countryId
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -51,6 +53,8 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
               banknote={banknote}
               source="catalog"
               viewMode={viewMode}
+              countryId={countryId}
+              fromGroup={true}
             />
           ))}
         </div>

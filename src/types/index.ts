@@ -79,7 +79,7 @@ export interface Banknote {
   description?: string;
   obverseDescription?: string;
   reverseDescription?: string;
-  imageUrls: string[];
+  imageUrls: string[] | string;  // Allow both array and string to fix TS errors
   isApproved: boolean;
   isPending: boolean;
   createdAt: string;
@@ -143,7 +143,7 @@ export interface CollectionItem {
   banknote: Banknote;
   condition: BanknoteCondition;
   purchasePrice?: number;
-  purchaseDate?: string;
+  purchaseDate?: string | Date;  // Allow both string and Date
   location?: string;
   obverseImage?: string;
   reverseImage?: string;

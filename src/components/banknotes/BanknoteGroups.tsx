@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from './BanknoteDetailCard';
 import { BanknoteCardGroup } from './BanknoteCardGroup';
@@ -7,6 +7,7 @@ import { BanknoteGroupDialog } from './BanknoteGroupDialog';
 import { cn } from '@/lib/utils';
 import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
 import { BanknoteGroupData, getMixedBanknoteItems, MixedBanknoteItem } from '@/utils/banknoteGrouping';
+import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
 
 interface BanknoteGroupsProps {
   groups: {
@@ -32,14 +33,78 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
   const [selectedGroup, setSelectedGroup] = useState<BanknoteGroupData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  
+  const {
+    dialogState,
+    saveDialogState,
+    isReturningFromDetail,
+    clearReturningFlag
+  } = useBanknoteDialogState(countryId);
+
+  // Effect to handle dialog restoration when returning from detail view
+  useEffect(() => {
+    if (!isLoading && isReturningFromDetail() && dialogState && !dialogOpen) {
+      // Find the group that matches the stored state
+      const storedBaseNumber = dialogState.baseNumber;
+      let foundGroup: BanknoteGroupData | null = null;
+      
+      // Search through all categories and groups
+      for (const category of groups) {
+        if (groupMode) {
+          // In group mode, we need to check mixed items
+          const mixedItems = getMixedBanknoteItems(category.items);
+          for (const item of mixedItems) {
+            if (item.type === 'group' && item.group.baseNumber === storedBaseNumber) {
+              foundGroup = item.group;
+              break;
+            }
+          }
+        } else {
+          // In regular mode, just find matching banknotes
+          const matchingBanknotes = category.items.filter(banknote => 
+            dialogState.itemIds.includes(banknote.id)
+          );
+          
+          if (matchingBanknotes.length > 0) {
+            foundGroup = {
+              baseNumber: storedBaseNumber,
+              items: matchingBanknotes,
+              count: matchingBanknotes.length
+            };
+            break;
+          }
+        }
+        
+        if (foundGroup) break;
+      }
+      
+      if (foundGroup) {
+        setSelectedGroup(foundGroup);
+        setDialogOpen(true);
+      }
+      
+      // Clear the returning flag to prevent reopening on subsequent renders
+      clearReturningFlag();
+    }
+  }, [groups, isLoading, isReturningFromDetail, dialogState, dialogOpen, groupMode, clearReturningFlag]);
 
   const handleGroupClick = (group: BanknoteGroupData) => {
     setSelectedGroup(group);
     setDialogOpen(true);
+    
+    // Save the dialog state
+    saveDialogState({
+      isOpen: true,
+      baseNumber: group.baseNumber,
+      itemIds: group.items.map(item => item.id),
+      countryId,
+      viewMode
+    });
   };
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
+    saveDialogState(null); // Clear dialog state when closed
   };
 
   return (
@@ -72,6 +137,8 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                         banknote={banknote}
                         source="catalog"
                         viewMode={viewMode}
+                        countryId={countryId}
+                        fromGroup={false}
                       />
                     ))}
                   </div>
@@ -98,6 +165,8 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                             banknote={item.banknote}
                             source="catalog"
                             viewMode={viewMode}
+                            countryId={countryId}
+                            fromGroup={false}
                           />
                         );
                       } else {
@@ -119,6 +188,8 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                       banknote={banknote}
                       source="catalog"
                       viewMode={viewMode}
+                      countryId={countryId}
+                      fromGroup={false}
                     />
                   ))
                 )}
@@ -135,6 +206,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
           groupBaseNumber={selectedGroup.baseNumber}
           banknotes={selectedGroup.items}
           viewMode={viewMode}
+          countryId={countryId}
         />
       )}
     </div>
