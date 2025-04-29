@@ -79,7 +79,7 @@ export interface Banknote {
   description?: string;
   obverseDescription?: string;
   reverseDescription?: string;
-  imageUrls: string[] | string;  // Allow both array and string to fix TS errors
+  imageUrls: string[];  // Change to string[] to fix TypeScript errors
   isApproved: boolean;
   isPending: boolean;
   createdAt: string;

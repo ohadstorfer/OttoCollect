@@ -6,7 +6,7 @@ import { BanknoteCardGroup } from './BanknoteCardGroup';
 import { BanknoteGroupDialog } from './BanknoteGroupDialog';
 import { cn } from '@/lib/utils';
 import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
-import { BanknoteGroupData, getMixedBanknoteItems, MixedBanknoteItem } from '@/utils/banknoteGrouping';
+import { BanknoteGroupData, getMixedBanknoteItems, getMixedBanknoteItemsBySultan, MixedBanknoteItem } from '@/utils/banknoteGrouping';
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
 
 interface BanknoteGroupsProps {
@@ -116,9 +116,9 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
           </div>
 
           <div className="space-y-6">
-            {showSultanGroups && group.sultanGroups && !groupMode ? (
-              // Sultan groups - original display
-              group.sultanGroups.map((sultanGroup, sultanIndex) => (
+            {showSultanGroups ? (
+              // Sultan groups display (either regular or with nested grouping)
+              group.sultanGroups?.map((sultanGroup, sultanIndex) => (
                 <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
                   <div className="sticky top-[200px] sm:top-[150px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto -mx-6 md:mx-0 px-6 md:px-0">
                     <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
@@ -131,21 +131,52 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                       : "flex flex-col space-y-2",
                     "px-2 sm:px-0"
                   )}>
-                    {sultanGroup.items.map((banknote, index) => (
-                      <BanknoteDetailCard
-                        key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
-                        banknote={banknote}
-                        source="catalog"
-                        viewMode={viewMode}
-                        countryId={countryId}
-                        fromGroup={false}
-                      />
-                    ))}
+                    {groupMode ? (
+                      // Combined mode: sultan groups + banknote groups
+                      (() => {
+                        const mixedItems = getMixedBanknoteItems(sultanGroup.items);
+                        
+                        return mixedItems.map((item, index) => {
+                          if (item.type === 'single') {
+                            return (
+                              <BanknoteDetailCard
+                                key={`single-${sultanGroup.sultan}-${item.banknote.id || index}`}
+                                banknote={item.banknote}
+                                source="catalog"
+                                viewMode={viewMode}
+                                countryId={countryId}
+                                fromGroup={false}
+                              />
+                            );
+                          } else {
+                            return (
+                              <BanknoteCardGroup
+                                key={`group-${sultanGroup.sultan}-${item.group.baseNumber}`}
+                                group={item.group}
+                                onClick={handleGroupClick}
+                              />
+                            );
+                          }
+                        });
+                      })()
+                    ) : (
+                      // Regular sultan display without banknote grouping
+                      sultanGroup.items.map((banknote, index) => (
+                        <BanknoteDetailCard
+                          key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                          banknote={banknote}
+                          source="catalog"
+                          viewMode={viewMode}
+                          countryId={countryId}
+                          fromGroup={false}
+                        />
+                      ))
+                    )}
                   </div>
                 </div>
               ))
             ) : (
-              // Normal or grouped display
+              // Normal or grouped display (no sultan grouping)
               <div className={cn(
                 viewMode === 'grid'
                   ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
@@ -153,7 +184,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                 "px-2 sm:px-0"
               )}>
                 {groupMode ? (
-                  // Group mode display using the new getMixedBanknoteItems function
+                  // Group mode display using the getMixedBanknoteItems function
                   (() => {
                     const mixedItems = getMixedBanknoteItems(group.items);
                     

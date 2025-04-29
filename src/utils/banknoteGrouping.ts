@@ -1,3 +1,4 @@
+
 import { DetailedBanknote } from "@/types";
 
 interface BanknoteGroup {
@@ -156,4 +157,41 @@ export const getMixedBanknoteItems = (banknotes: DetailedBanknote[]): MixedBankn
   }
   
   return mixedItems;
+};
+
+/**
+ * Returns an array of sultan groups, each containing mixed single and group items.
+ * This function combines both sultan grouping and banknote grouping by extended pick number.
+ */
+export const getMixedBanknoteItemsBySultan = (
+  banknotes: DetailedBanknote[]
+): { sultan: string; items: MixedBanknoteItem[] }[] => {
+  // First, group banknotes by sultan
+  const sultanMap = new Map<string, DetailedBanknote[]>();
+  
+  banknotes.forEach(banknote => {
+    const sultan = banknote.sultanName || 'Unknown';
+    if (!sultanMap.has(sultan)) {
+      sultanMap.set(sultan, []);
+    }
+    sultanMap.get(sultan)?.push(banknote);
+  });
+  
+  // Then, for each sultan group, apply the getMixedBanknoteItems function
+  const result: { sultan: string; items: MixedBanknoteItem[] }[] = [];
+  
+  sultanMap.forEach((sultanBanknotes, sultan) => {
+    // Get mixed items for this sultan's banknotes
+    const mixedItems = getMixedBanknoteItems(sultanBanknotes);
+    
+    result.push({
+      sultan,
+      items: mixedItems
+    });
+  });
+  
+  // Sort by sultan name
+  result.sort((a, b) => a.sultan.localeCompare(b.sultan));
+  
+  return result;
 };

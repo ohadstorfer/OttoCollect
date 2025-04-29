@@ -20,6 +20,7 @@ export interface BanknoteGroupDialogProps {
   banknotes: DetailedBanknote[];
   viewMode?: "grid" | "list";
   countryId?: string;
+  sultanName?: string;
 }
 
 export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
@@ -28,13 +29,24 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
   groupBaseNumber,
   banknotes,
   viewMode = "grid",
-  countryId
+  countryId,
+  sultanName
 }) => {
+  // Get sultan name from first banknote if not provided
+  const displaySultan = sultanName || banknotes[0]?.sultanName;
+  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-5xl w-[90vw] max-h-[85vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle>Banknote Group: {groupBaseNumber}</DialogTitle>
+          <div className="flex flex-col">
+            <DialogTitle>Banknote Group: {groupBaseNumber}</DialogTitle>
+            {displaySultan && (
+              <div className="text-sm text-muted-foreground mt-1">
+                Sultan: {displaySultan}
+              </div>
+            )}
+          </div>
           <DialogClose asChild>
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
               <X className="h-4 w-4" />

@@ -45,9 +45,19 @@ const BanknoteDetailCard = ({
     }
   };
 
-  const displayImage = banknote.imageUrls && banknote.imageUrls.length > 0
-    ? banknote.imageUrls[0]
-    : '/placeholder.svg';
+  // Ensure we have a valid imageUrl
+  const getDisplayImage = () => {
+    if (!banknote.imageUrls) return '/placeholder.svg';
+    if (Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 0) {
+      return banknote.imageUrls[0] || '/placeholder.svg';
+    }
+    if (typeof banknote.imageUrls === 'string') {
+      return banknote.imageUrls || '/placeholder.svg';
+    }
+    return '/placeholder.svg';
+  };
+
+  const displayImage = getDisplayImage();
 
   if (viewMode === 'list') {
     return (
