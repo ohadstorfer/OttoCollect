@@ -1,24 +1,19 @@
 
-import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import BanknoteDetailCard from "./BanknoteDetailCard";
-import { DetailedBanknote } from "@/types";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { DetailedBanknote } from '@/types';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import BanknoteDetailCard from './BanknoteDetailCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export interface BanknoteGroupDialogProps {
+interface BanknoteGroupDialogProps {
   isOpen: boolean;
   onClose: () => void;
   groupBaseNumber: string;
   banknotes: DetailedBanknote[];
-  viewMode?: "grid" | "list";
+  viewMode?: 'grid' | 'list';
 }
 
 export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
@@ -26,34 +21,55 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
   onClose,
   groupBaseNumber,
   banknotes,
-  viewMode = "grid",
+  viewMode = 'grid'
 }) => {
+  // Display the banknotes grouped by the base pick number
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl w-[90vw] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle>Banknote Group: {groupBaseNumber}</DialogTitle>
+          <DialogTitle className="text-lg font-bold">
+            Banknote Group: <span className="text-primary">{groupBaseNumber}</span>
+          </DialogTitle>
           <DialogClose asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
           </DialogClose>
         </DialogHeader>
-        
-        <div className={cn(
-          viewMode === "grid"
-            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
-            : "flex flex-col space-y-4"
-        )}>
-          {banknotes.map((banknote) => (
-            <BanknoteDetailCard
-              key={banknote.id}
-              banknote={banknote}
-              source="catalog"
-              viewMode={viewMode}
-            />
-          ))}
-        </div>
+
+        <Tabs defaultValue="grid" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="grid">Grid View</TabsTrigger>
+            <TabsTrigger value="list">List View</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="grid">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {banknotes.map((banknote, index) => (
+                <BanknoteDetailCard
+                  key={`grid-banknote-${banknote.id || index}`}
+                  banknote={banknote}
+                  source="catalog"
+                  viewMode={viewMode}
+                />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="list">
+            <div className="space-y-4">
+              {banknotes.map((banknote, index) => (
+                <BanknoteDetailCard
+                  key={`list-banknote-${banknote.id || index}`}
+                  banknote={banknote}
+                  source="catalog"
+                  viewMode="list"
+                />
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

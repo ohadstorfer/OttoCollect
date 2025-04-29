@@ -1,7 +1,15 @@
 
 import { useMemo } from 'react';
 import { DetailedBanknote } from '@/types';
-import { Currency } from '@/types/banknote';
+
+interface Currency {
+  id: string;
+  name: string;
+  display_order: number;
+  country_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 interface UseBanknoteSortingProps {
   banknotes: DetailedBanknote[];
@@ -9,72 +17,80 @@ interface UseBanknoteSortingProps {
   sortFields: string[];
 }
 
-export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBanknoteSortingProps) => {
+export const useBanknoteSorting = ({ 
+  banknotes, 
+  currencies, 
+  sortFields 
+}: UseBanknoteSortingProps) => {
   return useMemo(() => {
-    if (!banknotes?.length) return [];
-    
-    return [...banknotes].sort((a, b) => {
-      // Get currency info for both banknotes
-      const getCurrencyInfo = (note: DetailedBanknote) => {
-        const denomination = note.denomination?.toLowerCase() || '';
-        return currencies.find(c => 
-          denomination.includes(c.name.toLowerCase())
-        );
-      };
+    if (!banknotes || !Array.isArray(banknotes) || banknotes.length === 0) {
+      return [];
+    }
 
-      const currencyA = getCurrencyInfo(a);
-      const currencyB = getCurrencyInfo(b);
+    // Make a copy of the banknotes array to avoid mutating the original
+    const sortedBanknotes = [...banknotes];
 
-      // Sort by currency display order first
-      if (currencyA && currencyB) {
-        const orderDiff = currencyA.display_order - currencyB.display_order;
-        if (orderDiff !== 0) return orderDiff;
-      }
-
-      // We don't need to sort by face value explicitly here, as the banknotes are 
-      // already pre-sorted by the extended_pick_number in the database, which 
-      // inherently sorts by the numeric value correctly
-      
-      // Only apply additional sorts if they are specifically requested
-      for (const fieldName of sortFields) {
+    // Apply sorting based on the provided sort fields
+    sortedBanknotes.sort((a, b) => {
+      // Apply each sort field in order of priority
+      for (const field of sortFields) {
         let comparison = 0;
 
-        switch (fieldName) {
-          case "sultan":
-            comparison = (a.sultanName || "").localeCompare(b.sultanName || "");
+        switch (field) {
+          case 'sultan':
+            comparison = (a.sultanName || '').localeCompare(b.sultanName || '');
             break;
 
-          case "extPick":
-            // No need for custom sorting here as data should already be sorted by the database
-            comparison = 0;
-            break;
+          case 'faceValue':
+            // Extract currency information
+            const valueA = a.denomination || a.face_value || '';
+            const valueB = b.denomination || b.face_value || '';
             
-          case "faceValue":
-            // Apply face value sorting only if explicitly requested
-            const extractNumericValue = (value: string) => {
-              const match = value.match(/(\d+(\.\d+)?)/);
-              return match ? parseFloat(match[0]) : 0;
-            };
-
-            const valueA = extractNumericValue(a.denomination || '');
-            const valueB = extractNumericValue(b.denomination || '');
+            // Check for kurush vs lira (kurush comes before lira)
+            const isKurushA = String(valueA).toLowerCase().includes('kurush');
+            const isKurushB = String(valueB).toLowerCase().includes('kurush');
+            const isLiraA = String(valueA).toLowerCase().includes('lira');
+            const isLiraB = String(valueB).toLowerCase().includes('lira');
             
-            comparison = valueA - valueB;
-            break;
-            
-          case "newest":
-            if ('createdAt' in a && 'createdAt' in b) {
-              const dateA = new Date(a.createdAt).getTime();
-              const dateB = new Date(b.createdAt).getTime();
-              comparison = dateB - dateA;
+            if (isKurushA && isLiraB) comparison = -1;
+            else if (isLiraA && isKurushB) comparison = 1;
+            else {
+              // Extract numeric values for comparison
+              const numA = parseFloat(String(valueA).replace(/[^0-9.]/g, '')) || 0;
+              const numB = parseFloat(String(valueB).replace(/[^0-9.]/g, '')) || 0;
+              comparison = numA - numB;
             }
             break;
+
+          case 'extPick':
+            // Compare by extended pick number
+            comparison = 
+              String(a.extendedPickNumber || a.catalogId || a.extended_pick_number || '')
+                .localeCompare(
+                  String(b.extendedPickNumber || b.catalogId || b.extended_pick_number || '')
+                );
+            break;
+            
+          case 'newest':
+            // Compare by creation date if available
+            const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            comparison = dateB - dateA; // Newest first
+            break;
+            
+          // Add additional sort options as needed
         }
 
-        if (comparison !== 0) return comparison;
+        // If we found a difference, return it
+        if (comparison !== 0) {
+          return comparison;
+        }
       }
 
+      // If all sort criteria match, maintain original order
       return 0;
     });
+
+    return sortedBanknotes;
   }, [banknotes, currencies, sortFields]);
 };

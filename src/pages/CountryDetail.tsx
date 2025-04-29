@@ -44,6 +44,7 @@ const CountryDetail = () => {
     country_id: "",
     group_mode: false
   });
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -79,10 +80,14 @@ const CountryDetail = () => {
 
         console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
-        setFilters(prev => ({
-          ...prev,
-          country_id: countryData.id
-        }));
+        
+        // Don't update filters until user preferences are loaded
+        if (!initialLoadComplete) {
+          setFilters(prev => ({
+            ...prev,
+            country_id: countryData.id
+          }));
+        }
 
         const categories = await fetchCategoriesByCountryId(countryData.id);
         const orderMap = categories.map(cat => ({
@@ -104,6 +109,8 @@ const CountryDetail = () => {
           setCurrencies(currencyRows as CurrencyWithDisplayOrder[]);
           console.log("Loaded currencies:", currencyRows);
         }
+        
+        setInitialLoadComplete(true);
       } catch (error) {
         console.error("CountryDetail: Error loading country data:", error);
         toast({
@@ -119,7 +126,7 @@ const CountryDetail = () => {
 
   useEffect(() => {
     const fetchBanknotesData = async () => {
-      if (!countryId) return;
+      if (!countryId || !initialLoadComplete) return;
 
       console.log("CountryDetail: Fetching banknotes with filters", { countryId, filters });
       setLoading(true);
@@ -149,17 +156,17 @@ const CountryDetail = () => {
     };
 
     fetchBanknotesData();
-  }, [countryId, filters, toast]);
+  }, [countryId, filters, toast, initialLoadComplete]);
 
   const sortedBanknotes = useBanknoteSorting({
     banknotes,
-    currencies,
-    sortFields: filters.sort
+    currencies: currencies as any,
+    sortFields: filters.sort || []
   });
 
   const groupedItems = useMemo(() => {
     const categoryMap = new Map();
-    const showSultanGroups = filters.sort.includes('sultan');
+    const showSultanGroups = filters.sort?.includes('sultan');
   
     const sultanOrder = [
       "AbdulMecid",
@@ -222,6 +229,7 @@ const CountryDetail = () => {
   }, [sortedBanknotes, filters.sort, categoryOrder]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    console.log("CountryDetail: Filter change", newFilters);
     setFilters(prev => {
       // Track if group mode has changed
       const hasGroupModeChanged = newFilters.group_mode !== undefined && newFilters.group_mode !== prev.group_mode;
@@ -247,7 +255,7 @@ const CountryDetail = () => {
     setViewMode(mode);
   };
   
-  const handleGroupModeChange = (mode: boolean) => {
+  const handleGroupModeChange = useCallback((mode: boolean) => {
     console.log("Setting group mode to:", mode);
     setGroupMode(mode);
     
@@ -255,7 +263,7 @@ const CountryDetail = () => {
     handleFilterChange({
       group_mode: mode
     });
-  };
+  }, [handleFilterChange]);
 
   return (
     <div className="w-full overflow-x-hidden px-2 sm:px-6 py-8">
@@ -292,7 +300,7 @@ const CountryDetail = () => {
           ) : (
             <BanknoteGroups
               groups={groupedItems}
-              showSultanGroups={filters.sort.includes('sultan')}
+              showSultanGroups={filters.sort?.includes('sultan') || false}
               viewMode={viewMode}
               countryId={countryId}
               isLoading={loading}
