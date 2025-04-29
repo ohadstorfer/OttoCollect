@@ -48,6 +48,8 @@ const CountryDetail = () => {
   
   // Add a ref to track if we've loaded preferences already
   const hasLoadedPreferences = React.useRef(false);
+  // Add a flag to prevent group mode cycling
+  const isGroupModeChanging = React.useRef(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -271,6 +273,12 @@ const CountryDetail = () => {
   };
   
   const handleGroupModeChange = (mode: boolean) => {
+    // Prevent re-renders if the mode hasn't changed
+    if (mode === groupMode) return;
+    
+    // Set a flag to indicate we're changing modes
+    isGroupModeChanging.current = true;
+    
     console.log("CountryDetail: Group mode changed to", mode);
     setGroupMode(mode);
     
@@ -283,6 +291,11 @@ const CountryDetail = () => {
         console.error("Unable to store group mode in session storage:", e);
       }
     }
+    
+    // Reset the flag after a short delay
+    setTimeout(() => {
+      isGroupModeChanging.current = false;
+    }, 100);
   };
 
   return (

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
@@ -40,8 +41,9 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  // Add a ref to track the initial load and avoid the infinite loop
+  // Add refs to track the initial load and avoid the infinite loop
   const initialLoadComplete = React.useRef(false);
+  const ignoreNextGroupModeChange = React.useRef(false);
 
   console.log("BanknoteFilterCatalog: Rendering with", { 
     countryId, 
@@ -135,13 +137,18 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
             console.log("BanknoteFilterCatalog: User preferences loaded", userPreferences);
             
             // Set group mode if it's defined in preferences, but only during initial load
-            // FIX: Only update group mode if it's different from current groupMode
-            // and only notify the parent if initialLoadComplete is false (first load only)
+            // and only notify the parent if the value is different from current groupMode
             if (userPreferences && typeof userPreferences.group_mode === 'boolean' && 
                 onGroupModeChange && 
                 userPreferences.group_mode !== groupMode && 
                 !initialLoadComplete.current) {
+              
+              // Set a flag to ignore the next group mode change to prevent infinite loops
+              ignoreNextGroupModeChange.current = true;
+              
+              // Call the parent's onGroupModeChange
               onGroupModeChange(userPreferences.group_mode);
+              
               // Mark initial load as complete to prevent future automatic updates
               initialLoadComplete.current = true;
             }
@@ -207,6 +214,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
     };
 
     loadFilterOptionsAndPreferences();
+    // groupMode is NOT included in the dependency array because it would cause infinite loops
   }, [countryId, user, onFilterChange, toast, onGroupModeChange]);
 
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
@@ -270,6 +278,15 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = ({
   };
   
   const handleGroupModeChange = (mode: boolean) => {
+    // If we're set to ignore the next change, skip this call
+    if (ignoreNextGroupModeChange.current) {
+      ignoreNextGroupModeChange.current = false;
+      return;
+    }
+    
+    // If the mode is the same as the current one, don't do anything
+    if (mode === groupMode) return;
+    
     // Save group mode preference if user is logged in
     if (user?.id) {
       console.log("BanknoteFilterCatalog: Saving group mode preference:", mode);
