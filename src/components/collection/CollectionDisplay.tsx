@@ -27,11 +27,17 @@ export const CollectionDisplay: React.FC<CollectionDisplayProps> = ({
 }) => {
   const navigate = useNavigate();
   
+  // Add a guard for null or undefined items
+  const safeItems = items || [];
+  
   // Filter items based on search, categories, and types
   const filteredItems = useMemo(() => {
-    if (!items || items.length === 0) return [];
+    if (!safeItems || safeItems.length === 0) return [];
     
-    return items.filter(item => {
+    return safeItems.filter(item => {
+      // Skip items that are undefined or null
+      if (!item) return false;
+      
       // Search filter
       const searchLower = (filters.search || "").toLowerCase();
       const matchesSearch = !filters.search || 
@@ -52,7 +58,7 @@ export const CollectionDisplay: React.FC<CollectionDisplayProps> = ({
       
       return matchesSearch && matchesCategory && matchesType;
     });
-  }, [items, filters]);
+  }, [safeItems, filters]);
   
   // Group filtered items
   const groupedItems = useMemo(() => {
@@ -109,15 +115,17 @@ export const CollectionDisplay: React.FC<CollectionDisplayProps> = ({
                     <div key={sIndex} className="ml-4">
                       <h4 className="text-lg font-medium mb-3">Sultan: {sultanGroup.sultan}</h4>
                       <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4' : 'grid-cols-1 gap-3'}`}>
-                        {sultanGroup.items.map(item => (
-                          <CollectionItemCard
-                            key={item.id}
-                            item={item}
-                            onUpdate={async () => {}} // Placeholder for future update logic
-                            isPublic={isPublic}
-                            viewMode={viewMode}
-                          />
-                        ))}
+                        {sultanGroup.items
+                          .filter(item => item) // Filter out any undefined items
+                          .map(item => (
+                            <CollectionItemCard
+                              key={item.id}
+                              item={item}
+                              onUpdate={async () => {}} // Placeholder for future update logic
+                              isPublic={isPublic}
+                              viewMode={viewMode}
+                            />
+                          ))}
                       </div>
                     </div>
                   ))}
@@ -125,15 +133,17 @@ export const CollectionDisplay: React.FC<CollectionDisplayProps> = ({
               ) : (
                 // Regular grouping without sultan subgroups
                 <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4' : 'grid-cols-1 gap-3'}`}>
-                  {group.items.map(item => (
-                    <CollectionItemCard
-                      key={item.id}
-                      item={item}
-                      onUpdate={async () => {}} // Placeholder for future update logic
-                      isPublic={isPublic}
-                      viewMode={viewMode}
-                    />
-                  ))}
+                  {group.items
+                    .filter(item => item) // Filter out any undefined items
+                    .map(item => (
+                      <CollectionItemCard
+                        key={item.id}
+                        item={item}
+                        onUpdate={async () => {}} // Placeholder for future update logic
+                        isPublic={isPublic}
+                        viewMode={viewMode}
+                      />
+                    ))}
                 </div>
               )}
             </div>
@@ -142,15 +152,17 @@ export const CollectionDisplay: React.FC<CollectionDisplayProps> = ({
       ) : (
         // No grouping, display all items in a grid/list
         <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4' : 'grid-cols-1 gap-3'}`}>
-          {filteredItems.map(item => (
-            <CollectionItemCard
-              key={item.id}
-              item={item}
-              onUpdate={async () => {}} // Placeholder for future update logic
-              isPublic={isPublic}
-              viewMode={viewMode}
-            />
-          ))}
+          {filteredItems
+            .filter(item => item) // Filter out any undefined items
+            .map(item => (
+              <CollectionItemCard
+                key={item.id}
+                item={item}
+                onUpdate={async () => {}} // Placeholder for future update logic
+                isPublic={isPublic}
+                viewMode={viewMode}
+              />
+            ))}
         </div>
       )}
     </div>

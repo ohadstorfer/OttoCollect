@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,8 +41,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   const [isDeleting, setIsDeleting] = React.useState(false);
   
   // Use custom images if available, otherwise fall back to banknote images
-  const displayImage = item.obverseImage || 
-    (item.banknote ? item.banknote.imageUrls : null);
+  // Add null check for item to prevent "Cannot read properties of undefined" error
+  const displayImage = item && item.obverseImage 
+    ? item.obverseImage 
+    : (item && item.banknote ? item.banknote.imageUrls : null);
 
   // Updated condition colors to include all possible conditions
   const conditionColors: Record<BanknoteCondition, string> = {
@@ -59,7 +62,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   
   // Define the getBanknoteTitle function here
   function getBanknoteTitle() {
-    if (!item.banknote) return "Unknown Banknote";
+    if (!item || !item.banknote) return "Unknown Banknote";
     
     let title = '';
     
@@ -77,7 +80,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   
   // Define the handleDelete function here
   async function handleDelete() {
-    if (!item.id) return;
+    if (!item || !item.id) return;
     
     setIsDeleting(true);
     try {
@@ -102,6 +105,11 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       setIsDeleting(false);
       setShowDeleteConfirm(false);
     }
+  }
+  
+  // Add extra guard against item being undefined
+  if (!item) {
+    return null;
   }
   
   if (viewMode === 'list') {

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { ImageUrls } from '@/types/banknote';
+import { BanknoteImage } from '@/components/use-banknote-image';
 
 interface BanknoteImageGalleryProps {
   images: ImageUrls;
@@ -25,8 +26,8 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
   if (imageArray.length === 1) {
     return (
       <div className="aspect-[4/3] overflow-hidden">
-        <img 
-          src={imageArray[0]} 
+        <BanknoteImage 
+          imageUrl={imageArray} 
           alt="Banknote" 
           className="w-full h-full object-contain"
         />
@@ -37,8 +38,8 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
   return (
     <div className="space-y-2">
       <div className="aspect-[4/3] overflow-hidden bg-gray-50 border border-gray-100">
-        <img 
-          src={imageArray[activeIndex]} 
+        <BanknoteImage 
+          imageUrl={imageArray[activeIndex] || ''} 
           alt={`Banknote view ${activeIndex + 1}`}
           className="w-full h-full object-contain"
         />
@@ -53,8 +54,8 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
               index === activeIndex ? 'border-ottoman-600' : 'border-transparent'
             }`}
           >
-            <img 
-              src={image} 
+            <BanknoteImage 
+              imageUrl={image} 
               alt={`Thumbnail ${index + 1}`}
               className="w-full h-full object-cover"
             />

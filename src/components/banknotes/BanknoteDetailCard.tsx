@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
+import { BanknoteImage } from '@/components/use-banknote-image';
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -48,22 +48,24 @@ const BanknoteDetailCard = ({
   // More robust approach to get a valid image URL
   const getDisplayImage = (): string => {
     // Safety check for null banknote
-    if (!banknote) return '/placeholder.svg';
+    if (!banknote) return '/placeholder-brown.svg';
     
     // Check if imageUrls exists
-    if (!banknote.imageUrls) return '/placeholder.svg';
+    if (!banknote.imageUrls) return '/placeholder-brown.svg';
     
     // Handle array of image URLs
     if (Array.isArray(banknote.imageUrls)) {
-      return banknote.imageUrls.length > 0 ? banknote.imageUrls[0] : '/placeholder.svg';
+      return banknote.imageUrls.length > 0 && banknote.imageUrls[0] 
+        ? banknote.imageUrls[0] 
+        : '/placeholder-brown.svg';
     }
     
     // Handle string imageUrls
     if (typeof banknote.imageUrls === 'string') {
-      return banknote.imageUrls || '/placeholder.svg';
+      return banknote.imageUrls || '/placeholder-brown.svg';
     }
     
-    return '/placeholder.svg';
+    return '/placeholder-brown.svg';
   };
 
   const displayImage = getDisplayImage();
@@ -81,8 +83,8 @@ const BanknoteDetailCard = ({
       >
         <div className="flex items-center p-2">
           <div className="w-16 h-16 relative overflow-hidden rounded">
-            <img
-              src={displayImage}
+            <BanknoteImage
+              imageUrl={banknote.imageUrls}
               alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
               className="w-full h-full object-cover"
             />
@@ -176,11 +178,11 @@ const BanknoteDetailCard = ({
         </div>
 
         <div className={cn(
-          displayImage === "/placeholder.svg" ? "aspect-[4/2]" : "aspect-[4/2]",
+          displayImage === "/placeholder-brown.svg" ? "aspect-[4/2]" : "aspect-[4/2]",
           "overflow-hidden"
         )}>
-          <img
-            src={displayImage}
+          <BanknoteImage
+            imageUrl={banknote.imageUrls}
             alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
             className={cn(
               "w-full h-full object-cover transition-transform duration-500",

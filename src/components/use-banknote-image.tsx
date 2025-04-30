@@ -23,8 +23,10 @@ export const BanknoteImage: React.FC<BanknoteImageProps> = ({
     );
   }
   
-  // Handle both string and string[] image URLs
-  const src = Array.isArray(imageUrl) ? imageUrl[0] || '' : imageUrl;
+  // Handle both string and string[] image URLs with safer null checks
+  const src = Array.isArray(imageUrl) 
+    ? (imageUrl.length > 0 && imageUrl[0] ? imageUrl[0] : '/placeholder-brown.svg') 
+    : (imageUrl || '/placeholder-brown.svg');
   
   // Handle empty array case
   if (Array.isArray(imageUrl) && imageUrl.length === 0) {
@@ -37,12 +39,12 @@ export const BanknoteImage: React.FC<BanknoteImageProps> = ({
 
   return (
     <img 
-      src={src || '/placeholder.svg'} 
+      src={src} 
       alt={alt} 
       className={className}
       onError={(e) => {
         const target = e.target as HTMLImageElement;
-        target.src = '/placeholder.svg';
+        target.src = '/placeholder-brown.svg';
       }}
       {...props}
     />

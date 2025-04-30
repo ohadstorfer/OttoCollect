@@ -8,9 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileAbout } from "@/components/profile/ProfileAbout";
-import { ProfileCollection } from "@/components/profile/ProfileCollection";
+import ProfileCollection from "@/components/profile/ProfileCollection";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
-import { fetchUserProfile } from "@/services/profileService";
+import { getUserProfile } from "@/services/profileService";
 import { useAuth } from "@/context/AuthContext";
 import type { User } from "@/types";
 
@@ -27,7 +27,7 @@ function Profile() {
     refetch 
   } = useQuery({
     queryKey: ["profile", id],
-    queryFn: () => fetchUserProfile(id as string),
+    queryFn: () => getUserProfile(id as string),
     enabled: !!id,
   });
 
@@ -78,7 +78,7 @@ function Profile() {
         <ProfileEditForm 
           profile={profile as User} 
           onCancel={handleToggleEditMode} 
-          onSave={() => {
+          onSaveComplete={() => {
             refetch().then(() => {
               setIsEditMode(false);
             });
@@ -86,8 +86,7 @@ function Profile() {
         />
       ) : (
         <ProfileHeader 
-          profile={profile as User} 
-          isOwnProfile={isOwnProfile}
+          profile={profile as User}
           isEditMode={isEditMode}
           onToggleEditMode={handleToggleEditMode}
           onProfileUpdate={refetch}
