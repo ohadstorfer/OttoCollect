@@ -4,14 +4,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MoreVertical, Eye, Edit, Trash } from 'lucide-react';
-import { CollectionItem, Banknote } from '@/types';
+import { CollectionItem } from '@/types';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
-import { getFirstImageUrl } from '@/types/banknote';
+import { getFirstImageUrl } from '@/utils/imageHelpers';
 
 export interface CollectionItemCardProps {
   item: CollectionItem;

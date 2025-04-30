@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { CollectionItemImageUpload } from './CollectionImageUpload';
+import SimpleImageUpload from './SimpleImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { addToCollection, updateCollectionItem } from '@/services/collectionService';
@@ -17,40 +17,51 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 
 export interface CollectionItemFormProps {
-  item: CollectionItem | null;
-  onSave: (item: CollectionItem) => void;
-  onCancel: () => void;
+  item?: CollectionItem | null;
+  onSave?: (item: CollectionItem) => void;
+  onCancel?: () => void;
+  collectionItem?: CollectionItem | null;
+  onUpdate?: (item: CollectionItem) => void;
 }
 
-const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, onCancel }) => {
+const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ 
+  item, 
+  onSave, 
+  onCancel,
+  collectionItem,
+  onUpdate
+}) => {
   const { toast } = useToast();
   const { user } = useAuth();
   
+  // Use either item or collectionItem based on what's provided
+  const activeItem = item || collectionItem || null;
+
   const [loading, setLoading] = useState(false);
-  const [condition, setCondition] = useState<BanknoteCondition>(item?.condition || 'VF');
-  const [purchasePrice, setPurchasePrice] = useState<string>(item?.purchasePrice?.toString() || '');
+  const [condition, setCondition] = useState<BanknoteCondition>(activeItem?.condition || 'VF');
+  const [purchasePrice, setPurchasePrice] = useState<string>(activeItem?.purchasePrice?.toString() || '');
   const [purchaseDate, setPurchaseDate] = useState<Date | undefined>(
-    item?.purchaseDate ? new Date(item.purchaseDate) : undefined
+    activeItem?.purchaseDate ? new Date(activeItem.purchaseDate) : undefined
   );
-  const [publicNote, setPublicNote] = useState<string>(item?.publicNote || '');
-  const [privateNote, setPrivateNote] = useState<string>(item?.privateNote || '');
-  const [isForSale, setIsForSale] = useState<boolean>(item?.isForSale || false);
-  const [salePrice, setSalePrice] = useState<string>(item?.salePrice?.toString() || '');
-  const [obverseImage, setObverseImage] = useState<string | null>(item?.obverseImage || null);
-  const [reverseImage, setReverseImage] = useState<string | null>(item?.reverseImage || null);
+  const [publicNote, setPublicNote] = useState<string>(activeItem?.publicNote || '');
+  const [privateNote, setPrivateNote] = useState<string>(activeItem?.privateNote || '');
+  const [isForSale, setIsForSale] = useState<boolean>(activeItem?.isForSale || false);
+  const [salePrice, setSalePrice] = useState<string>(activeItem?.salePrice?.toString() || '');
+  const [obverseImage, setObverseImage] = useState<string | null>(activeItem?.obverseImage || null);
+  const [reverseImage, setReverseImage] = useState<string | null>(activeItem?.reverseImage || null);
   
   // Update form when item changes
   useEffect(() => {
-    if (item) {
-      setCondition(item.condition);
-      setPurchasePrice(item.purchasePrice?.toString() || '');
-      setPurchaseDate(item.purchaseDate ? new Date(item.purchaseDate) : undefined);
-      setPublicNote(item.publicNote || '');
-      setPrivateNote(item.privateNote || '');
-      setIsForSale(item.isForSale || false);
-      setSalePrice(item.salePrice?.toString() || '');
-      setObverseImage(item.obverseImage || null);
-      setReverseImage(item.reverseImage || null);
+    if (activeItem) {
+      setCondition(activeItem.condition);
+      setPurchasePrice(activeItem.purchasePrice?.toString() || '');
+      setPurchaseDate(activeItem.purchaseDate ? new Date(activeItem.purchaseDate) : undefined);
+      setPublicNote(activeItem.publicNote || '');
+      setPrivateNote(activeItem.privateNote || '');
+      setIsForSale(activeItem.isForSale || false);
+      setSalePrice(activeItem.salePrice?.toString() || '');
+      setObverseImage(activeItem.obverseImage || null);
+      setReverseImage(activeItem.reverseImage || null);
     } else {
       // Reset form for new item
       setCondition('VF');
@@ -63,7 +74,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, o
       setObverseImage(null);
       setReverseImage(null);
     }
-  }, [item]);
+  }, [activeItem]);
   
   const handleSave = async () => {
     try {
@@ -76,7 +87,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, o
         return;
       }
       
-      if (!item?.banknoteId) {
+      if (!activeItem?.banknoteId) {
         toast({
           title: 'Error',
           description: 'No banknote selected',
@@ -93,9 +104,9 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, o
       
       let savedItem: CollectionItem | null = null;
       
-      if (item?.id) {
+      if (activeItem?.id) {
         // Update existing item
-        const success = await updateCollectionItem(item.id, {
+        const success = await updateCollectionItem(activeItem.id, {
           condition,
           purchasePrice: parsedPurchasePrice,
           purchaseDate,
@@ -115,7 +126,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, o
           
           // Return updated item
           savedItem = {
-            ...item,
+            ...activeItem,
             condition,
             purchasePrice: parsedPurchasePrice,
             purchaseDate: purchaseDate?.toISOString(),
@@ -133,7 +144,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, o
         // Create new item
         savedItem = await addToCollection({
           userId: user.id,
-          banknoteId: item.banknoteId,
+          banknoteId: activeItem.banknoteId,
           condition,
           purchasePrice: parsedPurchasePrice,
           purchaseDate: purchaseDate?.toISOString(),
@@ -167,7 +178,12 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, o
       }
       
       if (savedItem) {
-        onSave(savedItem);
+        if (onUpdate) {
+          onUpdate(savedItem);
+        }
+        if (onSave) {
+          onSave(savedItem);
+        }
       }
       
     } catch (error) {
@@ -197,7 +213,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, o
   return (
     <div className="bg-card border rounded-lg p-6">
       <h2 className="text-xl font-bold mb-4">
-        {item?.id ? 'Edit Collection Item' : 'Add to Collection'}
+        {activeItem?.id ? 'Edit Collection Item' : 'Add to Collection'}
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -308,22 +324,40 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, o
           
           <div className="mt-4">
             <Label>Images</Label>
-            <CollectionItemImageUpload
-              obverseImage={obverseImage}
-              reverseImage={reverseImage}
-              onObverseChange={setObverseImage}
-              onReverseChange={setReverseImage}
-            />
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              <div>
+                <Label htmlFor="obverseImage" className="text-sm mb-1 block">
+                  Obverse (Front)
+                </Label>
+                <SimpleImageUpload 
+                  image={obverseImage || ""}
+                  side="obverse"
+                  onImageUploaded={setObverseImage}
+                />
+              </div>
+              <div>
+                <Label htmlFor="reverseImage" className="text-sm mb-1 block">
+                  Reverse (Back)
+                </Label>
+                <SimpleImageUpload 
+                  image={reverseImage || ""}
+                  side="reverse"
+                  onImageUploaded={setReverseImage}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
       
       <div className="mt-6 flex justify-end space-x-2">
-        <Button variant="outline" onClick={onCancel} disabled={loading}>
-          Cancel
-        </Button>
+        {onCancel && (
+          <Button variant="outline" onClick={onCancel} disabled={loading}>
+            Cancel
+          </Button>
+        )}
         <Button onClick={handleSave} disabled={loading}>
-          {loading ? 'Saving...' : item?.id ? 'Update' : 'Add to Collection'}
+          {loading ? 'Saving...' : activeItem?.id ? 'Update' : 'Add to Collection'}
         </Button>
       </div>
     </div>
