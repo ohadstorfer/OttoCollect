@@ -14,6 +14,7 @@ import BanknoteCatalogDetail from "@/pages/BanknoteCatalogDetail";
 import Profile from "@/pages/Profile";
 import Collection from "@/pages/Collection";
 import CollectionItem from "@/pages/CollectionItem";
+import CountrySelection from "@/pages/CountrySelection";
 import BanknoteCollectionDetail from "@/pages/BanknoteCollectionDetail";
 import Marketplace from "@/pages/Marketplace";
 import MarketplaceItemDetail from "@/pages/MarketplaceItemDetail";
@@ -57,9 +58,11 @@ function App() {
             <Route path="/catalog/:country" element={<CountryDetail />} />
             <Route path="/banknote-details/:id" element={<BanknoteCatalogDetail />} />
             <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
-            <Route path="/profile/:id" element={<Profile />} />
-            <Route path="/collection" element={<Collection />} />
-            <Route path="/collection/:id" element={<CollectionItem />} />
+            <Route path="/profile/:username" element={<Profile />} />
+            <Route path="/countries" element={<CountrySelection />} />
+            <Route path="/collection" element={<CountrySelection />} />
+            <Route path="/collection/:countryId" element={<Collection />} />
+            <Route path="/collection-item/:id" element={<CollectionItem />} />
             <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail />} />
             <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail />} />
             <Route path="/marketplace" element={<Marketplace />} />

@@ -13,10 +13,6 @@ import { fetchUserCollection } from '@/services/collectionService';
 import ProfileCollection from '@/components/profile/ProfileCollection';
 import { DynamicFilterState } from '@/types/filter';
 
-interface ProfileParams {
-  username?: string;
-}
-
 const Profile: React.FC = () => {
   const { username: routeUsername } = useParams<{ username?: string }>();
   const navigate = useNavigate();
@@ -63,30 +59,30 @@ const Profile: React.FC = () => {
   };
 
   const filteredItems = React.useMemo(() => {
-    return collectionItems
-      ? collectionItems.filter((item) => {
-          const searchTerm = filters.search.toLowerCase();
-          const matchesSearch =
-            item.banknote.denomination.toLowerCase().includes(searchTerm) ||
-            item.banknote.country.toLowerCase().includes(searchTerm) ||
-            item.banknote.year.toLowerCase().includes(searchTerm);
+    if (!collectionItems) return [];
+    
+    return collectionItems.filter((item) => {
+      const searchTerm = filters.search.toLowerCase();
+      const matchesSearch =
+        (item.banknote?.denomination || "").toLowerCase().includes(searchTerm) ||
+        (item.banknote?.country || "").toLowerCase().includes(searchTerm) ||
+        (item.banknote?.year || "").toLowerCase().includes(searchTerm);
 
-          const matchesCategory =
-            filters.categories.length === 0 || filters.categories.includes(item.banknote.category || '');
+      const matchesCategory =
+        filters.categories.length === 0 || filters.categories.includes(item.banknote?.category || '');
 
-          const matchesType = filters.types.length === 0 || filters.types.includes(item.banknote.type || '');
+      const matchesType = filters.types.length === 0 || filters.types.includes(item.banknote?.type || '');
 
-          return matchesSearch && matchesCategory && matchesType;
-        })
-      : [];
+      return matchesSearch && matchesCategory && matchesType;
+    });
   }, [collectionItems, filters]);
 
   const collectionCategories = React.useMemo(() => {
-    if (!collectionItems) return [];
+    if (!collectionItems || collectionItems.length === 0) return [];
 
     const categoryCounts: { [key: string]: number } = {};
     collectionItems.forEach((item) => {
-      const category = item.banknote.category || 'Uncategorized';
+      const category = item.banknote?.category || 'Uncategorized';
       categoryCounts[category] = (categoryCounts[category] || 0) + 1;
     });
 
@@ -96,11 +92,11 @@ const Profile: React.FC = () => {
   }, [collectionItems]);
 
   const collectionTypes = React.useMemo(() => {
-    if (!collectionItems) return [];
+    if (!collectionItems || collectionItems.length === 0) return [];
 
     const typeCounts: { [key: string]: number } = {};
     collectionItems.forEach((item) => {
-      const type = item.banknote.type || 'Unknown Type';
+      const type = item.banknote?.type || 'Unknown Type';
       typeCounts[type] = (typeCounts[type] || 0) + 1;
     });
 
@@ -123,7 +119,7 @@ const Profile: React.FC = () => {
     );
   }
 
-  if (profileError) {
+  if (profileError || !profile) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
@@ -139,13 +135,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
-      <ProfileHeader
-        profile={profile}
-        isOwnProfile={isOwnProfile}
-        isEditMode={isEditMode}
-        onToggleEditMode={() => setIsEditMode(!isEditMode)}
-        onProfileUpdate={refetchProfile}
-      />
+      <ProfileHeader profile={profile} />
 
       <Tabs defaultValue="collection" className="w-full mt-8">
         <TabsList>
@@ -159,7 +149,7 @@ const Profile: React.FC = () => {
             isOwnProfile={isOwnProfile}
             collectionItems={collectionItems || []}
             isLoading={collectionLoading}
-            error={collectionError?.message || null}
+            error={collectionError ? String(collectionError) : null}
             onRetry={() => refetchCollection()}
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -170,9 +160,19 @@ const Profile: React.FC = () => {
         </TabsContent>
         <TabsContent value="about" className="space-y-4">
           {isEditMode ? (
-            <ProfileEditForm profile={profile} onCancel={() => setIsEditMode(false)} onSave={refetchProfile} />
+            <ProfileEditForm 
+              profile={profile} 
+              onCancel={() => setIsEditMode(false)} 
+              onSaveComplete={() => {
+                refetchProfile();
+                setIsEditMode(false);
+              }} 
+            />
           ) : (
-            <ProfileAbout profile={profile} onEditClick={isOwnProfile ? () => setIsEditMode(true) : undefined} />
+            <ProfileAbout 
+              profile={profile} 
+              onEditClick={isOwnProfile ? () => setIsEditMode(true) : undefined} 
+            />
           )}
         </TabsContent>
       </Tabs>

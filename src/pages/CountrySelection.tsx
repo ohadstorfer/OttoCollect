@@ -1,0 +1,110 @@
+
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { getCountries } from '@/services/countryService';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Search, Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+
+const CountrySelection: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = React.useState('');
+
+  const {
+    data: countries = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['countries'],
+    queryFn: getCountries,
+  });
+
+  // Filter countries based on search term
+  const filteredCountries = React.useMemo(() => {
+    if (!countries) return [];
+    
+    if (!searchTerm.trim()) return countries;
+    
+    const term = searchTerm.toLowerCase().trim();
+    return countries.filter(country => 
+      country.name.toLowerCase().includes(term)
+    );
+  }, [countries, searchTerm]);
+
+  const handleCountrySelect = (countryId: string) => {
+    navigate(`/collection/${countryId}`);
+  };
+
+  if (!user) {
+    return (
+      <div className="page-container max-w-5xl mx-auto py-10">
+        <div className="ottoman-card p-8 text-center">
+          <h2 className="text-2xl font-serif mb-4">Authentication Required</h2>
+          <p className="mb-6 text-muted-foreground">
+            Please sign in to view your collection.
+          </p>
+          <Button onClick={() => navigate('/auth')}>Sign In</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-container max-w-5xl mx-auto py-10">
+      <h1 className="text-3xl font-serif mb-6">Select a Country</h1>
+      <p className="text-muted-foreground mb-8">
+        Choose a country to view banknotes from your collection.
+      </p>
+
+      <div className="mb-6 relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search countries..."
+          className="pl-10"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-ottoman-600" />
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <h3 className="text-xl font-medium mb-4 text-red-500">Error loading countries</h3>
+          <p className="text-muted-foreground mb-6">Please try again later.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredCountries.map((country) => (
+            <Card 
+              key={country.id}
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => handleCountrySelect(country.id)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  {country.flagUrl && (
+                    <img 
+                      src={country.flagUrl} 
+                      alt={`${country.name} flag`}
+                      className="h-8 w-12 object-cover rounded"
+                    />
+                  )}
+                  <h3 className="font-medium">{country.name}</h3>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CountrySelection;

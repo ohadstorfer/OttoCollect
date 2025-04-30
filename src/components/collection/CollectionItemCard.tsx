@@ -41,8 +41,8 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   const [isDeleting, setIsDeleting] = React.useState(false);
   
   // Use custom images if available, otherwise fall back to banknote images
-  const displayImage = item.obverseImage || 
-    (item.banknote ? item.banknote.imageUrls : null);
+  const displayImage = item?.obverseImage || 
+    (item?.banknote ? item.banknote.imageUrls : null);
 
   const conditionColors: Record<BanknoteCondition, string> = {
     'UNC': 'bg-green-100 text-green-800',
@@ -56,7 +56,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   };
   
   const getBanknoteTitle = () => {
-    if (!item.banknote) return "Unknown Banknote";
+    if (!item?.banknote) return "Unknown Banknote";
     
     let title = '';
     
@@ -73,7 +73,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   };
   
   const handleDelete = async () => {
-    if (!item.id) return;
+    if (!item?.id) return;
     
     setIsDeleting(true);
     try {
@@ -114,13 +114,15 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
           <div>
             <h3 className="font-medium truncate">{getBanknoteTitle()}</h3>
             <p className="text-sm text-muted-foreground truncate">
-              {item.banknote?.country || "Unknown Country"} · {item.banknote?.series || "Unknown Series"}
+              {item?.banknote?.country || "Unknown Country"} · {item?.banknote?.series || "Unknown Series"}
             </p>
             <div className="flex gap-2 mt-1">
-              <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition] || 'bg-gray-100'}`}>
-                {item.condition}
-              </span>
-              {item.isForSale && (
+              {item?.condition && (
+                <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition] || 'bg-gray-100'}`}>
+                  {item.condition}
+                </span>
+              )}
+              {item?.isForSale && (
                 <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
                   For Sale: {formatPrice(item.salePrice)}
                 </span>
@@ -153,18 +155,20 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             alt={getBanknoteTitle()}
             className="object-cover w-full h-full"
           />
-          <div className="absolute top-2 left-2">
-            <span className={`px-2 py-1 rounded-md text-xs ${conditionColors[item.condition] || 'bg-gray-100'}`}>
-              {item.condition}
-            </span>
-          </div>
+          {item?.condition && (
+            <div className="absolute top-2 left-2">
+              <span className={`px-2 py-1 rounded-md text-xs ${conditionColors[item.condition] || 'bg-gray-100'}`}>
+                {item.condition}
+              </span>
+            </div>
+          )}
         </div>
         <CardContent className="p-4">
           <h3 className="font-medium truncate">{getBanknoteTitle()}</h3>
           <p className="text-sm text-muted-foreground truncate">
-            {item.banknote?.country || "Unknown Country"} · {item.banknote?.series || "Unknown Series"}
+            {item?.banknote?.country || "Unknown Country"} · {item?.banknote?.series || "Unknown Series"}
           </p>
-          {item.isForSale && (
+          {item?.isForSale && (
             <p className="mt-2 text-sm font-medium">
               <span className="text-blue-600">For Sale: {formatPrice(item.salePrice)}</span>
             </p>
@@ -172,7 +176,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
           <Button variant="outline" size="sm" asChild className="flex-1">
-            <Link to={`/banknote-details/${item.banknoteId}`}>
+            <Link to={`/banknote-details/${item?.banknoteId || ''}`}>
               <Eye className="h-3.5 w-3.5 mr-1" />
               View
             </Link>

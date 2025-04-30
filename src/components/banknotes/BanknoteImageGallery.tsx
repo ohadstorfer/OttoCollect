@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { ImageUrls } from '@/types/banknote';
+import { normalizeImageUrls } from '@/utils/imageHelpers';
 
 interface BanknoteImageGalleryProps {
   images: ImageUrls;
@@ -10,7 +11,7 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
   
   // Convert images to array for consistent handling
-  const imageArray = Array.isArray(images) ? images : (images ? [images] : []);
+  const imageArray = normalizeImageUrls(images);
   
   // If no images provided, show placeholder
   if (imageArray.length === 0) {
@@ -29,6 +30,9 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
           src={imageArray[0]} 
           alt="Banknote" 
           className="w-full h-full object-contain"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+          }}
         />
       </div>
     );
@@ -41,6 +45,9 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
           src={imageArray[activeIndex]} 
           alt={`Banknote view ${activeIndex + 1}`}
           className="w-full h-full object-contain"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+          }}
         />
       </div>
       
@@ -57,6 +64,9 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
               src={image} 
               alt={`Thumbnail ${index + 1}`}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder.svg';
+              }}
             />
           </button>
         ))}

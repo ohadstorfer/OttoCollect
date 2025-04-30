@@ -1,12 +1,8 @@
 
-import React from "react";
-import { User } from "@/types";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { MessageCircle, Edit } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { SendMessage } from "@/components/messages/SendMessage";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import React from 'react';
+import { User } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Edit } from 'lucide-react';
 
 interface ProfileAboutProps {
   profile: User;
@@ -14,64 +10,48 @@ interface ProfileAboutProps {
 }
 
 export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [showMessageDialog, setShowMessageDialog] = React.useState(false);
-  
-  const isOwnProfile = user && user.id === profile.id;
-  
-  const handleMessageClick = () => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-    setShowMessageDialog(true);
-  };
-
   return (
-    <>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">About</CardTitle>
-        {isOwnProfile && onEditClick && (
+    <div className="ottoman-card p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-medium">About</h3>
+        {onEditClick && (
           <Button variant="outline" size="sm" onClick={onEditClick}>
-            <Edit className="h-4 w-4 mr-1" /> Edit Profile
+            <Edit className="h-4 w-4 mr-2" />
+            Edit
           </Button>
         )}
-      </CardHeader>
-      <CardContent>
+      </div>
+      
+      <div className="space-y-4">
         {profile.about ? (
-          <p className="whitespace-pre-wrap">{profile.about}</p>
+          <div>
+            <p className="whitespace-pre-line">{profile.about}</p>
+          </div>
         ) : (
           <p className="text-muted-foreground italic">
-            {isOwnProfile 
-              ? "You haven't added any information about yourself yet. Click 'Edit Profile' to add your bio."
+            {onEditClick 
+              ? "You haven't added any information about yourself yet." 
               : "This user hasn't added any information about themselves yet."
             }
           </p>
         )}
-      </CardContent>
-      
-      {!isOwnProfile && user && (
-        <CardFooter className="pt-4 border-t">
-          <Button 
-            variant="default"
-            className="w-full"
-            onClick={handleMessageClick}
-          >
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Send Message
-          </Button>
-        </CardFooter>
-      )}
-      
-      {!isOwnProfile && user && (
-        <SendMessage
-          receiverId={profile.id}
-          receiverName={profile.username}
-          isOpen={showMessageDialog}
-          onOpenChange={setShowMessageDialog}
-        />
-      )}
-    </>
+        
+        {profile.country && (
+          <div className="pt-4 border-t">
+            <div className="flex">
+              <h4 className="font-medium w-32">Country:</h4>
+              <p>{profile.country}</p>
+            </div>
+          </div>
+        )}
+        
+        <div className="pt-4 border-t">
+          <div className="flex">
+            <h4 className="font-medium w-32">Member since:</h4>
+            <p>{new Date(profile.createdAt).toLocaleDateString()}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

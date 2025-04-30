@@ -3,14 +3,34 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole, UserRank } from "@/types";
 import { toast } from "sonner";
 
-// Get a user profile by ID
-export async function getUserProfile(userId: string): Promise<User | null> {
+// Get a user profile by ID or username
+export async function getUserProfile(userIdOrUsername: string): Promise<User | null> {
   try {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    // Check if the input is empty
+    if (!userIdOrUsername) {
+      console.error("Error fetching user profile: No userId or username provided");
+      return null;
+    }
+
+    // First try to find by ID if it looks like a UUID
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    
+    let query;
+    if (uuidPattern.test(userIdOrUsername)) {
+      // Query by ID
+      query = supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userIdOrUsername);
+    } else {
+      // Query by username
+      query = supabase
+        .from("profiles")
+        .select("*")
+        .eq("username", userIdOrUsername);
+    }
+
+    const { data, error } = await query.single();
 
     if (error) {
       console.error("Error fetching user profile:", error);

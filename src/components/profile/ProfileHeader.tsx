@@ -4,7 +4,7 @@ import { User, UserRank } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getInitials } from "@/lib/utils";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { SendMessage } from "@/components/messages/SendMessage";
@@ -31,6 +31,11 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
     setShowMessageDialog(true);
   };
 
+  const handleEditClick = () => {
+    // Navigate to settings page for profile editing
+    navigate('/settings');
+  };
+
   return (
     <div className="relative">
       {/* Banner background */}
@@ -43,8 +48,8 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             <AvatarImage src={profile.avatarUrl} alt={profile.username} />
           ) : (
             <AvatarFallback className="bg-ottoman-700 text-parchment-100 text-xs">
-                              {profile?.username ? getInitials(profile.username) : "U"}
-                            </AvatarFallback>
+              {profile?.username ? getInitials(profile.username) : "U"}
+            </AvatarFallback>
           )}
         </Avatar>
         
@@ -73,8 +78,16 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           </div>
         </div>
 
-        {!isOwnProfile && user && (
-          <div className="md:self-center flex-shrink-0">
+        <div className="md:self-center flex-shrink-0">
+          {isOwnProfile ? (
+            <Button 
+              onClick={handleEditClick}
+              className="flex items-center gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Edit Profile
+            </Button>
+          ) : user && (
             <Button 
               onClick={handleMessageClick}
               className="flex items-center gap-2"
@@ -82,11 +95,11 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
               <MessageCircle className="h-4 w-4" />
               Message
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       
-      {!isOwnProfile && user && (
+      {!isOwnProfile && user && profile?.id && (
         <SendMessage
           receiverId={profile.id}
           receiverName={profile.username}

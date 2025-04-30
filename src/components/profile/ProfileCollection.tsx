@@ -17,7 +17,7 @@ interface ProfileCollectionProps {
   collectionItems: CollectionItem[];
   isLoading: boolean;
   error: string | null;
-  onRetry: () => Promise<void>;  // Changed to return Promise<void>
+  onRetry: () => Promise<void>;
   // Filter props
   filters: DynamicFilterState;
   onFilterChange: (newFilters: Partial<DynamicFilterState>) => void;
@@ -30,15 +30,15 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
   userId,
   username,
   isOwnProfile,
-  collectionItems,
+  collectionItems = [],
   isLoading,
   error,
   onRetry,
   filters,
   onFilterChange,
-  filteredItems,
-  collectionCategories,
-  collectionTypes
+  filteredItems = [],
+  collectionCategories = [],
+  collectionTypes = []
 }) => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = React.useState<'grid' | 'compact' | 'list'>('grid');
@@ -78,7 +78,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
       );
     }
 
-    if (collectionItems.length === 0) {
+    if (!collectionItems || collectionItems.length === 0) {
       return (
         <div className="text-center py-12">
           <h3 className="text-xl font-medium mb-6">
@@ -88,7 +88,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
             }
           </h3>
           {isOwnProfile && (
-            <Button onClick={() => navigate('/my-collection')}>
+            <Button onClick={() => navigate('/collection')}>
               Manage My Collection
             </Button>
           )}
@@ -96,7 +96,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
       );
     }
 
-    if (filteredItems.length === 0) {
+    if (!filteredItems || filteredItems.length === 0) {
       return (
         <div className="text-center py-12">
           <h3 className="text-xl font-medium mb-4">No items match your filter criteria</h3>
@@ -161,7 +161,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
         <h2 className="text-2xl font-bold">
           {isOwnProfile ? 'My Collection' : `${username}'s Collection`}
           <span className="ml-2 text-sm font-normal text-muted-foreground">
-            ({collectionItems.length} {collectionItems.length === 1 ? 'item' : 'items'})
+            ({collectionItems?.length || 0} {(collectionItems?.length || 0) === 1 ? 'item' : 'items'})
           </span>
         </h2>
         
