@@ -1,13 +1,14 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import ProfileAbout from '@/components/profile/ProfileAbout';
-import ProfileEditForm from '@/components/profile/ProfileEditForm';
+import { ProfileHeader } from '@/components/profile/ProfileHeader';
+import { ProfileAbout } from '@/components/profile/ProfileAbout';
+import { ProfileEditForm } from '@/components/profile/ProfileEditForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { fetchUserProfile } from '@/services/profileService';
+import { getUserProfile } from '@/services/profileService';
 import { fetchUserCollection } from '@/services/collectionService';
 import ProfileCollection from '@/components/profile/ProfileCollection';
 import { DynamicFilterState } from '@/types/filter';
@@ -17,7 +18,7 @@ interface ProfileParams {
 }
 
 const Profile: React.FC = () => {
-  const { username: routeUsername } = useParams<ProfileParams>();
+  const { username: routeUsername } = useParams<{ username?: string }>();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const [isEditMode, setIsEditMode] = React.useState(false);
@@ -36,27 +37,23 @@ const Profile: React.FC = () => {
     isLoading: profileLoading,
     error: profileError,
     refetch: refetchProfile,
-  } = useQuery(
-    ['profile', username],
-    () => fetchUserProfile(username || ''),
-    {
-      enabled: !!username,
-      retry: false,
-    }
-  );
+  } = useQuery({
+    queryKey: ['profile', username],
+    queryFn: () => getUserProfile(username || ''),
+    enabled: !!username,
+    retry: false,
+  });
 
   const {
     data: collectionItems,
     isLoading: collectionLoading,
     error: collectionError,
     refetch: refetchCollection,
-  } = useQuery(
-    ['collection', profile?.id],
-    () => (profile?.id ? fetchUserCollection(profile.id) : Promise.resolve([])),
-    {
-      enabled: !!profile?.id,
-    }
-  );
+  } = useQuery({
+    queryKey: ['collection', profile?.id],
+    queryFn: () => (profile?.id ? fetchUserCollection(profile.id) : Promise.resolve([])),
+    enabled: !!profile?.id,
+  });
 
   const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
     setFilters((prevFilters) => ({
@@ -175,7 +172,7 @@ const Profile: React.FC = () => {
           {isEditMode ? (
             <ProfileEditForm profile={profile} onCancel={() => setIsEditMode(false)} onSave={refetchProfile} />
           ) : (
-            <ProfileAbout profile={profile} />
+            <ProfileAbout profile={profile} onEditClick={isOwnProfile ? () => setIsEditMode(true) : undefined} />
           )}
         </TabsContent>
       </Tabs>
