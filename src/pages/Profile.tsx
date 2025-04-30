@@ -1,204 +1,118 @@
 
-import React, { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getUserProfile } from "@/services/profileService";
+import { Spinner } from "@/components/ui/spinner";
+import { User } from "@/types";
+import { useAuth } from "@/context/AuthContext";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
+import { ProfileCollection } from "@/components/profile/ProfileCollection";
+import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { CollectionItem, WishlistItem, Banknote } from "@/types";
-import { useSearchParams, useNavigate } from "react-router-dom";
 import { fetchUserCollection } from "@/services/collectionService";
-import { fetchUserWishlist } from "@/services/wishlistService";
 import { fetchBanknotes } from "@/services/banknoteService";
-import { useToast } from "@/hooks/use-toast";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { BanknoteFilter } from "@/components/filter/BanknoteFilter";
-import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
+import { fetchUserWishlist } from "@/services/wishlistService";
+import { useQuery } from "@tanstack/react-query";
+import CollectionProfileNew from "./CollectionProfileNew";
+import { useTheme } from "@/context/ThemeContext";
 
-interface CollectionProfileNewProps {
-  userId: string;
-  isCurrentUser: boolean;
-}
-
-const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewProps) => {
-  const [searchParams, setSearchParams] = useSearchParams();
+export default function Profile() {
+  const { id } = useParams<{ id: string }>();
+  const { user: currentUser } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const initialTab = searchParams.get("tab") || "collection";
-  
+  const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [missingItems, setMissingItems] = useState<Banknote[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const { theme } = useTheme();
 
+  const isOwnProfile = currentUser && profile && currentUser.id === profile.id;
+  const userId = profile?.id || '';
+
+  // Fetch profile data
   useEffect(() => {
-    const loadUserData = async () => {
-      if (userId) {
-        setLoading(true);
-        try {
-          console.log("Loading user collection and wishlist");
-          
-          const collection = await fetchUserCollection(userId);
-          const wishlist = await fetchUserWishlist(userId);
-          const allBanknotes = await fetchBanknotes();
-          
-          console.log("Loaded collection items:", collection.length);
-          console.log("Loaded wishlist items:", wishlist.length);
-          console.log("Loaded all banknotes:", allBanknotes.length);
-          
-          setCollectionItems(collection);
-          setWishlistItems(wishlist);
-          
-          // Calculate missing banknotes
-          const collectionBanknoteIds = new Set(collection.map(item => item.banknoteId));
-          const wishlistBanknoteIds = new Set(wishlist.map(item => item.banknoteId));
-          
-          const missingBanknotes = allBanknotes.filter(banknote => 
-            !collectionBanknoteIds.has(banknote.id) && 
-            banknote.isApproved && 
-            !banknote.isPending
-          );
-          
-          setMissingItems(missingBanknotes);
-          console.log("Missing banknotes:", missingBanknotes.length);
-          
-        } catch (error) {
-          console.error("Error loading user data:", error);
-          toast({
-            title: "Error",
-            description: "Failed to load collection. Please try again later.",
-            variant: "destructive",
-          });
-        } finally {
-          setLoading(false);
+    async function loadProfile() {
+      if (!id) {
+        // If no ID is provided in the URL, and user is logged in, show own profile
+        if (currentUser) {
+          navigate(`/profile/${currentUser.id}`);
+        } else {
+          navigate('/auth');
         }
-      } else {
-        setLoading(false);
+        return;
       }
-    };
 
-    loadUserData();
-  }, [userId, toast]);
-
-  // Collection filter
-  const { 
-    filteredItems: filteredCollection, 
-    filters: collectionFilters, 
-    setFilters: setCollectionFilters,
-    availableCategories: collectionCategories,
-    availableTypes: collectionTypes
-  } = useBanknoteFilter({
-    items: collectionItems,
-    initialFilters: {
-      sort: ["newest", "extPick"]
+      setLoading(true);
+      const profileData = await getUserProfile(id);
+      
+      if (profileData) {
+        setProfile(profileData);
+      } else {
+        toast.error("Could not load profile");
+        navigate('/');
+      }
+      
+      setLoading(false);
     }
-  });
 
-  // Missing filter
-  const { 
-    filteredItems: filteredMissing, 
-    filters: missingFilters, 
-    setFilters: setMissingFilters,
-    availableCategories: missingCategories,
-    availableTypes: missingTypes
-  } = useBanknoteFilter({
-    items: missingItems,
-    initialFilters: {
-      sort: ["extPick"]
-    }
-  });
+    loadProfile();
+  }, [id, currentUser, navigate]);
 
-  // Wishlist filter
-  const { 
-    filteredItems: filteredWishlist, 
-    filters: wishlistFilters, 
-    setFilters: setWishlistFilters,
-    availableCategories: wishlistCategories,
-    availableTypes: wishlistTypes
-  } = useBanknoteFilter({
-    items: wishlistItems,
-    initialFilters: {
-      sort: ["newest", "extPick"]
-    }
-  });
+  // Fetch collection data is now handled by ProfileCollection component
 
-  const handleTabChange = (value: string) => {
-    setSearchParams({ tab: value });
+  const handleProfileUpdated = (updatedProfile: User) => {
+    setProfile(updatedProfile);
+    setIsEditing(false);
   };
 
-  const handleBrowseCatalog = () => {
-    navigate('/catalog');
-  };
+  if (loading) {
+    return (
+      <div className="page-container flex items-center justify-center min-h-[60vh]">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
-  const signIn = () => {
-    navigate('/auth');
-  };
-
-  const title = isCurrentUser ? "My Collection" : "User Collection";
+  if (!profile) {
+    return (
+      <div className="page-container">
+        <div className="max-w-4xl mx-auto text-center py-12">
+          <h1 className="text-3xl font-serif mb-4">Profile Not Found</h1>
+          <p className={`mb-6 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'}`}>
+            The requested profile could not be found.
+          </p>
+          <Button onClick={() => navigate('/')}>Return Home</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-6">{title}</h1>
-
-      {!userId && (
-        <Alert variant="default" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Authentication Required</AlertTitle>
-          <AlertDescription>
-            You need to sign in to access your collection and wishlist.
-          </AlertDescription>
-          <Button onClick={signIn} className="mt-2" variant="outline">Sign In</Button>
-        </Alert>
-      )}
-
-      <Tabs defaultValue={initialTab} onValueChange={handleTabChange}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="collection">My Banknotes</TabsTrigger>
-          <TabsTrigger value="wishlist">Wish List</TabsTrigger>
-          <TabsTrigger value="missing">Missing</TabsTrigger>
-          <TabsTrigger value="stats">Statistics</TabsTrigger>
-        </TabsList>
+    <div className="page-container animate-fade-in">
+      <div className="max-w-4xl mx-auto">
+        {/* Profile Header is always visible */}
+        <ProfileHeader profile={profile} />
         
-        <TabsContent value="collection">
-          <div>
-            <h2 className="text-2xl font-bold mb-4">View Collection by Country</h2>
-            
-            {loading ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
-              </div>
-            ) : collectionItems.length === 0 ? (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <p className="text-lg font-medium mb-2">Your collection is empty</p>
-                  <p className="text-muted-foreground mb-4">
-                    Start adding banknotes to your collection by browsing the catalog.
-                  </p>
-                  <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-6">
-                {/* Collection content would go here */}
-              </div>
-            )}
+        {isEditing ? (
+          <Card className={`mt-6 ${theme === 'light' ? 'bg-white/90 shadow-light-md' : ''}`}>
+            <ProfileEditForm 
+              profile={profile} 
+              onProfileUpdated={handleProfileUpdated} 
+              onCancel={() => setIsEditing(false)}
+            />
+          </Card>
+        ) : (
+          <div className="mt-6">
+            <Card className={theme === 'light' ? 'bg-white/90 shadow-light-md' : ''}>
+              <CollectionProfileNew
+                userId={profile.id}
+                isCurrentUser={isOwnProfile || false}
+              />
+            </Card>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="wishlist">
-          {/* Wishlist content */}
-        </TabsContent>
-        
-        <TabsContent value="missing">
-          {/* Missing content */}
-        </TabsContent>
-        
-        <TabsContent value="stats">
-          {/* Stats content */}
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
-};
-
-export default CollectionProfileNew;
+}

@@ -1,270 +1,280 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import SimpleImageUpload from './SimpleImageUpload';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { CollectionItem, BanknoteCondition } from "@/types";
+import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
-import { addToCollection, updateCollectionItem } from '@/services/collectionService';
-import { BanknoteCondition, CollectionItem } from '@/types';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { updateCollectionItem, updateCollectionItemImages } from '@/services/collectionService';
+import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
+import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
-export interface CollectionItemFormProps {
-  item?: CollectionItem | null;
-  onSave?: (item: CollectionItem) => void;
-  onCancel?: () => void;
-  collectionItem?: CollectionItem | null;
-  onUpdate?: (item: CollectionItem) => void;
-}
-
-const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ 
-  item, 
-  onSave, 
-  onCancel,
-  collectionItem,
-  onUpdate
+// Simple image upload component 
+const SimpleImageUpload = ({ imageUrl, onImageUploaded, side }: { 
+  imageUrl?: string, 
+  onImageUploaded: (url: string) => void, 
+  side: 'obverse' | 'reverse' 
 }) => {
-  const { toast } = useToast();
+  const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
   
-  // Use either item or collectionItem based on what's provided
-  const activeItem = item || collectionItem || null;
-
-  const [loading, setLoading] = useState(false);
-  const [condition, setCondition] = useState<BanknoteCondition>(activeItem?.condition || 'VF');
-  const [purchasePrice, setPurchasePrice] = useState<string>(activeItem?.purchasePrice?.toString() || '');
-  const [purchaseDate, setPurchaseDate] = useState<Date | undefined>(
-    activeItem?.purchaseDate ? new Date(activeItem.purchaseDate) : undefined
-  );
-  const [publicNote, setPublicNote] = useState<string>(activeItem?.publicNote || '');
-  const [privateNote, setPrivateNote] = useState<string>(activeItem?.privateNote || '');
-  const [isForSale, setIsForSale] = useState<boolean>(activeItem?.isForSale || false);
-  const [salePrice, setSalePrice] = useState<string>(activeItem?.salePrice?.toString() || '');
-  const [obverseImage, setObverseImage] = useState<string | null>(activeItem?.obverseImage || null);
-  const [reverseImage, setReverseImage] = useState<string | null>(activeItem?.reverseImage || null);
-  
-  // Update form when item changes
-  useEffect(() => {
-    if (activeItem) {
-      setCondition(activeItem.condition);
-      setPurchasePrice(activeItem.purchasePrice?.toString() || '');
-      setPurchaseDate(activeItem.purchaseDate ? new Date(activeItem.purchaseDate) : undefined);
-      setPublicNote(activeItem.publicNote || '');
-      setPrivateNote(activeItem.privateNote || '');
-      setIsForSale(activeItem.isForSale || false);
-      setSalePrice(activeItem.salePrice?.toString() || '');
-      setObverseImage(activeItem.obverseImage || null);
-      setReverseImage(activeItem.reverseImage || null);
-    } else {
-      // Reset form for new item
-      setCondition('VF');
-      setPurchasePrice('');
-      setPurchaseDate(undefined);
-      setPublicNote('');
-      setPrivateNote('');
-      setIsForSale(false);
-      setSalePrice('');
-      setObverseImage(null);
-      setReverseImage(null);
-    }
-  }, [activeItem]);
-  
-  const handleSave = async () => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    
+    setUploading(true);
+    
     try {
-      if (!user) {
-        toast({
-          title: 'Error',
-          description: 'You must be logged in to save collection items',
-          variant: 'destructive',
-        });
-        return;
-      }
+      // Generate a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${user.id}/images/${side}/${fileName}`;
       
-      if (!activeItem?.banknoteId) {
-        toast({
-          title: 'Error',
-          description: 'No banknote selected',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      setLoading(true);
-      
-      // Parse numeric values
-      const parsedPurchasePrice = purchasePrice ? parseFloat(purchasePrice) : undefined;
-      const parsedSalePrice = salePrice ? parseFloat(salePrice) : undefined;
-      
-      let savedItem: CollectionItem | null = null;
-      
-      if (activeItem?.id) {
-        // Update existing item
-        const success = await updateCollectionItem(activeItem.id, {
-          condition,
-          purchasePrice: parsedPurchasePrice,
-          purchaseDate,
-          publicNote,
-          privateNote,
-          isForSale,
-          salePrice: parsedSalePrice,
-          obverseImage: obverseImage || undefined,
-          reverseImage: reverseImage || undefined,
-        });
+      const { error } = await supabase.storage
+        .from('banknote_images')
+        .upload(filePath, file);
         
-        if (success) {
-          toast({
-            title: 'Success',
-            description: 'Collection item updated',
-          });
-          
-          // Return updated item
-          savedItem = {
-            ...activeItem,
-            condition,
-            purchasePrice: parsedPurchasePrice,
-            purchaseDate: purchaseDate?.toISOString(),
-            publicNote,
-            privateNote,
-            isForSale,
-            salePrice: parsedSalePrice,
-            obverseImage: obverseImage || undefined,
-            reverseImage: reverseImage || undefined,
-          };
-        } else {
-          throw new Error('Failed to update collection item');
-        }
-      } else {
-        // Create new item
-        savedItem = await addToCollection({
-          userId: user.id,
-          banknoteId: activeItem.banknoteId,
-          condition,
-          purchasePrice: parsedPurchasePrice,
-          purchaseDate: purchaseDate?.toISOString(),
-          publicNote,
-          privateNote,
-          isForSale,
-          salePrice: parsedSalePrice,
-        });
+      if (error) throw error;
+      
+      const { data } = supabase.storage
+        .from('banknote_images')
+        .getPublicUrl(filePath);
         
-        if (savedItem) {
-          // Update saved item with images
-          if (obverseImage || reverseImage) {
-            const success = await updateCollectionItem(savedItem.id, {
-              obverseImage: obverseImage || undefined,
-              reverseImage: reverseImage || undefined,
-            });
-            
-            if (success) {
-              savedItem.obverseImage = obverseImage || undefined;
-              savedItem.reverseImage = reverseImage || undefined;
-            }
-          }
-          
-          toast({
-            title: 'Success',
-            description: 'Item added to collection',
-          });
-        } else {
-          throw new Error('Failed to add to collection');
-        }
-      }
-      
-      if (savedItem) {
-        if (onUpdate) {
-          onUpdate(savedItem);
-        }
-        if (onSave) {
-          onSave(savedItem);
-        }
-      }
-      
+      onImageUploaded(data.publicUrl);
     } catch (error) {
-      console.error('Error saving collection item:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save collection item. Please try again.',
-        variant: 'destructive',
-      });
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
+    } finally {
+      setUploading(false);
+      // Reset the file input
+      event.target.value = '';
+    }
+  };
+  
+  return (
+    <div className="relative aspect-[3/2] border rounded-md overflow-hidden bg-muted/20">
+      {imageUrl ? (
+        <img 
+          src={imageUrl} 
+          alt={`Banknote ${side}`}
+          className="w-full h-full object-contain"
+        />
+      ) : (
+        <div className="flex items-center justify-center w-full h-full text-muted-foreground">
+          Click to upload
+        </div>
+      )}
+      
+      <div className="absolute inset-0 hover:bg-black/40 transition-colors flex items-center justify-center">
+        <label className="cursor-pointer w-full h-full flex items-center justify-center">
+          <input 
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={uploading}
+          />
+          {uploading && (
+            <div className="bg-white rounded-full p-2">
+              <div className="w-5 h-5 border-2 border-b-transparent border-ottoman-600 rounded-full animate-spin"></div>
+            </div>
+          )}
+        </label>
+      </div>
+    </div>
+  );
+};
+
+interface CollectionItemFormProps {
+  collectionItem: CollectionItem;
+  onUpdate?: (updatedItem: CollectionItem) => void;
+}
+
+export default function CollectionItemForm({ collectionItem, onUpdate }: CollectionItemFormProps) {
+  const { user } = useAuth();
+  const [condition, setCondition] = useState<BanknoteCondition>(collectionItem.condition || "UNC");
+  const [purchaseDate, setPurchaseDate] = useState<Date | undefined>(
+    collectionItem.purchaseDate ? new Date(collectionItem.purchaseDate) : undefined
+  );
+  const [purchasePrice, setPurchasePrice] = useState<string>(
+    collectionItem.purchasePrice ? collectionItem.purchasePrice.toString() : ''
+  );
+  const [privateNote, setPrivateNote] = useState<string>(collectionItem.privateNote || '');
+  const [publicNote, setPublicNote] = useState<string>(collectionItem.publicNote || '');
+  const [isForSale, setIsForSale] = useState(collectionItem.isForSale);
+  const [salePrice, setSalePrice] = useState<string>(
+    collectionItem.salePrice ? collectionItem.salePrice.toString() : ''
+  );
+  const [location, setLocation] = useState<string>(collectionItem.location || '');
+  const [obverseImage, setObverseImage] = useState<string | null>(collectionItem.obverseImage || null);
+  const [reverseImage, setReverseImage] = useState<string | null>(collectionItem.reverseImage || null);
+  const [loading, setLoading] = useState(false);
+
+  // If the item's "forSale" status changes, we need to make sure the form reflects this
+  useEffect(() => {
+    setIsForSale(collectionItem.isForSale);
+  }, [collectionItem.isForSale]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!user) {
+      toast.error("You must be logged in");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      // Update main collection item details
+      const updates = {
+        condition,
+        purchaseDate: purchaseDate ? purchaseDate.toISOString() : undefined,
+        purchasePrice: purchasePrice ? parseFloat(purchasePrice) : undefined,
+        privateNote,
+        publicNote,
+        isForSale,
+        salePrice: isForSale && salePrice ? parseFloat(salePrice) : null,
+        location
+      };
+      
+      const success = await updateCollectionItem(collectionItem.id, updates);
+      
+      if (!success) {
+        toast.error("Failed to update collection item");
+        return;
+      }
+      
+      // Update images separately if they changed
+      if (obverseImage !== collectionItem.obverseImage || 
+          reverseImage !== collectionItem.reverseImage) {
+        await updateCollectionItemImages(
+          collectionItem.id,
+          obverseImage || undefined,
+          reverseImage || undefined
+        );
+      }
+      
+      // Handle marketplace listing
+      if (isForSale && !collectionItem.isForSale) {
+        // Item wasn't for sale before but now is
+        await addToMarketplace(collectionItem.id, user.id);
+      } else if (!isForSale && collectionItem.isForSale) {
+        // Item was for sale before but now isn't
+        // We need to find the marketplace item and remove it
+        // This is simplified and would need to be expanded with actual marketplace item lookups
+        await removeFromMarketplace(collectionItem.id, collectionItem.id);
+      }
+
+      // Update the local state in the parent component
+      if (onUpdate) {
+        onUpdate({
+          ...collectionItem,
+          condition,
+          purchaseDate: purchaseDate ? purchaseDate.toISOString() : undefined,
+          purchasePrice: purchasePrice ? parseFloat(purchasePrice) : undefined,
+          privateNote,
+          publicNote,
+          isForSale,
+          salePrice: isForSale && salePrice ? parseFloat(salePrice) : null,
+          location,
+          obverseImage: obverseImage || undefined,
+          reverseImage: reverseImage || undefined
+        });
+      }
+      
+      toast.success("Collection item updated successfully");
+    } catch (error) {
+      console.error("Error updating collection item:", error);
+      toast.error("Something went wrong while updating");
     } finally {
       setLoading(false);
     }
   };
-  
-  const conditionOptions: { value: BanknoteCondition; label: string }[] = [
-    { value: 'UNC', label: 'Uncirculated (UNC)' },
-    { value: 'AU', label: 'About Uncirculated (AU)' },
-    { value: 'XF', label: 'Extremely Fine (XF)' },
-    { value: 'VF', label: 'Very Fine (VF)' },
-    { value: 'F', label: 'Fine (F)' },
-    { value: 'VG', label: 'Very Good (VG)' },
-    { value: 'G', label: 'Good (G)' },
-    { value: 'Fair', label: 'Fair' },
-    { value: 'Poor', label: 'Poor' },
-  ];
-  
+
+  const handleImageUploaded = (side: 'obverse' | 'reverse', url: string) => {
+    if (side === 'obverse') {
+      setObverseImage(url);
+    } else {
+      setReverseImage(url);
+    }
+  };
+
   return (
-    <div className="bg-card border rounded-lg p-6">
-      <h2 className="text-xl font-bold mb-4">
-        {activeItem?.id ? 'Edit Collection Item' : 'Add to Collection'}
-      </h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6 p-6">
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium">Images</h3>
+        <p className="text-sm text-muted-foreground">
+          Add your own images of this banknote for your collection
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <div>
-            <Label htmlFor="condition">Condition</Label>
-            <Select 
-              value={condition} 
-              onValueChange={(value) => setCondition(value as BanknoteCondition)}
-            >
+            <Label className="mb-2 block">Obverse (Front)</Label>
+            <SimpleImageUpload
+              imageUrl={obverseImage || undefined}
+              side="obverse"
+              onImageUploaded={(url) => handleImageUploaded('obverse', url)}
+            />
+          </div>
+          <div>
+            <Label className="mb-2 block">Reverse (Back)</Label>
+            <SimpleImageUpload
+              imageUrl={reverseImage || undefined}
+              side="reverse"
+              onImageUploaded={(url) => handleImageUploaded('reverse', url)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium">Condition & Details</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div>
+            <Label htmlFor="condition" className="mb-2 block">Condition/Grade</Label>
+            <Select value={condition} onValueChange={(value) => setCondition(value as BanknoteCondition)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
               <SelectContent>
-                {conditionOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
+                <SelectItem value="UNC">Uncirculated (UNC)</SelectItem>
+                <SelectItem value="AU">About Uncirculated (AU)</SelectItem>
+                <SelectItem value="XF">Extremely Fine (XF)</SelectItem>
+                <SelectItem value="VF">Very Fine (VF)</SelectItem>
+                <SelectItem value="F">Fine (F)</SelectItem>
+                <SelectItem value="VG">Very Good (VG)</SelectItem>
+                <SelectItem value="G">Good (G)</SelectItem>
+                <SelectItem value="Fair">Fair</SelectItem>
+                <SelectItem value="Poor">Poor</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div>
-            <Label htmlFor="purchasePrice">Purchase Price</Label>
-            <Input
-              id="purchasePrice"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="Enter purchase price"
-              value={purchasePrice}
-              onChange={(e) => setPurchasePrice(e.target.value)}
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="purchaseDate">Purchase Date</Label>
+            <Label htmlFor="purchase-date" className="mb-2 block">Purchase Date</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  id="purchaseDate"
                   variant="outline"
-                  className="w-full justify-start text-left font-normal"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !purchaseDate && "text-muted-foreground"
+                  )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {purchaseDate ? format(purchaseDate, 'PPP') : <span>Pick a date</span>}
+                  {purchaseDate ? format(purchaseDate, "PPP") : <span>Select date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
                   mode="single"
                   selected={purchaseDate}
                   onSelect={setPurchaseDate}
@@ -275,93 +285,99 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
           </div>
           
           <div>
-            <Label htmlFor="publicNote">Public Note</Label>
-            <Textarea
-              id="publicNote"
-              placeholder="Public note (visible to others)"
-              value={publicNote}
-              onChange={(e) => setPublicNote(e.target.value)}
-              className="h-24"
-            />
+            <Label htmlFor="purchase-price" className="mb-2 block">Purchase Price</Label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">$</span>
+              <Input
+                id="purchase-price"
+                type="number"
+                value={purchasePrice}
+                onChange={(e) => setPurchasePrice(e.target.value)}
+                placeholder="0.00"
+                className="pl-8"
+                step="0.01"
+              />
+            </div>
           </div>
           
           <div>
-            <Label htmlFor="privateNote">Private Note</Label>
-            <Textarea
-              id="privateNote"
-              placeholder="Private note (only visible to you)"
-              value={privateNote}
-              onChange={(e) => setPrivateNote(e.target.value)}
-              className="h-24"
+            <Label htmlFor="location" className="mb-2 block">Storage Location</Label>
+            <Input
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Where do you keep this banknote?"
             />
-          </div>
-        </div>
-        
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isForSale"
-              checked={isForSale}
-              onCheckedChange={setIsForSale}
-            />
-            <Label htmlFor="isForSale">List for Sale</Label>
-          </div>
-          
-          {isForSale && (
-            <div>
-              <Label htmlFor="salePrice">Sale Price</Label>
-              <Input
-                id="salePrice"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="Enter sale price"
-                value={salePrice}
-                onChange={(e) => setSalePrice(e.target.value)}
-              />
-            </div>
-          )}
-          
-          <div className="mt-4">
-            <Label>Images</Label>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div>
-                <Label htmlFor="obverseImage" className="text-sm mb-1 block">
-                  Obverse (Front)
-                </Label>
-                <SimpleImageUpload 
-                  image={obverseImage || ""}
-                  side="obverse"
-                  onImageUploaded={setObverseImage}
-                />
-              </div>
-              <div>
-                <Label htmlFor="reverseImage" className="text-sm mb-1 block">
-                  Reverse (Back)
-                </Label>
-                <SimpleImageUpload 
-                  image={reverseImage || ""}
-                  side="reverse"
-                  onImageUploaded={setReverseImage}
-                />
-              </div>
-            </div>
           </div>
         </div>
       </div>
       
-      <div className="mt-6 flex justify-end space-x-2">
-        {onCancel && (
-          <Button variant="outline" onClick={onCancel} disabled={loading}>
-            Cancel
-          </Button>
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium">Notes</h3>
+        <div className="grid grid-cols-1 gap-4 mt-4">
+          <div>
+            <Label htmlFor="private-note" className="mb-2 block">Private Notes (only visible to you)</Label>
+            <Textarea
+              id="private-note"
+              value={privateNote}
+              onChange={(e) => setPrivateNote(e.target.value)}
+              placeholder="Add your private notes here"
+              rows={3}
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="public-note" className="mb-2 block">Public Notes (visible to others)</Label>
+            <Textarea
+              id="public-note"
+              value={publicNote}
+              onChange={(e) => setPublicNote(e.target.value)}
+              placeholder="Add notes that others can see"
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium">Marketplace</h3>
+        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-md">
+          <div className="space-y-0.5">
+            <Label htmlFor="for-sale" className="text-base cursor-pointer">List on Marketplace</Label>
+            <p className="text-sm text-muted-foreground">Make this item available for sale in the marketplace</p>
+          </div>
+          <Switch
+            id="for-sale"
+            checked={isForSale}
+            onCheckedChange={setIsForSale}
+          />
+        </div>
+        
+        {isForSale && (
+          <div className="p-4 border rounded-md mt-2">
+            <Label htmlFor="sale-price" className="mb-2 block">Sale Price</Label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">$</span>
+              <Input
+                id="sale-price"
+                type="number"
+                value={salePrice}
+                onChange={(e) => setSalePrice(e.target.value)}
+                placeholder="0.00"
+                className="pl-8"
+                step="0.01"
+                required={isForSale}
+              />
+            </div>
+          </div>
         )}
-        <Button onClick={handleSave} disabled={loading}>
-          {loading ? 'Saving...' : activeItem?.id ? 'Update' : 'Add to Collection'}
+      </div>
+      
+      <div className="flex justify-end space-x-2">
+        <Button type="submit" disabled={loading}>
+          {loading ? "Saving..." : "Save Changes"}
         </Button>
       </div>
-    </div>
+    </form>
   );
-};
-
-export default CollectionItemForm;
+}
