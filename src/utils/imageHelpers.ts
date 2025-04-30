@@ -7,7 +7,7 @@ import { ImageUrls } from "@/types";
  */
 export function getFirstImageUrl(imageUrls: ImageUrls | undefined | null): string {
   if (!imageUrls) return '/placeholder.svg';
-  return Array.isArray(imageUrls) ? (imageUrls[0] || '/placeholder.svg') : imageUrls;
+  return Array.isArray(imageUrls) ? (imageUrls[0] || '/placeholder.svg') : imageUrls || '/placeholder.svg';
 }
 
 /**
@@ -27,5 +27,5 @@ export function getCollectionItemImage(
  */
 export function getAllImagesAsArray(imageUrls: ImageUrls | undefined | null): string[] {
   if (!imageUrls) return [];
-  return Array.isArray(imageUrls) ? imageUrls : [imageUrls];
+  return Array.isArray(imageUrls) ? imageUrls.filter(Boolean) : (imageUrls ? [imageUrls] : []);
 }

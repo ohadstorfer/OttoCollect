@@ -44,7 +44,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   }
   
   // Use null checks to prevent errors and set defaults
-  const banknote = item?.banknote || {};
+  const banknote = item.banknote || {};
   
   const handleViewDetail = () => {
     if (!item.id) {
@@ -105,15 +105,20 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   };
   
   // Get image URLs safely - handle both string and array types
-  const imageUrls = banknote.imageUrls || [];
+  const imageUrls = banknote?.imageUrls || [];
   const obverseImage = item?.obverseImage || getFirstImageUrl(imageUrls);
+  
+  // Safe access to banknote properties
+  const denomination = banknote?.denomination || 'Unknown Denomination';
+  const country = banknote?.country || 'Unknown Country';
+  const year = banknote?.year || 'Unknown Year';
   
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md h-full">
       <div className="aspect-video relative overflow-hidden cursor-pointer" onClick={handleViewDetail}>
         <img
           src={obverseImage}
-          alt={banknote.denomination || 'Banknote'}
+          alt={denomination}
           className="w-full h-full object-cover"
         />
         {item?.isForSale && (
@@ -126,10 +131,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         <div className="flex justify-between items-start">
           <div>
             <h3 className="font-medium text-lg leading-tight">
-              {banknote.denomination || 'Unknown Denomination'}
+              {denomination}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {banknote.country || 'Unknown Country'}, {banknote.year || 'Unknown Year'}
+              {country}, {year}
             </p>
             <div className="flex items-center gap-2 mt-1">
               <Badge variant="secondary" className="text-xs">
