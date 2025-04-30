@@ -147,7 +147,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   return (
     <>
       <Card className="overflow-hidden transition-all hover:shadow-md">
-        <div className="relative aspect-[4/2] overflow-hidden bg-muted">
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           <BanknoteImage 
             imageUrl={displayImage}
             alt={getBanknoteTitle()}
