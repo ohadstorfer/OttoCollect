@@ -17,7 +17,7 @@ interface ProfileCollectionProps {
   collectionItems: CollectionItem[];
   isLoading: boolean;
   error: string | null;
-  onRetry: () => void;
+  onRetry: () => Promise<void>;  // Changed to return Promise<void>
   // Filter props
   filters: DynamicFilterState;
   onFilterChange: (newFilters: Partial<DynamicFilterState>) => void;
@@ -64,7 +64,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
     return (
       <div className="text-center py-12">
         <h3 className="text-xl font-medium mb-4 text-red-500">{error}</h3>
-        <Button onClick={onRetry}>Retry</Button>
+        <Button onClick={() => onRetry()}>Retry</Button>
       </div>
     );
   }

@@ -72,6 +72,7 @@ export function BanknoteImage({
   className?: string;
   defaultImage?: string;
 }) {
+  // Convert string or string[] to a single string (first URL in array)
   const singleImageUrl = getFirstImageUrl(imageUrl, defaultImage);
   
   return (

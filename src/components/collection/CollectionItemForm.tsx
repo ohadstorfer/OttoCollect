@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,9 +37,11 @@ import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
 
 // Define props for CollectionItemForm
 export interface CollectionItemFormProps {
-  item: CollectionItem | null;
-  onSave: (item: CollectionItem) => Promise<void>;
-  onCancel: () => void;
+  item?: CollectionItem | null;
+  collectionItem?: CollectionItem | null;  // Adding this to match usage in components
+  onSave?: (item: CollectionItem) => Promise<void>;
+  onUpdate?: (item: CollectionItem) => void;  // Adding this to match usage in components
+  onCancel?: () => void;
 }
 
 // Create a schema for form validation
@@ -58,9 +59,14 @@ const formSchema = z.object({
 
 const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
   item,
+  collectionItem,
   onSave,
+  onUpdate,
   onCancel
 }) => {
+  // Use collectionItem prop if provided, otherwise use item
+  const currentItem = collectionItem || item;
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,30 +74,30 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
   const [searchResults, setSearchResults] = useState<DetailedBanknote[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedBanknote, setSelectedBanknote] = useState<DetailedBanknote | null>(
-    item?.banknote || null
+    currentItem?.banknote || null
   );
   const [obverseImageFile, setObverseImageFile] = useState<File | null>(null);
   const [reverseImageFile, setReverseImageFile] = useState<File | null>(null);
   const [obverseImagePreview, setObverseImagePreview] = useState<string | null>(
-    item?.obverseImage || null
+    currentItem?.obverseImage || null
   );
   const [reverseImagePreview, setReverseImagePreview] = useState<string | null>(
-    item?.reverseImage || null
+    currentItem?.reverseImage || null
   );
 
   // Initialize form with existing values if editing
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      banknoteId: item?.banknoteId || '',
-      condition: item?.condition || 'UNC',
-      purchasePrice: item?.purchasePrice || '',
-      purchaseDate: item?.purchaseDate ? new Date(item.purchaseDate) : undefined,
-      location: item?.location || '',
-      publicNote: item?.publicNote || '',
-      privateNote: item?.privateNote || '',
-      isForSale: item?.isForSale || false,
-      salePrice: item?.salePrice || ''
+      banknoteId: currentItem?.banknoteId || '',
+      condition: (currentItem?.condition || 'UNC') as 'UNC' | 'AU' | 'XF' | 'VF' | 'F' | 'VG' | 'G' | 'FR',
+      purchasePrice: currentItem?.purchasePrice || '',
+      purchaseDate: currentItem?.purchaseDate ? new Date(currentItem.purchaseDate) : undefined,
+      location: currentItem?.location || '',
+      publicNote: currentItem?.publicNote || '',
+      privateNote: currentItem?.privateNote || '',
+      isForSale: currentItem?.isForSale || false,
+      salePrice: currentItem?.salePrice || ''
     }
   });
 
@@ -163,8 +169,8 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      let obverseImageUrl = item?.obverseImage || null;
-      let reverseImageUrl = item?.reverseImage || null;
+      let obverseImageUrl = currentItem?.obverseImage || null;
+      let reverseImageUrl = currentItem?.reverseImage || null;
 
       // Upload new images if provided
       if (obverseImageFile) {
@@ -179,7 +185,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
       const collectionData = {
         userId: user.id,
         banknoteId: values.banknoteId,
-        condition: values.condition,
+        condition: values.condition as BanknoteCondition, // Type assertion to match BanknoteCondition
         purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
         purchaseDate: values.purchaseDate ? format(values.purchaseDate, 'yyyy-MM-dd') : undefined,
         location: values.location || undefined,
@@ -193,10 +199,10 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
 
       let savedItem: CollectionItem | null = null;
 
-      if (item?.id) {
+      if (currentItem?.id) {
         // Update existing item
-        const success = await updateCollectionItem(item.id, {
-          condition: values.condition,
+        const success = await updateCollectionItem(currentItem.id, {
+          condition: values.condition as BanknoteCondition, // Type assertion
           purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
           purchaseDate: values.purchaseDate,
           location: values.location,
@@ -211,9 +217,10 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
         if (success) {
           // Create a simple version of the saved item for the return value
           savedItem = {
-            ...item,
+            ...currentItem,
             ...collectionData,
-            id: item.id,
+            id: currentItem.id,
+            banknote: currentItem.banknote // Ensure we keep the banknote reference
           };
           
           toast({
@@ -238,7 +245,12 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
       }
 
       if (savedItem) {
-        await onSave(savedItem);
+        if (onUpdate) {
+          onUpdate(savedItem);
+        }
+        if (onSave) {
+          await onSave(savedItem);
+        }
       }
 
     } catch (error) {

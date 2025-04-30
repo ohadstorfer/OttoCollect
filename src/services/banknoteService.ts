@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters } from '@/types';
 
@@ -236,6 +235,27 @@ export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote 
   } catch (error) {
     console.error('Unexpected error in fetchBanknoteDetail:', error);
     return null;
+  }
+}
+
+export async function searchBanknotes(searchTerm: string): Promise<DetailedBanknote[]> {
+  try {
+    console.log("Searching banknotes with term:", searchTerm);
+    const { data, error } = await supabase
+      .from('detailed_banknotes')
+      .select('*')
+      .or(`extended_pick_number.ilike.%${searchTerm}%,face_value.ilike.%${searchTerm}%,banknote_description.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
+      .limit(20);
+    
+    if (error) {
+      console.error('Error searching banknotes:', error);
+      return [];
+    }
+
+    return data.map(banknote => mapBanknoteFromDatabase(banknote));
+  } catch (error) {
+    console.error('Unexpected error in searchBanknotes:', error);
+    return [];
   }
 }
 
