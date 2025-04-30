@@ -38,7 +38,7 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-5xl w-[90vw] max-h-[85vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center justify-between">
+      <DialogHeader className="sticky top-0 z-10 bg-background flex flex-row items-center justify-between border-b">
           <div className="flex flex-col">
             <DialogTitle>Banknote Group: {groupBaseNumber}</DialogTitle>
             {displaySultan && (
