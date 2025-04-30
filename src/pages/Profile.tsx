@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
@@ -158,19 +159,46 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
           <TabsTrigger value="stats">Statistics</TabsTrigger>
         </TabsList>
         
+        <TabsContent value="collection">
+          <div>
+            <h2 className="text-2xl font-bold mb-4">View Collection by Country</h2>
+            
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+              </div>
+            ) : collectionItems.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-lg font-medium mb-2">Your collection is empty</p>
+                  <p className="text-muted-foreground mb-4">
+                    Start adding banknotes to your collection by browsing the catalog.
+                  </p>
+                  <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6">
+                {/* Collection content would go here */}
+              </div>
+            )}
+          </div>
+        </TabsContent>
         
+        <TabsContent value="wishlist">
+          {/* Wishlist content */}
+        </TabsContent>
         
-          
-            
-              View Collection by Country
-            
-            
-              
-                
-                  You need to sign in to view your collection
-                  Sign In
-                
-              
-                Your collection is empty
-                Start adding banknotes to your collection by browsing the catalog.
-                Browse Catalog
+        <TabsContent value="missing">
+          {/* Missing content */}
+        </TabsContent>
+        
+        <TabsContent value="stats">
+          {/* Stats content */}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default CollectionProfileNew;

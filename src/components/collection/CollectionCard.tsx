@@ -7,6 +7,7 @@ import { Eye, Edit, Tag, ArrowUpToLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getFirstImageUrl } from '@/utils/imageHelpers';
 
 interface CollectionCardProps {
   item: CollectionItem;
@@ -20,9 +21,20 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
   const [showReverse, setShowReverse] = useState(false);
   const navigate = useNavigate();
   
+  // Safety check for undefined item or banknote
+  if (!item || !item.banknote) {
+    console.error('CollectionCard received undefined item or banknote', item);
+    return (
+      <Card className={cn("overflow-hidden p-4 text-center", className)}>
+        <p className="text-muted-foreground">Item data unavailable</p>
+      </Card>
+    );
+  }
+  
   const { banknote, condition, salePrice, isForSale } = item;
   
   const handleViewDetails = () => {
+    if (!item.id) return;
     navigate(`/collection/${item.id}`);
   };
   
@@ -38,12 +50,14 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
     }
   };
   
-  // Determine what image to show
+  // Determine what image to show with safer fallbacks
   const getDisplayImage = () => {
     if (showReverse) {
-      return item.reverseImage || (banknote.imageUrls && banknote.imageUrls.length > 1 ? banknote.imageUrls[1] : '/placeholder.svg');
+      return item.reverseImage || (banknote.imageUrls && Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 1 
+        ? banknote.imageUrls[1] 
+        : '/placeholder.svg');
     } else {
-      return item.obverseImage || (banknote.imageUrls && banknote.imageUrls.length > 0 ? banknote.imageUrls[0] : '/placeholder.svg');
+      return item.obverseImage || getFirstImageUrl(banknote.imageUrls);
     }
   };
   
@@ -64,7 +78,7 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
         >
           <img
             src={getDisplayImage()}
-            alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) ${showReverse ? 'Reverse' : 'Obverse'}`}
+            alt={`${banknote.country || 'Unknown'} ${banknote.denomination || 'Banknote'} (${banknote.year || 'Unknown Year'}) ${showReverse ? 'Reverse' : 'Obverse'}`}
             className={cn(
               "w-full h-full object-cover transition-transform duration-500",
               isHovering ? "scale-110" : "scale-100"
@@ -81,13 +95,13 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
         {isForSale && (
           <div className="absolute top-0 left-0 bg-ottoman-600/90 text-white px-3 py-1 flex items-center font-semibold">
             <Tag className="h-4 w-4 mr-1" />
-            For Sale: ${salePrice}
+            For Sale: ${salePrice || '0'}
           </div>
         )}
         
         {/* Condition badge */}
         <div className="absolute top-2 right-2">
-          <Badge variant="secondary">{condition}</Badge>
+          <Badge variant="secondary">{condition || 'Unknown'}</Badge>
         </div>
       </div>
       
@@ -95,14 +109,14 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-lg font-serif font-semibold text-parchment-500">
-              {banknote.denomination}
+              {banknote.denomination || 'Unknown Denomination'}
             </h3>
             <p className="text-sm text-ottoman-300">
-              {banknote.country}, {banknote.year}
+              {banknote.country || 'Unknown Country'}, {banknote.year || 'Unknown Year'}
             </p>
           </div>
           <Badge variant="gold" className="self-start">
-            {banknote.catalogId}
+            {banknote.catalogId || 'N/A'}
           </Badge>
         </div>
       </CardHeader>

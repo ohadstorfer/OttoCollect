@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ContactSellerButton } from "@/components/marketplace/ContactSellerButton";
+import { getFirstImageUrl } from '@/utils/imageHelpers';
 
 interface MarketplaceItemProps {
   item: MarketplaceItemType;
@@ -15,15 +16,13 @@ interface MarketplaceItemProps {
 }
 
 const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
-  console.log('Rendering MarketplaceItem component with item:', item.id);
+  console.log('Rendering MarketplaceItem component with item:', item?.id);
   const [isHovering, setIsHovering] = useState(false);
   const navigate = useNavigate();
   
-  const { collectionItem, seller, status } = item;
-  
-  // Safety check - if collectionItem or banknote is undefined, render a placeholder
-  if (!collectionItem || !collectionItem.banknote) {
-    console.error('Missing collection item or banknote data in MarketplaceItem', item);
+  // Safety check - if item, collectionItem or banknote is undefined, render a placeholder
+  if (!item || !item.collectionItem || !item.collectionItem.banknote) {
+    console.error('Missing item, collection item, or banknote data in MarketplaceItem', item);
     return (
       <Card className={cn("ottoman-card overflow-hidden p-4 text-center", className)}>
         <p>Item data unavailable</p>
@@ -31,10 +30,11 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
     );
   }
   
-  console.log('Banknote data:', collectionItem.banknote);
-  console.log('Seller data:', seller);
-  
+  const { collectionItem, seller, status } = item;
   const { banknote, condition, salePrice, publicNote } = collectionItem;
+  
+  console.log('Banknote data:', banknote);
+  console.log('Seller data:', seller);
   
   const handleViewDetails = () => {
     console.log(`Navigating to marketplace item detail: ${item.id}`);
@@ -61,9 +61,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const displayImage = collectionItem.obverseImage || 
     (collectionItem.personalImages && collectionItem.personalImages.length > 0 
       ? collectionItem.personalImages[0] 
-      : banknote.imageUrls && banknote.imageUrls.length > 0 
-        ? (typeof banknote.imageUrls === 'string' ? banknote.imageUrls : banknote.imageUrls[0])
-        : '/placeholder.svg');
+      : getFirstImageUrl(banknote.imageUrls) || '/placeholder.svg');
   
   console.log('Display image:', displayImage);
   
@@ -81,7 +79,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         <div className="aspect-[4/2] overflow-hidden">
           <img
             src={displayImage}
-            alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
+            alt={`${banknote.country || 'Unknown'} ${banknote.denomination || 'Banknote'} (${banknote.year || 'Unknown'})`}
             className={cn(
               "w-full h-full object-cover transition-transform duration-500",
               isHovering ? "scale-110" : "scale-100"
@@ -90,7 +88,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         </div>
         
         <div className="absolute top-0 left-0 bg-ottoman-600/90 text-white px-3 py-1 flex items-center font-semibold">
-          ${salePrice}
+          ${salePrice || '0'}
         </div>
         
         <div className="absolute top-2 right-2">
@@ -102,14 +100,14 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-lg font-serif font-semibold text-parchment-500">
-              {banknote.denomination}
+              {banknote.denomination || 'Unknown Denomination'}
             </h3>
             <p className="text-sm text-ottoman-300">
-              {banknote.country}, {banknote.year}
+              {banknote.country || 'Unknown Country'}, {banknote.year || 'Unknown Year'}
             </p>
           </div>
           <Badge variant="secondary" className="self-start">
-            {condition}
+            {condition || 'Unknown'}
           </Badge>
         </div>
       </CardHeader>
@@ -125,7 +123,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           <div className="flex items-center gap-2 mt-2">
             <span className="text-xs text-ottoman-400">Seller:</span>
             <div className="flex items-center gap-1">
-              <span className="text-sm text-ottoman-200">{seller.username}</span>
+              <span className="text-sm text-ottoman-200">{seller.username || 'Unknown'}</span>
               <Badge variant="user" rank={sellerRank} className="ml-1" />
             </div>
           </div>

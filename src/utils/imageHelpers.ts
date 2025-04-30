@@ -5,7 +5,7 @@ import { ImageUrls } from "@/types";
  * Safely gets the first image URL from an ImageUrls type (string or string[])
  * Returns a placeholder image if no image is available
  */
-export function getFirstImageUrl(imageUrls: ImageUrls | undefined): string {
+export function getFirstImageUrl(imageUrls: ImageUrls | undefined | null): string {
   if (!imageUrls) return '/placeholder.svg';
   return Array.isArray(imageUrls) ? (imageUrls[0] || '/placeholder.svg') : imageUrls;
 }
@@ -15,8 +15,8 @@ export function getFirstImageUrl(imageUrls: ImageUrls | undefined): string {
  * before falling back to the associated banknote's images
  */
 export function getCollectionItemImage(
-  itemImage: string | undefined, 
-  banknoteImages: ImageUrls | undefined
+  itemImage: string | undefined | null, 
+  banknoteImages: ImageUrls | undefined | null
 ): string {
   if (itemImage) return itemImage;
   return getFirstImageUrl(banknoteImages);
@@ -25,7 +25,7 @@ export function getCollectionItemImage(
 /**
  * Safely gets all images from ImageUrls as an array
  */
-export function getAllImagesAsArray(imageUrls: ImageUrls | undefined): string[] {
+export function getAllImagesAsArray(imageUrls: ImageUrls | undefined | null): string[] {
   if (!imageUrls) return [];
   return Array.isArray(imageUrls) ? imageUrls : [imageUrls];
 }

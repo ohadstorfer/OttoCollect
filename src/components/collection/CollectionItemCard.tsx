@@ -33,10 +33,25 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
+  // Safety check - if item is undefined, render a placeholder
+  if (!item) {
+    console.error('CollectionItemCard received undefined item');
+    return (
+      <Card className="overflow-hidden transition-all hover:shadow-md h-full p-4 text-center">
+        <p className="text-muted-foreground">Item data unavailable</p>
+      </Card>
+    );
+  }
+  
   // Use null checks to prevent errors and set defaults
   const banknote = item?.banknote || {};
   
   const handleViewDetail = () => {
+    if (!item.id) {
+      console.error('Cannot view detail - item has no ID');
+      return;
+    }
+    
     if (isPublicView) {
       // For public view, navigate to the collection item detail page
       navigate(`/collection-item/${item.id}`);
