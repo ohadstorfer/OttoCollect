@@ -23,6 +23,8 @@ const Collection = () => {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<CollectionItem | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [groupMode, setGroupMode] = useState(false);
   
   // Collection data for filtering
   const [collectionCategories, setCollectionCategories] = useState<
@@ -111,6 +113,28 @@ const Collection = () => {
     }));
   }, []);
   
+  // Handle view mode changes
+  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    // Save preference in session storage
+    try {
+      sessionStorage.setItem(`collectionViewMode-${user?.id}`, JSON.stringify(mode));
+    } catch (e) {
+      console.error("Unable to store view mode preference:", e);
+    }
+  }, [user]);
+  
+  // Handle group mode changes
+  const handleGroupModeChange = useCallback((mode: boolean) => {
+    setGroupMode(mode);
+    // Save preference in session storage
+    try {
+      sessionStorage.setItem(`collectionGroupMode-${user?.id}`, JSON.stringify(mode));
+    } catch (e) {
+      console.error("Unable to store group mode preference:", e);
+    }
+  }, [user]);
+  
   // Create collection items with banknote data for filtering
   const collectionItemsWithBanknote = useMemo(() => {
     return collectionItems.map(item => ({
@@ -149,7 +173,7 @@ const Collection = () => {
       {showForm && (
         <div className="mb-8">
           <CollectionItemForm
-            initialItem={editingItem}
+            item={editingItem}
             onSave={handleSaveItem}
             onCancel={handleCloseForm}
           />
@@ -163,6 +187,9 @@ const Collection = () => {
           isLoading={loading || filterLoading}
           collectionCategories={collectionCategories}
           collectionTypes={collectionTypes}
+          onViewModeChange={handleViewModeChange}
+          groupMode={groupMode}
+          onGroupModeChange={handleGroupModeChange}
         />
         
         <div className="mt-6">
@@ -213,9 +240,9 @@ const Collection = () => {
                               return (
                                 <CollectionItemCard
                                   key={collectionItem.id}
-                                  collectionItem={collectionItem}
-                                  onItemEdit={() => handleEditItem(collectionItem)}
-                                  onCollectionUpdated={loadUserCollection}
+                                  item={collectionItem}
+                                  onEdit={() => handleEditItem(collectionItem)}
+                                  onUpdate={loadUserCollection}
                                 />
                               );
                             })}
@@ -231,9 +258,9 @@ const Collection = () => {
                         return (
                           <CollectionItemCard
                             key={collectionItem.id}
-                            collectionItem={collectionItem}
-                            onItemEdit={() => handleEditItem(collectionItem)}
-                            onCollectionUpdated={loadUserCollection}
+                            item={collectionItem}
+                            onEdit={() => handleEditItem(collectionItem)}
+                            onUpdate={loadUserCollection}
                           />
                         );
                       })}

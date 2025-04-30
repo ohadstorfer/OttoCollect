@@ -1,211 +1,222 @@
 
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { getUserProfile } from "@/services/profileService"; // Fixed function name
-import { fetchUserCollection } from "@/services/collectionService";
-import { CollectionItem, User } from "@/types";
-import { Spinner } from "@/components/ui/spinner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CollectionItemCard from "@/components/collection/CollectionItemCard"; // Fixed import
-import { BanknoteCondition } from "@/types";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { useTheme } from "@/context/ThemeContext";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CollectionItem } from '@/types';
+import CollectionItemCard from '@/components/collection/CollectionItemCard';
+import { Button } from '@/components/ui/button';
+import { Grid2X2, Grid3X3, List, SlidersHorizontal } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { groupCollectionItemsByCategory } from '@/utils/collectionUtils';
+import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
+import { DynamicFilterState } from '@/types/filter';
 
 interface ProfileCollectionProps {
-  userId?: string;
+  userId: string;
   username?: string;
+  isOwnProfile: boolean;
+  collectionItems: CollectionItem[];
+  isLoading: boolean;
+  error: string | null;
+  onRetry: () => void;
+  // Filter props
+  filters: DynamicFilterState;
+  onFilterChange: (newFilters: Partial<DynamicFilterState>) => void;
+  filteredItems: CollectionItem[];
+  collectionCategories: { id: string; name: string; count: number }[];
+  collectionTypes: { id: string; name: string; count: number }[];
 }
 
-export const ProfileCollection: React.FC<ProfileCollectionProps> = ({ userId, username }) => {
-  const params = useParams();
-  const { theme } = useTheme();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [collection, setCollection] = useState<CollectionItem[]>([]);
-  const [activeTab, setActiveTab] = useState("all");
+const ProfileCollection: React.FC<ProfileCollectionProps> = ({
+  userId,
+  username,
+  isOwnProfile,
+  collectionItems,
+  isLoading,
+  error,
+  onRetry,
+  filters,
+  onFilterChange,
+  filteredItems,
+  collectionCategories,
+  collectionTypes
+}) => {
+  const navigate = useNavigate();
+  const [viewMode, setViewMode] = React.useState<'grid' | 'compact' | 'list'>('grid');
+  const [showFilters, setShowFilters] = React.useState(false);
+  const [groupMode, setGroupMode] = React.useState(false);
   
-  // Determine which user ID to use
-  const targetUserId = userId || params.userId;
-  const targetUsername = username || params.username;
+  // Group items by category if groupMode is enabled
+  const groupedItems = React.useMemo(() => {
+    return groupMode
+      ? groupCollectionItemsByCategory(filteredItems)
+      : [{ category: 'All Items', items: filteredItems }];
+  }, [filteredItems, groupMode]);
   
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // First, get the user profile
-        let userProfile: User | null = null;
-        
-        if (targetUserId) {
-          userProfile = await getUserProfile(targetUserId); // Fixed function call
-        } else if (targetUsername) {
-          // TODO: Implement fetchUserProfileByUsername if needed
-          setError("Fetching by username not implemented yet");
-          setLoading(false);
-          return;
-        } else {
-          setError("No user ID or username provided");
-          setLoading(false);
-          return;
-        }
-        
-        if (!userProfile) {
-          setError("User not found");
-          setLoading(false);
-          return;
-        }
-        
-        setUser(userProfile);
-        
-        // Then, get the user's collection
-        const userCollection = await fetchUserCollection(userProfile.id);
-        setCollection(userCollection);
-        
-      } catch (err) {
-        console.error("Error loading user data:", err);
-        setError("Failed to load user data. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadUserData();
-  }, [targetUserId, targetUsername]);
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    setViewMode(mode === 'list' ? 'list' : 'grid');
+  };
   
-  if (loading) {
+  const handleGroupModeChange = (mode: boolean) => {
+    setGroupMode(mode);
+  };
+
+  if (error) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <Spinner size="lg" />
+      <div className="text-center py-12">
+        <h3 className="text-xl font-medium mb-4 text-red-500">{error}</h3>
+        <Button onClick={onRetry}>Retry</Button>
       </div>
     );
   }
-  
-  if (error) {
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+        </div>
+      );
+    }
+
+    if (collectionItems.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <h3 className="text-xl font-medium mb-6">
+            {isOwnProfile 
+              ? "You haven't added any banknotes to your collection yet." 
+              : `${username || 'This user'} hasn't added any banknotes to their collection yet.`
+            }
+          </h3>
+          {isOwnProfile && (
+            <Button onClick={() => navigate('/my-collection')}>
+              Manage My Collection
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    if (filteredItems.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <h3 className="text-xl font-medium mb-4">No items match your filter criteria</h3>
+          <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+        </div>
+      );
+    }
+
+    if (groupMode) {
+      return (
+        <div className="space-y-10">
+          {groupedItems.map((group, groupIndex) => (
+            <div key={`group-${groupIndex}`} className="space-y-4">
+              <h2 className="text-xl font-bold border-b pb-2">{group.category}</h2>
+              <div className={cn(
+                "grid gap-4",
+                viewMode === 'grid' && "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+                viewMode === 'compact' && "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+                viewMode === 'list' && "grid-cols-1"
+              )}>
+                {group.items.map((item) => (
+                  <CollectionItemCard
+                    key={item.id}
+                    item={item}
+                    onEdit={() => {}}
+                    onUpdate={onRetry}
+                    isPublic={!isOwnProfile}
+                    viewMode={viewMode === 'list' ? 'list' : 'grid'}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     return (
-      <Alert variant="destructive" className="mb-6">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+      <div className={cn(
+        "grid gap-4",
+        viewMode === 'grid' && "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+        viewMode === 'compact' && "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+        viewMode === 'list' && "grid-cols-1"
+      )}>
+        {filteredItems.map((item) => (
+          <CollectionItemCard
+            key={item.id}
+            item={item}
+            onEdit={() => {}}
+            onUpdate={onRetry}
+            isPublic={!isOwnProfile}
+            viewMode={viewMode === 'list' ? 'list' : 'grid'}
+          />
+        ))}
+      </div>
     );
-  }
-  
-  if (!user) {
-    return (
-      <Alert variant="destructive" className="mb-6">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>User Not Found</AlertTitle>
-        <AlertDescription>The requested user could not be found.</AlertDescription>
-      </Alert>
-    );
-  }
-  
-  // Filter collection based on active tab
-  const filteredItems = collection.filter(item => {
-    if (activeTab === "all") return true;
-    if (activeTab === "forsale") return item.isForSale;
-    
-    // Filter by condition
-    return item.condition === activeTab;
-  });
-  
-  // Count items by condition
-  const conditionCounts: Record<string, number> = {
-    all: collection.length,
-    forsale: collection.filter(item => item.isForSale).length,
   };
-  
-  // Add counts for each condition
-  const conditions: BanknoteCondition[] = ['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'Fair', 'Poor'];
-  conditions.forEach(condition => {
-    conditionCounts[condition] = collection.filter(item => item.condition === condition).length;
-  });
-  
+
   return (
     <div className="space-y-6">
-      <Card className={cn(
-        "overflow-hidden",
-        theme === 'light' ? "bg-white/90" : "bg-dark-600/50"
-      )}>
-        <CardContent className="p-0">
-          <Tabs 
-            defaultValue="all" 
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
+      <div className="flex flex-wrap gap-4 items-center justify-between">
+        <h2 className="text-2xl font-bold">
+          {isOwnProfile ? 'My Collection' : `${username}'s Collection`}
+          <span className="ml-2 text-sm font-normal text-muted-foreground">
+            ({collectionItems.length} {collectionItems.length === 1 ? 'item' : 'items'})
+          </span>
+        </h2>
+        
+        <div className="flex gap-2">
+          <Button 
+            variant={viewMode === 'grid' ? 'default' : 'outline'} 
+            size="icon"
+            onClick={() => setViewMode('grid')}
+            title="Grid view"
           >
-            <div className="overflow-x-auto">
-              <TabsList className="bg-transparent p-0 h-auto flex w-full justify-start">
-                <TabsTrigger 
-                  value="all"
-                  className={cn(
-                    "data-[state=active]:bg-ottoman-600 data-[state=active]:text-white rounded-none border-b-2 border-transparent data-[state=active]:border-ottoman-600 px-4 py-3",
-                    theme === 'light' ? "hover:bg-ottoman-100" : "hover:bg-ottoman-900/30"
-                  )}
-                >
-                  All
-                  <Badge variant="secondary" className="ml-2">{conditionCounts.all}</Badge>
-                </TabsTrigger>
-                
-                <TabsTrigger 
-                  value="forsale"
-                  className={cn(
-                    "data-[state=active]:bg-ottoman-600 data-[state=active]:text-white rounded-none border-b-2 border-transparent data-[state=active]:border-ottoman-600 px-4 py-3",
-                    theme === 'light' ? "hover:bg-ottoman-100" : "hover:bg-ottoman-900/30"
-                  )}
-                >
-                  For Sale
-                  <Badge variant="secondary" className="ml-2">{conditionCounts.forsale}</Badge>
-                </TabsTrigger>
-                
-                {conditions.map(condition => (
-                  conditionCounts[condition] > 0 && (
-                    <TabsTrigger 
-                      key={condition}
-                      value={condition}
-                      className={cn(
-                        "data-[state=active]:bg-ottoman-600 data-[state=active]:text-white rounded-none border-b-2 border-transparent data-[state=active]:border-ottoman-600 px-4 py-3",
-                        theme === 'light' ? "hover:bg-ottoman-100" : "hover:bg-ottoman-900/30"
-                      )}
-                    >
-                      {condition}
-                      <Badge variant="secondary" className="ml-2">{conditionCounts[condition]}</Badge>
-                    </TabsTrigger>
-                  )
-                ))}
-              </TabsList>
-            </div>
-            
-            <TabsContent value={activeTab} className="p-4">
-              {filteredItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className={theme === 'light' ? "text-ottoman-700" : "text-ottoman-300"}>
-                    No banknotes found in this category.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredItems.map(item => (
-                    <CollectionItemCard
-                      key={item.id}
-                      item={item}
-                      isPublicView={true}
-                      onItemEdit={() => {}}
-                      onCollectionUpdated={async () => {}}
-                    />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant={viewMode === 'compact' ? 'default' : 'outline'} 
+            size="icon"
+            onClick={() => setViewMode('compact')}
+            title="Compact grid view"
+          >
+            <Grid2X2 className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant={viewMode === 'list' ? 'default' : 'outline'} 
+            size="icon"
+            onClick={() => setViewMode('list')}
+            title="List view"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant={showFilters ? 'default' : 'outline'} 
+            size="icon"
+            onClick={() => setShowFilters(!showFilters)}
+            title="Toggle filters"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
+      {showFilters && (
+        <BanknoteFilterCollection
+          onFilterChange={onFilterChange}
+          currentFilters={filters}
+          isLoading={isLoading}
+          collectionCategories={collectionCategories}
+          collectionTypes={collectionTypes}
+          onViewModeChange={handleViewModeChange}
+          groupMode={groupMode}
+          onGroupModeChange={handleGroupModeChange}
+        />
+      )}
+      
+      {renderContent()}
     </div>
   );
 };
+
+export default ProfileCollection;

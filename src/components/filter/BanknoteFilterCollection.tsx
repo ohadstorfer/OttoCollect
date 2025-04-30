@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
-import { fetchCategoriesByCountryId, fetchTypesByCountryId, fetchSortOptionsByCountryId, saveUserFilterPreferences } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface BanknoteFilterCollectionProps {
   countryId?: string;
@@ -12,12 +12,17 @@ interface BanknoteFilterCollectionProps {
   currentFilters: DynamicFilterState;
   isLoading?: boolean;
   className?: string;
-  // Additional collection-specific props
+  // Collection-specific props
   collectionCategories?: { id: string; name: string; count?: number }[];
   collectionTypes?: { id: string; name: string; count?: number }[];
+  // View mode & group mode props (same as BanknoteFilterCatalog)
+  onViewModeChange?: (mode: 'grid' | 'list') => void;
+  groupMode?: boolean;
+  onGroupModeChange?: (mode: boolean) => void;
 }
 
-export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> = ({
+// Use React.memo to prevent unnecessary re-renders
+export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> = memo(({
   countryId,
   onFilterChange,
   currentFilters,
@@ -25,6 +30,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   className,
   collectionCategories = [],
   collectionTypes = [],
+  onViewModeChange,
+  groupMode = false,
+  onGroupModeChange
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -32,140 +40,186 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // Add refs to track states and prevent render loops (same as BanknoteFilterCatalog)
+  const initialLoadComplete = useRef(false);
+  const ignoreNextGroupModeChange = useRef(false);
+  const isFetchingFilter = useRef(false);
+  const lastUserId = useRef(""); // Track user ID instead of country ID for collection
 
   console.log("BanknoteFilterCollection: Rendering with", {
     countryId,
+    userId: user?.id,
     currentFilters,
     collectionCategories: collectionCategories?.length,
-    collectionTypes: collectionTypes?.length
+    collectionTypes: collectionTypes?.length,
+    groupMode
   });
 
   useEffect(() => {
-    // If no countryId provided, use the collection categories and types directly
-    if (!countryId) {
-      console.log("BanknoteFilterCollection: Using provided collection categories and types");
-      // Safety check for collectionCategories
-      const categoriesToUse = collectionCategories || [];
-      setCategories(categoriesToUse.map(cat => ({
-        id: cat.id,
-        name: cat.name,
-        count: cat.count
-      })));
+    // For collection filtering, if we have collectionCategories and collectionTypes directly provided,
+    // we can set them directly without fetching from server
+    
+    console.log("BanknoteFilterCollection: Using provided collection categories and types");
+    
+    // Safety check for collectionCategories
+    const categoriesToUse = collectionCategories || [];
+    setCategories(categoriesToUse.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      count: cat.count
+    })));
+    
+    // Safety check for collectionTypes
+    const typesToUse = collectionTypes || [];
+    setTypes(typesToUse.map(type => ({
+      id: type.id,
+      name: type.name,
+      count: type.count
+    })));
+    
+    // Set collection-specific sort options
+    setSortOptions([
+      { id: "extPick", name: "Catalog Number", fieldName: "extPick", isRequired: true },
+      { id: "newest", name: "Newest First", fieldName: "newest" },
+      { id: "sultan", name: "Sultan", fieldName: "sultan" },
+      { id: "faceValue", name: "Face Value", fieldName: "faceValue" },
+      { id: "condition", name: "Condition", fieldName: "condition" },
+      { id: "purchaseDate", name: "Purchase Date", fieldName: "purchaseDate" }
+    ]);
+    
+    // Load user preferences if user is logged in
+    const loadUserPreferences = async () => {
+      if (!user?.id) return;
       
-      // Safety check for collectionTypes
-      const typesToUse = collectionTypes || [];
-      setTypes(typesToUse.map(type => ({
-        id: type.id,
-        name: type.name,
-        count: type.count
-      })));
+      // Skip if we already loaded preferences for this user
+      if (lastUserId.current === user.id && initialLoadComplete.current) {
+        console.log("BanknoteFilterCollection: Already loaded preferences for this user, skipping");
+        return;
+      }
       
-      // Set default sort options for collection
-      setSortOptions([
-        { id: "extPick", name: "Catalog Number", fieldName: "extPick", isRequired: true },
-        { id: "newest", name: "Newest First", fieldName: "newest" },
-        { id: "sultan", name: "Sultan", fieldName: "sultan" },
-        { id: "faceValue", name: "Face Value", fieldName: "faceValue" }
-      ]);
+      try {
+        // For collection, we could fetch user's collection preferences from session storage
+        // or database if such API exists
+        const storedViewMode = sessionStorage.getItem(`collectionViewMode-${user.id}`);
+        if (storedViewMode) {
+          const parsedViewMode = JSON.parse(storedViewMode) as 'grid' | 'list';
+          setViewMode(parsedViewMode);
+          if (onViewModeChange) {
+            onViewModeChange(parsedViewMode);
+          }
+        }
+        
+        // Load group mode preference
+        const storedGroupMode = sessionStorage.getItem(`collectionGroupMode-${user.id}`);
+        if (storedGroupMode !== null && onGroupModeChange) {
+          const parsedGroupMode = JSON.parse(storedGroupMode);
+          
+          // Set a flag to ignore the next group mode change to prevent infinite loops
+          ignoreNextGroupModeChange.current = true;
+          
+          // Call the parent's onGroupModeChange if the stored value is different
+          if (parsedGroupMode !== groupMode) {
+            onGroupModeChange(parsedGroupMode);
+          }
+        }
+        
+        // Mark as complete to prevent repeated loads
+        initialLoadComplete.current = true;
+        lastUserId.current = user.id;
+      } catch (err) {
+        console.error("Error loading collection preferences:", err);
+      }
+    };
+    
+    loadUserPreferences();
+    setLoading(false);
+  }, [user, collectionCategories, collectionTypes, onViewModeChange, onGroupModeChange, groupMode]);
+
+  // Handle filter changes - memoize to prevent unnecessary re-renders
+  const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
+    if (newFilters.sort) {
+      // Get only the required sort fields that must be included
+      const requiredSortFields = sortOptions
+        .filter(opt => opt.isRequired)
+        .map(opt => opt.fieldName || '')
+        .filter(Boolean);
       
-      setLoading(false);
+      // Ensure extPick is always included as a fallback sort
+      if (!requiredSortFields.includes('extPick') && !newFilters.sort.includes('extPick')) {
+        newFilters.sort = [...newFilters.sort, 'extPick'];
+      }
+      
+      // Add other required sort fields if they're missing
+      requiredSortFields.forEach(fieldName => {
+        if (!newFilters.sort.includes(fieldName)) {
+          newFilters.sort.push(fieldName);
+        }
+      });
+    }
+
+    // Save user preferences automatically with each change
+    if (user?.id) {
+      console.log("BanknoteFilterCollection: Auto-saving filter preferences");
+      try {
+        // Store filters in session storage as a simple way to persist between page loads
+        sessionStorage.setItem(`collectionFilters-${user.id}`, JSON.stringify({
+          categories: newFilters.categories || currentFilters.categories || [],
+          types: newFilters.types || currentFilters.types || [],
+          sort: newFilters.sort || currentFilters.sort || []
+        }));
+      } catch (e) {
+        console.error("Unable to store collection filters in session storage:", e);
+      }
+    }
+    
+    onFilterChange(newFilters);
+  }, [onFilterChange, sortOptions, user, currentFilters]);
+  
+  const handleViewModeChange = React.useCallback((mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    
+    // Save preference
+    if (user?.id) {
+      try {
+        sessionStorage.setItem(`collectionViewMode-${user.id}`, JSON.stringify(mode));
+      } catch (e) {
+        console.error("Unable to store view mode preference:", e);
+      }
+    }
+    
+    if (onViewModeChange) {
+      onViewModeChange(mode);
+    }
+  }, [onViewModeChange, user]);
+  
+  const handleGroupModeChange = React.useCallback((mode: boolean) => {
+    // If we're set to ignore the next change, skip this call
+    if (ignoreNextGroupModeChange.current) {
+      ignoreNextGroupModeChange.current = false;
       return;
     }
     
-    // Otherwise load from the database for the specific country
-    const loadFilterOptions = async () => {
-      setLoading(true);
+    // If the mode is the same as the current one, don't do anything
+    if (mode === groupMode) return;
+    
+    // Save group mode preference
+    if (user?.id) {
+      console.log("BanknoteFilterCollection: Saving group mode preference:", mode);
       try {
-        console.log("BanknoteFilterCollection: Loading filter options for country", countryId);
-        const [categoriesData, typesData, sortOptionsData] = await Promise.all([
-          fetchCategoriesByCountryId(countryId),
-          fetchTypesByCountryId(countryId),
-          fetchSortOptionsByCountryId(countryId)
-        ]);
-        
-        setCategories(categoriesData.map(cat => ({
-          id: cat.id,
-          name: cat.name,
-        })));
-        
-        setTypes(typesData.map(type => ({
-          id: type.id,
-          name: type.name,
-        })));
-        
-        setSortOptions(sortOptionsData.map(sort => ({
-          id: sort.id,
-          name: sort.name,
-          fieldName: sort.field_name,
-          isRequired: sort.is_required
-        })));
-
-        console.log("BanknoteFilterCollection: Loaded filter options", {
-          categories: categoriesData.length,
-          types: typesData.length,
-          sortOptions: sortOptionsData.length
-        });
-      } catch (error) {
-        console.error("Error loading filter options:", error);
-        
-        // Fallback to collection data
-        setCategories((collectionCategories || []).map(cat => ({
-          id: cat.id,
-          name: cat.name,
-          count: cat.count
-        })));
-        
-        setTypes((collectionTypes || []).map(type => ({
-          id: type.id,
-          name: type.name,
-          count: type.count
-        })));
-        
-        // Set default sort options
-        setSortOptions([
-          { id: "extPick", name: "Catalog Number", fieldName: "extPick", isRequired: true },
-          { id: "newest", name: "Newest First", fieldName: "newest" },
-          { id: "sultan", name: "Sultan", fieldName: "sultan" },
-          { id: "faceValue", name: "Face Value", fieldName: "faceValue" }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadFilterOptions();
-  }, [countryId, collectionCategories, collectionTypes]);
-
-  // Update categories and types when collectionCategories and collectionTypes change
-  useEffect(() => {
-    if (!countryId && (collectionCategories || collectionTypes)) {
-      console.log("BanknoteFilterCollection: Updating with new collection data");
-      if (collectionCategories && collectionCategories.length > 0) {
-        setCategories(collectionCategories.map(cat => ({
-          id: cat.id,
-          name: cat.name,
-          count: cat.count
-        })));
-      }
-      
-      if (collectionTypes && collectionTypes.length > 0) {
-        setTypes(collectionTypes.map(type => ({
-          id: type.id,
-          name: type.name,
-          count: type.count
-        })));
+        sessionStorage.setItem(`collectionGroupMode-${user.id}`, JSON.stringify(mode));
+      } catch (e) {
+        console.error("Unable to store group mode in session storage:", e);
       }
     }
-  }, [collectionCategories, collectionTypes, countryId]);
+    
+    if (onGroupModeChange) {
+      onGroupModeChange(mode);
+    }
+  }, [onGroupModeChange, groupMode, user]);
 
-  // Handle filter changes
-  const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
-    console.log("BanknoteFilterCollection: Filter change", newFilters);
-    onFilterChange(newFilters);
-  };
-
-  // Save filters to user preferences
+  // Save filters function - can be used for explicit saves
   const handleSaveFilters = async () => {
     if (!user?.id) {
       toast({
@@ -177,29 +231,18 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     }
     
     console.log("BanknoteFilterCollection: Saving filter preferences");
-    setIsSaving(true);
     
     try {
-      const categoryIds = currentFilters.categories || [];
-      const typeIds = currentFilters.types || [];
-      const sortOptionIds = sortOptions
-        .filter(option => currentFilters.sort?.includes(option.fieldName || ''))
-        .map(option => option.id);
-        
-      if (countryId) {
-        // If we have a countryId, save to the database
-        await saveUserFilterPreferences(
-          user.id,
-          countryId,
-          categoryIds,
-          typeIds,
-          sortOptionIds
-        );
-      }
+      // Store in session storage (or database if API available)
+      sessionStorage.setItem(`collectionFilters-${user.id}`, JSON.stringify({
+        categories: currentFilters.categories || [],
+        types: currentFilters.types || [],
+        sort: currentFilters.sort || []
+      }));
       
       toast({
         title: "Success",
-        description: "Filter preferences saved.",
+        description: "Collection filter preferences saved.",
       });
     } catch (error) {
       console.error("Error saving filter preferences:", error);
@@ -208,22 +251,32 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         description: "Failed to save filter preferences.",
         variant: "destructive",
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 
   return (
-    <BaseBanknoteFilter
-      categories={categories}
-      types={types}
-      sortOptions={sortOptions}
-      onFilterChange={handleFilterChange}
-      currentFilters={currentFilters}
-      isLoading={isLoading || loading}
-      className={className}
-      onSaveFilters={handleSaveFilters}
-      saveButtonText={isSaving ? "Saving..." : "Save Filter Preferences"}
-    />
+    <div className={cn(
+      "w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-1.5",
+      "sticky top-16 inset-x-0",
+      className
+    )}>
+      <BaseBanknoteFilter
+        categories={categories}
+        types={types}
+        sortOptions={sortOptions}
+        onFilterChange={handleFilterChange}
+        currentFilters={currentFilters}
+        isLoading={isLoading || loading}
+        className={className}
+        onSaveFilters={handleSaveFilters}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+        groupMode={groupMode}
+        onGroupModeChange={handleGroupModeChange}
+      />
+    </div>
   );
-};
+});
+
+// Add a display name for the memoized component
+BanknoteFilterCollection.displayName = 'BanknoteFilterCollection';

@@ -1,383 +1,678 @@
 
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { CollectionItem, BanknoteCondition } from "@/types";
-import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
-import { updateCollectionItem, updateCollectionItemImages } from '@/services/collectionService';
-import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
-import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Upload } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 
-// Simple image upload component 
-const SimpleImageUpload = ({ imageUrl, onImageUploaded, side }: { 
-  imageUrl?: string, 
-  onImageUploaded: (url: string) => void, 
-  side: 'obverse' | 'reverse' 
+import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import { addToCollection, updateCollectionItem, uploadCollectionImage } from '@/services/collectionService';
+import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
+
+// Define props for CollectionItemForm
+export interface CollectionItemFormProps {
+  item: CollectionItem | null;
+  onSave: (item: CollectionItem) => Promise<void>;
+  onCancel: () => void;
+}
+
+// Create a schema for form validation
+const formSchema = z.object({
+  banknoteId: z.string().min(1, { message: "Banknote must be selected" }),
+  condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const),
+  purchasePrice: z.union([z.number().optional(), z.literal('')]),
+  purchaseDate: z.date().optional(),
+  location: z.string().optional(),
+  publicNote: z.string().optional(),
+  privateNote: z.string().optional(),
+  isForSale: z.boolean().default(false),
+  salePrice: z.union([z.number().optional(), z.literal('')])
+});
+
+const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
+  item,
+  onSave,
+  onCancel
 }) => {
-  const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
-  
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
-    
-    setUploading(true);
-    
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<DetailedBanknote[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedBanknote, setSelectedBanknote] = useState<DetailedBanknote | null>(
+    item?.banknote || null
+  );
+  const [obverseImageFile, setObverseImageFile] = useState<File | null>(null);
+  const [reverseImageFile, setReverseImageFile] = useState<File | null>(null);
+  const [obverseImagePreview, setObverseImagePreview] = useState<string | null>(
+    item?.obverseImage || null
+  );
+  const [reverseImagePreview, setReverseImagePreview] = useState<string | null>(
+    item?.reverseImage || null
+  );
+
+  // Initialize form with existing values if editing
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      banknoteId: item?.banknoteId || '',
+      condition: item?.condition || 'UNC',
+      purchasePrice: item?.purchasePrice || '',
+      purchaseDate: item?.purchaseDate ? new Date(item.purchaseDate) : undefined,
+      location: item?.location || '',
+      publicNote: item?.publicNote || '',
+      privateNote: item?.privateNote || '',
+      isForSale: item?.isForSale || false,
+      salePrice: item?.salePrice || ''
+    }
+  });
+
+  // Search for banknotes as user types
+  useEffect(() => {
+    const delaySearch = setTimeout(async () => {
+      if (!searchTerm || searchTerm.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const results = await searchBanknotes(searchTerm);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Error searching banknotes:', error);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delaySearch);
+  }, [searchTerm]);
+
+  // Handle banknote selection
+  const handleBanknoteSelect = async (id: string) => {
     try {
-      // Generate a unique file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `${user.id}/images/${side}/${fileName}`;
-      
-      const { error } = await supabase.storage
-        .from('banknote_images')
-        .upload(filePath, file);
-        
-      if (error) throw error;
-      
-      const { data } = supabase.storage
-        .from('banknote_images')
-        .getPublicUrl(filePath);
-        
-      onImageUploaded(data.publicUrl);
+      const banknote = await fetchBanknoteById(id);
+      if (banknote) {
+        setSelectedBanknote(banknote);
+        form.setValue('banknoteId', banknote.id);
+      }
     } catch (error) {
-      console.error("Error uploading image:", error);
-      toast.error("Failed to upload image");
-    } finally {
-      setUploading(false);
-      // Reset the file input
-      event.target.value = '';
+      console.error('Error fetching banknote details:', error);
     }
   };
-  
+
+  // Handle image file selection for obverse
+  const handleObverseImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setObverseImageFile(file);
+      const fileUrl = URL.createObjectURL(file);
+      setObverseImagePreview(fileUrl);
+    }
+  };
+
+  // Handle image file selection for reverse
+  const handleReverseImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setReverseImageFile(file);
+      const fileUrl = URL.createObjectURL(file);
+      setReverseImagePreview(fileUrl);
+    }
+  };
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to save collection items.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      let obverseImageUrl = item?.obverseImage || null;
+      let reverseImageUrl = item?.reverseImage || null;
+
+      // Upload new images if provided
+      if (obverseImageFile) {
+        obverseImageUrl = await uploadCollectionImage(obverseImageFile);
+      }
+
+      if (reverseImageFile) {
+        reverseImageUrl = await uploadCollectionImage(reverseImageFile);
+      }
+
+      // Convert form values to correct types
+      const collectionData = {
+        userId: user.id,
+        banknoteId: values.banknoteId,
+        condition: values.condition,
+        purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
+        purchaseDate: values.purchaseDate ? format(values.purchaseDate, 'yyyy-MM-dd') : undefined,
+        location: values.location || undefined,
+        publicNote: values.publicNote || undefined,
+        privateNote: values.privateNote || undefined,
+        isForSale: values.isForSale,
+        salePrice: values.salePrice === '' ? undefined : Number(values.salePrice),
+        obverseImage: obverseImageUrl,
+        reverseImage: reverseImageUrl,
+      };
+
+      let savedItem: CollectionItem | null = null;
+
+      if (item?.id) {
+        // Update existing item
+        const success = await updateCollectionItem(item.id, {
+          condition: values.condition,
+          purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
+          purchaseDate: values.purchaseDate,
+          location: values.location,
+          publicNote: values.publicNote,
+          privateNote: values.privateNote,
+          isForSale: values.isForSale,
+          salePrice: values.salePrice === '' ? undefined : Number(values.salePrice),
+          obverseImage: obverseImageUrl,
+          reverseImage: reverseImageUrl,
+        });
+
+        if (success) {
+          // Create a simple version of the saved item for the return value
+          savedItem = {
+            ...item,
+            ...collectionData,
+            id: item.id,
+          };
+          
+          toast({
+            title: "Success",
+            description: "Collection item updated successfully.",
+          });
+        } else {
+          throw new Error("Failed to update collection item");
+        }
+      } else {
+        // Add new item
+        savedItem = await addToCollection(collectionData);
+        
+        if (savedItem) {
+          toast({
+            title: "Success",
+            description: "Banknote added to your collection.",
+          });
+        } else {
+          throw new Error("Failed to add to collection");
+        }
+      }
+
+      if (savedItem) {
+        await onSave(savedItem);
+      }
+
+    } catch (error) {
+      console.error('Error saving collection item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save collection item. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="relative aspect-[3/2] border rounded-md overflow-hidden bg-muted/20">
-      {imageUrl ? (
-        <img 
-          src={imageUrl} 
-          alt={`Banknote ${side}`}
-          className="w-full h-full object-contain"
-        />
-      ) : (
-        <div className="flex items-center justify-center w-full h-full text-muted-foreground">
-          Click to upload
+    <Card>
+      <CardContent className="pt-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-2">
+            {item ? 'Edit Collection Item' : 'Add to Collection'}
+          </h2>
+          <p className="text-muted-foreground">
+            {item
+              ? 'Update the details of this banknote in your collection.'
+              : 'Add a banknote to your personal collection.'}
+          </p>
         </div>
-      )}
-      
-      <div className="absolute inset-0 hover:bg-black/40 transition-colors flex items-center justify-center">
-        <label className="cursor-pointer w-full h-full flex items-center justify-center">
-          <input 
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileChange}
-            disabled={uploading}
-          />
-          {uploading && (
-            <div className="bg-white rounded-full p-2">
-              <div className="w-5 h-5 border-2 border-b-transparent border-ottoman-600 rounded-full animate-spin"></div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-6">
+              {/* Banknote selection */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Select Banknote</h3>
+                
+                {!item && (
+                  <div>
+                    <Label>Search for banknote</Label>
+                    <Input
+                      type="text"
+                      placeholder="Search by country, denomination, year..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="mb-2"
+                    />
+                    
+                    {isSearching ? (
+                      <div className="p-4 text-center">Searching...</div>
+                    ) : searchResults.length > 0 ? (
+                      <div className="max-h-60 overflow-y-auto border rounded-md">
+                        {searchResults.map((banknote) => (
+                          <div
+                            key={banknote.id}
+                            onClick={() => handleBanknoteSelect(banknote.id)}
+                            className={`p-3 flex items-center border-b cursor-pointer hover:bg-muted ${
+                              form.getValues('banknoteId') === banknote.id
+                                ? 'bg-primary/10'
+                                : ''
+                            }`}
+                          >
+                            <div>
+                              <div className="font-medium">
+                                {banknote.denomination} ({banknote.year})
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {banknote.country} - {banknote.series || 'Unknown Series'}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : searchTerm.length > 1 ? (
+                      <div className="p-4 text-center text-muted-foreground">
+                        No banknotes found. Try a different search term.
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
+                {(selectedBanknote || item) && (
+                  <div className="p-4 border rounded-md bg-muted/40">
+                    <div className="font-medium">
+                      {selectedBanknote?.denomination || item?.banknote?.denomination} 
+                      ({selectedBanknote?.year || item?.banknote?.year})
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {selectedBanknote?.country || item?.banknote?.country} - 
+                      {selectedBanknote?.series || item?.banknote?.series || 'Unknown Series'}
+                    </div>
+                    {!item && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => {
+                          setSelectedBanknote(null);
+                          form.setValue('banknoteId', '');
+                        }}
+                      >
+                        Change
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="banknoteId"
+                  render={({ field }) => (
+                    <FormItem hidden>
+                      <FormControl>
+                        <Input {...field} type="hidden" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                {/* Condition */}
+                <FormField
+                  control={form.control}
+                  name="condition"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Condition</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select condition" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
+                            <SelectItem value="AU">AU - About Uncirculated</SelectItem>
+                            <SelectItem value="XF">XF - Extremely Fine</SelectItem>
+                            <SelectItem value="VF">VF - Very Fine</SelectItem>
+                            <SelectItem value="F">F - Fine</SelectItem>
+                            <SelectItem value="VG">VG - Very Good</SelectItem>
+                            <SelectItem value="G">G - Good</SelectItem>
+                            <SelectItem value="FR">FR - Fair</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormDescription>
+                        Select the condition of your banknote.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Purchase Date */}
+                <FormField
+                  control={form.control}
+                  name="purchaseDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Purchase Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={`w-full pl-3 text-left font-normal ${
+                                !field.value && "text-muted-foreground"
+                              }`}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>
+                        When did you acquire this banknote?
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Purchase Price */}
+                <FormField
+                  control={form.control}
+                  name="purchasePrice"
+                  render={({ field: { onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Purchase Price</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2">
+                            $
+                          </span>
+                          <Input
+                            {...field}
+                            className="pl-6"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '' || /^[0-9]*\.?[0-9]*$/.test(val)) {
+                                onChange(val);
+                              }
+                            }}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        How much did you pay for this banknote?
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Location */}
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Storage Location</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Where is this banknote stored?
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* For Sale Switch */}
+              <FormField
+                control={form.control}
+                name="isForSale"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">For Sale</FormLabel>
+                      <FormDescription>
+                        Mark this banknote as available for sale
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {/* Sale Price - Only show if For Sale is checked */}
+              {form.watch("isForSale") && (
+                <FormField
+                  control={form.control}
+                  name="salePrice"
+                  render={({ field: { onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Sale Price</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2">
+                            $
+                          </span>
+                          <Input
+                            {...field}
+                            className="pl-6"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '' || /^[0-9]*\.?[0-9]*$/.test(val)) {
+                                onChange(val);
+                              }
+                            }}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Public Note */}
+              <FormField
+                control={form.control}
+                name="publicNote"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Public Note</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Add a note visible to other collectors"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      This note will be visible to other users.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Private Note */}
+              <FormField
+                control={form.control}
+                name="privateNote"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Private Note</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Add a private note for your reference"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      This note will only be visible to you.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Custom Images Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Custom Images</h3>
+                <p className="text-muted-foreground text-sm">
+                  Upload your own images of the banknote (optional)
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Obverse Image */}
+                  <div>
+                    <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
+                    <div className="mt-2 flex items-center gap-4">
+                      <div className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted">
+                        {obverseImagePreview ? (
+                          <img
+                            src={obverseImagePreview}
+                            alt="Obverse preview"
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <Upload className="h-8 w-8 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <Input
+                          id="obverseImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleObverseImageChange}
+                          className="cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reverse Image */}
+                  <div>
+                    <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
+                    <div className="mt-2 flex items-center gap-4">
+                      <div className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted">
+                        {reverseImagePreview ? (
+                          <img
+                            src={reverseImagePreview}
+                            alt="Reverse preview"
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <Upload className="h-8 w-8 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <Input
+                          id="reverseImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleReverseImageChange}
+                          className="cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
-        </label>
-      </div>
-    </div>
+
+            <div className="flex justify-end space-x-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting
+                  ? 'Saving...'
+                  : item
+                  ? 'Update Item'
+                  : 'Add to Collection'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 };
 
-interface CollectionItemFormProps {
-  collectionItem: CollectionItem;
-  onUpdate?: (updatedItem: CollectionItem) => void;
-}
-
-export default function CollectionItemForm({ collectionItem, onUpdate }: CollectionItemFormProps) {
-  const { user } = useAuth();
-  const [condition, setCondition] = useState<BanknoteCondition>(collectionItem.condition || "UNC");
-  const [purchaseDate, setPurchaseDate] = useState<Date | undefined>(
-    collectionItem.purchaseDate ? new Date(collectionItem.purchaseDate) : undefined
-  );
-  const [purchasePrice, setPurchasePrice] = useState<string>(
-    collectionItem.purchasePrice ? collectionItem.purchasePrice.toString() : ''
-  );
-  const [privateNote, setPrivateNote] = useState<string>(collectionItem.privateNote || '');
-  const [publicNote, setPublicNote] = useState<string>(collectionItem.publicNote || '');
-  const [isForSale, setIsForSale] = useState(collectionItem.isForSale);
-  const [salePrice, setSalePrice] = useState<string>(
-    collectionItem.salePrice ? collectionItem.salePrice.toString() : ''
-  );
-  const [location, setLocation] = useState<string>(collectionItem.location || '');
-  const [obverseImage, setObverseImage] = useState<string | null>(collectionItem.obverseImage || null);
-  const [reverseImage, setReverseImage] = useState<string | null>(collectionItem.reverseImage || null);
-  const [loading, setLoading] = useState(false);
-
-  // If the item's "forSale" status changes, we need to make sure the form reflects this
-  useEffect(() => {
-    setIsForSale(collectionItem.isForSale);
-  }, [collectionItem.isForSale]);
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!user) {
-      toast.error("You must be logged in");
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      // Update main collection item details
-      const updates = {
-        condition,
-        purchaseDate: purchaseDate ? purchaseDate.toISOString() : undefined,
-        purchasePrice: purchasePrice ? parseFloat(purchasePrice) : undefined,
-        privateNote,
-        publicNote,
-        isForSale,
-        salePrice: isForSale && salePrice ? parseFloat(salePrice) : null,
-        location
-      };
-      
-      const success = await updateCollectionItem(collectionItem.id, updates);
-      
-      if (!success) {
-        toast.error("Failed to update collection item");
-        return;
-      }
-      
-      // Update images separately if they changed
-      if (obverseImage !== collectionItem.obverseImage || 
-          reverseImage !== collectionItem.reverseImage) {
-        await updateCollectionItemImages(
-          collectionItem.id,
-          obverseImage || undefined,
-          reverseImage || undefined
-        );
-      }
-      
-      // Handle marketplace listing
-      if (isForSale && !collectionItem.isForSale) {
-        // Item wasn't for sale before but now is
-        await addToMarketplace(collectionItem.id, user.id);
-      } else if (!isForSale && collectionItem.isForSale) {
-        // Item was for sale before but now isn't
-        // We need to find the marketplace item and remove it
-        // This is simplified and would need to be expanded with actual marketplace item lookups
-        await removeFromMarketplace(collectionItem.id, collectionItem.id);
-      }
-
-      // Update the local state in the parent component
-      if (onUpdate) {
-        onUpdate({
-          ...collectionItem,
-          condition,
-          purchaseDate: purchaseDate ? purchaseDate.toISOString() : undefined,
-          purchasePrice: purchasePrice ? parseFloat(purchasePrice) : undefined,
-          privateNote,
-          publicNote,
-          isForSale,
-          salePrice: isForSale && salePrice ? parseFloat(salePrice) : null,
-          location,
-          obverseImage: obverseImage || undefined,
-          reverseImage: reverseImage || undefined
-        });
-      }
-      
-      toast.success("Collection item updated successfully");
-    } catch (error) {
-      console.error("Error updating collection item:", error);
-      toast.error("Something went wrong while updating");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleImageUploaded = (side: 'obverse' | 'reverse', url: string) => {
-    if (side === 'obverse') {
-      setObverseImage(url);
-    } else {
-      setReverseImage(url);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6 p-6">
-      <div className="space-y-2">
-        <h3 className="text-lg font-medium">Images</h3>
-        <p className="text-sm text-muted-foreground">
-          Add your own images of this banknote for your collection
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-          <div>
-            <Label className="mb-2 block">Obverse (Front)</Label>
-            <SimpleImageUpload
-              imageUrl={obverseImage || undefined}
-              side="obverse"
-              onImageUploaded={(url) => handleImageUploaded('obverse', url)}
-            />
-          </div>
-          <div>
-            <Label className="mb-2 block">Reverse (Back)</Label>
-            <SimpleImageUpload
-              imageUrl={reverseImage || undefined}
-              side="reverse"
-              onImageUploaded={(url) => handleImageUploaded('reverse', url)}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <h3 className="text-lg font-medium">Condition & Details</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-          <div>
-            <Label htmlFor="condition" className="mb-2 block">Condition/Grade</Label>
-            <Select value={condition} onValueChange={(value) => setCondition(value as BanknoteCondition)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select condition" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="UNC">Uncirculated (UNC)</SelectItem>
-                <SelectItem value="AU">About Uncirculated (AU)</SelectItem>
-                <SelectItem value="XF">Extremely Fine (XF)</SelectItem>
-                <SelectItem value="VF">Very Fine (VF)</SelectItem>
-                <SelectItem value="F">Fine (F)</SelectItem>
-                <SelectItem value="VG">Very Good (VG)</SelectItem>
-                <SelectItem value="G">Good (G)</SelectItem>
-                <SelectItem value="Fair">Fair</SelectItem>
-                <SelectItem value="Poor">Poor</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <Label htmlFor="purchase-date" className="mb-2 block">Purchase Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !purchaseDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {purchaseDate ? format(purchaseDate, "PPP") : <span>Select date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarComponent
-                  mode="single"
-                  selected={purchaseDate}
-                  onSelect={setPurchaseDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          <div>
-            <Label htmlFor="purchase-price" className="mb-2 block">Purchase Price</Label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">$</span>
-              <Input
-                id="purchase-price"
-                type="number"
-                value={purchasePrice}
-                onChange={(e) => setPurchasePrice(e.target.value)}
-                placeholder="0.00"
-                className="pl-8"
-                step="0.01"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="location" className="mb-2 block">Storage Location</Label>
-            <Input
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Where do you keep this banknote?"
-            />
-          </div>
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <h3 className="text-lg font-medium">Notes</h3>
-        <div className="grid grid-cols-1 gap-4 mt-4">
-          <div>
-            <Label htmlFor="private-note" className="mb-2 block">Private Notes (only visible to you)</Label>
-            <Textarea
-              id="private-note"
-              value={privateNote}
-              onChange={(e) => setPrivateNote(e.target.value)}
-              placeholder="Add your private notes here"
-              rows={3}
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="public-note" className="mb-2 block">Public Notes (visible to others)</Label>
-            <Textarea
-              id="public-note"
-              value={publicNote}
-              onChange={(e) => setPublicNote(e.target.value)}
-              placeholder="Add notes that others can see"
-              rows={3}
-            />
-          </div>
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <h3 className="text-lg font-medium">Marketplace</h3>
-        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-md">
-          <div className="space-y-0.5">
-            <Label htmlFor="for-sale" className="text-base cursor-pointer">List on Marketplace</Label>
-            <p className="text-sm text-muted-foreground">Make this item available for sale in the marketplace</p>
-          </div>
-          <Switch
-            id="for-sale"
-            checked={isForSale}
-            onCheckedChange={setIsForSale}
-          />
-        </div>
-        
-        {isForSale && (
-          <div className="p-4 border rounded-md mt-2">
-            <Label htmlFor="sale-price" className="mb-2 block">Sale Price</Label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">$</span>
-              <Input
-                id="sale-price"
-                type="number"
-                value={salePrice}
-                onChange={(e) => setSalePrice(e.target.value)}
-                placeholder="0.00"
-                className="pl-8"
-                step="0.01"
-                required={isForSale}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-      
-      <div className="flex justify-end space-x-2">
-        <Button type="submit" disabled={loading}>
-          {loading ? "Saving..." : "Save Changes"}
-        </Button>
-      </div>
-    </form>
-  );
-}
+export default CollectionItemForm;
