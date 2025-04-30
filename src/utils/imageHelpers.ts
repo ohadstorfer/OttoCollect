@@ -1,5 +1,5 @@
 
-import { ImageUrls } from "@/types/banknote";
+import { ImageUrls } from "@/types";
 
 /**
  * Safely gets the first image URL from an ImageUrls type (string or string[])
@@ -20,4 +20,12 @@ export function getCollectionItemImage(
 ): string {
   if (itemImage) return itemImage;
   return getFirstImageUrl(banknoteImages);
+}
+
+/**
+ * Safely gets all images from ImageUrls as an array
+ */
+export function getAllImagesAsArray(imageUrls: ImageUrls | undefined): string[] {
+  if (!imageUrls) return [];
+  return Array.isArray(imageUrls) ? imageUrls : [imageUrls];
 }

@@ -12,6 +12,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
 import { getFirstImageUrl } from '@/utils/imageHelpers';
+import { removeFromCollection } from '@/services/collectionService';
+import { useToast } from '@/hooks/use-toast';
 
 export interface CollectionItemCardProps {
   item: CollectionItem;
@@ -27,9 +29,11 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   onCollectionUpdated
 }) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
-  // Use null checks to prevent errors
+  // Use null checks to prevent errors and set defaults
   const banknote = item?.banknote || {};
   
   const handleViewDetail = () => {
@@ -49,27 +53,52 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   };
   
   const handleDelete = async () => {
+    if (!item.id) return;
+    
     try {
-      // This will be implemented in a future step
+      setIsDeleting(true);
+      const success = await removeFromCollection(item.id);
+      
+      if (success) {
+        toast({
+          title: "Success",
+          description: "Item removed from your collection",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to remove item from collection",
+          variant: "destructive",
+        });
+      }
+      
       setShowDeleteDialog(false);
+      
       if (onCollectionUpdated) {
         await onCollectionUpdated();
       }
     } catch (error) {
       console.error('Error deleting collection item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove item from collection",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
   
-  // Get image URLs safely
-  const obverseImage = item?.obverseImage || 
-                      (banknote?.imageUrls ? getFirstImageUrl(banknote.imageUrls) : '/placeholder.svg');
+  // Get image URLs safely - handle both string and array types
+  const imageUrls = banknote.imageUrls || [];
+  const obverseImage = item?.obverseImage || getFirstImageUrl(imageUrls);
   
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md h-full">
       <div className="aspect-video relative overflow-hidden cursor-pointer" onClick={handleViewDetail}>
         <img
           src={obverseImage}
-          alt={banknote?.denomination || 'Banknote'}
+          alt={banknote.denomination || 'Banknote'}
           className="w-full h-full object-cover"
         />
         {item?.isForSale && (
@@ -82,10 +111,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         <div className="flex justify-between items-start">
           <div>
             <h3 className="font-medium text-lg leading-tight">
-              {banknote?.denomination || 'Unknown Denomination'}
+              {banknote.denomination || 'Unknown Denomination'}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {banknote?.country || 'Unknown Country'}, {banknote?.year || 'Unknown Year'}
+              {banknote.country || 'Unknown Country'}, {banknote.year || 'Unknown Year'}
             </p>
             <div className="flex items-center gap-2 mt-1">
               <Badge variant="secondary" className="text-xs">
@@ -141,8 +170,12 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
-              Remove
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-red-500 hover:bg-red-600" 
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Removing...' : 'Remove'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

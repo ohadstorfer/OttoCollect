@@ -1,78 +1,48 @@
 
-import { Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import Navbar from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import Index from "@/pages/Index";
-import Auth from "@/pages/Auth";
-import Catalog from "@/pages/Catalog";
-import CountryDetail from "@/pages/CountryDetail";
-import BanknoteCatalogDetail from "@/pages/BanknoteCatalogDetail";
-import Profile from "@/pages/Profile";
-import Collection from "@/pages/Collection";
-import CollectionItem from "@/pages/CollectionItem";
-import BanknoteCollectionDetail from "@/pages/BanknoteCollectionDetail";
-import Marketplace from "@/pages/Marketplace";
-import MarketplaceItemDetail from "@/pages/MarketplaceItemDetail";
-import Forum from "@/pages/Forum";
-import ForumPost from "@/pages/ForumPost";
-import CreateForumPost from "@/pages/CreateForumPost";
-import Messaging from "@/pages/Messaging";
-import Members from "@/pages/Members";
-import NotFound from "@/pages/NotFound";
-import Admin from "@/pages/Admin";
-import Community from "@/pages/Community";
-import { PageBackground } from "./components/ui/page-background";
-import { useTheme } from "./context/ThemeContext";
-import "./App.css";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-    },
-  },
-});
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './Layout';
+import Home from './pages/Home';
+import NoMatch from './pages/NoMatch';
+import Auth from './pages/Auth';
+import AuthLayout from './components/layout/AuthLayout';
+import Admin from './pages/Admin';
+import Profile from './pages/Profile';
+import Catalog from './pages/Catalog';
+import CountryDetail from './pages/CountryDetail';
+import BanknoteDetail from './pages/BanknoteDetail';
+import CollectionLanding from './pages/CollectionLanding';
+import CollectionCountry from './pages/CollectionCountry';
+import PublicCollectionLanding from './pages/PublicCollectionLanding';
+import PublicCollectionCountry from './pages/PublicCollectionCountry';
+import Settings from './pages/Settings';
+import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
-  const { theme } = useTheme();
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <div data-theme={theme}>
-        <PageBackground>
-          <Navbar />
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/catalog" element={<Catalog />} />
-            <Route path="/catalog/:country" element={<CountryDetail />} />
-            <Route path="/banknote-details/:id" element={<BanknoteCatalogDetail />} />
-            <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
-            <Route path="/profile/:id" element={<Profile />} />
-            <Route path="/collection" element={<Collection />} />
-            <Route path="/collection/:id" element={<CollectionItem />} />
-            <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail />} />
-            <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/marketplace/:id" element={<MarketplaceItemDetail />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/community/forum" element={<Forum />} />
-            <Route path="/community/forum/post/:id" element={<ForumPost />} />
-            <Route path="/community/forum/:id" element={<ForumPost />} />
-            <Route path="/community/forum/new" element={<CreateForumPost />} />
-            <Route path="/messaging" element={<Messaging />} />
-            <Route path="/members" element={<Members />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/auth" element={<AuthLayout><Auth /></AuthLayout>} />
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="catalog" element={<Catalog />} />
+              <Route path="catalog/:countryName" element={<CountryDetail />} />
+              <Route path="banknote-details/:id" element={<BanknoteDetail />} />
+              <Route path="my-collection" element={<CollectionLanding />} />
+              <Route path="my-collection/country/:countryId" element={<CollectionCountry />} />
+              <Route path="profile/:userId/collection" element={<PublicCollectionLanding />} />
+              <Route path="profile/:userId/collection/country/:countryId" element={<PublicCollectionCountry />} />
+              <Route path="profile/:id" element={<Profile />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="admin/*" element={<Admin />} />
+              <Route path="*" element={<NoMatch />} />
+            </Route>
           </Routes>
-          <Footer />
-          <Toaster />
-        </PageBackground>
-      </div>
-    </QueryClientProvider>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

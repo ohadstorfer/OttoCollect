@@ -7,8 +7,19 @@ interface UseCollectionGroupsProps {
   showSultanGroups: boolean;
 }
 
-export const useCollectionGroups = ({ items, showSultanGroups }: UseCollectionGroupsProps) => {
-  const groups = useMemo(() => {
+interface SultanGroup {
+  sultan: string;
+  items: CollectionItem[];
+}
+
+interface CollectionGroup {
+  category: string;
+  items: CollectionItem[];
+  sultanGroups?: SultanGroup[];
+}
+
+export const useCollectionGroups = ({ items, showSultanGroups }: UseCollectionGroupsProps): CollectionGroup[] => {
+  return useMemo(() => {
     if (!items?.length) return [];
     
     // Group items by category first
@@ -71,6 +82,4 @@ export const useCollectionGroups = ({ items, showSultanGroups }: UseCollectionGr
     
     return groupsArray;
   }, [items, showSultanGroups]);
-  
-  return groups;
 };
