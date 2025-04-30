@@ -7,7 +7,7 @@ import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import CollectionItemForm from '@/components/collection/CollectionItemForm';
-import { fetchUserCollectionItems, fetchBanknoteCategoriesAndTypes } from '@/services/collectionService';
+import { fetchUserCollectionItems, fetchBanknoteCategoriesAndTypes, removeFromCollection } from '@/services/collectionService';
 import { CollectionItem, DetailedBanknote } from '@/types';
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
 import { DynamicFilterState } from '@/types/filter';
@@ -96,9 +96,9 @@ const Collection = () => {
     setEditingItem(null);
   };
   
-  const handleSaveItem = async (item: CollectionItem) => {
+  const handleSaveItem = async (savedItem: CollectionItem) => {
     // Form component handles the actual saving
-    console.log('Saving collection item:', item);
+    console.log('Saving collection item:', savedItem);
     setShowForm(false);
     setEditingItem(null);
     await loadUserCollection(); // Refresh the list
@@ -149,7 +149,7 @@ const Collection = () => {
       {showForm && (
         <div className="mb-8">
           <CollectionItemForm
-            initialItem={editingItem}
+            item={editingItem}
             onSave={handleSaveItem}
             onCancel={handleCloseForm}
           />
@@ -213,7 +213,8 @@ const Collection = () => {
                               return (
                                 <CollectionItemCard
                                   key={collectionItem.id}
-                                  collectionItem={collectionItem}
+                                  item={collectionItem}
+                                  isPublicView={false}
                                   onItemEdit={() => handleEditItem(collectionItem)}
                                   onCollectionUpdated={loadUserCollection}
                                 />
@@ -231,7 +232,8 @@ const Collection = () => {
                         return (
                           <CollectionItemCard
                             key={collectionItem.id}
-                            collectionItem={collectionItem}
+                            item={collectionItem}
+                            isPublicView={false}
                             onItemEdit={() => handleEditItem(collectionItem)}
                             onCollectionUpdated={loadUserCollection}
                           />
