@@ -1,15 +1,19 @@
 
 import React, { useState } from 'react';
+import { ImageUrls } from '@/types/banknote';
 
 interface BanknoteImageGalleryProps {
-  images: string[];
+  images: ImageUrls;
 }
 
 const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
   
+  // Convert images to array for consistent handling
+  const imageArray = Array.isArray(images) ? images : (images ? [images] : []);
+  
   // If no images provided, show placeholder
-  if (!images || images.length === 0) {
+  if (imageArray.length === 0) {
     return (
       <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center">
         <p className="text-gray-400">No images available</p>
@@ -18,11 +22,11 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
   }
 
   // If only one image, just show it without thumbnails
-  if (images.length === 1) {
+  if (imageArray.length === 1) {
     return (
       <div className="aspect-[4/3] overflow-hidden">
         <img 
-          src={images[0]} 
+          src={imageArray[0]} 
           alt="Banknote" 
           className="w-full h-full object-contain"
         />
@@ -34,14 +38,14 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
     <div className="space-y-2">
       <div className="aspect-[4/3] overflow-hidden bg-gray-50 border border-gray-100">
         <img 
-          src={images[activeIndex]} 
+          src={imageArray[activeIndex]} 
           alt={`Banknote view ${activeIndex + 1}`}
           className="w-full h-full object-contain"
         />
       </div>
       
       <div className="flex flex-wrap gap-2 p-2">
-        {images.map((image, index) => (
+        {imageArray.map((image, index) => (
           <button 
             key={index}
             onClick={() => setActiveIndex(index)}

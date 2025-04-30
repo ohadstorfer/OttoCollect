@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import Index from "@/pages/Index";
+import Home from "@/pages/Home";
+import NoMatch from "@/pages/NoMatch";
 import Auth from "@/pages/Auth";
 import Catalog from "@/pages/Catalog";
 import CountryDetail from "@/pages/CountryDetail";
@@ -23,8 +25,10 @@ import Members from "@/pages/Members";
 import NotFound from "@/pages/NotFound";
 import Admin from "@/pages/Admin";
 import Community from "@/pages/Community";
+import Settings from "@/pages/Settings";
 import { PageBackground } from "./components/ui/page-background";
 import { useTheme } from "./context/ThemeContext";
+import { useAuth } from "./context/AuthContext";
 import "./App.css";
 
 const queryClient = new QueryClient({
@@ -38,6 +42,7 @@ const queryClient = new QueryClient({
 
 function App() {
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -46,6 +51,7 @@ function App() {
           <Navbar />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/catalog" element={<Catalog />} />
             <Route path="/catalog/:country" element={<CountryDetail />} />
@@ -65,6 +71,7 @@ function App() {
             <Route path="/community/forum/new" element={<CreateForumPost />} />
             <Route path="/messaging" element={<Messaging />} />
             <Route path="/members" element={<Members />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
