@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ImageUrls } from '@/types/banknote';
+import { normalizeImageUrls } from '@/utils/imageHelpers';
 
 interface BanknoteImageProps extends React.HTMLAttributes<HTMLImageElement> {
   imageUrl: ImageUrls | null;
@@ -23,20 +24,10 @@ export const BanknoteImage: React.FC<BanknoteImageProps> = ({
     );
   }
   
-  // Handle both string and string[] image URLs with safer null checks
-  const src = Array.isArray(imageUrl) 
-    ? (imageUrl.length > 0 && imageUrl[0] ? imageUrl[0] : '/placeholder-brown.svg') 
-    : (imageUrl || '/placeholder-brown.svg');
+  // Normalize image URLs into an array
+  const imageUrls = normalizeImageUrls(imageUrl, '/placeholder-brown.svg');
+  const src = imageUrls[0]; // Use first image
   
-  // Handle empty array case
-  if (Array.isArray(imageUrl) && imageUrl.length === 0) {
-    return (
-      <div className={`bg-gray-200 flex items-center justify-center ${className}`}>
-        <span className="text-gray-500 text-sm">No image</span>
-      </div>
-    );
-  }
-
   return (
     <img 
       src={src} 

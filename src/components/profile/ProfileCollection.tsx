@@ -9,41 +9,127 @@ import { cn } from '@/lib/utils';
 import { groupCollectionItemsByCategory } from '@/utils/collectionUtils';
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
 import { DynamicFilterState } from '@/types/filter';
+import { useQuery } from '@tanstack/react-query';
+import { fetchUserCollection } from '@/services/collectionService';
+import { useState, useCallback } from 'react';
 
 interface ProfileCollectionProps {
   userId: string;
   username?: string;
   isOwnProfile: boolean;
-  collectionItems: CollectionItem[];
-  isLoading: boolean;
-  error: string | null;
-  onRetry: () => Promise<void>;  // Changed to return Promise<void>
-  // Filter props
-  filters: DynamicFilterState;
-  onFilterChange: (newFilters: Partial<DynamicFilterState>) => void;
-  filteredItems: CollectionItem[];
-  collectionCategories: { id: string; name: string; count: number }[];
-  collectionTypes: { id: string; name: string; count: number }[];
+  onRetry: () => Promise<void>;
 }
 
 const ProfileCollection: React.FC<ProfileCollectionProps> = ({
   userId,
   username,
   isOwnProfile,
-  collectionItems,
-  isLoading,
-  error,
   onRetry,
-  filters,
-  onFilterChange,
-  filteredItems,
-  collectionCategories,
-  collectionTypes
 }) => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = React.useState<'grid' | 'compact' | 'list'>('grid');
   const [showFilters, setShowFilters] = React.useState(false);
   const [groupMode, setGroupMode] = React.useState(false);
+  const [filters, setFilters] = useState<DynamicFilterState>({
+    search: "",
+    categories: [],
+    types: [],
+    sort: ["extPick"],
+  });
+  
+  // Fetch collection items
+  const { 
+    data: collectionItems = [], 
+    isLoading, 
+    error 
+  } = useQuery({
+    queryKey: ['collection', userId],
+    queryFn: () => fetchUserCollection(userId),
+  });
+  
+  // Extract categories and types from collection items
+  const collectionCategories = React.useMemo(() => {
+    if (!collectionItems || collectionItems.length === 0) return [];
+    
+    const categoriesMap = new Map<string, { id: string; name: string; count: number }>();
+    
+    collectionItems.forEach(item => {
+      if (item?.banknote?.category) {
+        const categoryId = item.banknote.category;
+        const categoryName = item.banknote.category;
+        
+        if (categoriesMap.has(categoryId)) {
+          const category = categoriesMap.get(categoryId)!;
+          category.count++;
+          categoriesMap.set(categoryId, category);
+        } else {
+          categoriesMap.set(categoryId, {
+            id: categoryId,
+            name: categoryName,
+            count: 1
+          });
+        }
+      }
+    });
+    
+    return Array.from(categoriesMap.values()).sort((a, b) => b.count - a.count);
+  }, [collectionItems]);
+  
+  const collectionTypes = React.useMemo(() => {
+    if (!collectionItems || collectionItems.length === 0) return [];
+    
+    const typesMap = new Map<string, { id: string; name: string; count: number }>();
+    
+    collectionItems.forEach(item => {
+      if (item?.banknote?.type) {
+        const typeId = item.banknote.type;
+        const typeName = item.banknote.type;
+        
+        if (typesMap.has(typeId)) {
+          const type = typesMap.get(typeId)!;
+          type.count++;
+          typesMap.set(typeId, type);
+        } else {
+          typesMap.set(typeId, {
+            id: typeId,
+            name: typeName,
+            count: 1
+          });
+        }
+      }
+    });
+    
+    return Array.from(typesMap.values()).sort((a, b) => b.count - a.count);
+  }, [collectionItems]);
+  
+  // Filter items based on filters
+  const filteredItems = React.useMemo(() => {
+    if (!collectionItems || collectionItems.length === 0) return [];
+    
+    return collectionItems.filter(item => {
+      if (!item) return false;
+      
+      // Search filter
+      const searchLower = (filters.search || "").toLowerCase();
+      const matchesSearch = !filters.search || 
+        (item.banknote && Object.values(item.banknote)
+          .filter(value => value !== null && value !== undefined && typeof value === 'string')
+          .some(value => (value as string).toLowerCase().includes(searchLower))) ||
+        (item.publicNote && item.publicNote.toLowerCase().includes(searchLower)) ||
+        (item.privateNote && item.privateNote.toLowerCase().includes(searchLower)) ||
+        (item.condition && item.condition.toLowerCase().includes(searchLower));
+      
+      // Category filter
+      const matchesCategory = !filters.categories || filters.categories.length === 0 || 
+        (item.banknote?.category && filters.categories.includes(item.banknote.category));
+      
+      // Type filter
+      const matchesType = !filters.types || filters.types.length === 0 || 
+        (item.banknote?.type && filters.types.includes(item.banknote.type));
+      
+      return matchesSearch && matchesCategory && matchesType;
+    });
+  }, [collectionItems, filters]);
   
   // Group items by category if groupMode is enabled
   const groupedItems = React.useMemo(() => {
@@ -59,11 +145,18 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
   const handleGroupModeChange = (mode: boolean) => {
     setGroupMode(mode);
   };
+  
+  const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters
+    }));
+  }, []);
 
   if (error) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-xl font-medium mb-4 text-red-500">{error}</h3>
+        <h3 className="text-xl font-medium mb-4 text-red-500">Error loading collection</h3>
         <Button onClick={() => onRetry()}>Retry</Button>
       </div>
     );
@@ -78,7 +171,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
       );
     }
 
-    if (collectionItems.length === 0) {
+    if (!collectionItems || collectionItems.length === 0) {
       return (
         <div className="text-center py-12">
           <h3 className="text-xl font-medium mb-6">
@@ -88,7 +181,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
             }
           </h3>
           {isOwnProfile && (
-            <Button onClick={() => navigate('/my-collection')}>
+            <Button onClick={() => navigate('/collection')}>
               Manage My Collection
             </Button>
           )}
@@ -161,7 +254,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
         <h2 className="text-2xl font-bold">
           {isOwnProfile ? 'My Collection' : `${username}'s Collection`}
           <span className="ml-2 text-sm font-normal text-muted-foreground">
-            ({collectionItems.length} {collectionItems.length === 1 ? 'item' : 'items'})
+            ({collectionItems ? collectionItems.length : 0} {collectionItems && collectionItems.length === 1 ? 'item' : 'items'})
           </span>
         </h2>
         
@@ -203,7 +296,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
       
       {showFilters && (
         <BanknoteFilterCollection
-          onFilterChange={onFilterChange}
+          onFilterChange={handleFilterChange}
           currentFilters={filters}
           isLoading={isLoading}
           collectionCategories={collectionCategories}

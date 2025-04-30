@@ -78,7 +78,7 @@ function Profile() {
         <ProfileEditForm 
           profile={profile as User} 
           onCancel={handleToggleEditMode} 
-          onSaveComplete={() => {
+          onSave={() => {
             refetch().then(() => {
               setIsEditMode(false);
             });
@@ -87,8 +87,7 @@ function Profile() {
       ) : (
         <ProfileHeader 
           profile={profile as User}
-          isEditMode={isEditMode}
-          onToggleEditMode={handleToggleEditMode}
+          onEdit={handleToggleEditMode}
           onProfileUpdate={refetch}
         />
       )}
@@ -107,6 +106,7 @@ function Profile() {
               userId={id as string} 
               isOwnProfile={isOwnProfile} 
               onRetry={refetchCollection}
+              username={profile.username}
             />
           </TabsContent>
         </Tabs>

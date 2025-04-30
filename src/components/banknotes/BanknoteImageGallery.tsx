@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ImageUrls } from '@/types/banknote';
 import { BanknoteImage } from '@/components/use-banknote-image';
+import { normalizeImageUrls } from '@/utils/imageHelpers';
 
 interface BanknoteImageGalleryProps {
   images: ImageUrls;
@@ -11,7 +12,7 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
   
   // Convert images to array for consistent handling
-  const imageArray = Array.isArray(images) ? images : (images ? [images] : []);
+  const imageArray = normalizeImageUrls(images);
   
   // If no images provided, show placeholder
   if (imageArray.length === 0) {
@@ -27,7 +28,7 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
     return (
       <div className="aspect-[4/3] overflow-hidden">
         <BanknoteImage 
-          imageUrl={imageArray} 
+          imageUrl={images} 
           alt="Banknote" 
           className="w-full h-full object-contain"
         />
@@ -39,7 +40,7 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
     <div className="space-y-2">
       <div className="aspect-[4/3] overflow-hidden bg-gray-50 border border-gray-100">
         <BanknoteImage 
-          imageUrl={imageArray[activeIndex] || ''} 
+          imageUrl={imageArray[activeIndex]} 
           alt={`Banknote view ${activeIndex + 1}`}
           className="w-full h-full object-contain"
         />
