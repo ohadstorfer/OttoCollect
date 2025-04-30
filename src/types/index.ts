@@ -66,7 +66,17 @@ export interface User {
 }
 
 // Banknote related interfaces
-export type BanknoteCondition = 'UNC' | 'AU' | 'XF' | 'VF' | 'F' | 'VG' | 'G' | 'FR' | 'Fair' | 'Poor';
+export type BanknoteCondition = 
+  | 'UNC' 
+  | 'AU' 
+  | 'XF' 
+  | 'VF' 
+  | 'F' 
+  | 'VG' 
+  | 'G' 
+  | 'FR' 
+  | 'Fair' 
+  | 'Poor';
 
 export interface Banknote {
   id: string;

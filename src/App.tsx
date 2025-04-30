@@ -10,6 +10,7 @@ import NoMatch from "@/pages/NoMatch";
 import Auth from "@/pages/Auth";
 import Catalog from "@/pages/Catalog";
 import CountryDetail from "@/pages/CountryDetail";
+import CountryDetailCollection from "@/pages/CountryDetailCollection";
 import BanknoteCatalogDetail from "@/pages/BanknoteCatalogDetail";
 import Profile from "@/pages/Profile";
 import Collection from "@/pages/Collection";
@@ -60,6 +61,8 @@ function App() {
             <Route path="/profile/:id" element={<Profile />} />
             <Route path="/collection" element={<Collection />} />
             <Route path="/collection/:id" element={<CollectionItem />} />
+            <Route path="/collection/country/:country" element={<CountryDetailCollection />} />
+            <Route path="/profile/:userId/collection/country/:country" element={<CountryDetailCollection />} />
             <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail />} />
             <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail />} />
             <Route path="/marketplace" element={<Marketplace />} />
