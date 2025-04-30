@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +6,6 @@ import { Check, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
-import { BanknoteImage } from '@/components/use-banknote-image';
 
 interface CollectionItemCardProps {
   banknote: DetailedBanknote;
@@ -18,18 +16,11 @@ const CollectionItemDetailCard = ({ banknote, collectionItem }: CollectionItemCa
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
 
-  // Make sure we handle potentially undefined collectionItem
-  if (!collectionItem || !banknote) {
-    return null;
-  }
-
   const displayImage =
-    collectionItem.obverseImage ||
-    (banknote.imageUrls && Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 0
+    collectionItem?.obverseImage ||
+    (banknote.imageUrls && banknote.imageUrls.length > 0
       ? banknote.imageUrls[0]
-      : typeof banknote.imageUrls === 'string'
-        ? banknote.imageUrls
-        : "/placeholder-brown.svg");
+      : "/placeholder.svg");
 
   return (
     <Card
@@ -51,11 +42,12 @@ const CollectionItemDetailCard = ({ banknote, collectionItem }: CollectionItemCa
 
         <div
           className={cn(
-            "aspect-[4/3] overflow-hidden"
+            displayImage === "/placeholder.svg" ? "aspect-[4/2]" : "aspect-[4/3]",
+            "overflow-hidden"
           )}
         >
-          <BanknoteImage
-            imageUrl={displayImage}
+          <img
+            src={displayImage}
             alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
             className={cn(
               "w-full h-full object-cover transition-transform duration-500",

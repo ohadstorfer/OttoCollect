@@ -41,12 +41,9 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   const [isDeleting, setIsDeleting] = React.useState(false);
   
   // Use custom images if available, otherwise fall back to banknote images
-  // Add null check for item to prevent "Cannot read properties of undefined" error
-  const displayImage = item && item.obverseImage 
-    ? item.obverseImage 
-    : (item && item.banknote ? item.banknote.imageUrls : null);
+  const displayImage = item.obverseImage || 
+    (item.banknote ? item.banknote.imageUrls : null);
 
-  // Updated condition colors to include all possible conditions
   const conditionColors: Record<BanknoteCondition, string> = {
     'UNC': 'bg-green-100 text-green-800',
     'AU': 'bg-emerald-100 text-emerald-800',
@@ -55,14 +52,11 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     'F': 'bg-purple-100 text-purple-800',
     'VG': 'bg-amber-100 text-amber-800',
     'G': 'bg-orange-100 text-orange-800',
-    'FR': 'bg-red-100 text-red-800',
-    'Fair': 'bg-red-200 text-red-900',
-    'Poor': 'bg-gray-100 text-gray-800'
+    'FR': 'bg-red-100 text-red-800'
   };
   
-  // Define the getBanknoteTitle function here
-  function getBanknoteTitle() {
-    if (!item || !item.banknote) return "Unknown Banknote";
+  const getBanknoteTitle = () => {
+    if (!item.banknote) return "Unknown Banknote";
     
     let title = '';
     
@@ -76,11 +70,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     }
     
     return title || "Unknown Banknote";
-  }
+  };
   
-  // Define the handleDelete function here
-  async function handleDelete() {
-    if (!item || !item.id) return;
+  const handleDelete = async () => {
+    if (!item.id) return;
     
     setIsDeleting(true);
     try {
@@ -105,12 +98,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       setIsDeleting(false);
       setShowDeleteConfirm(false);
     }
-  }
-  
-  // Add extra guard against item being undefined
-  if (!item) {
-    return null;
-  }
+  };
   
   if (viewMode === 'list') {
     return (
@@ -129,7 +117,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
               {item.banknote?.country || "Unknown Country"} · {item.banknote?.series || "Unknown Series"}
             </p>
             <div className="flex gap-2 mt-1">
-              <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
+              <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition] || 'bg-gray-100'}`}>
                 {item.condition}
               </span>
               {item.isForSale && (
@@ -166,7 +154,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             className="object-cover w-full h-full"
           />
           <div className="absolute top-2 left-2">
-            <span className={`px-2 py-1 rounded-md text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
+            <span className={`px-2 py-1 rounded-md text-xs ${conditionColors[item.condition] || 'bg-gray-100'}`}>
               {item.condition}
             </span>
           </div>

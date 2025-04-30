@@ -1,8 +1,6 @@
 
 import React, { useState } from 'react';
 import { ImageUrls } from '@/types/banknote';
-import { BanknoteImage } from '@/components/use-banknote-image';
-import { normalizeImageUrls } from '@/utils/imageHelpers';
 
 interface BanknoteImageGalleryProps {
   images: ImageUrls;
@@ -12,7 +10,7 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
   
   // Convert images to array for consistent handling
-  const imageArray = normalizeImageUrls(images);
+  const imageArray = Array.isArray(images) ? images : (images ? [images] : []);
   
   // If no images provided, show placeholder
   if (imageArray.length === 0) {
@@ -27,8 +25,8 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
   if (imageArray.length === 1) {
     return (
       <div className="aspect-[4/3] overflow-hidden">
-        <BanknoteImage 
-          imageUrl={images} 
+        <img 
+          src={imageArray[0]} 
           alt="Banknote" 
           className="w-full h-full object-contain"
         />
@@ -39,8 +37,8 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
   return (
     <div className="space-y-2">
       <div className="aspect-[4/3] overflow-hidden bg-gray-50 border border-gray-100">
-        <BanknoteImage 
-          imageUrl={imageArray[activeIndex]} 
+        <img 
+          src={imageArray[activeIndex]} 
           alt={`Banknote view ${activeIndex + 1}`}
           className="w-full h-full object-contain"
         />
@@ -55,8 +53,8 @@ const BanknoteImageGallery = ({ images }: BanknoteImageGalleryProps) => {
               index === activeIndex ? 'border-ottoman-600' : 'border-transparent'
             }`}
           >
-            <BanknoteImage 
-              imageUrl={image} 
+            <img 
+              src={image} 
               alt={`Thumbnail ${index + 1}`}
               className="w-full h-full object-cover"
             />

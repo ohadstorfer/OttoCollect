@@ -1,5 +1,5 @@
 
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import Navbar from "@/components/layout/Navbar";
@@ -10,7 +10,6 @@ import NoMatch from "@/pages/NoMatch";
 import Auth from "@/pages/Auth";
 import Catalog from "@/pages/Catalog";
 import CountryDetail from "@/pages/CountryDetail";
-import CountryDetailCollection from "@/pages/CountryDetailCollection";
 import BanknoteCatalogDetail from "@/pages/BanknoteCatalogDetail";
 import Profile from "@/pages/Profile";
 import Collection from "@/pages/Collection";
@@ -59,10 +58,8 @@ function App() {
             <Route path="/banknote-details/:id" element={<BanknoteCatalogDetail />} />
             <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
             <Route path="/profile/:id" element={<Profile />} />
-            <Route path="/collection" element={<Collection />} /> {/* Country selection */}
-            <Route path="/collection/country/:country" element={<CountryDetailCollection />} />
+            <Route path="/collection" element={<Collection />} />
             <Route path="/collection/:id" element={<CollectionItem />} />
-            <Route path="/profile/:userId/collection/country/:country" element={<CountryDetailCollection />} />
             <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail />} />
             <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail />} />
             <Route path="/marketplace" element={<Marketplace />} />
