@@ -210,7 +210,20 @@ export default function BanknoteDetail() {
     setSelectedImage(imageUrl);
   };
 
-  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
+  // More robust handling of image URLs
+  const getImageUrls = (): string[] => {
+    if (!banknote) return [];
+    
+    if (Array.isArray(banknote.imageUrls)) {
+      return banknote.imageUrls;
+    } else if (typeof banknote.imageUrls === 'string') {
+      return banknote.imageUrls ? [banknote.imageUrls] : [];
+    }
+    
+    return [];
+  };
+  
+  const imageUrls = getImageUrls();
   const displayImages = viewMode === 'collection' && collectionItem ? 
     [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[] : 
     imageUrls;

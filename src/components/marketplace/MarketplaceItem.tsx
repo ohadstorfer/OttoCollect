@@ -20,6 +20,17 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const navigate = useNavigate();
   
   const { collectionItem, seller, status } = item;
+  
+  // Safety check - if collectionItem or banknote is undefined, render a placeholder
+  if (!collectionItem || !collectionItem.banknote) {
+    console.error('Missing collection item or banknote data in MarketplaceItem', item);
+    return (
+      <Card className={cn("ottoman-card overflow-hidden p-4 text-center", className)}>
+        <p>Item data unavailable</p>
+      </Card>
+    );
+  }
+  
   console.log('Banknote data:', collectionItem.banknote);
   console.log('Seller data:', seller);
   
@@ -46,11 +57,12 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   
   const sellerRank = (seller?.rank || "Newbie") as UserRank;
   
+  // More robust image selection with fallbacks
   const displayImage = collectionItem.obverseImage || 
     (collectionItem.personalImages && collectionItem.personalImages.length > 0 
       ? collectionItem.personalImages[0] 
       : banknote.imageUrls && banknote.imageUrls.length > 0 
-        ? banknote.imageUrls[0] 
+        ? (typeof banknote.imageUrls === 'string' ? banknote.imageUrls : banknote.imageUrls[0])
         : '/placeholder.svg');
   
   console.log('Display image:', displayImage);
@@ -109,13 +121,15 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           </p>
         )}
         
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-xs text-ottoman-400">Seller:</span>
-          <div className="flex items-center gap-1">
-            <span className="text-sm text-ottoman-200">{seller.username}</span>
-            <Badge variant="user" rank={sellerRank} className="ml-1" />
+        {seller && (
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-xs text-ottoman-400">Seller:</span>
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-ottoman-200">{seller.username}</span>
+              <Badge variant="user" rank={sellerRank} className="ml-1" />
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
       
       <CardFooter className="pt-2 pb-0 px-4 flex justify-between">

@@ -32,6 +32,11 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
   countryId,
   sultanName
 }) => {
+  // Safety check for empty banknotes array
+  if (!banknotes || banknotes.length === 0) {
+    return null;
+  }
+  
   // Get sultan name from first banknote if not provided
   const displaySultan = sultanName || banknotes[0]?.sultanName;
   

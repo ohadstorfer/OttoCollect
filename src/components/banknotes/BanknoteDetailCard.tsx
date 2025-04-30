@@ -45,15 +45,24 @@ const BanknoteDetailCard = ({
     }
   };
 
-  // Ensure we have a valid imageUrl
-  const getDisplayImage = () => {
+  // More robust approach to get a valid image URL
+  const getDisplayImage = (): string => {
+    // Safety check for null banknote
+    if (!banknote) return '/placeholder.svg';
+    
+    // Check if imageUrls exists
     if (!banknote.imageUrls) return '/placeholder.svg';
-    if (Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 0) {
-      return banknote.imageUrls[0] || '/placeholder.svg';
+    
+    // Handle array of image URLs
+    if (Array.isArray(banknote.imageUrls)) {
+      return banknote.imageUrls.length > 0 ? banknote.imageUrls[0] : '/placeholder.svg';
     }
+    
+    // Handle string imageUrls
     if (typeof banknote.imageUrls === 'string') {
       return banknote.imageUrls || '/placeholder.svg';
     }
+    
     return '/placeholder.svg';
   };
 
