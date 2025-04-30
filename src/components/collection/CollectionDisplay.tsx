@@ -1,7 +1,7 @@
 
 import React, { useMemo } from "react";
 import { CollectionItem } from "@/types";
-import { CollectionItemCard } from "@/components/collection/CollectionItemCard";
+import CollectionItemCard from "@/components/collection/CollectionItemCard"; 
 import { DynamicFilterState } from "@/types/filter";
 import { Button } from "@/components/ui/button";
 import { groupCollectionItemsByCategory, groupCollectionItemsByCategoryAndSultan } from "@/utils/collectionUtils";

@@ -24,7 +24,7 @@ export const BanknoteImage: React.FC<BanknoteImageProps> = ({
   }
   
   // Handle both string and string[] image URLs
-  const src = Array.isArray(imageUrl) ? imageUrl[0] : imageUrl;
+  const src = Array.isArray(imageUrl) ? imageUrl[0] || '' : imageUrl;
   
   // Handle empty array case
   if (Array.isArray(imageUrl) && imageUrl.length === 0) {

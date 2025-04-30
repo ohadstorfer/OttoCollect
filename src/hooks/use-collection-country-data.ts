@@ -4,7 +4,7 @@ import { NavigateFunction } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { fetchUserCollectionItems, fetchBanknoteCategoriesAndTypes } from "@/services/collectionService";
 import { CollectionItem } from "@/types";
-import { getCountryByName } from "@/services/countryCatalogService";
+import { fetchCountriesForCatalog } from "@/services/countryCatalogService";
 
 interface UseCollectionCountryDataProps {
   userId?: string;
@@ -35,7 +35,11 @@ export const useCollectionCountryData = ({
         }
 
         console.log("Fetching country ID for:", countryName);
-        const country = await getCountryByName(decodeURIComponent(countryName));
+        // Fetch all countries and find the matching one by name
+        const countries = await fetchCountriesForCatalog();
+        const country = countries.find(
+          c => c.name.toLowerCase() === decodeURIComponent(countryName).toLowerCase()
+        );
         
         if (!country) {
           console.error("Country not found:", countryName);

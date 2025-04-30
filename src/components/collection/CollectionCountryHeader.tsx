@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fetchUserProfile } from "@/services/profileService";
+import { getUserProfile } from "@/services/profileService";
 
 interface CollectionCountryHeaderProps {
   countryName: string;
@@ -22,7 +22,7 @@ export const CollectionCountryHeader: React.FC<CollectionCountryHeaderProps> = (
       if (!userId) return;
       
       try {
-        const userProfile = await fetchUserProfile(userId);
+        const userProfile = await getUserProfile(userId);
         if (userProfile) {
           setUsername(userProfile.username);
         }
