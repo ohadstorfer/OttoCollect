@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { fetchUserCollection } from "@/services/collectionService";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
 import { addToWishlist, removeFromWishlist, fetchWishlistItem } from "@/services/wishlistService";
+import { BanknoteImage } from "@/components/banknote/BanknoteImage";
+import { normalizeImageUrls } from "@/utils/imageHelpers";
 
 import { 
   Calendar, 
@@ -213,14 +215,7 @@ export default function BanknoteDetail() {
   // Update just this section where the image type error occurs
   const getImageUrls = (): string[] => {
     if (!banknote) return [];
-    
-    if (Array.isArray(banknote.imageUrls)) {
-      return banknote.imageUrls;
-    } else if (typeof banknote.imageUrls === 'string') {
-      return banknote.imageUrls ? [banknote.imageUrls] : [];
-    }
-    
-    return [];
+    return normalizeImageUrls(banknote.imageUrls);
   };
   
   const imageUrls = getImageUrls();
@@ -332,8 +327,8 @@ export default function BanknoteDetail() {
                         onClick={() => openImageViewer(url)}
                       >
                         <div className="absolute inset-0 rounded-md overflow-hidden border">
-                          <img
-                            src={url}
+                          <BanknoteImage
+                            imageUrl={url}
                             alt={`Banknote Image ${index + 1}`}
                             className="w-full h-full object-cover"
                           />
@@ -368,8 +363,8 @@ export default function BanknoteDetail() {
                               onClick={() => openImageViewer(url)}
                             >
                               <div className="absolute inset-0 rounded-md overflow-hidden border">
-                                <img
-                                  src={url}
+                                <BanknoteImage
+                                  imageUrl={url}
                                   alt={`Banknote Image ${index + 1}`}
                                   className="w-full h-full object-cover"
                                 />
@@ -555,7 +550,7 @@ export default function BanknoteDetail() {
             <img 
               src={selectedImage} 
               alt="Banknote detail"
-              className="w-full h-auto rounded" 
+              className="w-full h-full object-cover rounded" 
             />
           </DialogContent>
         </Dialog>

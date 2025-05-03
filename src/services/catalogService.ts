@@ -24,7 +24,9 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       year: data.gregorian_year || data.islamic_year || '',
       series: '',
       description: data.banknote_description || '',
-      imageUrls: [data.front_picture, data.back_picture].filter(Boolean),
+      imageUrls: data.front_picture && data.back_picture ? 
+        [data.front_picture, data.back_picture].filter(Boolean) : 
+        data.front_picture ? [data.front_picture] : [],
       isApproved: data.is_approved,
       isPending: data.is_pending,
       createdAt: data.created_at,

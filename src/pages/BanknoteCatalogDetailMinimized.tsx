@@ -25,6 +25,8 @@ import {
   Star,
 } from "lucide-react";
 import { useBanknoteContext } from "@/context/BanknoteContext";
+import { BanknoteImage } from "@/components/banknote/BanknoteImage";
+import { normalizeImageUrls } from "@/utils/imageHelpers";
 
 interface LabelValuePairProps {
   label: string;
@@ -92,7 +94,7 @@ export default function BanknoteCatalogDetailMinimized() {
     setSelectedImage(imageUrl);
   };
 
-  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
+  const imageUrls = banknote ? normalizeImageUrls(banknote.imageUrls) : [];
 
   const detailGroups = [
     {
@@ -225,8 +227,8 @@ export default function BanknoteCatalogDetailMinimized() {
                             onClick={() => openImageViewer(url)}
                           >
                             <div className="absolute inset-0 rounded-md overflow-hidden border">
-                              <img
-                                src={url}
+                              <BanknoteImage
+                                imageUrl={url}
                                 alt={`Banknote Image ${index + 1}`}
                                 className="w-full h-full object-cover"
                               />
@@ -261,8 +263,8 @@ export default function BanknoteCatalogDetailMinimized() {
                                   onClick={() => openImageViewer(url)}
                                 >
                                   <div className="absolute inset-0 rounded-md overflow-hidden border">
-                                    <img
-                                      src={url}
+                                    <BanknoteImage
+                                      imageUrl={url}
                                       alt={`Banknote Image ${index + 1}`}
                                       className="w-full h-full object-cover"
                                     />

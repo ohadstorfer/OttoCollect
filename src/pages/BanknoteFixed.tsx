@@ -16,6 +16,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { toast } from "sonner";
 import { addToWishlist, removeFromWishlist, fetchWishlistItem } from "@/services/wishlistService";
 import { useToast } from "@/hooks/use-toast";
+import { BanknoteImage } from "@/components/banknote/BanknoteImage";
+import { normalizeImageUrls } from "@/utils/imageHelpers";
 
 import { 
   Calendar, 
@@ -185,6 +187,8 @@ export default function BankNote() {
     setSelectedImage(imageUrl);
   };
 
+  const imageUrls = banknote ? normalizeImageUrls(banknote.imageUrls) : [];
+
   const detailGroups = [
     {
       title: "Basic Information",
@@ -230,9 +234,6 @@ export default function BankNote() {
     }
   ];
 
-  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : 
-                  typeof banknote.imageUrls === 'string' ? [banknote.imageUrls] : [];
-
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
@@ -274,8 +275,8 @@ export default function BankNote() {
                         onClick={() => openImageViewer(url)}
                       >
                         <div className="absolute inset-0 rounded-md overflow-hidden border">
-                          <img
-                            src={url}
+                          <BanknoteImage
+                            imageUrl={url}
                             alt={`Banknote Image ${index + 1}`}
                             className="w-full h-full object-cover"
                           />
@@ -310,8 +311,8 @@ export default function BankNote() {
                               onClick={() => openImageViewer(url)}
                             >
                               <div className="absolute inset-0 rounded-md overflow-hidden border">
-                                <img
-                                  src={url}
+                                <BanknoteImage
+                                  imageUrl={url}
                                   alt={`Banknote Image ${index + 1}`}
                                   className="w-full h-full object-cover"
                                 />

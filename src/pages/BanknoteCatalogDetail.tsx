@@ -32,6 +32,11 @@ const BanknoteCatalogDetail: React.FC = () => {
     onSuccess: (data) => {
       setBanknote(data);
     },
+    meta: {
+      onError: (error: Error) => {
+        console.error("Error fetching banknote:", error);
+      }
+    }
   });
 
   useEffect(() => {
@@ -146,14 +151,16 @@ const BanknoteCatalogDetail: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="aspect-[3/2] bg-background border rounded-md overflow-hidden">
           <BanknoteImage 
-            imageUrl={banknote.imageUrls} 
+            imageUrl={banknote.imageUrls[0] || null} 
             alt={`Front of ${banknote.denomination} banknote`}
+            className="w-full h-full object-cover"
           />
         </div>
         <div className="aspect-[3/2] bg-background border rounded-md overflow-hidden">
           <BanknoteImage 
-            imageUrl={banknote.imageUrls && Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 1 ? banknote.imageUrls[1] : null} 
+            imageUrl={banknote.imageUrls && banknote.imageUrls.length > 1 ? banknote.imageUrls[1] : null} 
             alt={`Back of ${banknote.denomination} banknote`}
+            className="w-full h-full object-cover"
           />
         </div>
       </div>

@@ -190,16 +190,16 @@ export interface WishlistItem {
 // Import and re-export types from other files
 export * from './message';
 export * from './forum';
-export * from './filter';
-export * from './banknote';
+export type { 
+  CategoryDefinition, 
+  TypeDefinition, 
+  UserFilterPreference,
+  FilterCategoryOption,
+  DynamicFilterState,
+  FilterableItem,
+  Country,
+  CountryData 
+} from './filter';
 
-// Add CountryData type if it doesn't exist
-export interface CountryData {
-  id: string;
-  name: string;
-  description?: string;
-  imageUrl?: string | null;
-  banknoteCount?: number;
-  created_at?: string;
-  updated_at?: string;
-}
+// Re-export from banknote
+export type { ImageUrls, Currency } from './banknote';
