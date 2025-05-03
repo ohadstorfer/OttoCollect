@@ -29,10 +29,14 @@ const BanknoteFixed: React.FC = () => {
   const { data: banknoteData, isLoading, error } = useQuery({
     queryKey: ['banknote', id],
     queryFn: () => fetchBanknoteById(id!),
-    onSuccess: (data) => {
-      setBanknote(data);
-    },
   });
+
+  // Update banknote state when data changes
+  useEffect(() => {
+    if (banknoteData) {
+      setBanknote(banknoteData);
+    }
+  }, [banknoteData]);
 
   useEffect(() => {
     // Determine the source based on the URL

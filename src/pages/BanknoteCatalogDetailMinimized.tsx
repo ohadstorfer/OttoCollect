@@ -24,13 +24,17 @@ const BanknoteCatalogDetailMinimized: React.FC = () => {
   const [banknoteData, setBanknoteData] = useState<DetailedBanknote | null>(null);
   const [source, setSource] = useState<BanknoteDetailSource>('catalog');
 
-  const { isLoading, error } = useQuery({
+  const { isLoading, error, data } = useQuery({
     queryKey: ['banknote', id],
     queryFn: () => fetchBanknoteById(id!),
-    onSuccess: (data) => {
-      setBanknoteData(data);
-    },
   });
+
+  // Update the banknoteData state when data changes
+  useEffect(() => {
+    if (data) {
+      setBanknoteData(data);
+    }
+  }, [data]);
 
   useEffect(() => {
     // Determine the source based on the URL
