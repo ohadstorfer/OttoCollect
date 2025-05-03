@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -138,7 +137,9 @@ const BanknoteCatalogDetail: React.FC = () => {
     setSelectedImage(imageUrl);
   };
 
-  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
+  // Fix the type issue by ensuring imageUrls is always an array
+  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : 
+                   typeof banknote.imageUrls === 'string' ? [banknote.imageUrls] : [];
 
   const detailGroups = [
     {
