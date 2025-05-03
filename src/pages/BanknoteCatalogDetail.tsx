@@ -31,6 +31,7 @@ import {
   Star
 } from "lucide-react";
 import { BanknoteDetailSource, DetailedBanknote } from "@/types";
+import { normalizeImageUrls } from "@/utils/imageHelpers";
 
 interface BanknoteParams {
   id: string;
@@ -138,8 +139,7 @@ const BanknoteCatalogDetail: React.FC = () => {
   };
 
   // Fix the type issue by ensuring imageUrls is always an array
-  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : 
-                   typeof banknote.imageUrls === 'string' ? [banknote.imageUrls] : [];
+  const imageUrls = normalizeImageUrls(banknote.imageUrls);
 
   const detailGroups = [
     {
