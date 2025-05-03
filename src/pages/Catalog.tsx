@@ -47,7 +47,7 @@ const Catalog = () => {
 
   return (
     <div className="min-h-screen animate-fade-in">
-      <section className="bg-dark-600 dark:bg-dark-600 bg-ottoman-100 py-20 mb-4 relative overflow-hidden">
+      <section className="bg-dark-600 dark:bg-dark-600 bg-ottoman-100 py-12 mb-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div
             className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] dark:bg-dark-500/40 bg-ottoman-500/10 shadow-xl dark:shadow-ottoman-900/20 shadow-ottoman-300/20 ring-1 ring-inset dark:ring-ottoman-900/10 ring-ottoman-400/10"
