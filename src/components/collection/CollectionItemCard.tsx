@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { BanknoteImage } from '@/components/use-banknote-image';
+import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 import { formatPrice } from '@/utils/formatters';
 import { BANKNOTE_CONDITIONS } from '@/lib/constants';
 
@@ -45,15 +44,14 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   console.log("CollectionItemCard - Rendering with item:", {
     id: item?.id,
     banknoteId: item?.banknoteId,
-    banknote: item?.banknote,
-    banknoteDetails: item?.banknote ? {
+    banknote: item?.banknote ? {
       id: item.banknote.id,
-      country: item.banknote.country,
-      denomination: item.banknote.denomination,
-      year: item.banknote.year,
-      series: item.banknote.series,
-      imageUrlsType: item.banknote.imageUrls ? (Array.isArray(item.banknote.imageUrls) ? 'array' : 'string') : 'null'
-    } : 'null'
+      country: item.banknote.country || 'Missing country',
+      denomination: item.banknote.denomination || 'Missing denomination',
+      year: item.banknote.year || 'Missing year',
+      series: item.banknote.series || 'Missing series',
+      imageUrlsType: item.banknote.imageUrls ? (Array.isArray(item.banknote.imageUrls) ? 'array' : typeof item.banknote.imageUrls) : 'missing'
+    } : 'No banknote data'
   });
   
   // Use custom images if available, otherwise fall back to banknote images
@@ -98,9 +96,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     
     if (!title) {
       console.log("getBanknoteTitle: Empty title generated");
+      return "Unknown Banknote";
     }
     
-    return title || "Unknown Banknote";
+    return title;
   }
 
   // Handle delete function
@@ -132,6 +131,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     }
   }
   
+  // Render list view if requested
   if (viewMode === 'list') {
     return (
       <Card className="flex flex-row overflow-hidden">
@@ -178,6 +178,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     );
   }
   
+  // Default grid view
   return (
     <>
       <Card className="overflow-hidden transition-all hover:shadow-md">

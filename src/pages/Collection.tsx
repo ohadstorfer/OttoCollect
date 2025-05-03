@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -171,18 +170,50 @@ const Collection = () => {
     }
   }, [user]);
   
-  // Create collection items with banknote data for filtering
+  // Create collection items with banknote data for filtering, but preserve ALL banknote data
   const collectionItemsWithBanknote = useMemo(() => {
-    return collectionItems.map(item => ({
-      ...item,
-      banknote: {
-        id: item.banknoteId,
-        series: item.banknote?.series || '',
-        type: item.banknote?.type || '',
-        categoryId: '', // This will be populated
-        typeId: '', // This will be populated
-      }
-    }));
+    console.log("Collection - Creating collectionItemsWithBanknote with", collectionItems.length, "items");
+    
+    return collectionItems.map(item => {
+      // Log the original banknote data
+      console.log("Collection - Original banknote data for item", item.id, {
+        hasFullBanknote: !!item.banknote,
+        banknoteId: item.banknoteId,
+        country: item.banknote?.country,
+        denomination: item.banknote?.denomination,
+        year: item.banknote?.year,
+        series: item.banknote?.series,
+        type: item.banknote?.type,
+      });
+      
+      // Create a new object for filtering that preserves the original banknote
+      const result = {
+        ...item,
+        // Only add type info fields for filtering, but keep the original banknote intact
+        banknote: item.banknote ? {
+          ...item.banknote,
+          categoryId: '', // This will be populated
+          typeId: '', // This will be populated
+        } : {
+          id: item.banknoteId,
+          series: '',
+          type: '',
+          categoryId: '',
+          typeId: '',
+        }
+      };
+      
+      // Log the created item
+      console.log("Collection - Created item for filtering:", {
+        id: result.id,
+        banknoteId: result.banknoteId,
+        hasOriginalBanknoteData: !!result.banknote,
+        banknoteType: result.banknote?.type,
+        banknoteSeries: result.banknote?.series,
+      });
+      
+      return result;
+    });
   }, [collectionItems]);
   
   // Use the dynamic filter hook
