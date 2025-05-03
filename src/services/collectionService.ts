@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CollectionItem } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 import { fetchBanknoteById } from "@/services/banknoteService";
+import { fetchCountryById } from "@/services/countryService";
 import { BanknoteCondition } from "@/types";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -118,19 +119,29 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
   try {
     console.log("Fetching collection items by country:", { userId, countryId });
     
-    // First fetch all user's collection items
+    // First get the country data to get the name
+    const country = await fetchCountryById(countryId);
+    
+    if (!country) {
+      console.error(`Country not found with ID: ${countryId}`);
+      return [];
+    }
+    
+    console.log(`Found country: ${country.name} for ID: ${countryId}`);
+    
+    // Fetch all user's collection items
     const allCollectionItems = await fetchUserCollection(userId);
     
     if (!allCollectionItems || allCollectionItems.length === 0) {
       return [];
     }
     
-    // Then filter by country
+    // Then filter by country name - this is important as the banknotes store country names, not IDs
     const filteredItems = allCollectionItems.filter(item => 
-      item.banknote && item.banknote.country === countryId
+      item.banknote && item.banknote.country === country.name
     );
     
-    console.log(`Found ${filteredItems.length} items for country ${countryId}`);
+    console.log(`Found ${filteredItems.length} items for country ${country.name} (ID: ${countryId})`);
     
     return filteredItems;
   } catch (error) {

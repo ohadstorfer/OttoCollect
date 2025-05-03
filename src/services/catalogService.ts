@@ -24,9 +24,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       year: data.gregorian_year || data.islamic_year || '',
       series: '',
       description: data.banknote_description || '',
-      imageUrls: data.front_picture && data.back_picture ? 
-        [data.front_picture, data.back_picture].filter(Boolean) : 
-        data.front_picture ? [data.front_picture] : [],
+      imageUrls: [], // Initialize as empty array
       isApproved: data.is_approved,
       isPending: data.is_pending,
       createdAt: data.created_at,
@@ -53,6 +51,15 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       signaturesBack: data.signatures_back,
       extendedPickNumber: data.extended_pick_number,
     };
+
+    // Handle images correctly as an array
+    if (data.front_picture) {
+      banknote.imageUrls.push(data.front_picture);
+    }
+    
+    if (data.back_picture) {
+      banknote.imageUrls.push(data.back_picture);
+    }
 
     return banknote;
   } catch (error) {

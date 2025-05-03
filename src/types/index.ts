@@ -1,3 +1,4 @@
+
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -190,6 +191,7 @@ export interface WishlistItem {
 // Import and re-export types from other files
 export * from './message';
 export * from './forum';
+// Explicit re-exports from filter to avoid duplication
 export type { 
   CategoryDefinition, 
   TypeDefinition, 

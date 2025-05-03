@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -12,12 +11,11 @@ import { Separator } from "@/components/ui/separator";
 
 import { fetchBanknoteById } from "@/services/catalogService";
 import { BanknoteDetailSource, DetailedBanknote } from "@/types";
-import { DEFAULT_IMAGE_URL } from '@/lib/constants';
 import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 
 interface BanknoteParams {
   id: string;
-  [key: string]: string | undefined;
+  [key: string]: string;
 }
 
 const BanknoteCatalogDetail: React.FC = () => {
