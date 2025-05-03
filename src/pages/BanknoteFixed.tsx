@@ -230,6 +230,9 @@ export default function BankNote() {
     }
   ];
 
+  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : 
+                  typeof banknote.imageUrls === 'string' ? [banknote.imageUrls] : [];
+
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
@@ -263,8 +266,8 @@ export default function BankNote() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
-                  {banknote.imageUrls?.length > 0 ? (
-                    banknote.imageUrls.slice(0, 4).map((url, index) => (
+                  {imageUrls.length > 0 ? (
+                    imageUrls.slice(0, 4).map((url, index) => (
                       <div 
                         key={index} 
                         className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
@@ -285,11 +288,11 @@ export default function BankNote() {
                     </div>
                   )}
                   
-                  {banknote.imageUrls?.length > 4 && (
+                  {imageUrls.length > 4 && (
                     <Sheet>
                       <SheetTrigger asChild>
                         <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
-                          <span className="text-lg font-medium">+{banknote.imageUrls.length - 4} more</span>
+                          <span className="text-lg font-medium">+{imageUrls.length - 4} more</span>
                         </div>
                       </SheetTrigger>
                       <SheetContent className="w-[90%] sm:max-w-lg">
@@ -300,7 +303,7 @@ export default function BankNote() {
                           </SheetDescription>
                         </SheetHeader>
                         <div className="grid grid-cols-2 gap-4 mt-8">
-                          {banknote.imageUrls.map((url, index) => (
+                          {imageUrls.map((url, index) => (
                             <div 
                               key={index} 
                               className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
@@ -441,4 +444,4 @@ export default function BankNote() {
       )}
     </div>
   );
-} 
+}

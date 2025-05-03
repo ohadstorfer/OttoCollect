@@ -210,7 +210,7 @@ export default function BanknoteDetail() {
     setSelectedImage(imageUrl);
   };
 
-  // More robust handling of image URLs
+  // Update just this section where the image type error occurs
   const getImageUrls = (): string[] => {
     if (!banknote) return [];
     

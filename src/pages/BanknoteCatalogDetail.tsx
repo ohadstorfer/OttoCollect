@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -14,12 +15,13 @@ import { BanknoteDetailSource, DetailedBanknote } from "@/types";
 import { DEFAULT_IMAGE_URL } from '@/lib/constants';
 import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 
-interface Params {
+interface BanknoteParams {
   id: string;
+  [key: string]: string | undefined;
 }
 
 const BanknoteCatalogDetail: React.FC = () => {
-  const { id } = useParams<Params>();
+  const { id } = useParams<BanknoteParams>();
   const navigate = useNavigate();
   const [banknote, setBanknote] = useState<DetailedBanknote | null>(null);
   const [source, setSource] = useState<BanknoteDetailSource>('catalog');
@@ -144,14 +146,14 @@ const BanknoteCatalogDetail: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="aspect-[3/2] bg-background border rounded-md overflow-hidden">
           <BanknoteImage 
-            imageUrl={banknote.front_picture} 
-            alt={`Front of ${banknote.face_value} banknote`}
+            imageUrl={banknote.imageUrls} 
+            alt={`Front of ${banknote.denomination} banknote`}
           />
         </div>
         <div className="aspect-[3/2] bg-background border rounded-md overflow-hidden">
           <BanknoteImage 
-            imageUrl={banknote.back_picture} 
-            alt={`Back of ${banknote.face_value} banknote`}
+            imageUrl={banknote.imageUrls && Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 1 ? banknote.imageUrls[1] : null} 
+            alt={`Back of ${banknote.denomination} banknote`}
           />
         </div>
       </div>
@@ -171,13 +173,13 @@ const BanknoteCatalogDetail: React.FC = () => {
             <Separator className="mb-4" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div>
-                <strong>Pick Number:</strong> {banknote.pick_number || '-'}
+                <strong>Pick Number:</strong> {banknote.pickNumber || '-'}
               </div>
               <div>
-                <strong>Turk Catalog Number:</strong> {banknote.turk_catalog_number || '-'}
+                <strong>Turk Catalog Number:</strong> {banknote.turkCatalogNumber || '-'}
               </div>
               <div>
-                <strong>Extended Pick Number:</strong> {banknote.extended_pick_number || '-'}
+                <strong>Extended Pick Number:</strong> {banknote.extendedPickNumber || '-'}
               </div>
             </div>
           </div>
@@ -187,10 +189,10 @@ const BanknoteCatalogDetail: React.FC = () => {
             <Separator className="mb-4" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div>
-                <strong>Sultan Name:</strong> {banknote.sultan_name || '-'}
+                <strong>Sultan Name:</strong> {banknote.sultanName || '-'}
               </div>
               <div>
-                <strong>Seal Names:</strong> {banknote.seal_names || '-'}
+                <strong>Seal Names:</strong> {banknote.sealNames || '-'}
               </div>
             </div>
           </div>
@@ -216,7 +218,7 @@ const BanknoteCatalogDetail: React.FC = () => {
                 <strong>Watermark:</strong> {banknote.watermark || '-'}
               </div>
               <div>
-                <strong>Security Element:</strong> {banknote.security_element || '-'}
+                <strong>Security Element:</strong> {banknote.securityElement || '-'}
               </div>
             </div>
           </div>
@@ -225,10 +227,10 @@ const BanknoteCatalogDetail: React.FC = () => {
             <h3 className="text-lg font-semibold mb-2">Descriptions</h3>
             <Separator className="mb-4" />
             <div>
-              <strong>Banknote Description:</strong> {banknote.banknote_description || '-'}
+              <strong>Banknote Description:</strong> {banknote.banknoteDescription || '-'}
             </div>
             <div>
-              <strong>Historical Description:</strong> {banknote.historical_description || '-'}
+              <strong>Historical Description:</strong> {banknote.historicalDescription || '-'}
             </div>
           </div>
         </CardContent>

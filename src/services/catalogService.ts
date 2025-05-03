@@ -1,0 +1,60 @@
+
+import { DetailedBanknote } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+
+export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | null> {
+  try {
+    const { data, error } = await supabase
+      .from('detailed_banknotes')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error(`Error fetching banknote with ID ${id}:`, error);
+      return null;
+    }
+
+    // Transform the data to match DetailedBanknote interface with camelCase properties
+    const banknote: DetailedBanknote = {
+      id: data.id,
+      catalogId: data.id, // Using same ID as catalogId for now
+      country: data.country,
+      denomination: data.face_value,
+      year: data.gregorian_year || data.islamic_year || '',
+      series: '',
+      description: data.banknote_description || '',
+      imageUrls: [data.front_picture, data.back_picture].filter(Boolean),
+      isApproved: data.is_approved,
+      isPending: data.is_pending,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      pickNumber: data.pick_number,
+      turkCatalogNumber: data.turk_catalog_number,
+      sultanName: data.sultan_name,
+      sealNames: data.seal_names,
+      rarity: data.rarity,
+      printer: data.printer,
+      type: data.type,
+      category: data.category,
+      securityFeatures: [],
+      watermark: data.watermark_picture,
+      signatures: [data.signatures_front, data.signatures_back].filter(Boolean),
+      colors: data.colors,
+      islamicYear: data.islamic_year,
+      gregorianYear: data.gregorian_year,
+      banknoteDescription: data.banknote_description,
+      historicalDescription: data.historical_description,
+      serialNumbering: data.serial_numbering,
+      securityElement: data.security_element,
+      signaturesFront: data.signatures_front,
+      signaturesBack: data.signatures_back,
+      extendedPickNumber: data.extended_pick_number,
+    };
+
+    return banknote;
+  } catch (error) {
+    console.error("Error in fetchBanknoteById:", error);
+    return null;
+  }
+}

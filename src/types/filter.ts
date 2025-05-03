@@ -8,6 +8,16 @@ export interface Country {
   updated_at: string;
 }
 
+export interface CountryData {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string | null;
+  banknoteCount?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface CategoryDefinition {
   id: string;
   country_id: string;

@@ -215,21 +215,21 @@ export const useDynamicFilter = <T extends FilterableItem>({
           banknote.series?.toLowerCase().includes(searchTerm) ||
           banknote.extendedPickNumber?.toLowerCase().includes(searchTerm) ||
           banknote.description?.toLowerCase().includes(searchTerm) ||
-          banknote.type?.toLowerCase().includes(searchTerm) ||
-          banknote.category?.toLowerCase().includes(searchTerm);
+          (banknote.type as string)?.toLowerCase().includes(searchTerm) ||
+          (banknote.category as string)?.toLowerCase().includes(searchTerm);
           
         if (!matchesSearch) return false;
       }
       
       // Filter by categories
       if (filters.categories && filters.categories.length > 0) {
-        const categoryId = item.banknote?.category || item.category;
+        const categoryId = (item as any).banknote?.category || (item as any).category;
         if (categoryId && !filters.categories.includes(categoryId)) return false;
       }
       
       // Filter by types
       if (filters.types && filters.types.length > 0) {
-        const typeId = item.banknote?.type || item.type;
+        const typeId = (item as any).banknote?.type || (item as any).type;
         if (typeId && !filters.types.includes(typeId)) return false;
       }
       
@@ -246,7 +246,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
     const groups: Record<string, GroupItem<T>> = {};
     
     filteredItems.forEach((item) => {
-      const banknote = item.banknote || item;
+      const banknote = (item as any).banknote || item;
       const category = banknote.category || 'Uncategorized';
       const categoryId = typeof category === 'string' ? category : category.id;
       
@@ -255,7 +255,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
           category,
           categoryId,
           items: [],
-          sultanGroups: {}
+          sultanGroups: []
         };
       }
       
@@ -266,17 +266,20 @@ export const useDynamicFilter = <T extends FilterableItem>({
         const sultanName = banknote.sultanName;
         
         if (!groups[category].sultanGroups) {
-          groups[category].sultanGroups = {};
+          groups[category].sultanGroups = [];
         }
         
-        if (!groups[category].sultanGroups[sultanName]) {
-          groups[category].sultanGroups[sultanName] = {
+        let sultanGroup = groups[category].sultanGroups!.find(g => g.sultan === sultanName);
+        
+        if (!sultanGroup) {
+          sultanGroup = {
             sultan: sultanName,
             items: []
           };
+          groups[category].sultanGroups!.push(sultanGroup);
         }
         
-        groups[category].sultanGroups[sultanName].items.push(item);
+        sultanGroup.items.push(item);
       }
     });
     
@@ -284,8 +287,8 @@ export const useDynamicFilter = <T extends FilterableItem>({
     return Object.values(groups)
       .map(group => ({
         ...group,
-        sultanGroups: group.sultanGroups ? 
-          Object.values(group.sultanGroups).sort((a, b) => a.sultan.localeCompare(b.sultan)) : 
+        sultanGroups: group.sultanGroups && group.sultanGroups.length > 0 ? 
+          [...group.sultanGroups].sort((a, b) => a.sultan.localeCompare(b.sultan)) : 
           undefined
       }))
       .sort((a, b) => a.category.localeCompare(b.category));
