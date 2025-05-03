@@ -97,15 +97,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search your collection..."
-            className="pl-10"
-            value={filters.search}
-            onChange={handleSearch}
-          />
-        </div>
+        
         
         <BanknoteFilterCollection
           onFilterChange={onFilterChange}

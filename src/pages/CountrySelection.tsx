@@ -66,7 +66,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
   }
 
   return (
-    <div className="page-container max-w-5xl mx-auto">
+    <div>
       {showHeader && (
         <CountrySelectionHeader 
           title={customTitle}

@@ -147,10 +147,7 @@ const Profile: React.FC = () => {
       <ProfileHeader profile={profile} />
 
       <Tabs defaultValue="collection" className="w-full mt-8">
-        <TabsList>
-          <TabsTrigger value="collection">Collection</TabsTrigger>
-          <TabsTrigger value="about">About</TabsTrigger>
-        </TabsList>
+
         <TabsContent value="collection" className="space-y-4">
           <ProfileCollection
             userId={profile.id}
