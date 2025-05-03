@@ -4,17 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { fetchCountryByName, fetchCategoriesByCountryId, fetchUserFilterPreferences } from "@/services/countryService";
 import { supabase } from "@/integrations/supabase/client";
-import { CategoryDefinition } from "@/types";
-
-// Define Currency type directly since it's missing from imports
-interface Currency {
-  id: string;
-  name: string;
-  display_order: number;
-  country_id: string;
-  created_at?: string;
-  updated_at?: string;
-}
+import { CategoryDefinition } from "@/types/filter";
+import { Currency } from "@/types/banknote";
 
 interface UseCountryDataProps {
   countryName: string;

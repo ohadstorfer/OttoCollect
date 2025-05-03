@@ -22,3 +22,13 @@ export interface SortOption {
   name: string;
   fieldName: string;
 }
+
+// Type for currencies
+export interface Currency {
+  id: string;
+  name: string;
+  display_order: number;
+  country_id: string;
+  created_at?: string;
+  updated_at?: string;
+}

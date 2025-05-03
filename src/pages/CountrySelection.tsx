@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { Country } from '@/types/filter';
+import { CountryData } from '@/types/filter';
 
 const CountrySelection: React.FC = () => {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ const CountrySelection: React.FC = () => {
     if (!searchTerm.trim()) return countries;
     
     const term = searchTerm.toLowerCase().trim();
-    return countries.filter((country: Country) => 
+    return countries.filter((country: CountryData) => 
       country.name.toLowerCase().includes(term)
     );
   }, [countries, searchTerm]);
@@ -85,16 +85,16 @@ const CountrySelection: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6">
-          {filteredCountries.map((country: Country) => (
+          {filteredCountries.map((country: CountryData) => (
             <Card 
               key={country.id}
               className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50 cursor-pointer"
               onClick={() => handleCountrySelect(country.id)}
             >
               <div className="aspect-[4/3] overflow-hidden relative">
-                {country.image_url ? (
+                {country.imageUrl ? (
                   <img
-                    src={country.image_url}
+                    src={country.imageUrl}
                     alt={country.name}
                     className="w-full h-full object-cover"
                   />
