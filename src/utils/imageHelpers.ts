@@ -7,18 +7,31 @@ import { ImageUrls } from "@/types/banknote";
  * @returns Array of image URLs
  */
 export function normalizeImageUrls(imageUrls: ImageUrls | null | undefined): string[] {
+  console.log("normalizeImageUrls input:", {
+    imageUrls,
+    type: imageUrls ? (typeof imageUrls === 'string' ? 'string' : Array.isArray(imageUrls) ? 'array' : 'other') : 'null/undefined'
+  });
+  
   if (!imageUrls) {
+    console.log("normalizeImageUrls: empty input, returning empty array");
     return [];
   }
 
   if (typeof imageUrls === 'string') {
+    console.log("normalizeImageUrls: string input converted to array", imageUrls ? [imageUrls] : []);
     return imageUrls ? [imageUrls] : [];
   }
 
   if (Array.isArray(imageUrls)) {
-    return imageUrls.filter(url => !!url);
+    const filtered = imageUrls.filter(url => !!url);
+    console.log("normalizeImageUrls: array input filtered", {
+      original: imageUrls,
+      filtered: filtered
+    });
+    return filtered;
   }
 
+  console.log("normalizeImageUrls: unhandled input type, returning empty array");
   return [];
 }
 
@@ -29,6 +42,15 @@ export function normalizeImageUrls(imageUrls: ImageUrls | null | undefined): str
  * @returns A single image URL
  */
 export function getFirstImageUrl(imageUrls: ImageUrls | null | undefined, fallback: string = '/placeholder.svg'): string {
+  console.log("getFirstImageUrl input:", {
+    imageUrls,
+    fallback,
+    type: imageUrls ? (typeof imageUrls === 'string' ? 'string' : Array.isArray(imageUrls) ? 'array' : 'other') : 'null/undefined'
+  });
+  
   const normalized = normalizeImageUrls(imageUrls);
-  return normalized.length > 0 ? normalized[0] : fallback;
+  const result = normalized.length > 0 ? normalized[0] : fallback;
+  
+  console.log("getFirstImageUrl result:", result);
+  return result;
 }

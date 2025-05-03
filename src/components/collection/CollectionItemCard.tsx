@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,21 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   
+  // Add detailed logging for debugging
+  console.log("CollectionItemCard - Rendering with item:", {
+    id: item?.id,
+    banknoteId: item?.banknoteId,
+    banknote: item?.banknote,
+    banknoteDetails: item?.banknote ? {
+      id: item.banknote.id,
+      country: item.banknote.country,
+      denomination: item.banknote.denomination,
+      year: item.banknote.year,
+      series: item.banknote.series,
+      imageUrlsType: item.banknote.imageUrls ? (Array.isArray(item.banknote.imageUrls) ? 'array' : 'string') : 'null'
+    } : 'null'
+  });
+  
   // Use custom images if available, otherwise fall back to banknote images
   const displayImage = item?.obverseImage || 
     (item?.banknote ? item.banknote.imageUrls : null);
@@ -59,7 +75,15 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   
   // Helper function to get the banknote title
   function getBanknoteTitle() {
-    if (!item?.banknote) return "Unknown Banknote";
+    if (!item?.banknote) {
+      console.log("getBanknoteTitle: Missing banknote object");
+      return "Unknown Banknote";
+    }
+    
+    console.log("getBanknoteTitle: Working with banknote", {
+      denomination: item.banknote.denomination,
+      year: item.banknote.year
+    });
     
     let title = '';
     
@@ -70,6 +94,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     if (item.banknote.year) {
       if (title) title += ' ';
       title += `(${item.banknote.year})`;
+    }
+    
+    if (!title) {
+      console.log("getBanknoteTitle: Empty title generated");
     }
     
     return title || "Unknown Banknote";

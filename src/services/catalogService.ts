@@ -3,6 +3,8 @@ import { DetailedBanknote } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | null> {
+  console.log(`fetchBanknoteById: Starting fetch for banknote ID ${id}`);
+  
   try {
     const { data, error } = await supabase
       .from('detailed_banknotes')
@@ -14,6 +16,8 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       console.error(`Error fetching banknote with ID ${id}:`, error);
       return null;
     }
+
+    console.log(`fetchBanknoteById: Raw data from database:`, data);
 
     // Transform the data to match DetailedBanknote interface with camelCase properties
     const banknote: DetailedBanknote = {
@@ -60,6 +64,17 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
     if (data.back_picture) {
       banknote.imageUrls.push(data.back_picture);
     }
+
+    console.log(`fetchBanknoteById: Transformed banknote data:`, {
+      id: banknote.id,
+      catalogId: banknote.catalogId,
+      country: banknote.country,
+      denomination: banknote.denomination,
+      year: banknote.year,
+      imageUrls: banknote.imageUrls,
+      type: banknote.type,
+      category: banknote.category
+    });
 
     return banknote;
   } catch (error) {

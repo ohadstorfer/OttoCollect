@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionItem } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
@@ -44,7 +43,7 @@ export type { CollectionItem };
 
 export async function fetchUserCollection(userId: string): Promise<CollectionItem[]> {
   try {
-    console.log("Fetching collection for user:", userId);
+    console.log("[fetchUserCollection] Starting fetch for user:", userId);
     
     const { data: collectionItems, error } = await supabase
       .from('collection_items')
@@ -53,28 +52,42 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
       .order('order_index', { ascending: true });
 
     if (error) {
-      console.error("Error fetching collection:", error);
+      console.error("[fetchUserCollection] Error fetching collection:", error);
       throw error;
     }
 
-    console.log(`Found ${collectionItems?.length || 0} collection items for user:`, userId);
+    console.log(`[fetchUserCollection] Found ${collectionItems?.length || 0} raw collection items for user:`, userId);
+    
+    if (collectionItems && collectionItems.length > 0) {
+      console.log("[fetchUserCollection] Sample raw item:", collectionItems[0]);
+    }
 
     // Fetch banknote details for each collection item
     const enrichedItems = await Promise.all(
       (collectionItems || []).map(async (item) => {
+        console.log(`[fetchUserCollection] Fetching banknote details for item ${item.id}, banknote_id: ${item.banknote_id}`);
         const banknote = await fetchBanknoteById(item.banknote_id);
         
         if (!banknote) {
-          console.error(`Banknote not found for collection item: ${item.banknote_id}`);
+          console.error(`[fetchUserCollection] Banknote not found for collection item: ${item.banknote_id}`);
           return null;
         }
+        
+        console.log(`[fetchUserCollection] Retrieved banknote details for ${item.banknote_id}:`, {
+          country: banknote.country,
+          denomination: banknote.denomination,
+          year: banknote.year,
+          type: banknote.type || "NO_TYPE",
+          imageUrls: banknote.imageUrls,
+          imageUrlsType: typeof banknote.imageUrls
+        });
         
         // Ensure banknote.type is never undefined - default to "Issued note"
         if (!banknote.type) {
           banknote.type = "Issued note";
         }
         
-        return {
+        const enrichedItem = {
           id: item.id,
           userId: item.user_id,
           banknoteId: item.banknote_id,
@@ -93,13 +106,19 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
           createdAt: item.created_at,
           updatedAt: item.updated_at
         } as CollectionItem;
+        
+        console.log(`[fetchUserCollection] Enriched item created for ${item.id}`);
+        return enrichedItem;
       })
     );
 
     // Filter out any null items (where banknote wasn't found)
-    return enrichedItems.filter(item => item !== null) as CollectionItem[];
+    const validItems = enrichedItems.filter(item => item !== null) as CollectionItem[];
+    console.log(`[fetchUserCollection] Returning ${validItems.length} enriched items after filtering nulls`);
+    
+    return validItems;
   } catch (error) {
-    console.error("Error in fetchUserCollection:", error);
+    console.error("[fetchUserCollection] Error in fetchUserCollection:", error);
     return [];
   }
 }
@@ -117,35 +136,65 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
  */
 export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
   try {
-    console.log("Fetching collection items by country:", { userId, countryId });
+    console.log("[fetchUserCollectionByCountry] Starting fetch for:", { userId, countryId });
     
     // First get the country data to get the name
     const country = await fetchCountryById(countryId);
     
     if (!country) {
-      console.error(`Country not found with ID: ${countryId}`);
+      console.error(`[fetchUserCollectionByCountry] Country not found with ID: ${countryId}`);
       return [];
     }
     
-    console.log(`Found country: ${country.name} for ID: ${countryId}`);
+    console.log(`[fetchUserCollectionByCountry] Found country: ${country.name} for ID: ${countryId}`);
     
     // Fetch all user's collection items
     const allCollectionItems = await fetchUserCollection(userId);
     
     if (!allCollectionItems || allCollectionItems.length === 0) {
+      console.log("[fetchUserCollectionByCountry] No collection items found for user");
       return [];
     }
     
-    // Then filter by country name - this is important as the banknotes store country names, not IDs
-    const filteredItems = allCollectionItems.filter(item => 
-      item.banknote && item.banknote.country === country.name
-    );
+    console.log(`[fetchUserCollectionByCountry] Got ${allCollectionItems.length} collection items before filtering`);
     
-    console.log(`Found ${filteredItems.length} items for country ${country.name} (ID: ${countryId})`);
+    // Then filter by country name - this is important as the banknotes store country names, not IDs
+    const filteredItems = allCollectionItems.filter(item => {
+      const matchesCountry = item.banknote && item.banknote.country === country.name;
+      
+      if (!matchesCountry) {
+        console.log(`[fetchUserCollectionByCountry] Item ${item.id} has banknote country "${item.banknote?.country}" which doesn't match "${country.name}"`);
+      }
+      
+      return matchesCountry;
+    });
+    
+    console.log(`[fetchUserCollectionByCountry] Found ${filteredItems.length} items for country ${country.name} (ID: ${countryId})`);
+    
+    // Log the first item to debug
+    if (filteredItems.length > 0) {
+      const sampleItem = filteredItems[0];
+      console.log("[fetchUserCollectionByCountry] Sample filtered item:", {
+        id: sampleItem.id,
+        banknoteId: sampleItem.banknoteId,
+        banknote: {
+          id: sampleItem.banknote?.id,
+          country: sampleItem.banknote?.country,
+          denomination: sampleItem.banknote?.denomination,
+          year: sampleItem.banknote?.year,
+          imageUrls: sampleItem.banknote?.imageUrls
+        },
+        condition: sampleItem.condition,
+        images: {
+          obverseImage: sampleItem.obverseImage,
+          reverseImage: sampleItem.reverseImage
+        }
+      });
+    }
     
     return filteredItems;
   } catch (error) {
-    console.error("Error in fetchUserCollectionByCountry:", error);
+    console.error("[fetchUserCollectionByCountry] Error in fetchUserCollectionByCountry:", error);
     return [];
   }
 }
