@@ -15,7 +15,7 @@ import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 
 interface BanknoteParams {
   id: string;
-  [key: string]: string | undefined;
+  [key: string]: string | undefined; // Add index signature
 }
 
 const BanknoteCatalogDetailMinimized: React.FC = () => {
@@ -30,11 +30,6 @@ const BanknoteCatalogDetailMinimized: React.FC = () => {
     onSuccess: (data) => {
       setBanknoteData(data);
     },
-    meta: {
-      onError: (error: Error) => {
-        console.error("Error fetching banknote:", error);
-      }
-    }
   });
 
   useEffect(() => {

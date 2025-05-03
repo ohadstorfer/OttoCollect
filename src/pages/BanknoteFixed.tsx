@@ -17,7 +17,7 @@ import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 
 interface BanknoteParams {
   id: string;
-  [key: string]: string | undefined;
+  [key: string]: string | undefined; // Add index signature
 }
 
 const BanknoteFixed: React.FC = () => {
@@ -32,11 +32,6 @@ const BanknoteFixed: React.FC = () => {
     onSuccess: (data) => {
       setBanknote(data);
     },
-    meta: {
-      onError: (error: Error) => {
-        console.error("Error fetching banknote:", error);
-      }
-    }
   });
 
   useEffect(() => {

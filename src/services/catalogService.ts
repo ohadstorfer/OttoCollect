@@ -39,7 +39,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       category: data.category,
       securityFeatures: [],
       watermark: data.watermark_picture,
-      signatures: [data.signatures_front, data.signatures_back].filter(Boolean),
+      signatures: [data.signatures_front, data.signatures_back].filter(Boolean) as string[],
       colors: data.colors,
       islamicYear: data.islamic_year,
       gregorianYear: data.gregorian_year,

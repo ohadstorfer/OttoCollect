@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -18,6 +19,7 @@ import { Separator } from "@/components/ui/separator"
 
 interface BanknoteDetailParams {
   id: string;
+  [key: string]: string | undefined; // Add index signature for compatibility
 }
 
 const BanknoteDetail: React.FC = () => {
