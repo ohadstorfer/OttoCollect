@@ -58,6 +58,7 @@ const Profile: React.FC = () => {
     }));
   };
 
+  // Prepare filtered items
   const filteredItems = React.useMemo(() => {
     if (!collectionItems) return [];
     
@@ -77,6 +78,7 @@ const Profile: React.FC = () => {
     });
   }, [collectionItems, filters]);
 
+  // Process collection categories
   const collectionCategories = React.useMemo(() => {
     if (!collectionItems || collectionItems.length === 0) return [];
 
@@ -91,6 +93,7 @@ const Profile: React.FC = () => {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [collectionItems]);
 
+  // Process collection types
   const collectionTypes = React.useMemo(() => {
     if (!collectionItems || collectionItems.length === 0) return [];
 
@@ -104,6 +107,12 @@ const Profile: React.FC = () => {
       .map(([name, count]) => ({ id: name, name, count }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [collectionItems]);
+
+  // Handle save completion for profile edit
+  const handleSaveComplete = async () => {
+    await refetchProfile();
+    setIsEditMode(false);
+  };
 
   if (profileLoading) {
     return (
@@ -150,7 +159,10 @@ const Profile: React.FC = () => {
             collectionItems={collectionItems || []}
             isLoading={collectionLoading}
             error={collectionError ? String(collectionError) : null}
-            onRetry={() => refetchCollection()}
+            onRetry={() => {
+              refetchCollection();
+              return Promise.resolve();
+            }}
             filters={filters}
             onFilterChange={handleFilterChange}
             filteredItems={filteredItems}
@@ -163,10 +175,7 @@ const Profile: React.FC = () => {
             <ProfileEditForm 
               profile={profile} 
               onCancel={() => setIsEditMode(false)} 
-              onSaveComplete={() => {
-                refetchProfile();
-                setIsEditMode(false);
-              }} 
+              onSaveComplete={handleSaveComplete} 
             />
           ) : (
             <ProfileAbout 

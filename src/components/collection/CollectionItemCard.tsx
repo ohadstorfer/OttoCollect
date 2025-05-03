@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { BanknoteImage } from '@/components/use-banknote-image';
 import { formatPrice } from '@/utils/formatters';
+import { BANKNOTE_CONDITIONS } from '@/lib/constants';
 
 // Define conditional props for the component
 export interface CollectionItemCardProps {
@@ -44,7 +44,8 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   const displayImage = item?.obverseImage || 
     (item?.banknote ? item.banknote.imageUrls : null);
 
-  const conditionColors: Record<BanknoteCondition, string> = {
+  // Use BANKNOTE_CONDITIONS from constants
+  const conditionColors: Partial<Record<BanknoteCondition, string>> = {
     'UNC': 'bg-green-100 text-green-800',
     'AU': 'bg-emerald-100 text-emerald-800',
     'XF': 'bg-blue-100 text-blue-800',
@@ -52,10 +53,12 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     'F': 'bg-purple-100 text-purple-800',
     'VG': 'bg-amber-100 text-amber-800',
     'G': 'bg-orange-100 text-orange-800',
-    'FR': 'bg-red-100 text-red-800'
+    'Fair': 'bg-red-100 text-red-800',
+    'Poor': 'bg-gray-100 text-gray-800'
   };
   
-  const getBanknoteTitle = () => {
+  // Helper function to get the banknote title
+  function getBanknoteTitle() {
     if (!item?.banknote) return "Unknown Banknote";
     
     let title = '';
@@ -70,9 +73,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     }
     
     return title || "Unknown Banknote";
-  };
-  
-  const handleDelete = async () => {
+  }
+
+  // Handle delete function
+  async function handleDelete() {
     if (!item?.id) return;
     
     setIsDeleting(true);
@@ -98,7 +102,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       setIsDeleting(false);
       setShowDeleteConfirm(false);
     }
-  };
+  }
   
   if (viewMode === 'list') {
     return (
@@ -118,7 +122,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             </p>
             <div className="flex gap-2 mt-1">
               {item?.condition && (
-                <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition] || 'bg-gray-100'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
                   {item.condition}
                 </span>
               )}
@@ -157,7 +161,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
           />
           {item?.condition && (
             <div className="absolute top-2 left-2">
-              <span className={`px-2 py-1 rounded-md text-xs ${conditionColors[item.condition] || 'bg-gray-100'}`}>
+              <span className={`px-2 py-1 rounded-md text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
                 {item.condition}
               </span>
             </div>

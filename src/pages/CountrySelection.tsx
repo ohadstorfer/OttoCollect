@@ -2,12 +2,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getCountries } from '@/services/countryService';
+import { fetchCountries } from '@/services/countryService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { Country } from '@/types/filter';
 
 const CountrySelection: React.FC = () => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const CountrySelection: React.FC = () => {
     error,
   } = useQuery({
     queryKey: ['countries'],
-    queryFn: getCountries,
+    queryFn: fetchCountries,
   });
 
   // Filter countries based on search term
@@ -30,7 +31,7 @@ const CountrySelection: React.FC = () => {
     if (!searchTerm.trim()) return countries;
     
     const term = searchTerm.toLowerCase().trim();
-    return countries.filter(country => 
+    return countries.filter((country: Country) => 
       country.name.toLowerCase().includes(term)
     );
   }, [countries, searchTerm]);
@@ -81,7 +82,7 @@ const CountrySelection: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredCountries.map((country) => (
+          {filteredCountries.map((country: Country) => (
             <Card 
               key={country.id}
               className="cursor-pointer hover:shadow-md transition-shadow"
@@ -89,9 +90,9 @@ const CountrySelection: React.FC = () => {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  {country.flagUrl && (
+                  {country.image_url && (
                     <img 
-                      src={country.flagUrl} 
+                      src={country.image_url} 
                       alt={`${country.name} flag`}
                       className="h-8 w-12 object-cover rounded"
                     />

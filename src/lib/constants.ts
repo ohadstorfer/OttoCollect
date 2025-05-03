@@ -1,3 +1,4 @@
+
 import { BanknoteCondition, UserRank } from '@/types';
 
 // Fix the UserRank point values by using a partial record
@@ -13,7 +14,7 @@ export const USER_RANK_POINTS: Partial<Record<UserRank, number>> = {
   'Super Admin': -1
 };
 
-// Fix the banknote conditions
+// Fix the banknote conditions to match the BanknoteCondition type
 export const BANKNOTE_CONDITIONS: Record<BanknoteCondition, string> = {
   'UNC': 'Uncirculated',
   'AU': 'About Uncirculated',
