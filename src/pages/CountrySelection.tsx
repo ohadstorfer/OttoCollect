@@ -61,8 +61,6 @@ const CountrySelection: React.FC = () => {
         Choose a country to view banknotes from your collection.
       </p>
 
-
-
       <div className="max-w-md mx-auto mb-4">
         <div className="relative">
           <Search className="mb-2 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -90,28 +88,27 @@ const CountrySelection: React.FC = () => {
           {filteredCountries.map((country: Country) => (
             <Card 
               key={country.id}
-              className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50"
+              className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50 cursor-pointer"
               onClick={() => handleCountrySelect(country.id)}
             >
               <div className="aspect-[4/3] overflow-hidden relative">
-                  {country.image_url ? (
-                    <img
-                      src={country.image_url}
-                      alt={country.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-ottoman-100 dark:bg-ottoman-100 bg-ottoman-50 flex items-center justify-center">
-                      <span className="text-ottoman-500">{country.name}</span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-                    <div className="p-4 text-white w-full">
-                      <h3 className="text-xl font-bold">{country.name}</h3>
-                      {/* <p className="text-sm opacity-80">{country.banknoteCount} banknotes</p> */}
-                    </div>
+                {country.image_url ? (
+                  <img
+                    src={country.image_url}
+                    alt={country.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-ottoman-100 dark:bg-ottoman-100 bg-ottoman-50 flex items-center justify-center">
+                    <span className="text-ottoman-500">{country.name}</span>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                  <div className="p-4 text-white w-full">
+                    <h3 className="text-xl font-bold">{country.name}</h3>
                   </div>
                 </div>
+              </div>
             </Card>
           ))}
         </div>

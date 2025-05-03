@@ -1,14 +1,19 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import CollectionItemForm from '@/components/collection/CollectionItemForm';
-import { fetchUserCollectionItems, fetchBanknoteCategoriesAndTypes } from '@/services/collectionService';
-import { CollectionItem, DetailedBanknote } from '@/types';
+import { 
+  fetchUserCollectionItems, 
+  fetchBanknoteCategoriesAndTypes, 
+  fetchUserCollectionByCountry
+} from '@/services/collectionService';
+import { fetchCountryById } from '@/services/countryService';
+import { CollectionItem, DetailedBanknote, CountryData } from '@/types';
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
 import { DynamicFilterState } from '@/types/filter';
 import { useDynamicFilter } from '@/hooks/use-dynamic-filter';
@@ -16,6 +21,7 @@ import { useDynamicFilter } from '@/hooks/use-dynamic-filter';
 const Collection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { countryId } = useParams<{ countryId: string }>();
   const { toast } = useToast();
   
   const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
@@ -25,6 +31,7 @@ const Collection = () => {
   const [editingItem, setEditingItem] = useState<CollectionItem | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [groupMode, setGroupMode] = useState(false);
+  const [country, setCountry] = useState<CountryData | null>(null);
   
   // Collection data for filtering
   const [collectionCategories, setCollectionCategories] = useState<
@@ -42,6 +49,27 @@ const Collection = () => {
     sort: ['extPick']
   });
   
+  // Load country information if countryId is provided
+  useEffect(() => {
+    if (countryId) {
+      fetchCountryById(countryId)
+        .then(countryData => {
+          if (countryData) {
+            setCountry(countryData);
+            document.title = `${countryData.name} Collection - Ottoman Banknotes`;
+          } else {
+            setError(`Country with ID ${countryId} not found`);
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching country:", err);
+          setError("Failed to load country information");
+        });
+    } else {
+      document.title = "My Collection - Ottoman Banknotes";
+    }
+  }, [countryId]);
+  
   useEffect(() => {
     if (!user) {
       navigate('/auth');
@@ -49,7 +77,7 @@ const Collection = () => {
     }
     
     loadUserCollection();
-  }, [user, navigate]);
+  }, [user, navigate, countryId]);
   
   const loadUserCollection = async () => {
     setLoading(true);
@@ -58,9 +86,17 @@ const Collection = () => {
     try {
       if (!user?.id) return;
       
-      // Fetch user's collection items
-      const items = await fetchUserCollectionItems(user.id);
-      console.log('Loaded collection items:', items.length);
+      let items: CollectionItem[];
+      
+      // Fetch user's collection items based on whether we have a countryId
+      if (countryId) {
+        items = await fetchUserCollectionByCountry(user.id, countryId);
+        console.log(`Loaded ${items.length} collection items for country ${countryId}`);
+      } else {
+        items = await fetchUserCollectionItems(user.id);
+        console.log('Loaded all collection items:', items.length);
+      }
+      
       setCollectionItems(items);
       
       // Extract categories and types from collection items
@@ -164,7 +200,27 @@ const Collection = () => {
   return (
     <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <h1 className="text-3xl font-bold mb-4 md:mb-0">My Collection</h1>
+        {country ? (
+          <div className="flex flex-col gap-2 mb-4 md:mb-0">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/collection')}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back to Countries
+              </Button>
+            </div>
+            <h1 className="text-3xl font-bold">
+              {country.name} Collection
+            </h1>
+          </div>
+        ) : (
+          <h1 className="text-3xl font-bold mb-4 md:mb-0">My Collection</h1>
+        )}
+        
         <Button onClick={handleAddItem} className="flex items-center gap-2">
           <Plus className="h-5 w-5" /> Add Item
         </Button>
@@ -206,12 +262,21 @@ const Collection = () => {
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-4">
                 {collectionItems.length === 0
-                  ? "Your collection is empty"
+                  ? country 
+                    ? `Your collection doesn't have any items from ${country.name}` 
+                    : "Your collection is empty"
                   : "No items match your filter criteria"
                 }
               </h3>
               {collectionItems.length === 0 ? (
-                <Button onClick={handleAddItem} className="mt-2">Add Your First Item</Button>
+                <div className="flex flex-col gap-4 items-center">
+                  <Button onClick={handleAddItem} className="mt-2">Add Your First Item</Button>
+                  {country && (
+                    <Button variant="outline" onClick={() => navigate(`/catalog/${countryId}`)}>
+                      Browse {country.name} Catalog
+                    </Button>
+                  )}
+                </div>
               ) : (
                 <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
               )}
@@ -243,6 +308,7 @@ const Collection = () => {
                                   item={collectionItem}
                                   onEdit={() => handleEditItem(collectionItem)}
                                   onUpdate={loadUserCollection}
+                                  viewMode={viewMode}
                                 />
                               );
                             })}
@@ -261,6 +327,7 @@ const Collection = () => {
                             item={collectionItem}
                             onEdit={() => handleEditItem(collectionItem)}
                             onUpdate={loadUserCollection}
+                            viewMode={viewMode}
                           />
                         );
                       })}

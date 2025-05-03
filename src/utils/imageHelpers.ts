@@ -1,50 +1,34 @@
 
-import { ImageUrls } from '@/types/banknote';
+import { ImageUrls } from "@/types/banknote";
 
 /**
- * Normalizes image URLs into a string array
- * @param imageUrls The image URLs which can be a string or string[]
- * @param defaultImage Default image to use if no valid URLs provided
- * @returns A normalized array of image URLs
+ * Normalizes image URLs to ensure they're in a consistent format
+ * @param imageUrls Input image URLs which could be a string, array, or null/undefined
+ * @returns Array of image URLs
  */
-export function normalizeImageUrls(
-  imageUrls: ImageUrls | undefined | null,
-  defaultImage: string = '/placeholder.svg'
-): string[] {
+export function normalizeImageUrls(imageUrls: ImageUrls | null | undefined): string[] {
   if (!imageUrls) {
-    return [defaultImage];
+    return [];
   }
-  
-  // If it's already an array, filter out empty values and return
+
+  if (typeof imageUrls === 'string') {
+    return imageUrls ? [imageUrls] : [];
+  }
+
   if (Array.isArray(imageUrls)) {
-    const validUrls = imageUrls.filter(url => !!url);
-    return validUrls.length > 0 ? validUrls : [defaultImage];
+    return imageUrls.filter(url => !!url);
   }
-  
-  // If it's a string, return as a single-item array
-  return imageUrls ? [imageUrls] : [defaultImage];
+
+  return [];
 }
 
 /**
- * Gets the first valid image URL from a string or string[]
- * @param imageUrls The image URLs which can be a string or string[]
- * @param defaultImage Default image to use if no valid URLs provided
- * @returns The first valid image URL or the default image
+ * Gets the first image URL from a set of image URLs or returns a fallback
+ * @param imageUrls Input image URLs which could be a string, array, or null/undefined
+ * @param fallback Fallback URL to use if no valid URLs are found
+ * @returns A single image URL
  */
-export function getFirstImageUrl(
-  imageUrls: ImageUrls | undefined | null,
-  defaultImage: string = '/placeholder.svg'
-): string {
-  if (!imageUrls) {
-    return defaultImage;
-  }
-  
-  // If it's an array, return the first valid URL
-  if (Array.isArray(imageUrls)) {
-    const firstValidUrl = imageUrls.find(url => !!url);
-    return firstValidUrl || defaultImage;
-  }
-  
-  // If it's a string, return it directly
-  return imageUrls || defaultImage;
+export function getFirstImageUrl(imageUrls: ImageUrls | null | undefined, fallback: string = '/placeholder.svg'): string {
+  const normalized = normalizeImageUrls(imageUrls);
+  return normalized.length > 0 ? normalized[0] : fallback;
 }

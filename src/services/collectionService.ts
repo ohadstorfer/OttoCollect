@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionItem } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
@@ -105,6 +106,37 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
 export async function fetchUserCollectionItems(userId: string): Promise<CollectionItem[]> {
   // This function replaces fetchUserCollection but with a more accurate name
   return fetchUserCollection(userId);
+}
+
+/**
+ * Fetches user's collection items filtered by country
+ * @param userId The user ID
+ * @param countryId The country ID to filter by
+ * @returns Collection items for the specified country
+ */
+export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
+  try {
+    console.log("Fetching collection items by country:", { userId, countryId });
+    
+    // First fetch all user's collection items
+    const allCollectionItems = await fetchUserCollection(userId);
+    
+    if (!allCollectionItems || allCollectionItems.length === 0) {
+      return [];
+    }
+    
+    // Then filter by country
+    const filteredItems = allCollectionItems.filter(item => 
+      item.banknote && item.banknote.country === countryId
+    );
+    
+    console.log(`Found ${filteredItems.length} items for country ${countryId}`);
+    
+    return filteredItems;
+  } catch (error) {
+    console.error("Error in fetchUserCollectionByCountry:", error);
+    return [];
+  }
 }
 
 export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): Promise<{
