@@ -21,17 +21,12 @@ export const BanknoteImage: React.FC<BanknoteImageProps> = ({
 }) => {
   const safeImageUrl = getFirstImageUrl(imageUrl, fallback);
   
-  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = fallback;
-  };
-  
   return (
     <img
       src={safeImageUrl}
       alt={alt}
       className={className}
       onClick={onClick}
-      onError={handleError}
       loading="lazy"
     />
   );

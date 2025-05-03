@@ -19,10 +19,10 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
     const banknote: DetailedBanknote = {
       id: data.id,
       catalogId: data.id, // Using same ID as catalogId for now
-      country: data.country || 'Unknown',
-      denomination: data.face_value || '',
+      country: data.country,
+      denomination: data.face_value,
       year: data.gregorian_year || data.islamic_year || '',
-      series: data.category || '',
+      series: '',
       description: data.banknote_description || '',
       imageUrls: [], // Initialize as empty array
       isApproved: data.is_approved,
@@ -33,35 +33,26 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       turkCatalogNumber: data.turk_catalog_number,
       sultanName: data.sultan_name,
       sealNames: data.seal_names,
-      rarity: data.rarity || '',
-      printer: data.printer || '',
-      type: data.type || 'Issued note', // Provide a default type
-      category: data.category || '',
+      rarity: data.rarity,
+      printer: data.printer,
+      type: data.type,
+      category: data.category,
       securityFeatures: [],
       watermark: data.watermark_picture,
-      signatures: [], // Initialize with an empty array
-      colors: data.colors || '',
-      islamicYear: data.islamic_year || '',
-      gregorianYear: data.gregorian_year || '',
-      banknoteDescription: data.banknote_description || '',
-      historicalDescription: data.historical_description || '',
-      serialNumbering: data.serial_numbering || '',
-      securityElement: data.security_element || '',
-      signaturesFront: data.signatures_front || '',
-      signaturesBack: data.signatures_back || '',
-      extendedPickNumber: data.extended_pick_number || '',
+      signatures: [data.signatures_front, data.signatures_back].filter(Boolean) as string[],
+      colors: data.colors,
+      islamicYear: data.islamic_year,
+      gregorianYear: data.gregorian_year,
+      banknoteDescription: data.banknote_description,
+      historicalDescription: data.historical_description,
+      serialNumbering: data.serial_numbering,
+      securityElement: data.security_element,
+      signaturesFront: data.signatures_front,
+      signaturesBack: data.signatures_back,
+      extendedPickNumber: data.extended_pick_number,
     };
 
-    // Handle signatures correctly as an array
-    if (data.signatures_front) {
-      banknote.signatures.push(data.signatures_front);
-    }
-    
-    if (data.signatures_back) {
-      banknote.signatures.push(data.signatures_back);
-    }
-
-    // Handle images correctly
+    // Handle images correctly as an array
     if (data.front_picture) {
       banknote.imageUrls.push(data.front_picture);
     }

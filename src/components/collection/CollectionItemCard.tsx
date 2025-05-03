@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,6 @@ import {
 import { BanknoteImage } from '@/components/use-banknote-image';
 import { formatPrice } from '@/utils/formatters';
 import { BANKNOTE_CONDITIONS } from '@/lib/constants';
-import { getFirstImageUrl } from '@/utils/imageHelpers';
 
 // Define conditional props for the component
 export interface CollectionItemCardProps {
@@ -42,10 +40,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   
-  // Enhanced displayImage logic with more robust null checks
+  // Use custom images if available, otherwise fall back to banknote images
   const displayImage = item?.obverseImage || 
-    (item?.banknote?.imageUrls ? item.banknote.imageUrls : null);
-  
+    (item?.banknote ? item.banknote.imageUrls : null);
+
   // Use BANKNOTE_CONDITIONS from constants
   const conditionColors: Partial<Record<BanknoteCondition, string>> = {
     'UNC': 'bg-green-100 text-green-800',
@@ -59,9 +57,9 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     'Poor': 'bg-gray-100 text-gray-800'
   };
   
-  // Enhanced getBanknoteTitle function with better null handling
+  // Helper function to get the banknote title
   function getBanknoteTitle() {
-    if (!item || !item.banknote) return "Unknown Banknote";
+    if (!item?.banknote) return "Unknown Banknote";
     
     let title = '';
     
@@ -74,22 +72,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       title += `(${item.banknote.year})`;
     }
     
-    // If we still don't have a title, try the catalog ID
-    if (!title && item.banknote.catalogId) {
-      title = `Banknote #${item.banknote.catalogId}`;
-    }
-    
     return title || "Unknown Banknote";
-  }
-
-  // Get country name with fallback
-  function getCountry() {
-    return item?.banknote?.country || "Unknown Country";
-  }
-
-  // Get series with fallback
-  function getSeries() {
-    return item?.banknote?.series || "Unknown Series";
   }
 
   // Handle delete function
@@ -135,7 +118,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
           <div>
             <h3 className="font-medium truncate">{getBanknoteTitle()}</h3>
             <p className="text-sm text-muted-foreground truncate">
-              {getCountry()} · {getSeries()}
+              {item?.banknote?.country || "Unknown Country"} · {item?.banknote?.series || "Unknown Series"}
             </p>
             <div className="flex gap-2 mt-1">
               {item?.condition && (
@@ -187,7 +170,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         <CardContent className="p-4">
           <h3 className="font-medium truncate">{getBanknoteTitle()}</h3>
           <p className="text-sm text-muted-foreground truncate">
-            {getCountry()} · {getSeries()}
+            {item?.banknote?.country || "Unknown Country"} · {item?.banknote?.series || "Unknown Series"}
           </p>
           {item?.isForSale && (
             <p className="mt-2 text-sm font-medium">

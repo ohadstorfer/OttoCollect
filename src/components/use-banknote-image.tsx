@@ -29,7 +29,6 @@ export const BanknoteImage: React.FC<BanknoteImageProps> = ({
       alt={alt} 
       className={className}
       onError={handleError}
-      loading="lazy"
     />
   );
 };
@@ -49,22 +48,14 @@ export const BanknoteImageGallery: React.FC<BanknoteImageGalleryProps> = ({
   
   return (
     <div className={`grid ${normalizedImages.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-2 ${className}`}>
-      {normalizedImages.length > 0 ? (
-        normalizedImages.map((image, index) => (
-          <BanknoteImage 
-            key={`${image}-${index}`} 
-            imageUrl={image} 
-            alt={`${alt} ${index + 1}`} 
-            className="w-full h-auto object-cover"
-          />
-        ))
-      ) : (
+      {normalizedImages.map((image, index) => (
         <BanknoteImage 
-          imageUrl={null} 
-          alt={alt} 
+          key={`${image}-${index}`} 
+          imageUrl={image} 
+          alt={`${alt} ${index + 1}`} 
           className="w-full h-auto object-cover"
         />
-      )}
+      ))}
     </div>
   );
 };

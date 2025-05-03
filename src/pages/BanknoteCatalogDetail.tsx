@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -30,7 +31,7 @@ import {
   CircleDollarSign,
   Star
 } from "lucide-react";
-import { BanknoteDetailSource, DetailedBanknote, ImageUrls } from "@/types";
+import { BanknoteDetailSource, DetailedBanknote } from "@/types";
 
 interface BanknoteParams {
   id: string;
@@ -137,9 +138,7 @@ const BanknoteCatalogDetail: React.FC = () => {
     setSelectedImage(imageUrl);
   };
 
-  // Fix TypeScript error by ensuring imageUrls is always an array
-  const imageUrls = banknote && banknote.imageUrls ? 
-    (Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [banknote.imageUrls]) : [];
+  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
 
   const detailGroups = [
     {
