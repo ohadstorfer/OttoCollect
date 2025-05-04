@@ -84,6 +84,11 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
   }
 }
 
+/**
+ * Normalizes image URLs to always return an array of strings
+ * @param imageUrls String, array of strings, or null/undefined
+ * @returns Array of strings
+ */
 export const normalizeImageUrls = (imageUrls: string | string[] | null | undefined): string[] => {
   if (!imageUrls) return [];
   if (typeof imageUrls === 'string') return [imageUrls];

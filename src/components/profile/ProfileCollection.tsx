@@ -23,7 +23,7 @@ interface ProfileCollectionProps {
   filteredItems: CollectionItem[];
   collectionCategories: { id: string; name: string; count: number }[];
   collectionTypes: { id: string; name: string; count: number }[];
-  countryId?: string; // Added countryId prop
+  countryId?: string;
 }
 
 const ProfileCollection: React.FC<ProfileCollectionProps> = ({
@@ -39,7 +39,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
   filteredItems,
   collectionCategories = [],
   collectionTypes = [],
-  countryId  // Added countryId prop
+  countryId
 }) => {
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid');
   const [editingItemId, setEditingItemId] = React.useState<string | null>(null);
@@ -108,7 +108,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
           onViewModeChange={handleViewModeChange}
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
-          countryId={countryId} // Pass countryId prop to BanknoteFilterCollection
+          countryId={countryId}
         />
         
         {filteredItems.length > 0 ? (

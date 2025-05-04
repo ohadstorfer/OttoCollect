@@ -508,3 +508,228 @@ export async function updateCollectionItemImages(
     return false;
   }
 }
+
+/**
+ * Fetches collection sort options for the specified country
+ * @param countryId The ID of the country to fetch sort options for
+ * @returns Array of sort options with name, field_name, is_required properties
+ */
+export async function fetchCollectionSortOptionsByCountryId(countryId: string) {
+  try {
+    console.log("[fetchCollectionSortOptionsByCountryId] Fetching sort options for country:", countryId);
+    
+    // First try to get country-specific sort options
+    const { data: sortOptions, error } = await supabase
+      .from('banknote_sort_options')
+      .select('id, name, field_name, is_default, is_required, display_order')
+      .eq('country_id', countryId)
+      .order('display_order', { ascending: true });
+    
+    if (error) {
+      console.error("[fetchCollectionSortOptionsByCountryId] Error fetching sort options:", error);
+      throw error;
+    }
+    
+    // Add collection-specific sort options if they don't exist
+    const result = [...(sortOptions || [])];
+    
+    // Check if we have these collection-specific options
+    const hasConditionOption = result.some(opt => opt.field_name === 'condition');
+    const hasPurchaseDateOption = result.some(opt => opt.field_name === 'purchaseDate');
+    
+    if (!hasConditionOption) {
+      result.push({
+        id: 'condition-default',
+        name: 'Condition',
+        field_name: 'condition',
+        is_default: false,
+        is_required: false,
+        display_order: result.length + 1
+      });
+    }
+    
+    if (!hasPurchaseDateOption) {
+      result.push({
+        id: 'purchaseDate-default',
+        name: 'Purchase Date',
+        field_name: 'purchaseDate',
+        is_default: false,
+        is_required: false,
+        display_order: result.length + 1
+      });
+    }
+    
+    console.log("[fetchCollectionSortOptionsByCountryId] Returning sort options:", result);
+    return result;
+  } catch (error) {
+    console.error("[fetchCollectionSortOptionsByCountryId] Error:", error);
+    
+    // Return default sort options on error
+    return [
+      { 
+        id: "extPick-default", 
+        name: "Catalog Number", 
+        field_name: "extPick", 
+        is_default: true, 
+        is_required: true, 
+        display_order: 1 
+      },
+      { 
+        id: "newest-default", 
+        name: "Newest First", 
+        field_name: "newest", 
+        is_default: false, 
+        is_required: false, 
+        display_order: 2 
+      },
+      { 
+        id: "sultan-default", 
+        name: "Sultan", 
+        field_name: "sultan", 
+        is_default: false, 
+        is_required: false, 
+        display_order: 3 
+      },
+      { 
+        id: "faceValue-default", 
+        name: "Face Value", 
+        field_name: "faceValue", 
+        is_default: false, 
+        is_required: false, 
+        display_order: 4 
+      },
+      { 
+        id: "condition-default", 
+        name: "Condition", 
+        field_name: "condition", 
+        is_default: false, 
+        is_required: false, 
+        display_order: 5 
+      },
+      { 
+        id: "purchaseDate-default", 
+        name: "Purchase Date", 
+        field_name: "purchaseDate", 
+        is_default: false, 
+        is_required: false, 
+        display_order: 6 
+      }
+    ];
+  }
+}
+
+/**
+ * Fetches user's collection filter preferences
+ * @param userId The user ID
+ * @param countryId The country ID (optional)
+ * @returns User's filter preferences
+ */
+export async function fetchCollectionFilterPreferences(userId: string, countryId?: string) {
+  try {
+    console.log("[fetchCollectionFilterPreferences] Fetching for user:", userId, "country:", countryId);
+    
+    let query = supabase
+      .from('user_filter_preferences')
+      .select('*')
+      .eq('user_id', userId);
+    
+    // Add country filter if provided
+    if (countryId) {
+      query = query.eq('country_id', countryId);
+    }
+    
+    const { data, error } = await query.maybeSingle();
+    
+    if (error) {
+      console.error("[fetchCollectionFilterPreferences] Error fetching preferences:", error);
+      throw error;
+    }
+    
+    console.log("[fetchCollectionFilterPreferences] Preferences data:", data);
+    
+    return data || null;
+  } catch (error) {
+    console.error("[fetchCollectionFilterPreferences] Error:", error);
+    return null;
+  }
+}
+
+/**
+ * Saves user's collection filter preferences
+ * @param userId The user ID
+ * @param countryId The country ID (optional)
+ * @param categories Selected category IDs
+ * @param types Selected type IDs
+ * @param sortOptions Selected sort option IDs
+ * @param groupMode Group mode enabled/disabled
+ * @returns Success boolean
+ */
+export async function saveCollectionFilterPreferences(
+  userId: string,
+  countryId: string | null,
+  categories: string[],
+  types: string[],
+  sortOptions: string[],
+  groupMode: boolean
+) {
+  try {
+    console.log("[saveCollectionFilterPreferences] Saving preferences:", {
+      userId, countryId, categories, types, sortOptions, groupMode
+    });
+    
+    // First check if a record already exists
+    const { data: existingPrefs, error: queryError } = await supabase
+      .from('user_filter_preferences')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('country_id', countryId || null)
+      .maybeSingle();
+      
+    if (queryError) {
+      console.error("[saveCollectionFilterPreferences] Error checking existing preferences:", queryError);
+      throw queryError;
+    }
+    
+    if (existingPrefs) {
+      // Update existing record
+      const { error: updateError } = await supabase
+        .from('user_filter_preferences')
+        .update({
+          selected_categories: categories,
+          selected_types: types,
+          selected_sort_options: sortOptions,
+          group_mode: groupMode,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingPrefs.id);
+        
+      if (updateError) {
+        console.error("[saveCollectionFilterPreferences] Error updating preferences:", updateError);
+        throw updateError;
+      }
+    } else {
+      // Insert new record
+      const { error: insertError } = await supabase
+        .from('user_filter_preferences')
+        .insert({
+          user_id: userId,
+          country_id: countryId,
+          selected_categories: categories,
+          selected_types: types,
+          selected_sort_options: sortOptions,
+          group_mode: groupMode
+        });
+        
+      if (insertError) {
+        console.error("[saveCollectionFilterPreferences] Error inserting preferences:", insertError);
+        throw insertError;
+      }
+    }
+    
+    console.log("[saveCollectionFilterPreferences] Successfully saved preferences");
+    return true;
+  } catch (error) {
+    console.error("[saveCollectionFilterPreferences] Error:", error);
+    return false;
+  }
+}
