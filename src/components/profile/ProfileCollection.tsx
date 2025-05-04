@@ -102,7 +102,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
         <BanknoteFilterCollection
           onFilterChange={onFilterChange}
           currentFilters={filters}
-          isLoading={loading || filterLoading}
+          isLoading={isLoading}
           collectionCategories={collectionCategories}
           collectionTypes={collectionTypes}
           onViewModeChange={handleViewModeChange}
