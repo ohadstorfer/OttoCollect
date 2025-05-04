@@ -6,10 +6,10 @@ import { DynamicFilterState } from "@/types/filter";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { 
-  fetchCollectionSortOptionsByCountryId,
-  fetchCollectionFilterPreferences,
-  saveCollectionFilterPreferences
-} from "@/services/collectionService";
+  fetchSortOptionsByCountryId,
+  fetchUserFilterPreferences,
+  saveUserFilterPreferences
+} from "@/services/countryService";
 
 interface BanknoteFilterCollectionProps {
   countryId?: string;
@@ -118,11 +118,10 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         // Fetch sort options first
         let fetchedSortOptions;
         if (countryId) {
-          console.log("Trying to fetch fetchCollectionSortOptionsByCountryId");
-          fetchedSortOptions = await fetchCollectionSortOptionsByCountryId(countryId);
-          console.log("fetchedSortOptions" + fetchedSortOptions );
+          console.log("BanknoteFilterCollection: Fetching sort options for country:", countryId);
+          fetchedSortOptions = await fetchSortOptionsByCountryId(countryId);
         } else {
-          console.log("the fetchedSortOptions have failed");
+          console.log("BanknoteFilterCollection: Using default sort options (no country ID)");
           
           // Use default sort options when no country ID is provided
           fetchedSortOptions = [
@@ -135,6 +134,30 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
           ];
         }
         
+        // Add collection-specific sort options if they don't exist
+        const hasPurchaseDateOption = fetchedSortOptions.some(opt => opt.field_name === 'purchaseDate');
+        const hasConditionOption = fetchedSortOptions.some(opt => opt.field_name === 'condition');
+        
+        if (!hasPurchaseDateOption) {
+          fetchedSortOptions.push({ 
+            id: "purchaseDate", 
+            name: "Purchase Date", 
+            field_name: "purchaseDate", 
+            is_default: false, 
+            is_required: false 
+          });
+        }
+        
+        if (!hasConditionOption) {
+          fetchedSortOptions.push({ 
+            id: "condition", 
+            name: "Condition", 
+            field_name: "condition", 
+            is_default: false, 
+            is_required: false 
+          });
+        }
+        
         // Map the sort options to the expected format
         const mappedSortOptions = fetchedSortOptions.map(option => ({
           id: option.id,
@@ -145,12 +168,16 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         
         setSortOptions(mappedSortOptions);
         
-        // Now fetch user preferences
-        const preferences = await fetchCollectionFilterPreferences(user.id, countryId);
+        // Now fetch user preferences using countryService's fetchUserFilterPreferences
+        let preferences = null;
+        try {
+          preferences = await fetchUserFilterPreferences(user.id, countryId || '');
+          console.log("BanknoteFilterCollection: User preferences loaded:", preferences);
+        } catch (err) {
+          console.error("BanknoteFilterCollection: Error fetching user preferences:", err);
+        }
         
         if (preferences) {
-          console.log("BanknoteFilterCollection: User preferences loaded:", preferences);
-          
           // Set group mode if it's defined in preferences
           if (typeof preferences.group_mode === 'boolean' && onGroupModeChange) {
             // Set a flag to ignore the next group mode change to prevent infinite loops
@@ -273,10 +300,10 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         })
         .filter(Boolean) as string[];
         
-      // Save to database
-      saveCollectionFilterPreferences(
+      // Save to database using countryService's saveUserFilterPreferences
+      saveUserFilterPreferences(
         user.id,
-        countryId || null,
+        countryId || '',
         newFilters.categories || currentFilters.categories || [],
         newFilters.types || currentFilters.types || [],
         sortOptionIds,
@@ -328,10 +355,10 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         })
         .filter(Boolean) as string[];
         
-      // Save all preferences including group mode
-      saveCollectionFilterPreferences(
+      // Save all preferences including group mode using countryService's saveUserFilterPreferences
+      saveUserFilterPreferences(
         user.id,
-        countryId || null,
+        countryId || '',
         currentFilters.categories || [],
         currentFilters.types || [],
         sortOptionIds,
@@ -375,9 +402,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         })
         .filter(Boolean) as string[];
         
-      const success = await saveCollectionFilterPreferences(
+      const success = await saveUserFilterPreferences(
         user.id,
-        countryId || null,
+        countryId || '',
         currentFilters.categories || [],
         currentFilters.types || [],
         sortOptionIds,
