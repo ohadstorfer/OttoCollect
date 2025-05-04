@@ -5,6 +5,7 @@ import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { fetchCollectionSortOptionsByCountryId } from "@/services/countryCatalogService";
 
 interface BanknoteFilterCollectionProps {
   countryId?: string;
@@ -47,6 +48,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   const ignoreNextGroupModeChange = useRef(false);
   const isFetchingFilter = useRef(false);
   const lastUserId = useRef(""); // Track user ID instead of country ID for collection
+  const lastCountryId = useRef(""); // Track country ID for sort options
 
   console.log("BanknoteFilterCollection: Rendering with", {
     countryId,
@@ -78,16 +80,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       name: type.name,
       count: type.count
     })));
-    
-    // Set collection-specific sort options
-    setSortOptions([
-      { id: "extPick", name: "Catalog Number", fieldName: "extPick", isRequired: true },
-      { id: "newest", name: "Newest First", fieldName: "newest" },
-      { id: "sultan", name: "Sultan", fieldName: "sultan" },
-      { id: "faceValue", name: "Face Value", fieldName: "faceValue" },
-      { id: "condition", name: "Condition", fieldName: "condition" },
-      { id: "purchaseDate", name: "Purchase Date", fieldName: "purchaseDate" }
-    ]);
     
     // Load user preferences if user is logged in
     const loadUserPreferences = async () => {
@@ -134,8 +126,136 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     };
     
     loadUserPreferences();
-    setLoading(false);
   }, [user, collectionCategories, collectionTypes, onViewModeChange, onGroupModeChange, groupMode]);
+
+  // New effect for loading sort options based on countryId
+  useEffect(() => {
+    const loadSortOptions = async () => {
+      // Skip if no countryId provided or if already fetching
+      if (!countryId || isFetchingFilter.current) {
+        console.log("BanknoteFilterCollection: No countryId provided or already fetching, using default sort options");
+        
+        // Set default sort options if countryId is not provided
+        setSortOptions([
+          { id: "extPick", name: "Catalog Number", fieldName: "extPick", isRequired: true },
+          { id: "newest", name: "Newest First", fieldName: "newest" },
+          { id: "sultan", name: "Sultan", fieldName: "sultan" },
+          { id: "faceValue", name: "Face Value", fieldName: "faceValue" },
+          { id: "condition", name: "Condition", fieldName: "condition" },
+          { id: "purchaseDate", name: "Purchase Date", fieldName: "purchaseDate" }
+        ]);
+        return;
+      }
+      
+      // Skip if we already loaded sort options for this country
+      if (lastCountryId.current === countryId) {
+        console.log("BanknoteFilterCollection: Already loaded sort options for this country, skipping");
+        return;
+      }
+      
+      console.log("BanknoteFilterCollection: Loading sort options for country", countryId);
+      isFetchingFilter.current = true;
+      
+      try {
+        // Fetch sort options from the API
+        const sortOptionsData = await fetchCollectionSortOptionsByCountryId(countryId);
+        
+        console.log("BanknoteFilterCollection: Fetched sort options", sortOptionsData);
+        
+        // Make sure we have all the necessary sort options
+        let hasSultanOption = false;
+        let hasFaceValueOption = false;
+        let hasPickOption = false;
+        let hasConditionOption = false;
+        let hasPurchaseDateOption = false;
+        
+        const mappedSortOptions = sortOptionsData.map(sort => {
+          if (sort.field_name === "sultan") hasSultanOption = true;
+          if (sort.field_name === "faceValue") hasFaceValueOption = true;
+          if (sort.field_name === "extPick") hasPickOption = true;
+          
+          return {
+            id: sort.id,
+            name: sort.name,
+            fieldName: sort.field_name,
+            isRequired: sort.is_required
+          };
+        });
+        
+        // Add collection-specific sort options if they don't exist
+        if (!hasConditionOption) {
+          mappedSortOptions.push({
+            id: "condition-default",
+            name: "Condition",
+            fieldName: "condition",
+            isRequired: false
+          });
+        }
+        
+        if (!hasPurchaseDateOption) {
+          mappedSortOptions.push({
+            id: "purchaseDate-default",
+            name: "Purchase Date",
+            fieldName: "purchaseDate",
+            isRequired: false
+          });
+        }
+        
+        // Add default sort options if they don't exist
+        if (!hasSultanOption) {
+          mappedSortOptions.push({
+            id: "sultan-default",
+            name: "Sultan",
+            fieldName: "sultan",
+            isRequired: false
+          });
+        }
+        
+        if (!hasFaceValueOption) {
+          mappedSortOptions.push({
+            id: "facevalue-default",
+            name: "Face Value",
+            fieldName: "faceValue",
+            isRequired: false
+          });
+        }
+        
+        if (!hasPickOption) {
+          mappedSortOptions.push({
+            id: "extpick-default",
+            name: "Catalog Number",
+            fieldName: "extPick",
+            isRequired: true
+          });
+        }
+        
+        setSortOptions(mappedSortOptions);
+        lastCountryId.current = countryId;
+      } catch (error) {
+        console.error("Error loading sort options:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load sort options.",
+          variant: "destructive",
+        });
+        
+        // Set default sort options on error
+        setSortOptions([
+          { id: "extPick", name: "Catalog Number", fieldName: "extPick", isRequired: true },
+          { id: "newest", name: "Newest First", fieldName: "newest" },
+          { id: "sultan", name: "Sultan", fieldName: "sultan" },
+          { id: "faceValue", name: "Face Value", fieldName: "faceValue" },
+          { id: "condition", name: "Condition", fieldName: "condition" },
+          { id: "purchaseDate", name: "Purchase Date", fieldName: "purchaseDate" }
+        ]);
+      } finally {
+        isFetchingFilter.current = false;
+        setLoading(false);
+      }
+    };
+
+    loadSortOptions();
+  }, [countryId, toast]);
 
   // Handle filter changes - memoize to prevent unnecessary re-renders
   const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {

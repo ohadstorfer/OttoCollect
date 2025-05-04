@@ -42,3 +42,24 @@ export async function fetchCountriesForCatalog(): Promise<CountryData[]> {
     return [];
   }
 }
+
+// New function to fetch sort options for collections, similar to the one in countryService.ts
+export async function fetchCollectionSortOptionsByCountryId(countryId: string) {
+  try {
+    console.log("Fetching sort options for country:", countryId);
+    const { data, error } = await supabase
+      .from('banknote_sort_options')
+      .select('id, name, field_name, is_required, is_default')
+      .eq('country_id', countryId);
+    
+    if (error) {
+      console.error("Error fetching sort options:", error);
+      throw error;
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error in fetchCollectionSortOptionsByCountryId:", error);
+    return [];
+  }
+}

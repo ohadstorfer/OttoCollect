@@ -1,4 +1,3 @@
-
 import { DetailedBanknote } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -83,3 +82,9 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
     return null;
   }
 }
+
+export const normalizeImageUrls = (imageUrls: string | string[] | null | undefined): string[] => {
+  if (!imageUrls) return [];
+  if (typeof imageUrls === 'string') return [imageUrls];
+  return imageUrls;
+};
