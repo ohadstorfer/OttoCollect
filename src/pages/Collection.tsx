@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -13,7 +14,7 @@ import {
 } from '@/services/collectionService';
 import { fetchCountryById } from '@/services/countryService';
 import { CollectionItem, DetailedBanknote, CountryData } from '@/types';
-import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
+import { CountryFilterSection } from '@/components/country/CountryFilterSection';
 import { DynamicFilterState } from '@/types/filter';
 import { useDynamicFilter } from '@/hooks/use-dynamic-filter';
 
@@ -268,15 +269,17 @@ const Collection = () => {
       )}
       
       <div className="bg-card border rounded-lg p-6 mb-6">
-        <BanknoteFilterCollection
+        <CountryFilterSection
+          countryId={countryId || ""}
+          filters={currentFilters}
           onFilterChange={handleFilterChange}
-          currentFilters={currentFilters}
           isLoading={loading || filterLoading}
-          collectionCategories={collectionCategories}
-          collectionTypes={collectionTypes}
           onViewModeChange={handleViewModeChange}
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
+          source="collection"
+          collectionCategories={collectionCategories}
+          collectionTypes={collectionTypes}
         />
         
         <div className="mt-6">

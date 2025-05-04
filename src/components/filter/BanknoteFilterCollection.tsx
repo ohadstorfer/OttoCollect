@@ -13,8 +13,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-interface BanknoteFilterCatalogProps {
-  countryId: string;
+interface BanknoteFilterCollectionProps {
+  countryId?: string;
   onFilterChange: (filters: Partial<DynamicFilterState>) => void;
   currentFilters: DynamicFilterState;
   isLoading?: boolean;
@@ -22,10 +22,12 @@ interface BanknoteFilterCatalogProps {
   onViewModeChange?: (mode: 'grid' | 'list') => void;
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
+  collectionCategories?: { id: string; name: string; count?: number }[];
+  collectionTypes?: { id: string; name: string; count?: number }[];
 }
 
 // Use React.memo to prevent unnecessary re-renders
-export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = memo(({
+export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> = memo(({
   countryId,
   onFilterChange,
   currentFilters,
@@ -33,7 +35,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
   className,
   onViewModeChange,
   groupMode = false,
-  onGroupModeChange
+  onGroupModeChange,
+  collectionCategories = [],
+  collectionTypes = []
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -57,40 +61,93 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
     categories: categories.length,
     types: types.length,
     sortOptions: sortOptions.length,
-    groupMode
+    groupMode,
+    collectionCategories: collectionCategories.length,
+    collectionTypes: collectionTypes.length
   });
 
   useEffect(() => {
-    // Skip if no countryId or if we're already fetching
-    if (!countryId || isFetchingFilter.current) return;
+    // Use collection categories and types if provided
+    if (collectionCategories.length > 0) {
+      const mappedCategories = collectionCategories.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        count: cat.count
+      }));
+      setCategories(mappedCategories);
+    }
+
+    if (collectionTypes.length > 0) {
+      const mappedTypes = collectionTypes.map(type => ({
+        id: type.id,
+        name: type.name,
+        count: type.count
+      }));
+      setTypes(mappedTypes);
+    }
+  }, [collectionCategories, collectionTypes]);
+
+  useEffect(() => {
+    // Skip if we're already fetching or if we're using collection categories
+    if (isFetchingFilter.current || (collectionCategories.length > 0 && collectionTypes.length > 0)) {
+      return;
+    }
     
-    // Skip if we already loaded options for this country
-    if (lastCountryId.current === countryId && initialLoadComplete.current) {
+    // Skip if we already loaded options for this country and countryId exists
+    if (countryId && lastCountryId.current === countryId && initialLoadComplete.current) {
       console.log("BanknoteFilterCollection: Already loaded options for this country, skipping");
       return;
     }
     
     const loadFilterOptionsAndPreferences = async () => {
-      console.log("BanknoteFilterCollection: Loading filter options for country:", countryId);
+      // We still need to fetch sort options even if using collection categories
+      if (!countryId && collectionCategories.length === 0) {
+        // If no countryId and no collection categories, we don't fetch
+        setLoading(false);
+        return;
+      }
+
+      console.log("BanknoteFilterCollection: Loading filter options", countryId ? `for country: ${countryId}` : "for collection");
       setLoading(true);
       isFetchingFilter.current = true;
       
       try {
-        const [categoriesData, typesData, sortOptionsData] = await Promise.all([
-          fetchCategoriesByCountryId(countryId),
-          fetchTypesByCountryId(countryId),
-          fetchSortOptionsByCountryId(countryId)
-        ]);
+        let categoriesData = [] as any[];
+        let typesData = [] as any[];
+        let sortOptionsData = [] as any[];
+
+        // Only fetch country-specific data if countryId is provided
+        if (countryId) {
+          [categoriesData, typesData, sortOptionsData] = await Promise.all([
+            collectionCategories.length === 0 ? fetchCategoriesByCountryId(countryId) : Promise.resolve([]),
+            collectionTypes.length === 0 ? fetchTypesByCountryId(countryId) : Promise.resolve([]),
+            fetchSortOptionsByCountryId(countryId)
+          ]);
+        } else {
+          // When no countryId, create default sort options
+          sortOptionsData = [
+            { id: "extpick-default", field_name: "extPick", name: "Catalog Number", is_required: true },
+            { id: "facevalue-default", field_name: "faceValue", name: "Face Value", is_required: false },
+            { id: "sultan-default", field_name: "sultan", name: "Sultan", is_required: false }
+          ];
+        }
         
-        const mappedCategories = categoriesData.map(cat => ({
-          id: cat.id,
-          name: cat.name,
-        }));
+        // Only update categories and types if we don't have collection categories
+        if (collectionCategories.length === 0 && categoriesData.length > 0) {
+          const mappedCategories = categoriesData.map(cat => ({
+            id: cat.id,
+            name: cat.name,
+          }));
+          setCategories(mappedCategories);
+        }
         
-        const mappedTypes = typesData.map(type => ({
-          id: type.id,
-          name: type.name,
-        }));
+        if (collectionTypes.length === 0 && typesData.length > 0) {
+          const mappedTypes = typesData.map(type => ({
+            id: type.id,
+            name: type.name,
+          }));
+          setTypes(mappedTypes);
+        }
         
         // Make sure we have all the necessary sort options
         let hasSultanOption = false;
@@ -138,12 +195,10 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
           });
         }
         
-        setCategories(mappedCategories);
-        setTypes(mappedTypes);
         setSortOptions(mappedSortOptions);
         
         let userPreferences = null;
-        if (user) {
+        if (user && countryId) {
           try {
             userPreferences = await fetchUserFilterPreferences(user.id, countryId);
             console.log("BanknoteFilterCollection: User preferences loaded", userPreferences);
@@ -177,7 +232,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
           requiredSortFields.push('extPick');
         }
           
-        if (userPreferences && !initialLoadComplete.current) {
+        if (userPreferences && !initialLoadComplete.current && countryId) {
           const sortFieldNames = userPreferences.selected_sort_options
             .map(sortId => {
               const option = sortOptionsData.find(opt => opt.id === sortId);
@@ -197,13 +252,16 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
           });
         } else if (!initialLoadComplete.current) {
           // Set default filters if no user preferences are found
-          const defaultCategoryIds = mappedCategories.map(cat => cat.id);
-          const defaultTypeIds = mappedTypes
-            .filter(type => type.name.toLowerCase().includes('issued'))
-            .map(t => t.id);
+          const defaultCategoryIds = categories.length > 0 ? 
+            categories.map(cat => cat.id) : 
+            collectionCategories.map(cat => cat.id);
             
-          // For new users, default to sorting by extPick only since it comes pre-sorted from the DB
-          const defaultSort = ['extPick']; // Remove faceValue from default sort
+          const defaultTypeIds = types.length > 0 ?
+            types.filter(type => type.name.toLowerCase().includes('issued')).map(t => t.id) :
+            collectionTypes.filter(type => type.name.toLowerCase().includes('issued')).map(t => t.id);
+            
+          // For new users, default to sorting by extPick only
+          const defaultSort = ['extPick'];
           
           onFilterChange({
             categories: defaultCategoryIds,
@@ -214,7 +272,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
         
         // Mark as complete to prevent repeated loads
         initialLoadComplete.current = true;
-        lastCountryId.current = countryId;
+        if (countryId) {
+          lastCountryId.current = countryId;
+        }
       } catch (error) {
         console.error("Error loading filter options:", error);
         toast({
@@ -230,7 +290,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
 
     loadFilterOptionsAndPreferences();
     // groupMode is NOT included in the dependency array because it would cause infinite loops
-  }, [countryId, user, onFilterChange, toast, onGroupModeChange]); // groupMode removed from dependencies
+  }, [countryId, user, onFilterChange, toast, onGroupModeChange, collectionCategories, collectionTypes]); 
 
   const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
@@ -254,7 +314,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
     }
 
     // Save user preferences automatically with each change
-    if (user?.id) {
+    if (user?.id && countryId) {
       console.log("BanknoteFilterCollection: Auto-saving filter preferences");
       const sortOptionIds = newFilters.sort
         ? newFilters.sort
@@ -303,8 +363,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
     if (mode === groupMode) return;
     
     // Save group mode preference if user is logged in
-    if (user?.id) {
-      console.log("BanknoteFilterCatalog: Saving group mode preference:", mode);
+    if (user?.id && countryId) {
+      console.log("BanknoteFilterCollection: Saving group mode preference:", mode);
       
       // Get current sort option IDs
       const sortOptionIds = currentFilters.sort
@@ -328,7 +388,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
     } else {
       // For non-logged-in users, store in session storage
       try {
-        sessionStorage.setItem(`groupMode-${countryId}`, JSON.stringify(mode));
+        sessionStorage.setItem(`groupMode-${countryId || 'collection'}`, JSON.stringify(mode));
       } catch (e) {
         console.error("Unable to store group mode in session storage:", e);
       }
@@ -339,6 +399,19 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
     }
   }, [onGroupModeChange, groupMode, user, countryId, currentFilters.categories, currentFilters.sort, currentFilters.types, sortOptions]);
 
+  // Determine which categories and types to use
+  const effectiveCategories = collectionCategories.length > 0 ? collectionCategories.map(c => ({
+    id: c.id,
+    name: c.name,
+    count: c.count
+  })) : categories;
+
+  const effectiveTypes = collectionTypes.length > 0 ? collectionTypes.map(t => ({
+    id: t.id,
+    name: t.name,
+    count: t.count
+  })) : types;
+
   return (
     <div className={cn(
       "w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-1.5",
@@ -346,8 +419,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = me
       className
     )}>
       <BaseBanknoteFilter
-        categories={categories}
-        types={types}
+        categories={effectiveCategories}
+        types={effectiveTypes}
         sortOptions={sortOptions}
         onFilterChange={handleFilterChange}
         currentFilters={currentFilters}

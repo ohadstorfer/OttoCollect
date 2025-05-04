@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
+import { CountryFilterSection } from '@/components/country/CountryFilterSection';
 import { CollectionItem } from '@/types';
 import { DynamicFilterState } from '@/types/filter';
 import { Loader2, Plus, Search } from 'lucide-react';
@@ -99,16 +99,17 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
-        <BanknoteFilterCollection
+        <CountryFilterSection
+          countryId={countryId || ""}
+          filters={filters}
           onFilterChange={onFilterChange}
-          currentFilters={filters}
           isLoading={isLoading}
-          collectionCategories={collectionCategories}
-          collectionTypes={collectionTypes}
           onViewModeChange={handleViewModeChange}
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
-          countryId={countryId}
+          source="collection"
+          collectionCategories={collectionCategories}
+          collectionTypes={collectionTypes}
         />
         
         {filteredItems.length > 0 ? (
