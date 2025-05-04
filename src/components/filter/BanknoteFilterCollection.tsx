@@ -118,8 +118,12 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         // Fetch sort options first
         let fetchedSortOptions;
         if (countryId) {
+          console.log("Trying to fetch fetchCollectionSortOptionsByCountryId");
           fetchedSortOptions = await fetchCollectionSortOptionsByCountryId(countryId);
+          console.log("fetchedSortOptions" + fetchedSortOptions );
         } else {
+          console.log("the fetchedSortOptions have failed");
+          
           // Use default sort options when no country ID is provided
           fetchedSortOptions = [
             { id: "extPick", name: "Catalog Number", field_name: "extPick", is_required: true, is_default: true },
