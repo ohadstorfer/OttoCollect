@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, memo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
@@ -402,7 +401,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         })
         .filter(Boolean) as string[];
         
-      const success = await saveUserFilterPreferences(
+      // Here's the fix: don't test the void result for truthiness
+      await saveUserFilterPreferences(
         user.id,
         countryId || '',
         currentFilters.categories || [],
@@ -411,14 +411,11 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         groupMode
       );
       
-      if (success) {
-        toast({
-          title: "Success",
-          description: "Collection filter preferences saved.",
-        });
-      } else {
-        throw new Error("Failed to save preferences");
-      }
+      // Instead, assume it succeeded if no error was thrown
+      toast({
+        title: "Success",
+        description: "Collection filter preferences saved.",
+      });
     } catch (error) {
       console.error("Error saving filter preferences:", error);
       toast({
