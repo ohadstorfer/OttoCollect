@@ -39,15 +39,13 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   if (source === 'collection') {
     return (
       <BanknoteFilterCollection
-        countryId={countryId}
-        onFilterChange={handleFilterChange}
-        currentFilters={filters}
-        isLoading={isLoading}
-        onViewModeChange={onViewModeChange}
-        groupMode={groupMode}
-        onGroupModeChange={onGroupModeChange}
-        collectionCategories={collectionCategories}
-        collectionTypes={collectionTypes}
+      countryId={countryId}
+      onFilterChange={handleFilterChange}
+      currentFilters={filters}
+      isLoading={isLoading}
+      onViewModeChange={onViewModeChange}
+      groupMode={groupMode}
+      onGroupModeChange={onGroupModeChange}
       />
     );
   }
