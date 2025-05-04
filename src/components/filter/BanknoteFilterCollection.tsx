@@ -1,39 +1,36 @@
+
 import React, { useState, useEffect, useRef, memo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
+import { 
+  fetchCategoriesByCountryId, 
+  fetchTypesByCountryId, 
+  fetchSortOptionsByCountryId, 
+  saveUserFilterPreferences, 
+  fetchUserFilterPreferences 
+} from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { 
-  fetchSortOptionsByCountryId,
-  fetchUserFilterPreferences,
-  saveUserFilterPreferences
-} from "@/services/countryService";
 
-interface BanknoteFilterCollectionProps {
-  countryId?: string;
+interface BanknoteFilterCatalogProps {
+  countryId: string;
   onFilterChange: (filters: Partial<DynamicFilterState>) => void;
   currentFilters: DynamicFilterState;
   isLoading?: boolean;
   className?: string;
-  // Collection-specific props
-  collectionCategories?: { id: string; name: string; count?: number }[];
-  collectionTypes?: { id: string; name: string; count?: number }[];
-  // View mode & group mode props
   onViewModeChange?: (mode: 'grid' | 'list') => void;
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
 }
 
 // Use React.memo to prevent unnecessary re-renders
-export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> = memo(({
+export const BanknoteFilterCollection: React.FC<BanknoteFilterCatalogProps> = memo(({
   countryId,
   onFilterChange,
   currentFilters,
   isLoading = false,
   className,
-  collectionCategories = [],
-  collectionTypes = [],
   onViewModeChange,
   groupMode = false,
   onGroupModeChange
@@ -43,185 +40,170 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   const [categories, setCategories] = useState<FilterOption[]>([]);
   const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
-  // Add refs to track states and prevent render loops (same as BanknoteFilterCatalog)
+  // Add refs to track states and prevent render loops
   const initialLoadComplete = useRef(false);
   const ignoreNextGroupModeChange = useRef(false);
   const isFetchingFilter = useRef(false);
-  const lastUserId = useRef("");
   const lastCountryId = useRef("");
 
-  console.log("BanknoteFilterCollection: Rendering with", {
-    countryId,
-    userId: user?.id,
+  console.log("BanknoteFilterCollection: Rendering with", { 
+    countryId, 
     currentFilters,
-    collectionCategories: collectionCategories?.length,
-    collectionTypes: collectionTypes?.length,
-    groupMode,
-    loading
+    isLoading, 
+    loading,
+    categories: categories.length,
+    types: types.length,
+    sortOptions: sortOptions.length,
+    groupMode
   });
 
   useEffect(() => {
-    // For collection filtering, if we have collectionCategories and collectionTypes directly provided,
-    // we can set them directly without fetching from server
+    // Skip if no countryId or if we're already fetching
+    if (!countryId || isFetchingFilter.current) return;
     
-    console.log("BanknoteFilterCollection: Using provided collection categories and types");
+    // Skip if we already loaded options for this country
+    if (lastCountryId.current === countryId && initialLoadComplete.current) {
+      console.log("BanknoteFilterCollection: Already loaded options for this country, skipping");
+      return;
+    }
     
-    // Safety check for collectionCategories
-    const categoriesToUse = collectionCategories || [];
-    setCategories(categoriesToUse.map(cat => ({
-      id: cat.id,
-      name: cat.name,
-      count: cat.count
-    })));
-    
-    // Safety check for collectionTypes
-    const typesToUse = collectionTypes || [];
-    setTypes(typesToUse.map(type => ({
-      id: type.id,
-      name: type.name,
-      count: type.count
-    })));
-  }, [collectionCategories, collectionTypes]);
-
-  // Load user preferences and sort options
-  useEffect(() => {
-    const loadUserPreferencesAndSortOptions = async () => {
-      if (!user?.id) {
-        console.log("BanknoteFilterCollection: No user, skipping preference load");
-        setLoading(false);
-        return;
-      }
-
-      // Skip if we've already loaded for this user/country combination
-      const currentCountryId = countryId || 'all';
-      if (
-        lastUserId.current === user.id &&
-        lastCountryId.current === currentCountryId &&
-        initialLoadComplete.current
-      ) {
-        console.log("BanknoteFilterCollection: Already loaded for this user/country, skipping");
-        setLoading(false);
-        return;
-      }
-
-      // Start loading
+    const loadFilterOptionsAndPreferences = async () => {
+      console.log("BanknoteFilterCollection: Loading filter options for country:", countryId);
       setLoading(true);
       isFetchingFilter.current = true;
       
       try {
-        console.log("BanknoteFilterCollection: Loading preferences and sort options");
+        const [categoriesData, typesData, sortOptionsData] = await Promise.all([
+          fetchCategoriesByCountryId(countryId),
+          fetchTypesByCountryId(countryId),
+          fetchSortOptionsByCountryId(countryId)
+        ]);
         
-        // Fetch sort options first
-        let fetchedSortOptions;
-        if (countryId) {
-          console.log("BanknoteFilterCollection: Fetching sort options for country:", countryId);
-          fetchedSortOptions = await fetchSortOptionsByCountryId(countryId);
-        } else {
-          console.log("BanknoteFilterCollection: Using default sort options (no country ID)");
-          
-          // Use default sort options when no country ID is provided
-          fetchedSortOptions = [
-            { id: "extPick", name: "Catalog Number", field_name: "extPick", is_required: true, is_default: true },
-            { id: "newest", name: "Newest First", field_name: "newest", is_default: false, is_required: false },
-            { id: "sultan", name: "Sultan", field_name: "sultan", is_default: false, is_required: false },
-            { id: "faceValue", name: "Face Value", field_name: "faceValue", is_default: false, is_required: false },
-            { id: "condition", name: "Condition", field_name: "condition", is_default: false, is_required: false },
-            { id: "purchaseDate", name: "Purchase Date", field_name: "purchaseDate", is_default: false, is_required: false }
-          ];
-        }
-        
-        // Add collection-specific sort options if they don't exist
-        const hasPurchaseDateOption = fetchedSortOptions.some(opt => opt.field_name === 'purchaseDate');
-        const hasConditionOption = fetchedSortOptions.some(opt => opt.field_name === 'condition');
-        
-        if (!hasPurchaseDateOption) {
-          fetchedSortOptions.push({ 
-            id: "purchaseDate", 
-            name: "Purchase Date", 
-            field_name: "purchaseDate", 
-            is_default: false, 
-            is_required: false 
-          });
-        }
-        
-        if (!hasConditionOption) {
-          fetchedSortOptions.push({ 
-            id: "condition", 
-            name: "Condition", 
-            field_name: "condition", 
-            is_default: false, 
-            is_required: false 
-          });
-        }
-        
-        // Map the sort options to the expected format
-        const mappedSortOptions = fetchedSortOptions.map(option => ({
-          id: option.id,
-          name: option.name,
-          fieldName: option.field_name,
-          isRequired: option.is_required || false
+        const mappedCategories = categoriesData.map(cat => ({
+          id: cat.id,
+          name: cat.name,
         }));
         
-        setSortOptions(mappedSortOptions);
+        const mappedTypes = typesData.map(type => ({
+          id: type.id,
+          name: type.name,
+        }));
         
-        // Now fetch user preferences using countryService's fetchUserFilterPreferences
-        let preferences = null;
-        try {
-          preferences = await fetchUserFilterPreferences(user.id, countryId || '');
-          console.log("BanknoteFilterCollection: User preferences loaded:", preferences);
-        } catch (err) {
-          console.error("BanknoteFilterCollection: Error fetching user preferences:", err);
+        // Make sure we have all the necessary sort options
+        let hasSultanOption = false;
+        let hasFaceValueOption = false;
+        let hasPickOption = false;
+        
+        const mappedSortOptions = sortOptionsData.map(sort => {
+          if (sort.field_name === "sultan") hasSultanOption = true;
+          if (sort.field_name === "faceValue") hasFaceValueOption = true;
+          if (sort.field_name === "extPick") hasPickOption = true;
+          
+          return {
+            id: sort.id,
+            name: sort.name,
+            fieldName: sort.field_name,
+            isRequired: sort.is_required
+          };
+        });
+        
+        // Add default sort options if they don't exist
+        if (!hasSultanOption) {
+          mappedSortOptions.push({
+            id: "sultan-default",
+            name: "Sultan",
+            fieldName: "sultan",
+            isRequired: false
+          });
         }
         
-        if (preferences) {
-          // Set group mode if it's defined in preferences
-          if (typeof preferences.group_mode === 'boolean' && onGroupModeChange) {
-            // Set a flag to ignore the next group mode change to prevent infinite loops
-            ignoreNextGroupModeChange.current = true;
+        if (!hasFaceValueOption) {
+          mappedSortOptions.push({
+            id: "facevalue-default",
+            name: "Face Value",
+            fieldName: "faceValue",
+            isRequired: false
+          });
+        }
+        
+        if (!hasPickOption) {
+          mappedSortOptions.push({
+            id: "extpick-default",
+            name: "Catalog Number",
+            fieldName: "extPick",
+            isRequired: true
+          });
+        }
+        
+        setCategories(mappedCategories);
+        setTypes(mappedTypes);
+        setSortOptions(mappedSortOptions);
+        
+        let userPreferences = null;
+        if (user) {
+          try {
+            userPreferences = await fetchUserFilterPreferences(user.id, countryId);
+            console.log("BanknoteFilterCollection: User preferences loaded", userPreferences);
             
-            // Call the parent's onGroupModeChange
-            if (preferences.group_mode !== groupMode) {
-              onGroupModeChange(preferences.group_mode);
+            // Set group mode if it's defined in preferences, but only during initial load
+            // and only notify the parent if the value is different from current groupMode
+            if (userPreferences && 
+                typeof userPreferences.group_mode === 'boolean' && 
+                onGroupModeChange && 
+                userPreferences.group_mode !== groupMode && 
+                !initialLoadComplete.current) {
+              
+              // Set a flag to ignore the next group mode change to prevent infinite loops
+              ignoreNextGroupModeChange.current = true;
+              
+              // Call the parent's onGroupModeChange
+              onGroupModeChange(userPreferences.group_mode);
             }
+          } catch (err) {
+            console.error("Error fetching user preferences:", err);
           }
+        }
+        
+        // Always ensure extPick is included in the sort options for fallback sorting
+        const requiredSortFields = sortOptionsData
+          .filter(opt => opt.is_required)
+          .map(opt => opt.field_name || '');
           
-          // Map sort option IDs to field names
-          const sortFieldNames = preferences.selected_sort_options
+        // Make sure extPick is always included as a fallback sort 
+        if (!requiredSortFields.includes('extPick')) {
+          requiredSortFields.push('extPick');
+        }
+          
+        if (userPreferences && !initialLoadComplete.current) {
+          const sortFieldNames = userPreferences.selected_sort_options
             .map(sortId => {
-              const option = fetchedSortOptions.find(opt => opt.id === sortId);
+              const option = sortOptionsData.find(opt => opt.id === sortId);
               return option ? option.field_name : null;
             })
             .filter(Boolean) as string[];
-            
-          // Ensure required sort fields are included
-          const requiredSortFields = fetchedSortOptions
-            .filter(opt => opt.is_required)
-            .map(opt => opt.field_name);
-            
+          
+          // Ensure extPick is always included in the sort, after user choices
           const finalSortFields = Array.from(
             new Set([...sortFieldNames, ...requiredSortFields])
           );
           
-          // Update the filters based on user preferences
           onFilterChange({
-            categories: preferences.selected_categories.length > 0 ? preferences.selected_categories : [],
-            types: preferences.selected_types.length > 0 ? preferences.selected_types : [],
-            sort: finalSortFields.length > 0 ? finalSortFields : ['extPick'],
+            categories: userPreferences.selected_categories,
+            types: userPreferences.selected_types,
+            sort: finalSortFields,
           });
-        } else {
-          console.log("BanknoteFilterCollection: No saved preferences, using defaults");
-          
-          // Set default options if no preferences are found
-          const defaultCategoryIds = categories.map(cat => cat.id);
-          const defaultTypeIds = types
+        } else if (!initialLoadComplete.current) {
+          // Set default filters if no user preferences are found
+          const defaultCategoryIds = mappedCategories.map(cat => cat.id);
+          const defaultTypeIds = mappedTypes
             .filter(type => type.name.toLowerCase().includes('issued'))
             .map(t => t.id);
             
-          // For new users, default to sorting by extPick
-          const defaultSort = ['extPick']; 
+          // For new users, default to sorting by extPick only since it comes pre-sorted from the DB
+          const defaultSort = ['extPick']; // Remove faceValue from default sort
           
           onFilterChange({
             categories: defaultCategoryIds,
@@ -230,27 +212,11 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
           });
         }
         
-        // Load view mode from session storage as a fallback
-        try {
-          const storedViewMode = sessionStorage.getItem(`collectionViewMode-${user.id}`);
-          if (storedViewMode) {
-            const parsedViewMode = JSON.parse(storedViewMode) as 'grid' | 'list';
-            setViewMode(parsedViewMode);
-            if (onViewModeChange) {
-              onViewModeChange(parsedViewMode);
-            }
-          }
-        } catch (e) {
-          console.error("Error loading view mode from session storage:", e);
-        }
-        
         // Mark as complete to prevent repeated loads
         initialLoadComplete.current = true;
-        lastUserId.current = user.id;
-        lastCountryId.current = currentCountryId;
-        
+        lastCountryId.current = countryId;
       } catch (error) {
-        console.error("BanknoteFilterCollection: Error loading preferences or sort options:", error);
+        console.error("Error loading filter options:", error);
         toast({
           title: "Error",
           description: "Failed to load filter options.",
@@ -261,11 +227,11 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         isFetchingFilter.current = false;
       }
     };
-    
-    loadUserPreferencesAndSortOptions();
-  }, [user, countryId, toast, onFilterChange, onGroupModeChange, groupMode, categories, types]);
 
-  // Handle filter changes - memoize to prevent unnecessary re-renders
+    loadFilterOptionsAndPreferences();
+    // groupMode is NOT included in the dependency array because it would cause infinite loops
+  }, [countryId, user, onFilterChange, toast, onGroupModeChange]); // groupMode removed from dependencies
+
   const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
       // Get only the required sort fields that must be included
@@ -290,47 +256,41 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     // Save user preferences automatically with each change
     if (user?.id) {
       console.log("BanknoteFilterCollection: Auto-saving filter preferences");
-      
-      // Map sort field names back to sort option IDs
-      const sortOptionIds = (newFilters.sort || currentFilters.sort || [])
-        .map(fieldName => {
-          const option = sortOptions.find(opt => opt.fieldName === fieldName);
-          return option ? option.id : null;
-        })
-        .filter(Boolean) as string[];
-        
-      // Save to database using countryService's saveUserFilterPreferences
+      const sortOptionIds = newFilters.sort
+        ? newFilters.sort
+            .map(fieldName => {
+              const option = sortOptions.find(opt => opt.fieldName === fieldName);
+              return option ? option.id : null;
+            })
+            .filter(Boolean) as string[]
+        : currentFilters.sort
+            .map(fieldName => {
+              const option = sortOptions.find(opt => opt.fieldName === fieldName);
+              return option ? option.id : null;
+            })
+            .filter(Boolean) as string[];
+
       saveUserFilterPreferences(
         user.id,
-        countryId || '',
+        countryId,
         newFilters.categories || currentFilters.categories || [],
         newFilters.types || currentFilters.types || [],
         sortOptionIds,
-        groupMode
+        groupMode // Pass current groupMode value
       ).catch(error => {
-        console.error("Error saving collection filter preferences:", error);
+        console.error("Error saving filter preferences:", error);
       });
     }
     
     onFilterChange(newFilters);
-  }, [onFilterChange, sortOptions, user, currentFilters, countryId, groupMode]);
+  }, [onFilterChange, sortOptions, user, countryId, currentFilters, groupMode]);
   
   const handleViewModeChange = React.useCallback((mode: 'grid' | 'list') => {
     setViewMode(mode);
-    
-    // Save preference
-    if (user?.id) {
-      try {
-        sessionStorage.setItem(`collectionViewMode-${user.id}`, JSON.stringify(mode));
-      } catch (e) {
-        console.error("Unable to store view mode preference:", e);
-      }
-    }
-    
     if (onViewModeChange) {
       onViewModeChange(mode);
     }
-  }, [onViewModeChange, user]);
+  }, [onViewModeChange]);
   
   const handleGroupModeChange = React.useCallback((mode: boolean) => {
     // If we're set to ignore the next change, skip this call
@@ -342,9 +302,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     // If the mode is the same as the current one, don't do anything
     if (mode === groupMode) return;
     
-    // Save group mode preference
+    // Save group mode preference if user is logged in
     if (user?.id) {
-      console.log("BanknoteFilterCollection: Saving group mode preference:", mode);
+      console.log("BanknoteFilterCatalog: Saving group mode preference:", mode);
       
       // Get current sort option IDs
       const sortOptionIds = currentFilters.sort
@@ -353,22 +313,22 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
           return option ? option.id : null;
         })
         .filter(Boolean) as string[];
-        
-      // Save all preferences including group mode using countryService's saveUserFilterPreferences
+      
+      // Save all preferences including group mode
       saveUserFilterPreferences(
         user.id,
-        countryId || '',
+        countryId,
         currentFilters.categories || [],
         currentFilters.types || [],
         sortOptionIds,
-        mode
+        mode // Pass the new group mode value
       ).catch(error => {
         console.error("Error saving group mode preference:", error);
       });
     } else {
       // For non-logged-in users, store in session storage
       try {
-        sessionStorage.setItem(`collectionGroupMode-${user?.id || 'anonymous'}`, JSON.stringify(mode));
+        sessionStorage.setItem(`groupMode-${countryId}`, JSON.stringify(mode));
       } catch (e) {
         console.error("Unable to store group mode in session storage:", e);
       }
@@ -377,54 +337,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     if (onGroupModeChange) {
       onGroupModeChange(mode);
     }
-  }, [onGroupModeChange, groupMode, user, countryId, currentFilters, sortOptions]);
-
-  // Save filters function - can be used for explicit saves
-  const handleSaveFilters = async () => {
-    if (!user?.id) {
-      toast({
-        title: "Not Logged In",
-        description: "You need to be logged in to save filter preferences.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    console.log("BanknoteFilterCollection: Saving filter preferences");
-    
-    try {
-      // Map sort field names to sort option IDs
-      const sortOptionIds = currentFilters.sort
-        .map(fieldName => {
-          const option = sortOptions.find(opt => opt.fieldName === fieldName);
-          return option ? option.id : null;
-        })
-        .filter(Boolean) as string[];
-        
-      // Here's the fix: don't test the void result for truthiness
-      await saveUserFilterPreferences(
-        user.id,
-        countryId || '',
-        currentFilters.categories || [],
-        currentFilters.types || [],
-        sortOptionIds,
-        groupMode
-      );
-      
-      // Instead, assume it succeeded if no error was thrown
-      toast({
-        title: "Success",
-        description: "Collection filter preferences saved.",
-      });
-    } catch (error) {
-      console.error("Error saving filter preferences:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save filter preferences.",
-        variant: "destructive",
-      });
-    }
-  };
+  }, [onGroupModeChange, groupMode, user, countryId, currentFilters.categories, currentFilters.sort, currentFilters.types, sortOptions]);
 
   return (
     <div className={cn(
@@ -440,7 +353,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         currentFilters={currentFilters}
         isLoading={isLoading || loading}
         className={className}
-        onSaveFilters={handleSaveFilters}
         viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
         groupMode={groupMode}
