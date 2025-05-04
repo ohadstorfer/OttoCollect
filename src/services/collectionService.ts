@@ -204,6 +204,8 @@ export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): 
   types: { id: string; name: string; count: number }[];
 }> {
   try {
+    console.log("[fetchBanknoteCategoriesAndTypes] Processing collection items:", items.length);
+    
     // Extract unique categories and types from collection items
     const categoriesMap = new Map<string, { id: string; name: string; count: number }>();
     const typesMap = new Map<string, { id: string; name: string; count: number }>();
@@ -211,15 +213,17 @@ export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): 
     // Process each item to count categories and types
     items.forEach(item => {
       if (item.banknote?.category) {
-        const categoryId = item.banknote.category;
-        const categoryName = item.banknote.category; // Using category name as ID for now
+        const categoryName = item.banknote.category;
+        // Generate a deterministic UUID-like ID based on the category name
+        // This ensures the same name always gets the same ID
+        const categoryId = generateStableIdFromName(categoryName);
         
-        if (categoriesMap.has(categoryId)) {
-          const category = categoriesMap.get(categoryId)!;
+        if (categoriesMap.has(categoryName)) {
+          const category = categoriesMap.get(categoryName)!;
           category.count++;
-          categoriesMap.set(categoryId, category);
+          categoriesMap.set(categoryName, category);
         } else {
-          categoriesMap.set(categoryId, {
+          categoriesMap.set(categoryName, {
             id: categoryId,
             name: categoryName,
             count: 1
@@ -228,15 +232,16 @@ export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): 
       }
       
       if (item.banknote?.type) {
-        const typeId = item.banknote.type;
-        const typeName = item.banknote.type; // Using type name as ID for now
+        const typeName = item.banknote.type;
+        // Generate a deterministic UUID-like ID based on the type name
+        const typeId = generateStableIdFromName(typeName);
         
-        if (typesMap.has(typeId)) {
-          const type = typesMap.get(typeId)!;
+        if (typesMap.has(typeName)) {
+          const type = typesMap.get(typeName)!;
           type.count++;
-          typesMap.set(typeId, type);
+          typesMap.set(typeName, type);
         } else {
-          typesMap.set(typeId, {
+          typesMap.set(typeName, {
             id: typeId,
             name: typeName,
             count: 1
@@ -252,11 +257,36 @@ export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): 
     const types = Array.from(typesMap.values())
       .sort((a, b) => b.count - a.count);
     
+    console.log("[fetchBanknoteCategoriesAndTypes] Generated categories:", categories);
+    console.log("[fetchBanknoteCategoriesAndTypes] Generated types:", types);
+    
     return { categories, types };
   } catch (error) {
     console.error("Error extracting categories and types:", error);
     return { categories: [], types: [] };
   }
+}
+
+/**
+ * Generates a stable ID based on a string name
+ * This creates a deterministic UUID-like string that will be the same for the same input
+ * @param name The string to generate an ID from
+ * @returns A UUID-like string
+ */
+function generateStableIdFromName(name: string): string {
+  // Simple hash function to get a number from a string
+  let hash = 0;
+  if (name.length === 0) return uuidv4();
+  
+  for (let i = 0; i < name.length; i++) {
+    const char = name.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  // Convert the hash to a hex string and use it as part of a UUID format
+  const hashString = Math.abs(hash).toString(16).padStart(8, '0');
+  return `${hashString}-${hashString.substr(0, 4)}-4${hashString.substr(4, 3)}-${hashString.substr(7, 4)}-${hashString.substr(0, 12)}`;
 }
 
 export async function fetchCollectionItem(itemId: string): Promise<CollectionItem | null> {
@@ -671,10 +701,21 @@ export async function saveCollectionFilterPreferences(
   types: string[],
   sortOptions: string[],
   groupMode: boolean
-) {
+): Promise<boolean> {
   try {
     console.log("[saveCollectionFilterPreferences] Saving preferences:", {
       userId, countryId, categories, types, sortOptions, groupMode
+    });
+    
+    // Validate that we have valid UUIDs
+    const validatedCategories = categories.filter(id => isValidUuid(id));
+    const validatedTypes = types.filter(id => isValidUuid(id));
+    const validatedSortOptions = sortOptions.filter(id => isValidUuid(id));
+    
+    console.log("[saveCollectionFilterPreferences] After validation:", {
+      categoriesBefore: categories.length, categoriesAfter: validatedCategories.length,
+      typesBefore: types.length, typesAfter: validatedTypes.length,
+      sortBefore: sortOptions.length, sortAfter: validatedSortOptions.length
     });
     
     // First check if a record already exists
@@ -695,9 +736,9 @@ export async function saveCollectionFilterPreferences(
       const { error: updateError } = await supabase
         .from('user_filter_preferences')
         .update({
-          selected_categories: categories,
-          selected_types: types,
-          selected_sort_options: sortOptions,
+          selected_categories: validatedCategories,
+          selected_types: validatedTypes,
+          selected_sort_options: validatedSortOptions,
           group_mode: groupMode,
           updated_at: new Date().toISOString()
         })
@@ -714,9 +755,9 @@ export async function saveCollectionFilterPreferences(
         .insert({
           user_id: userId,
           country_id: countryId,
-          selected_categories: categories,
-          selected_types: types,
-          selected_sort_options: sortOptions,
+          selected_categories: validatedCategories,
+          selected_types: validatedTypes,
+          selected_sort_options: validatedSortOptions,
           group_mode: groupMode
         });
         
@@ -732,4 +773,13 @@ export async function saveCollectionFilterPreferences(
     console.error("[saveCollectionFilterPreferences] Error:", error);
     return false;
   }
+}
+
+/**
+ * Checks if a string is a valid UUID
+ * @param id The string to check
+ * @returns True if the string is a valid UUID, false otherwise
+ */
+function isValidUuid(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 }
