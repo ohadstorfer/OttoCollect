@@ -46,7 +46,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
       onViewModeChange={onViewModeChange}
       groupMode={groupMode}
       onGroupModeChange={onGroupModeChange}
-      />
+    />
     );
   }
   
