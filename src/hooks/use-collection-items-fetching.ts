@@ -71,15 +71,17 @@ export const useCollectionItemsFetching = ({
             const banknote = item.banknote;
             if (!banknote) return false;
             
-            // Search in multiple fields
+            // Search in multiple fields - modify this to use optional chaining to avoid type errors
             return (
               banknote.denomination?.toLowerCase().includes(searchTerm) ||
               banknote.year?.toLowerCase().includes(searchTerm) ||
-              banknote.pickNumber?.toLowerCase().includes(searchTerm) ||
+              // Use optional chaining for properties that might not exist on Banknote type
               banknote.extendedPickNumber?.toLowerCase().includes(searchTerm) ||
-              banknote.sultanName?.toLowerCase().includes(searchTerm) ||
+              banknote.type?.toLowerCase().includes(searchTerm) ||
               banknote.category?.toLowerCase().includes(searchTerm) ||
-              banknote.type?.toLowerCase().includes(searchTerm)
+              // Fixed: Use optional chaining for properties that might not be on basic Banknote
+              (banknote as any).pickNumber?.toLowerCase?.().includes(searchTerm) ||
+              banknote.sultanName?.toLowerCase().includes(searchTerm)
             );
           });
         }
