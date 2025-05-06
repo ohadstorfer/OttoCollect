@@ -1,96 +1,143 @@
-
 import { DetailedBanknote } from "@/types";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 
-export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | null> {
-  console.log(`fetchBanknoteById: Starting fetch for banknote ID ${id}`);
-  
+const ITEMS_PER_PAGE = 12;
+
+export const fetchBanknotes = async (
+  countryId: string,
+  currentPage: number = 1,
+  search?: string,
+  categories?: string[],
+  types?: string[],
+  sort?: string[]
+) => {
   try {
-    const { data, error } = await supabase
-      .from('detailed_banknotes')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-    if (error) {
-      console.error(`Error fetching banknote with ID ${id}:`, error);
+    let whereClause = {
+      country_id: countryId,
+      is_approved: true,
+    } as any;
+
+    if (search) {
+      whereClause.OR = [
+        { denomination: { contains: search, mode: "insensitive" } },
+        { year: { contains: search, mode: "insensitive" } },
+        { series: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { extended_pick_number: { contains: search, mode: "insensitive" } },
+        { type: { contains: search, mode: "insensitive" } },
+        { category: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    if (categories && categories.length > 0) {
+      whereClause.category = {
+        in: categories,
+      };
+    }
+
+    if (types && types.length > 0) {
+      whereClause.type = {
+        in: types,
+      };
+    }
+
+    const [banknotes, totalCount] = await Promise.all([
+      db.banknote.findMany({
+        where: whereClause,
+        orderBy: sort && sort.length > 0 ? sort.map((sortKey) => {
+          if (sortKey === 'year') {
+            return { year: 'asc' };
+          } else if (sortKey === 'denomination') {
+            return { denomination: 'asc' };
+          } else if (sortKey === 'sultan') {
+            return { sultan_name: 'asc' };
+          } else {
+            return { extended_pick_number: 'asc' };
+          }
+        }) : { extended_pick_number: 'asc' },
+        skip: offset,
+        take: ITEMS_PER_PAGE,
+      }),
+      db.banknote.count({
+        where: whereClause,
+      }),
+    ]);
+
+    const pageCount = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+    return {
+      data: banknotes,
+      pageCount,
+      totalCount,
+    };
+  } catch (error) {
+    console.error("Error fetching banknotes:", error);
+    return {
+      data: [],
+      pageCount: 0,
+      totalCount: 0,
+    };
+  }
+};
+
+export const fetchBanknoteDetailsById = async (banknoteId: string): Promise<DetailedBanknote | null> => {
+  try {
+    const banknote = await db.banknote.findUnique({
+      where: {
+        id: banknoteId,
+      },
+    });
+
+    if (!banknote) {
       return null;
     }
 
-    console.log(`fetchBanknoteById: Raw data from database:`, data);
-
-    // Transform the data to match DetailedBanknote interface with camelCase properties
-    const banknote: DetailedBanknote = {
-      id: data.id,
-      catalogId: data.id, // Using same ID as catalogId for now
-      country: data.country || 'Unknown Country',
-      denomination: data.face_value || 'Unknown Denomination',
-      year: data.gregorian_year || data.islamic_year || '',
-      series: data.category || '',
-      description: data.banknote_description || '',
-      imageUrls: [], // Initialize as empty array - this will be populated below
-      isApproved: data.is_approved || false,
-      isPending: data.is_pending || false,
-      createdAt: data.created_at || new Date().toISOString(),
-      updatedAt: data.updated_at || new Date().toISOString(),
-      pickNumber: data.pick_number || '',
-      turkCatalogNumber: data.turk_catalog_number || '',
-      sultanName: data.sultan_name || '',
-      sealNames: data.seal_names || '',
-      rarity: data.rarity || '',
-      printer: data.printer || '',
-      type: data.type || 'Issued note',
-      category: data.category || '',
-      securityFeatures: [],
-      watermark: data.watermark_picture || '',
-      signatures: [data.signatures_front, data.signatures_back].filter(Boolean) as string[],
-      colors: data.colors || '',
-      islamicYear: data.islamic_year || '',
-      gregorianYear: data.gregorian_year || '',
-      banknoteDescription: data.banknote_description || '',
-      historicalDescription: data.historical_description || '',
-      serialNumbering: data.serial_numbering || '',
-      securityElement: data.security_element || '',
-      signaturesFront: data.signatures_front || '',
-      signaturesBack: data.signatures_back || '',
-      extendedPickNumber: data.extended_pick_number || '',
-    };
-
-    // Handle images correctly as an array
-    if (data.front_picture) {
-      banknote.imageUrls.push(data.front_picture);
-    }
-    
-    if (data.back_picture) {
-      banknote.imageUrls.push(data.back_picture);
-    }
-
-    console.log(`fetchBanknoteById: Transformed banknote data:`, {
+    // Convert the database object to the desired DetailedBanknote format
+    const detailedBanknote: DetailedBanknote = {
       id: banknote.id,
-      catalogId: banknote.catalogId,
-      country: banknote.country,
+      catalogId: banknote.catalog_id,
+      country: banknote.country_id,
       denomination: banknote.denomination,
       year: banknote.year,
-      imageUrls: banknote.imageUrls,
-      imageUrlsType: Array.isArray(banknote.imageUrls) ? 'array' : 'string',
-      type: banknote.type,
-      category: banknote.category
-    });
+      series: banknote.series || undefined,
+      description: banknote.description || undefined,
+      obverseDescription: banknote.obverse_description || undefined,
+      reverseDescription: banknote.reverse_description || undefined,
+      imageUrls: [banknote.front_picture, banknote.back_picture].filter(Boolean),
+      isApproved: banknote.is_approved,
+      isPending: banknote.is_pending,
+      createdAt: banknote.created_at.toISOString(),
+      updatedAt: banknote.updated_at.toISOString(),
+      pickNumber: banknote.pick_number || undefined,
+      turkCatalogNumber: banknote.turk_catalog_number || undefined,
+      sultanName: banknote.sultan_name || undefined,
+      sealNames: banknote.seal_names || undefined,
+      rarity: banknote.rarity || undefined,
+      printer: banknote.printer || undefined,
+      type: banknote.type || undefined,
+      category: banknote.category || undefined,
+      securityFeatures: banknote.security_features ? JSON.parse(banknote.security_features) : undefined,
+      watermark: banknote.watermark || undefined,
+      signatures: banknote.signatures ? JSON.parse(banknote.signatures) : undefined,
+      colors: banknote.colors ? JSON.parse(banknote.colors) : undefined,
+      gradeCounts: banknote.grade_counts ? JSON.parse(banknote.grade_counts) : undefined,
+      averagePrice: banknote.average_price || undefined,
+      islamicYear: banknote.islamic_year || undefined,
+      gregorianYear: banknote.gregorian_year || undefined,
+      banknoteDescription: banknote.banknote_description || undefined,
+      historicalDescription: banknote.historical_description || undefined,
+      serialNumbering: banknote.serial_numbering || undefined,
+      securityElement: banknote.security_element || undefined,
+      signaturesFront: banknote.signatures_front || undefined,
+      signaturesBack: banknote.signatures_back || undefined,
+      extendedPickNumber: banknote.extended_pick_number || undefined,
+    };
 
-    return banknote;
+    return detailedBanknote;
   } catch (error) {
-    console.error("Error in fetchBanknoteById:", error);
+    console.error("Error fetching banknote details:", error);
     return null;
   }
-}
-
-/**
- * Normalizes image URLs to always return an array of strings
- * @param imageUrls String, array of strings, or null/undefined
- * @returns Array of strings
- */
-export const normalizeImageUrls = (imageUrls: string | string[] | null | undefined): string[] => {
-  if (!imageUrls) return [];
-  if (typeof imageUrls === 'string') return [imageUrls];
-  return imageUrls;
 };
