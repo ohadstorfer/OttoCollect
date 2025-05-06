@@ -10,6 +10,7 @@ import { useCollectionItemsFetching } from "@/hooks/use-collection-items-fetchin
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { useEffect } from "react";
+import { BanknoteDisplayCollection } from "@/components/country/BanknoteDisplayCollection";
 
 const CountryDetailCollection = () => {
   const { country } = useParams();
@@ -102,7 +103,7 @@ const CountryDetailCollection = () => {
           source="collection"
         />
 
-        <BanknoteDisplay
+        <BanknoteDisplayCollection
           groups={groupedItems}
           showSultanGroups={filters.sort.includes('sultan')}
           viewMode={viewMode}
