@@ -1,13 +1,13 @@
 
 import React from "react";
-import { CollectionItem } from "@/types";
-import { CollectionItemsGroups } from "@/components/collection/CollectionItemsGroups";
+import { DetailedBanknote } from "@/types";
+import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 
-interface CollectionItemsDisplayProps {
+interface BanknoteDisplayProps {
   groups: {
     category: string;
-    items: CollectionItem[];
-    sultanGroups?: { sultan: string; items: CollectionItem[] }[];
+    items: DetailedBanknote[];
+    sultanGroups?: { sultan: string; items: DetailedBanknote[] }[];
   }[];
   showSultanGroups: boolean;
   viewMode: 'grid' | 'list';
@@ -16,7 +16,7 @@ interface CollectionItemsDisplayProps {
   groupMode: boolean;
 }
 
-export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
+export const CollectionItemsDisplay: React.FC<BanknoteDisplayProps> = ({
   groups,
   showSultanGroups,
   viewMode,
@@ -24,14 +24,6 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
   isLoading,
   groupMode
 }) => {
-  // Function to update collection items after changes
-  const handleUpdate = async () => {
-    // In a real implementation, we would call a function from props
-    // that refreshes the collection data
-    console.log("Collection update requested");
-    return Promise.resolve();
-  };
-
   return (
     <div className="mt-6">
       {isLoading ? (
@@ -40,18 +32,17 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
         </div>
       ) : groups.length === 0 ? (
         <div className="text-center py-8">
-          <h3 className="text-xl font-medium mb-4">No collection items found</h3>
+          <h3 className="text-xl font-medium mb-4">No banknotes found</h3>
           <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
         </div>
       ) : (
-        <CollectionItemsGroups
+        <BanknoteGroups
           groups={groups}
           showSultanGroups={showSultanGroups}
           viewMode={viewMode}
           countryId={countryId}
           isLoading={isLoading}
           groupMode={groupMode}
-          onUpdate={handleUpdate}
         />
       )}
     </div>

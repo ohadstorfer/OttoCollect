@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
 import { CountryHeader } from "@/components/country/CountryHeader";
 import { CountryFilterSection } from "@/components/country/CountryFilterSection";
+import { BanknoteDisplay } from "@/components/country/BanknoteDisplay";
 import { useCountryData } from "@/hooks/use-country-data";
 import { useCollectionItemsFetching } from "@/hooks/use-collection-items-fetching";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
@@ -43,7 +44,7 @@ const CountryDetailCollection = () => {
     navigate 
   });
 
-  // Use the collection items fetching hook
+  // Use the new collection items fetching hook
   const { collectionItems, loading: collectionItemsLoading } = useCollectionItemsFetching({
     countryId,
     filters
@@ -67,46 +68,11 @@ const CountryDetailCollection = () => {
     sortFields: filters.sort
   });
 
-  // Transform the sorted detailed banknotes back to collection items
-  const sortedCollectionItemsWithData = sortedCollectionItems.map(sortedBanknote => {
-    // Find the original collection item for this banknote
-    const originalItem = collectionItems.find(item => item.banknoteId === sortedBanknote.id);
-    if (!originalItem) {
-      console.error("Could not find original collection item for banknote ID:", sortedBanknote.id);
-      return null;
-    }
-    return originalItem;
-  }).filter(Boolean) as any[]; // Filter out any null values
-
   const groupedItems = useBanknoteGroups(
     sortedCollectionItems, 
     filters.sort, 
     categoryOrder
   );
-
-  // Convert grouped banknotes to grouped collection items
-  const groupedCollectionItems = groupedItems.map(group => {
-    // Map each banknote in the group to its corresponding collection item
-    const collectionItemsInGroup = group.items.map(banknote => {
-      const collectionItem = collectionItems.find(item => item.banknoteId === banknote.id);
-      return collectionItem;
-    }).filter(Boolean) as any[];
-    
-    // Process sultan groups if they exist
-    const sultanGroups = group.sultanGroups?.map(sultanGroup => ({
-      sultan: sultanGroup.sultan,
-      items: sultanGroup.items.map(banknote => {
-        const collectionItem = collectionItems.find(item => item.banknoteId === banknote.id);
-        return collectionItem;
-      }).filter(Boolean) as any[]
-    }));
-
-    return {
-      category: group.category,
-      items: collectionItemsInGroup,
-      sultanGroups: sultanGroups
-    };
-  });
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     setFilters(prev => ({
@@ -138,7 +104,7 @@ const CountryDetailCollection = () => {
         />
 
         <CollectionItemsDisplay
-          groups={groupedCollectionItems}
+          groups={groupedItems}
           showSultanGroups={filters.sort.includes('sultan')}
           viewMode={viewMode}
           countryId={countryId}
