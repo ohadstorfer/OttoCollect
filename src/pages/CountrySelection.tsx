@@ -48,7 +48,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
   }, [countries, searchTerm]);
 
   const handleCountrySelect = (countryId: string) => {
-    navigate(`/collection/${countryId}`);
+    navigate(`/collectionNew/${countryId}`);
   };
 
   if (!user) {

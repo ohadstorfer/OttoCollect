@@ -31,6 +31,7 @@ import { PageBackground } from "./components/ui/page-background";
 import { useTheme } from "./context/ThemeContext";
 import { useAuth } from "./context/AuthContext";
 import "./App.css";
+import CountryDetailCollection from "./pages/CountryDetailCollection";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +61,7 @@ function App() {
             <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
             <Route path="/profile/:username" element={<Profile />} />
             <Route path="/collection" element={<CountrySelection />} />
+            <Route path="/collectionNew/:country" element={<CountryDetailCollection />} />
             <Route path="/collection/:countryId" element={<Collection />} />
             <Route path="/collection-item/:id" element={<CollectionItem />} />
             <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail />} />
