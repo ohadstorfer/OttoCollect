@@ -16,7 +16,7 @@ interface BanknoteDisplayProps {
   groupMode: boolean;
 }
 
-export const BanknoteDisplayCollection: React.FC<BanknoteDisplayProps> = ({
+export const CollectionItemsDisplay: React.FC<BanknoteDisplayProps> = ({
   groups,
   showSultanGroups,
   viewMode,
