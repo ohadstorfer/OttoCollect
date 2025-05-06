@@ -2,12 +2,11 @@
 import React, { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
-import { cn } from "@/lib/utils";
 import { CountryHeader } from "@/components/country/CountryHeader";
 import { CountryFilterSection } from "@/components/country/CountryFilterSection";
 import { BanknoteDisplay } from "@/components/country/BanknoteDisplay";
 import { useCountryData } from "@/hooks/use-country-data";
-import { useBanknoteFetching } from "@/hooks/use-banknote-fetching";
+import { useCollectionItemsFetching } from "@/hooks/use-collection-items-fetching";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { useEffect } from "react";
@@ -44,19 +43,32 @@ const CountryDetailCollection = () => {
     navigate 
   });
 
-  const { banknotes, loading: banknotesLoading } = useBanknoteFetching({
+  // Use the new collection items fetching hook
+  const { collectionItems, loading: collectionItemsLoading } = useCollectionItemsFetching({
     countryId,
     filters
   });
 
-  const sortedBanknotes = useBanknoteSorting({
-    banknotes,
+  // Map collection items to a format compatible with the sorting hook
+  const collectionItemsForSorting = collectionItems.map(item => ({
+    ...item.banknote,
+    collectionData: {
+      id: item.id,
+      condition: item.condition,
+      purchaseDate: item.purchaseDate,
+      isForSale: item.isForSale,
+      salePrice: item.salePrice
+    }
+  }));
+
+  const sortedCollectionItems = useBanknoteSorting({
+    banknotes: collectionItemsForSorting,
     currencies,
     sortFields: filters.sort
   });
 
   const groupedItems = useBanknoteGroups(
-    sortedBanknotes, 
+    sortedCollectionItems, 
     filters.sort, 
     categoryOrder
   );
@@ -72,7 +84,7 @@ const CountryDetailCollection = () => {
     setViewMode(mode);
   };
 
-  const isLoading = countryLoading || banknotesLoading;
+  const isLoading = countryLoading || collectionItemsLoading;
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
@@ -87,6 +99,7 @@ const CountryDetailCollection = () => {
           onViewModeChange={handleViewModeChange}
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
+          source="collection"
         />
 
         <BanknoteDisplay

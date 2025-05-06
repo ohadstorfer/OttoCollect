@@ -2,9 +2,10 @@
 import { useMemo } from 'react';
 import { DetailedBanknote } from '@/types';
 import { Currency } from '@/types/banknote';
+import { BanknoteCondition } from '@/types';
 
 interface UseBanknoteSortingProps {
-  banknotes: DetailedBanknote[];
+  banknotes: (DetailedBanknote | any)[];
   currencies: Currency[];
   sortFields: string[];
 }
@@ -15,7 +16,7 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
     
     return [...banknotes].sort((a, b) => {
       // Get currency info for both banknotes
-      const getCurrencyInfo = (note: DetailedBanknote) => {
+      const getCurrencyInfo = (note: DetailedBanknote | any) => {
         const denomination = note.denomination?.toLowerCase() || '';
         return currencies.find(c => 
           denomination.includes(c.name.toLowerCase())
@@ -30,12 +31,8 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
         const orderDiff = currencyA.display_order - currencyB.display_order;
         if (orderDiff !== 0) return orderDiff;
       }
-
-      // We don't need to sort by face value explicitly here, as the banknotes are 
-      // already pre-sorted by the extended_pick_number in the database, which 
-      // inherently sorts by the numeric value correctly
       
-      // Only apply additional sorts if they are specifically requested
+      // Apply sorts based on requested fields
       for (const fieldName of sortFields) {
         let comparison = 0;
 
@@ -50,7 +47,7 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
             break;
             
           case "faceValue":
-            // Apply face value sorting only if explicitly requested
+            // Apply face value sorting if explicitly requested
             const extractNumericValue = (value: string) => {
               const match = value.match(/(\d+(\.\d+)?)/);
               return match ? parseFloat(match[0]) : 0;
@@ -66,6 +63,35 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
             if ('createdAt' in a && 'createdAt' in b) {
               const dateA = new Date(a.createdAt).getTime();
               const dateB = new Date(b.createdAt).getTime();
+              comparison = dateB - dateA;
+            }
+            break;
+            
+          case "condition":
+            // Sort by condition (for collection items)
+            if (a.collectionData?.condition && b.collectionData?.condition) {
+              const conditionOrder: Record<BanknoteCondition, number> = {
+                'UNC': 1,
+                'AU': 2,
+                'XF': 3,
+                'VF': 4,
+                'F': 5,
+                'VG': 6,
+                'G': 7,
+                'Fair': 8,
+                'Poor': 9
+              };
+              const conditionA = conditionOrder[a.collectionData.condition as BanknoteCondition] || 10;
+              const conditionB = conditionOrder[b.collectionData.condition as BanknoteCondition] || 10;
+              comparison = conditionA - conditionB;
+            }
+            break;
+            
+          case "purchaseDate":
+            // Sort by purchase date (for collection items)
+            if (a.collectionData?.purchaseDate && b.collectionData?.purchaseDate) {
+              const dateA = new Date(a.collectionData.purchaseDate).getTime();
+              const dateB = new Date(b.collectionData.purchaseDate).getTime();
               comparison = dateB - dateA;
             }
             break;
