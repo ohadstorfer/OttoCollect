@@ -36,7 +36,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   }, [onFilterChange]);
 
   // Decide which filter component to render based on source
-  if (source === 'collection' || 'CountryDetailCollection') {
+  if (source === 'collection') {
     return (
       <BanknoteFilterCollection
       countryId={countryId}
