@@ -49,8 +49,6 @@ const Collection = () => {
     sort: ['extPick']
   });
   
-
-  
   // Load country information if countryId is provided
   useEffect(() => {
     if (countryId) {
