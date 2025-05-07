@@ -1,57 +1,17 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchBanknoteDetail } from "@/services/banknoteService";
-import { fetchUserCollection } from "@/services/collectionService";
+import { fetchCollectionItem } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
-import { BanknoteDetailSource } from "@/types";
 import type { CollectionItem as CollectionItemType } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { toast } from "sonner";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
-
-import { 
-  Calendar, 
-  BookOpen, 
-  Users, 
-  PenTool, 
-  Stamp, 
-  Hash, 
-  Shield, 
-  ArrowLeft, 
-  Info, 
-  Star, 
-  DollarSign, 
-  ImagePlus, 
-  FileText,
-  GalleryHorizontal,
-  GalleryVertical,
-  Image,
-  User,
-  Tag,
-  Banknote as BanknoteIcon,
-  Map,
-  History,
-  Building,
-  Clock,
-  CheckCircle,
-  ShieldCheck,
-  Palette,
-  Fingerprint,
-  CircleDashed,
-  Signature,
-  CircleDollarSign,
-  StarOff
-} from "lucide-react";
+import { ArrowLeft, Star, ImagePlus } from "lucide-react";
 
 interface LabelValuePairProps {
   label: string;
@@ -80,31 +40,13 @@ export default function CollectionItem() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [collectionItem, setCollectionItem] = useState<CollectionItemType | null>(null);
 
-  const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
-    queryKey: ["banknoteDetail", id],
-    queryFn: () => fetchBanknoteDetail(id || ""),
+  // Fetch collection item directly by ID
+  const { data: collectionItem, isLoading, isError } = useQuery({
+    queryKey: ["collectionItem", id],
+    queryFn: () => fetchCollectionItem(id || ""),
     enabled: !!id,
   });
-
-  const { data: userCollection, isLoading: collectionLoading } = useQuery({
-    queryKey: ["userCollection", user?.id],
-    queryFn: () => user ? fetchUserCollection(user.id) : Promise.resolve([]),
-    enabled: !!user,
-  });
-
-  useEffect(() => {
-    if (user && userCollection && banknote) {
-      const foundItem = userCollection.find(item => item.banknoteId === banknote.id);
-      if (foundItem) {
-        setCollectionItem(foundItem);
-      }
-    }
-  }, [user, userCollection, banknote]);
-
-  const isLoading = banknoteLoading || collectionLoading;
-  const isInCollection = !!collectionItem;
 
   if (isLoading) {
     return (
@@ -120,13 +62,13 @@ export default function CollectionItem() {
     );
   }
 
-  if (banknoteError || !banknote) {
+  if (isError || !collectionItem) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4">Error Loading Banknote</h2>
+          <h2 className="text-2xl font-serif mb-4">Error Loading Collection Item</h2>
           <p className="mb-6 text-muted-foreground">
-            We couldn't load the banknote details. Please try again later.
+            We couldn't load the collection item details. Please try again later.
           </p>
           <Button onClick={() => navigate(-1)}>Go Back</Button>
         </div>
@@ -134,13 +76,14 @@ export default function CollectionItem() {
     );
   }
 
-  if (!isInCollection) {
+  // Ensure the user is the owner of the collection item
+  if (user?.id !== collectionItem.userId) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4">Not in Collection</h2>
+          <h2 className="text-2xl font-serif mb-4">Not Authorized</h2>
           <p className="mb-6 text-muted-foreground">
-            This banknote is not in your collection.
+            You don't have permission to view this collection item.
           </p>
           <Button onClick={() => navigate(-1)}>Go Back</Button>
         </div>
@@ -162,9 +105,11 @@ export default function CollectionItem() {
         </Button>
         
         <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="text-sm font-medium px-3 py-1">
-            {banknote.catalogId}
-          </Badge>
+          {collectionItem.banknote.catalogId && (
+            <Badge variant="outline" className="text-sm font-medium px-3 py-1">
+              {collectionItem.banknote.catalogId}
+            </Badge>
+          )}
           {collectionItem.isForSale && (
             <Badge variant="destructive" className="text-sm font-medium px-3 py-1">
               For Sale
@@ -176,10 +121,12 @@ export default function CollectionItem() {
       <div className="flex flex-col space-y-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            {banknote.denomination}
+            {collectionItem.banknote.denomination}
             <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
           </h1>
-          <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
+          <p className="text-xl text-muted-foreground">
+            {collectionItem.banknote.country}, {collectionItem.banknote.year}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -228,7 +175,10 @@ export default function CollectionItem() {
               <CardContent className="p-0">
                 <CollectionItemForm 
                   collectionItem={collectionItem} 
-                  onUpdate={(updatedItem) => setCollectionItem(updatedItem)}
+                  onUpdate={(updatedItem) => toast({
+                    title: "Collection Updated",
+                    description: "Your collection item has been updated successfully.",
+                  })}
                 />
               </CardContent>
             </Card>
