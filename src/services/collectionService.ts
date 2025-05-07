@@ -132,139 +132,70 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
  * Fetches user's collection items filtered by country
  * @param userId The user ID
  * @param countryId The country ID to filter by
- * @param filters Optional filters to apply
  * @returns Collection items for the specified country
  */
-export async function fetchUserCollectionByCountry(userId: string, countryId: string, filters?: DynamicFilterState): Promise<CollectionItem[]> {
-  console.log("CollectionService: Fetching user collection by country", { userId, countryId, filters });
+export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
   try {
-    // Start with a query to get collection items with their banknotes
-    let query = supabase
-      .from('collection_items')
-      .select(`
-        *,
-        banknote:detailed_banknotes!inner(*)
-      `)
-      .eq('user_id', userId);
-
-    // Filter by country using the banknote's country field
-    const { data: countryData, error: countryError } = await supabase
-      .from('countries')
-      .select('name')
-      .eq('id', countryId)
-      .single();
-
-    if (countryError) {
-      console.error("Error fetching country name:", countryError);
-      throw countryError;
-    }
-
-    if (!countryData) {
-      console.error("Country not found:", countryId);
+    console.log("[fetchUserCollectionByCountry] Starting fetch for:", { userId, countryId });
+    
+    // First get the country data to get the name
+    const country = await fetchCountryById(countryId);
+    
+    if (!country) {
+      console.error(`[fetchUserCollectionByCountry] Country not found with ID: ${countryId}`);
       return [];
     }
-
-    // Use country name for filtering
-    query = query.eq('banknote.country', countryData.name);
-
-    // Apply additional filters if they exist
-    if (filters) {
-      console.log("CollectionService: Applying filters", filters);
-
-      // Search filter
-      if (filters.search) {
-        const searchTerm = `%${filters.search.toLowerCase()}%`;
-        
-        // Searching in multiple fields
-        query = query.or(`
-          denomination.ilike.${searchTerm},
-          pick_number.ilike.${searchTerm},
-          extended_pick_number.ilike.${searchTerm},
-          series.ilike.${searchTerm},
-          type.ilike.${searchTerm}
-        `);
-      }
-
-      // Category filter
-      if (filters.categories && filters.categories.length > 0) {
-        // Need to filter after fetch due to complex matching
-      }
-
-      // Type filter
-      if (filters.types && filters.types.length > 0) {
-        // Need to filter after fetch due to complex matching
-      }
-    }
-
-    const { data: items, error } = await query;
-
-    if (error) {
-      console.error("Error fetching collection items:", error);
-      throw error;
-    }
-
-    if (!items || items.length === 0) {
-      console.log("No collection items found for this country");
+    
+    console.log(`[fetchUserCollectionByCountry] Found country: ${country.name} for ID: ${countryId}`);
+    
+    // Fetch all user's collection items
+    const allCollectionItems = await fetchUserCollection(userId);
+    
+    if (!allCollectionItems || allCollectionItems.length === 0) {
+      console.log("[fetchUserCollectionByCountry] No collection items found for user");
       return [];
     }
-
-    console.log(`Found ${items.length} collection items before post-filtering`);
-
-    // Post-fetch filtering for categories and types if needed
-    let filteredItems = items;
-
-    if (filters) {
-      // Filter by categories if needed
-      if (filters.categories && filters.categories.length > 0) {
-        filteredItems = filteredItems.filter(item => {
-          const series = item.banknote?.series?.toLowerCase();
-          if (!series) return false;
-          
-          // Check if any selected category matches the banknote series
-          return filters.categories.some(category => {
-            // Try to match by ID, normalized name, or direct comparison
-            return (
-              category.toLowerCase() === series.replace(/\s+/g, '-') || 
-              category.toLowerCase() === series
-            );
-          });
-        });
-        
-        console.log(`After category filtering: ${filteredItems.length} items`);
+    
+    console.log(`[fetchUserCollectionByCountry] Got ${allCollectionItems.length} collection items before filtering`);
+    
+    // Then filter by country name - this is important as the banknotes store country names, not IDs
+    const filteredItems = allCollectionItems.filter(item => {
+      const matchesCountry = item.banknote && item.banknote.country === country.name;
+      
+      if (!matchesCountry) {
+        console.log(`[fetchUserCollectionByCountry] Item ${item.id} has banknote country "${item.banknote?.country}" which doesn't match "${country.name}"`);
       }
-
-      // Filter by types if needed
-      if (filters.types && filters.types.length > 0) {
-        filteredItems = filteredItems.filter(item => {
-          const type = item.banknote?.type?.toLowerCase() || 'issued note'; // Default to issued note
-          if (!type) return false;
-          
-          // Check if any selected type matches the banknote type
-          return filters.types.some(selectedType => {
-            const normalizedType = selectedType.toLowerCase();
-            const normalizedItemType = type.toLowerCase();
-            
-            // Match by direct comparison or normalized form
-            return (
-              normalizedType === normalizedItemType ||
-              // Handle common variations
-              (normalizedType.includes('issued') && normalizedItemType.includes('issued')) ||
-              (normalizedType.includes('specimen') && normalizedItemType.includes('specimen')) ||
-              (normalizedType.includes('cancelled') && 
-                (normalizedItemType.includes('cancelled') || normalizedItemType.includes('annule')))
-            );
-          });
-        });
-        
-        console.log(`After type filtering: ${filteredItems.length} items`);
-      }
+      
+      return matchesCountry;
+    });
+    
+    console.log(`[fetchUserCollectionByCountry] Found ${filteredItems.length} items for country ${country.name} (ID: ${countryId})`);
+    
+    // Log the first item to debug
+    if (filteredItems.length > 0) {
+      const sampleItem = filteredItems[0];
+      console.log("[fetchUserCollectionByCountry] Sample filtered item:", {
+        id: sampleItem.id,
+        banknoteId: sampleItem.banknoteId,
+        banknote: {
+          id: sampleItem.banknote?.id,
+          country: sampleItem.banknote?.country,
+          denomination: sampleItem.banknote?.denomination,
+          year: sampleItem.banknote?.year,
+          imageUrls: sampleItem.banknote?.imageUrls
+        },
+        condition: sampleItem.condition,
+        images: {
+          obverseImage: sampleItem.obverseImage,
+          reverseImage: sampleItem.reverseImage
+        }
+      });
     }
-
-    console.log(`Returning ${filteredItems.length} collection items after filtering`);
+    
     return filteredItems;
-  } catch (err) {
-    console.error("Error in fetchUserCollectionByCountry:", err);
-    throw err;
+  } catch (error) {
+    console.error("[fetchUserCollectionByCountry] Error in fetchUserCollectionByCountry:", error);
+    return [];
   }
 }
 

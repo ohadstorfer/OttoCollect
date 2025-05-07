@@ -8,19 +8,16 @@ import { fetchBanknotesByCountryId } from "@/services/banknoteService";
 interface UseBanknoteFetchingProps {
   countryId: string;
   filters: DynamicFilterState;
-  skipInitialFetch?: boolean; // Add control for initial fetch
 }
 
 interface UseBanknoteFetchingResult {
   banknotes: DetailedBanknote[];
   loading: boolean;
-  fetchBanknotes: () => Promise<void>; // Expose function to trigger fetch manually
 }
 
 export const useBanknoteFetching = ({ 
   countryId, 
-  filters,
-  skipInitialFetch = false
+  filters 
 }: UseBanknoteFetchingProps): UseBanknoteFetchingResult => {
   const { toast } = useToast();
   const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
@@ -28,8 +25,7 @@ export const useBanknoteFetching = ({
   const isFetchingRef = useRef<boolean>(false);
   const lastFetchKey = useRef<string>("");
 
-  // Function to fetch banknotes that can be called manually
-  const fetchBanknotes = async () => {
+  useEffect(() => {
     // Skip empty countryId
     if (!countryId) return;
     
@@ -48,49 +44,43 @@ export const useBanknoteFetching = ({
       return;
     }
     
-    console.log("UseBanknoteFetching: Fetching banknotes with filters", { countryId, filters });
-    setLoading(true);
-    isFetchingRef.current = true;
+    const fetchBanknotesData = async () => {
+      console.log("CountryDetail: Fetching banknotes with filters", { countryId, filters });
+      setLoading(true);
+      isFetchingRef.current = true;
 
-    try {
-      const filterParams = {
-        search: filters.search,
-        categories: filters.categories,
-        types: filters.types,
-        sort: filters.sort
-      };
+      try {
+        const filterParams = {
+          search: filters.search,
+          categories: filters.categories,
+          types: filters.types,
+          sort: filters.sort
+        };
 
-      const data = await fetchBanknotesByCountryId(countryId, filterParams);
-      console.log("UseBanknoteFetching: Banknotes loaded:", data.length);
-      
-      // Only update state if component is still mounted
-      setBanknotes(data);
-      lastFetchKey.current = fetchKey;
-    } catch (error) {
-      console.error("UseBanknoteFetching: Error fetching banknotes:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load banknotes. Please try again later.",
-        variant: "destructive",
-      });
-      setBanknotes([]);
-    } finally {
-      setLoading(false);
-      isFetchingRef.current = false;
-    }
-  };
+        const data = await fetchBanknotesByCountryId(countryId, filterParams);
+        console.log("CountryDetail: Banknotes loaded:", data.length);
+        
+        // Only update state if component is still mounted
+        setBanknotes(data);
+        lastFetchKey.current = fetchKey;
+      } catch (error) {
+        console.error("CountryDetail: Error fetching banknotes:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load banknotes. Please try again later.",
+          variant: "destructive",
+        });
+        setBanknotes([]);
+      } finally {
+        setLoading(false);
+        isFetchingRef.current = false;
+      }
+    };
 
-  useEffect(() => {
-    // Skip initial fetch if requested
-    if (skipInitialFetch) {
-      console.log("UseBanknoteFetching: Skipping initial fetch as requested");
-      return;
-    }
-
-    fetchBanknotes();
+    fetchBanknotesData();
     // Note: groupMode is NOT included in the dependency array because changing groupMode
     // should not trigger a refetch of banknotes - it only affects how they are displayed
-  }, [countryId, filters, toast, skipInitialFetch]);
+  }, [countryId, filters, toast]);
 
-  return { banknotes, loading, fetchBanknotes };
+  return { banknotes, loading };
 };
