@@ -47,8 +47,8 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
     );
   }, [countries, searchTerm]);
 
-  const handleCountrySelect = (countryId: string) => {
-    navigate(`/collectionNew/${countryId}`);
+  const handleCountrySelect = (country: string) => {
+    navigate(`/collectionNew/${country}`);
   };
 
   if (!user) {
@@ -103,7 +103,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
               <Card 
                 key={country.id}
                 className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50 cursor-pointer"
-                onClick={() => handleCountrySelect(country.id)}
+                onClick={() => handleCountrySelect(country.name)}
               >
                 <div className="aspect-[4/3] overflow-hidden relative">
                   {country.imageUrl ? (
