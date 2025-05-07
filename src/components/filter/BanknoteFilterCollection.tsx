@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, memo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
@@ -232,8 +233,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   }, [countryId, user, onFilterChange, toast, onGroupModeChange]); // groupMode removed from dependencies
 
   const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
-    console.log("BanknoteFilterCollection: Filter change received:", newFilters);
-    
     if (newFilters.sort) {
       // Get only the required sort fields that must be included
       const requiredSortFields = sortOptions

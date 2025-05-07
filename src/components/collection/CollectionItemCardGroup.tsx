@@ -39,10 +39,9 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
     if (onClick) onClick(group);
   };
 
-  // Generate stack items with UNIQUE keys
+  // Generate stack items
   const stackItems = items.slice(0, 4).map((item, index) => ({
-    // Use a combination of item ID and index to ensure uniqueness
-    id: `${item.id || 'unknown'}-${index}`,
+    id: item.id || `stack-item-${index}`,
     content: (
       <Card className="w-full h-full shadow-md overflow-hidden">
         <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
@@ -70,11 +69,10 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
 
         <CardContent className="p-0">
           <div className="w-full">
-            {/* Use the current item's image if available, not always first item's image */}
-            {item.obverseImage || (item.banknote?.imageUrls && item.banknote.imageUrls.length > 0) ? (
+            {imageUrl ? (
               <AspectRatio ratio={4 / 2}>
                 <img
-                  src={item.obverseImage || (item.banknote?.imageUrls && item.banknote.imageUrls[0])}
+                  src={imageUrl}
                   alt={`Collection Item ${item.banknote?.extendedPickNumber || ''}`}
                   className="w-full h-full object-cover"
                 />

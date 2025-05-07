@@ -229,7 +229,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                             if (item.type === 'single' && item.collectionItem) {
                               return (
                                 <CollectionItemCard
-                                  key={`single-${sultanGroup.sultan}-${item.collectionItem.id || index}-${index}`}
+                                  key={`single-${sultanGroup.sultan}-${item.collectionItem.id || index}`}
                                   item={item.collectionItem}
                                   onEdit={() => {}} // We'll implement this later
                                   onUpdate={onUpdate}
@@ -239,7 +239,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                             } else if (item.type === 'group' && item.group) {
                               return (
                                 <CollectionItemCardGroup
-                                  key={`group-${sultanGroup.sultan}-${item.group.baseNumber}-${index}`}
+                                  key={`group-${sultanGroup.sultan}-${item.group.baseNumber}`}
                                   group={item.group}
                                   onClick={handleGroupClick}
                                 />
@@ -252,7 +252,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                         // Regular sultan display without collection item grouping
                         sultanGroup.items.map((item, index) => (
                           <CollectionItemCard
-                            key={`item-${group.category}-${sultanGroup.sultan}-${item.id}-${index}`}
+                            key={`item-${group.category}-${sultanGroup.sultan}-${index}`}
                             item={item}
                             onEdit={() => {}} // We'll implement this later
                             onUpdate={onUpdate}
@@ -285,7 +285,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                       if (item.type === 'single' && item.collectionItem) {
                         return (
                           <CollectionItemCard
-                            key={`single-${group.category}-${item.collectionItem.id || index}-${index}`}
+                            key={`single-${group.category}-${item.collectionItem.id || index}`}
                             item={item.collectionItem}
                             onEdit={() => {}} // We'll implement this later
                             onUpdate={onUpdate}
@@ -295,7 +295,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                       } else if (item.type === 'group' && item.group) {
                         return (
                           <CollectionItemCardGroup
-                            key={`group-${group.category}-${item.group.baseNumber}-${index}`}
+                            key={`group-${group.category}-${item.group.baseNumber}`}
                             group={item.group}
                             onClick={handleGroupClick}
                           />
@@ -308,7 +308,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                   // Normal display
                   group.items.map((item, index) => (
                     <CollectionItemCard
-                      key={`item-${group.category}-${item.id}-${index}`}
+                      key={`item-${group.category}-${index}`}
                       item={item}
                       onEdit={() => {}} // We'll implement this later
                       onUpdate={onUpdate}
@@ -336,6 +336,3 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
     </div>
   );
 };
-
-// Note: The CollectionItemsGroups component is quite large (339 lines).
-// Consider asking the user if they'd like to refactor it after these changes.
