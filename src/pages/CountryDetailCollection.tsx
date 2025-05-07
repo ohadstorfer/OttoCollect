@@ -49,6 +49,22 @@ const CountryDetailCollection = () => {
     filters
   });
 
+  // Add logging for debugging
+  useEffect(() => {
+    console.log("CountryDetailCollection: Current filters:", filters);
+    console.log("CountryDetailCollection: Fetched collection items:", collectionItems.length);
+    
+    if (collectionItems.length > 0) {
+      console.log("CountryDetailCollection: Sample item categories/types:", 
+        collectionItems.map(item => ({
+          id: item.id,
+          category: item.banknote?.category,
+          type: item.banknote?.type
+        }))
+      );
+    }
+  }, [filters, collectionItems]);
+
   // Map collection items to a format compatible with the sorting hook
   const collectionItemsForSorting = collectionItems.map(item => ({
     ...item.banknote,
@@ -109,6 +125,7 @@ const CountryDetailCollection = () => {
   });
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    console.log("CountryDetailCollection: Filter change:", newFilters);
     setFilters(prev => ({
       ...prev,
       ...newFilters
