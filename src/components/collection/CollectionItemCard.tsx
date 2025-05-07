@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -104,10 +103,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     return title;
   }
 
-  // Handle card click to navigate to banknote details
+  // Handle card click to navigate to collection item details
   const handleCardClick = () => {
-    if (item?.banknoteId) {
-      navigate(`/banknote-details/${item.banknoteId}`);
+    if (item?.id) {
+      navigate(`/collection-item/${item.id}`);
     }
   };
 
