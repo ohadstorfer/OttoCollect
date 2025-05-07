@@ -10,20 +10,27 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import {
-  ArrowLeft,
-  BookOpen,
-  Users,
-  PenTool,
-  Stamp,
-  Hash,
-  Shield,
-  Info
-} from "lucide-react";
-import { BanknoteDetailSource, BanknoteWithImages } from "@/types";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { 
+  Calendar, 
+  BookOpen, 
+  Users, 
+  PenTool, 
+  Stamp, 
+  Hash, 
+  Shield, 
+  ArrowLeft, 
+  Info, 
+  ImagePlus,
+  FileText,
+  Map,
+  History,
+  Building,
+  CircleDollarSign,
+  Star
+} from "lucide-react";
 
 interface LabelValuePairProps {
   label: string;
@@ -32,9 +39,11 @@ interface LabelValuePairProps {
   iconClassNames?: string;
 }
 
+
+
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
   if (!value) return null;
-
+  
   return (
     <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-1.5 py-1.5 border-b border-gray-100 last:border-0">
       <div className="text-right font-medium text-muted-foreground">{label}</div>
@@ -51,34 +60,19 @@ export default function BanknoteCatalogDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [source, setSource] = useState<BanknoteDetailSource>("catalog");
 
-  const { data: banknote, isLoading, isError } = useQuery({
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+  
+
+  const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
     queryFn: () => fetchBanknoteDetail(id || ""),
     enabled: !!id,
   });
 
-  useEffect(() => {
-    // Set page title based on banknote data
-    if (banknote) {
-      document.title = `${banknote.denomination} (${banknote.year}) - Ottoman Banknotes`;
-    } else {
-      document.title = "Banknote Details - Ottoman Banknotes";
-    }
-  }, [banknote]);
-
-  useEffect(() => {
-    // Determine source based on URL
-    const path = window.location.pathname;
-    if (path.includes("catalog-banknote")) {
-      setSource("catalog");
-    } else if (path.includes("banknote-details")) {
-      setSource("details");
-    }
-  }, []);
-
-  if (isLoading) {
+  if (banknoteLoading) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="flex justify-center py-12">
@@ -92,7 +86,7 @@ export default function BanknoteCatalogDetail() {
     );
   }
 
-  if (isError || !banknote) {
+  if (banknoteError || !banknote) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
@@ -106,49 +100,100 @@ export default function BanknoteCatalogDetail() {
     );
   }
 
+  if (user?.role !== 'Super Admin' && user?.role !== 'Admin' && banknote?.isPending) {
+    return (
+      <div className="page-container max-w-5xl mx-auto py-10">
+        <h1 className="page-title">Banknote Details</h1>
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="ottoman-card p-8 flex flex-col items-center">
+            <h2 className="text-2xl font-serif mb-4">Pending Approval</h2>
+            <p className="mb-6 text-muted-foreground">
+              This banknote is pending administrator approval.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);
   };
 
-  // Fix: Handle the case where imageUrls could be an array or a string
-  const displayImages = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : 
-    (banknote.imageUrls ? [banknote.imageUrls] : []);
+  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
+
+  const detailGroups = [
+    {
+      title: "Basic Information",
+      icon: <Info className="h-5 w-5" />,
+      fields: [
+        { label: "Denomination", value: banknote.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
+        { label: "Country", value: banknote.country, icon: <Map className="h-4 w-4" /> },
+        { label: "Islamic Year", value: banknote.islamicYear, icon: <Calendar className="h-4 w-4" /> },
+        { label: "Gregorian Year", value: banknote.gregorianYear, icon: <Calendar className="h-4 w-4" /> },
+        { label: "Category", value: banknote.category, icon: <Hash className="h-4 w-4" /> },
+        { label: "Type", value: banknote.type, icon: <FileText className="h-4 w-4" /> },
+        { label: "Sultan", value: banknote.sultanName, icon: <Users className="h-4 w-4" /> },
+        { label: "Pick Number", value: banknote.pickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Extended Pick", value: banknote.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Turkish Cat #", value: banknote.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Rarity", value: banknote.rarity, icon: <Star className="h-4 w-4" /> }
+      ]
+    },
+    
+      
+    {
+      title: "Production Details",
+      icon: <Building className="h-5 w-5" />,
+      fields: [
+        { label: "Printer", value: banknote.printer, icon: <PenTool className="h-4 w-4" /> },
+        { label: "Colors", value: banknote.colors, icon: <PenTool className="h-4 w-4" /> },
+        { label: "Serial Numbering", value: banknote.serialNumbering, icon: <Hash className="h-4 w-4" /> }
+      ]
+    },
+    {
+      title: "Security Features",
+      icon: <Shield className="h-5 w-5" />,
+      fields: [
+        { label: "Security Elements", value: banknote.securityElement, icon: <Shield className="h-4 w-4" /> },
+        { label: "Seal Names", value: banknote.sealNames, icon: <Stamp className="h-4 w-4" /> },
+        { label: "Front Signatures", value: banknote.signaturesFront, icon: <Hash className="h-4 w-4" /> },
+        { label: "Back Signatures", value: banknote.signaturesBack, icon: <Hash className="h-4 w-4" /> }
+      ]
+    }
+  ];
 
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Button>
-        
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="text-sm font-medium px-3 py-1">
-            {banknote.catalogId}
-          </Badge>
-          {banknote.rarity && (
-            <Badge variant="secondary" className="text-sm font-medium px-3 py-1">
-              {banknote.rarity}
-            </Badge>
-          )}
-        </div>
-      </div>
+      
       
       <div className="flex flex-col space-y-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold">{banknote.denomination}</h1>
-          <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            {banknote.denomination}
+          </h1>
+          <div className="flex items-center justify-between">
+            <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
+            <Button variant="outline" onClick={() => navigate(-1)}>
+            Back
+          </Button>
+          </div>
+          
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Banknote Images</CardTitle>
+                <CardTitle className="text-lg flex items-center">
+                  <ImagePlus className="h-5 w-5 mr-2" />
+                  Banknote Images
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 gap-3">
-                  {displayImages.length > 0 ? (
-                    displayImages.map((url, index) => (
+                <div className="grid grid-cols-2 gap-3">
+                  {imageUrls.length > 0 ? (
+                    imageUrls.slice(0, 4).map((url, index) => (
                       <div 
                         key={index} 
                         className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
@@ -164,193 +209,128 @@ export default function BanknoteCatalogDetail() {
                       </div>
                     ))
                   ) : (
-                    <div className="p-6 text-center bg-muted rounded-md">
+                    <div className="col-span-2 p-6 text-center bg-muted rounded-md">
                       <p className="text-muted-foreground">No images available</p>
                     </div>
                   )}
+                  
+                  {imageUrls.length > 4 && (
+                    <Sheet>
+                      <SheetTrigger asChild>
+                        <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
+                          <span className="text-lg font-medium">+{imageUrls.length - 4} more</span>
+                        </div>
+                      </SheetTrigger>
+                      <SheetContent className="w-[90%] sm:max-w-lg">
+                        <SheetHeader>
+                          <SheetTitle>All Banknote Images</SheetTitle>
+                          <SheetDescription>
+                            {banknote.country}, {banknote.denomination}, {banknote.year}
+                          </SheetDescription>
+                        </SheetHeader>
+                        <div className="grid grid-cols-2 gap-4 mt-8">
+                          {imageUrls.map((url, index) => (
+                            <div 
+                              key={index} 
+                              className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => openImageViewer(url)}
+                            >
+                              <div className="absolute inset-0 rounded-md overflow-hidden border">
+                                <img
+                                  src={url}
+                                  alt={`Banknote Image ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  )}
                 </div>
               </CardContent>
             </Card>
-
-            {user && (
-              <div className="flex flex-col space-y-2 mt-4">
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate(`/add-to-collection/${id}`)}
-                >
-                  Add to My Collection
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate(`/add-to-wishlist/${id}`)}
-                >
-                  Add to Wishlist
-                </Button>
-              </div>
-            )}
           </div>
           
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <BookOpen className="h-5 w-5 mr-2" /> Banknote Details
-                </CardTitle>
+          <div className="lg:col-span-3">
+            <Card className="border-t-4 border-t-primary shadow-md">
+              <CardHeader className="border-b bg-muted/20">
+                <CardTitle className="text-xl">Banknote Details</CardTitle>
+                <CardDescription>Complete information about this banknote</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-col space-y-1">
-                  <LabelValuePair label="Denomination" value={banknote.denomination} />
-                  <LabelValuePair label="Country" value={banknote.country} />
-                  <LabelValuePair label="Year" value={banknote.year} />
-                  <LabelValuePair 
-                    label="Pick Number" 
-                    value={banknote.pickNumber} 
-                    icon={<Hash size={16} />}
-                    iconClassNames="text-blue-500"
-                  />
-                  <LabelValuePair 
-                    label="Catalog ID" 
-                    value={banknote.extendedPickNumber} 
-                    icon={<Hash size={16} />}
-                    iconClassNames="text-blue-500"
-                  />
-                  
-                  {banknote.type && (
-                    <LabelValuePair 
-                      label="Type" 
-                      value={banknote.type}
-                    />
-                  )}
-                  
-                  {banknote.category && (
-                    <LabelValuePair 
-                      label="Category" 
-                      value={banknote.category}
-                    />
-                  )}
-                  
-                  {banknote.printer && (
-                    <LabelValuePair 
-                      label="Printer" 
-                      value={banknote.printer} 
-                      icon={<PenTool size={16} />}
-                      iconClassNames="text-green-500"
-                    />
-                  )}
-                  
-                  {banknote.sultanName && (
-                    <LabelValuePair 
-                      label="Sultan" 
-                      value={banknote.sultanName} 
-                      icon={<Users size={16} />}
-                      iconClassNames="text-purple-500"
-                    />
-                  )}
-                  
-                  {banknote.rarity && (
-                    <LabelValuePair 
-                      label="Rarity" 
-                      value={banknote.rarity} 
-                      icon={<Shield size={16} />}
-                      iconClassNames="text-yellow-500"
-                    />
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {(banknote.banknoteDescription || banknote.historicalDescription) && (
-              <Card className="mt-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center">
-                    <Info className="h-5 w-5 mr-2" /> Description
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Accordion type="single" collapsible>
+              <CardContent className="p-6">
+                <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-0">
+                  {detailGroups.map((group, groupIndex) => (
+                    <AccordionItem 
+                      key={`item-${groupIndex}`} 
+                      value={`item-${groupIndex}`}
+                      className="border rounded-md px-2"
+                    >
+                      <AccordionTrigger className="hover:no-underline px-4">
+                        <div className="flex items-center gap-2">
+                          {group.icon}
+                          <span className="font-medium">{group.title}</span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="space-y-2">
+                          {group.fields
+                            .filter(field => field.value !== null && field.value !== undefined)
+                            .map((field, fieldIndex) => (
+                              <LabelValuePair
+                                key={fieldIndex}
+                                label={field.label}
+                                value={field.value}
+                                icon={field.icon}
+                              />
+                            ))}
+                          {!group.fields.some(field => field.value !== null && field.value !== undefined) && (
+                            <p className="text-sm text-muted-foreground italic py-2">No information available</p>
+                          )}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+                
+                {(banknote.banknoteDescription || banknote.historicalDescription) && (
+                  <div className="mt-6 space-y-4">
                     {banknote.banknoteDescription && (
-                      <AccordionItem value="banknote-desc">
-                        <AccordionTrigger className="text-base font-medium">Banknote Description</AccordionTrigger>
-                        <AccordionContent>
-                          <div className="prose max-w-none text-sm">
-                            <p>{banknote.banknoteDescription}</p>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
+                      <Card className="overflow-hidden">
+                        <CardHeader className="py-3 px-4 bg-muted/30">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <FileText className="h-4 w-4" /> Banknote Description
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4 text-sm">
+                          {banknote.banknoteDescription}
+                        </CardContent>
+                      </Card>
                     )}
                     
                     {banknote.historicalDescription && (
-                      <AccordionItem value="historical-desc">
-                        <AccordionTrigger className="text-base font-medium">Historical Background</AccordionTrigger>
-                        <AccordionContent>
-                          <div className="prose max-w-none text-sm">
-                            <p>{banknote.historicalDescription}</p>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    )}
-                  </Accordion>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Technical Details */}
-            {(banknote.signaturesFront || banknote.signaturesBack || banknote.sealNames || banknote.securityElement || banknote.colors || banknote.serialNumbering) && (
-              <Card className="mt-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center">
-                    <Stamp className="h-5 w-5 mr-2" /> Technical Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col space-y-1">
-                    {banknote.signaturesFront && (
-                      <LabelValuePair label="Front Signatures" value={banknote.signaturesFront} />
-                    )}
-                    
-                    {banknote.signaturesBack && (
-                      <LabelValuePair label="Back Signatures" value={banknote.signaturesBack} />
-                    )}
-                    
-                    {banknote.sealNames && (
-                      <LabelValuePair label="Seal Names" value={banknote.sealNames} />
-                    )}
-                    
-                    {banknote.securityElement && (
-                      <LabelValuePair label="Security Elements" value={banknote.securityElement} />
-                    )}
-                    
-                    {banknote.colors && (
-                      <LabelValuePair label="Colors" value={banknote.colors} />
-                    )}
-                    
-                    {banknote.serialNumbering && (
-                      <LabelValuePair label="Serial Numbering" value={banknote.serialNumbering} />
+                      <Card className="overflow-hidden">
+                        <CardHeader className="py-3 px-4 bg-muted/30">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <History className="h-4 w-4" /> Historical Background
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4 text-sm">
+                          {banknote.historicalDescription}
+                        </CardContent>
+                      </Card>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
+        
+        
       </div>
       
-      <div className="flex justify-between items-center mt-8">
-        <Button variant="outline" onClick={() => navigate(-1)}>
-          Back
-        </Button>
-        
-        {user && (
-          <div className="flex space-x-2">
-            <Button onClick={() => navigate(`/add-to-collection/${id}`)}>
-              Add to Collection
-            </Button>
-          </div>
-        )}
-      </div>
-
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContent className="sm:max-w-[800px] p-1">
