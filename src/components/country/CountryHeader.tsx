@@ -6,13 +6,17 @@ import { useNavigate } from "react-router-dom";
 
 interface CountryHeaderProps {
   countryName: string;
+  returnPath?: string;
 }
 
-export const CountryHeader: React.FC<CountryHeaderProps> = ({ countryName }) => {
+export const CountryHeader: React.FC<CountryHeaderProps> = ({ 
+  countryName,
+  returnPath = '/catalog' // Default to catalog if not specified
+}) => {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate('/catalog');
+    navigate(returnPath);
   };
 
   return (

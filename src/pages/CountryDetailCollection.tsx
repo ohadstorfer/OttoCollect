@@ -141,7 +141,10 @@ const CountryDetailCollection = () => {
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
-      <CountryHeader countryName={country ? decodeURIComponent(country) : ""} />
+      <CountryHeader 
+        countryName={country ? decodeURIComponent(country) : ""} 
+        returnPath="/collection" 
+      />
 
       <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
         <CountryFilterSection
