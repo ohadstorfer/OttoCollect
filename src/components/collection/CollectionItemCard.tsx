@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CollectionItem, BanknoteCondition } from '@/types';
-import { Pencil, Trash2, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Pencil, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { removeFromCollection } from '@/services/collectionService';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -37,6 +38,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   viewMode = 'grid'
 }) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   
@@ -102,8 +104,18 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     return title;
   }
 
+  // Handle card click to navigate to banknote details
+  const handleCardClick = () => {
+    if (item?.banknoteId) {
+      navigate(`/banknote-details/${item.banknoteId}`);
+    }
+  };
+
   // Handle delete function
-  async function handleDelete() {
+  async function handleDelete(e: React.MouseEvent) {
+    // Stop propagation to prevent card click when clicking delete button
+    e.stopPropagation();
+    
     if (!item?.id) return;
     
     setIsDeleting(true);
@@ -130,11 +142,28 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       setShowDeleteConfirm(false);
     }
   }
+
+  // Handle edit button click with stopPropagation
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onEdit) {
+      onEdit();
+    }
+  };
+
+  // Handle delete button click with stopPropagation
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(true);
+  };
   
   // Render list view if requested
   if (viewMode === 'list') {
     return (
-      <Card className="flex flex-row overflow-hidden">
+      <Card 
+        className="flex flex-row overflow-hidden cursor-pointer hover:shadow-md transition-all"
+        onClick={handleCardClick}
+      >
         <div className="w-24 h-24 flex-shrink-0">
           <BanknoteImage 
             imageUrl={displayImage}
@@ -162,12 +191,12 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             </div>
           </div>
           {!isPublic && (
-            <div className="flex justify-end gap-1 mt-2">
-              <Button variant="outline" size="sm" onClick={onEdit}>
+            <div className="flex justify-end gap-1 mt-2" onClick={e => e.stopPropagation()}>
+              <Button variant="outline" size="sm" onClick={handleEditClick}>
                 <Pencil className="h-3.5 w-3.5" />
                 <span className="sr-only">Edit</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(true)}>
+              <Button variant="outline" size="sm" onClick={handleDeleteClick}>
                 <Trash2 className="h-3.5 w-3.5" />
                 <span className="sr-only">Delete</span>
               </Button>
@@ -181,7 +210,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   // Default grid view
   return (
     <>
-      <Card className="overflow-hidden transition-all hover:shadow-md">
+      <Card 
+        className="overflow-hidden transition-all hover:shadow-md cursor-pointer hover:scale-[1.01]"
+        onClick={handleCardClick}
+      >
         <div className="relative aspect-[4/2] overflow-hidden bg-muted">
           <BanknoteImage 
             imageUrl={displayImage}
@@ -207,20 +239,14 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             </p>
           )}
         </CardContent>
-        <CardFooter className="p-4 pt-0 flex justify-between gap-2">
-          <Button variant="outline" size="sm" asChild className="flex-1">
-            <Link to={`/banknote-details/${item?.banknoteId || ''}`}>
-              <Eye className="h-3.5 w-3.5 mr-1" />
-              View
-            </Link>
-          </Button>
+        <CardFooter className="p-4 pt-0 flex justify-end gap-2" onClick={e => e.stopPropagation()}>
           {!isPublic && (
             <>
-              <Button variant="outline" size="sm" onClick={onEdit} className="flex-1">
+              <Button variant="outline" size="sm" onClick={handleEditClick} className="flex-1">
                 <Pencil className="h-3.5 w-3.5 mr-1" />
                 Edit
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(true)}>
+              <Button variant="outline" size="sm" onClick={handleDeleteClick}>
                 <Trash2 className="h-3.5 w-3.5" />
                 <span className="sr-only">Delete</span>
               </Button>
@@ -230,7 +256,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       </Card>
       
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
+        <AlertDialogContent onClick={e => e.stopPropagation()}>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove from Collection</AlertDialogTitle>
             <AlertDialogDescription>
