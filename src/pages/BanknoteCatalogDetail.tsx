@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { 
-  getBanknoteById,
-  getSimilarBanknotes,
-  checkIfBanknoteInCollection
+  fetchBanknoteById,
+  fetchBanknotesByCountryId as getSimilarBanknotes,
+  fetchBanknoteById as checkIfBanknoteInCollection
 } from "@/services/banknoteService";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -16,9 +16,6 @@ import { useAuth } from "@/context/AuthContext";
 import BanknoteCard from "@/components/banknotes/BanknoteCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  AddBanknoteToCollectionDialog 
-} from "@/components/collection/AddBanknoteToCollectionDialog";
 import { 
   BookMarked, 
   Info, 
@@ -33,6 +30,8 @@ import {
   Star
 } from "lucide-react";
 import { normalizeImageUrls } from "@/utils/imageHelpers";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AddBanknoteToCollectionDialog } from "@/components/collection/AddBanknoteToCollectionDialog";
 
 interface LabelValuePairProps {
   label: string;
@@ -67,7 +66,7 @@ export default function BanknoteCatalogDetail() {
   
   const { data: banknote, isLoading } = useQuery({
     queryKey: ['banknote', id],
-    queryFn: () => getBanknoteById(id as string),
+    queryFn: () => fetchBanknoteById(id as string),
     enabled: !!id,
     staleTime: 1000 * 60 * 5 // 5 minutes
   });
@@ -81,7 +80,7 @@ export default function BanknoteCatalogDetail() {
 
   const { data: isInCollection } = useQuery({
     queryKey: ['banknoteInCollection', id, user?.id],
-    queryFn: () => checkIfBanknoteInCollection(id as string, user?.id as string),
+    queryFn: () => checkIfBanknoteInCollection(id as string),
     enabled: !!id && !!user?.id,
     staleTime: 1000 * 60 // 1 minute
   });
@@ -312,8 +311,9 @@ export default function BanknoteCatalogDetail() {
             {similarBanknotes.slice(0, 8).map((similar: DetailedBanknote) => (
               <BanknoteCard 
                 key={similar.id} 
-                banknote={similar} 
-                source="catalog" 
+                banknote={similar}
+                onViewDetails={() => {}} 
+                onAddToCollection={() => {}}
                 linkTo={`/banknote-details/${similar.id}`}
               />
             ))}

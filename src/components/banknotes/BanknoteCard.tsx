@@ -6,11 +6,14 @@ import { Eye, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 interface BanknoteCardProps {
   banknote: Banknote;
   compact?: boolean;
   className?: string;
+  source?: string;
+  linkTo?: string;
   onViewDetails?: (banknote: Banknote) => void;
   onAddToCollection?: (banknote: Banknote) => void;
 }
@@ -19,6 +22,8 @@ const BanknoteCard = ({
   banknote,
   compact = false,
   className,
+  source,
+  linkTo,
   onViewDetails,
   onAddToCollection,
 }: BanknoteCardProps) => {
@@ -34,6 +39,36 @@ const BanknoteCard = ({
     if (onAddToCollection) {
       onAddToCollection(banknote);
     }
+  };
+  
+  const renderDetailsButton = () => {
+    if (linkTo) {
+      return (
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="text-ottoman-300 hover:text-ottoman-100 hover:bg-ottoman-700/50"
+          asChild
+        >
+          <Link to={linkTo}>
+            <Eye className="h-4 w-4 mr-1" />
+            Details
+          </Link>
+        </Button>
+      );
+    }
+    
+    return (
+      <Button 
+        variant="ghost" 
+        size="sm"
+        className="text-ottoman-300 hover:text-ottoman-100 hover:bg-ottoman-700/50"
+        onClick={handleViewDetails}
+      >
+        <Eye className="h-4 w-4 mr-1" />
+        Details
+      </Button>
+    );
   };
   
   return (
@@ -100,15 +135,7 @@ const BanknoteCard = ({
       )}
       
       <CardFooter className="p-4 pt-2 flex justify-between">
-        <Button 
-          variant="ghost" 
-          size="sm"
-          className="text-ottoman-300 hover:text-ottoman-100 hover:bg-ottoman-700/50"
-          onClick={handleViewDetails}
-        >
-          <Eye className="h-4 w-4 mr-1" />
-          Details
-        </Button>
+        {renderDetailsButton()}
         
         <Button 
           variant="outline" 
