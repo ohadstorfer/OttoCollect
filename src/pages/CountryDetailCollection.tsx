@@ -62,7 +62,9 @@ const CountryDetailCollection = () => {
       purchaseDate: item.purchaseDate,
       isForSale: item.isForSale,
       salePrice: item.salePrice
-    }
+    },
+    // Add a reference to the original collection item ID
+    collectionItemId: item.id
   }));
 
   const sortedCollectionItems = useBanknoteSorting({
@@ -71,12 +73,12 @@ const CountryDetailCollection = () => {
     sortFields: filters.sort
   });
 
-  // Transform the sorted detailed banknotes back to collection items
+  // Transform the sorted detailed banknotes back to collection items using the stored collectionItemId
   const sortedCollectionItemsWithData = sortedCollectionItems.map(sortedBanknote => {
-    // Find the original collection item for this banknote
-    const originalItem = collectionItems.find(item => item.banknoteId === sortedBanknote.id);
+    // Use the direct reference to the collection item ID
+    const originalItem = collectionItems.find(item => item.id === (sortedBanknote as any).collectionItemId);
     if (!originalItem) {
-      console.error("Could not find original collection item for banknote ID:", sortedBanknote.id);
+      console.error("Could not find original collection item for ID:", (sortedBanknote as any).collectionItemId);
       return null;
     }
     return originalItem;
@@ -90,17 +92,23 @@ const CountryDetailCollection = () => {
 
   // Convert grouped banknotes to grouped collection items
   const groupedCollectionItems = groupedItems.map(group => {
-    // Map each banknote in the group to its corresponding collection item
+    // Map each banknote in the group to its corresponding collection item using collectionItemId
     const collectionItemsInGroup = group.items.map(banknote => {
-      const collectionItem = collectionItems.find(item => item.banknoteId === banknote.id);
+      const collectionItem = collectionItems.find(item => item.id === (banknote as any).collectionItemId);
+      if (!collectionItem) {
+        console.error("Could not find collection item for banknote with collectionItemId:", (banknote as any).collectionItemId);
+      }
       return collectionItem;
     }).filter(Boolean) as any[];
     
-    // Process sultan groups if they exist
+    // Process sultan groups if they exist, also using collectionItemId
     const sultanGroups = group.sultanGroups?.map(sultanGroup => ({
       sultan: sultanGroup.sultan,
       items: sultanGroup.items.map(banknote => {
-        const collectionItem = collectionItems.find(item => item.banknoteId === banknote.id);
+        const collectionItem = collectionItems.find(item => item.id === (banknote as any).collectionItemId);
+        if (!collectionItem) {
+          console.error("Could not find collection item for banknote with collectionItemId in sultan group:", (banknote as any).collectionItemId);
+        }
         return collectionItem;
       }).filter(Boolean) as any[]
     }));
