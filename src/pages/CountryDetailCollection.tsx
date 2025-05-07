@@ -127,6 +127,10 @@ const CountryDetailCollection = () => {
 
   const isLoading = countryLoading || collectionItemsLoading;
 
+  const handlePreferencesLoaded = useCallback(() => {
+    setPreferencesLoaded(true);
+  }, []);
+
   return (
     <div className="w-full px-2 sm:px-6 py-8">
       <CountryHeader countryName={country ? decodeURIComponent(country) : ""} />
@@ -141,7 +145,7 @@ const CountryDetailCollection = () => {
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
           source="collection"
-          onPreferencesLoaded={() => setPreferencesLoaded(true)}
+          onPreferencesLoaded={handlePreferencesLoaded}
         />
 
         <CollectionItemsDisplay

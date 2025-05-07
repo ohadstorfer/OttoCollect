@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -31,6 +30,7 @@ import {
   CircleDollarSign,
   Star
 } from "lucide-react";
+import { normalizeImageUrls } from "@/utils/imageHelpers";
 
 interface LabelValuePairProps {
   label: string;
@@ -38,8 +38,6 @@ interface LabelValuePairProps {
   icon?: React.ReactNode;
   iconClassNames?: string;
 }
-
-
 
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
   if (!value) return null;
@@ -120,7 +118,8 @@ export default function BanknoteCatalogDetail() {
     setSelectedImage(imageUrl);
   };
 
-  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
+  // Fix the imageUrls handling to ensure it's always an array
+  const imageUrls = normalizeImageUrls(banknote.imageUrls);
 
   const detailGroups = [
     {

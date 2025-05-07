@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, memo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
@@ -22,6 +21,7 @@ interface BanknoteFilterCatalogProps {
   onViewModeChange?: (mode: 'grid' | 'list') => void;
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
+  onPreferencesLoaded?: () => void;
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -33,7 +33,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
   className,
   onViewModeChange,
   groupMode = false,
-  onGroupModeChange
+  onGroupModeChange,
+  onPreferencesLoaded
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -230,7 +231,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
 
     loadFilterOptionsAndPreferences();
     // groupMode is NOT included in the dependency array because it would cause infinite loops
-  }, [countryId, user, onFilterChange, toast, onGroupModeChange]); // groupMode removed from dependencies
+  }, [countryId, user, onFilterChange, toast, onGroupModeChange, onPreferencesLoaded]); // groupMode removed from dependencies
 
   const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
