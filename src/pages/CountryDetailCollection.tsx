@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
 import { CountryHeader } from "@/components/country/CountryHeader";
@@ -8,13 +8,15 @@ import { useCountryData } from "@/hooks/use-country-data";
 import { useCollectionItemsFetching } from "@/hooks/use-collection-items-fetching";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
-import { useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { CollectionItemsDisplay } from "@/components/country/CollectionItemsDisplay";
 
 const CountryDetailCollection = () => {
   const { country } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
     categories: [],
@@ -43,10 +45,12 @@ const CountryDetailCollection = () => {
     navigate 
   });
 
-  // Use the collection items fetching hook
+  // Use the collection items fetching hook with skipInitialFetch option
   const { collectionItems, loading: collectionItemsLoading } = useCollectionItemsFetching({
     countryId,
-    filters
+    filters,
+    userId: user?.id,
+    skipInitialFetch: !preferencesLoaded
   });
 
   // Map collection items to a format compatible with the sorting hook
@@ -113,6 +117,8 @@ const CountryDetailCollection = () => {
       ...prev,
       ...newFilters
     }));
+    // Mark preferences as loaded when filter changes come from BanknoteFilterCollection
+    setPreferencesLoaded(true);
   }, []);
 
   const handleViewModeChange = (mode: 'grid' | 'list') => {
@@ -135,6 +141,7 @@ const CountryDetailCollection = () => {
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
           source="collection"
+          onPreferencesLoaded={() => setPreferencesLoaded(true)}
         />
 
         <CollectionItemsDisplay

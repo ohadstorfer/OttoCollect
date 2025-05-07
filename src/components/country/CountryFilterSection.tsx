@@ -15,6 +15,7 @@ interface CountryFilterSectionProps {
   source?: 'catalog' | 'collection';
   collectionCategories?: { id: string; name: string; count: number }[];
   collectionTypes?: { id: string; name: string; count: number }[];
+  onPreferencesLoaded?: () => void;
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -28,7 +29,8 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   onGroupModeChange,
   source = 'catalog',
   collectionCategories = [],
-  collectionTypes = []
+  collectionTypes = [],
+  onPreferencesLoaded
 }) => {
   // Memoize handleFilterChange to prevent it from causing re-renders
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
@@ -39,14 +41,15 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   if (source === 'collection') {
     return (
       <BanknoteFilterCollection
-      countryId={countryId}
-      onFilterChange={handleFilterChange}
-      currentFilters={filters}
-      isLoading={isLoading}
-      onViewModeChange={onViewModeChange}
-      groupMode={groupMode}
-      onGroupModeChange={onGroupModeChange}
-    />
+        countryId={countryId}
+        onFilterChange={handleFilterChange}
+        currentFilters={filters}
+        isLoading={isLoading}
+        onViewModeChange={onViewModeChange}
+        groupMode={groupMode}
+        onGroupModeChange={onGroupModeChange}
+        onPreferencesLoaded={onPreferencesLoaded}
+      />
     );
   }
   
@@ -59,6 +62,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
       onViewModeChange={onViewModeChange}
       groupMode={groupMode}
       onGroupModeChange={onGroupModeChange}
+      onPreferencesLoaded={onPreferencesLoaded}
     />
   ) : null;
 });

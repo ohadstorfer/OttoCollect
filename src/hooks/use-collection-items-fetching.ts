@@ -11,6 +11,7 @@ interface UseCollectionItemsFetchingProps {
   userId?: string;
   countryId: string;
   filters: DynamicFilterState;
+  skipInitialFetch?: boolean;
 }
 
 interface UseCollectionItemsFetchingResult {
@@ -21,7 +22,8 @@ interface UseCollectionItemsFetchingResult {
 export const useCollectionItemsFetching = ({ 
   userId,
   countryId, 
-  filters 
+  filters,
+  skipInitialFetch = false
 }: UseCollectionItemsFetchingProps): UseCollectionItemsFetchingResult => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -36,6 +38,12 @@ export const useCollectionItemsFetching = ({
   useEffect(() => {
     // Skip empty countryId or if there's no user ID
     if (!countryId || !effectiveUserId) return;
+
+    // Skip the initial fetch if requested
+    if (skipInitialFetch && lastFetchKey.current === "") {
+      console.log("useCollectionItemsFetching: Skipping initial fetch as requested");
+      return;
+    }
     
     // Create a cache key from countryId, userId and filters
     const fetchKey = `${countryId}_${effectiveUserId}_${JSON.stringify(filters)}`;
@@ -184,7 +192,7 @@ export const useCollectionItemsFetching = ({
     };
 
     fetchCollectionItems();
-  }, [countryId, effectiveUserId, filters, toast]);
+  }, [countryId, effectiveUserId, filters, toast, skipInitialFetch]);
 
   return { collectionItems, loading };
 };

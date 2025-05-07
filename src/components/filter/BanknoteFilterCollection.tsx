@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, memo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
@@ -22,6 +21,7 @@ interface BanknoteFilterCollectionProps {
   onViewModeChange?: (mode: 'grid' | 'list') => void;
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
+  onPreferencesLoaded?: () => void;
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -33,7 +33,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   className,
   onViewModeChange,
   groupMode = false,
-  onGroupModeChange
+  onGroupModeChange,
+  onPreferencesLoaded
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -195,6 +196,11 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
             types: userPreferences.selected_types,
             sort: finalSortFields,
           });
+
+          // Notify parent that preferences are loaded
+          if (onPreferencesLoaded) {
+            onPreferencesLoaded();
+          }
         } else if (!initialLoadComplete.current) {
           // Set default filters if no user preferences are found
           const defaultCategoryIds = mappedCategories.map(cat => cat.id);
@@ -210,6 +216,11 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
             types: defaultTypeIds,
             sort: defaultSort,
           });
+
+          // Notify parent that preferences are loaded, even with defaults
+          if (onPreferencesLoaded) {
+            onPreferencesLoaded();
+          }
         }
         
         // Mark as complete to prevent repeated loads
@@ -230,7 +241,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
 
     loadFilterOptionsAndPreferences();
     // groupMode is NOT included in the dependency array because it would cause infinite loops
-  }, [countryId, user, onFilterChange, toast, onGroupModeChange]); // groupMode removed from dependencies
+  }, [countryId, user, onFilterChange, toast, onGroupModeChange, onPreferencesLoaded]); // groupMode removed from dependencies
 
   const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
