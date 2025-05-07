@@ -136,11 +136,29 @@ export const useCollectionItemsFetching = ({
           }
         }
         
-        // Apply type filter
+        // Apply type filter - Fix: normalize comparison by handling singular/plural forms
         if (typeNames.length > 0) {
           filteredItems = filteredItems.filter(item => {
             const type = item.banknote?.type;
-            const matched = type && typeNames.includes(type);
+            
+            // Log more detail to diagnose the issue
+            console.log(`useCollectionItemsFetching: Type filter details - item type: "${type}", available types:`, typeNames);
+            
+            // Handle both singular and plural forms by normalizing the comparison
+            // "Issued note" should match "Issued notes"
+            const matched = type && typeNames.some(typeName => {
+              // Remove trailing 's' if exists for comparison
+              const normalizedTypeName = typeName.endsWith('s') 
+                ? typeName.slice(0, -1) 
+                : typeName;
+              
+              const normalizedType = type.endsWith('s')
+                ? type.slice(0, -1)
+                : type;
+              
+              return normalizedTypeName.toLowerCase() === normalizedType.toLowerCase();
+            });
+            
             console.log(`useCollectionItemsFetching: Type filter - item: ${item.id}, banknote type: ${type}, matched: ${matched}`);
             return matched;
           });
