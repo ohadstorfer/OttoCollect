@@ -5,6 +5,7 @@ import { CollectionItem } from "@/types";
 import { DynamicFilterState } from "@/types/filter";
 import { fetchUserCollectionByCountry } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UseCollectionItemsFetchingProps {
   userId?: string;
@@ -86,20 +87,62 @@ export const useCollectionItemsFetching = ({
           });
         }
         
-        // Apply category filter
+        // Convert category IDs to category names for filtering
+        let categoryNames: string[] = [];
         if (filters.categories && filters.categories.length > 0) {
+          try {
+            const { data: categoryData } = await supabase
+              .from('banknote_category_definitions')
+              .select('name')
+              .in('id', filters.categories);
+            
+            categoryNames = (categoryData || []).map(cat => cat.name);
+            console.log("useCollectionItemsFetching: Converted category IDs to names:", { 
+              categoryIds: filters.categories, 
+              categoryNames 
+            });
+          } catch (err) {
+            console.error("useCollectionItemsFetching: Failed to fetch category names:", err);
+          }
+        }
+        
+        // Apply category filter
+        if (categoryNames.length > 0) {
           filteredItems = filteredItems.filter(item => {
             // The banknote itself carries the category
             const category = item.banknote?.category;
-            return filters.categories.includes(category || '');
+            const matched = category && categoryNames.includes(category);
+            console.log(`useCollectionItemsFetching: Category filter - item: ${item.id}, banknote category: ${category}, matched: ${matched}`);
+            return matched;
           });
         }
         
-        // Apply type filter
+        // Convert type IDs to type names for filtering
+        let typeNames: string[] = [];
         if (filters.types && filters.types.length > 0) {
+          try {
+            const { data: typeData } = await supabase
+              .from('banknote_type_definitions')
+              .select('name')
+              .in('id', filters.types);
+            
+            typeNames = (typeData || []).map(type => type.name);
+            console.log("useCollectionItemsFetching: Converted type IDs to names:", { 
+              typeIds: filters.types, 
+              typeNames 
+            });
+          } catch (err) {
+            console.error("useCollectionItemsFetching: Failed to fetch type names:", err);
+          }
+        }
+        
+        // Apply type filter
+        if (typeNames.length > 0) {
           filteredItems = filteredItems.filter(item => {
             const type = item.banknote?.type;
-            return filters.types.includes(type || '');
+            const matched = type && typeNames.includes(type);
+            console.log(`useCollectionItemsFetching: Type filter - item: ${item.id}, banknote type: ${type}, matched: ${matched}`);
+            return matched;
           });
         }
         

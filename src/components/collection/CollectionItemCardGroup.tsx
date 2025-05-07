@@ -39,9 +39,10 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
     if (onClick) onClick(group);
   };
 
-  // Generate stack items
+  // Generate stack items with unique keys using item.id + index
   const stackItems = items.slice(0, 4).map((item, index) => ({
-    id: item.id || `stack-item-${index}`,
+    // Create a unique key using both the item ID and the index
+    id: `${item.id}-stack-${index}`,
     content: (
       <Card className="w-full h-full shadow-md overflow-hidden">
         <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
