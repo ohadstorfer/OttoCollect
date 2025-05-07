@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
 import { CountryHeader } from "@/components/country/CountryHeader";
@@ -8,12 +8,16 @@ import { useCountryData } from "@/hooks/use-country-data";
 import { useCollectionItemsFetching } from "@/hooks/use-collection-items-fetching";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
-import { useEffect } from "react";
 import { CollectionItemsDisplay } from "@/components/country/CollectionItemsDisplay";
+import { fetchUserFilterPreferences } from "@/services/countryService";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const CountryDetailCollection = () => {
   const { country } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
@@ -21,6 +25,9 @@ const CountryDetailCollection = () => {
     types: [],
     sort: ["extPick"],
   });
+  
+  // Track if user preferences have been loaded
+  const [preferencesLoaded, setPreferencesLoaded] = useState<boolean>(false);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -37,17 +44,80 @@ const CountryDetailCollection = () => {
     currencies,
     loading: countryLoading,
     groupMode,
-    handleGroupModeChange
+    handleGroupModeChange,
+    hasLoadedPreferences
   } = useCountryData({ 
     countryName: country || "", 
     navigate 
   });
 
-  // Use the collection items fetching hook
-  const { collectionItems, loading: collectionItemsLoading } = useCollectionItemsFetching({
+  // Load user filter preferences when countryId is available
+  useEffect(() => {
+    const loadUserPreferences = async () => {
+      if (!countryId || preferencesLoaded) return;
+
+      console.log("CountryDetailCollection: Loading user filter preferences");
+      
+      try {
+        if (user?.id) {
+          // For logged in users, fetch preferences from database
+          const preferences = await fetchUserFilterPreferences(user.id, countryId);
+          
+          if (preferences) {
+            console.log("CountryDetailCollection: User preferences loaded", preferences);
+            
+            // Apply loaded preferences to filters state
+            setFilters(prev => ({
+              ...prev,
+              categories: preferences.selected_categories || [],
+              types: preferences.selected_types || [],
+              sort: preferences.selected_sort_options || ["extPick"]
+            }));
+          }
+        } else {
+          // For non-logged in users, try to load from session storage
+          try {
+            const savedFilters = sessionStorage.getItem(`filters-${countryId}`);
+            if (savedFilters) {
+              const parsedFilters = JSON.parse(savedFilters);
+              console.log("CountryDetailCollection: Loaded filters from session storage:", parsedFilters);
+              setFilters(parsedFilters);
+            }
+          } catch (err) {
+            console.error("Error loading filters from session storage:", err);
+          }
+        }
+        
+      } catch (error) {
+        console.error("Error loading user filter preferences:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load your filter preferences. Using default filters.",
+          variant: "destructive",
+        });
+      } finally {
+        // Mark preferences as loaded even if there was an error
+        setPreferencesLoaded(true);
+      }
+    };
+    
+    loadUserPreferences();
+  }, [countryId, user, toast, preferencesLoaded]);
+
+  // Use the collection items fetching hook with the skipInitialFetch option
+  const { collectionItems, loading: collectionItemsLoading, fetchCollectionItems } = useCollectionItemsFetching({
     countryId,
-    filters
+    filters,
+    skipInitialFetch: !preferencesLoaded // Skip the fetch until preferences are loaded
   });
+
+  // Trigger the fetch when preferences are loaded
+  useEffect(() => {
+    if (preferencesLoaded && countryId && fetchCollectionItems) {
+      console.log("CountryDetailCollection: Preferences loaded, triggering fetch with filters:", filters);
+      fetchCollectionItems();
+    }
+  }, [preferencesLoaded, countryId, filters, fetchCollectionItems]);
 
   // Map collection items to a format compatible with the sorting hook
   const collectionItemsForSorting = collectionItems.map(item => ({
@@ -109,6 +179,7 @@ const CountryDetailCollection = () => {
   });
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    console.log("CountryDetailCollection: Filter changed", newFilters);
     setFilters(prev => ({
       ...prev,
       ...newFilters
@@ -119,7 +190,18 @@ const CountryDetailCollection = () => {
     setViewMode(mode);
   };
 
-  const isLoading = countryLoading || collectionItemsLoading;
+  const isLoading = countryLoading || collectionItemsLoading || !preferencesLoaded;
+
+  // Debug log for the complete rendering cycle
+  console.log("CountryDetailCollection: Rendering with", {
+    countryId,
+    preferencesLoaded,
+    filters,
+    isLoading,
+    collectionItemsCount: collectionItems.length,
+    sortedItemsCount: sortedCollectionItemsWithData.length,
+    groupedItemsCount: groupedCollectionItems.length,
+  });
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
