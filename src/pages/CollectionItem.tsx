@@ -22,7 +22,7 @@ interface LabelValuePairProps {
 
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
   if (!value) return null;
-  
+
   return (
     <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-1.5 py-1.5 border-b border-gray-100 last:border-0">
       <div className="text-right font-medium text-muted-foreground">{label}</div>
@@ -103,35 +103,42 @@ export default function CollectionItem() {
 
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-          <ArrowLeft className="h-4 w-4" /> Back
+
+
+<div className="flex flex-col space-y-6">
+  <div className="space-y-1">
+    <div className="flex justify-between items-center">
+      <div className="flex items-baseline  gap-2">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="p-0 w-auto h-auto min-w-0 flex items-center justify-center"
+        >
+          <ArrowLeft className="h-5 w-5" /> {/* match h1 size */}
         </Button>
-        
-        <div className="flex items-center space-x-2">
-          {collectionItem.banknote.catalogId && (
-            <Badge variant="outline" className="text-sm font-medium px-3 py-1">
-              {collectionItem.banknote.catalogId}
-            </Badge>
-          )}
-          {collectionItem.isForSale && (
-            <Badge variant="destructive" className="text-sm font-medium px-3 py-1">
-              For Sale
-            </Badge>
-          )}
-        </div>
-      </div>
-      
-      <div className="flex flex-col space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            {collectionItem.banknote.denomination}
-            <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            {collectionItem.banknote.country}, {collectionItem.banknote.year}
+
+        <h1 className="text-3xl font-bold leading-tight">
+          {collectionItem.banknote.denomination}
+        </h1>
+
+        <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
+
+        {collectionItem.banknote.extendedPickNumber && (
+          <p className="text-xl leading-tight">
+            {collectionItem.banknote.extendedPickNumber}
           </p>
-        </div>
+        )}
+      </div>
+    </div>
+
+    <p className="text-xl text-muted-foreground">
+      {collectionItem.banknote.country}, {collectionItem.banknote.year}
+    </p>
+  </div>
+
+
+
+
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <div className="lg:col-span-2 space-y-4">
@@ -146,8 +153,8 @@ export default function CollectionItem() {
                 <div className="grid grid-cols-2 gap-3">
                   {displayImages.length > 0 ? (
                     displayImages.map((url, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => openImageViewer(url)}
                       >
@@ -169,7 +176,7 @@ export default function CollectionItem() {
               </CardContent>
             </Card>
           </div>
-          
+
           <div className="lg:col-span-3">
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
@@ -182,21 +189,21 @@ export default function CollectionItem() {
             </Card>
           </div>
         </div>
-        
+
         <div className="flex justify-between items-center">
           <Button variant="outline" onClick={() => navigate(-1)}>
             Back
           </Button>
         </div>
       </div>
-      
+
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContent className="sm:max-w-[800px] p-1">
-            <img 
-              src={selectedImage} 
+            <img
+              src={selectedImage}
               alt="Banknote detail"
-              className="w-full h-auto rounded" 
+              className="w-full h-auto rounded"
             />
           </DialogContent>
         </Dialog>
