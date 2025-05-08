@@ -25,7 +25,7 @@ export interface CollectionItemCardProps {
   item: CollectionItem;
   onEdit?: () => void;
   onUpdate: () => Promise<void>;
-  isPublic?: boolean;
+  isOwner: boolean;
   viewMode?: 'grid' | 'list';
 }
 
@@ -33,9 +33,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   item,
   onEdit,
   onUpdate,
-  isPublic = false,
+  isOwner = false,
   viewMode = 'grid'
 }) => {
+  console.log("CollectionItemCard - isOwner:", isOwner, "for itemId:", item?.id);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
@@ -189,7 +190,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
               )}
             </div>
           </div>
-          {!isPublic && (
+          {isOwner && (
             <div className="flex justify-end gap-1 mt-2" onClick={e => e.stopPropagation()}>
               <Button variant="outline" size="sm" onClick={handleEditClick}>
                 <Pencil className="h-3.5 w-3.5" />
@@ -239,7 +240,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
           )}
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-end gap-2" onClick={e => e.stopPropagation()}>
-          {!isPublic && (
+          {isOwner && (
             <>
               <Button variant="outline" size="sm" onClick={handleEditClick} className="flex-1">
                 <Pencil className="h-3.5 w-3.5 mr-1" />

@@ -14,6 +14,7 @@ interface CollectionItemsDisplayProps {
   countryId: string;
   isLoading: boolean;
   groupMode: boolean;
+  isOwner: boolean;
 }
 
 export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
@@ -22,7 +23,8 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
   viewMode,
   countryId,
   isLoading,
-  groupMode
+  groupMode,
+  isOwner
 }) => {
   // Function to update collection items after changes
   const handleUpdate = async () => {
@@ -52,6 +54,7 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
           isLoading={isLoading}
           groupMode={groupMode}
           onUpdate={handleUpdate}
+          isOwner={isOwner}
         />
       )}
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -49,6 +48,10 @@ export default function CollectionItem() {
     enabled: !!id,
   });
 
+  // Determine if the current user is the owner of this item
+  const isOwner = user?.id === collectionItem?.userId;
+  console.log("CollectionItem - isOwner:", isOwner, "userId:", user?.id, "itemUserId:", collectionItem?.userId);
+
   if (isLoading) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
@@ -77,7 +80,7 @@ export default function CollectionItem() {
     );
   }
 
-  // Ensure the user is the owner of the collection item
+  // We'll eventually remove this check once we allow public viewing
   if (user?.id !== collectionItem.userId) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
@@ -174,7 +177,7 @@ export default function CollectionItem() {
                 <CardDescription>Details about your copy of this banknote</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <BanknoteCollectionDetail></BanknoteCollectionDetail>
+                <BanknoteCollectionDetail isOwner={isOwner} />
               </CardContent>
             </Card>
           </div>

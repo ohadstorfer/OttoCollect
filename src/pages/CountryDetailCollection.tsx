@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
@@ -23,6 +22,12 @@ const CountryDetailCollection = () => {
     types: [],
     sort: ["extPick"],
   });
+  
+  // Get userId from URL if provided, otherwise default to current user
+  const { userId } = useParams<{ userId?: string }>();
+  const isOwner = !userId || (user && userId === user.id);
+  
+  console.log("CountryDetailCollection - isOwner:", isOwner, "userId:", userId, "currentUser:", user?.id);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -49,7 +54,7 @@ const CountryDetailCollection = () => {
   const { collectionItems, loading: collectionItemsLoading } = useCollectionItemsFetching({
     countryId,
     filters,
-    userId: user?.id,
+    userId: userId || user?.id,
     skipInitialFetch: !preferencesLoaded
   });
 
@@ -166,6 +171,7 @@ const CountryDetailCollection = () => {
           countryId={countryId}
           isLoading={isLoading}
           groupMode={groupMode}
+          isOwner={isOwner}
         />
       </div>
     </div>

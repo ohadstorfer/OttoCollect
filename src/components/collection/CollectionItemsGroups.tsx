@@ -31,6 +31,7 @@ interface CollectionItemsGroupsProps {
   isLoading?: boolean;
   groupMode?: boolean;
   onUpdate: () => Promise<void>;
+  isOwner: boolean;
 }
 
 export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
@@ -40,8 +41,10 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
   countryId,
   isLoading = false,
   groupMode = false,
-  onUpdate
+  onUpdate,
+  isOwner
 }) => {
+  console.log("CollectionItemsGroups - isOwner:", isOwner);
   const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
   const [selectedGroup, setSelectedGroup] = useState<{
     baseNumber: string;
@@ -234,6 +237,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                                   onEdit={() => {}} // We'll implement this later
                                   onUpdate={onUpdate}
                                   viewMode={viewMode}
+                                  isOwner={isOwner}
                                 />
                               );
                             } else if (item.type === 'group' && item.group) {
@@ -257,6 +261,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                             onEdit={() => {}} // We'll implement this later
                             onUpdate={onUpdate}
                             viewMode={viewMode}
+                            isOwner={isOwner}
                           />
                         ))
                       )}
@@ -290,6 +295,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                             onEdit={() => {}} // We'll implement this later
                             onUpdate={onUpdate}
                             viewMode={viewMode}
+                            isOwner={isOwner}
                           />
                         );
                       } else if (item.type === 'group' && item.group) {
@@ -313,6 +319,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                       onEdit={() => {}} // We'll implement this later
                       onUpdate={onUpdate}
                       viewMode={viewMode}
+                      isOwner={isOwner}
                     />
                   ))
                 )}
@@ -331,6 +338,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
           viewMode={viewMode}
           countryId={countryId}
           onUpdate={onUpdate}
+          isOwner={isOwner}
         />
       )}
     </div>
