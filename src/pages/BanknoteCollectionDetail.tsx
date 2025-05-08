@@ -42,28 +42,15 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
   return (
     <div className="p-6">
       <div className="space-y-6">
+
         <div>
-          <h3 className="text-lg font-medium mb-2">Condition Information</h3>
+          <h3 className="text-lg font-medium mb-2">Details</h3>
           <div className="space-y-2">
-            <LabelValuePair
+          <LabelValuePair
               label="Condition"
               value={collectionItem.condition}
             />
-            
-          </div>
-        </div>
 
-        <div>
-          <h3 className="text-lg font-medium mb-2">Acquisition Details</h3>
-          <div className="space-y-2">
-            <LabelValuePair
-              label="Purchase Date"
-              value={formatDate(collectionItem.purchaseDate)}
-            />
-            <LabelValuePair
-              label="Seller"
-              value={collectionItem.location} // Using location as seller info
-            />
             <LabelValuePair
               label="Notes"
               value={collectionItem.publicNote}
@@ -90,6 +77,10 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                 <LabelValuePair
                   label="Purchase Price"
                   value={collectionItem.purchasePrice ? `$${collectionItem.purchasePrice}` : undefined}
+                />
+                <LabelValuePair
+                  label="Purchase Date"
+                  value={formatDate(collectionItem.purchaseDate)}
                 />
               </div>
             </div>
