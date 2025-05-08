@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
 import { ArrowLeft, Star, ImagePlus } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
+import { BanknoteProvider } from "@/context/BanknoteContext";
+import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
 
 interface LabelValuePairProps {
   label: string;
@@ -105,36 +107,36 @@ export default function CollectionItem() {
     <div className="page-container max-w-5xl mx-auto py-10">
 
 
-<div className="flex flex-col space-y-6">
-  <div className="space-y-1">
-    <div className="flex justify-between items-center">
-      <div className="flex items-baseline  gap-2">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="p-0 w-auto h-auto min-w-0 flex items-center justify-center"
-        >
-          <ArrowLeft className="h-5 w-5" /> {/* match h1 size */}
-        </Button>
+      <div className="flex flex-col space-y-6">
+        <div className="space-y-1">
+          <div className="flex justify-between items-center">
+            <div className="flex items-baseline  gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => navigate(-1)}
+                className="p-0 w-auto h-auto min-w-0 flex items-center justify-center"
+              >
+                <ArrowLeft className="h-5 w-5" /> {/* match h1 size */}
+              </Button>
 
-        <h1 className="text-3xl font-bold leading-tight">
-          {collectionItem.banknote.denomination}
-        </h1>
+              <h1 className="text-3xl font-bold leading-tight">
+                {collectionItem.banknote.denomination}
+              </h1>
 
-        <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
+              <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
 
-        {collectionItem.banknote.extendedPickNumber && (
-          <p className="text-xl leading-tight">
-            {collectionItem.banknote.extendedPickNumber}
+              {collectionItem.banknote.extendedPickNumber && (
+                <p className="text-xl leading-tight">
+                  {collectionItem.banknote.extendedPickNumber}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <p className="text-xl text-muted-foreground">
+            {collectionItem.banknote.country}, {collectionItem.banknote.year}
           </p>
-        )}
-      </div>
-    </div>
-
-    <p className="text-xl text-muted-foreground">
-      {collectionItem.banknote.country}, {collectionItem.banknote.year}
-    </p>
-  </div>
+        </div>
 
 
 
@@ -180,14 +182,32 @@ export default function CollectionItem() {
           <div className="lg:col-span-3">
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
-                <CardTitle className="text-xl">My Collection Copy</CardTitle>
-                <CardDescription>Details about your copy of this banknote</CardDescription>
+                <CardTitle className="text-xl">
+                  {isOwner ? "My Collection Copy" : "Collection Copy"}
+                </CardTitle>
+                <CardDescription>
+                  {isOwner
+                    ? "Details about your personal copy of this banknote"
+                    : "Information about this collector’s copy of the banknote"}
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <BanknoteCollectionDetail isOwner={isOwner} />
               </CardContent>
             </Card>
+
+            <BanknoteProvider banknoteId={collectionItem.banknote.id}>
+              <div className="mt-6">
+                <BanknoteCatalogDetailMinimized />
+              </div>
+            </BanknoteProvider>
+
+
           </div>
+
+
+
+
         </div>
 
         <div className="flex justify-between items-center">
