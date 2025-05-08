@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LabelValuePair } from "@/components/ui/label-value-pair";
 import { useBanknoteContext } from '@/context/BanknoteContext';
 import { CollectionItem } from '@/types';
+import { formatDate } from '@/utils/formatters';
 
 interface BanknoteCollectionDetailProps {
   isOwner: boolean;
@@ -33,11 +34,6 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
     );
   }
 
-  // Helper function to format dates to strings
-  const formatDate = (date: string | Date | undefined): string | undefined => {
-    if (!date) return undefined;
-    return typeof date === 'string' ? date : date.toLocaleDateString();
-  };
 
   return (
     <div className="p-6">
