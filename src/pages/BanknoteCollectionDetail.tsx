@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -53,12 +54,12 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         <div>
           <LabelValuePair 
             label="Seller" 
-            value={item.seller} 
+            value={item.seller || null} 
             icon={<ShoppingBag />}
           />
           <LabelValuePair 
             label="Notes" 
-            value={item.notes} 
+            value={item.notes || null} 
           />
           {item.isForSale && (
             <div className="py-2 flex items-center justify-between">
@@ -79,7 +80,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <LabelValuePair 
               label="Storage Location" 
-              value={item.storageLocation} 
+              value={item.storageLocation || null} 
             />
             <LabelValuePair 
               label="Insurance Value" 

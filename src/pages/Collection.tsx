@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -343,6 +342,7 @@ const Collection = () => {
                                   onEdit={() => handleEditItem(collectionItem)}
                                   onUpdate={loadUserCollection}
                                   viewMode={viewMode}
+                                  isOwner={true} // User is always owner of their own collection
                                 />
                               );
                             })}
@@ -362,6 +362,7 @@ const Collection = () => {
                             onEdit={() => handleEditItem(collectionItem)}
                             onUpdate={loadUserCollection}
                             viewMode={viewMode}
+                            isOwner={true} // User is always owner of their own collection
                           />
                         );
                       })}

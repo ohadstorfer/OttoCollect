@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -123,6 +122,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
                 onEdit={() => setEditingItemId(item.id)}
                 onUpdate={onRetry}
                 viewMode={viewMode}
+                isOwner={isOwnProfile}
               />
             ))}
           </div>

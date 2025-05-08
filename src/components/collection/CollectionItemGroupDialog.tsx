@@ -22,6 +22,7 @@ export interface CollectionItemGroupDialogProps {
   countryId?: string;
   sultanName?: string;
   onUpdate: () => Promise<void>;
+  isOwner: boolean;
 }
 
 export const CollectionItemGroupDialog: React.FC<CollectionItemGroupDialogProps> = ({
@@ -32,7 +33,8 @@ export const CollectionItemGroupDialog: React.FC<CollectionItemGroupDialogProps>
   viewMode = "grid",
   countryId,
   sultanName,
-  onUpdate
+  onUpdate,
+  isOwner
 }) => {
   // Safety check for empty collectionItems array
   if (!collectionItems || collectionItems.length === 0) {
@@ -73,6 +75,7 @@ export const CollectionItemGroupDialog: React.FC<CollectionItemGroupDialogProps>
               onEdit={() => {}} // We'll implement this later
               onUpdate={onUpdate}
               viewMode={viewMode}
+              isOwner={isOwner}
             />
           ))}
         </div>
