@@ -38,8 +38,6 @@ const BanknoteDetailCard = ({
     
     if (source === 'catalog') {
       navigate(`/catalog-banknote/${banknote.id}`);
-    } else if (source === 'collection') {
-      navigate(`/collection-banknote/${banknote.id}`);
     } else {
       navigate(`/banknote/${banknote.id}`, { state: { source } });
     }
