@@ -49,10 +49,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               label="Condition"
               value={collectionItem.condition}
             />
-            <LabelValuePair
-              label="Grade"
-              value={collectionItem.condition} // Use condition as a fallback for grade
-            />
+            
           </div>
         </div>
 
