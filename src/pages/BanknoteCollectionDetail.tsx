@@ -1,95 +1,101 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchCollectionItem } from '@/services/collectionService';
-import { Badge } from '@/components/ui/badge';
-import { formatPrice, formatDate } from '@/utils/formatters';
-import { LabelValuePair } from '@/components/ui/label-value-pair';
-import { Star, Calendar, DollarSign, ShoppingBag, Award } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LabelValuePair } from "@/components/ui/label-value-pair";
+import { useBanknoteContext } from '@/context/BanknoteContext';
+import { CollectionItem } from '@/types';
 
 interface BanknoteCollectionDetailProps {
-  isOwner?: boolean;
+  isOwner: boolean;
 }
 
-const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isOwner = true }) => {
+const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isOwner }) => {
   const { id } = useParams<{ id: string }>();
+  const { banknoteId } = useBanknoteContext();
+  
+  // Determine which ID to use
+  const itemId = id || banknoteId;
   
   // Fetch collection item data
-  const { data: item } = useQuery({
-    queryKey: ["collectionItem", id],
-    queryFn: () => fetchCollectionItem(id || ""),
-    enabled: !!id,
-    // We don't need to handle loading/error states here as the parent component does that
+  const { data: collectionItem, isLoading } = useQuery({
+    queryKey: ["collectionItem", itemId],
+    queryFn: () => fetchCollectionItem(itemId || ""),
+    enabled: !!itemId,
   });
-
-  if (!item) return null;
-
-  return (
-    <div className="divide-y">
-      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <LabelValuePair 
-            label="Condition" 
-            value={item.condition} 
-            icon={<Star />} 
-            iconClassNames={item.condition === 'UNC' ? 'text-green-500' : ''}
-          />
-          <LabelValuePair 
-            label="Grade" 
-            value={item.grade ? `${item.grade}/100` : null} 
-            icon={<Award />}
-          />
-          <LabelValuePair 
-            label="Purchase Date" 
-            value={item.purchaseDate ? formatDate(item.purchaseDate) : null} 
-            icon={<Calendar />}
-          />
-          <LabelValuePair 
-            label="Purchase Price" 
-            value={item.purchasePrice ? formatPrice(item.purchasePrice) : null} 
-            icon={<DollarSign />}
-          />
-        </div>
-        <div>
-          <LabelValuePair 
-            label="Seller" 
-            value={item.seller || null} 
-            icon={<ShoppingBag />}
-          />
-          <LabelValuePair 
-            label="Notes" 
-            value={item.notes || null} 
-          />
-          {item.isForSale && (
-            <div className="py-2 flex items-center justify-between">
-              <span className="text-right font-medium text-muted-foreground">For Sale</span>
-              <div className="flex items-center">
-                <Badge variant="destructive" className="ml-2">
-                  {formatPrice(item.salePrice)}
-                </Badge>
-              </div>
-            </div>
-          )}
-        </div>
+  
+  if (isLoading || !collectionItem) {
+    return (
+      <div className="p-4">
+        <p className="text-muted-foreground text-center">Loading collection details...</p>
       </div>
-      
-      {isOwner && (
-        <div className="p-4">
-          <h3 className="text-sm font-medium mb-2">Private Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    );
+  }
+  
+  return (
+    <div className="p-6">
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-medium mb-2">Condition Information</h3>
+          <div className="space-y-2">
             <LabelValuePair 
-              label="Storage Location" 
-              value={item.storageLocation || null} 
+              label="Condition" 
+              value={collectionItem.condition} 
             />
             <LabelValuePair 
-              label="Insurance Value" 
-              value={item.insuranceValue ? formatPrice(item.insuranceValue) : null} 
-              icon={<DollarSign />}
+              label="Grade" 
+              value={collectionItem.condition} // Use condition as a fallback for grade
             />
           </div>
         </div>
-      )}
+        
+        <div>
+          <h3 className="text-lg font-medium mb-2">Acquisition Details</h3>
+          <div className="space-y-2">
+            <LabelValuePair 
+              label="Purchase Date" 
+              value={collectionItem.purchaseDate} 
+            />
+            <LabelValuePair 
+              label="Purchase Price" 
+              value={collectionItem.purchasePrice ? `$${collectionItem.purchasePrice}` : undefined} 
+            />
+            <LabelValuePair 
+              label="Seller" 
+              value={collectionItem.purchasedFrom} 
+            />
+            <LabelValuePair 
+              label="Notes" 
+              value={collectionItem.publicNote} 
+            />
+          </div>
+        </div>
+        
+        {isOwner && (
+          <>
+            <div>
+              <h3 className="text-lg font-medium mb-2">Private Details</h3>
+              <div className="space-y-2">
+                <LabelValuePair 
+                  label="Private Notes" 
+                  value={collectionItem.privateNote} 
+                />
+                <LabelValuePair 
+                  label="Storage Location" 
+                  value={collectionItem.storageInfo} 
+                />
+                <LabelValuePair 
+                  label="Insurance Value" 
+                  value={collectionItem.estimatedValue ? `$${collectionItem.estimatedValue}` : undefined} 
+                />
+              </div>
+            </div>
+          </>
+        )}
+        
+        {/* Other sections as needed */}
+      </div>
     </div>
   );
 };

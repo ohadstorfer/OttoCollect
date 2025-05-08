@@ -1,254 +1,183 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
+import {
+  Info,
+  Building,
+  Shield,
+  CircleDollarSign,
+  Map,
+  Calendar,
+  Hash,
+  Users,
+  PenTool,
+  Stamp,
+  FileText,
+  History
+} from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-import { fetchBanknoteById } from "@/services/catalogService";
-import { BanknoteDetailSource, DetailedBanknote } from "@/types";
-import { BanknoteImage } from '@/components/banknote/BanknoteImage';
-
-interface BanknoteParams {
-  id: string;
-  [key: string]: string | undefined; // Add index signature
-}
+import { fetchBanknoteById } from "@/services/banknoteService";
+import { useBanknoteContext } from "@/context/BanknoteContext";
+import { LabelValuePair } from "@/components/ui/label-value-pair";
 
 const BanknoteCatalogDetailMinimized: React.FC = () => {
-  const { id } = useParams<BanknoteParams>();
   const navigate = useNavigate();
-  const [banknoteData, setBanknoteData] = useState<DetailedBanknote | null>(null);
-  const [source, setSource] = useState<BanknoteDetailSource>('catalog');
-
-  const { isLoading, error, data } = useQuery({
-    queryKey: ['banknote', id],
-    queryFn: () => fetchBanknoteById(id!),
+  const { banknoteId } = useBanknoteContext();
+  
+  // Fetch banknote data using the ID from context
+  const { isLoading, error, data: banknote } = useQuery({
+    queryKey: ['banknote', banknoteId],
+    queryFn: () => fetchBanknoteById(banknoteId || ""),
+    enabled: !!banknoteId,
   });
-
-  // Update the banknoteData state when data changes
-  useEffect(() => {
-    if (data) {
-      setBanknoteData(data);
-    }
-  }, [data]);
-
-  useEffect(() => {
-    // Determine the source based on the URL
-    const path = window.location.pathname;
-    if (path.includes('/collection-banknote/')) {
-      setSource('collection');
-    } else if (path.includes('/marketplace/')) {
-      setSource('marketplace');
-    } else if (path.includes('/wishlist/')) {
-      setSource('wishlist');
-    } else {
-      setSource('catalog');
-    }
-  }, []);
 
   if (isLoading) {
     return (
-      <div className="container max-w-4xl mx-auto py-10">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <Card>
-          <CardHeader>
-            <CardTitle><Skeleton className="h-6 w-64" /></CardTitle>
-            <CardDescription><Skeleton className="h-4 w-32" /></CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Skeleton className="h-64 w-full" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2"><Skeleton className="h-6 w-48" /></h3>
-              <Separator className="mb-4" />
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-full mb-2" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container max-w-4xl mx-auto py-10">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <Card>
-          <CardContent className="text-center">
-            <h2 className="text-2xl font-semibold mb-4">Error loading banknote details</h2>
-            <p className="text-muted-foreground">Please try again later.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!banknoteData) {
-    return (
-      <div className="container max-w-4xl mx-auto py-10">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <Card>
-          <CardContent className="text-center">
-            <h2 className="text-2xl font-semibold mb-4">Banknote not found</h2>
-            <p className="text-muted-foreground">The requested banknote could not be found.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const renderBreadcrumbs = () => {
-    return (
-      <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
-    );
-  };
-
-  const renderBasicInfo = () => {
-    return (
       <Card>
         <CardHeader>
-          <CardTitle>{banknoteData.denomination} - {banknoteData.country}</CardTitle>
-          <CardDescription>
-            {banknoteData.year} | {banknoteData.series}
-          </CardDescription>
+          <CardTitle><Skeleton className="h-6 w-64" /></CardTitle>
+          <CardDescription><Skeleton className="h-4 w-32" /></CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="flex items-center space-x-2">
-            <Badge>{banknoteData.category}</Badge>
-            <Badge>{banknoteData.type}</Badge>
-          </div>
-          <p>{banknoteData.description}</p>
-        </CardContent>
-      </Card>
-    );
-  };
-
-  const renderImages = () => {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div className="aspect-[3/2] relative bg-background border rounded-md overflow-hidden">
-          <BanknoteImage
-            imageUrl={banknoteData?.imageUrls?.[0] || null}
-            alt={`Front of ${banknoteData?.denomination} banknote`}
-            className="object-contain w-full h-full"
-          />
-        </div>
-        <div className="aspect-[3/2] relative bg-background border rounded-md overflow-hidden">
-          <BanknoteImage 
-            imageUrl={banknoteData?.imageUrls?.[1] || null}
-            alt={`Back of ${banknoteData?.denomination} banknote`}
-            className="object-contain w-full h-full"
-          />
-        </div>
-      </div>
-    );
-  };
-
-  const renderDetails = () => {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Banknote Details</CardTitle>
-          <CardDescription>Additional information about this banknote</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Catalog Information</h3>
-            <Separator className="mb-4" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div>
-                <strong>Pick Number:</strong> {banknoteData.pickNumber || '-'}
-              </div>
-              <div>
-                <strong>Turk Catalog Number:</strong> {banknoteData.turkCatalogNumber || '-'}
-              </div>
-              <div>
-                <strong>Extended Pick Number:</strong> {banknoteData.extendedPickNumber || '-'}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Sultan & Seal Information</h3>
-            <Separator className="mb-4" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div>
-                <strong>Sultan Name:</strong> {banknoteData.sultanName || '-'}
-              </div>
-              <div>
-                <strong>Seal Names:</strong> {banknoteData.sealNames || '-'}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Production Details</h3>
-            <Separator className="mb-4" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div>
-                <strong>Rarity:</strong> {banknoteData.rarity || '-'}
-              </div>
-              <div>
-                <strong>Printer:</strong> {banknoteData.printer || '-'}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Technical Specifications</h3>
-            <Separator className="mb-4" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div>
-                <strong>Watermark:</strong> {banknoteData.watermark || '-'}
-              </div>
-              <div>
-                <strong>Security Element:</strong> {banknoteData.securityElement || '-'}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Descriptions</h3>
-            <Separator className="mb-4" />
-            <div>
-              <strong>Banknote Description:</strong> {banknoteData.banknoteDescription || '-'}
-            </div>
-            <div>
-              <strong>Historical Description:</strong> {banknoteData.historicalDescription || '-'}
-            </div>
+        <CardContent>
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-20 w-full" />
           </div>
         </CardContent>
       </Card>
     );
-  };
+  }
+
+  if (error || !banknote) {
+    return (
+      <Card>
+        <CardContent className="text-center py-6">
+          <h2 className="text-lg font-semibold mb-2">Error loading banknote details</h2>
+          <p className="text-muted-foreground">Please try again later.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Define detail groups similar to BanknoteCatalogDetail.tsx
+  const detailGroups = [
+    {
+      title: "Basic Information",
+      icon: <Info className="h-5 w-5" />,
+      fields: [
+        { label: "Denomination", value: banknote.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
+        { label: "Country", value: banknote.country, icon: <Map className="h-4 w-4" /> },
+        { label: "Islamic Year", value: banknote.islamicYear, icon: <Calendar className="h-4 w-4" /> },
+        { label: "Gregorian Year", value: banknote.gregorianYear, icon: <Calendar className="h-4 w-4" /> },
+        { label: "Category", value: banknote.category, icon: <Hash className="h-4 w-4" /> },
+        { label: "Type", value: banknote.type, icon: <FileText className="h-4 w-4" /> },
+        { label: "Sultan", value: banknote.sultanName, icon: <Users className="h-4 w-4" /> },
+        { label: "Pick Number", value: banknote.pickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Extended Pick", value: banknote.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Turkish Cat #", value: banknote.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Rarity", value: banknote.rarity, icon: <Hash className="h-4 w-4" /> }
+      ]
+    },
+    {
+      title: "Production Details",
+      icon: <Building className="h-5 w-5" />,
+      fields: [
+        { label: "Printer", value: banknote.printer, icon: <PenTool className="h-4 w-4" /> },
+        { label: "Colors", value: banknote.colors, icon: <PenTool className="h-4 w-4" /> },
+        { label: "Serial Numbering", value: banknote.serialNumbering, icon: <Hash className="h-4 w-4" /> }
+      ]
+    },
+    {
+      title: "Security Features",
+      icon: <Shield className="h-5 w-5" />,
+      fields: [
+        { label: "Security Elements", value: banknote.securityElement, icon: <Shield className="h-4 w-4" /> },
+        { label: "Seal Names", value: banknote.sealNames, icon: <Stamp className="h-4 w-4" /> },
+        { label: "Front Signatures", value: banknote.signaturesFront, icon: <Hash className="h-4 w-4" /> },
+        { label: "Back Signatures", value: banknote.signaturesBack, icon: <Hash className="h-4 w-4" /> }
+      ]
+    }
+  ];
 
   return (
-    <div className="container max-w-4xl mx-auto py-10">
-      {renderBreadcrumbs()}
-      {renderBasicInfo()}
-      {renderImages()}
-      {renderDetails()}
-    </div>
+    <Card className="border-t-4 border-t-primary shadow-md">
+      <CardHeader className="border-b bg-muted/20">
+        <CardTitle className="text-xl">Banknote Details</CardTitle>
+        <CardDescription>Complete information about this banknote</CardDescription>
+      </CardHeader>
+      <CardContent className="p-6">
+        <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-0">
+          {detailGroups.map((group, groupIndex) => (
+            <AccordionItem 
+              key={`item-${groupIndex}`} 
+              value={`item-${groupIndex}`}
+              className="border rounded-md px-2"
+            >
+              <AccordionTrigger className="hover:no-underline px-4">
+                <div className="flex items-center gap-2">
+                  {group.icon}
+                  <span className="font-medium">{group.title}</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <div className="space-y-2">
+                  {group.fields
+                    .filter(field => field.value !== null && field.value !== undefined)
+                    .map((field, fieldIndex) => (
+                      <LabelValuePair
+                        key={fieldIndex}
+                        label={field.label}
+                        value={field.value}
+                        icon={field.icon}
+                      />
+                    ))}
+                  {!group.fields.some(field => field.value !== null && field.value !== undefined) && (
+                    <p className="text-sm text-muted-foreground italic py-2">No information available</p>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+        
+        {(banknote.banknoteDescription || banknote.historicalDescription) && (
+          <div className="mt-6 space-y-4">
+            {banknote.banknoteDescription && (
+              <Card className="overflow-hidden">
+                <CardHeader className="py-3 px-4 bg-muted/30">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="h-4 w-4" /> Banknote Description
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 text-sm">
+                  {banknote.banknoteDescription}
+                </CardContent>
+              </Card>
+            )}
+            
+            {banknote.historicalDescription && (
+              <Card className="overflow-hidden">
+                <CardHeader className="py-3 px-4 bg-muted/30">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <History className="h-4 w-4" /> Historical Background
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 text-sm">
+                  {banknote.historicalDescription}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

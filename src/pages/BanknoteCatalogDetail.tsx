@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -120,7 +119,9 @@ export default function BanknoteCatalogDetail() {
     setSelectedImage(imageUrl);
   };
 
-  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
+  // Fix: Ensure imageUrls is always treated as an array
+  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : 
+    typeof banknote.imageUrls === 'string' ? [banknote.imageUrls] : [];
 
   const detailGroups = [
     {
