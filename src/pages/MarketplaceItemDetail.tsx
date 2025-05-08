@@ -231,9 +231,9 @@ const MarketplaceItemDetail = () => {
           </Card>
 
           {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
-          
+          <BanknoteProvider banknoteId={banknote.id}>
             <BanknoteCatalogDetailMinimized />
-          
+          </BanknoteProvider>
         </div>
       </div>
     </div>
