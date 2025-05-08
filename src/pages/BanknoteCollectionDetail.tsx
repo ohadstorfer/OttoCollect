@@ -33,6 +33,12 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
     );
   }
   
+  // Helper function to format dates to strings
+  const formatDate = (date: string | Date | undefined): string | undefined => {
+    if (!date) return undefined;
+    return typeof date === 'string' ? date : date.toLocaleDateString();
+  };
+
   return (
     <div className="p-6">
       <div className="space-y-6">
@@ -55,7 +61,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           <div className="space-y-2">
             <LabelValuePair 
               label="Purchase Date" 
-              value={collectionItem.purchaseDate} 
+              value={formatDate(collectionItem.purchaseDate)} 
             />
             <LabelValuePair 
               label="Purchase Price" 
@@ -63,7 +69,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             />
             <LabelValuePair 
               label="Seller" 
-              value={collectionItem.purchasedFrom} 
+              value={collectionItem.location} // Using location as seller info
             />
             <LabelValuePair 
               label="Notes" 
@@ -83,11 +89,11 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                 />
                 <LabelValuePair 
                   label="Storage Location" 
-                  value={collectionItem.storageInfo} 
+                  value={collectionItem.location} // Using location as storage info
                 />
                 <LabelValuePair 
                   label="Insurance Value" 
-                  value={collectionItem.estimatedValue ? `$${collectionItem.estimatedValue}` : undefined} 
+                  value={collectionItem.purchasePrice ? `$${collectionItem.purchasePrice}` : undefined} // Using purchase price as estimated value
                 />
               </div>
             </div>

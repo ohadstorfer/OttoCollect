@@ -64,8 +64,8 @@ function App() {
             <Route path="/collectionNew/:country" element={<CountryDetailCollection />} />
             <Route path="/collection/:countryId" element={<Collection />} />
             <Route path="/collection-item/:id" element={<CollectionItem />} />
-            <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail />} />
-            <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail />} />
+            <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
+            <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/marketplace/:id" element={<MarketplaceItemDetail />} />
             <Route path="/community" element={<Community />} />
