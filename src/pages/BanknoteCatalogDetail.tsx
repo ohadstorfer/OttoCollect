@@ -1,36 +1,29 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchBanknoteDetail } from "@/services/banknoteService";
 import { useAuth } from "@/context/AuthContext";
+import { CollectionItem } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
-import { 
-  Calendar, 
-  BookOpen, 
-  Users, 
-  PenTool, 
-  Stamp, 
-  Hash, 
-  Shield, 
-  ArrowLeft, 
-  Info, 
-  ImagePlus,
-  FileText,
-  Map,
-  History,
-  Building,
-  CircleDollarSign,
-  Star
+import { fetchUserCollection } from "@/services/collectionService";
+import CollectionItemForm from "@/components/collection/CollectionItemForm";
+
+import {
+  ArrowLeft,
+  Star,
+  Pencil,
+  Eye
 } from "lucide-react";
+import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
+
+interface BanknoteCollectionDetailProps {
+  banknoteId?: string; // Make optional for backward compatibility
+  isOwner?: boolean;    // Add isOwner prop
+}
 
 interface LabelValuePairProps {
   label: string;
@@ -39,11 +32,9 @@ interface LabelValuePairProps {
   iconClassNames?: string;
 }
 
-
-
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
   if (!value) return null;
-  
+
   return (
     <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-1.5 py-1.5 border-b border-gray-100 last:border-0">
       <div className="text-right font-medium text-muted-foreground">{label}</div>
@@ -55,16 +46,19 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
   );
 };
 
-export default function BanknoteCatalogDetail() {
-  const { id } = useParams<{ id: string }>();
+const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ 
+  banknoteId: propsBanknoteId, 
+  isOwner = true // Default to true for backward compatibility
+}) => {
+  const { id: paramId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [collectionItem, setCollectionItem] = useState<CollectionItem | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-  
+  // Use banknoteId from props if provided, otherwise from URL params
+  const id = propsBanknoteId || paramId;
 
   const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
@@ -72,7 +66,42 @@ export default function BanknoteCatalogDetail() {
     enabled: !!id,
   });
 
-  if (banknoteLoading) {
+  const { data: userCollection, isLoading: collectionLoading } = useQuery({
+    queryKey: ["userCollection", user?.id],
+    queryFn: () => user ? fetchUserCollection(user.id) : Promise.resolve([]),
+    enabled: !!user,
+  });
+
+  useEffect(() => {
+    if (user && userCollection && banknote) {
+      const foundItem = userCollection.find(item => item.banknoteId === banknote.id);
+      if (foundItem) {
+        setCollectionItem(foundItem);
+      } else {
+        // If not in collection, redirect to catalog view with the correct path
+        navigate(`/banknote-details/${id}`);
+      }
+    }
+  }, [user, userCollection, banknote, id, navigate]);
+
+  const isLoading = banknoteLoading || collectionLoading;
+  const isInCollection = !!collectionItem;
+
+  const openImageViewer = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
+  
+  const toggleEditMode = () => {
+    setIsEditMode(!isEditMode);
+  };
+  
+  const handleUpdate = (updatedItem: CollectionItem) => {
+    setCollectionItem(updatedItem);
+    setIsEditMode(false); // Switch back to view mode after update
+    toast.success("Collection item updated successfully");
+  };
+
+  if (isLoading) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="flex justify-center py-12">
@@ -100,244 +129,188 @@ export default function BanknoteCatalogDetail() {
     );
   }
 
-  if (user?.role !== 'Super Admin' && user?.role !== 'Admin' && banknote?.isPending) {
+  if (!isInCollection) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <h1 className="page-title">Banknote Details</h1>
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4">Pending Approval</h2>
+            <h2 className="text-2xl font-serif mb-4">Not In Your Collection</h2>
             <p className="mb-6 text-muted-foreground">
-              This banknote is pending administrator approval.
+              This banknote is not in your collection.
             </p>
+            <Button onClick={() => navigate(`/catalog-banknote/${id}`)}>View in Catalog</Button>
           </div>
         </div>
       </div>
     );
   }
-  
-  const openImageViewer = (imageUrl: string) => {
-    setSelectedImage(imageUrl);
-  };
 
-  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
-
-  const detailGroups = [
-    {
-      title: "Basic Information",
-      icon: <Info className="h-5 w-5" />,
-      fields: [
-        { label: "Denomination", value: banknote.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
-        { label: "Country", value: banknote.country, icon: <Map className="h-4 w-4" /> },
-        { label: "Islamic Year", value: banknote.islamicYear, icon: <Calendar className="h-4 w-4" /> },
-        { label: "Gregorian Year", value: banknote.gregorianYear, icon: <Calendar className="h-4 w-4" /> },
-        { label: "Category", value: banknote.category, icon: <Hash className="h-4 w-4" /> },
-        { label: "Type", value: banknote.type, icon: <FileText className="h-4 w-4" /> },
-        { label: "Sultan", value: banknote.sultanName, icon: <Users className="h-4 w-4" /> },
-        { label: "Pick Number", value: banknote.pickNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Extended Pick", value: banknote.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Turkish Cat #", value: banknote.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Rarity", value: banknote.rarity, icon: <Star className="h-4 w-4" /> }
-      ]
-    },
-    
-      
-    {
-      title: "Production Details",
-      icon: <Building className="h-5 w-5" />,
-      fields: [
-        { label: "Printer", value: banknote.printer, icon: <PenTool className="h-4 w-4" /> },
-        { label: "Colors", value: banknote.colors, icon: <PenTool className="h-4 w-4" /> },
-        { label: "Serial Numbering", value: banknote.serialNumbering, icon: <Hash className="h-4 w-4" /> }
-      ]
-    },
-    {
-      title: "Security Features",
-      icon: <Shield className="h-5 w-5" />,
-      fields: [
-        { label: "Security Elements", value: banknote.securityElement, icon: <Shield className="h-4 w-4" /> },
-        { label: "Seal Names", value: banknote.sealNames, icon: <Stamp className="h-4 w-4" /> },
-        { label: "Front Signatures", value: banknote.signaturesFront, icon: <Hash className="h-4 w-4" /> },
-        { label: "Back Signatures", value: banknote.signaturesBack, icon: <Hash className="h-4 w-4" /> }
-      ]
+  // Collection item is guaranteed to exist at this point
+  const displayImages = [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[];
+  if (displayImages.length === 0 && banknote.imageUrls) {
+    // Fall back to catalog images if no collection images available
+    if (Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 0) {
+      displayImages.push(banknote.imageUrls[0]);
+    } else if (typeof banknote.imageUrls === 'string') {
+      displayImages.push(banknote.imageUrls);
     }
-  ];
+  }
 
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
-      
-      
+      <div className="flex justify-between items-center mb-6">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+          <ArrowLeft className="h-4 w-4" /> Back
+        </Button>
+
+        <div className="flex items-center space-x-2">
+          {collectionItem?.isForSale && (
+            <Badge variant="default" className="text-sm font-medium px-3 py-1 outline-none ring-0 focus:outline-none focus:ring-0 active:outline-none active:ring-0">
+              For Sale
+            </Badge>
+          )}
+        </div>
+      </div>
+
       <div className="flex flex-col space-y-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             {banknote.denomination}
+            <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
           </h1>
           <div className="flex items-center justify-between">
             <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
-            <Button variant="outline" onClick={() => navigate(-1)}>
-            Back
-          </Button>
           </div>
-          
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div className="lg:col-span-2 space-y-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <ImagePlus className="h-5 w-5 mr-2" />
-                  Banknote Images
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  {imageUrls.length > 0 ? (
-                    imageUrls.slice(0, 4).map((url, index) => (
-                      <div 
-                        key={index} 
-                        className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => openImageViewer(url)}
-                      >
-                        <div className="absolute inset-0 rounded-md overflow-hidden border">
-                          <img
-                            src={url}
-                            alt={`Banknote Image ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 p-6 text-center bg-muted rounded-md">
-                      <p className="text-muted-foreground">No images available</p>
-                    </div>
-                  )}
-                  
-                  {imageUrls.length > 4 && (
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
-                          <span className="text-lg font-medium">+{imageUrls.length - 4} more</span>
-                        </div>
-                      </SheetTrigger>
-                      <SheetContent className="w-[90%] sm:max-w-lg">
-                        <SheetHeader>
-                          <SheetTitle>All Banknote Images</SheetTitle>
-                          <SheetDescription>
-                            {banknote.country}, {banknote.denomination}, {banknote.year}
-                          </SheetDescription>
-                        </SheetHeader>
-                        <div className="grid grid-cols-2 gap-4 mt-8">
-                          {imageUrls.map((url, index) => (
-                            <div 
-                              key={index} 
-                              className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => openImageViewer(url)}
-                            >
-                              <div className="absolute inset-0 rounded-md overflow-hidden border">
-                                <img
-                                  src={url}
-                                  alt={`Banknote Image ${index + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </SheetContent>
-                    </Sheet>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
+          <div className="lg:col-span-5">
             <Card className="border-t-4 border-t-primary shadow-md">
-              <CardHeader className="border-b bg-muted/20">
-                <CardTitle className="text-xl">Banknote Details</CardTitle>
-                <CardDescription>Complete information about this banknote</CardDescription>
+              <CardHeader className="border-b bg-muted/20 flex flex-row justify-between items-center">
+                <div>
+                  <CardTitle className="text-xl">My Collection Copy</CardTitle>
+                  <CardDescription>Details about your copy of this banknote</CardDescription>
+                </div>
+                {isOwner && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={toggleEditMode}
+                    className="gap-1"
+                  >
+                    {isEditMode ? (
+                      <>
+                        <Eye className="h-4 w-4" />
+                        View
+                      </>
+                    ) : (
+                      <>
+                        <Pencil className="h-4 w-4" />
+                        Edit
+                      </>
+                    )}
+                  </Button>
+                )}
               </CardHeader>
-              <CardContent className="p-6">
-                <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-0">
-                  {detailGroups.map((group, groupIndex) => (
-                    <AccordionItem 
-                      key={`item-${groupIndex}`} 
-                      value={`item-${groupIndex}`}
-                      className="border rounded-md px-2"
-                    >
-                      <AccordionTrigger className="hover:no-underline px-4">
-                        <div className="flex items-center gap-2">
-                          {group.icon}
-                          <span className="font-medium">{group.title}</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4 pb-4">
+              <CardContent className="p-0">
+                {isEditMode && isOwner ? (
+                  <CollectionItemForm
+                    collectionItem={collectionItem}
+                    onUpdate={handleUpdate}
+                  />
+                ) : (
+                  <div className="p-6 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="font-medium mb-2">Details</h3>
                         <div className="space-y-2">
-                          {group.fields
-                            .filter(field => field.value !== null && field.value !== undefined)
-                            .map((field, fieldIndex) => (
-                              <LabelValuePair
-                                key={fieldIndex}
-                                label={field.label}
-                                value={field.value}
-                                icon={field.icon}
-                              />
-                            ))}
-                          {!group.fields.some(field => field.value !== null && field.value !== undefined) && (
-                            <p className="text-sm text-muted-foreground italic py-2">No information available</p>
+                          <LabelValuePair label="Condition" value={collectionItem.condition} />
+                          {collectionItem.purchasePrice && (
+                            <LabelValuePair label="Purchase Price" value={`$${collectionItem.purchasePrice}`} />
+                          )}
+                          {collectionItem.purchaseDate && (
+                            <LabelValuePair 
+                              label="Purchase Date" 
+                              value={new Date(collectionItem.purchaseDate).toLocaleDateString()} 
+                            />
+                          )}
+                          {collectionItem.location && (
+                            <LabelValuePair label="Location" value={collectionItem.location} />
                           )}
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-                
-                {(banknote.banknoteDescription || banknote.historicalDescription) && (
-                  <div className="mt-6 space-y-4">
-                    {banknote.banknoteDescription && (
-                      <Card className="overflow-hidden">
-                        <CardHeader className="py-3 px-4 bg-muted/30">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <FileText className="h-4 w-4" /> Banknote Description
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 text-sm">
-                          {banknote.banknoteDescription}
-                        </CardContent>
-                      </Card>
-                    )}
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-medium mb-2">Notes</h3>
+                        {collectionItem.publicNote ? (
+                          <div className="p-3 bg-muted rounded-md">
+                            <p className="text-sm">{collectionItem.publicNote}</p>
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground text-sm">No public notes available</p>
+                        )}
+                        
+                        {isOwner && collectionItem.privateNote && (
+                          <div className="mt-3">
+                            <h4 className="text-sm font-medium mb-1">Private Note</h4>
+                            <div className="p-3 bg-blue-50 rounded-md">
+                              <p className="text-sm">{collectionItem.privateNote}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     
-                    {banknote.historicalDescription && (
-                      <Card className="overflow-hidden">
-                        <CardHeader className="py-3 px-4 bg-muted/30">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <History className="h-4 w-4" /> Historical Background
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 text-sm">
-                          {banknote.historicalDescription}
-                        </CardContent>
-                      </Card>
-                    )}
+                    <div>
+                      <h3 className="font-medium mb-2">Images</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {displayImages.length > 0 ? (
+                          displayImages.map((url, index) => (
+                            <div 
+                              key={index}
+                              className="aspect-[3/2] cursor-pointer rounded-md overflow-hidden border"
+                              onClick={() => openImageViewer(url)}
+                            >
+                              <img
+                                src={url}
+                                alt={`Banknote ${index === 0 ? 'Obverse' : 'Reverse'}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ))
+                        ) : (
+                          <div className="col-span-2 flex items-center justify-center p-8 bg-muted rounded-md">
+                            <p className="text-muted-foreground">No images available</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
+
+          <div className="lg:col-span-5">
+            <BanknoteCatalogDetailMinimized />
+          </div>
         </div>
-        
-        
       </div>
-      
+
+      <div className="flex justify-between items-center mt-8">
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          Back
+        </Button>
+      </div>
+
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContent className="sm:max-w-[800px] p-1">
-            <img 
-              src={selectedImage} 
+            <img
+              src={selectedImage}
               alt="Banknote detail"
-              className="w-full h-auto rounded" 
+              className="w-full h-auto rounded"
             />
           </DialogContent>
         </Dialog>
@@ -345,3 +318,5 @@ export default function BanknoteCatalogDetail() {
     </div>
   );
 }
+
+export default BanknoteCollectionDetail;
