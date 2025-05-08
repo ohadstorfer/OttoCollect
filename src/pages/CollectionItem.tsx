@@ -12,6 +12,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
 import { ArrowLeft, Star, ImagePlus } from "lucide-react";
+import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 
 interface LabelValuePairProps {
   label: string;
@@ -173,13 +174,7 @@ export default function CollectionItem() {
                 <CardDescription>Details about your copy of this banknote</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <CollectionItemForm 
-                  collectionItem={collectionItem} 
-                  onUpdate={(updatedItem) => toast({
-                    title: "Collection Updated",
-                    description: "Your collection item has been updated successfully.",
-                  })}
-                />
+                <BanknoteCollectionDetail></BanknoteCollectionDetail>
               </CardContent>
             </Card>
           </div>
