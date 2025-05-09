@@ -21,7 +21,6 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
   const { id } = useParams<{ id: string }>();
   const { banknoteId } = useBanknoteContext();
   const { toast } = useToast();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // Determine which ID to use
   const itemId = id || banknoteId;
@@ -33,15 +32,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
     enabled: !!itemId,
   });
 
-  const handleUpdateSuccess = async () => {
-    setIsEditDialogOpen(false);
-    toast({
-      title: "Success",
-      description: "Collection item updated successfully",
-    });
-    // Refetch the data to get the latest updates
-    await refetch();
-  };
+  
 
   if (isLoading || !collectionItem) {
     return (
@@ -56,17 +47,6 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-medium mb-2">Details</h3>
-          {isOwner && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1"
-              onClick={() => setIsEditDialogOpen(true)}
-            >
-              <Edit className="w-4 h-4" />
-              <span>Edit</span>
-            </Button>
-          )}
         </div>
 
         <div className="space-y-2">
@@ -115,16 +95,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         {/* Other sections as needed */}
       </div>
 
-      {/* Edit dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContentWithScroll className="sm:max-w-[800px]">
-          <CollectionItemForm
-            collectionItem={collectionItem}
-            onUpdate={handleUpdateSuccess}
-            onCancel={() => setIsEditDialogOpen(false)}
-          />
-        </DialogContentWithScroll>
-      </Dialog>
+      
     </div>
   );
 };

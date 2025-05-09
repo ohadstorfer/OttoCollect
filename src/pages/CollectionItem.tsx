@@ -14,6 +14,7 @@ import { ArrowLeft, Star, ImagePlus, Edit } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
+import CollectionItemFormEdit from "@/components/collection/CollectionItemFormEdit";
 
 interface LabelValuePairProps {
   label: string;
@@ -242,7 +243,7 @@ export default function CollectionItem() {
       {/* Edit dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContentWithScroll className="sm:max-w-[800px]">
-          <CollectionItemForm
+          <CollectionItemFormEdit
             collectionItem={collectionItem}
             onUpdate={handleUpdateSuccess}
             onCancel={() => setIsEditDialogOpen(false)}
