@@ -145,32 +145,26 @@ export default function CollectionItem() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <div className="lg:col-span-2 space-y-4">
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <ImagePlus className="h-5 w-5 mr-2" />
-                  My Banknote Images
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
+              <CardContent className="px-2 pt-2 pb-2">
+                <div className="flex flex-col space-y-3">
                   {displayImages.length > 0 ? (
                     displayImages.map((url, index) => (
                       <div
                         key={index}
-                        className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
+                        className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => openImageViewer(url)}
                       >
-                        <div className="absolute inset-0 rounded-md overflow-hidden border">
+                        <div className="w-full rounded-md overflow-hidden border">
                           <img
                             src={url}
                             alt={`Banknote Image ${index + 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-auto object-contain"
                           />
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="col-span-2 p-6 text-center bg-muted rounded-md">
+                    <div className="p-6 text-center bg-muted rounded-md">
                       <p className="text-muted-foreground">No images available</p>
                     </div>
                   )}
