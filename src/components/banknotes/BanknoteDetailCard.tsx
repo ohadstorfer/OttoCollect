@@ -8,6 +8,10 @@ import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
+import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
+import CollectionItemForm from '../collection/CollectionItemForm';
+import { toast } from '@/hooks/use-toast';
+
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -29,6 +33,8 @@ const BanknoteDetailCard = ({
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
   
   const handleCardClick = () => {
     // Set the navigation flag to know we're coming from a group dialog
@@ -65,6 +71,33 @@ const BanknoteDetailCard = ({
   };
 
   const displayImage = getDisplayImage();
+
+
+
+  const handleUpdateSuccess = async () => {
+    setIsEditDialogOpen(false);
+    toast({
+      title: "Success",
+      description: "Collection item updated successfully",
+    });
+
+  };
+
+  
+  {/* Edit dialog */}
+  <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+  <DialogContentWithScroll className="sm:max-w-[800px]">
+    <CollectionItemForm
+      collectionItem={collectionItem}
+      onUpdate={handleUpdateSuccess}
+      onCancel={() => setIsEditDialogOpen(false)}
+    />
+  </DialogContentWithScroll>
+</Dialog>
+
+
+
+
 
   if (viewMode === 'list') {
     return (
