@@ -38,8 +38,6 @@ interface LabelValuePairProps {
   iconClassNames?: string;
 }
 
-
-
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
   if (!value) return null;
   
@@ -52,6 +50,13 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
       </div>
     </div>
   );
+};
+
+const getFormattedValue = (value: string | string[]): string => {
+  if (Array.isArray(value)) {
+    return value.join(", ");
+  }
+  return value;
 };
 
 export default function BanknoteCatalogDetail() {
@@ -156,7 +161,7 @@ export default function BanknoteCatalogDetail() {
       title: "Security Features",
       icon: <Shield className="h-5 w-5" />,
       fields: [
-        { label: "Security Elements", value: banknote.securityElement, icon: <Shield className="h-4 w-4" /> },
+        { label: "Security Elements", value: getFormattedValue(banknote.security_element), icon: <Shield className="h-4 w-4" /> },
         { label: "Seal Names", value: banknote.sealNames, icon: <Stamp className="h-4 w-4" /> },
         { label: "Front Signatures", value: banknote.signaturesFront, icon: <Hash className="h-4 w-4" /> },
         { label: "Back Signatures", value: banknote.signaturesBack, icon: <Hash className="h-4 w-4" /> }
