@@ -7,7 +7,7 @@ import type { CollectionItem as CollectionItemType } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
 import { ArrowLeft, Star, ImagePlus, Edit } from "lucide-react";
@@ -50,7 +50,6 @@ export default function CollectionItem() {
     queryFn: () => fetchCollectionItem(id || ""),
     enabled: !!id,
   });
-
 
   const handleUpdateSuccess = async () => {
     setIsEditDialogOpen(false);
@@ -150,10 +149,6 @@ export default function CollectionItem() {
           </p>
         </div>
 
-
-
-
-
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <div className="lg:col-span-2 space-y-4">
             <Card>
@@ -209,7 +204,7 @@ export default function CollectionItem() {
                 <CardDescription>
                   {isOwner
                     ? "Details about your personal copy of this banknote"
-                    : "Information about this collector’s copy of the banknote"}
+                    : "Information about this collector's copy of the banknote"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
@@ -222,13 +217,7 @@ export default function CollectionItem() {
                 <BanknoteCatalogDetailMinimized />
               </div>
             </BanknoteProvider>
-
-
           </div>
-
-
-
-
         </div>
 
         <div className="flex justify-between items-center">
@@ -240,30 +229,26 @@ export default function CollectionItem() {
 
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="sm:max-w-[800px] p-1">
+          <DialogContentWithScroll className="sm:max-w-[800px] p-1">
             <img
               src={selectedImage}
               alt="Banknote detail"
               className="w-full h-auto rounded"
             />
-          </DialogContent>
+          </DialogContentWithScroll>
         </Dialog>
       )}
 
-
-
       {/* Edit dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[800px]">
+        <DialogContentWithScroll className="sm:max-w-[800px]">
           <CollectionItemForm
             collectionItem={collectionItem}
             onUpdate={handleUpdateSuccess}
             onCancel={() => setIsEditDialogOpen(false)}
           />
-        </DialogContent>
+        </DialogContentWithScroll>
       </Dialog>
-
-
     </div>
   );
 }

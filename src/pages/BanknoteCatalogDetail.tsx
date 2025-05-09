@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
@@ -161,7 +161,7 @@ export default function BanknoteCatalogDetail() {
       title: "Security Features",
       icon: <Shield className="h-5 w-5" />,
       fields: [
-        { label: "Security Elements", value: getFormattedValue(banknote.security_element), icon: <Shield className="h-4 w-4" /> },
+        { label: "Security Elements", value: getFormattedValue(banknote.securityElement || []), icon: <Shield className="h-4 w-4" /> },
         { label: "Seal Names", value: banknote.sealNames, icon: <Stamp className="h-4 w-4" /> },
         { label: "Front Signatures", value: banknote.signaturesFront, icon: <Hash className="h-4 w-4" /> },
         { label: "Back Signatures", value: banknote.signaturesBack, icon: <Hash className="h-4 w-4" /> }
@@ -171,8 +171,6 @@ export default function BanknoteCatalogDetail() {
 
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
-      
-      
       <div className="flex flex-col space-y-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -339,13 +337,13 @@ export default function BanknoteCatalogDetail() {
       
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="sm:max-w-[800px] p-1">
+          <DialogContentWithScroll className="sm:max-w-[800px] p-1">
             <img 
               src={selectedImage} 
               alt="Banknote detail"
               className="w-full h-auto rounded" 
             />
-          </DialogContent>
+          </DialogContentWithScroll>
         </Dialog>
       )}
     </div>
