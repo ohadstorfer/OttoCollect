@@ -66,7 +66,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 }) => {
   // Use collectionItem prop if provided, otherwise use item
   const currentItem = collectionItem || item;
-  
+
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -222,7 +222,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             id: currentItem.id,
             banknote: currentItem.banknote // Ensure we keep the banknote reference
           };
-          
+
           toast({
             title: "Success",
             description: "Collection item updated successfully.",
@@ -233,7 +233,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       } else {
         // Add new item
         savedItem = await addToCollection(collectionData);
-        
+
         if (savedItem) {
           toast({
             title: "Success",
@@ -270,12 +270,10 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       <CardContent className="pt-6">
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">
-            {item ? 'Edit Collection Item' : 'Add to Collection'}
+            Edit Collection Item
           </h2>
           <p className="text-muted-foreground">
-            {item
-              ? 'Update the details of this banknote in your collection.'
-              : 'Add a banknote to your personal collection.'}
+            Update the details of this banknote in your collection.
           </p>
         </div>
 
@@ -283,95 +281,16 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-6">
               {/* Banknote selection */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Select Banknote</h3>
-                
-                {!item && (
-                  <div>
-                    <Label>Search for banknote</Label>
-                    <Input
-                      type="text"
-                      placeholder="Search by country, denomination, year..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="mb-2"
-                    />
-                    
-                    {isSearching ? (
-                      <div className="p-4 text-center">Searching...</div>
-                    ) : searchResults.length > 0 ? (
-                      <div className="max-h-60 overflow-y-auto border rounded-md">
-                        {searchResults.map((banknote) => (
-                          <div
-                            key={banknote.id}
-                            onClick={() => handleBanknoteSelect(banknote.id)}
-                            className={`p-3 flex items-center border-b cursor-pointer hover:bg-muted ${
-                              form.getValues('banknoteId') === banknote.id
-                                ? 'bg-primary/10'
-                                : ''
-                            }`}
-                          >
-                            <div>
-                              <div className="font-medium">
-                                {banknote.denomination} ({banknote.year})
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {banknote.country} - {banknote.series || 'Unknown Series'}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : searchTerm.length > 1 ? (
-                      <div className="p-4 text-center text-muted-foreground">
-                        No banknotes found. Try a different search term.
-                      </div>
-                    ) : null}
-                  </div>
-                )}
 
-                {(selectedBanknote || item) && (
-                  <div className="p-4 border rounded-md bg-muted/40">
-                    <div className="font-medium">
-                      {selectedBanknote?.denomination || item?.banknote?.denomination} 
-                      ({selectedBanknote?.year || item?.banknote?.year})
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {selectedBanknote?.country || item?.banknote?.country} - 
-                      {selectedBanknote?.series || item?.banknote?.series || 'Unknown Series'}
-                    </div>
-                    {!item && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="mt-2"
-                        onClick={() => {
-                          setSelectedBanknote(null);
-                          form.setValue('banknoteId', '');
-                        }}
-                      >
-                        Change
-                      </Button>
-                    )}
-                  </div>
-                )}
 
-                <FormField
-                  control={form.control}
-                  name="banknoteId"
-                  render={({ field }) => (
-                    <FormItem hidden>
-                      <FormControl>
-                        <Input {...field} type="hidden" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <div className="grid grid-cols-1 gap-y-4">
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-medium">Public Details</h3>
+                  <span className="text-sm text-muted-foreground">Visible to everyone</span>
+                </div>
+
+
                 {/* Condition */}
                 <FormField
                   control={form.control}
@@ -407,6 +326,35 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   )}
                 />
 
+                {/* Public Note */}
+                <FormField
+                  control={form.control}
+                  name="publicNote"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Public Note</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Add a note visible to other collectors"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        This note will be visible to other users.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+<div className="w-full h-px bg-muted my-6" />
+
+
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-medium">Private Details</h3>
+                  <span className="text-sm text-muted-foreground">Only visible to you</span>
+                </div>
+
                 {/* Purchase Date */}
                 <FormField
                   control={form.control}
@@ -419,9 +367,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                           <FormControl>
                             <Button
                               variant={"outline"}
-                              className={`w-full pl-3 text-left font-normal ${
-                                !field.value && "text-muted-foreground"
-                              }`}
+                              className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"
+                                }`}
                             >
                               {field.value ? (
                                 format(field.value, "PPP")
@@ -556,26 +503,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 />
               )}
 
-              {/* Public Note */}
-              <FormField
-                control={form.control}
-                name="publicNote"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Public Note</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Add a note visible to other collectors"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      This note will be visible to other users.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
 
               {/* Private Note */}
               <FormField
@@ -676,8 +604,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 {isSubmitting
                   ? 'Saving...'
                   : item
-                  ? 'Update Item'
-                  : 'Add to Collection'}
+                    ? 'Update Item'
+                    : 'Add to Collection'}
               </Button>
             </div>
           </form>
