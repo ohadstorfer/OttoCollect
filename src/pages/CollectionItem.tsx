@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
-import { ArrowLeft, Star, ImagePlus } from "lucide-react";
+import { ArrowLeft, Star, ImagePlus, Edit } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
@@ -42,13 +42,25 @@ export default function CollectionItem() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // Fetch collection item directly by ID
-  const { data: collectionItem, isLoading, isError } = useQuery({
+  const { data: collectionItem, isLoading, isError, refetch } = useQuery({
     queryKey: ["collectionItem", id],
     queryFn: () => fetchCollectionItem(id || ""),
     enabled: !!id,
   });
+
+
+  const handleUpdateSuccess = async () => {
+    setIsEditDialogOpen(false);
+    toast({
+      title: "Success",
+      description: "Collection item updated successfully",
+    });
+    // Refetch the data to get the latest updates
+    await refetch();
+  };
 
   // Determine if the current user is the owner of this item
   const isOwner = user?.id === collectionItem?.userId;
@@ -176,9 +188,24 @@ export default function CollectionItem() {
           <div className="lg:col-span-3">
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
-                <CardTitle className="text-xl">
-                  {isOwner ? "My Collection Copy" : "Collection Copy"}
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-xl m-0">
+                    {isOwner ? "My Collection Copy" : "Collection Copy"}
+                  </CardTitle>
+
+                  {isOwner && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-1"
+                      onClick={() => setIsEditDialogOpen(true)}
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span>Edit</span>
+                    </Button>
+                  )}
+                </div>
+
                 <CardDescription>
                   {isOwner
                     ? "Details about your personal copy of this banknote"
@@ -222,6 +249,21 @@ export default function CollectionItem() {
           </DialogContent>
         </Dialog>
       )}
+
+
+
+      {/* Edit dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[800px]">
+          <CollectionItemForm
+            collectionItem={collectionItem}
+            onUpdate={handleUpdateSuccess}
+            onCancel={() => setIsEditDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+
     </div>
   );
 }

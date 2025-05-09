@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchCollectionItem } from '@/services/collectionService';
@@ -7,11 +7,6 @@ import { LabelValuePair } from "@/components/ui/label-value-pair";
 import { useBanknoteContext } from '@/context/BanknoteContext';
 import { CollectionItem } from '@/types';
 import { formatDate } from '@/utils/formatters';
-import { Edit } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import CollectionItemForm from '@/components/collection/CollectionItemForm';
-import { useToast } from '@/hooks/use-toast';
 
 interface BanknoteCollectionDetailProps {
   isOwner: boolean;
@@ -20,28 +15,16 @@ interface BanknoteCollectionDetailProps {
 const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isOwner }) => {
   const { id } = useParams<{ id: string }>();
   const { banknoteId } = useBanknoteContext();
-  const { toast } = useToast();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // Determine which ID to use
   const itemId = id || banknoteId;
 
   // Fetch collection item data
-  const { data: collectionItem, isLoading, refetch } = useQuery({
+  const { data: collectionItem, isLoading } = useQuery({
     queryKey: ["collectionItem", itemId],
     queryFn: () => fetchCollectionItem(itemId || ""),
     enabled: !!itemId,
   });
-
-  const handleUpdateSuccess = async () => {
-    setIsEditDialogOpen(false);
-    toast({
-      title: "Success",
-      description: "Collection item updated successfully",
-    });
-    // Refetch the data to get the latest updates
-    await refetch();
-  };
 
   if (isLoading || !collectionItem) {
     return (
@@ -50,6 +33,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
       </div>
     );
   }
+
 
   return (
     <div className="p-6">
@@ -73,20 +57,9 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         {isOwner && (
           <>
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-medium">Private Details</h3>
-                  <span className="text-sm text-muted-foreground">Only visible to you</span>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={() => setIsEditDialogOpen(true)}
-                >
-                  <Edit className="w-4 h-4" />
-                  <span>Edit</span>
-                </Button>
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-lg font-medium">Private Details</h3>
+                <span className="text-sm text-muted-foreground">Only visible to you</span>
               </div>
               <div className="space-y-2">
                 <LabelValuePair
@@ -114,17 +87,6 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
 
         {/* Other sections as needed */}
       </div>
-
-      {/* Edit dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[800px]">
-          <CollectionItemForm 
-            collectionItem={collectionItem} 
-            onUpdate={handleUpdateSuccess}
-            onCancel={() => setIsEditDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
