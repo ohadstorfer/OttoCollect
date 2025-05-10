@@ -1,5 +1,6 @@
+
 import React, { useState, useCallback, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
 import { CountryHeader } from "@/components/country/CountryHeader";
 import { CountryFilterSection } from "@/components/country/CountryFilterSection";
@@ -10,9 +11,18 @@ import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { useAuth } from "@/context/AuthContext";
 import { CollectionItemsDisplay } from "@/components/country/CollectionItemsDisplay";
 
-const CountryDetailCollection = () => {
+interface CountryDetailCollectionProps {
+  userId?: string; // Added to support viewing collections of other users
+  isOwner?: boolean; // Added to identify if user owns the collection
+}
+
+const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ 
+  userId: propsUserId,
+  isOwner: propsIsOwner
+}) => {
   const { country } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
@@ -23,9 +33,15 @@ const CountryDetailCollection = () => {
     sort: ["extPick"],
   });
   
-  // Get userId from URL if provided, otherwise default to current user
-  const { userId } = useParams<{ userId?: string }>();
-  const isOwner = !userId || (user && userId === user.id);
+  // Get userId from props, URL params, or current user
+  const urlParams = new URLSearchParams(location.search);
+  const urlUserId = urlParams.get('userId');
+  
+  // Determine the userId - prioritize props, then URL params, then logged-in user
+  const userId = propsUserId || urlUserId || user?.id;
+  
+  // Determine if current user is the owner of this collection
+  const isOwner = propsIsOwner !== undefined ? propsIsOwner : (!propsUserId && !urlUserId) || (user && userId === user.id);
   
   console.log("CountryDetailCollection - isOwner:", isOwner, "userId:", userId, "currentUser:", user?.id);
   
@@ -54,7 +70,7 @@ const CountryDetailCollection = () => {
   const { collectionItems, loading: collectionItemsLoading } = useCollectionItemsFetching({
     countryId,
     filters,
-    userId: userId || user?.id,
+    userId: userId,
     skipInitialFetch: !preferencesLoaded
   });
 
@@ -146,10 +162,12 @@ const CountryDetailCollection = () => {
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
-      <CountryHeader 
-        countryName={country ? decodeURIComponent(country) : ""} 
-        returnPath="/collection" 
-      />
+      {!propsUserId && (
+        <CountryHeader 
+          countryName={country ? decodeURIComponent(country) : ""} 
+          returnPath="/collection" 
+        />
+      )}
 
       <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
         <CountryFilterSection

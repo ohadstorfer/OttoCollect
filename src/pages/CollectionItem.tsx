@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCollectionItem } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
@@ -40,10 +40,15 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 export default function CollectionItem() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  
+  // Check if we came from a profile page
+  const fromProfile = location.state?.fromProfile;
+  const profileUsername = location.state?.profileUsername;
 
   // Fetch collection item directly by ID
   const { data: collectionItem, isLoading, isError, refetch } = useQuery({
@@ -65,6 +70,16 @@ export default function CollectionItem() {
   // Determine if the current user is the owner of this item
   const isOwner = user?.id === collectionItem?.userId;
   console.log("CollectionItem - isOwner:", isOwner, "userId:", user?.id, "itemUserId:", collectionItem?.userId);
+
+  const handleGoBack = () => {
+    if (fromProfile && profileUsername) {
+      // Navigate back to the profile page if we came from there
+      navigate(`/profile/${profileUsername}`);
+    } else {
+      // Otherwise just go back
+      navigate(-1);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -88,7 +103,7 @@ export default function CollectionItem() {
           <p className="mb-6 text-muted-foreground">
             We couldn't load the collection item details. Please try again later.
           </p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
+          <Button onClick={handleGoBack}>Go Back</Button>
         </div>
       </div>
     );
@@ -103,7 +118,7 @@ export default function CollectionItem() {
           <p className="mb-6 text-muted-foreground">
             You don't have permission to view this collection item.
           </p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
+          <Button onClick={handleGoBack}>Go Back</Button>
         </div>
       </div>
     );
@@ -117,18 +132,16 @@ export default function CollectionItem() {
 
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
-
-
       <div className="flex flex-col space-y-6">
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <div className="flex items-baseline  gap-2">
+            <div className="flex items-baseline gap-2">
               <Button
                 variant="ghost"
-                onClick={() => navigate(-1)}
+                onClick={handleGoBack}
                 className="p-0 w-auto h-auto min-w-0 flex items-center justify-center"
               >
-                <ArrowLeft className="h-5 w-5" /> {/* match h1 size */}
+                <ArrowLeft className="h-5 w-5" />
               </Button>
 
               <h1 className="text-3xl font-bold leading-tight">
@@ -222,7 +235,7 @@ export default function CollectionItem() {
         </div>
 
         <div className="flex justify-between items-center">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+          <Button variant="outline" onClick={handleGoBack}>
             Back
           </Button>
         </div>

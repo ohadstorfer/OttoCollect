@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileAbout } from '@/components/profile/ProfileAbout';
@@ -10,20 +10,18 @@ import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { getUserProfile } from '@/services/profileService';
 import { fetchUserCollection } from '@/services/collectionService';
-import ProfileCollection from '@/components/profile/ProfileCollection';
+import CountrySelection from '@/pages/CountrySelection';
 import { DynamicFilterState } from '@/types/filter';
+import CountryDetailCollection from './CountryDetailCollection';
+import { ChevronLeft } from 'lucide-react';
 
 const Profile: React.FC = () => {
   const { username: routeUsername } = useParams<{ username?: string }>();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
-  const [isEditMode, setIsEditMode] = React.useState(false);
-  const [filters, setFilters] = React.useState<DynamicFilterState>({
-    search: '',
-    categories: [],
-    types: [],
-    sort: [],
-  });
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedCountryId, setSelectedCountryId] = useState<string | null>(null);
 
   const username = routeUsername || authUser?.username;
   const isOwnProfile = authUser?.username === username;
@@ -40,78 +38,22 @@ const Profile: React.FC = () => {
     retry: false,
   });
 
-  const {
-    data: collectionItems,
-    isLoading: collectionLoading,
-    error: collectionError,
-    refetch: refetchCollection,
-  } = useQuery({
-    queryKey: ['collection', profile?.id],
-    queryFn: () => (profile?.id ? fetchUserCollection(profile.id) : Promise.resolve([])),
-    enabled: !!profile?.id,
-  });
-
-  const handleFilterChange = (newFilters: Partial<DynamicFilterState>) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      ...newFilters,
-    }));
-  };
-
-  // Prepare filtered items
-  const filteredItems = React.useMemo(() => {
-    if (!collectionItems) return [];
-    
-    return collectionItems.filter((item) => {
-      const searchTerm = filters.search.toLowerCase();
-      const matchesSearch =
-        (item.banknote?.denomination || "").toLowerCase().includes(searchTerm) ||
-        (item.banknote?.country || "").toLowerCase().includes(searchTerm) ||
-        (item.banknote?.year || "").toLowerCase().includes(searchTerm);
-
-      const matchesCategory =
-        filters.categories.length === 0 || filters.categories.includes(item.banknote?.category || '');
-
-      const matchesType = filters.types.length === 0 || filters.types.includes(item.banknote?.type || '');
-
-      return matchesSearch && matchesCategory && matchesType;
-    });
-  }, [collectionItems, filters]);
-
-  // Process collection categories
-  const collectionCategories = React.useMemo(() => {
-    if (!collectionItems || collectionItems.length === 0) return [];
-
-    const categoryCounts: { [key: string]: number } = {};
-    collectionItems.forEach((item) => {
-      const category = item.banknote?.category || 'Uncategorized';
-      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
-    });
-
-    return Object.entries(categoryCounts)
-      .map(([name, count]) => ({ id: name, name, count }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [collectionItems]);
-
-  // Process collection types
-  const collectionTypes = React.useMemo(() => {
-    if (!collectionItems || collectionItems.length === 0) return [];
-
-    const typeCounts: { [key: string]: number } = {};
-    collectionItems.forEach((item) => {
-      const type = item.banknote?.type || 'Unknown Type';
-      typeCounts[type] = (typeCounts[type] || 0) + 1;
-    });
-
-    return Object.entries(typeCounts)
-      .map(([name, count]) => ({ id: name, name, count }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [collectionItems]);
-
   // Handle save completion for profile edit
   const handleSaveComplete = async () => {
     await refetchProfile();
     setIsEditMode(false);
+  };
+
+  // Handle country selection
+  const handleCountrySelect = (countryId: string, countryName: string) => {
+    setSelectedCountry(countryName);
+    setSelectedCountryId(countryId);
+  };
+
+  // Handle going back to country selection
+  const handleBackToCountries = () => {
+    setSelectedCountry(null);
+    setSelectedCountryId(null);
   };
 
   if (profileLoading) {
@@ -147,26 +89,47 @@ const Profile: React.FC = () => {
       <ProfileHeader profile={profile} />
 
       <Tabs defaultValue="collection" className="w-full mt-8">
+        <TabsList>
+          <TabsTrigger value="collection">Collection</TabsTrigger>
+          <TabsTrigger value="about">About</TabsTrigger>
+        </TabsList>
 
         <TabsContent value="collection" className="space-y-4">
-          <ProfileCollection
-            userId={profile.id}
-            username={profile.username}
-            isOwnProfile={isOwnProfile}
-            collectionItems={collectionItems || []}
-            isLoading={collectionLoading}
-            error={collectionError ? String(collectionError) : null}
-            onRetry={() => {
-              refetchCollection();
-              return Promise.resolve();
-            }}
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            filteredItems={filteredItems}
-            collectionCategories={collectionCategories}
-            collectionTypes={collectionTypes}
-          />
+          {selectedCountry ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleBackToCountries}
+                  className="flex items-center gap-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Back to Countries
+                </Button>
+                <h2 className="text-xl font-semibold">{selectedCountry} Collection</h2>
+              </div>
+              
+              {selectedCountryId && (
+                <CountryDetailCollection 
+                  key={`${profile.id}-${selectedCountryId}`} 
+                  userId={profile.id}
+                  isOwner={isOwnProfile}
+                />
+              )}
+            </div>
+          ) : (
+            <CountrySelection 
+              showHeader={false}
+              customTitle={`${isOwnProfile ? "My" : `${profile.username}'s`} Collection`}
+              customDescription={`Browse ${isOwnProfile ? "your" : `${profile.username}'s`} collection by country`}
+              profileId={profile.id}
+              isOwnProfile={isOwnProfile}
+              onCountrySelect={handleCountrySelect}
+            />
+          )}
         </TabsContent>
+
         <TabsContent value="about" className="space-y-4">
           {isEditMode ? (
             <ProfileEditForm 
