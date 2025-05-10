@@ -1,8 +1,7 @@
-
 import React from "react";
 import { CollectionItem } from "@/types";
 import CollectionItemCard from "./CollectionItemCard";
-import CollectionItemCardGroup from "./CollectionItemCardGroup";
+import { CollectionItemCardGroup } from "./CollectionItemCardGroup";
 
 interface CollectionItemsGroupsProps {
   groups: {
