@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -183,6 +182,7 @@ export default function BanknoteCatalogDetail() {
             Back
           </Button>
           </div>
+          
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">

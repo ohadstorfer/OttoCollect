@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -14,18 +15,12 @@ interface CountrySelectionProps {
   showHeader?: boolean;
   customTitle?: string;
   customDescription?: string;
-  profileId?: string; // Added for profile integration
-  isOwnProfile?: boolean; // Added to determine if viewing own profile
-  onCountrySelect?: (countryId: string, countryName: string) => void; // Added callback for profile integration
 }
 
 const CountrySelection: React.FC<CountrySelectionProps> = ({
   showHeader = true,
   customTitle,
-  customDescription,
-  profileId,
-  isOwnProfile = true,
-  onCountrySelect
+  customDescription
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -52,24 +47,11 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
     );
   }, [countries, searchTerm]);
 
-  const handleCountrySelect = (country: CountryData) => {
-    if (onCountrySelect) {
-      // If being used in profile, use the callback
-      onCountrySelect(country.id, country.name);
-    } else {
-      // Otherwise use the default navigation
-      // If we're in a profile context, navigate to the profile's collection
-      if (profileId) {
-        navigate(`/collectionNew/${country.name}?userId=${profileId}`);
-      } else {
-        // Standard collection navigation
-        navigate(`/collectionNew/${country.name}`);
-      }
-    }
+  const handleCountrySelect = (country: string) => {
+    navigate(`/collectionNew/${country}`);
   };
 
-  // If not being used in profile context, check if user is authenticated
-  if (!profileId && !user) {
+  if (!user) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
@@ -92,7 +74,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
         />
       )}
 
-      <div className={showHeader ? "py-10" : "pt-4 pb-10"}>
+      <div className="py-10">
         <div className="max-w-md mx-auto mb-4">
           <div className="relative">
             <Search className="mb-2 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -121,7 +103,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
               <Card 
                 key={country.id}
                 className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50 cursor-pointer"
-                onClick={() => handleCountrySelect(country)}
+                onClick={() => handleCountrySelect(country.name)}
               >
                 <div className="aspect-[4/3] overflow-hidden relative">
                   {country.imageUrl ? (
