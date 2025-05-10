@@ -13,9 +13,10 @@ import { CollectionItemsDisplay } from "@/components/country/CollectionItemsDisp
 
 interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
+  countryName?: string; // Optional country name prop when not using URL params
 }
 
-const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ userId }) => {
+const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ userId, countryName }) => {
   const { country } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -27,6 +28,9 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ userI
     types: [],
     sort: ["extPick"],
   });
+  
+  // Use either the prop or the URL param for country name
+  const effectiveCountryName = countryName || (country ? decodeURIComponent(country) : "");
   
   // Determine if current user is owner of the collection
   const isOwner = !userId || (user && userId === user.id);
@@ -51,7 +55,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ userI
     groupMode,
     handleGroupModeChange
   } = useCountryData({ 
-    countryName: country || "", 
+    countryName: effectiveCountryName, 
     navigate 
   });
 
@@ -155,7 +159,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ userI
   return (
     <div className="w-full px-2 sm:px-6 py-8">
       <CountryHeader 
-        countryName={country ? decodeURIComponent(country) : ""} 
+        countryName={effectiveCountryName} 
         returnPath={returnPath} 
       />
 

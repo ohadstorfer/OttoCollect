@@ -120,6 +120,14 @@ const BanknoteCatalogDetail = () => {
     );
   }
   
+  // Fix for the TypeScript error - ensure imageUrl is always a string
+  const imageUrl = selectedImage || 
+    (banknote.imageUrls && Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 0
+      ? banknote.imageUrls[0]
+      : typeof banknote.imageUrls === 'string'
+        ? banknote.imageUrls
+        : '/placeholder-brown.svg');
+
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);
   };
@@ -339,13 +347,7 @@ const BanknoteCatalogDetail = () => {
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContentWithScroll className="sm:max-w-[800px] p-1">
             <img 
-              src={
-                banknote.imageUrls && Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 0
-                  ? banknote.imageUrls[0]
-                  : typeof banknote.imageUrls === 'string'
-                    ? banknote.imageUrls
-                    : '/placeholder-brown.svg'
-              }
+              src={imageUrl}
               alt={`${banknote.country} ${banknote.denomination}`}
               className="w-full h-full object-cover"
             />

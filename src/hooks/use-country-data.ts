@@ -47,10 +47,11 @@ export const useCountryData = ({
         return;
       }
 
-      const decodedCountryName = decodeURIComponent(countryName);
-      console.log("CountryDetail: Loading country data for", decodedCountryName);
-
       try {
+        // Make sure we're using the decoded country name
+        const decodedCountryName = decodeURIComponent(countryName);
+        console.log("CountryDetail: Loading country data for", decodedCountryName);
+
         const countryData = await fetchCountryByName(decodedCountryName);
 
         if (!countryData) {

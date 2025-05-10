@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -180,7 +179,8 @@ const Profile: React.FC = () => {
               </Button>
               <CountryDetailCollection 
                 key={`${profile.id}-${selectedCountry}`} 
-                userId={profile.id} 
+                userId={profile.id}
+                countryName={selectedCountry}
               />
             </div>
           ) : (
