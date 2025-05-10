@@ -12,12 +12,16 @@ import { getUserProfile } from '@/services/profileService';
 import { fetchUserCollection } from '@/services/collectionService';
 import ProfileCollection from '@/components/profile/ProfileCollection';
 import { DynamicFilterState } from '@/types/filter';
+import CountrySelection from '@/pages/CountrySelection';
+import CountryDetailCollection from '@/pages/CountryDetailCollection';
 
 const Profile: React.FC = () => {
   const { username: routeUsername } = useParams<{ username?: string }>();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const [isEditMode, setIsEditMode] = React.useState(false);
+  const [selectedCountry, setSelectedCountry] = React.useState<string | null>(null);
+  const [showCountryDetail, setShowCountryDetail] = React.useState(false);
   const [filters, setFilters] = React.useState<DynamicFilterState>({
     search: '',
     categories: [],
@@ -56,6 +60,18 @@ const Profile: React.FC = () => {
       ...prevFilters,
       ...newFilters,
     }));
+  };
+
+  // Custom handler for country selection
+  const handleCountrySelect = (country: string) => {
+    setSelectedCountry(country);
+    setShowCountryDetail(true);
+  };
+
+  // Handler to go back to country selection
+  const handleBackToCountries = () => {
+    setShowCountryDetail(false);
+    setSelectedCountry(null);
   };
 
   // Prepare filtered items
@@ -147,26 +163,37 @@ const Profile: React.FC = () => {
       <ProfileHeader profile={profile} />
 
       <Tabs defaultValue="collection" className="w-full mt-8">
+        <TabsList>
+          <TabsTrigger value="collection">Collection</TabsTrigger>
+          <TabsTrigger value="about">About</TabsTrigger>
+        </TabsList>
 
         <TabsContent value="collection" className="space-y-4">
-          <ProfileCollection
-            userId={profile.id}
-            username={profile.username}
-            isOwnProfile={isOwnProfile}
-            collectionItems={collectionItems || []}
-            isLoading={collectionLoading}
-            error={collectionError ? String(collectionError) : null}
-            onRetry={() => {
-              refetchCollection();
-              return Promise.resolve();
-            }}
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            filteredItems={filteredItems}
-            collectionCategories={collectionCategories}
-            collectionTypes={collectionTypes}
-          />
+          {showCountryDetail && selectedCountry ? (
+            <div>
+              <Button 
+                variant="outline" 
+                onClick={handleBackToCountries} 
+                className="mb-4"
+              >
+                ← Back to Countries
+              </Button>
+              <CountryDetailCollection 
+                key={`${profile.id}-${selectedCountry}`} 
+                userId={profile.id} 
+              />
+            </div>
+          ) : (
+            <CountrySelection 
+              showHeader={false}
+              customTitle={`${isOwnProfile ? 'My' : `${profile.username}'s`} Collection`}
+              customDescription="Browse your banknote collection by country" 
+              userId={profile.id}
+              onCountrySelect={handleCountrySelect}
+            />
+          )}
         </TabsContent>
+
         <TabsContent value="about" className="space-y-4">
           {isEditMode ? (
             <ProfileEditForm 

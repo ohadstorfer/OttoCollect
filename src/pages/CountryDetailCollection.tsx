@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
@@ -10,7 +11,11 @@ import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { useAuth } from "@/context/AuthContext";
 import { CollectionItemsDisplay } from "@/components/country/CollectionItemsDisplay";
 
-const CountryDetailCollection = () => {
+interface CountryDetailCollectionProps {
+  userId?: string;  // Optional user ID prop for viewing other users' collections
+}
+
+const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ userId }) => {
   const { country } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -23,9 +28,9 @@ const CountryDetailCollection = () => {
     sort: ["extPick"],
   });
   
-  // Get userId from URL if provided, otherwise default to current user
-  const { userId } = useParams<{ userId?: string }>();
+  // Determine if current user is owner of the collection
   const isOwner = !userId || (user && userId === user.id);
+  const effectiveUserId = userId || user?.id;
   
   console.log("CountryDetailCollection - isOwner:", isOwner, "userId:", userId, "currentUser:", user?.id);
   
@@ -54,7 +59,7 @@ const CountryDetailCollection = () => {
   const { collectionItems, loading: collectionItemsLoading } = useCollectionItemsFetching({
     countryId,
     filters,
-    userId: userId || user?.id,
+    userId: effectiveUserId,
     skipInitialFetch: !preferencesLoaded
   });
 
@@ -144,11 +149,14 @@ const CountryDetailCollection = () => {
     setPreferencesLoaded(true);
   }, []);
 
+  // Determine the return path - if we're in profile view, it should return to profile
+  const returnPath = userId ? `/profile/${user?.username}` : '/collection';
+
   return (
     <div className="w-full px-2 sm:px-6 py-8">
       <CountryHeader 
         countryName={country ? decodeURIComponent(country) : ""} 
-        returnPath="/collection" 
+        returnPath={returnPath} 
       />
 
       <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">

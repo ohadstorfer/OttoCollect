@@ -15,12 +15,16 @@ interface CountrySelectionProps {
   showHeader?: boolean;
   customTitle?: string;
   customDescription?: string;
+  userId?: string;
+  onCountrySelect?: (country: string) => void;
 }
 
 const CountrySelection: React.FC<CountrySelectionProps> = ({
   showHeader = true,
   customTitle,
-  customDescription
+  customDescription,
+  userId,
+  onCountrySelect
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -48,10 +52,18 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
   }, [countries, searchTerm]);
 
   const handleCountrySelect = (country: string) => {
-    navigate(`/collectionNew/${country}`);
+    if (onCountrySelect) {
+      onCountrySelect(country);
+    } else {
+      // Original navigation behavior
+      navigate(`/collectionNew/${country}`);
+    }
   };
 
-  if (!user) {
+  // If we're in profile view with a userId, we don't need to check current user auth
+  const needsAuth = !userId && !user;
+
+  if (needsAuth) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">

@@ -59,7 +59,7 @@ const getFormattedValue = (value: string | string[]): string => {
   return value;
 };
 
-export default function BanknoteCatalogDetail() {
+const BanknoteCatalogDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -339,13 +339,21 @@ export default function BanknoteCatalogDetail() {
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContentWithScroll className="sm:max-w-[800px] p-1">
             <img 
-              src={selectedImage} 
-              alt="Banknote detail"
-              className="w-full h-auto rounded" 
+              src={
+                banknote.imageUrls && Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 0
+                  ? banknote.imageUrls[0]
+                  : typeof banknote.imageUrls === 'string'
+                    ? banknote.imageUrls
+                    : '/placeholder-brown.svg'
+              }
+              alt={`${banknote.country} ${banknote.denomination}`}
+              className="w-full h-full object-cover"
             />
           </DialogContentWithScroll>
         </Dialog>
       )}
     </div>
   );
-}
+};
+
+export default BanknoteCatalogDetail;
