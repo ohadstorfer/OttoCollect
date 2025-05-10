@@ -69,8 +69,9 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         {isOwner && (
           
           <div>
-            <div className="w-full h-px bg-muted my-6" />
             
+            <div className="w-full h-px bg-muted my-6" />
+
             <div className="flex items-center gap-2 mb-2">
               <h3 className="text-lg font-medium">Private Details</h3>
               <span className="text-sm text-muted-foreground">Only visible to you</span>
