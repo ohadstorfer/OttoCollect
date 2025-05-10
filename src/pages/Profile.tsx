@@ -164,7 +164,7 @@ const Profile: React.FC = () => {
       <Tabs defaultValue="collection" className="w-full mt-8">
         <TabsList>
           <TabsTrigger value="collection">Collection</TabsTrigger>
-          <TabsTrigger value="about">About</TabsTrigger>
+          <TabsTrigger value="Edit Profile">Edit Profile</TabsTrigger>
         </TabsList>
 
         <TabsContent value="collection" className="space-y-4">
@@ -194,19 +194,14 @@ const Profile: React.FC = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="about" className="space-y-4">
-          {isEditMode ? (
+        <TabsContent value="Edit Profile" className="space-y-4">
+        
             <ProfileEditForm 
               profile={profile} 
               onCancel={() => setIsEditMode(false)} 
               onSaveComplete={handleSaveComplete} 
             />
-          ) : (
-            <ProfileAbout 
-              profile={profile} 
-              onEditClick={isOwnProfile ? () => setIsEditMode(true) : undefined} 
-            />
-          )}
+          
         </TabsContent>
       </Tabs>
     </div>

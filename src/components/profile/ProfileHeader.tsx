@@ -79,24 +79,16 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
         </div>
 
         <div className="md:self-center flex-shrink-0">
-          {isOwnProfile ? (
-            <Button 
-              onClick={handleEditClick}
-              className="flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Edit Profile
-            </Button>
-          ) : user && (
-            <Button 
-              onClick={handleMessageClick}
-              className="flex items-center gap-2"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Message
-            </Button>
-          )}
-        </div>
+  {!isOwnProfile && user && (
+    <Button 
+      onClick={handleMessageClick}
+      className="flex items-center gap-2"
+    >
+      <MessageCircle className="h-4 w-4" />
+      Message
+    </Button>
+  )}
+</div>
       </div>
       
       {!isOwnProfile && user && profile?.id && (
