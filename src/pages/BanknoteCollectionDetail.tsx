@@ -32,7 +32,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
     enabled: !!itemId,
   });
 
-  
+
 
   if (isLoading || !collectionItem) {
     return (
@@ -44,58 +44,70 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
 
   return (
     <div className="p-6">
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium mb-2">Details</h3>
+
+
+        <div className="flex items-center gap-2 mb-2">
+          <h3 className="text-lg font-medium ">Details</h3>
         </div>
 
         <div className="space-y-2">
-          <LabelValuePair
-            label="Condition"
-            value={collectionItem.condition}
-          />
+          {collectionItem.condition && (
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Condition</span>
+              <span className="text-base">{collectionItem.condition}</span>
+            </div>
+          )}
 
-          <LabelValuePair
-            label="Notes"
-            value={collectionItem.publicNote}
-          />
+          {collectionItem.publicNote && (
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Notes</span>
+              <span className="text-base">{collectionItem.publicNote}</span>
+            </div>
+          )}
         </div>
 
         {isOwner && (
-          <>
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-lg font-medium">Private Details</h3>
-                <span className="text-sm text-muted-foreground">Only visible to you</span>
-              </div>
-              <div className="space-y-2">
-                <LabelValuePair
-                  label="Private Notes"
-                  value={collectionItem.privateNote}
-                />
-                <LabelValuePair
-                  label="Storage Location"
-                  value={collectionItem.location}
-                />
-                <LabelValuePair
-                  label="Purchase Price"
-                  value={collectionItem.purchasePrice ? `$${collectionItem.purchasePrice}` : undefined}
-                />
-                {collectionItem.purchaseDate && (
-                  <LabelValuePair
-                    label="Purchase Date"
-                    value={formatDate(collectionItem.purchaseDate)}
-                  />
-                )}
-              </div>
+          
+          <div>
+            <div className="w-full h-px bg-muted my-6" />
+            
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-lg font-medium">Private Details</h3>
+              <span className="text-sm text-muted-foreground">Only visible to you</span>
             </div>
-          </>
+            <div className="space-y-2">
+              {collectionItem.privateNote && (
+                <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                  <span className="text-sm font-medium text-muted-foreground w-32">Private Notes</span>
+                  <span className="text-base">{collectionItem.privateNote}</span>
+                </div>
+              )}
+              {collectionItem.location && (
+                <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                  <span className="text-sm font-medium text-muted-foreground w-32">Storage Location</span>
+                  <span className="text-base">{collectionItem.location}</span>
+                </div>
+              )}
+              {collectionItem.purchasePrice && (
+                <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                  <span className="text-sm font-medium text-muted-foreground w-32">Purchase Price</span>
+                  <span className="text-base">${collectionItem.purchasePrice}</span>
+                </div>
+              )}
+              {collectionItem.purchaseDate && (
+                <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                  <span className="text-sm font-medium text-muted-foreground w-32">Purchase Date</span>
+                  <span className="text-base">{formatDate(collectionItem.purchaseDate)}</span>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Other sections as needed */}
-      </div>
 
-      
+
+
     </div>
   );
 };
