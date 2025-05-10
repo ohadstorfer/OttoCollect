@@ -85,15 +85,15 @@ const BanknoteDetailCard = ({
 
   
   {/* Edit dialog */}
-  <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-  <DialogContentWithScroll className="sm:max-w-[800px]">
-    <CollectionItemForm
-      collectionItem={collectionItem}
-      onUpdate={handleUpdateSuccess}
-      onCancel={() => setIsEditDialogOpen(false)}
-    />
-  </DialogContentWithScroll>
-</Dialog>
+//   <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+//   <DialogContentWithScroll className="sm:max-w-[800px]">
+//     <CollectionItemForm
+//       collectionItem={banknote}
+//       onUpdate={handleUpdateSuccess}
+//       onCancel={() => setIsEditDialogOpen(false)}
+//     />
+//   </DialogContentWithScroll>
+// </Dialog>
 
 
 

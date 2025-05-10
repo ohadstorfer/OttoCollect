@@ -194,20 +194,20 @@ export default function BanknoteCatalogDetail() {
                   Banknote Images
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
+              <CardContent className="px-2 pt-2 pb-2">
+                <div className="flex flex-col space-y-3">
                   {imageUrls.length > 0 ? (
                     imageUrls.slice(0, 4).map((url, index) => (
                       <div 
                         key={index} 
-                        className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
+                        className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => openImageViewer(url)}
                       >
-                        <div className="absolute inset-0 rounded-md overflow-hidden border">
+                        <div className="w-full rounded-md overflow-hidden border">
                           <img
                             src={url}
                             alt={`Banknote Image ${index + 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-auto object-contain"
                           />
                         </div>
                       </div>
