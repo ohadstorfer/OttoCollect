@@ -358,59 +358,64 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Obverse Image */}
+                  {/* Obverse (Front) Image */}
                   <div>
-                    <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
-                    <div className="mt-2 flex items-center gap-4">
-                      <div className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted">
-                        {obverseImagePreview ? (
-                          <img
-                            src={obverseImagePreview}
-                            alt="Obverse preview"
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <Upload className="h-8 w-8 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          id="obverseImage"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleObverseImageChange}
-                          className="cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  </div>
+  <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
+  <div className="mt-2 flex items-center gap-4">
+    <label
+      htmlFor="obverseImage"
+      className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+    >
+      {obverseImagePreview ? (
+        <img
+          src={obverseImagePreview}
+          alt="Obverse preview"
+          className="w-full h-full object-contain"
+        />
+      ) : (
+        <Upload className="h-8 w-8 text-muted-foreground" />
+      )}
+    </label>
 
-                  {/* Reverse Image */}
-                  <div>
-                    <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
-                    <div className="mt-2 flex items-center gap-4">
-                      <div className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted">
-                        {reverseImagePreview ? (
-                          <img
-                            src={reverseImagePreview}
-                            alt="Reverse preview"
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <Upload className="h-8 w-8 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          id="reverseImage"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleReverseImageChange}
-                          className="cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  </div>
+    <input
+      id="obverseImage"
+      type="file"
+      accept="image/*"
+      onChange={handleObverseImageChange}
+      className="hidden"
+    />
+  </div>
+</div>
+
+{/* Reverse Image */}
+<div>
+  <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
+  <div className="mt-2 flex items-center gap-4">
+    <label
+      htmlFor="reverseImage"
+      className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+    >
+      {reverseImagePreview ? (
+        <img
+          src={reverseImagePreview}
+          alt="Reverse preview"
+          className="w-full h-full object-contain"
+        />
+      ) : (
+        <Upload className="h-8 w-8 text-muted-foreground" />
+      )}
+    </label>
+
+    <input
+      id="reverseImage"
+      type="file"
+      accept="image/*"
+      onChange={handleReverseImageChange}
+      className="hidden"
+    />
+  </div>
+</div>
+
                 </div>
               </div>
 
