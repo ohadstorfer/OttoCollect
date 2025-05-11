@@ -86,7 +86,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     if (file.size > 5 * 1024 * 1024) { // 5MB
       toast({
         title: "File too large",
-        description: "Avatar image must be less than 5MB",
+        description: "Profile image must be less than 5MB",
         variant: "destructive",
       });
       return;
@@ -105,15 +105,15 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         });
         
         toast({
-          title: "Avatar updated",
-          description: "Your avatar has been updated successfully",
+          title: "Profile picture updated",
+          description: "Your profile picture has been updated successfully",
         });
       }
     } catch (error) {
-      console.error("Error uploading avatar:", error);
+      console.error("Error uploading profile picture:", error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload avatar",
+        description: "Failed to upload profile picture",
         variant: "destructive",
       });
     } finally {
@@ -146,7 +146,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
               disabled={isLoading}
             >
               <Upload className="mr-2 h-4 w-4" />
-              Change Avatar
+              Change profile picture
             </Button>
             
             <input
