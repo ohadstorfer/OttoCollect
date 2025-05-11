@@ -212,14 +212,14 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
               group.sultanGroups && group.sultanGroups.length > 0 ? (
                 group.sultanGroups.map((sultanGroup, sultanIndex) => (
                   <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
-                    <div className="sticky top-[200px] sm:top-[150px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto md:mx-0 px-6 md:px-0">
+                    <div className="sticky top-[200px] sm:top-[150px] z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto md:mx-0 px-6 md:px-0">
                       <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
                         {sultanGroup.sultan}
                       </h3>
                     </div>
                     <div className={cn(
                       viewMode === 'grid'
-                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
+                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 grid-flow-row auto-rows-auto"
                         : "flex flex-col space-y-2",
                       "px-2 sm:px-0"
                     )}>
@@ -231,22 +231,24 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                           return mixedItems.map((item, index) => {
                             if (item.type === 'single' && item.collectionItem) {
                               return (
-                                <CollectionItemCard
-                                  key={`single-${sultanGroup.sultan}-${item.collectionItem.id || index}`}
-                                  item={item.collectionItem}
-                                  onEdit={() => {}} // We'll implement this later
-                                  onUpdate={onUpdate}
-                                  viewMode={viewMode}
-                                  isOwner={isOwner}
-                                />
+                                <div key={`single-${sultanGroup.sultan}-${item.collectionItem.id || index}`} className="self-start">
+                                  <CollectionItemCard
+                                    item={item.collectionItem}
+                                    onEdit={() => {}} // We'll implement this later
+                                    onUpdate={onUpdate}
+                                    viewMode={viewMode}
+                                    isOwner={isOwner}
+                                  />
+                                </div>
                               );
                             } else if (item.type === 'group' && item.group) {
                               return (
-                                <CollectionItemCardGroup
-                                  key={`group-${sultanGroup.sultan}-${item.group.baseNumber}`}
-                                  group={item.group}
-                                  onClick={handleGroupClick}
-                                />
+                                <div key={`group-${sultanGroup.sultan}-${item.group.baseNumber}`} className="self-start">
+                                  <CollectionItemCardGroup
+                                    group={item.group}
+                                    onClick={handleGroupClick}
+                                  />
+                                </div>
                               );
                             }
                             return null;
@@ -255,14 +257,15 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                       ) : (
                         // Regular sultan display without collection item grouping
                         sultanGroup.items.map((item, index) => (
-                          <CollectionItemCard
-                            key={`item-${group.category}-${sultanGroup.sultan}-${index}`}
-                            item={item}
-                            onEdit={() => {}} // We'll implement this later
-                            onUpdate={onUpdate}
-                            viewMode={viewMode}
-                            isOwner={isOwner}
-                          />
+                          <div key={`item-${group.category}-${sultanGroup.sultan}-${index}`} className="self-start">
+                            <CollectionItemCard
+                              item={item}
+                              onEdit={() => {}} // We'll implement this later
+                              onUpdate={onUpdate}
+                              viewMode={viewMode}
+                              isOwner={isOwner}
+                            />
+                          </div>
                         ))
                       )}
                     </div>
@@ -277,7 +280,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
               // Normal or grouped display (no sultan grouping)
               <div className={cn(
                 viewMode === 'grid'
-                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
+                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 grid-flow-row auto-rows-auto"
                   : "flex flex-col space-y-2",
                 "px-2 sm:px-0"
               )}>
@@ -289,22 +292,24 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                     return mixedItems.map((item, index) => {
                       if (item.type === 'single' && item.collectionItem) {
                         return (
-                          <CollectionItemCard
-                            key={`single-${group.category}-${item.collectionItem.id || index}`}
-                            item={item.collectionItem}
-                            onEdit={() => {}} // We'll implement this later
-                            onUpdate={onUpdate}
-                            viewMode={viewMode}
-                            isOwner={isOwner}
-                          />
+                          <div key={`single-${group.category}-${item.collectionItem.id || index}`} className="self-start">
+                            <CollectionItemCard
+                              item={item.collectionItem}
+                              onEdit={() => {}} // We'll implement this later
+                              onUpdate={onUpdate}
+                              viewMode={viewMode}
+                              isOwner={isOwner}
+                            />
+                          </div>
                         );
                       } else if (item.type === 'group' && item.group) {
                         return (
-                          <CollectionItemCardGroup
-                            key={`group-${group.category}-${item.group.baseNumber}`}
-                            group={item.group}
-                            onClick={handleGroupClick}
-                          />
+                          <div key={`group-${group.category}-${item.group.baseNumber}`} className="self-start">
+                            <CollectionItemCardGroup
+                              group={item.group}
+                              onClick={handleGroupClick}
+                            />
+                          </div>
                         );
                       }
                       return null;
@@ -313,14 +318,15 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                 ) : (
                   // Normal display
                   group.items.map((item, index) => (
-                    <CollectionItemCard
-                      key={`item-${group.category}-${index}`}
-                      item={item}
-                      onEdit={() => {}} // We'll implement this later
-                      onUpdate={onUpdate}
-                      viewMode={viewMode}
-                      isOwner={isOwner}
-                    />
+                    <div key={`item-${group.category}-${index}`} className="self-start">
+                      <CollectionItemCard
+                        item={item}
+                        onEdit={() => {}} // We'll implement this later
+                        onUpdate={onUpdate}
+                        viewMode={viewMode}
+                        isOwner={isOwner}
+                      />
+                    </div>
                   ))
                 )}
               </div>
