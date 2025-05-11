@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -61,6 +62,28 @@ const Profile: React.FC = () => {
     });
   }, [routeUsername, authUser, profile, isOwnProfile]);
 
+  // Store and restore the selected country when navigating back to profile
+  React.useEffect(() => {
+    // When the component mounts, try to restore the selected country
+    if (profile?.id) {
+      const storedCountry = sessionStorage.getItem(`profile-selected-country-${profile.id}`);
+      const wasShowingDetail = sessionStorage.getItem(`profile-showing-detail-${profile.id}`) === 'true';
+      
+      if (storedCountry) {
+        setSelectedCountry(storedCountry);
+        setShowCountryDetail(wasShowingDetail);
+      }
+    }
+  }, [profile?.id]);
+  
+  // Update session storage when selected country changes
+  React.useEffect(() => {
+    if (profile?.id && selectedCountry !== null) {
+      sessionStorage.setItem(`profile-selected-country-${profile.id}`, selectedCountry);
+      sessionStorage.setItem(`profile-showing-detail-${profile.id}`, String(showCountryDetail));
+    }
+  }, [profile?.id, selectedCountry, showCountryDetail]);
+
   const {
     data: collectionItems,
     isLoading: collectionLoading,
@@ -89,6 +112,12 @@ const Profile: React.FC = () => {
   const handleBackToCountries = () => {
     setShowCountryDetail(false);
     setSelectedCountry(null);
+    
+    // Clear the session storage when explicitly going back to country selection
+    if (profile?.id) {
+      sessionStorage.removeItem(`profile-selected-country-${profile.id}`);
+      sessionStorage.removeItem(`profile-showing-detail-${profile.id}`);
+    }
   };
 
   // Prepare filtered items
