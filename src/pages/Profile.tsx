@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -30,7 +29,6 @@ const Profile: React.FC = () => {
   });
 
   const username = routeUsername || authUser?.username;
-  const isOwnProfile = authUser?.username === username;
 
   const {
     data: profile,
@@ -43,6 +41,25 @@ const Profile: React.FC = () => {
     enabled: !!username,
     retry: false,
   });
+
+  // Determine if this is the user's own profile by comparing IDs
+  // Only consider it the user's own profile if:
+  // 1. Both authUser and profile exist
+  // 2. Their IDs match
+  const isOwnProfile = React.useMemo(() => {
+    if (!authUser || !profile) return false;
+    return authUser.id === profile.id;
+  }, [authUser, profile]);
+  
+  // Add debug logging to help troubleshoot
+  React.useEffect(() => {
+    console.log('Profile component state:', {
+      routeUsername,
+      'authUser?.id': authUser?.id,
+      'profile?.id': profile?.id,
+      isOwnProfile
+    });
+  }, [routeUsername, authUser, profile, isOwnProfile]);
 
   const {
     data: collectionItems,
@@ -165,7 +182,7 @@ const Profile: React.FC = () => {
       <Tabs defaultValue="collection" className="w-full mt-8">
         <TabsList>
           <TabsTrigger value="collection">Collection</TabsTrigger>
-          {isOwnProfile && <TabsTrigger value="Edit Profile">Edit Profile</TabsTrigger>}
+          {isOwnProfile && <TabsTrigger value="editProfile">Edit Profile</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="collection" className="space-y-4">
@@ -196,7 +213,7 @@ const Profile: React.FC = () => {
         </TabsContent>
 
         {isOwnProfile && (
-          <TabsContent value="Edit Profile" className="space-y-4">
+          <TabsContent value="editProfile" className="space-y-4">
             <ProfileEditForm 
               profile={profile} 
               onCancel={() => setIsEditMode(false)} 

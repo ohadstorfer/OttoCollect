@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -9,7 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from "@/components/ui/slider"
 import { Separator } from "@/components/ui/separator"
 import { Link2, ExternalLink } from 'lucide-react';
-import { SITE_URL } from '@/config';
+
+// Define constant for site URL
+const SITE_URL = 'https://ottoman-numismatics.com';
 
 const BanknoteCatalogDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,9 +30,8 @@ const BanknoteCatalogDetail: React.FC = () => {
   });
 
   useEffect(() => {
-    if (banknote && banknote.countries) {
-      const countries = banknote.countries;
-      setCountryParam(Array.isArray(countries) ? countries[0] : countries);
+    if (banknote && banknote.country) {
+      setCountryParam(banknote.country);
     }
   }, [banknote]);
 
@@ -51,7 +53,7 @@ const BanknoteCatalogDetail: React.FC = () => {
     <div className="page-container max-w-4xl mx-auto py-10">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">{banknote.denomination} {banknote.currency_name}</CardTitle>
+          <CardTitle className="text-2xl font-bold">{banknote.denomination} {banknote.currency}</CardTitle>
           <CardDescription>
             <div className="flex items-center space-x-2">
               <span>{banknote.country}</span>
@@ -65,8 +67,8 @@ const BanknoteCatalogDetail: React.FC = () => {
         <CardContent className="grid gap-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <img
-              src={banknote.image_url}
-              alt={`${banknote.denomination} ${banknote.currency_name}`}
+              src={banknote.imageUrls?.[0] || ''}
+              alt={`${banknote.denomination} ${banknote.currency}`}
               className="rounded-md shadow-md"
             />
             <div>
@@ -80,10 +82,10 @@ const BanknoteCatalogDetail: React.FC = () => {
                 <strong>Type:</strong> {banknote.type}
               </p>
               <p>
-                <strong>Value:</strong> {banknote.value}
+                <strong>Value:</strong> {banknote.valueInfo || 'N/A'}
               </p>
               <p>
-                <strong>Grade:</strong> {banknote.grade}
+                <strong>Grade:</strong> {banknote.gradeInfo || 'N/A'}
               </p>
               <p>
                 <strong>Series:</strong> {banknote.series}
@@ -92,25 +94,25 @@ const BanknoteCatalogDetail: React.FC = () => {
                 <strong>Printer:</strong> {banknote.printer}
               </p>
               <p>
-                <strong>Signature:</strong> {banknote.signature}
+                <strong>Signature:</strong> {banknote.signatures?.join(', ') || 'N/A'}
               </p>
               <p>
-                <strong>Comments:</strong> {banknote.comments}
+                <strong>Comments:</strong> {banknote.additionalInfo || ''}
               </p>
               <p>
-                <strong>Prefix:</strong> {banknote.prefix}
+                <strong>Prefix:</strong> {banknote.serialPrefix || 'N/A'}
               </p>
               <p>
-                <strong>Suffix:</strong> {banknote.suffix}
+                <strong>Suffix:</strong> {banknote.serialSuffix || 'N/A'}
               </p>
               <p>
-                <strong>Note:</strong> {banknote.note}
+                <strong>Note:</strong> {banknote.notes || ''}
               </p>
               <p>
-                <strong>Obverse Description:</strong> {banknote.obverse_description}
+                <strong>Obverse Description:</strong> {banknote.obverseDescription || ''}
               </p>
               <p>
-                <strong>Reverse Description:</strong> {banknote.reverse_description}
+                <strong>Reverse Description:</strong> {banknote.reverseDescription || ''}
               </p>
             </div>
           </div>
