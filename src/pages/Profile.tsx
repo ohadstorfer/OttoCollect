@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -164,7 +165,7 @@ const Profile: React.FC = () => {
       <Tabs defaultValue="collection" className="w-full mt-8">
         <TabsList>
           <TabsTrigger value="collection">Collection</TabsTrigger>
-          <TabsTrigger value="Edit Profile">Edit Profile</TabsTrigger>
+          {isOwnProfile && <TabsTrigger value="Edit Profile">Edit Profile</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="collection" className="space-y-4">
@@ -194,15 +195,15 @@ const Profile: React.FC = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="Edit Profile" className="space-y-4">
-        
+        {isOwnProfile && (
+          <TabsContent value="Edit Profile" className="space-y-4">
             <ProfileEditForm 
               profile={profile} 
               onCancel={() => setIsEditMode(false)} 
               onSaveComplete={handleSaveComplete} 
             />
-          
-        </TabsContent>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
