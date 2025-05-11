@@ -94,20 +94,7 @@ export default function CollectionItem() {
     );
   }
 
-  // We'll eventually remove this check once we allow public viewing
-  if (user?.id !== collectionItem.userId) {
-    return (
-      <div className="page-container max-w-5xl mx-auto py-10">
-        <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4">Not Authorized</h2>
-          <p className="mb-6 text-muted-foreground">
-            You don't have permission to view this collection item.
-          </p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
-        </div>
-      </div>
-    );
-  }
+ 
 
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);

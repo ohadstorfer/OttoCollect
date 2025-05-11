@@ -14,6 +14,7 @@ import ProfileCollection from '@/components/profile/ProfileCollection';
 import { DynamicFilterState } from '@/types/filter';
 import CountrySelection from '@/pages/CountrySelection';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
+import { ArrowLeft } from 'lucide-react';
 
 const Profile: React.FC = () => {
   const { username: routeUsername } = useParams<{ username?: string }>();
@@ -222,7 +223,9 @@ const Profile: React.FC = () => {
                 onClick={handleBackToCountries} 
                 className="mb-4"
               >
-                ← Back to Countries
+                <ArrowLeft className="h-5 w-5" />
+                
+                 Back to Countries
               </Button>
               <CountryDetailCollection 
                 key={`${profile.id}-${selectedCountry}`} 
