@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import CollectionItemForm from '../collection/CollectionItemForm';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 
 interface BanknoteDetailCardProps {
@@ -33,7 +33,7 @@ const BanknoteDetailCard = ({
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   
   const handleCardClick = () => {
@@ -72,32 +72,18 @@ const BanknoteDetailCard = ({
 
   const displayImage = getDisplayImage();
 
-
-
-  const handleUpdateSuccess = async () => {
-    setIsEditDialogOpen(false);
-    toast({
-      title: "Success",
-      description: "Collection item updated successfully",
-    });
-
+  const handleAddButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click from triggering
+    setIsAddDialogOpen(true);
   };
 
-  
-  {/* Edit dialog */}
-//   <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-//   <DialogContentWithScroll className="sm:max-w-[800px]">
-//     <CollectionItemForm
-//       collectionItem={banknote}
-//       onUpdate={handleUpdateSuccess}
-//       onCancel={() => setIsEditDialogOpen(false)}
-//     />
-//   </DialogContentWithScroll>
-// </Dialog>
-
-
-
-
+  const handleUpdateSuccess = () => {
+    setIsAddDialogOpen(false);
+    toast({
+      title: "Success",
+      description: "Banknote added to your collection",
+    });
+  };
 
   if (viewMode === 'list') {
     return (
@@ -122,7 +108,12 @@ const BanknoteDetailCard = ({
           <div className="flex-1 ml-4">
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{banknote.denomination}</h4>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8"
+                onClick={handleAddButtonClick}
+              >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
@@ -156,6 +147,17 @@ const BanknoteDetailCard = ({
             </div>
           </div>
         </div>
+
+        {/* Add Dialog */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContentWithScroll className="sm:max-w-[800px]">
+            <CollectionItemForm
+              item={{ banknote } as CollectionItem}
+              onUpdate={handleUpdateSuccess}
+              onCancel={() => setIsAddDialogOpen(false)}
+            />
+          </DialogContentWithScroll>
+        </Dialog>
       </Card>
     );
   }
@@ -174,7 +176,12 @@ const BanknoteDetailCard = ({
         <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 shrink-0" 
+              onClick={handleAddButtonClick}
+            >
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -233,6 +240,17 @@ const BanknoteDetailCard = ({
           )}
         </div>
       </div>
+
+      {/* Add Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContentWithScroll className="sm:max-w-[800px]">
+          <CollectionItemForm
+            item={{ banknote } as CollectionItem}
+            onUpdate={handleUpdateSuccess}
+            onCancel={() => setIsAddDialogOpen(false)}
+          />
+        </DialogContentWithScroll>
+      </Dialog>
     </Card>
   );
 };

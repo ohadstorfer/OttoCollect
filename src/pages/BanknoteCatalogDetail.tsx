@@ -120,24 +120,24 @@ export default function BanknoteCatalogDetail() {
     setSelectedImage(imageUrl);
   };
 
-  const imageUrls = Array.isArray(banknote.imageUrls) ? banknote.imageUrls : [];
+  const imageUrls = Array.isArray(banknote?.imageUrls) ? banknote.imageUrls : [];
 
   const detailGroups = [
     {
       title: "Basic Information",
       icon: <Info className="h-5 w-5" />,
       fields: [
-        { label: "Denomination", value: banknote.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
-        { label: "Country", value: banknote.country, icon: <Map className="h-4 w-4" /> },
-        { label: "Islamic Year", value: banknote.islamicYear, icon: <Calendar className="h-4 w-4" /> },
-        { label: "Gregorian Year", value: banknote.gregorianYear, icon: <Calendar className="h-4 w-4" /> },
-        { label: "Category", value: banknote.category, icon: <Hash className="h-4 w-4" /> },
-        { label: "Type", value: banknote.type, icon: <FileText className="h-4 w-4" /> },
-        { label: "Sultan", value: banknote.sultanName, icon: <Users className="h-4 w-4" /> },
-        { label: "Pick Number", value: banknote.pickNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Extended Pick", value: banknote.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Turkish Cat #", value: banknote.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Rarity", value: banknote.rarity, icon: <Star className="h-4 w-4" /> }
+        { label: "Denomination", value: banknote?.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
+        { label: "Country", value: banknote?.country, icon: <Map className="h-4 w-4" /> },
+        { label: "Islamic Year", value: banknote?.islamicYear, icon: <Calendar className="h-4 w-4" /> },
+        { label: "Gregorian Year", value: banknote?.gregorianYear, icon: <Calendar className="h-4 w-4" /> },
+        { label: "Category", value: banknote?.category, icon: <Hash className="h-4 w-4" /> },
+        { label: "Type", value: banknote?.type, icon: <FileText className="h-4 w-4" /> },
+        { label: "Sultan", value: banknote?.sultanName, icon: <Users className="h-4 w-4" /> },
+        { label: "Pick Number", value: banknote?.pickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Extended Pick", value: banknote?.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Turkish Cat #", value: banknote?.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Rarity", value: banknote?.rarity, icon: <Star className="h-4 w-4" /> }
       ]
     },
     
