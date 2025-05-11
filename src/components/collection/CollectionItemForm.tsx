@@ -266,7 +266,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="mt-4">
       <CardContent className="pt-6">
 
         <div className="mb-6">
@@ -282,7 +282,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-6">
               {/* Banknote selection */}
-
+              <div className="w-full h-px bg-muted my-6" />
 
               <div className="grid grid-cols-1 gap-y-4">
 
@@ -347,6 +347,82 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                     </FormItem>
                   )}
                 />
+
+
+
+
+                {/* Custom Images Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Custom Images</h3>
+                <p className="text-muted-foreground text-sm">
+                  Upload your own images of the banknote (optional)
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Obverse (Front) Image */}
+                  <div>
+  <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
+  <div className="mt-2 flex items-center gap-4">
+    <label
+      htmlFor="obverseImage"
+      className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+    >
+      {obverseImagePreview ? (
+        <img
+          src={obverseImagePreview}
+          alt="Obverse preview"
+          className="w-full h-full object-contain"
+        />
+      ) : (
+        <Upload className="h-8 w-8 text-muted-foreground" />
+      )}
+    </label>
+
+    <input
+      id="obverseImage"
+      type="file"
+      accept="image/*"
+      onChange={handleObverseImageChange}
+      className="hidden"
+    />
+  </div>
+</div>
+
+{/* Reverse Image */}
+<div>
+  <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
+  <div className="mt-2 flex items-center gap-4">
+    <label
+      htmlFor="reverseImage"
+      className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+    >
+      {reverseImagePreview ? (
+        <img
+          src={reverseImagePreview}
+          alt="Reverse preview"
+          className="w-full h-full object-contain"
+        />
+      ) : (
+        <Upload className="h-8 w-8 text-muted-foreground" />
+      )}
+    </label>
+
+    <input
+      id="reverseImage"
+      type="file"
+      accept="image/*"
+      onChange={handleReverseImageChange}
+      className="hidden"
+    />
+  </div>
+</div>
+
+                </div>
+              </div>
+
+
+
+
 
 <div className="w-full h-px bg-muted my-6" />
 
@@ -451,6 +527,34 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                 />
               </div>
 
+              
+
+
+
+              {/* Private Note */}
+              <FormField
+                control={form.control}
+                name="privateNote"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Private Note</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Add a private note for your reference"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      This note will only be visible to you.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+
+<div className="w-full h-px bg-muted my-6" />
+
               {/* For Sale Switch */}
               <FormField
                 control={form.control}
@@ -506,90 +610,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
 
 
 
-              {/* Private Note */}
-              <FormField
-                control={form.control}
-                name="privateNote"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Private Note</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Add a private note for your reference"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      This note will only be visible to you.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Custom Images Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Custom Images</h3>
-                <p className="text-muted-foreground text-sm">
-                  Upload your own images of the banknote (optional)
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Obverse Image */}
-                  <div>
-                    <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
-                    <div className="mt-2 flex items-center gap-4">
-                      <div className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted">
-                        {obverseImagePreview ? (
-                          <img
-                            src={obverseImagePreview}
-                            alt="Obverse preview"
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <Upload className="h-8 w-8 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          id="obverseImage"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleObverseImageChange}
-                          className="cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Reverse Image */}
-                  <div>
-                    <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
-                    <div className="mt-2 flex items-center gap-4">
-                      <div className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted">
-                        {reverseImagePreview ? (
-                          <img
-                            src={reverseImagePreview}
-                            alt="Reverse preview"
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <Upload className="h-8 w-8 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          id="reverseImage"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleReverseImageChange}
-                          className="cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              
             </div>
 
             <div className="flex justify-end space-x-4 pt-4">

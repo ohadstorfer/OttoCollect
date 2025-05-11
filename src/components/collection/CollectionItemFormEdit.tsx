@@ -266,7 +266,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="mt-4">
       <CardContent className="pt-6">
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">
