@@ -281,7 +281,7 @@ export default function BanknoteCatalogDetail() {
                               <LabelValuePair
                                 key={fieldIndex}
                                 label={field.label}
-                                value={field.value}
+                                // value={field.value}
                                 icon={field.icon}
                               />
                             ))}
