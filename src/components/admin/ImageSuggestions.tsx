@@ -36,6 +36,13 @@ interface UserProfile {
   username?: string;
 }
 
+interface BanknoteDetails {
+  id: string;
+  extended_pick_number?: string;
+  country?: string;
+  face_value?: string;
+}
+
 interface ImageSuggestionsProps extends AdminComponentProps {}
 
 const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
@@ -59,73 +66,84 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
   const fetchImageSuggestions = async () => {
     setLoading(true);
     try {
+      // Step 1: Fetch image suggestions
       let query = supabase
         .from('image_suggestions')
-        .select(`
-          *,
-          profiles:user_id (username)
-        `, { count: 'exact' });
+        .select('*', { count: 'exact' });
       
-      // Apply filters
+      // Apply filters if needed
       if (searchQuery) {
-        // We can filter by status since type is removed
         query = query.ilike('status', `%${searchQuery}%`);
       }
       
-      // If in country admin mode, filter by country
-      if (isCountryAdmin && countryName) {
-        // We need to join with detailed_banknotes to filter by country
-        // This will be done in post-processing
-      }
-      
-      // Get count first
-      const { count, error: countError } = await query;
-      
-      if (countError) throw countError;
-      setTotalSuggestions(count || 0);
-      
-      // Then get paginated data
-      const { data, error } = await query
+      // Get count and data
+      const { data: suggestionsData, count, error } = await query
         .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      if (!data) {
+      setTotalSuggestions(count || 0);
+      
+      if (!suggestionsData || suggestionsData.length === 0) {
         setSuggestions([]);
         setLoading(false);
         return;
       }
-      
-      // Get the banknote details for each suggestion
-      const suggestionsWithDetails = await Promise.all(
-        data.map(async (suggestion) => {
-          // Get banknote details
-          const { data: banknoteData } = await supabase
-            .from('detailed_banknotes')
-            .select('extended_pick_number, country, face_value')
-            .eq('id', suggestion.banknote_id)
-            .single();
-          
-          const profiles = suggestion.profiles as UserProfile | null;
-          
-          return {
-            id: suggestion.id,
-            banknote_id: suggestion.banknote_id,
-            user_id: suggestion.user_id,
-            obverse_image: suggestion.obverse_image,
-            reverse_image: suggestion.reverse_image,
-            status: suggestion.status as 'pending' | 'approved' | 'rejected',
-            created_at: suggestion.created_at,
-            updated_at: suggestion.updated_at,
-            // Joined data
-            banknote_catalog_id: banknoteData?.extended_pick_number || '',
-            banknote_country: banknoteData?.country || '',
-            banknote_denomination: banknoteData?.face_value || '',
-            user_name: profiles?.username || 'Unknown'
-          } as ImageSuggestion;
-        })
-      );
+
+      // Step 2: Collect user IDs and banknote IDs for batch fetching
+      const userIds = suggestionsData.map(suggestion => suggestion.user_id);
+      const banknoteIds = suggestionsData.map(suggestion => suggestion.banknote_id);
+
+      // Step 3: Fetch user profiles in a batch
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .in('id', userIds);
+        
+      if (profilesError) {
+        console.error('Error fetching user profiles:', profilesError);
+      }
+
+      // Create a map of user profiles for easy lookup
+      const userProfiles = new Map<string, { username: string }>();
+      if (profilesData) {
+        profilesData.forEach(profile => {
+          userProfiles.set(profile.id, { username: profile.username });
+        });
+      }
+
+      // Step 4: Fetch banknote details in a batch
+      const { data: banknotesData, error: banknotesError } = await supabase
+        .from('detailed_banknotes')
+        .select('id, extended_pick_number, country, face_value')
+        .in('id', banknoteIds);
+        
+      if (banknotesError) {
+        console.error('Error fetching banknote details:', banknotesError);
+      }
+
+      // Create a map of banknote details for easy lookup
+      const banknoteDetails = new Map<string, BanknoteDetails>();
+      if (banknotesData) {
+        banknotesData.forEach(banknote => {
+          banknoteDetails.set(banknote.id, banknote);
+        });
+      }
+
+      // Step 5: Map all data together
+      const suggestionsWithDetails = suggestionsData.map(suggestion => {
+        const userProfile = userProfiles.get(suggestion.user_id);
+        const banknote = banknoteDetails.get(suggestion.banknote_id);
+        
+        return {
+          ...suggestion,
+          user_name: userProfile?.username || 'Unknown',
+          banknote_catalog_id: banknote?.extended_pick_number || '',
+          banknote_country: banknote?.country || '',
+          banknote_denomination: banknote?.face_value || ''
+        };
+      });
       
       // If country filter is applied, filter locally
       const filteredSuggestions = isCountryAdmin && countryName
