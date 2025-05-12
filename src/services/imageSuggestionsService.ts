@@ -23,7 +23,8 @@ export async function submitImageSuggestion(data: {
         .insert({
           banknote_id: data.banknoteId,
           user_id: data.userId,
-          image_url: data.obverseImage,
+          obverse_image: data.obverseImage,
+          reverse_image: null,
           type: 'obverse',
           status: 'pending'
         });
@@ -40,7 +41,8 @@ export async function submitImageSuggestion(data: {
         .insert({
           banknote_id: data.banknoteId,
           user_id: data.userId,
-          image_url: data.reverseImage,
+          obverse_image: null,
+          reverse_image: data.reverseImage,
           type: 'reverse',
           status: 'pending'
         });
