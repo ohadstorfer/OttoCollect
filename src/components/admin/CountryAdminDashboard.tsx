@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -75,7 +74,7 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
       
       <div className="max-w-6xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="w-full">
             <TabsTrigger value="banknotes">Banknotes Management</TabsTrigger>
             <TabsTrigger value="images">Image Suggestions</TabsTrigger>
             <TabsTrigger value="filters">Filter Settings</TabsTrigger>
