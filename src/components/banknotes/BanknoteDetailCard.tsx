@@ -243,7 +243,7 @@ const BanknoteDetailCard = ({
 
       {/* Add Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContentWithScroll className="sm:max-w-[800px]">
+        <DialogContentWithScroll className="sm:max-w-[800px]" onClick={(e) => e.stopPropagation()} >
           <CollectionItemForm
             item={{ banknote } as CollectionItem}
             onUpdate={handleUpdateSuccess}

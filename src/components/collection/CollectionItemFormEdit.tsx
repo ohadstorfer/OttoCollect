@@ -627,7 +627,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   ? 'Saving...'
                   : item
                     ? 'Update Item'
-                    : 'Add to Collection'}
+                    : 'Update Item'}
               </Button>
             </div>
           </form>
