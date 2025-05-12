@@ -16,6 +16,13 @@ export async function submitImageSuggestion(data: {
       throw new Error("At least one image is required");
     }
 
+    console.log('Submitting image suggestion with data:', {
+      banknote_id: data.banknoteId,
+      user_id: data.userId,
+      obverse_image: data.obverseImage,
+      reverse_image: data.reverseImage
+    });
+
     // Insert one row containing both obverse and reverse images
     const { error } = await supabase
       .from('image_suggestions')
@@ -28,6 +35,7 @@ export async function submitImageSuggestion(data: {
       });
 
     if (error) {
+      console.error("Error submitting image suggestion:", error);
       throw new Error(`Failed to submit image suggestion: ${error.message}`);
     }
 
@@ -52,6 +60,7 @@ export async function hasExistingImageSuggestion(banknoteId: string, userId: str
       .limit(1);
 
     if (error) {
+      console.error("Error checking existing image suggestions:", error);
       throw new Error(`Failed to check existing suggestions: ${error.message}`);
     }
 

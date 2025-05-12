@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Table, 
@@ -162,38 +161,77 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
     try {
       setLoading(true);
       
-      // Update both front and back pictures if available
-      const updateData: Record<string, any> = {};
+      console.log('Approving image suggestion:', suggestion);
+      console.log('Obverse image:', suggestion.obverse_image);
+      console.log('Reverse image:', suggestion.reverse_image);
       
-      if (suggestion.obverse_image) {
-        updateData.front_picture = suggestion.obverse_image;
-      }
-      
-      if (suggestion.reverse_image) {
-        updateData.back_picture = suggestion.reverse_image;
-      }
-      
-      // Update the banknote with the new image(s)
-      const { error: banknoteError } = await supabase
+      // First check if the banknote exists
+      const { data: banknoteCheck, error: banknoteCheckError } = await supabase
         .from('detailed_banknotes')
-        .update(updateData)
-        .eq('id', suggestion.banknote_id);
+        .select('id')
+        .eq('id', suggestion.banknote_id)
+        .single();
+        
+      if (banknoteCheckError || !banknoteCheck) {
+        console.error('Banknote not found:', banknoteCheckError);
+        toast.error(`Banknote not found: ${banknoteCheckError?.message || 'Unknown error'}`);
+        setLoading(false);
+        return;
+      }
       
-      if (banknoteError) throw banknoteError;
+      // Directly update the banknote images without using intermediate object
+      let hasErrors = false;
       
-      // Then update the suggestion status
+      // Update obverse image if available
+      if (suggestion.obverse_image) {
+        const { error: obverseError } = await supabase
+          .from('detailed_banknotes')
+          .update({ front_picture: suggestion.obverse_image })
+          .eq('id', suggestion.banknote_id);
+        
+        if (obverseError) {
+          console.error('Error updating obverse image:', obverseError);
+          toast.error(`Failed to update obverse image: ${obverseError.message}`);
+          hasErrors = true;
+        } else {
+          console.log('Successfully updated front_picture to:', suggestion.obverse_image);
+        }
+      }
+      
+      // Update reverse image if available
+      if (suggestion.reverse_image) {
+        const { error: reverseError } = await supabase
+          .from('detailed_banknotes')
+          .update({ back_picture: suggestion.reverse_image })
+          .eq('id', suggestion.banknote_id);
+        
+        if (reverseError) {
+          console.error('Error updating reverse image:', reverseError);
+          toast.error(`Failed to update reverse image: ${reverseError.message}`);
+          hasErrors = true;
+        } else {
+          console.log('Successfully updated back_picture to:', suggestion.reverse_image);
+        }
+      }
+      
+      // Then update the suggestion status regardless of image update success
       const { error: suggestionError } = await supabase
         .from('image_suggestions')
-        .update({ status: 'approved' })
+        .update({ status: hasErrors ? 'pending' : 'approved' })
         .eq('id', suggestion.id);
       
-      if (suggestionError) throw suggestionError;
+      if (suggestionError) {
+        console.error('Error updating suggestion status:', suggestionError);
+        toast.error(`Failed to update suggestion status: ${suggestionError.message}`);
+      } else if (!hasErrors) {
+        toast.success('Image suggestion approved successfully');
+      }
       
-      toast.success('Image suggestion approved successfully');
+      // Refresh the list
       fetchImageSuggestions();
-    } catch (error) {
-      console.error('Error approving image suggestion:', error);
-      toast.error('Failed to approve image suggestion');
+    } catch (error: any) {
+      console.error('Unexpected error in handleApprove:', error);
+      toast.error(`Unexpected error: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
