@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,10 +38,11 @@ import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
 // Define props for CollectionItemForm
 export interface CollectionItemFormProps {
   item?: CollectionItem | null;
-  collectionItem?: CollectionItem | null;  // Adding this to match usage in components
+  collectionItem?: CollectionItem | null;
   onSave?: (item: CollectionItem) => Promise<void>;
-  onUpdate?: (item: CollectionItem) => void;  // Adding this to match usage in components
+  onUpdate?: (item: CollectionItem) => void;
   onCancel?: () => void;
+  isNewItem?: boolean; // New prop to explicitly indicate it's a new item
 }
 
 // Create a schema for form validation with coerced number types
@@ -63,7 +63,8 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
   collectionItem,
   onSave,
   onUpdate,
-  onCancel
+  onCancel,
+  isNewItem = false  // Default to false for backward compatibility
 }) => {
   // Use collectionItem prop if provided, otherwise use item
   const currentItem = collectionItem || item;
@@ -90,7 +91,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      banknoteId: currentItem?.banknoteId || '',
+      banknoteId: currentItem?.banknoteId || (currentItem?.banknote ? currentItem.banknote.id : ''),
       condition: (currentItem?.condition || 'UNC') as 'UNC' | 'AU' | 'XF' | 'VF' | 'F' | 'VG' | 'G' | 'FR',
       purchasePrice: currentItem?.purchasePrice || '',
       purchaseDate: currentItem?.purchaseDate ? new Date(currentItem.purchaseDate) : undefined,
@@ -101,6 +102,14 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
       salePrice: currentItem?.salePrice || ''
     }
   });
+  
+  // Ensure banknoteId is set if we have a banknote from the item
+  useEffect(() => {
+    if (currentItem?.banknote && !form.getValues('banknoteId')) {
+      console.log("Setting banknoteId from currentItem.banknote:", currentItem.banknote.id);
+      form.setValue('banknoteId', currentItem.banknote.id);
+    }
+  }, [currentItem, form]);
 
   // Search for banknotes as user types
   useEffect(() => {
@@ -158,6 +167,8 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log("Form submitted with values:", values);
+    
     if (!user?.id) {
       toast({
         title: "Authentication Error",
@@ -166,19 +177,33 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
       });
       return;
     }
+    
+    // Validate that we have a banknoteId
+    if (!values.banknoteId) {
+      console.error("Missing banknoteId - this should not happen with form validation");
+      toast({
+        title: "Error",
+        description: "Missing banknote reference. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
 
     try {
+      console.log("Processing form data for banknoteId:", values.banknoteId);
       let obverseImageUrl = currentItem?.obverseImage || null;
       let reverseImageUrl = currentItem?.reverseImage || null;
 
       // Upload new images if provided
       if (obverseImageFile) {
+        console.log("Uploading obverse image");
         obverseImageUrl = await uploadCollectionImage(obverseImageFile);
       }
 
       if (reverseImageFile) {
+        console.log("Uploading reverse image");
         reverseImageUrl = await uploadCollectionImage(reverseImageFile);
       }
 
@@ -198,10 +223,13 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
         reverseImage: reverseImageUrl,
       };
 
+      console.log("Collection data prepared:", collectionData);
       let savedItem: CollectionItem | null = null;
 
-      if (currentItem?.id) {
+      // Only check for ID if not explicitly a new item
+      if (!isNewItem && currentItem?.id) {
         // Update existing item
+        console.log("Updating existing item:", currentItem.id);
         const success = await updateCollectionItem(currentItem.id, {
           condition: values.condition as BanknoteCondition, // Type assertion
           purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
@@ -233,6 +261,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
         }
       } else {
         // Add new item
+        console.log("Adding new item to collection");
         savedItem = await addToCollection(collectionData);
         
         if (savedItem) {
@@ -246,6 +275,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
       }
 
       if (savedItem) {
+        console.log("Item saved successfully:", savedItem);
         if (onUpdate) {
           onUpdate(savedItem);
         }
@@ -266,23 +296,30 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
     }
   };
 
+  // Determine if this is actually a new item (either from isNewItem prop or by checking for ID)
+  const isActuallyNewItem = isNewItem || !currentItem?.id;
+
   return (
     <Card className="mt-4">
       <CardContent className="pt-6">
 
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">
-          Add to your Collection
+            {isActuallyNewItem ? 'Add to your Collection' : 'Update Collection Item'}
           </h2>
           <p className="text-muted-foreground">
-          Add a banknote to your personal collection.
+            {isActuallyNewItem 
+              ? 'Add a banknote to your personal collection.' 
+              : 'Update details of this banknote in your collection.'}
           </p>
         </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-6">
-              {/* Banknote selection */}
+              {/* Hidden banknoteId field */}
+              <input type="hidden" name="banknoteId" value={form.getValues('banknoteId')} />
+              
               <div className="w-full h-px bg-muted my-6" />
 
               <div className="grid grid-cols-1 gap-y-4">
@@ -349,84 +386,75 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                   )}
                 />
 
-
-
-
                 {/* Custom Images Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Custom Images</h3>
-                <p className="text-muted-foreground text-sm">
-                  Upload your own images of the banknote (optional)
-                </p>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Custom Images</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Upload your own images of the banknote (optional)
+                  </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Obverse (Front) Image */}
-                  <div>
-  <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
-  <div className="mt-2 flex items-center gap-4">
-    <label
-      htmlFor="obverseImage"
-      className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
-    >
-      {obverseImagePreview ? (
-        <img
-          src={obverseImagePreview}
-          alt="Obverse preview"
-          className="w-full h-full object-contain"
-        />
-      ) : (
-        <Upload className="h-8 w-8 text-muted-foreground" />
-      )}
-    </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Obverse (Front) Image */}
+                    <div>
+                      <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
+                      <div className="mt-2 flex items-center gap-4">
+                        <label
+                          htmlFor="obverseImage"
+                          className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+                        >
+                          {obverseImagePreview ? (
+                            <img
+                              src={obverseImagePreview}
+                              alt="Obverse preview"
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <Upload className="h-8 w-8 text-muted-foreground" />
+                          )}
+                        </label>
 
-    <input
-      id="obverseImage"
-      type="file"
-      accept="image/*"
-      onChange={handleObverseImageChange}
-      className="hidden"
-    />
-  </div>
-</div>
+                        <input
+                          id="obverseImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleObverseImageChange}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
 
-{/* Reverse Image */}
-<div>
-  <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
-  <div className="mt-2 flex items-center gap-4">
-    <label
-      htmlFor="reverseImage"
-      className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
-    >
-      {reverseImagePreview ? (
-        <img
-          src={reverseImagePreview}
-          alt="Reverse preview"
-          className="w-full h-full object-contain"
-        />
-      ) : (
-        <Upload className="h-8 w-8 text-muted-foreground" />
-      )}
-    </label>
+                    {/* Reverse Image */}
+                    <div>
+                      <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
+                      <div className="mt-2 flex items-center gap-4">
+                        <label
+                          htmlFor="reverseImage"
+                          className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+                        >
+                          {reverseImagePreview ? (
+                            <img
+                              src={reverseImagePreview}
+                              alt="Reverse preview"
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <Upload className="h-8 w-8 text-muted-foreground" />
+                          )}
+                        </label>
 
-    <input
-      id="reverseImage"
-      type="file"
-      accept="image/*"
-      onChange={handleReverseImageChange}
-      className="hidden"
-    />
-  </div>
-</div>
-
+                        <input
+                          id="reverseImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleReverseImageChange}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-
-
-
-
-<div className="w-full h-px bg-muted my-6" />
-
+                <div className="w-full h-px bg-muted my-6" />
 
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-lg font-medium">Private Details</h3>
@@ -481,7 +509,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                 <FormField
                   control={form.control}
                   name="purchasePrice"
-                  render={({ field: { onChange, ...field } }) => (
+                  render={({ field: { onChange, value, ...field } }) => (
                     <FormItem>
                       <FormLabel>Purchase Price</FormLabel>
                       <FormControl>
@@ -491,6 +519,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                           </span>
                           <Input
                             {...field}
+                            value={value}
                             className="pl-6"
                             onChange={(e) => {
                               const val = e.target.value;
@@ -528,10 +557,6 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                 />
               </div>
 
-              
-
-
-
               {/* Private Note */}
               <FormField
                 control={form.control}
@@ -553,8 +578,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                 )}
               />
 
-
-<div className="w-full h-px bg-muted my-6" />
+              <div className="w-full h-px bg-muted my-6" />
 
               {/* For Sale Switch */}
               <FormField
@@ -583,7 +607,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                 <FormField
                   control={form.control}
                   name="salePrice"
-                  render={({ field: { onChange, ...field } }) => (
+                  render={({ field: { onChange, value, ...field } }) => (
                     <FormItem>
                       <FormLabel>Sale Price</FormLabel>
                       <FormControl>
@@ -593,6 +617,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                           </span>
                           <Input
                             {...field}
+                            value={value}
                             className="pl-6"
                             onChange={(e) => {
                               const val = e.target.value;
@@ -608,10 +633,6 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                   )}
                 />
               )}
-
-
-
-              
             </div>
 
             <div className="flex justify-end space-x-4 pt-4">
@@ -626,9 +647,9 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting
                   ? 'Saving...'
-                  : item
-                    ? 'Update Item'
-                    : 'Add to Collection'}
+                  : isActuallyNewItem
+                    ? 'Add to Collection'
+                    : 'Update Item'}
               </Button>
             </div>
           </form>

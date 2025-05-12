@@ -80,7 +80,6 @@ const BanknoteDetailCard = ({
   const handleUpdateSuccess = () => {
     setIsAddDialogOpen(false);
     toast({
-      title: "Success",
       description: "Banknote added to your collection",
     });
   };
@@ -155,6 +154,7 @@ const BanknoteDetailCard = ({
               item={{ banknote } as CollectionItem}
               onUpdate={handleUpdateSuccess}
               onCancel={() => setIsAddDialogOpen(false)}
+              isNewItem={true}
             />
           </DialogContentWithScroll>
         </Dialog>
@@ -248,6 +248,7 @@ const BanknoteDetailCard = ({
             item={{ banknote } as CollectionItem}
             onUpdate={handleUpdateSuccess}
             onCancel={() => setIsAddDialogOpen(false)}
+            isNewItem={true}
           />
         </DialogContentWithScroll>
       </Dialog>
