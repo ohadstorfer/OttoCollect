@@ -8,7 +8,6 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
 import CollectionItemCard from "./CollectionItemCard";
 import { CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
@@ -56,11 +55,6 @@ export const CollectionItemGroupDialog: React.FC<CollectionItemGroupDialogProps>
               </div>
             )}
           </div>
-          <DialogClose asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogClose>
         </DialogHeader>
         
         <div className={cn(
