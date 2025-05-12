@@ -233,28 +233,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <div className="relative max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by catalog ID or country..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        
-        <Button onClick={fetchImageSuggestions} variant="outline" disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Loading
-            </>
-          ) : (
-            'Refresh'
-          )}
-        </Button>
-      </div>
+
 
       {loading && suggestions.length === 0 ? (
         <div className="flex justify-center py-10">
@@ -268,11 +247,11 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                 <TableRow>
                   <TableHead>Obverse</TableHead>
                   <TableHead>Reverse</TableHead>
-                  <TableHead>Catalog ID</TableHead>
+                  <TableHead>Banknote</TableHead>
+                  <TableHead>Ext. Pick</TableHead>
                   <TableHead>Country</TableHead>
                   <TableHead>Denomination</TableHead>
-                  <TableHead>Banknote</TableHead>
-                  <TableHead>Submitted By</TableHead>
+                  <TableHead>User Name</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -317,9 +296,6 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium">{suggestion.banknote_catalog_id}</TableCell>
-                      <TableCell>{suggestion.banknote_country}</TableCell>
-                      <TableCell>{suggestion.banknote_denomination}</TableCell>
                       <TableCell>
                         <Button 
                           variant="outline" 
@@ -330,6 +306,10 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                           <Eye className="h-4 w-4" /> View
                         </Button>
                       </TableCell>
+                      <TableCell className="font-medium">{suggestion.banknote_catalog_id}</TableCell>
+                      <TableCell>{suggestion.banknote_country}</TableCell>
+                      <TableCell>{suggestion.banknote_denomination}</TableCell>
+                      
                       <TableCell>{suggestion.user_name || 'Unknown'}</TableCell>
                       <TableCell>
                         {suggestion.status === 'pending' ? (
@@ -393,13 +373,13 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
 
       {/* Dialog for enlarged image view */}
       <Dialog open={selectedImage !== null} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="sm:max-w-[800px] p-4">
+      <DialogContent className="w-full sm:max-w-none sm:w-[70vw] p-2">
           {selectedImage && (
-            <div className="relative w-full max-h-[70vh] flex items-center justify-center">
+            <div className="relative w-full flex items-center justify-center">
               <img 
                 src={selectedImage} 
                 alt="Banknote image" 
-                className="max-w-full max-h-[70vh] object-contain"
+                className="w-full object-contain"
               />
             </div>
           )}
