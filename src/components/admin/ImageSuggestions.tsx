@@ -12,9 +12,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Loader2, Check, X, Image as ImageIcon } from 'lucide-react';
+import { Search, Loader2, Check, X, Image as ImageIcon, Eye } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import { AdminComponentProps } from '@/types/admin';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import BanknoteDetailDialog from './BanknoteDetailDialog';
 
 interface ImageSuggestion {
   id: string;
@@ -32,17 +34,6 @@ interface ImageSuggestion {
   user_name?: string;
 }
 
-interface UserProfile {
-  username?: string;
-}
-
-interface BanknoteDetails {
-  id: string;
-  extended_pick_number?: string;
-  country?: string;
-  face_value?: string;
-}
-
 interface ImageSuggestionsProps extends AdminComponentProps {}
 
 const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
@@ -56,6 +47,10 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalSuggestions, setTotalSuggestions] = useState<number>(0);
+  
+  // New state variables for image and banknote dialogs
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedBanknoteId, setSelectedBanknoteId] = useState<string | null>(null);
   
   const PAGE_SIZE = 10;
   
@@ -124,7 +119,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       }
 
       // Create a map of banknote details for easy lookup
-      const banknoteDetails = new Map<string, BanknoteDetails>();
+      const banknoteDetails = new Map<string, any>();
       if (banknotesData) {
         banknotesData.forEach(banknote => {
           banknoteDetails.set(banknote.id, banknote);
@@ -142,7 +137,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
           banknote_catalog_id: banknote?.extended_pick_number || '',
           banknote_country: banknote?.country || '',
           banknote_denomination: banknote?.face_value || ''
-        };
+        } as ImageSuggestion; // Type assertion to ensure it matches ImageSuggestion
       });
       
       // If country filter is applied, filter locally
@@ -225,6 +220,17 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
     }
   };
 
+  // New handlers for image and banknote dialogs
+  const openImageDialog = (imageUrl: string | null) => {
+    if (imageUrl) {
+      setSelectedImage(imageUrl);
+    }
+  };
+
+  const openBanknoteDialog = (banknoteId: string) => {
+    setSelectedBanknoteId(banknoteId);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -265,6 +271,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                   <TableHead>Catalog ID</TableHead>
                   <TableHead>Country</TableHead>
                   <TableHead>Denomination</TableHead>
+                  <TableHead>Banknote</TableHead>
                   <TableHead>Submitted By</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -275,7 +282,10 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                   suggestions.map((suggestion) => (
                     <TableRow key={suggestion.id}>
                       <TableCell>
-                        <div className="w-16 h-12 relative bg-muted rounded overflow-hidden">
+                        <div 
+                          className="w-16 h-12 relative bg-muted rounded overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => openImageDialog(suggestion.obverse_image)}
+                        >
                           {suggestion.obverse_image ? (
                             <img 
                               src={suggestion.obverse_image} 
@@ -290,7 +300,10 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="w-16 h-12 relative bg-muted rounded overflow-hidden">
+                        <div 
+                          className="w-16 h-12 relative bg-muted rounded overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => openImageDialog(suggestion.reverse_image)}
+                        >
                           {suggestion.reverse_image ? (
                             <img 
                               src={suggestion.reverse_image} 
@@ -307,6 +320,16 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                       <TableCell className="font-medium">{suggestion.banknote_catalog_id}</TableCell>
                       <TableCell>{suggestion.banknote_country}</TableCell>
                       <TableCell>{suggestion.banknote_denomination}</TableCell>
+                      <TableCell>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => openBanknoteDialog(suggestion.banknote_id)}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-4 w-4" /> View
+                        </Button>
+                      </TableCell>
                       <TableCell>{suggestion.user_name || 'Unknown'}</TableCell>
                       <TableCell>
                         {suggestion.status === 'pending' ? (
@@ -349,7 +372,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-10">
+                    <TableCell colSpan={9} className="text-center py-10">
                       No image suggestions found
                     </TableCell>
                   </TableRow>
@@ -367,6 +390,30 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
           </div>
         </>
       )}
+
+      {/* Dialog for enlarged image view */}
+      <Dialog open={selectedImage !== null} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="sm:max-w-[800px] p-4">
+          {selectedImage && (
+            <div className="relative w-full max-h-[70vh] flex items-center justify-center">
+              <img 
+                src={selectedImage} 
+                alt="Banknote image" 
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for banknote details */}
+      <Dialog open={selectedBanknoteId !== null} onOpenChange={() => setSelectedBanknoteId(null)}>
+        <DialogContent className="sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto">
+          {selectedBanknoteId && (
+            <BanknoteDetailDialog id={selectedBanknoteId} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

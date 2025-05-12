@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -39,7 +38,9 @@ interface LabelValuePairProps {
   iconClassNames?: string;
 }
 
-
+interface BanknoteCatalogDetailProps {
+  id?: string; // Make id optional so it can be provided as a prop
+}
 
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
   if (!value) return null;
@@ -55,8 +56,10 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
   );
 };
 
-export default function BanknoteCatalogDetail() {
-  const { id } = useParams<{ id: string }>();
+export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDetailProps = {}) {
+  const { id: paramsId } = useParams<{ id: string }>();
+  const id = propsId || paramsId; // Use the prop id if provided, otherwise use the URL param
+  
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -65,7 +68,6 @@ export default function BanknoteCatalogDetail() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
   
-
   const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
     queryFn: () => fetchBanknoteDetail(id || ""),
@@ -94,7 +96,9 @@ export default function BanknoteCatalogDetail() {
           <p className="mb-6 text-muted-foreground">
             We couldn't load the banknote details. Please try again later.
           </p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
+          {!propsId && ( // Only show the back button when not in dialog mode
+            <Button onClick={() => navigate(-1)}>Go Back</Button>
+          )}
         </div>
       </div>
     );
@@ -165,8 +169,6 @@ export default function BanknoteCatalogDetail() {
 
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
-      
-      
       <div className="flex flex-col space-y-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -174,11 +176,12 @@ export default function BanknoteCatalogDetail() {
           </h1>
           <div className="flex items-center justify-between">
             <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
-            <Button variant="outline" onClick={() => navigate(-1)}>
-            Back
-          </Button>
+            {!propsId && ( // Only show the back button when not in dialog mode
+              <Button variant="outline" onClick={() => navigate(-1)}>
+                Back
+              </Button>
+            )}
           </div>
-          
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -327,7 +330,6 @@ export default function BanknoteCatalogDetail() {
             </Card>
           </div>
         </div>
-        
         
       </div>
       
