@@ -94,8 +94,6 @@ export default function CollectionItem() {
     );
   }
 
- 
-
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);
   };
@@ -229,7 +227,7 @@ export default function CollectionItem() {
 
       {/* Edit dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContentWithScroll className="sm:max-w-[800px]" onClick={(e) => e.stopPropagation()} >
+        <DialogContentWithScroll className="sm:max-w-[800px]" onClick={(e) => e.stopPropagation()}>
           <CollectionItemFormEdit
             collectionItem={collectionItem}
             onUpdate={handleUpdateSuccess}

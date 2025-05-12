@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -44,17 +45,17 @@ export interface CollectionItemFormProps {
   onCancel?: () => void;
 }
 
-// Create a schema for form validation
+// Create a schema for form validation with coerced number types
 const formSchema = z.object({
   banknoteId: z.string().min(1, { message: "Banknote must be selected" }),
   condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const),
-  purchasePrice: z.union([z.number().optional(), z.literal('')]),
+  purchasePrice: z.union([z.coerce.number().optional(), z.literal('')]),
   purchaseDate: z.date().optional(),
   location: z.string().optional(),
   publicNote: z.string().optional(),
   privateNote: z.string().optional(),
   isForSale: z.boolean().default(false),
-  salePrice: z.union([z.number().optional(), z.literal('')])
+  salePrice: z.union([z.coerce.number().optional(), z.literal('')])
 });
 
 const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
