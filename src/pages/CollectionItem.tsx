@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -160,7 +159,7 @@ export default function CollectionItem() {
               </Button>
 
               <h1 className="text-3xl font-bold leading-tight">
-                {collectionItem.banknote.denomination}
+                {collectionItem.denomination}
               </h1>
 
               <Star className="h-5 w-5 fill-gold-400 text-gold-400" />

@@ -20,8 +20,8 @@ interface ImageSuggestion {
   id: string;
   banknote_id: string;
   user_id: string;
-  image_url: string;
-  type: 'obverse' | 'reverse' | 'other'; // Matches database constraint
+  obverse_image: string | null;
+  reverse_image: string | null;
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
   updated_at: string;
@@ -68,8 +68,8 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       
       // Apply filters
       if (searchQuery) {
-        // We can only filter by fields in the image_suggestions table directly
-        query = query.ilike('type', `%${searchQuery}%`);
+        // We can filter by status since type is removed
+        query = query.ilike('status', `%${searchQuery}%`);
       }
       
       // If in country admin mode, filter by country
@@ -113,8 +113,8 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             id: suggestion.id,
             banknote_id: suggestion.banknote_id,
             user_id: suggestion.user_id,
-            image_url: suggestion.image_url,
-            type: suggestion.type as 'obverse' | 'reverse' | 'other',
+            obverse_image: suggestion.obverse_image,
+            reverse_image: suggestion.reverse_image,
             status: suggestion.status as 'pending' | 'approved' | 'rejected',
             created_at: suggestion.created_at,
             updated_at: suggestion.updated_at,
@@ -149,12 +149,21 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
     try {
       setLoading(true);
       
-      // First update the banknote with the new image
+      // Update both front and back pictures if available
+      const updateData: Record<string, any> = {};
+      
+      if (suggestion.obverse_image) {
+        updateData.front_picture = suggestion.obverse_image;
+      }
+      
+      if (suggestion.reverse_image) {
+        updateData.back_picture = suggestion.reverse_image;
+      }
+      
+      // Update the banknote with the new image(s)
       const { error: banknoteError } = await supabase
         .from('detailed_banknotes')
-        .update({
-          [suggestion.type === 'obverse' ? 'front_picture' : 'back_picture']: suggestion.image_url
-        })
+        .update(updateData)
         .eq('id', suggestion.banknote_id);
       
       if (banknoteError) throw banknoteError;
@@ -233,11 +242,11 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Image</TableHead>
+                  <TableHead>Obverse</TableHead>
+                  <TableHead>Reverse</TableHead>
                   <TableHead>Catalog ID</TableHead>
                   <TableHead>Country</TableHead>
                   <TableHead>Denomination</TableHead>
-                  <TableHead>Type</TableHead>
                   <TableHead>Submitted By</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -249,10 +258,25 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                     <TableRow key={suggestion.id}>
                       <TableCell>
                         <div className="w-16 h-12 relative bg-muted rounded overflow-hidden">
-                          {suggestion.image_url ? (
+                          {suggestion.obverse_image ? (
                             <img 
-                              src={suggestion.image_url} 
-                              alt={`${suggestion.type} of ${suggestion.banknote_catalog_id}`}
+                              src={suggestion.obverse_image} 
+                              alt={`Obverse of ${suggestion.banknote_catalog_id}`}
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="w-16 h-12 relative bg-muted rounded overflow-hidden">
+                          {suggestion.reverse_image ? (
+                            <img 
+                              src={suggestion.reverse_image} 
+                              alt={`Reverse of ${suggestion.banknote_catalog_id}`}
                               className="w-full h-full object-contain"
                             />
                           ) : (
@@ -265,9 +289,6 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                       <TableCell className="font-medium">{suggestion.banknote_catalog_id}</TableCell>
                       <TableCell>{suggestion.banknote_country}</TableCell>
                       <TableCell>{suggestion.banknote_denomination}</TableCell>
-                      <TableCell>
-                        <span className="capitalize">{suggestion.type}</span>
-                      </TableCell>
                       <TableCell>{suggestion.user_name || 'Unknown'}</TableCell>
                       <TableCell>
                         {suggestion.status === 'pending' ? (

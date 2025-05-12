@@ -16,40 +16,19 @@ export async function submitImageSuggestion(data: {
       throw new Error("At least one image is required");
     }
 
-    if (data.obverseImage) {
-      // Insert obverse image suggestion
-      const { error: obverseError } = await supabase
-        .from('image_suggestions')
-        .insert({
-          banknote_id: data.banknoteId,
-          user_id: data.userId,
-          obverse_image: data.obverseImage,
-          reverse_image: null,
-          type: 'obverse',
-          status: 'pending'
-        });
+    // Insert one row containing both obverse and reverse images
+    const { error } = await supabase
+      .from('image_suggestions')
+      .insert({
+        banknote_id: data.banknoteId,
+        user_id: data.userId,
+        obverse_image: data.obverseImage,
+        reverse_image: data.reverseImage,
+        status: 'pending'
+      });
 
-      if (obverseError) {
-        throw new Error(`Failed to submit obverse image: ${obverseError.message}`);
-      }
-    }
-
-    if (data.reverseImage) {
-      // Insert reverse image suggestion
-      const { error: reverseError } = await supabase
-        .from('image_suggestions')
-        .insert({
-          banknote_id: data.banknoteId,
-          user_id: data.userId,
-          obverse_image: null,
-          reverse_image: data.reverseImage,
-          type: 'reverse',
-          status: 'pending'
-        });
-
-      if (reverseError) {
-        throw new Error(`Failed to submit reverse image: ${reverseError.message}`);
-      }
+    if (error) {
+      throw new Error(`Failed to submit image suggestion: ${error.message}`);
     }
 
     return true;
