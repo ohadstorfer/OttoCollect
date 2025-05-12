@@ -158,11 +158,11 @@ const Admin = () => {
           <TabsList className="mb-6 w-full">
             <TabsTrigger value="users">
               <Users className="mr-2 h-4 w-4" />
-              User Management
+              Users
             </TabsTrigger>
             <TabsTrigger value="banknotes">
               <Book className="mr-2 h-4 w-4" />
-              Banknotes Management
+              Banknotes
             </TabsTrigger>
             <TabsTrigger value="suggestions">
               <Image className="mr-2 h-4 w-4" />
@@ -170,11 +170,11 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="countries">
               <Globe className="mr-2 h-4 w-4" />
-              Country Settings
+              Countries
             </TabsTrigger>
             <TabsTrigger value="filter-settings">
               <Settings className="mr-2 h-4 w-4" />
-              Filter Settings
+              Filters
             </TabsTrigger>
           </TabsList>
 
