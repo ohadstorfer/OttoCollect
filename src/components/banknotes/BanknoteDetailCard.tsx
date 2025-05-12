@@ -74,6 +74,7 @@ const BanknoteDetailCard = ({
     e.stopPropagation(); // Prevent card click from triggering
     setIsAddDialogOpen(true);
   };
+  
 
   const handleUpdateSuccess = () => {
     setIsAddDialogOpen(false);
@@ -104,13 +105,13 @@ const BanknoteDetailCard = ({
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{banknote.denomination}</h4>
               <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8"
-                onClick={handleAddButtonClick}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 shrink-0" 
+              onClick={handleAddButtonClick}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
             </div>
 
             <div className="gap-1.5 flex flex-wrap items-center text-sm mt-1">
