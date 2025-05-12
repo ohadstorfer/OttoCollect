@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,9 +29,9 @@ import * as z from 'zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Upload } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
-import { DetailedBanknote, CollectionItem } from '@/types';
+import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { addToCollection, uploadCollectionImage } from '@/services/collectionService';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
@@ -38,6 +39,7 @@ import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
 // Define props for CollectionItemForm - simplified for adding only
 export interface CollectionItemFormProps {
   item?: { banknote: DetailedBanknote } | null;
+  collectionItem?: { banknote: DetailedBanknote } | null;
   onUpdate?: (item: CollectionItem) => void;
   onCancel?: () => void;
 }
@@ -57,16 +59,21 @@ const formSchema = z.object({
 
 const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
   item,
+  collectionItem,
   onUpdate,
   onCancel
 }) => {
+  // Use collectionItem prop if provided, otherwise use item
+  const currentItem = collectionItem || item;
+  
   const { user } = useAuth();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<DetailedBanknote[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedBanknote, setSelectedBanknote] = useState<DetailedBanknote | null>(
-    item?.banknote || null
+    currentItem?.banknote || null
   );
   const [obverseImageFile, setObverseImageFile] = useState<File | null>(null);
   const [reverseImageFile, setReverseImageFile] = useState<File | null>(null);
@@ -77,8 +84,8 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      banknoteId: item?.banknote?.id || '',
-      condition: 'UNC',
+      banknoteId: currentItem?.banknote?.id || '',
+      condition: 'UNC' as BanknoteCondition,
       purchasePrice: '',
       purchaseDate: undefined,
       location: '',
@@ -192,7 +199,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
       const collectionData = {
         userId: user.id,
         banknoteId: values.banknoteId,
-        condition: values.condition,
+        condition: values.condition as BanknoteCondition,
         purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
         purchaseDate: values.purchaseDate ? format(values.purchaseDate, 'yyyy-MM-dd') : undefined,
         location: values.location || undefined,
