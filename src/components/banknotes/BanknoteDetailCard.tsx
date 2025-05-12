@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +34,6 @@ const BanknoteDetailCard = ({
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  
   const handleCardClick = () => {
     // Set the navigation flag to know we're coming from a group dialog
     if (countryId) {
@@ -79,10 +77,7 @@ const BanknoteDetailCard = ({
 
   const handleUpdateSuccess = () => {
     setIsAddDialogOpen(false);
-    toast({
-      title: "Success",
-      description: "Banknote added to your collection",
-    });
+    toast("Banknote added to your collection");
   };
 
   if (viewMode === 'list') {
