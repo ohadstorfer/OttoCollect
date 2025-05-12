@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCollectionItem } from "@/services/collectionService";
@@ -8,13 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
 import { ArrowLeft, Star, ImagePlus, Edit } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
 import CollectionItemFormEdit from "@/components/collection/CollectionItemFormEdit";
+import { submitImageSuggestion, hasExistingImageSuggestion } from "@/services/imageSuggestionsService";
 
 interface LabelValuePairProps {
   label: string;
@@ -41,9 +43,10 @@ export default function CollectionItem() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isSubmittingImages, setIsSubmittingImages] = useState(false);
+  const [hasPendingSuggestion, setHasPendingSuggestion] = useState(false);
 
   // Fetch collection item directly by ID
   const { data: collectionItem, isLoading, isError, refetch } = useQuery({
@@ -52,12 +55,30 @@ export default function CollectionItem() {
     enabled: !!id,
   });
 
+  // Check if user has pending image suggestions for this banknote
+  useEffect(() => {
+    if (collectionItem && user && isOwner) {
+      checkExistingSuggestion();
+    }
+  }, [collectionItem, user]);
+
+  const checkExistingSuggestion = async () => {
+    if (!collectionItem?.banknote.id || !user?.id) return;
+    
+    try {
+      const hasExisting = await hasExistingImageSuggestion(
+        collectionItem.banknote.id,
+        user.id
+      );
+      setHasPendingSuggestion(hasExisting);
+    } catch (error) {
+      console.error("Failed to check existing suggestions:", error);
+    }
+  };
+
   const handleUpdateSuccess = async () => {
     setIsEditDialogOpen(false);
-    toast({
-      title: "Success",
-      description: "Collection item updated successfully",
-    });
+    toast("Collection item updated successfully");
     // Refetch the data to get the latest updates
     await refetch();
   };
@@ -65,6 +86,30 @@ export default function CollectionItem() {
   // Determine if the current user is the owner of this item
   const isOwner = user?.id === collectionItem?.userId;
   console.log("CollectionItem - isOwner:", isOwner, "userId:", user?.id, "itemUserId:", collectionItem?.userId);
+
+  const handleSuggestToCatalog = async () => {
+    if (!collectionItem || !user) return;
+
+    setIsSubmittingImages(true);
+    try {
+      await submitImageSuggestion({
+        banknoteId: collectionItem.banknote.id,
+        userId: user.id,
+        obverseImage: collectionItem.obverseImage,
+        reverseImage: collectionItem.reverseImage
+      });
+      
+      toast("Your images have been submitted for catalog consideration");
+      setHasPendingSuggestion(true);
+    } catch (error) {
+      console.error("Error suggesting images:", error);
+      toast("Failed to submit images. Please try again later.");
+    } finally {
+      setIsSubmittingImages(false);
+    }
+  };
+
+  const hasCustomImages = Boolean(collectionItem?.obverseImage || collectionItem?.reverseImage);
 
   if (isLoading) {
     return (
@@ -102,8 +147,6 @@ export default function CollectionItem() {
 
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
-
-
       <div className="flex flex-col space-y-6">
         <div className="space-y-1">
           <div className="flex justify-between items-center">
@@ -140,6 +183,24 @@ export default function CollectionItem() {
             <Card>
               <CardContent className="px-2 pt-2 pb-2">
                 <div className="flex flex-col space-y-3">
+                  {isOwner && hasCustomImages && (
+                    <div className="w-full flex justify-between items-center py-2">
+                      <Button 
+                        onClick={handleSuggestToCatalog} 
+                        variant="outline"
+                        className="w-full flex items-center gap-2"
+                        disabled={isSubmittingImages || hasPendingSuggestion}
+                      >
+                        <ImagePlus className="h-4 w-4" />
+                        {hasPendingSuggestion 
+                          ? "Image Suggestion Pending" 
+                          : isSubmittingImages 
+                            ? "Submitting..." 
+                            : "Suggest Images to Catalog"}
+                      </Button>
+                    </div>
+                  )}
+                  
                   {displayImages.length > 0 ? (
                     displayImages.map((url, index) => (
                       <div

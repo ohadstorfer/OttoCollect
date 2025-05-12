@@ -638,7 +638,8 @@ export type Database = {
           banknote_id: string
           created_at: string
           id: string
-          image_url: string
+          obverse_image: string
+          reverse_image: string
           status: string
           type: string
           updated_at: string
@@ -648,7 +649,8 @@ export type Database = {
           banknote_id: string
           created_at?: string
           id?: string
-          image_url: string
+          obverse_image: string
+          reverse_image: string
           status?: string
           type: string
           updated_at?: string
@@ -658,7 +660,8 @@ export type Database = {
           banknote_id?: string
           created_at?: string
           id?: string
-          image_url?: string
+          obverse_image?: string
+          reverse_image?: string
           status?: string
           type?: string
           updated_at?: string
