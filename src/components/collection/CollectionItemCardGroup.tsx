@@ -80,9 +80,10 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
               </AspectRatio>
             ) : (
               <AspectRatio ratio={4 / 2}>
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <span className="text-muted-foreground">No image</span>
-                </div>
+                <img
+                  src={'/placeholder.svg'}
+                  className="w-full h-full object-cover"
+                />
               </AspectRatio>
             )}
           </div>

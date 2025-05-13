@@ -210,7 +210,7 @@ const Profile: React.FC = () => {
       <ProfileHeader profile={profile} />
 
       <Tabs defaultValue="collection" className="w-full mt-8">
-        <TabsList>
+        <TabsList className="inline-flex mt-8">
           <TabsTrigger value="collection">Collection</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="editProfile">Edit Profile</TabsTrigger>}
         </TabsList>
