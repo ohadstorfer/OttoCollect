@@ -90,22 +90,59 @@ export async function fetchWishlistItem(userId: string, banknoteId: string): Pro
 
 export async function fetchUserWishlist(userId: string): Promise<any[]> {
   try {
+    console.log("[fetchUserWishlist] Starting fetch for user:", userId);
+    
+    const { data, error } = await supabase
+      .from('wishlist_items')
+      .select(`
+        *,
+        detailed_banknotes(*)
+      `)
+      .eq('user_id', userId);
+    
+    if (error) {
+      console.error("[fetchUserWishlist] Error fetching wishlist:", error);
+      return [];
+    }
+    
+    console.log(`[fetchUserWishlist] Found ${data?.length || 0} wishlist items for user:`, userId);
+    
+    return data || [];
+  } catch (error) {
+    console.error("[fetchUserWishlist] Exception fetching wishlist:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetches wishlist items filtered by country
+ * @param userId The user ID
+ * @param countryName The name of the country to filter by
+ * @returns Array of wishlist items for the specified country
+ */
+export async function fetchUserWishlistByCountry(userId: string, countryName: string): Promise<any[]> {
+  try {
+    console.log("[fetchUserWishlistByCountry] Starting fetch for:", { userId, countryName });
+    
     const { data, error } = await supabase
       .from('wishlist_items')
       .select(`
         *,
         detailed_banknotes!inner(*)
       `)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .eq('detailed_banknotes.country', countryName);
     
     if (error) {
-      console.error("Error fetching wishlist:", error);
+      console.error("[fetchUserWishlistByCountry] Error fetching wishlist by country:", error);
       return [];
     }
     
+    console.log(`[fetchUserWishlistByCountry] Found ${data?.length || 0} wishlist items for user ${userId} in country ${countryName}`);
+    
     return data || [];
   } catch (error) {
-    console.error("Exception fetching wishlist:", error);
+    console.error("[fetchUserWishlistByCountry] Exception fetching wishlist by country:", error);
     return [];
   }
 }

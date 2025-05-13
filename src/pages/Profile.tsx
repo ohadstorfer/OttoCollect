@@ -15,6 +15,7 @@ import { DynamicFilterState } from '@/types/filter';
 import CountrySelection from '@/pages/CountrySelection';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
 import { ArrowLeft } from 'lucide-react';
+import CountryCollectionTabs from '@/components/profile/CountryCollectionTabs';
 
 const Profile: React.FC = () => {
   const { username: routeUsername } = useParams<{ username?: string }>();
@@ -222,20 +223,23 @@ const Profile: React.FC = () => {
         <TabsContent value="collection" className="space-y-4">
           {showCountryDetail && selectedCountry ? (
             <div>
-              <Button 
-                variant="outline" 
-                onClick={handleBackToCountries} 
-                className="mb-4"
-              >
-                <ArrowLeft className="h-5 w-5" />
-                
-                 Back to Countries
-              </Button>
-              <CountryDetailCollection 
-                key={`${profile.id}-${selectedCountry}`} 
+              <div className="page-container max-w-5xl mx-auto">
+                <Button 
+                  variant="outline" 
+                  onClick={handleBackToCountries} 
+                  className="mb-4"
+                >
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  Back to Countries
+                </Button>
+              </div>
+              
+              {/* Replace the direct CountryDetailCollection with our new tabs component */}
+              <CountryCollectionTabs
                 userId={profile.id}
+                countryId={selectedCountry} 
                 countryName={selectedCountry}
-                profileView={true} // Set profileView to true
+                isOwner={isOwnProfile}
               />
             </div>
           ) : (
