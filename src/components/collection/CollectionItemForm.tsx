@@ -103,6 +103,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
     }
   }, [selectedBanknote, form]);
 
+  
   // Search for banknotes as user types
   useEffect(() => {
     const delaySearch = setTimeout(async () => {
