@@ -14,8 +14,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Banknote } from '@/types';
-import { Loader2, Check, X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SimpleImageUpload from '@/components/collection/SimpleImageUpload';
+import { uploadBanknoteImage } from '@/services/banknoteService';
 
 interface BanknoteEditDialogProps {
   open: boolean;
@@ -122,6 +124,21 @@ const BanknoteEditDialog = ({
       [name]: checked
     }));
   };
+
+  // New handlers for image uploads
+  const handleFrontImageUploaded = (url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      front_picture: url
+    }));
+  };
+
+  const handleBackImageUploaded = (url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      back_picture: url
+    }));
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +178,7 @@ const BanknoteEditDialog = ({
           };
           
           onCreate(newBanknote);
+          toast.success('Banknote created successfully');
         }
       } else if (banknote) {
         // Update existing banknote
@@ -201,6 +219,8 @@ const BanknoteEditDialog = ({
           toast.success('Banknote updated successfully');
         }
       }
+      
+      onClose();
     } catch (error) {
       console.error('Error saving banknote:', error);
       toast.error('Failed to save banknote');
@@ -380,57 +400,29 @@ const BanknoteEditDialog = ({
               </div>
             </TabsContent>
             
-            <TabsContent value="images" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <TabsContent value="images" className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="front_picture">Front Image URL</Label>
-                    <Input
-                      id="front_picture"
-                      name="front_picture"
-                      value={formData.front_picture}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  
-                  {formData.front_picture && (
-                    <div className="border rounded p-2">
-                      <img
-                        src={formData.front_picture}
-                        alt="Front image"
-                        className="w-full h-auto max-h-48 object-contain"
-                        onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.svg'}
-                      />
-                    </div>
-                  )}
+                  <Label>Front Image</Label>
+                  <SimpleImageUpload 
+                    image={formData.front_picture} 
+                    side="front"
+                    onImageUploaded={handleFrontImageUploaded}
+                  />
                 </div>
                 
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="back_picture">Back Image URL</Label>
-                    <Input
-                      id="back_picture"
-                      name="back_picture"
-                      value={formData.back_picture}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  
-                  {formData.back_picture && (
-                    <div className="border rounded p-2">
-                      <img
-                        src={formData.back_picture}
-                        alt="Back image"
-                        className="w-full h-auto max-h-48 object-contain"
-                        onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.svg'}
-                      />
-                    </div>
-                  )}
+                  <Label>Back Image</Label>
+                  <SimpleImageUpload 
+                    image={formData.back_picture} 
+                    side="back"
+                    onImageUploaded={handleBackImageUploaded}
+                  />
                 </div>
               </div>
               
-              <p className="text-sm text-muted-foreground">
-                Note: For uploading new images, please use the image suggestion workflow. These fields are for setting existing image URLs.
+              <p className="text-sm text-muted-foreground mt-4">
+                Upload images directly or paste image URLs. For best results, use high-resolution images with clear details.
               </p>
             </TabsContent>
           </Tabs>
