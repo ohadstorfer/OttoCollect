@@ -19,6 +19,7 @@ import {
 import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 import { formatPrice } from '@/utils/formatters';
 import { BANKNOTE_CONDITIONS } from '@/lib/constants';
+import { Badge } from '../ui/badge';
 
 // Define conditional props for the component
 export interface CollectionItemCardProps {
@@ -220,13 +221,37 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             alt={getBanknoteTitle()}
             className="object-cover w-full h-full"
           />
-          {item?.condition && (
-            <div className="absolute top-2 left-2">
-              <span className={`px-2 py-1 rounded-md text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
-                {item.condition}
-              </span>
-            </div>
-          )}
+          <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
+          <div className="flex justify-between items-start">
+            <h4 className="font-bold">{item.banknote.denomination}</h4>
+          </div>
+
+          <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
+            {item.banknote.extendedPickNumber && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                {item.banknote.extendedPickNumber}
+              </Badge>
+            )}
+            {item.banknote.turkCatalogNumber && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                {item.banknote.turkCatalogNumber}
+              </Badge>
+            )}
+            {item.banknote.year && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                {item.banknote.year}
+              </Badge>
+            )}
+            {item.banknote.rarity && (
+              <Badge
+                variant="secondary"
+                className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
+              >
+                {item.banknote.rarity}
+              </Badge>
+            )}
+          </div>
+        </div>
         </div>
         <CardContent className="p-4">
           <h3 className="font-medium truncate">{getBanknoteTitle()}</h3>

@@ -101,6 +101,21 @@ export interface Banknote {
 }
 
 export interface DetailedBanknote extends Banknote {
+  id: string;
+  catalogId: string;
+  country: string;
+  denomination: string;
+  year: string;
+  series?: string;
+  description?: string;
+  obverseDescription?: string;
+  reverseDescription?: string;
+  imageUrls: string[];  // Change to string[] to fix TypeScript errors
+  isApproved: boolean;
+  isPending: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
   pickNumber?: string;
   turkCatalogNumber?: string;
   sultanName?: string;
@@ -149,7 +164,7 @@ export interface CollectionItem {
   id: string;
   userId: string;
   banknoteId: string;
-  banknote: Banknote;
+  banknote: DetailedBanknote;
   condition: BanknoteCondition;
   purchasePrice?: number;
   purchaseDate?: string | Date;  // Allow both string and Date

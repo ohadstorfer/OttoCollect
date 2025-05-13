@@ -160,7 +160,7 @@ export default function CollectionItem() {
               </Button>
 
               <h1 className="text-3xl font-bold leading-tight">
-                {collectionItem.banknote.face_value}
+                {collectionItem.banknote.denomination}
               </h1>
 
               <Star className="h-5 w-5 fill-gold-400 text-gold-400" />

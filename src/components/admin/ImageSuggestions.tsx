@@ -213,6 +213,21 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
           console.log('Successfully updated back_picture to:', suggestion.reverse_image);
         }
       }
+
+      if (!hasErrors) {
+        // Fetch the updated banknote record to verify all changes
+        const { data: updatedBanknote, error: fetchError } = await supabase
+          .from('detailed_banknotes')
+          .select('*')
+          .eq('id', suggestion.banknote_id)
+          .single();
+        
+        if (fetchError) {
+          console.error('Error fetching updated banknote:', fetchError);
+        } else {
+          console.log('Updated banknote details:', updatedBanknote);
+        }
+      }
       
       // Then update the suggestion status regardless of image update success
       const { error: suggestionError } = await supabase
