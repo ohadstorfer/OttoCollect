@@ -6,7 +6,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { removeFromCollection } from '@/services/collectionService';
 import { useToast } from '@/hooks/use-toast';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -42,7 +42,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
-  
+
   // Add detailed logging for debugging
   console.log("CollectionItemCard - Rendering with item:", {
     id: item?.id,
@@ -56,9 +56,9 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       imageUrlsType: item.banknote.imageUrls ? (Array.isArray(item.banknote.imageUrls) ? 'array' : typeof item.banknote.imageUrls) : 'missing'
     } : 'No banknote data'
   });
-  
+
   // Use custom images if available, otherwise fall back to banknote images
-  const displayImage = item?.obverseImage || 
+  const displayImage = item?.obverseImage ||
     (item?.banknote ? item.banknote.imageUrls : null);
 
   // Use BANKNOTE_CONDITIONS from constants
@@ -73,35 +73,35 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     'Fair': 'bg-red-100 text-red-800',
     'Poor': 'bg-gray-100 text-gray-800'
   };
-  
+
   // Helper function to get the banknote title
   function getBanknoteTitle() {
     if (!item?.banknote) {
       console.log("getBanknoteTitle: Missing banknote object");
       return "Unknown Banknote";
     }
-    
+
     console.log("getBanknoteTitle: Working with banknote", {
       denomination: item.banknote.denomination,
       year: item.banknote.year
     });
-    
+
     let title = '';
-    
+
     if (item.banknote.denomination) {
       title += item.banknote.denomination;
     }
-    
+
     if (item.banknote.year) {
       if (title) title += ' ';
       title += `(${item.banknote.year})`;
     }
-    
+
     if (!title) {
       console.log("getBanknoteTitle: Empty title generated");
       return "Unknown Banknote";
     }
-    
+
     return title;
   }
 
@@ -116,9 +116,9 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   async function handleDelete(e: React.MouseEvent) {
     // Stop propagation to prevent card click when clicking delete button
     e.stopPropagation();
-    
+
     if (!item?.id) return;
-    
+
     setIsDeleting(true);
     try {
       const success = await removeFromCollection(item.id);
@@ -157,16 +157,16 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     e.stopPropagation();
     setShowDeleteConfirm(true);
   };
-  
+
   // Render list view if requested
   if (viewMode === 'list') {
     return (
-      <Card 
+      <Card
         className="flex flex-row overflow-hidden cursor-pointer hover:shadow-md transition-all"
         onClick={handleCardClick}
       >
         <div className="w-24 h-24 flex-shrink-0">
-          <BanknoteImage 
+          <BanknoteImage
             imageUrl={displayImage}
             alt={getBanknoteTitle()}
             className="w-full h-full object-cover"
@@ -207,79 +207,86 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       </Card>
     );
   }
-  
+
   // Default grid view
   return (
     <>
-      <Card 
+      <Card
         className="overflow-hidden transition-all hover:shadow-md cursor-pointer hover:scale-[1.01]"
         onClick={handleCardClick}
       >
+        <div className="relative">
+          <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
+
+            <div className="flex justify-between items-start">
+              <h4 className="font-bold">{item.banknote.denomination}</h4>
+              {item?.condition && (
+                <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
+                  {item.condition}
+                </span>
+              )}
+            </div>
+
+
+            <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm pt-2">
+              {item.banknote.extendedPickNumber && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  {item.banknote.extendedPickNumber}
+                </Badge>
+              )}
+              {item.banknote.turkCatalogNumber && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  {item.banknote.turkCatalogNumber}
+                </Badge>
+              )}
+              {item.banknote.year && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  {item.banknote.year}
+                </Badge>
+              )}
+              {item.banknote.rarity && (
+                <Badge
+                  variant="secondary"
+                  className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
+                >
+                  {item.banknote.rarity}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="relative aspect-[4/2] overflow-hidden bg-muted">
-          <BanknoteImage 
+          <BanknoteImage
             imageUrl={displayImage}
             alt={getBanknoteTitle()}
             className="object-cover w-full h-full"
           />
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
-          <div className="flex justify-between items-start">
-            <h4 className="font-bold">{item.banknote.denomination}</h4>
-          </div>
+            <div className="flex justify-between items-start">
+              <h4 className="font-bold">{item.banknote.denomination}</h4>
+            </div>
 
-          <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
-            {item.banknote.extendedPickNumber && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                {item.banknote.extendedPickNumber}
-              </Badge>
-            )}
-            {item.banknote.turkCatalogNumber && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                {item.banknote.turkCatalogNumber}
-              </Badge>
-            )}
-            {item.banknote.year && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                {item.banknote.year}
-              </Badge>
-            )}
-            {item.banknote.rarity && (
-              <Badge
-                variant="secondary"
-                className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
-              >
-                {item.banknote.rarity}
-              </Badge>
-            )}
           </div>
         </div>
-        </div>
-        <CardContent className="p-4">
-          <h3 className="font-medium truncate">{getBanknoteTitle()}</h3>
-          <p className="text-sm text-muted-foreground truncate">
-            {item?.banknote?.country || "Unknown Country"} · {item?.banknote?.series || "Unknown Series"}
-          </p>
-          {item?.isForSale && (
-            <p className="mt-2 text-sm font-medium">
-              <span className="text-blue-600">For Sale: {formatPrice(item.salePrice)}</span>
+
+
+        <div className="p-3 bg-background border-t">
+          {item.banknote.sultanName && (
+            <p className="text-xs text-muted-foreground">
+              Sultan: {item.banknote.sultanName}
             </p>
           )}
-        </CardContent>
-        <CardFooter className="p-4 pt-0 flex justify-end gap-2" onClick={e => e.stopPropagation()}>
-          {isOwner && (
-            <>
-              <Button variant="outline" size="sm" onClick={handleEditClick} className="flex-1">
-                <Pencil className="h-3.5 w-3.5 mr-1" />
-                Edit
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDeleteClick}>
-                <Trash2 className="h-3.5 w-3.5" />
-                <span className="sr-only">Delete</span>
-              </Button>
-            </>
+          {item.banknote.sealNames && (
+            <p className="text-xs text-muted-foreground">
+              Seals: {item.banknote.sealNames}
+            </p>
           )}
-        </CardFooter>
+        </div>
+    
+
       </Card>
-      
+
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent onClick={e => e.stopPropagation()}>
           <AlertDialogHeader>
@@ -291,8 +298,8 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
+            <AlertDialogAction
+              onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
               disabled={isDeleting}
             >
