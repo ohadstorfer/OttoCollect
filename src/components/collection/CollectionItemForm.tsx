@@ -1,38 +1,22 @@
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CollectionItem, BanknoteCondition } from "@/types";
-import { CollectionImageUpload } from "./CollectionImageUpload";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "@/components/ui/alert-dialog";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CollectionItem } from '@/types';
+import { updateCollectionItem } from '@/services/collectionService';
+import { useToast } from '@/hooks/use-toast';
+import CollectionImageUpload from './CollectionImageUpload';
 
 export interface CollectionItemFormProps {
   item: CollectionItem;
-  onSave: (item: CollectionItem) => Promise<void>;
   onCancel: () => void;
+  onSaveComplete?: () => void;
+  onUpdate?: () => void;  // Add this prop to fix the build error
 }
 
-const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, onCancel }) => {
+const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel, onSaveComplete, onUpdate }) => {
   const [formData, setFormData] = useState({
     condition: item.condition || "VF",
     purchasePrice: item.purchasePrice || undefined,
@@ -62,7 +46,10 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onSave, o
         ...formData,
         salePrice: formData.isForSale ? formData.salePrice : null,
       };
-      await onSave(updatedItem);
+      await updateCollectionItem(updatedItem);
+      if (onSaveComplete) {
+        onSaveComplete();
+      }
     } catch (error) {
       console.error("Error saving collection item:", error);
       setIsSubmitting(false);
