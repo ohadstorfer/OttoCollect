@@ -301,7 +301,6 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
             <TableRow>
               {/* <TableHead>Order</TableHead> */}
               <TableHead>Name</TableHead>
-              <TableHead>Field Name</TableHead>
               <TableHead>Default</TableHead>
               <TableHead>Required</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -336,7 +335,6 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
                   </div>
                 </TableCell> */}
                 <TableCell>{sortOption.name}</TableCell>
-                <TableCell>{sortOption.field_name}</TableCell>
                 <TableCell>{sortOption.is_default ? 'Yes' : 'No'}</TableCell>
                 <TableCell>{sortOption.is_required ? 'Yes' : 'No'}</TableCell>
                 <TableCell className="text-right">
