@@ -281,7 +281,7 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order</TableHead>
+              {/* <TableHead>Order</TableHead> */}
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -290,7 +290,7 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
           <TableBody>
             {categories.map((category, index) => (
               <TableRow key={category.id}>
-                <TableCell>
+                {/* <TableCell>
                   <div className="flex items-center space-x-1">
                     <span>{category.display_order}</span>
                     <div className="flex flex-col">
@@ -314,7 +314,7 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
                       </Button>
                     </div>
                   </div>
-                </TableCell>
+                </TableCell> */}
                 <TableCell>{category.name}</TableCell>
                 <TableCell>{category.description || '-'}</TableCell>
                 <TableCell className="text-right">

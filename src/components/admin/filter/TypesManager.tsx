@@ -281,7 +281,7 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order</TableHead>
+              {/* <TableHead>Order</TableHead> */}
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -290,7 +290,7 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
           <TableBody>
             {types.map((type, index) => (
               <TableRow key={type.id}>
-                <TableCell>
+                {/* <TableCell>
                   <div className="flex items-center space-x-1">
                     <span>{type.display_order}</span>
                     <div className="flex flex-col">
@@ -314,7 +314,7 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
                       </Button>
                     </div>
                   </div>
-                </TableCell>
+                </TableCell> */}
                 <TableCell>{type.name}</TableCell>
                 <TableCell>{type.description || '-'}</TableCell>
                 <TableCell className="text-right">

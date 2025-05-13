@@ -299,7 +299,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order</TableHead>
+              {/* <TableHead>Order</TableHead> */}
               <TableHead>Name</TableHead>
               <TableHead>Field Name</TableHead>
               <TableHead>Default</TableHead>
@@ -310,7 +310,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
           <TableBody>
             {sortOptions.map((sortOption, index) => (
               <TableRow key={sortOption.id}>
-                <TableCell>
+                {/* <TableCell>
                   <div className="flex items-center space-x-1">
                     <span>{sortOption.display_order}</span>
                     <div className="flex flex-col">
@@ -334,7 +334,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
                       </Button>
                     </div>
                   </div>
-                </TableCell>
+                </TableCell> */}
                 <TableCell>{sortOption.name}</TableCell>
                 <TableCell>{sortOption.field_name}</TableCell>
                 <TableCell>{sortOption.is_default ? 'Yes' : 'No'}</TableCell>
