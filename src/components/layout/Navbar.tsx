@@ -221,26 +221,7 @@ const Navbar = () => {
               </Link>
             ))}
             
-            {/* Admin Dashboard Link for Mobile */}
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className={cn(
-                  "px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-1",
-                  isActive('/admin')
-                    ? theme === 'light'
-                      ? "bg-ottoman-100 text-ottoman-900"
-                      : "bg-ottoman-600/30 text-ottoman-100"
-                    : theme === 'light'
-                      ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900"
-                      : "text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
-                )}
-                onClick={closeMenu}
-              >
-                <Shield className="h-4 w-4" />
-                Admin Dashboard
-              </Link>
-            )}
+
             
             {user && (
               <>

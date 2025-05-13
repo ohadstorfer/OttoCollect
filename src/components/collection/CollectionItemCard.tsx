@@ -283,14 +283,14 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             </p>
           )}
 
-{item?.isForSale && (
-                <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
-                  For Sale: {formatPrice(item.salePrice)}
-                </span>
-              )}
-              
+          {item?.isForSale && (
+            <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
+              For Sale: {formatPrice(item.salePrice)}
+            </span>
+          )}
+
         </div>
-    
+
 
       </Card>
 
