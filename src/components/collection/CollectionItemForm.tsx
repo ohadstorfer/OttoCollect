@@ -47,7 +47,7 @@ export interface CollectionItemFormProps {
 // Create a schema for form validation with coerced number types
 const formSchema = z.object({
   banknoteId: z.string().min(1, { message: "Banknote must be selected" }),
-  condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const),
+  condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'Fair', 'Poor'] as const),
   purchasePrice: z.union([z.coerce.number().optional(), z.literal('')]),
   purchaseDate: z.date().optional(),
   location: z.string().optional(),
@@ -65,7 +65,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
 }) => {
   // Use collectionItem prop if provided, otherwise use item
   const currentItem = collectionItem || item;
-  
+
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,7 +103,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
     }
   }, [selectedBanknote, form]);
 
-  
+
   // Search for banknotes as user types
   useEffect(() => {
     const delaySearch = setTimeout(async () => {
@@ -187,12 +187,10 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
 
       // Upload new images if provided
       if (obverseImageFile) {
-        console.log("Uploading obverse image...");
         obverseImageUrl = await uploadCollectionImage(obverseImageFile);
       }
 
       if (reverseImageFile) {
-        console.log("Uploading reverse image...");
         reverseImageUrl = await uploadCollectionImage(reverseImageFile);
       }
 
@@ -213,17 +211,17 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
       };
 
       console.log("Adding item to collection with data:", collectionData);
-      
+
       // Add new item to collection
       const savedItem = await addToCollection(collectionData);
-      
+
       if (savedItem) {
         console.log("Item successfully added to collection:", savedItem);
         toast({
           title: "Success",
           description: "Banknote added to your collection."
         });
-        
+
         // Call onUpdate callback if provided
         if (onUpdate) {
           onUpdate(savedItem);
@@ -268,8 +266,8 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                       <FormItem>
                         <FormLabel>Select Banknote</FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="Search for a banknote..." 
+                          <Input
+                            placeholder="Search for a banknote..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                           />
@@ -278,21 +276,21 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({
                       </FormItem>
                     )}
                   />
-                  
+
                   {isSearching ? (
                     <div className="text-center p-4">Searching...</div>
                   ) : searchResults.length > 0 ? (
                     <div className="border rounded-md max-h-60 overflow-y-auto">
                       {searchResults.map((banknote) => (
-                        <div 
+                        <div
                           key={banknote.id}
                           className="p-2 hover:bg-muted cursor-pointer flex items-center gap-2 border-b"
                           onClick={() => handleBanknoteSelect(banknote.id)}
                         >
                           {banknote.imageUrls && banknote.imageUrls.length > 0 && (
-                            <img 
-                              src={banknote.imageUrls[0]} 
-                              alt={banknote.denomination} 
+                            <img
+                              src={banknote.imageUrls[0]}
+                              alt={banknote.denomination}
                               className="w-10 h-10 object-cover"
                             />
                           )}
