@@ -205,12 +205,14 @@ const Profile: React.FC = () => {
     );
   }
 
-  return (
-    <div className="page-container max-w-5xl mx-auto py-10">
+  return ( 
+    <div >
+      <div className="page-container max-w-5xl mx-auto py-5">
       <ProfileHeader profile={profile} />
+      </div>
 
-      <Tabs defaultValue="collection" className="w-full mt-8">
-        <TabsList className="inline-flex mt-8">
+      <Tabs defaultValue="collection" className="w-full ">
+      <TabsList className="inline-flex  ml-[20px] sm:ml-[140px]">
           <TabsTrigger value="collection">Collection</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="editProfile">Edit Profile</TabsTrigger>}
         </TabsList>
