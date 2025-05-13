@@ -36,6 +36,7 @@ const Navbar = () => {
     { path: '/collection', label: 'My Collection' },
     { path: '/marketplace', label: 'Marketplace' },
     { path: '/community', label: 'Community' },
+    ...(isAdmin ? [{ path: '/admin', label: 'Admin Dashboard' }] : []),
   ];
 
   return (
@@ -88,19 +89,7 @@ const Navbar = () => {
               )}
             </Button>
 
-            {/* Admin Dashboard Button for Admin Users */}
-            {isAdmin && (
-              <Link to="/admin">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className={`${theme === 'light' ? 'text-ottoman-800 border-ottoman-300 hover:bg-ottoman-100' : 'text-ottoman-100 border-ottoman-700 hover:bg-ottoman-700/50'} flex items-center gap-1`}
-                >
-                  <Shield className="h-4 w-4" />
-                  Admin Dashboard
-                </Button>
-              </Link>
-            )}
+
 
             {user ? (
               <div className="flex items-center gap-3">
