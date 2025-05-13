@@ -206,16 +206,18 @@ const Profile: React.FC = () => {
   }
 
   return ( 
-    <div >
+    <div>
       <div className="page-container max-w-5xl mx-auto py-5">
-      <ProfileHeader profile={profile} />
+        <ProfileHeader profile={profile} />
       </div>
 
-      <Tabs defaultValue="collection" className="w-full ">
-      <TabsList className="inline-flex  ml-[20px] sm:ml-[140px]">
-          <TabsTrigger value="collection">Collection</TabsTrigger>
-          {isOwnProfile && <TabsTrigger value="editProfile">Edit Profile</TabsTrigger>}
-        </TabsList>
+      <Tabs defaultValue="collection" className="w-full">
+        <div className="page-container max-w-5xl mx-auto">
+          <TabsList className="inline-flex">
+            <TabsTrigger value="collection">Collection</TabsTrigger>
+            {isOwnProfile && <TabsTrigger value="editProfile">Edit Profile</TabsTrigger>}
+          </TabsList>
+        </div>
 
         <TabsContent value="collection" className="space-y-4">
           {showCountryDetail && selectedCountry ? (
