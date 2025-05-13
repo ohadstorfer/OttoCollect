@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
@@ -14,9 +13,14 @@ import { CollectionItemsDisplay } from "@/components/country/CollectionItemsDisp
 interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
   countryName?: string; // Optional country name prop when not using URL params
+  profileView?: boolean; // New prop to indicate if we're in profile view
 }
 
-const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ userId, countryName }) => {
+const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ 
+  userId, 
+  countryName,
+  profileView = false // Default to false
+}) => {
   const { country } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -161,6 +165,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ userI
       <CountryHeader 
         countryName={effectiveCountryName} 
         returnPath={returnPath} 
+        hideBackButton={profileView} // Hide the back button when in profile view
       />
 
       <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">

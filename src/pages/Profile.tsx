@@ -233,6 +233,7 @@ const Profile: React.FC = () => {
                 key={`${profile.id}-${selectedCountry}`} 
                 userId={profile.id}
                 countryName={selectedCountry}
+                profileView={true} // Set profileView to true
               />
             </div>
           ) : (

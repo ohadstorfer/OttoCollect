@@ -7,11 +7,13 @@ import { useNavigate } from "react-router-dom";
 interface CountryHeaderProps {
   countryName: string;
   returnPath?: string;
+  hideBackButton?: boolean; // New prop to control back button visibility
 }
 
 export const CountryHeader: React.FC<CountryHeaderProps> = ({ 
   countryName,
-  returnPath = '/catalog' // Default to catalog if not specified
+  returnPath = '/catalog', // Default to catalog if not specified
+  hideBackButton = false // Default to showing the back button
 }) => {
   const navigate = useNavigate();
 
@@ -21,9 +23,11 @@ export const CountryHeader: React.FC<CountryHeaderProps> = ({
 
   return (
     <div className="flex items-center gap-4 mb-6">
-      <Button variant="ghost" onClick={handleBack} className="p-2">
-        <ArrowLeft className="h-5 w-5" />
-      </Button>
+      {!hideBackButton && (
+        <Button variant="ghost" onClick={handleBack} className="p-2">
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+      )}
       <h1 className="text-3xl font-bold">{countryName} Banknotes</h1>
     </div>
   );
