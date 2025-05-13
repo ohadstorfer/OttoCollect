@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import { Menu, X, Search, User, LogIn, ShoppingCart, BookOpen, MessageCircle, Sun, Moon } from "lucide-react";
+import { Menu, X, Search, User, LogIn, ShoppingCart, BookOpen, MessageCircle, Sun, Moon, Shield } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MessageButton } from "@/components/messages/MessageButton";
@@ -26,6 +26,9 @@ const Navbar = () => {
     navigate('/messaging');
     closeMenu();
   };
+
+  // Check if user has admin privileges
+  const isAdmin = user?.role === 'Super Admin' || user?.role.includes('Admin');
 
   // Navigation links that appear in both desktop and mobile views
   const navLinks = [
@@ -84,6 +87,20 @@ const Navbar = () => {
                 <Moon className="h-5 w-5" />
               )}
             </Button>
+
+            {/* Admin Dashboard Button for Admin Users */}
+            {isAdmin && (
+              <Link to="/admin">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className={`${theme === 'light' ? 'text-ottoman-800 border-ottoman-300 hover:bg-ottoman-100' : 'text-ottoman-100 border-ottoman-700 hover:bg-ottoman-700/50'} flex items-center gap-1`}
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin Dashboard
+                </Button>
+              </Link>
+            )}
 
             {user ? (
               <div className="flex items-center gap-3">
@@ -214,6 +231,27 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
+            
+            {/* Admin Dashboard Link for Mobile */}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className={cn(
+                  "px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-1",
+                  isActive('/admin')
+                    ? theme === 'light'
+                      ? "bg-ottoman-100 text-ottoman-900"
+                      : "bg-ottoman-600/30 text-ottoman-100"
+                    : theme === 'light'
+                      ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900"
+                      : "text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
+                )}
+                onClick={closeMenu}
+              >
+                <Shield className="h-4 w-4" />
+                Admin Dashboard
+              </Link>
+            )}
             
             {user && (
               <>
