@@ -26,11 +26,11 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
 }) => {
   return showCountryDetail && selectedCountry ? (
     <div>
-      <div className="page-container max-w-5xl mx-auto">
+      <div className=" max-w-5xl mx-auto">
         <Button 
-          variant="outline" 
+          variant="ghost" 
           onClick={onBackToCountries} 
-          className="mb-4"
+          
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
           Back to Countries

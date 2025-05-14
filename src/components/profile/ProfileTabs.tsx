@@ -53,7 +53,7 @@ const ProfileTabs: React.FC<ProfileTabsProps> = ({
         </TabsList>
       </div>
 
-      <TabsContent value="collection" className="space-y-4">
+      <TabsContent value="collection" >
         <ProfileCountrySelection
           userId={userId}
           isOwnProfile={isOwnProfile}
@@ -66,7 +66,7 @@ const ProfileTabs: React.FC<ProfileTabsProps> = ({
       </TabsContent>
 
       {isOwnProfile && (
-        <TabsContent value="editProfile" className="space-y-4">
+        <TabsContent value="editProfile" >
           <ProfileEditForm 
             profile={profile} 
             onCancel={() => {}} 
