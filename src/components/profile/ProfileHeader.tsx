@@ -18,11 +18,11 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showMessageDialog, setShowMessageDialog] = React.useState(false);
-  
+
   const isOwnProfile = user && profile && user.id === profile.id;
-  
+
   const userRank = (profile?.rank || "Newbie") as UserRank;
-  
+
   const handleMessageClick = () => {
     if (!user) {
       navigate('/auth');
@@ -40,7 +40,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
     <div className="relative">
       {/* Banner background */}
       <div className="h-40 bg-gradient-to-r from-ottoman-800 to-ottoman-600" />
-      
+
       {/* Profile info overlay */}
       <div className="px-6 pb-5 pt-0 flex flex-col md:flex-row items-center md:items-end space-y-4 md:space-y-0 md:space-x-5 -mt-16">
         <Avatar className="h-32 w-32 border-4 border-background bg-background shadow-lg">
@@ -52,7 +52,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             </AvatarFallback>
           )}
         </Avatar>
-        
+
         <div className="flex-1 flex flex-col items-center md:items-start space-y-2">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-serif font-semibold text-foreground">
@@ -60,13 +60,13 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             </h1>
             <Badge variant="user" rank={userRank} showIcon />
           </div>
-          
+
           <div className="text-sm text-muted-foreground max-w-xl">
             {profile.about ? (
               <p>{profile.about}</p>
             ) : (
               <p className="italic">
-                {isOwnProfile 
+                {isOwnProfile
                   ? "You haven't added any information about yourself yet."
                   : "This user hasn't added any information about themselves yet."
                 }
@@ -78,19 +78,43 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           </div>
         </div>
 
-        <div className="md:self-center flex-shrink-0">
-  {!isOwnProfile && user && (
-    <Button 
-      onClick={handleMessageClick}
-      className="flex items-center gap-2"
-    >
-      <MessageCircle className="h-4 w-4" />
-      Message
-    </Button>
-  )}
-</div>
+        {/* <div className="md:self-center flex-shrink-0">
+          {!isOwnProfile && user && (
+            <Button
+              onClick={handleMessageClick}
+              className="flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Message
+            </Button>
+          )}
+        </div> */}
+
+
+        {isOwnProfile ? (
+          <Button
+            onClick={handleEditClick}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Edit className="h-4 w-4" />
+            Edit Profile
+          </Button>
+        ) : (
+          user && (
+            <Button
+              onClick={handleMessageClick}
+              className="flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Message
+            </Button>
+          )
+        )}
+
+
       </div>
-      
+
       {!isOwnProfile && user && profile?.id && (
         <SendMessage
           receiverId={profile.id}

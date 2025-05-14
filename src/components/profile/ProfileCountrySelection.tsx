@@ -25,7 +25,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   onBackToCountries
 }) => {
   return showCountryDetail && selectedCountry ? (
-    <div>
+    <div >
       <div className=" max-w-5xl mx-auto">
         <Button 
           variant="ghost" 
