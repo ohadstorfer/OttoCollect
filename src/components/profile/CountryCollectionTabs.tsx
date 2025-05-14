@@ -188,7 +188,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 
   return (
     <Tabs defaultValue="my-banknotes" className="w-full">
-      <div className=" max-w-5xl mx-auto">
+      <div className=" pl-4 max-w-5xl mx-auto">
         <TabsList className="inline-flex ">
           <TabsTrigger value="my-banknotes">My Banknotes</TabsTrigger>
           <TabsTrigger value="wishlist">Wish List</TabsTrigger>
