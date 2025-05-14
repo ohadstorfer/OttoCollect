@@ -42,7 +42,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
       <div className="h-40 bg-gradient-to-r from-ottoman-800 to-ottoman-600" />
 
       {/* Profile info overlay */}
-      <div className="px-6 pb-5 pt-0 flex flex-col md:flex-row items-center md:items-end space-y-4 md:space-y-0 md:space-x-5 -mt-16">
+      <div className="px-6  pt-0 flex flex-col md:flex-row items-center md:items-end space-y-4 md:space-y-0 md:space-x-5 -mt-16">
         <Avatar className="h-32 w-32 border-4 border-background bg-background shadow-lg">
           {profile.avatarUrl ? (
             <AvatarImage src={profile.avatarUrl} alt={profile.username} />
