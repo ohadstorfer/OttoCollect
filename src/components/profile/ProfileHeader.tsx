@@ -1,4 +1,3 @@
-
 import React from "react";
 import { User, UserRank } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -12,15 +11,16 @@ import { useNavigate } from "react-router-dom";
 
 interface ProfileHeaderProps {
   profile: User;
+  isEditingProfile?: boolean;
+  onEditProfileClick?: () => void;
 }
 
-export function ProfileHeader({ profile }: ProfileHeaderProps) {
+export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }: ProfileHeaderProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showMessageDialog, setShowMessageDialog] = React.useState(false);
 
   const isOwnProfile = user && profile && user.id === profile.id;
-
   const userRank = (profile?.rank || "Newbie") as UserRank;
 
   const handleMessageClick = () => {
@@ -77,23 +77,11 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             )}
           </div>
         </div>
-
-        {/* <div className="md:self-center flex-shrink-0">
-          {!isOwnProfile && user && (
-            <Button
-              onClick={handleMessageClick}
-              className="flex items-center gap-2"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Message
-            </Button>
-          )}
-        </div> */}
-
-
+        
+        {/* Show Edit or Message button as appropriate */}
         {isOwnProfile ? (
           <Button
-            onClick={handleEditClick}
+            onClick={onEditProfileClick}
             className="flex items-center gap-2"
             variant="outline"
           >
@@ -111,8 +99,6 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             </Button>
           )
         )}
-
-
       </div>
 
       {!isOwnProfile && user && profile?.id && (

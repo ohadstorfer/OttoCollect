@@ -6,7 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { getUserProfile } from '@/services/profileService';
 import { Button } from '@/components/ui/button';
-import ProfileTabs from '@/components/profile/ProfileTabs';
+import { ProfileEditForm } from '@/components/profile/ProfileEditForm';
+import ProfileCountrySelection from '@/components/profile/ProfileCountrySelection';
 
 const Profile: React.FC = () => {
   const { username: routeUsername } = useParams<{ username?: string }>();
@@ -14,6 +15,7 @@ const Profile: React.FC = () => {
   const { user: authUser } = useAuth();
   const [selectedCountry, setSelectedCountry] = React.useState<string | null>(null);
   const [showCountryDetail, setShowCountryDetail] = React.useState(false);
+  const [isEditingProfile, setIsEditingProfile] = React.useState(false);
 
   const username = routeUsername || authUser?.username;
 
@@ -67,8 +69,19 @@ const Profile: React.FC = () => {
     }
   }, [profile?.id, selectedCountry, showCountryDetail]);
 
+  // Handlers for country selection and back navigation
+  const handleCountrySelect = (country: string) => {
+    setSelectedCountry(country);
+    setShowCountryDetail(true);
+  };
+
+  const handleBackToCountries = () => {
+    setShowCountryDetail(false);
+  };
+
   // Handle save completion for profile edit
   const handleSaveComplete = async () => {
+    setIsEditingProfile(false);
     await refetchProfile();
   };
 
@@ -100,26 +113,44 @@ const Profile: React.FC = () => {
     );
   }
 
+  // Render profile edit form if editing and is owner
+  if (isEditingProfile && isOwnProfile) {
+    return (
+      <div className="page-container max-w-5xl mx-auto py-5">
+        <ProfileEditForm
+          profile={profile}
+          onCancel={() => setIsEditingProfile(false)}
+          onSaveComplete={handleSaveComplete}
+        />
+      </div>
+    );
+  }
+
   return ( 
     <div>
       <div className="page-container max-w-5xl mx-auto py-5">
-        <ProfileHeader profile={profile} />
+        <ProfileHeader 
+          profile={profile} 
+          isEditingProfile={isEditingProfile} 
+          onEditProfileClick={() => setIsEditingProfile(true)}
+        />
       </div>
 
-      <ProfileTabs
-        profile={profile}
-        isOwnProfile={isOwnProfile}
-        onSaveComplete={handleSaveComplete}
-        userId={profile.id}
-        selectedCountry={selectedCountry}
-        showCountryDetail={showCountryDetail}
-        setSelectedCountry={setSelectedCountry}
-        setShowCountryDetail={setShowCountryDetail}
-      />
-
-      
+      {/* Directly render the country selection/collection view */}
+      <div className="page-container max-w-5xl mx-auto py-5">
+        <ProfileCountrySelection
+          userId={profile.id}
+          isOwnProfile={isOwnProfile}
+          selectedCountry={selectedCountry}
+          showCountryDetail={showCountryDetail}
+          onCountrySelect={handleCountrySelect}
+          onBackToCountries={handleBackToCountries}
+          profileId={profile.id}
+        />
+      </div>
     </div>
   );
 };
 
 export default Profile;
+
