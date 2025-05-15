@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { SearchIcon } from "lucide-react";
 import { CountryData, CollectionItem } from "@/types";
 import { fetchCountriesForCatalog } from "@/services/countryCatalogService";
 import { fetchUserCollection } from "@/services/collectionService";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext"; // <-- FIXED HERE
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 
 const Catalog = () => {
