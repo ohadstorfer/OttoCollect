@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,27 +7,24 @@ import { Link } from "react-router-dom";
 import { SearchIcon } from "lucide-react";
 import { CountryData } from "@/types";
 import { fetchCountriesForCatalog } from "@/services/countryCatalogService";
-import { useAuth } from "@/context/AuthContext";
-import { fetchUserCollectionItems } from "@/services/collectionService";
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [countries, setCountries] = useState<CountryData[]>([]);
-  const { user } = useAuth();
-
-  // Holds all the user's collection items (for all banknotes they own)
-  const [collectionItems, setCollectionItems] = useState([]);
 
   useEffect(() => {
     const loadCountries = async () => {
       setLoading(true);
       try {
         const data = await fetchCountriesForCatalog();
+        
+        // Sort countries alphabetically
         const countriesArray = data.sort((a, b) => 
           a.name.localeCompare(b.name)
         );
+        
         setCountries(countriesArray);
       } catch (error) {
         console.error("Error loading countries:", error);
@@ -43,24 +41,9 @@ const Catalog = () => {
     loadCountries();
   }, [toast]);
 
-  // Fetch the full collection for the current user
-  useEffect(() => {
-    if (!user) {
-      setCollectionItems([]);
-      return;
-    }
-    fetchUserCollectionItems(user.id).then(setCollectionItems).catch(() => setCollectionItems([]));
-  }, [user]);
-
   const filteredCountries = countries.filter(country => 
     country.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Helper to get user's collectionItem for this banknote
-  const getCollectionItemForBanknote = (banknoteId: string) => {
-    if (!collectionItems || !Array.isArray(collectionItems)) return undefined;
-    return collectionItems.find((item: any) => item.banknoteId === banknoteId);
-  };
 
   return (
     <div className="min-h-screen animate-fade-in">

@@ -141,12 +141,6 @@ const Collection = () => {
     await loadUserCollection(); // Refresh the list
   };
   
-  const handleAfterSave = async () => {
-    setShowForm(false);
-    setEditingItem(null);
-    await loadUserCollection();
-  };
-  
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     setCurrentFilters(prev => ({
       ...prev,
@@ -266,9 +260,9 @@ const Collection = () => {
       {showForm && (
         <div className="mb-8">
           <CollectionItemForm
-            item={editingItem} 
-            onCancel={handleCloseForm} 
-            onSaveComplete={handleAfterSave} 
+            item={editingItem}
+            onSave={handleSaveItem}
+            onCancel={handleCloseForm}
           />
         </div>
       )}
