@@ -1,6 +1,6 @@
 
 import React from "react";
-import { DetailedBanknote } from "@/types";
+import { DetailedBanknote, CollectionItem } from "@/types";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 
 interface BanknoteDisplayProps {
@@ -14,6 +14,7 @@ interface BanknoteDisplayProps {
   countryId: string;
   isLoading: boolean;
   groupMode: boolean;
+  userCollection: CollectionItem[];
 }
 
 export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
@@ -22,7 +23,8 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
   viewMode,
   countryId,
   isLoading,
-  groupMode
+  groupMode,
+  userCollection,
 }) => {
   return (
     <div className="mt-6">
@@ -43,8 +45,10 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
           countryId={countryId}
           isLoading={isLoading}
           groupMode={groupMode}
+          userCollection={userCollection}
         />
       )}
     </div>
   );
 };
+
