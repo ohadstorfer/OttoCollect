@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -10,6 +9,7 @@ import { Search, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { CountryData } from '@/types/filter';
 import CountrySelectionHeader from '@/components/country/CountrySelectionHeader';
+import { fetchUserCollectionCountByCountry } from '@/services/collectionService';
 
 interface CountrySelectionProps {
   showHeader?: boolean;
@@ -29,6 +29,8 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [collectionCounts, setCollectionCounts] = React.useState<Record<string, number>>({});
+  const [fetchingCounts, setFetchingCounts] = React.useState(false);
 
   const {
     data: countries = [],
@@ -39,12 +41,24 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
     queryFn: fetchCountries,
   });
 
+  // Fetch collection counts for each country for userId if present
+  React.useEffect(() => {
+    // Only fetch if a userId is provided (profile or specified) and we have countries data
+    const effectiveUserId = userId || user?.id;
+    if (!effectiveUserId || !countries.length) {
+      setCollectionCounts({});
+      return;
+    }
+    setFetchingCounts(true);
+    fetchUserCollectionCountByCountry(effectiveUserId)
+      .then((counts) => setCollectionCounts(counts || {}))
+      .finally(() => setFetchingCounts(false));
+  }, [userId, user?.id, countries.length]);
+
   // Filter countries based on search term
   const filteredCountries = React.useMemo(() => {
     if (!countries) return [];
-    
     if (!searchTerm.trim()) return countries;
-    
     const term = searchTerm.toLowerCase().trim();
     return countries.filter((country: CountryData) => 
       country.name.toLowerCase().includes(term)
@@ -55,12 +69,10 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
     if (onCountrySelect) {
       onCountrySelect(country);
     } else {
-      // Original navigation behavior
       navigate(`/collectionNew/${country}`);
     }
   };
 
-  // If we're in profile view with a userId, we don't need to check current user auth
   const needsAuth = !userId && !user;
 
   if (needsAuth) {
@@ -111,32 +123,43 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6">
-            {filteredCountries.map((country: CountryData) => (
-              <Card 
-                key={country.id}
-                className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50 cursor-pointer"
-                onClick={() => handleCountrySelect(country.name)}
-              >
-                <div className="aspect-[4/3] overflow-hidden relative">
-                  {country.imageUrl ? (
-                    <img
-                      src={country.imageUrl}
-                      alt={country.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-ottoman-100 dark:bg-ottoman-100 bg-ottoman-50 flex items-center justify-center">
-                      <span className="text-ottoman-500">{country.name}</span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-                    <div className="p-4 text-white w-full">
-                      <h3 className="text-xl font-bold">{country.name}</h3>
+            {filteredCountries.map((country: CountryData) => {
+              const collectionCount = collectionCounts[country.name] || 0;
+              return (
+                <Card 
+                  key={country.id}
+                  className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50 cursor-pointer"
+                  onClick={() => handleCountrySelect(country.name)}
+                >
+                  <div className="aspect-[4/3] overflow-hidden relative">
+                    {country.imageUrl ? (
+                      <img
+                        src={country.imageUrl}
+                        alt={country.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-ottoman-100 dark:bg-ottoman-100 bg-ottoman-50 flex items-center justify-center">
+                        <span className="text-ottoman-500">{country.name}</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                      <div className="p-4 text-white w-full">
+                        <h3 className="text-xl font-bold">{country.name}</h3>
+                        {/* Show collection count if present */}
+                        {fetchingCounts ? (
+                          <span className="text-sm opacity-60">Loading…</span>
+                        ) : (
+                          collectionCounts && typeof collectionCount === 'number' && (
+                            <p className="text-sm opacity-80">{collectionCount} banknote{collectionCount === 1 ? '' : 's'}</p>
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

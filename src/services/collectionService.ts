@@ -783,3 +783,21 @@ export async function saveCollectionFilterPreferences(
 function isValidUuid(id: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 }
+
+export async function fetchUserCollectionCountByCountry(userId: string): Promise<Record<string, number>> {
+  // Returns a map of country name -> collection item count for user
+  try {
+    // We'll just fetch all user's collection items and aggregate by country (good enough unless user has MANY thousands)
+    const items = await fetchUserCollection(userId);
+    const counts: Record<string, number> = {};
+    for (const item of items) {
+      const country = item.banknote?.country ?? 'Unknown';
+      if (!counts[country]) counts[country] = 0;
+      counts[country]++;
+    }
+    return counts;
+  } catch (err) {
+    console.error("Error in fetchUserCollectionCountByCountry", err);
+    return {};
+  }
+}
