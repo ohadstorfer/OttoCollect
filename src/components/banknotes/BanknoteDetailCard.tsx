@@ -36,12 +36,24 @@ const BanknoteDetailCard = ({
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
+  // --- Debug logs: input props ---
+  console.log('[BanknoteDetailCard] banknote:', banknote);
+  console.log('[BanknoteDetailCard] userCollection:', userCollection);
+
+  // Only care about ownership when viewing from catalog
   const ownsThisBanknote =
     source === "catalog" && userHasBanknoteInCollection(banknote, userCollection);
 
+  // --- Debug logs: ownership decision ---
+  console.log(
+    '[BanknoteDetailCard] source:', source,
+    '| result of userHasBanknoteInCollection:', userHasBanknoteInCollection(banknote, userCollection),
+    '| ownsThisBanknote:', ownsThisBanknote,
+    '| banknote id:', banknote?.id
+  );
+
   const handleCardClick = () => {
     if (countryId) setNavigatingToDetail(banknote.id);
-
     if (source === 'catalog') {
       navigate(`/catalog-banknote/${banknote.id}`);
     } else {
@@ -50,22 +62,14 @@ const BanknoteDetailCard = ({
   };
 
   const getDisplayImage = (): string => {
-    // Safety check for null banknote
     if (!banknote) return '/placeholder.svg';
-    
-    // Check if imageUrls exists
     if (!banknote.imageUrls) return '/placeholder.svg';
-    
-    // Handle array of image URLs
     if (Array.isArray(banknote.imageUrls)) {
       return banknote.imageUrls.length > 0 ? banknote.imageUrls[0] : '/placeholder.svg';
     }
-    
-    // Handle string imageUrls
     if (typeof banknote.imageUrls === 'string') {
       return banknote.imageUrls || '/placeholder.svg';
     }
-    
     return '/placeholder.svg';
   };
 
@@ -79,10 +83,9 @@ const BanknoteDetailCard = ({
   };
 
   const handleAddButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click from triggering
+    e.stopPropagation();
     setIsAddDialogOpen(true);
   };
-  
 
   const handleUpdateSuccess = () => {
     setIsAddDialogOpen(false);
@@ -108,33 +111,37 @@ const BanknoteDetailCard = ({
               className="w-full h-full object-cover"
             />
           </div>
-
           <div className="flex-1 ml-4">
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{banknote.denomination}</h4>
               {ownsThisBanknote ? (
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-8 w-8 shrink-0 bg-green-500 hover:bg-green-600 text-white"
-                  aria-label="You already own this banknote"
-                  onClick={handleOwnershipCheckButton}
-                  tabIndex={0}
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
+                <>
+                  {console.log('[BanknoteDetailCard] RENDERING GREEN CHECK BUTTON (list view) | banknote id:', banknote.id)}
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 bg-green-500 hover:bg-green-600 text-white"
+                    aria-label="You already own this banknote"
+                    onClick={handleOwnershipCheckButton}
+                    tabIndex={0}
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                </>
               ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={handleAddButtonClick}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <>
+                  {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (list view) | banknote id:', banknote.id)}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={handleAddButtonClick}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </>
               )}
             </div>
-
             <div className="gap-1.5 flex flex-wrap items-center text-sm mt-1">
               {banknote.extendedPickNumber && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
@@ -157,7 +164,6 @@ const BanknoteDetailCard = ({
                 </Badge>
               )}
             </div>
-
             <div className="text-xs text-muted-foreground mt-1">
               {banknote.sultanName && <span>Sultan: {banknote.sultanName}</span>}
               {banknote.sealNames && <span className="ml-2">Seals: {banknote.sealNames}</span>}
@@ -194,28 +200,33 @@ const BanknoteDetailCard = ({
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
             {ownsThisBanknote ? (
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-8 w-8 shrink-0 bg-green-500 hover:bg-green-600 text-white"
-                aria-label="You already own this banknote"
-                onClick={handleOwnershipCheckButton}
-                tabIndex={0}
-              >
-                <Check className="h-4 w-4" />
-              </Button>
+              <>
+                {console.log('[BanknoteDetailCard] RENDERING GREEN CHECK BUTTON (grid view) | banknote id:', banknote.id)}
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 bg-green-500 hover:bg-green-600 text-white"
+                  aria-label="You already own this banknote"
+                  onClick={handleOwnershipCheckButton}
+                  tabIndex={0}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+              </>
             ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0"
-                onClick={handleAddButtonClick}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
+              <>
+                {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (grid view) | banknote id:', banknote.id)}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={handleAddButtonClick}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </>
             )}
           </div>
-
           <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
             {banknote.extendedPickNumber && (
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
