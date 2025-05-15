@@ -260,9 +260,9 @@ const Collection = () => {
       {showForm && (
         <div className="mb-8">
           <CollectionItemForm
-            item={editingItem}
-            onSave={handleSaveItem}
-            onCancel={handleCloseForm}
+            item={editingItem} 
+            onCancel={handleCloseForm} 
+            onSaveComplete={() => handleAfterSave(item)} 
           />
         </div>
       )}
