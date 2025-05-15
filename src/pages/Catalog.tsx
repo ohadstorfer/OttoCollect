@@ -7,7 +7,7 @@ import { SearchIcon } from "lucide-react";
 import { CountryData } from "@/types";
 import { fetchCountriesForCatalog } from "@/services/countryCatalogService";
 import { useAuth } from "@/context/AuthContext";
-import { fetchCollectionItemsForUser } from "@/services/collectionService";
+import { fetchUserCollectionItems } from "@/services/collectionService";
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,7 +16,7 @@ const Catalog = () => {
   const [countries, setCountries] = useState<CountryData[]>([]);
   const { user } = useAuth();
 
-  // New: track current user's collectionItems
+  // Holds all the user's collection items (for all banknotes they own)
   const [collectionItems, setCollectionItems] = useState([]);
 
   useEffect(() => {
@@ -43,18 +43,24 @@ const Catalog = () => {
     loadCountries();
   }, [toast]);
 
-  // New: fetch user collection
+  // Fetch the full collection for the current user
   useEffect(() => {
     if (!user) {
       setCollectionItems([]);
       return;
     }
-    fetchCollectionItemsForUser(user.id).then(setCollectionItems).catch(() => setCollectionItems([]));
+    fetchUserCollectionItems(user.id).then(setCollectionItems).catch(() => setCollectionItems([]));
   }, [user]);
 
   const filteredCountries = countries.filter(country => 
     country.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Helper to get user's collectionItem for this banknote
+  const getCollectionItemForBanknote = (banknoteId: string) => {
+    if (!collectionItems || !Array.isArray(collectionItems)) return undefined;
+    return collectionItems.find((item: any) => item.banknoteId === banknoteId);
+  };
 
   return (
     <div className="min-h-screen animate-fade-in">
@@ -100,49 +106,31 @@ const Catalog = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6">
-          {filteredCountries.map((country) => {
-            // For each country, if you have a per-country banknote group, for each banknote:
-            // Here is an example with a variable `banknotes` per country, for demonstration:
-            // country.banknotes.map(banknote => {
-            //   const collectionItem = collectionItems.find(
-            //     item => item.banknoteId === banknote.id
-            //   );
-            //   return (
-            //     <BanknoteDetailCard 
-            //       key={banknote.id}
-            //       banknote={banknote}
-            //       collectionItem={collectionItem}
-            //       // ...other props
-            //     />
-            //   )
-            // })
-            // But for now let's just keep country cards here.
-            return (
-              <Link to={`/catalog/${encodeURIComponent(country.name)}`} key={country.id}>
-                <Card className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50">
-                  <div className="aspect-[4/3] overflow-hidden relative">
-                    {country.imageUrl ? (
-                      <img
-                        src={country.imageUrl}
-                        alt={country.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-ottoman-100 dark:bg-ottoman-100 bg-ottoman-50 flex items-center justify-center">
-                        <span className="text-ottoman-500">{country.name}</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-                      <div className="p-4 text-white w-full">
-                        <h3 className="text-xl font-bold">{country.name}</h3>
-                        <p className="text-sm opacity-80">{country.banknoteCount} banknotes</p>
-                      </div>
+          {filteredCountries.map((country) => (
+            <Link to={`/catalog/${encodeURIComponent(country.name)}`} key={country.id}>
+              <Card className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50">
+                <div className="aspect-[4/3] overflow-hidden relative">
+                  {country.imageUrl ? (
+                    <img
+                      src={country.imageUrl}
+                      alt={country.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-ottoman-100 dark:bg-ottoman-100 bg-ottoman-50 flex items-center justify-center">
+                      <span className="text-ottoman-500">{country.name}</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                    <div className="p-4 text-white w-full">
+                      <h3 className="text-xl font-bold">{country.name}</h3>
+                      <p className="text-sm opacity-80">{country.banknoteCount} banknotes</p>
                     </div>
                   </div>
-                </Card>
-              </Link>
-            );
-          })}
+                </div>
+              </Card>
+            </Link>
+          ))}
         </div>
       )}
     </div>
