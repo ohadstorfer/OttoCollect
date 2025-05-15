@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { DetailedBanknote } from '@/types';
+import { DetailedBanknote, CollectionItem } from '@/types';
 import BanknoteDetailCard from './BanknoteDetailCard';
 import { BanknoteCardGroup } from './BanknoteCardGroup';
 import { BanknoteGroupDialog } from './BanknoteGroupDialog';
@@ -20,6 +19,7 @@ interface BanknoteGroupsProps {
   countryId: string;
   isLoading?: boolean;
   groupMode?: boolean;
+  userCollection: CollectionItem[]; // <-- ADDED
 }
 
 export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
@@ -28,7 +28,8 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   viewMode,
   countryId,
   isLoading = false,
-  groupMode = false
+  groupMode = false,
+  userCollection // <-- ADDED
 }) => {
   const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
   const [selectedGroup, setSelectedGroup] = useState<BanknoteGroupData | null>(null);
@@ -132,7 +133,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
 
           <div className="space-y-6">
             {showSultanGroups ? (
-              // Sultan groups display (either regular or with nested grouping)
+              // Sultan groups display
               group.sultanGroups && group.sultanGroups.length > 0 ? (
                 group.sultanGroups.map((sultanGroup, sultanIndex) => (
                   <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
@@ -148,10 +149,9 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                       "px-2 sm:px-0"
                     )}>
                       {groupMode ? (
-                        // Combined mode: sultan groups + banknote groups
                         (() => {
                           const mixedItems = getMixedBanknoteItems(sultanGroup.items);
-                          
+
                           return mixedItems.map((item, index) => {
                             if (item.type === 'single') {
                               return (
@@ -162,6 +162,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                                   viewMode={viewMode}
                                   countryId={countryId}
                                   fromGroup={false}
+                                  userCollection={userCollection}
                                 />
                               );
                             } else {
@@ -176,7 +177,6 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                           });
                         })()
                       ) : (
-                        // Regular sultan display without banknote grouping
                         sultanGroup.items.map((banknote, index) => (
                           <BanknoteDetailCard
                             key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
@@ -185,6 +185,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                             viewMode={viewMode}
                             countryId={countryId}
                             fromGroup={false}
+                            userCollection={userCollection}
                           />
                         ))
                       )}
@@ -197,7 +198,6 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                 </div>
               )
             ) : (
-              // Normal or grouped display (no sultan grouping)
               <div className={cn(
                 viewMode === 'grid'
                   ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
@@ -205,10 +205,9 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                 "px-2 sm:px-0"
               )}>
                 {groupMode ? (
-                  // Group mode display using the getMixedBanknoteItems function
                   (() => {
                     const mixedItems = getMixedBanknoteItems(group.items);
-                    
+
                     return mixedItems.map((item, index) => {
                       if (item.type === 'single') {
                         return (
@@ -219,6 +218,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                             viewMode={viewMode}
                             countryId={countryId}
                             fromGroup={false}
+                            userCollection={userCollection}
                           />
                         );
                       } else {
@@ -233,7 +233,6 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                     });
                   })()
                 ) : (
-                  // Normal display
                   group.items.map((banknote, index) => (
                     <BanknoteDetailCard
                       key={`banknote-${group.category}-${index}`}
@@ -242,6 +241,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                       viewMode={viewMode}
                       countryId={countryId}
                       fromGroup={false}
+                      userCollection={userCollection}
                     />
                   ))
                 )}
