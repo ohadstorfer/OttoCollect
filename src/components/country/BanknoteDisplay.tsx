@@ -26,6 +26,9 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
   groupMode,
   userCollection,
 }) => {
+  // Add a log for received userCollection
+  console.log("[BanknoteDisplay] Received userCollection, count:", userCollection?.length);
+
   return (
     <div className="mt-6">
       {isLoading ? (
@@ -38,17 +41,22 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
           <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
         </div>
       ) : (
-        <BanknoteGroups
-          groups={groups}
-          showSultanGroups={showSultanGroups}
-          viewMode={viewMode}
-          countryId={countryId}
-          isLoading={isLoading}
-          groupMode={groupMode}
-          userCollection={userCollection}
-        />
+        <>
+          <div>
+            {/* Log before passing down */}
+            {console.log("[BanknoteDisplay] Passing userCollection to BanknoteGroups, length:", userCollection?.length)}
+          </div>
+          <BanknoteGroups
+            groups={groups}
+            showSultanGroups={showSultanGroups}
+            viewMode={viewMode}
+            countryId={countryId}
+            isLoading={isLoading}
+            groupMode={groupMode}
+            userCollection={userCollection}
+          />
+        </>
       )}
     </div>
   );
 };
-

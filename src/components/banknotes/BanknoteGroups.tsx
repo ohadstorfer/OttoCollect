@@ -31,6 +31,9 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   groupMode = false,
   userCollection // <-- ADDED
 }) => {
+  // Log on receiving props
+  console.log("[BanknoteGroups] userCollection prop received. Length:", userCollection?.length);
+
   const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
   const [selectedGroup, setSelectedGroup] = useState<BanknoteGroupData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -152,6 +155,13 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                         (() => {
                           const mixedItems = getMixedBanknoteItems(sultanGroup.items);
 
+                          // Log each item sent to BanknoteDetailCard
+                          mixedItems.forEach((item, idx) => {
+                            if (item.type === "single") {
+                              console.log("[BanknoteGroups] Passing single banknote to BanknoteDetailCard: id:", item.banknote.id, "userCollection length:", userCollection?.length);
+                            }
+                          });
+
                           return mixedItems.map((item, index) => {
                             if (item.type === 'single') {
                               return (
@@ -177,17 +187,20 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                           });
                         })()
                       ) : (
-                        sultanGroup.items.map((banknote, index) => (
-                          <BanknoteDetailCard
-                            key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
-                            banknote={banknote}
-                            source="catalog"
-                            viewMode={viewMode}
-                            countryId={countryId}
-                            fromGroup={false}
-                            userCollection={userCollection}
-                          />
-                        ))
+                        sultanGroup.items.map((banknote, index) => {
+                          console.log("[BanknoteGroups] Passing sultanGroup banknote to BanknoteDetailCard: id:", banknote.id, "userCollection length:", userCollection?.length);
+                          return (
+                            <BanknoteDetailCard
+                              key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
+                              banknote={banknote}
+                              source="catalog"
+                              viewMode={viewMode}
+                              countryId={countryId}
+                              fromGroup={false}
+                              userCollection={userCollection}
+                            />
+                          );
+                        })
                       )}
                     </div>
                   </div>
@@ -207,7 +220,11 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                 {groupMode ? (
                   (() => {
                     const mixedItems = getMixedBanknoteItems(group.items);
-
+                    mixedItems.forEach((item, idx) => {
+                      if (item.type === "single") {
+                        console.log("[BanknoteGroups] Passing non-sultan single banknote to BanknoteDetailCard: id:", item.banknote.id, "userCollection length:", userCollection?.length);
+                      }
+                    });
                     return mixedItems.map((item, index) => {
                       if (item.type === 'single') {
                         return (
@@ -233,17 +250,20 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                     });
                   })()
                 ) : (
-                  group.items.map((banknote, index) => (
-                    <BanknoteDetailCard
-                      key={`banknote-${group.category}-${index}`}
-                      banknote={banknote}
-                      source="catalog"
-                      viewMode={viewMode}
-                      countryId={countryId}
-                      fromGroup={false}
-                      userCollection={userCollection}
-                    />
-                  ))
+                  group.items.map((banknote, index) => {
+                    console.log("[BanknoteGroups] Passing plain group banknote to BanknoteDetailCard: id:", banknote.id, "userCollection length:", userCollection?.length);
+                    return (
+                      <BanknoteDetailCard
+                        key={`banknote-${group.category}-${index}`}
+                        banknote={banknote}
+                        source="catalog"
+                        viewMode={viewMode}
+                        countryId={countryId}
+                        fromGroup={false}
+                        userCollection={userCollection}
+                      />
+                    );
+                  })
                 )}
               </div>
             )}

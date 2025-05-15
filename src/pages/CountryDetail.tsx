@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
@@ -11,6 +10,8 @@ import { useBanknoteFetching } from "@/hooks/use-banknote-fetching";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { useEffect } from "react";
+import { fetchUserCollection } from "@/services/collectionService";
+import { useAuth } from "@/context/AuthContext";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -22,7 +23,30 @@ const CountryDetail = () => {
     types: [],
     sort: ["extPick"],
   });
-  
+
+  // New: user + collection loading
+  const { user } = useAuth();
+  const [userCollection, setUserCollection] = useState<CollectionItem[]>([]);
+
+  useEffect(() => {
+    const fetchCollection = async () => {
+      if (!user) {
+        setUserCollection([]);
+        console.log("[CountryDetail] No user, empty userCollection");
+        return;
+      }
+      try {
+        const collection = await fetchUserCollection(user.id);
+        setUserCollection(collection);
+        console.log(`[CountryDetail] Loaded userCollection for user ${user.id}, count: ${collection.length}`);
+      } catch (e) {
+        setUserCollection([]);
+        console.log("[CountryDetail] Failed to fetch userCollection", e);
+      }
+    }
+    fetchCollection();
+  }, [user]);
+
   useEffect(() => {
     const handleScroll = () => {
       sessionStorage.setItem('scrollY', window.scrollY.toString());
@@ -74,6 +98,9 @@ const CountryDetail = () => {
 
   const isLoading = countryLoading || banknotesLoading;
 
+  // Log right before rendering BanknoteDisplay
+  console.log("[CountryDetail] groupMode:", groupMode, "userCollection length:", userCollection.length);
+
   return (
     <div className="w-full px-2 sm:px-6 py-8">
       <CountryHeader countryName={country ? decodeURIComponent(country) : ""} />
@@ -96,6 +123,7 @@ const CountryDetail = () => {
           countryId={countryId}
           isLoading={isLoading}
           groupMode={groupMode}
+          userCollection={userCollection}
         />
       </div>
     </div>
