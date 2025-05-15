@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +39,7 @@ const BanknoteDetailCard = ({
 
   // Toast window state: track shown toast's ID to programmatically dismiss it
   const toastIdRef = useRef<string | null>(null);
+  const addBtnEventRef = useRef<React.MouseEvent | null>(null);
 
   // --- Debug logs: input props ---
   console.log('[BanknoteDetailCard] banknote:', banknote);
@@ -85,18 +85,26 @@ const BanknoteDetailCard = ({
     e.stopPropagation();
     // Only allow one toast for this component at a time
     if (toastIdRef.current) return;
-    const t = toast({
+    addBtnEventRef.current = e; // store event for later
+    const { id: toastId, dismiss } = toast({
       title: "Already in your collection",
       description: "You already have a copy of this banknote on your collection. Do you want to add another copy of it?",
       action: (
         <>
           <ToastAction
             altText="Add another copy"
-            className="bg-ottoman-600 text-white hover:bg-ottoman-700 rounded shadow"
+            className="bg-green-800 text-white hover:bg-green-900 rounded shadow"
             onClick={() => {
-              toast.dismiss(t.id);
+              dismiss();
               toastIdRef.current = null; // clear toast id after dismiss
-              handleAddButtonClick(e);
+              // Call the add button handler - pass a synthetic event to keep handler unchanged
+              if (addBtnEventRef.current) {
+                handleAddButtonClick(addBtnEventRef.current);
+              } else {
+                // fallback: synthesize a fake event
+                const fakeEvent = { stopPropagation: () => {} } as React.MouseEvent;
+                handleAddButtonClick(fakeEvent);
+              }
             }}
           >
             Yes
@@ -105,7 +113,7 @@ const BanknoteDetailCard = ({
             altText="Cancel"
             className="ml-2 bg-muted text-muted-foreground hover:bg-gray-200 rounded border"
             onClick={() => {
-              toast.dismiss(t.id);
+              dismiss();
               toastIdRef.current = null;
             }}
           >
@@ -114,8 +122,19 @@ const BanknoteDetailCard = ({
         </>
       ),
       duration: 6500,
+      // Force the toast to render at the top-middle of the screen:
+      // Custom `className` + style override on viewport (supported by shadcn)
+      // Toast viewport will need to pick up the style from parent
+      // We'll also add data attribute for selecting this specific toast
+      // Controlled by <Toaster /> at app root; so just set placement
+      // but if it renders in the wrong spot, user must fix root <Toaster>
+      // Here, the supported way with shadcn is to set "className" to empty,
+      // then toast-viewport class "fixed top-6 inset-x-0 flex items-center justify-center"
+      // But the built-in <Toaster> does not expose per-toast viewport config.
+      // So as a hack: add a className for centered styling:
+      className: "justify-center items-center w-full",
     });
-    toastIdRef.current = t.id;
+    toastIdRef.current = toastId;
   };
 
   const handleAddButtonClick = (e: React.MouseEvent) => {
@@ -129,14 +148,15 @@ const BanknoteDetailCard = ({
       title: "Success",
       description: "Banknote added to your collection",
       duration: 2500,
+      className: "justify-center items-center w-full",
     });
   };
 
-  // stylings for the modern dark check button
+  // stylings for the modern dark green check button
   const checkButtonClass = cn(
     "h-8 w-8 shrink-0",
-    "rounded-full border border-gray-900 bg-gradient-to-br from-[#1A1F2C] via-gray-900 to-black text-[#9b87f5]",
-    "hover:from-[#222222] hover:to-[#1A1F2C] hover:text-white",
+    "rounded-full border border-green-900 bg-gradient-to-br from-green-900 via-green-800 to-green-950",
+    "text-green-200 hover:bg-green-900 hover:shadow-lg transition-all duration-200",
     "shadow-lg"
   );
 
@@ -345,4 +365,3 @@ const BanknoteDetailCard = ({
 };
 
 export default BanknoteDetailCard;
-
