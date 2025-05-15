@@ -267,7 +267,7 @@ export type Database = {
       collection_items: {
         Row: {
           banknote_id: string
-          condition: string | null
+          condition: string
           created_at: string
           id: string
           is_for_sale: boolean
@@ -285,7 +285,7 @@ export type Database = {
         }
         Insert: {
           banknote_id: string
-          condition?: string | null
+          condition: string
           created_at?: string
           id?: string
           is_for_sale?: boolean
@@ -303,7 +303,7 @@ export type Database = {
         }
         Update: {
           banknote_id?: string
-          condition?: string | null
+          condition?: string
           created_at?: string
           id?: string
           is_for_sale?: boolean

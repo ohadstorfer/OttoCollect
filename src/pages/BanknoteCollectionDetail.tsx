@@ -10,6 +10,7 @@ import { formatDate } from '@/utils/formatters';
 import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
 import { Dialog, DialogContentWithScroll } from '@/components/ui/dialog';
+import CollectionItemForm from '@/components/collection/CollectionItemForm';
 import { useToast } from '@/hooks/use-toast';
 
 interface BanknoteCollectionDetailProps {
