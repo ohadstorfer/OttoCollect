@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,8 @@ import { cn } from "@/lib/utils";
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import CollectionItemForm from '../collection/CollectionItemForm';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
+import { ToastAction } from "@/components/ui/toast";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 
 interface BanknoteDetailCardProps {
@@ -35,6 +37,9 @@ const BanknoteDetailCard = ({
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  // Toast window state: track shown toast's ID to programmatically dismiss it
+  const toastIdRef = useRef<string | null>(null);
 
   // --- Debug logs: input props ---
   console.log('[BanknoteDetailCard] banknote:', banknote);
@@ -75,11 +80,42 @@ const BanknoteDetailCard = ({
 
   const displayImage = getDisplayImage();
 
-  // New: Special button logic for the catalog view
+  // Modified: Show toast on check click, and handle Yes/Cancel logic with better button
   const handleOwnershipCheckButton = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toast("You already have a copy of this banknote on your collection. Do you want to add another copy of it?");
-    // If desired, you could open the add dialog here after confirmation etc.
+    // Only allow one toast for this component at a time
+    if (toastIdRef.current) return;
+    const t = toast({
+      title: "Already in your collection",
+      description: "You already have a copy of this banknote on your collection. Do you want to add another copy of it?",
+      action: (
+        <>
+          <ToastAction
+            altText="Add another copy"
+            className="bg-ottoman-600 text-white hover:bg-ottoman-700 rounded shadow"
+            onClick={() => {
+              toast.dismiss(t.id);
+              toastIdRef.current = null; // clear toast id after dismiss
+              handleAddButtonClick(e);
+            }}
+          >
+            Yes
+          </ToastAction>
+          <ToastAction
+            altText="Cancel"
+            className="ml-2 bg-muted text-muted-foreground hover:bg-gray-200 rounded border"
+            onClick={() => {
+              toast.dismiss(t.id);
+              toastIdRef.current = null;
+            }}
+          >
+            Cancel
+          </ToastAction>
+        </>
+      ),
+      duration: 6500,
+    });
+    toastIdRef.current = t.id;
   };
 
   const handleAddButtonClick = (e: React.MouseEvent) => {
@@ -89,8 +125,20 @@ const BanknoteDetailCard = ({
 
   const handleUpdateSuccess = () => {
     setIsAddDialogOpen(false);
-    toast("Banknote added to your collection");
+    toast({
+      title: "Success",
+      description: "Banknote added to your collection",
+      duration: 2500,
+    });
   };
+
+  // stylings for the modern dark check button
+  const checkButtonClass = cn(
+    "h-8 w-8 shrink-0",
+    "rounded-full border border-gray-900 bg-gradient-to-br from-[#1A1F2C] via-gray-900 to-black text-[#9b87f5]",
+    "hover:from-[#222222] hover:to-[#1A1F2C] hover:text-white",
+    "shadow-lg"
+  );
 
   if (viewMode === 'list') {
     return (
@@ -116,11 +164,11 @@ const BanknoteDetailCard = ({
               <h4 className="font-bold">{banknote.denomination}</h4>
               {ownsThisBanknote ? (
                 <>
-                  {console.log('[BanknoteDetailCard] RENDERING GREEN CHECK BUTTON (list view) | banknote id:', banknote.id)}
+                  {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (list view) | banknote id:', banknote.id)}
                   <Button
                     variant="secondary"
                     size="icon"
-                    className="h-8 w-8 shrink-0 bg-green-500 hover:bg-green-600 text-white"
+                    className={checkButtonClass}
                     aria-label="You already own this banknote"
                     onClick={handleOwnershipCheckButton}
                     tabIndex={0}
@@ -201,11 +249,11 @@ const BanknoteDetailCard = ({
             <h4 className="font-bold">{banknote.denomination}</h4>
             {ownsThisBanknote ? (
               <>
-                {console.log('[BanknoteDetailCard] RENDERING GREEN CHECK BUTTON (grid view) | banknote id:', banknote.id)}
+                {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (grid view) | banknote id:', banknote.id)}
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="h-8 w-8 shrink-0 bg-green-500 hover:bg-green-600 text-white"
+                  className={checkButtonClass}
                   aria-label="You already own this banknote"
                   onClick={handleOwnershipCheckButton}
                   tabIndex={0}
@@ -297,3 +345,4 @@ const BanknoteDetailCard = ({
 };
 
 export default BanknoteDetailCard;
+
