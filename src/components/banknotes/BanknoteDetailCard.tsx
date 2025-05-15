@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,11 +8,9 @@ import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
-import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
-import CollectionItemForm from '../collection/CollectionItemForm';
 import { toast } from '@/hooks/use-toast';
-import { ToastAction } from "@/components/ui/toast";
-import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
+import { addToCollection } from '@/services/collectionService';
+import { useAuth } from '@/context/AuthContext';
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -35,27 +34,19 @@ const BanknoteDetailCard = ({
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
-  // Toast window state: track shown toast's ID to programmatically dismiss it
+  // Get current user from auth context
+  const { user } = useAuth();
+
+  // Toast window state
   const toastIdRef = useRef<string | null>(null);
   const addBtnEventRef = useRef<React.MouseEvent | null>(null);
 
-  // --- Debug logs: input props ---
-  console.log('[BanknoteDetailCard] banknote:', banknote);
-  console.log('[BanknoteDetailCard] userCollection:', userCollection);
-
-  // Only care about ownership when viewing from catalog
   const ownsThisBanknote =
-    source === "catalog" && userHasBanknoteInCollection(banknote, userCollection);
-
-  // --- Debug logs: ownership decision ---
-  console.log(
-    '[BanknoteDetailCard] source:', source,
-    '| result of userHasBanknoteInCollection:', userHasBanknoteInCollection(banknote, userCollection),
-    '| ownsThisBanknote:', ownsThisBanknote,
-    '| banknote id:', banknote?.id
-  );
+    source === "catalog" && userCollection?.some(
+      item => item.banknote?.id === banknote.id
+    );
 
   const handleCardClick = () => {
     if (countryId) setNavigatingToDetail(banknote.id);
@@ -80,79 +71,89 @@ const BanknoteDetailCard = ({
 
   const displayImage = getDisplayImage();
 
-  // Modified: Show toast on check click, and handle Yes/Cancel logic with better button
+  // --- NEW: Fast add to collection handler ---
+  const performQuickAdd = async () => {
+    if (!user || !user.id) {
+      toast({
+        title: "Not signed in",
+        description: "You must be logged in to add items to your collection.",
+        duration: 4000,
+        className: "justify-center items-center w-full",
+      });
+      return;
+    }
+    setIsAdding(true);
+    try {
+      await addToCollection({
+        userId: user.id,
+        banknoteId: banknote.id,
+        condition: "VF", // Default to "Very Fine" for speed; can customize as needed
+      });
+      toast({
+        title: "Added!",
+        description: "Banknote added to your collection.",
+        duration: 3000,
+        className: "justify-center items-center w-full",
+      });
+    } catch (err) {
+      toast({
+        title: "Failed",
+        description: "Could not add banknote to collection.",
+        duration: 4000,
+        className: "justify-center items-center w-full",
+      });
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  // Show confirm toast if already in collection
   const handleOwnershipCheckButton = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Only allow one toast for this component at a time
     if (toastIdRef.current) return;
-    addBtnEventRef.current = e; // store event for later
+    addBtnEventRef.current = e;
     const { id: toastId, dismiss } = toast({
       title: "Already in your collection",
       description: "You already have a copy of this banknote on your collection. Do you want to add another copy of it?",
       action: (
-        <>
-          <ToastAction
-            altText="Add another copy"
+        <div className="flex space-x-2">
+          <Button
             className="bg-green-800 text-white hover:bg-green-900 rounded shadow"
             onClick={() => {
               dismiss();
-              toastIdRef.current = null; // clear toast id after dismiss
-              // Call the add button handler - pass a synthetic event to keep handler unchanged
-              if (addBtnEventRef.current) {
-                handleAddButtonClick(addBtnEventRef.current);
-              } else {
-                // fallback: synthesize a fake event
-                const fakeEvent = { stopPropagation: () => {} } as React.MouseEvent;
-                handleAddButtonClick(fakeEvent);
-              }
+              toastIdRef.current = null;
+              performQuickAdd();
             }}
+            size="sm"
           >
             Yes
-          </ToastAction>
-          <ToastAction
-            altText="Cancel"
-            className="ml-2 bg-muted text-muted-foreground hover:bg-gray-200 rounded border"
+          </Button>
+          <Button
+            variant="outline"
+            className="ml-2 rounded border"
             onClick={() => {
               dismiss();
               toastIdRef.current = null;
             }}
+            size="sm"
           >
             Cancel
-          </ToastAction>
-        </>
+          </Button>
+        </div>
       ),
-      duration: 6500,
-      // Force the toast to render at the top-middle of the screen:
-      // Custom `className` + style override on viewport (supported by shadcn)
-      // Toast viewport will need to pick up the style from parent
-      // We'll also add data attribute for selecting this specific toast
-      // Controlled by <Toaster /> at app root; so just set placement
-      // but if it renders in the wrong spot, user must fix root <Toaster>
-      // Here, the supported way with shadcn is to set "className" to empty,
-      // then toast-viewport class "fixed top-6 inset-x-0 flex items-center justify-center"
-      // But the built-in <Toaster> does not expose per-toast viewport config.
-      // So as a hack: add a className for centered styling:
-      className: "justify-center items-center w-full",
+      duration: 7000,
+      className: "justify-center items-center w-full"
     });
     toastIdRef.current = toastId;
   };
 
+  // Plus button/Check button always use quick add or toast flow now
   const handleAddButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsAddDialogOpen(true);
+    performQuickAdd();
   };
 
-  const handleUpdateSuccess = () => {
-    setIsAddDialogOpen(false);
-    toast({
-      title: "Success",
-      description: "Banknote added to your collection",
-      duration: 2500,
-      className: "justify-center items-center w-full",
-    });
-  };
-
-  // stylings for the modern dark green check button
+  // Modern dark green check button
   const checkButtonClass = cn(
     "h-8 w-8 shrink-0",
     "rounded-full border border-green-900 bg-gradient-to-br from-green-900 via-green-800 to-green-950",
@@ -160,6 +161,7 @@ const BanknoteDetailCard = ({
     "shadow-lg"
   );
 
+  // ------- Render -------
   if (viewMode === 'list') {
     return (
       <Card
@@ -183,31 +185,27 @@ const BanknoteDetailCard = ({
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{banknote.denomination}</h4>
               {ownsThisBanknote ? (
-                <>
-                  {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (list view) | banknote id:', banknote.id)}
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className={checkButtonClass}
-                    aria-label="You already own this banknote"
-                    onClick={handleOwnershipCheckButton}
-                    tabIndex={0}
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                </>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className={checkButtonClass}
+                  aria-label="You already own this banknote"
+                  onClick={handleOwnershipCheckButton}
+                  tabIndex={0}
+                  disabled={isAdding}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
               ) : (
-                <>
-                  {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (list view) | banknote id:', banknote.id)}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0"
-                    onClick={handleAddButtonClick}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={handleAddButtonClick}
+                  disabled={isAdding}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               )}
             </div>
             <div className="gap-1.5 flex flex-wrap items-center text-sm mt-1">
@@ -238,17 +236,6 @@ const BanknoteDetailCard = ({
             </div>
           </div>
         </div>
-
-        {/* Add Dialog */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContentWithScroll className="sm:max-w-[800px]" onClick={(e) => e.stopPropagation()}>
-            <CollectionItemForm
-              item={{ banknote } as CollectionItem}
-              onUpdate={handleUpdateSuccess}
-              onCancel={() => setIsAddDialogOpen(false)}
-            />
-          </DialogContentWithScroll>
-        </Dialog>
       </Card>
     );
   }
@@ -268,31 +255,27 @@ const BanknoteDetailCard = ({
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
             {ownsThisBanknote ? (
-              <>
-                {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (grid view) | banknote id:', banknote.id)}
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className={checkButtonClass}
-                  aria-label="You already own this banknote"
-                  onClick={handleOwnershipCheckButton}
-                  tabIndex={0}
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-              </>
+              <Button
+                variant="secondary"
+                size="icon"
+                className={checkButtonClass}
+                aria-label="You already own this banknote"
+                onClick={handleOwnershipCheckButton}
+                tabIndex={0}
+                disabled={isAdding}
+              >
+                <Check className="h-4 w-4" />
+              </Button>
             ) : (
-              <>
-                {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (grid view) | banknote id:', banknote.id)}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={handleAddButtonClick}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={handleAddButtonClick}
+                disabled={isAdding}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
             )}
           </div>
           <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
@@ -321,7 +304,6 @@ const BanknoteDetailCard = ({
             )}
           </div>
         </div>
-
         <div className={cn(
           displayImage === "/placeholder.svg" ? "aspect-[4/2]" : "aspect-[4/2]",
           "overflow-hidden"
@@ -335,7 +317,6 @@ const BanknoteDetailCard = ({
             )}
           />
         </div>
-
         <div className="p-3 bg-background border-t">
           {banknote.sultanName && (
             <p className="text-xs text-muted-foreground">
@@ -349,17 +330,6 @@ const BanknoteDetailCard = ({
           )}
         </div>
       </div>
-
-      {/* Add Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContentWithScroll className="sm:max-w-[800px]" onClick={(e) => e.stopPropagation()}>
-          <CollectionItemForm
-            item={{ banknote } as CollectionItem}
-            onUpdate={handleUpdateSuccess}
-            onCancel={() => setIsAddDialogOpen(false)}
-          />
-        </DialogContentWithScroll>
-      </Dialog>
     </Card>
   );
 };
