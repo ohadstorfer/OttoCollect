@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,7 @@ import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import CollectionItemForm from '../collection/CollectionItemForm';
 import { toast } from 'sonner';
-
+import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -20,26 +20,28 @@ interface BanknoteDetailCardProps {
   viewMode?: 'grid' | 'list';
   countryId?: string;
   fromGroup?: boolean;
+  userCollection?: CollectionItem[];
 }
 
-const BanknoteDetailCard = ({ 
-  banknote, 
+const BanknoteDetailCard = ({
+  banknote,
   source = 'catalog',
   viewMode = 'grid',
   countryId,
-  fromGroup = false
+  fromGroup = false,
+  userCollection = [],
 }: BanknoteDetailCardProps) => {
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
+  const ownsThisBanknote =
+    source === "catalog" && userHasBanknoteInCollection(banknote, userCollection);
+
   const handleCardClick = () => {
-    // Set the navigation flag to know we're coming from a group dialog
-    if (countryId) {
-      setNavigatingToDetail(banknote.id);
-    }
-    
+    if (countryId) setNavigatingToDetail(banknote.id);
+
     if (source === 'catalog') {
       navigate(`/catalog-banknote/${banknote.id}`);
     } else {
@@ -47,7 +49,6 @@ const BanknoteDetailCard = ({
     }
   };
 
-  // More robust approach to get a valid image URL
   const getDisplayImage = (): string => {
     // Safety check for null banknote
     if (!banknote) return '/placeholder.svg';
@@ -69,6 +70,13 @@ const BanknoteDetailCard = ({
   };
 
   const displayImage = getDisplayImage();
+
+  // New: Special button logic for the catalog view
+  const handleOwnershipCheckButton = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toast("You already have a copy of this banknote on your collection. Do you want to add another copy of it?");
+    // If desired, you could open the add dialog here after confirmation etc.
+  };
 
   const handleAddButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click from triggering
@@ -104,14 +112,27 @@ const BanknoteDetailCard = ({
           <div className="flex-1 ml-4">
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{banknote.denomination}</h4>
-              <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 shrink-0" 
-              onClick={handleAddButtonClick}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+              {ownsThisBanknote ? (
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 bg-green-500 hover:bg-green-600 text-white"
+                  aria-label="You already own this banknote"
+                  onClick={handleOwnershipCheckButton}
+                  tabIndex={0}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={handleAddButtonClick}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
             </div>
 
             <div className="gap-1.5 flex flex-wrap items-center text-sm mt-1">
@@ -172,14 +193,27 @@ const BanknoteDetailCard = ({
         <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 shrink-0" 
-              onClick={handleAddButtonClick}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+            {ownsThisBanknote ? (
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-8 w-8 shrink-0 bg-green-500 hover:bg-green-600 text-white"
+                aria-label="You already own this banknote"
+                onClick={handleOwnershipCheckButton}
+                tabIndex={0}
+              >
+                <Check className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={handleAddButtonClick}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
           <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">

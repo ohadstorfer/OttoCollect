@@ -1,30 +1,32 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { SearchIcon } from "lucide-react";
-import { CountryData } from "@/types";
+import { CountryData, CollectionItem } from "@/types";
 import { fetchCountriesForCatalog } from "@/services/countryCatalogService";
+import { fetchUserCollection } from "@/services/collectionService";
+import { useAuth } from "@/hooks/useAuth";
+import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [countries, setCountries] = useState<CountryData[]>([]);
+  const { user } = useAuth();
+  const [userCollection, setUserCollection] = useState<CollectionItem[]>([]);
 
   useEffect(() => {
     const loadCountries = async () => {
       setLoading(true);
       try {
         const data = await fetchCountriesForCatalog();
-        
         // Sort countries alphabetically
         const countriesArray = data.sort((a, b) => 
           a.name.localeCompare(b.name)
         );
-        
         setCountries(countriesArray);
       } catch (error) {
         console.error("Error loading countries:", error);
@@ -40,6 +42,23 @@ const Catalog = () => {
 
     loadCountries();
   }, [toast]);
+
+  // Fetch user collection once user is signed in
+  useEffect(() => {
+    if (!user) {
+      setUserCollection([]);
+      return;
+    }
+    async function fetchCollection() {
+      try {
+        const items = await fetchUserCollection(user.id);
+        setUserCollection(items);
+      } catch (error) {
+        setUserCollection([]);
+      }
+    }
+    fetchCollection();
+  }, [user]);
 
   const filteredCountries = countries.filter(country => 
     country.name.toLowerCase().includes(searchQuery.toLowerCase())
