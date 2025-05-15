@@ -12,6 +12,8 @@ import CollectionItemForm from '../collection/CollectionItemForm';
 import { toast } from '@/hooks/use-toast';
 import { ToastAction } from "@/components/ui/toast";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
+import { addToCollection } from "@/services/collectionService";
+import { useAuth } from "@/context/AuthContext";
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -36,6 +38,7 @@ const BanknoteDetailCard = ({
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { user } = useAuth();
 
   // Toast window state: track shown toast's ID to programmatically dismiss it
   const toastIdRef = useRef<string | null>(null);
@@ -80,6 +83,43 @@ const BanknoteDetailCard = ({
 
   const displayImage = getDisplayImage();
 
+  // Centralized function to create collection item and show toast
+  const createCollectionItem = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user || !user.id) {
+      toast({
+        title: "Login required",
+        description: "You must be logged in to add banknotes to your collection.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      const res = await addToCollection({
+        userId: user.id,
+        banknoteId: banknote.id,
+        condition: "UNC" as any, // default condition, will be updated later
+      });
+      if (res) {
+        toast({
+          title: "Added to your collection!",
+          description: "This banknote was added. Visit your collection to edit its details.",
+          className: "justify-center items-center w-full",
+          duration: 3000,
+        });
+      } else {
+        throw new Error("Unable to add banknote to collection");
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: "Failed to add this banknote to your collection.",
+        variant: "destructive",
+        duration: 3500,
+      });
+    }
+  };
+
   // Modified: Show toast on check click, and handle Yes/Cancel logic with better button
   const handleOwnershipCheckButton = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -98,13 +138,7 @@ const BanknoteDetailCard = ({
               dismiss();
               toastIdRef.current = null; // clear toast id after dismiss
               // Call the add button handler - pass a synthetic event to keep handler unchanged
-              if (addBtnEventRef.current) {
-                handleAddButtonClick(addBtnEventRef.current);
-              } else {
-                // fallback: synthesize a fake event
-                const fakeEvent = { stopPropagation: () => {} } as React.MouseEvent;
-                handleAddButtonClick(fakeEvent);
-              }
+              createCollectionItem(e);
             }}
           >
             Yes
@@ -139,7 +173,7 @@ const BanknoteDetailCard = ({
 
   const handleAddButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsAddDialogOpen(true);
+    createCollectionItem(e);
   };
 
   const handleUpdateSuccess = () => {
