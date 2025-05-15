@@ -261,7 +261,7 @@ const Collection = () => {
         <div className="mb-8">
           <CollectionItemForm
             item={editingItem}
-            onSave={handleSaveItem}
+            onUpdate={handleSaveItem}
             onCancel={handleCloseForm}
           />
         </div>
