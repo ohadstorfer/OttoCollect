@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Plus, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
-import CollectionItemForm from '@/components/collection/CollectionItemForm';
 import { 
   fetchUserCollectionItems, 
   fetchBanknoteCategoriesAndTypes, 
@@ -120,12 +119,14 @@ const Collection = () => {
   
   const handleAddItem = () => {
     setEditingItem(null);
-    setShowForm(true);
+    // setShowForm(false);  // We no longer show a form
+    // Optionally show a toast/to do: implement new fast add UI
   };
   
   const handleEditItem = (item: CollectionItem) => {
     setEditingItem(item);
-    setShowForm(true);
+    // setShowForm(false); // No form to show now
+    // Optionally show a toast/to do: implement edit fast add UI
   };
   
   const handleCloseForm = () => {
@@ -256,16 +257,6 @@ const Collection = () => {
           <Plus className="h-5 w-5" /> Add Item
         </Button>
       </div>
-      
-      {showForm && (
-        <div className="mb-8">
-          <CollectionItemForm
-            item={editingItem}
-            onSave={handleSaveItem}
-            onCancel={handleCloseForm}
-          />
-        </div>
-      )}
       
       <div className="bg-card border rounded-lg p-6 mb-6">
         <CountryFilterSection

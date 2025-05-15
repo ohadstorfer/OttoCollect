@@ -12,6 +12,7 @@ import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { useEffect } from "react";
 import { fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
+import type { CollectionItem } from "@/types"; // <-- Fix: import CollectionItem type
 
 const CountryDetail = () => {
   const { country } = useParams();

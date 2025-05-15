@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import CollectionItemForm from "@/components/collection/CollectionItemForm";
 import { ArrowLeft, Star, ImagePlus, Edit } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
