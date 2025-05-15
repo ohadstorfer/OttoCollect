@@ -44,6 +44,9 @@ const BanknoteDetailCard = ({
   const toastIdRef = useRef<string | null>(null);
   const addBtnEventRef = useRef<React.MouseEvent | null>(null);
 
+  // Track if this banknote was just added for optimistic UI update
+  const [hasJustBeenAdded, setHasJustBeenAdded] = useState(false);
+
   // --- Debug logs: input props ---
   console.log('[BanknoteDetailCard] banknote:', banknote);
   console.log('[BanknoteDetailCard] userCollection:', userCollection);
@@ -97,10 +100,11 @@ const BanknoteDetailCard = ({
     try {
       const res = await addToCollection({
         userId: user.id,
-        banknoteId: banknote.id,
-        condition: "UNC" as any, // default condition, will be updated later
+        banknoteId: banknote.id
+        // Only send userId and banknoteId per requirements; condition and others will be added later.
       });
       if (res) {
+        setHasJustBeenAdded(true);  // Optimistically update UI
         toast({
           title: "Added to your collection!",
           description: "This banknote was added. Visit your collection to edit its details.",
@@ -137,8 +141,7 @@ const BanknoteDetailCard = ({
             onClick={() => {
               dismiss();
               toastIdRef.current = null; // clear toast id after dismiss
-              // Call the add button handler - pass a synthetic event to keep handler unchanged
-              createCollectionItem(e);
+              createCollectionItem(e); // immediately add and update local state
             }}
           >
             Yes
@@ -194,6 +197,9 @@ const BanknoteDetailCard = ({
     "shadow-lg"
   );
 
+  // --- Use hasJustBeenAdded for immediate UI feedback ---
+  const shouldShowCheck = ownsThisBanknote || hasJustBeenAdded;
+
   if (viewMode === 'list') {
     return (
       <Card
@@ -216,7 +222,7 @@ const BanknoteDetailCard = ({
           <div className="flex-1 ml-4">
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{banknote.denomination}</h4>
-              {ownsThisBanknote ? (
+              {shouldShowCheck ? (
                 <>
                   {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (list view) | banknote id:', banknote.id)}
                   <Button
@@ -272,17 +278,6 @@ const BanknoteDetailCard = ({
             </div>
           </div>
         </div>
-
-        {/* Add Dialog */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContentWithScroll className="sm:max-w-[800px]" onClick={(e) => e.stopPropagation()}>
-            <CollectionItemForm
-              item={{ banknote } as CollectionItem}
-              onUpdate={handleUpdateSuccess}
-              onCancel={() => setIsAddDialogOpen(false)}
-            />
-          </DialogContentWithScroll>
-        </Dialog>
       </Card>
     );
   }
@@ -301,7 +296,7 @@ const BanknoteDetailCard = ({
         <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
-            {ownsThisBanknote ? (
+            {shouldShowCheck ? (
               <>
                 {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (grid view) | banknote id:', banknote.id)}
                 <Button
@@ -383,17 +378,6 @@ const BanknoteDetailCard = ({
           )}
         </div>
       </div>
-
-      {/* Add Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContentWithScroll className="sm:max-w-[800px]" onClick={(e) => e.stopPropagation()}>
-          <CollectionItemForm
-            item={{ banknote } as CollectionItem}
-            onUpdate={handleUpdateSuccess}
-            onCancel={() => setIsAddDialogOpen(false)}
-          />
-        </DialogContentWithScroll>
-      </Dialog>
     </Card>
   );
 };
