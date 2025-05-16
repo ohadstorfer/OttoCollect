@@ -29,7 +29,8 @@ import {
   Building,
   CircleDollarSign,
   Star,
-  Plus
+  Plus,
+  Check
 } from "lucide-react";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { fetchUserCollection } from "@/services/collectionService";
@@ -66,6 +67,53 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Add: State for ownership toast for Check button
+  const [showOwnershipToast, setShowOwnershipToast] = useState(false);
+
+  // Styling class copied from BanknoteDetailCard.tsx
+  const checkButtonClass =
+    "h-8 w-8 shrink-0 rounded-full border border-green-900 bg-gradient-to-br from-green-900 via-green-800 to-green-950 text-green-200 hover:bg-green-900 hover:shadow-lg transition-all duration-200 shadow-lg";
+
+  // Handler for the ownership check button (shows custom toast/dialog)
+  const handleOwnershipCheckButton = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setShowOwnershipToast(true);
+  };
+
+  const handleOwnershipToastCancel = () => setShowOwnershipToast(false);
+
+  // Render the custom ownership toast/dialog
+  const renderOwnershipToast = () => {
+    if (!showOwnershipToast) return null;
+    return (
+      <div
+        className="fixed top-8 left-1/2 z-[200] flex flex-col items-center fade-in-center-top"
+        style={{
+          transform: "translate(-50%, 0)",
+          minWidth: 330,
+          maxWidth: "95vw",
+          width: 380,
+        }}
+      >
+        <div className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-6 py-4 flex flex-col items-center">
+          <div className="font-semibold text-center text-base mb-1">Already in your collection</div>
+          <div className="text-muted-foreground text-center text-sm mb-3">
+            You already have a copy of this banknote in your collection.
+          </div>
+          <div className="flex gap-4 justify-center w-full mt-2">
+            <button
+              type="button"
+              className="bg-muted text-muted-foreground border border-gray-300 hover:bg-gray-200 rounded py-2 px-6 font-medium transition-colors focus:outline-none"
+              onClick={handleOwnershipToastCancel}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -211,6 +259,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
 
   return (
     <div className="page-container max-w-5xl mx-auto py-10">
+      {renderOwnershipToast()}
       <div className="flex flex-col space-y-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -303,8 +352,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-xl">Banknote Details</CardTitle>
-                  {/* Plus Button conditional rendering */}
-                  {user && ownsThisBanknote && (
+                  {/* Button conditional rendering */}
+                  {user && !ownsThisBanknote && (
                     <Button
                       size="sm"
                       variant="primary"
@@ -314,6 +363,21 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                     >
                       <Plus className="w-4 h-4" /> {adding ? "Adding..." : "Add to Collection"}
                     </Button>
+                  )}
+                  {user && ownsThisBanknote && (
+                    <>
+                      {console.log('[BanknoteCatalogDetail] RENDERING DARK CHECK BUTTON | banknote id:', banknote.id)}
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className={checkButtonClass}
+                        aria-label="You already own this banknote"
+                        onClick={handleOwnershipCheckButton}
+                        tabIndex={0}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    </>
                   )}
                 </div>
                 <CardDescription>Complete information about this banknote</CardDescription>
