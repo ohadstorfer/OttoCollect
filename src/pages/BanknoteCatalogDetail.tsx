@@ -28,8 +28,10 @@ import {
   History,
   Building,
   CircleDollarSign,
-  Star
+  Star,
+  Plus
 } from "lucide-react";
+import { addToCollection } from "@/services/collectionService";
 
 interface LabelValuePairProps {
   label: string;
@@ -63,6 +65,57 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Add state for dealing with add-to-collection button
+  const [isAdding, setIsAdding] = useState(false);
+
+  // Helper: check if the user already owns this banknote
+  // You might have a better util for this, but this is the simple logic:
+  const ownsBanknote = Array.isArray(user?.collection)
+    ? user.collection.some((item: any) => item.banknoteId === (id || paramsId))
+    : false;
+
+  // Add to collection function (mirrored from BanknoteDetailCard)
+  const handleAddToCollection = async () => {
+    if (!user || !user.id) {
+      toast({
+        title: "Login required",
+        description: "You must be logged in to add banknotes to your collection.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsAdding(true);
+    try {
+      const banknoteIdForAdd = propsId || paramsId || id;
+      const res = await addToCollection({
+        userId: user.id,
+        banknoteId: banknoteIdForAdd,
+      });
+      if (res) {
+        toast({
+          title: "Added to your collection!",
+          description: "This banknote was added. Visit your collection to edit its details.",
+          className: "justify-center items-center w-full",
+          duration: 3000,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Unable to add banknote to collection.",
+          variant: "destructive",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: "Failed to add this banknote to your collection.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -176,11 +229,23 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
           </h1>
           <div className="flex items-center justify-between">
             <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
-            {!propsId && ( // Only show the back button when not in dialog mode
+            <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => navigate(-1)}>
                 Back
               </Button>
-            )}
+              {user && !ownsBanknote && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10"
+                  onClick={handleAddToCollection}
+                  disabled={isAdding}
+                  aria-label="Add to collection"
+                >
+                  <Plus className="h-6 w-6" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
