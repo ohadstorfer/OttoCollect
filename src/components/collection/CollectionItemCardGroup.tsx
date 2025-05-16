@@ -70,10 +70,10 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
 
         <CardContent className="p-0">
           <div className="w-full">
-            {imageUrl ? (
+            {item.obverseImage?.[0] ? (
               <AspectRatio ratio={4 / 2}>
                 <img
-                  src={imageUrl}
+                  src={item.obverseImage}
                   alt={`Collection Item ${item.banknote?.extendedPickNumber || ''}`}
                   className="w-full h-full object-cover"
                 />
