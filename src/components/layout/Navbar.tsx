@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -7,9 +6,12 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MessageButton } from "@/components/messages/MessageButton";
 import { useTheme } from "@/context/ThemeContext";
+import { Sheet, SheetTrigger } from "@/components/ui/sheet";
+import { ProfileSidebar } from "@/components/layout/ProfileSidebar";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [profileSidebarOpen, setProfileSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -89,41 +91,31 @@ const Navbar = () => {
               )}
             </Button>
 
-
-
             {user ? (
               <div className="flex items-center gap-3">
-                {location.pathname !== '/messaging' && (
-                  <MessageButton 
-                    userId={user.id} 
-                    onClick={handleMessageClick} 
-                  />
-                )}
-                
-                <Link to={`/profile/${user.id}`} className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full ${theme === 'light' ? 'bg-ottoman-100' : 'bg-ottoman-700'} flex items-center justify-center overflow-hidden`}>
-                    {user.avatarUrl ? (
-                      <img 
-                        src={user.avatarUrl} 
-                        alt={user.username} 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <User className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />
-                    )}
-                  </div>
-                  <div className="text-left hidden xl:block">
-                    <p className={`text-sm font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{user.username}</p>
-                    <p className={`text-xs ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>{user.rank}</p>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    className={`ml-2 ${theme === 'light' ? 'text-ottoman-800 border-ottoman-300 hover:bg-ottoman-100' : 'text-ottoman-100 border-ottoman-700 hover:bg-ottoman-700/50'}`}
-                    onClick={logout}
-                  >
-                    Logout
-                  </Button>
-                </Link>
+                {/* Show sidebar on profile/avatar click (desktop only) */}
+                <Sheet open={profileSidebarOpen} onOpenChange={setProfileSidebarOpen}>
+                  <SheetTrigger asChild>
+                    <button
+                      className={`w-8 h-8 rounded-full ${theme === 'light' ? 'bg-ottoman-100' : 'bg-ottoman-700'} flex items-center justify-center overflow-hidden focus:outline-none`}
+                      onClick={() => setProfileSidebarOpen(true)}
+                      tabIndex={0}
+                      type="button"
+                      aria-label="Open profile menu"
+                    >
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.username}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />
+                      )}
+                    </button>
+                  </SheetTrigger>
+                  <ProfileSidebar open={profileSidebarOpen} onOpenChange={setProfileSidebarOpen} />
+                </Sheet>
               </div>
             ) : (
               <Link to="/auth">
