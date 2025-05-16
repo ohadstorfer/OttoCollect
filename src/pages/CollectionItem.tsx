@@ -66,7 +66,7 @@ export default function CollectionItem() {
 
   const checkExistingSuggestion = async () => {
     if (!collectionItem?.banknote.id || !user?.id) return;
-    
+
     try {
       const hasExisting = await hasExistingImageSuggestion(
         collectionItem.banknote.id,
@@ -100,7 +100,7 @@ export default function CollectionItem() {
         obverseImage: collectionItem.obverseImage,
         reverseImage: collectionItem.reverseImage
       });
-      
+
       toast("Your images have been submitted for catalog consideration");
       setHasPendingSuggestion(true);
     } catch (error) {
@@ -207,22 +207,22 @@ export default function CollectionItem() {
                 <div className="flex flex-col space-y-3">
                   {isOwner && hasCustomImages && (
                     <div className="w-full flex justify-between items-center py-2">
-                      <Button 
-                        onClick={handleSuggestToCatalog} 
+                      <Button
+                        onClick={handleSuggestToCatalog}
                         variant="outline"
                         className="w-full flex items-center gap-2"
                         disabled={isSubmittingImages || hasPendingSuggestion}
                       >
                         <ImagePlus className="h-4 w-4" />
-                        {hasPendingSuggestion 
-                          ? "Image Suggestion Pending" 
-                          : isSubmittingImages 
-                            ? "Submitting..." 
+                        {hasPendingSuggestion
+                          ? "Image Suggestion Pending"
+                          : isSubmittingImages
+                            ? "Submitting..."
                             : "Suggest Images to Catalog"}
                       </Button>
                     </div>
                   )}
-                  
+
                   {displayImages.length > 0 ? (
                     displayImages.map((url, index) => (
                       <div

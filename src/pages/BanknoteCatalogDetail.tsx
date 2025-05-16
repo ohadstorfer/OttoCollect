@@ -259,9 +259,15 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
           <div className="lg:col-span-3">
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
+              <div className="flex justify-between items-center">
                 <CardTitle className="text-xl">Banknote Details</CardTitle>
+              </div>
+
+
+
                 <CardDescription>Complete information about this banknote</CardDescription>
               </CardHeader>
+              
               <CardContent className="p-6">
                 <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-0">
                   {detailGroups.map((group, groupIndex) => (
