@@ -39,13 +39,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     }
   }, [messages, currentUserId, recipientId, onSendMessage]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [localMessages, messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
 
   const fetchMessages = async () => {
     if (!user || !recipientId) return;
