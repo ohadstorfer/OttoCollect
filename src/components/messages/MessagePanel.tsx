@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,11 +40,8 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     }
   }, [messages, currentUserId, recipientId, onSendMessage]);
 
-
-
   const fetchMessages = async () => {
     if (!user || !recipientId) return;
-    
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -52,12 +50,10 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
         `and(sender_id.eq.${recipientId},receiver_id.eq.${user.id})`
       )
       .order('created_at', { ascending: true });
-      
     if (error) {
       console.error('Error fetching messages:', error);
       return;
     }
-      
     const formattedMessages: Message[] = data.map(msg => ({
       id: msg.id,
       sender_id: msg.sender_id,
@@ -66,18 +62,15 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
       created_at: msg.created_at,
       isRead: msg.is_read,
       reference_item_id: msg.reference_item_id,
-      
       senderId: msg.sender_id,
       receiverId: msg.receiver_id,
       createdAt: msg.created_at
     }));
-      
     setLocalMessages(formattedMessages);
   };
 
   const handleSendMessage = async () => {
     if ((!user && !currentUserId) || !newMessage.trim() || (!recipientId && !onSendMessage)) return;
-    
     const userId = currentUserId || user?.id;
     if (!userId) return;
 
@@ -136,14 +129,14 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {!recipientId && !recipientData ? (
         <div className="flex-grow flex items-center justify-center">
           <p className="text-muted-foreground">Select a conversation to view messages</p>
         </div>
       ) : (
         <>
-          <div className="overflow-y-auto flex-grow p-4">
+          <div className="flex-1 overflow-y-auto p-4 min-h-0">
             {displayMessages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
@@ -176,7 +169,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t bg-card flex-shrink-0">
             <div className="flex items-center space-x-2">
               <Input
                 type="text"
@@ -199,3 +192,5 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
 };
 
 export default MessagePanel;
+
+// ... end of file
