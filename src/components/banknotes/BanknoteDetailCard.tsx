@@ -166,13 +166,18 @@ const BanknoteDetailCard = ({
   // --- Use hasJustBeenAdded for immediate UI feedback ---
   const shouldShowCheck = ownsThisBanknote || hasJustBeenAdded;
 
-  // --- Custom Toast Markup, centered top ---
+  // --- Custom Toast Markup, centered top with improved animation ---
   const renderOwnershipToast = () => {
     if (!showOwnershipToast) return null;
     return (
       <div
-        className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] flex flex-col items-center transition-all animate-fade-in"
-        style={{ minWidth: 330, maxWidth: "95vw", width: 380 }}
+        className="fixed top-8 left-1/2 z-[200] flex flex-col items-center fade-in-center-top"
+        style={{
+          transform: "translate(-50%, 0)",
+          minWidth: 330,
+          maxWidth: "95vw",
+          width: 380,
+        }}
       >
         <div className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-6 py-4 flex flex-col items-center">
           <div className="font-semibold text-center text-base mb-1">Already in your collection</div>
