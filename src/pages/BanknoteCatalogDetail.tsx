@@ -81,9 +81,15 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     setShowOwnershipToast(true);
   };
 
+  // YES and Cancel handlers for ownership toast
+  const handleOwnershipToastYes = async (e: React.MouseEvent) => {
+    setShowOwnershipToast(false);
+    // Reuse handleAddToCollection logic
+    await handleAddToCollection();
+  };
   const handleOwnershipToastCancel = () => setShowOwnershipToast(false);
 
-  // Render the custom ownership toast/dialog
+  // Render the custom ownership toast/dialog (fully matches BanknoteDetailCard.tsx)
   const renderOwnershipToast = () => {
     if (!showOwnershipToast) return null;
     return (
@@ -99,15 +105,24 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
         <div className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-6 py-4 flex flex-col items-center">
           <div className="font-semibold text-center text-base mb-1">Already in your collection</div>
           <div className="text-muted-foreground text-center text-sm mb-3">
-            You already have a copy of this banknote in your collection.
+            You already have a copy of this banknote in your collection.<br />
+            Do you want to add <strong>another copy</strong> of it?
           </div>
           <div className="flex gap-4 justify-center w-full mt-2">
+            <button
+              type="button"
+              className="bg-green-700 hover:bg-green-800 text-white font-medium py-2 px-6 rounded transition-colors focus:outline-none shadow"
+              onClick={handleOwnershipToastYes}
+              autoFocus
+            >
+              Yes
+            </button>
             <button
               type="button"
               className="bg-muted text-muted-foreground border border-gray-300 hover:bg-gray-200 rounded py-2 px-6 font-medium transition-colors focus:outline-none"
               onClick={handleOwnershipToastCancel}
             >
-              Close
+              Cancel
             </button>
           </div>
         </div>
