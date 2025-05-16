@@ -212,11 +212,12 @@ const BanknoteDetailCard = ({
         onClick={handleCardClick}
       >
         <div className="flex items-center p-2">
-          <div className="w-16 h-16 relative overflow-hidden rounded">
+          {/* Display image fully, not cropped */}
+          <div className="w-16 flex-shrink-0 flex items-center justify-center overflow-hidden rounded">
             <img
               src={displayImage}
               alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-              className="w-full h-full object-cover"
+              className="object-contain w-full h-auto max-h-16"
             />
           </div>
           <div className="flex-1 ml-4">
@@ -351,16 +352,14 @@ const BanknoteDetailCard = ({
           </div>
         </div>
 
-        <div className={cn(
-          displayImage === "/placeholder.svg" ? "aspect-[4/2]" : "aspect-[4/2]",
-          "overflow-hidden"
-        )}>
+        {/* IMAGE: fully shown, dynamic height */}
+        <div className="relative w-full flex justify-center items-center bg-muted px-2 py-2">
           <img
             src={displayImage}
             alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
             className={cn(
-              "w-full h-full object-cover transition-transform duration-500",
-              isHovering ? "scale-110" : "scale-100"
+              "object-contain w-full h-auto max-h-60",
+              isHovering ? "scale-105" : "scale-100"
             )}
           />
         </div>

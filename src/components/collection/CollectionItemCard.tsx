@@ -164,11 +164,11 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         className="flex flex-row overflow-hidden cursor-pointer hover:shadow-md transition-all"
         onClick={handleCardClick}
       >
-        <div className="w-24 h-24 flex-shrink-0">
+        <div className="w-24 flex-shrink-0 flex items-center justify-center"> {/* removed fixed height */}
           <BanknoteImage
             imageUrl={displayImage}
             alt={getBanknoteTitle()}
-            className="w-full h-full object-cover"
+            className="object-contain w-full h-auto max-h-24" // show full image, not cropped; max-height for reasonable card size
           />
         </div>
         <div className="flex-grow flex flex-col justify-between p-3">
@@ -255,20 +255,14 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
           </div>
         </div>
 
-        <div className="relative aspect-[4/2] overflow-hidden bg-muted">
+        {/* IMAGE: Display full image with dynamic height */}
+        <div className="relative w-full flex justify-center items-center bg-muted px-2 py-2">
           <BanknoteImage
             imageUrl={displayImage}
             alt={getBanknoteTitle()}
-            className="object-cover w-full h-full"
+            className="object-contain w-full h-auto max-h-60" // dynamically sized based on image, but constrained in height for layout
           />
-          <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
-            <div className="flex justify-between items-start">
-              <h4 className="font-bold">{item.banknote.denomination}</h4>
-            </div>
-
-          </div>
         </div>
-
 
         <div className="p-3 bg-background border-t">
           {item.banknote.sultanName && (
