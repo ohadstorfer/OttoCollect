@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -11,12 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
-import { ArrowLeft, Star, ImagePlus, Edit } from "lucide-react";
+import { ArrowLeft, Star, ImagePlus, Edit, Trash } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
 import CollectionItemFormEdit from "@/components/collection/CollectionItemFormEdit";
 import { submitImageSuggestion, hasExistingImageSuggestion } from "@/services/imageSuggestionsService";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 interface LabelValuePairProps {
   label: string;
@@ -47,6 +47,8 @@ export default function CollectionItem() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSubmittingImages, setIsSubmittingImages] = useState(false);
   const [hasPendingSuggestion, setHasPendingSuggestion] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch collection item directly by ID
   const { data: collectionItem, isLoading, isError, refetch } = useQuery({
@@ -106,6 +108,26 @@ export default function CollectionItem() {
       toast("Failed to submit images. Please try again later.");
     } finally {
       setIsSubmittingImages(false);
+    }
+  };
+
+  const handleDeleteCollectionItem = async () => {
+    if (!collectionItem) return;
+    setIsDeleting(true);
+    try {
+      const { removeFromCollection } = await import("@/services/collectionService");
+      await removeFromCollection(collectionItem.id);
+      toast("Collection item deleted successfully");
+      // Slight delay for better UX
+      setTimeout(() => {
+        navigate(-1);
+      }, 600);
+    } catch (error) {
+      console.error("Error deleting collection item:", error);
+      toast("Failed to delete item. Please try again.");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -234,20 +256,32 @@ export default function CollectionItem() {
                   <CardTitle className="text-xl m-0">
                     {isOwner ? "My Collection Copy" : "Collection Copy"}
                   </CardTitle>
-
                   {isOwner && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center gap-1"
-                      onClick={() => setIsEditDialogOpen(true)}
-                    >
-                      <Edit className="w-4 h-4" />
-                      <span>Edit</span>
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-1 text-red-600 hover:bg-red-100"
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                        disabled={isDeleting || isEditDialogOpen}
+                        aria-label="Delete"
+                      >
+                        <Trash className="w-4 h-4" />
+                        <span className="sr-only">Delete</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-1"
+                        onClick={() => setIsEditDialogOpen(true)}
+                        disabled={isDeleting}
+                      >
+                        <Edit className="w-4 h-4" />
+                        <span>Edit</span>
+                      </Button>
+                    </div>
                   )}
                 </div>
-
                 <CardDescription>
                   {isOwner
                     ? "Details about your personal copy of this banknote"
@@ -258,7 +292,6 @@ export default function CollectionItem() {
                 <BanknoteCollectionDetail isOwner={isOwner} />
               </CardContent>
             </Card>
-
             <BanknoteProvider banknoteId={collectionItem.banknote.id}>
               <div className="mt-6">
                 <BanknoteCatalogDetailMinimized />
@@ -296,6 +329,28 @@ export default function CollectionItem() {
           />
         </DialogContentWithScroll>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent onClick={e => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Collection Item</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this item from your collection? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              onClick={handleDeleteCollectionItem}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
