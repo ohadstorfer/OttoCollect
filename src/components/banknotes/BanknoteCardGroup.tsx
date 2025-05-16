@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardStack } from "@/components/ui/card-stack";
@@ -36,7 +35,7 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
   const stackItems = items.slice(0, 4).map((banknote, index) => ({
     id: banknote.id || `stack-item-${index}`,
     content: (
-      <Card className="w-full h-full shadow-md overflow-hidden">
+      <Card className="w-full shadow-md overflow-hidden">
         <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
@@ -53,10 +52,6 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
               </Badge>
             )}
           </div>
-
-
-
-
         </div>
 
         <CardContent className="p-0">
@@ -66,20 +61,19 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
                 <img
                   src={banknote.imageUrls[0]}
                   alt={`Banknote ${banknote.extendedPickNumber}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto object-cover"
                 />
               </AspectRatio>
             ) : (
               <AspectRatio ratio={4 / 2}>
                 <img
                   src={'/placeholder.svg'}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto object-cover"
                 />
               </AspectRatio>
             )}
           </div>
         </CardContent>
-
       </Card>
     ),
   }));
@@ -92,21 +86,7 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
       )}
       onClick={handleClick}
     >
-      {/* Added proper height and margin to the container to prevent overflow issues */}
-
       <CardStack items={stackItems} offset={6} />
-
-
-      {/* <div className="bg-card border rounded-md p-3 shadow-sm transition-shadow group-hover:shadow-md mt-auto">
-        <div className="flex items-center justify-between mb-1">
-          <div className="font-medium text-lg">{baseNumber}</div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <LayoutList className="h-4 w-4 mr-1" />
-            <span>{count}</span>
-          </div>
-        </div>
-        <div className="text-sm text-muted-foreground truncate">{denomination}</div>
-      </div> */}
     </div>
   );
 };
