@@ -68,10 +68,13 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Add: State for ownership toast for Check button
+  // State for ownership toast for Check button
   const [showOwnershipToast, setShowOwnershipToast] = useState(false);
 
-  // Styling class copied from BanknoteDetailCard.tsx
+  // Add: State to force re-evaluate after adding another copy
+  const [ownershipIncrement, setOwnershipIncrement] = useState(0);
+
+  // Styling class for Check button
   const checkButtonClass =
     "h-8 w-8 shrink-0 rounded-full border border-green-900 bg-gradient-to-br from-green-900 via-green-800 to-green-950 text-green-200 hover:bg-green-900 hover:shadow-lg transition-all duration-200 shadow-lg";
 
@@ -84,12 +87,13 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   // YES and Cancel handlers for ownership toast
   const handleOwnershipToastYes = async (e: React.MouseEvent) => {
     setShowOwnershipToast(false);
-    // Reuse handleAddToCollection logic
     await handleAddToCollection();
+    // Increment ownership key to re-query and re-render after adding
+    setOwnershipIncrement((k) => k + 1);
   };
   const handleOwnershipToastCancel = () => setShowOwnershipToast(false);
 
-  // Render the custom ownership toast/dialog (fully matches BanknoteDetailCard.tsx)
+  // Render the custom ownership toast/dialog (matches BanknoteDetailCard)
   const renderOwnershipToast = () => {
     if (!showOwnershipToast) return null;
     return (
@@ -144,33 +148,33 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     enabled: !!id,
   });
 
-  // Fetch user collection, if logged in
+  // Fetch user collection, if logged in, and re-fetch after ownershipIncrement
   const { data: userCollection = [], isLoading: collectionLoading } = useQuery({
-    queryKey: ["userCollection", user?.id],
+    queryKey: ["userCollection", user?.id, ownershipIncrement], // depend on increment for refetch
     queryFn: () => user?.id ? fetchUserCollection(user.id) : Promise.resolve([]),
     enabled: !!user?.id,
   });
 
-  // Determine if the user owns this banknote
+  // --- Button Visibility and Ownership ---
+  // Only calculate ownsThisBanknote if not loading collection and have userCollection array
   const ownsThisBanknote =
-    user && banknote && Array.isArray(userCollection)
+    user && banknote && Array.isArray(userCollection) && !collectionLoading
       ? userHasBanknoteInCollection(banknote, userCollection)
       : false;
 
-  // Functionality for add to collection
+  // Functionality for add to collection; triggers refetch for the buttons
   const [adding, setAdding] = useState(false);
   const handleAddToCollection = async () => {
     if (!banknote || !user) return;
     try {
       setAdding(true);
-      // Lazy load, so we don't import unless needed
       const { addToCollection } = await import("@/services/collectionService");
       await addToCollection({
         userId: user.id,
         banknoteId: banknote.id
       });
       toast.success("Added to your collection!");
-      // refetch user collection
+      // Refetch user collection now (ownershipIncrement will also cause a refetch)
       queryClient.invalidateQueries({ queryKey: ["userCollection", user.id] });
     } catch (err) {
       toast.error("Could not add to collection.");
@@ -282,7 +286,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
           </h1>
           <div className="flex items-center justify-between">
             <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
-            {!propsId && ( // Only show the back button when not in dialog mode
+            {!propsId && (
               <Button variant="outline" onClick={() => navigate(-1)}>
                 Back
               </Button>
@@ -367,8 +371,11 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-xl">Banknote Details</CardTitle>
-                  {/* Button conditional rendering */}
-                  {user && !ownsThisBanknote && (
+                  {/* Fixed conditional rendering:
+                      - Only render after loading userCollection, so no flicker.
+                      - On pressing Check, use correct toast and handlers.
+                  */}
+                  {user && !collectionLoading && !ownsThisBanknote && (
                     <Button
                       size="sm"
                       variant="primary"
@@ -379,9 +386,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                       <Plus className="w-4 h-4" /> {adding ? "Adding..." : "Add to Collection"}
                     </Button>
                   )}
-                  {user && ownsThisBanknote && (
+                  {user && !collectionLoading && ownsThisBanknote && (
                     <>
-                      {console.log('[BanknoteCatalogDetail] RENDERING DARK CHECK BUTTON | banknote id:', banknote.id)}
                       <Button
                         variant="secondary"
                         size="icon"
