@@ -48,9 +48,10 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div data-theme={theme}>
+      <div data-theme={theme} className="flex flex-col min-h-screen">
         <PageBackground>
           <Navbar />
+          <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/home" element={<Home />} />
@@ -79,6 +80,7 @@ function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </main>
           <Footer />
           <Toaster />
         </PageBackground>
