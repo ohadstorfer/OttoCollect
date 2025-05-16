@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -107,10 +108,10 @@ const Catalog = () => {
           <p className="text-muted-foreground">Try adjusting your search criteria.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6 items-start">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6">
           {filteredCountries.map((country) => (
             <Link to={`/catalog/${encodeURIComponent(country.name)}`} key={country.id}>
-              <Card className="hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50">
+              <Card className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50">
                 <div className="aspect-[4/3] overflow-hidden relative">
                   {country.imageUrl ? (
                     <img
