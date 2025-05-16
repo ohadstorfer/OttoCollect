@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/select'; // <-- Add SelectGroup here!
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 import { CollectionItem } from '@/types';
 import { updateCollectionItem } from '@/services/collectionService';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +20,7 @@ export interface CollectionItemFormProps {
   item: CollectionItem;
   onCancel: () => void;
   onSaveComplete?: () => void;
-  onUpdate?: () => void;  // Add this prop to fix the build error
+  onUpdate?: () => void;
 }
 
 const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel, onSaveComplete, onUpdate }) => {
@@ -165,7 +171,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel,
           <div>
             <Label>Obverse (Front)</Label>
             <CollectionImageUpload
-              imageUrl={formData.obverseImage}
+              value={formData.obverseImage}
               onImageUpload={(url) => handleChange("obverseImage", url)}
               imageType="obverse"
               disabled={isSubmitting}
@@ -174,7 +180,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel,
           <div>
             <Label>Reverse (Back)</Label>
             <CollectionImageUpload
-              imageUrl={formData.reverseImage}
+              value={formData.reverseImage}
               onImageUpload={(url) => handleChange("reverseImage", url)}
               imageType="reverse"
               disabled={isSubmitting}
@@ -260,3 +266,4 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel,
 };
 
 export default CollectionItemForm;
+
