@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBanknoteDetail } from "@/services/banknoteService";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -28,8 +28,11 @@ import {
   History,
   Building,
   CircleDollarSign,
-  Star
+  Star,
+  Plus
 } from "lucide-react";
+import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
+import { fetchUserCollection } from "@/services/collectionService";
 
 interface LabelValuePairProps {
   label: string;
@@ -68,11 +71,50 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
   
+  // Query client for refreshing on add to collection
+  const queryClient = useQueryClient();
+
+  // Fetch the banknote details
   const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
     queryKey: ["banknoteDetail", id],
     queryFn: () => fetchBanknoteDetail(id || ""),
     enabled: !!id,
   });
+
+  // Fetch user collection, if logged in
+  const { data: userCollection = [], isLoading: collectionLoading } = useQuery({
+    queryKey: ["userCollection", user?.id],
+    queryFn: () => user?.id ? fetchUserCollection(user.id) : Promise.resolve([]),
+    enabled: !!user?.id,
+  });
+
+  // Determine if the user owns this banknote
+  const ownsThisBanknote =
+    user && banknote && Array.isArray(userCollection)
+      ? userHasBanknoteInCollection(banknote, userCollection)
+      : false;
+
+  // Functionality for add to collection
+  const [adding, setAdding] = useState(false);
+  const handleAddToCollection = async () => {
+    if (!banknote || !user) return;
+    try {
+      setAdding(true);
+      // Lazy load, so we don't import unless needed
+      const { addToCollection } = await import("@/services/collectionService");
+      await addToCollection({
+        userId: user.id,
+        banknoteId: banknote.id
+      });
+      toast.success("Added to your collection!");
+      // refetch user collection
+      queryClient.invalidateQueries({ queryKey: ["userCollection", user.id] });
+    } catch (err) {
+      toast.error("Could not add to collection.");
+    } finally {
+      setAdding(false);
+    }
+  };
 
   if (banknoteLoading) {
     return (
@@ -259,12 +301,21 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
           <div className="lg:col-span-3">
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl">Banknote Details</CardTitle>
-              </div>
-
-
-
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-xl">Banknote Details</CardTitle>
+                  {/* Plus Button conditional rendering */}
+                  {user && ownsThisBanknote && (
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={handleAddToCollection}
+                      disabled={adding}
+                      title="Add this banknote to your collection"
+                    >
+                      <Plus className="w-4 h-4" /> {adding ? "Adding..." : "Add to Collection"}
+                    </Button>
+                  )}
+                </div>
                 <CardDescription>Complete information about this banknote</CardDescription>
               </CardHeader>
               
