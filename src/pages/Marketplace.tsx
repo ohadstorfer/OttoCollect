@@ -337,9 +337,9 @@ const Marketplace = () => {
                 availableCategories={availableCategories}
                 availableTypes={availableTypes}
               />
-
             
             {contentSection}
+            
           </div>
         </section>
       </div>
