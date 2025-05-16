@@ -327,8 +327,8 @@ const Marketplace = () => {
         </div>
       </section>
 
-      <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
-        <section className="py-8">
+      <div className="bg-card border rounded-lg mt-10 p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
+        <section className="py-1">
           <div className="container mx-auto px-4">
               <BanknoteFilterMarketplace
                 onFilterChange={handleFilterChange}
