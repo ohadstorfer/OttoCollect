@@ -208,7 +208,7 @@ const BanknoteDetailCard = ({
     );
   };
 
-  // IMAGE: show with no height stretch
+  // IMAGE: fully shown, dynamic height
   const renderBanknoteImage = () => {
     if (displayImage && displayImage !== '/placeholder.svg') {
       return (
@@ -224,7 +224,7 @@ const BanknoteDetailCard = ({
           <img
             src="/placeholder.svg"
             alt="Placeholder"
-            className="w-full h-auto object-cover"
+            className="w-full h-full object-cover"
           />
         </AspectRatio>
       );
@@ -257,7 +257,7 @@ const BanknoteDetailCard = ({
                   <img
                     src="/placeholder.svg"
                     alt="Placeholder"
-                    className="w-full h-auto object-cover"
+                    className="w-full h-full object-cover"
                   />
                 </AspectRatio>
               )}
