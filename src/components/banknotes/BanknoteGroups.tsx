@@ -147,7 +147,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                     </div>
                     <div className={cn(
                       viewMode === 'grid'
-                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
+                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 items-start"
                         : "flex flex-col space-y-2",
                       "px-2 sm:px-0"
                     )}>
@@ -155,7 +155,6 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                         (() => {
                           const mixedItems = getMixedBanknoteItems(sultanGroup.items);
 
-                          // Log each item sent to BanknoteDetailCard
                           mixedItems.forEach((item, idx) => {
                             if (item.type === "single") {
                               console.log("[BanknoteGroups] Passing single banknote to BanknoteDetailCard: id:", item.banknote.id, "userCollection length:", userCollection?.length);
@@ -213,7 +212,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
             ) : (
               <div className={cn(
                 viewMode === 'grid'
-                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
+                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 items-start"
                   : "flex flex-col space-y-2",
                 "px-2 sm:px-0"
               )}>
