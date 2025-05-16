@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -6,35 +7,28 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MessageButton } from "@/components/messages/MessageButton";
 import { useTheme } from "@/context/ThemeContext";
-import { Sheet } from "@/components/ui/sheet";
-import ProfileSidebar from "./ProfileSidebar";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false); // mobile nav
-  const [profileSheetOpen, setProfileSheetOpen] = useState(false); // desktop profile sidebar
+  const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const isMobile = useIsMobile();
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
-  const openProfileSheet = () => setProfileSheetOpen(true);
-  const closeProfileSheet = () => setProfileSheetOpen(false);
-
+  
   const isActive = (path: string) => {
     return location.pathname === path;
   };
-
+  
   const handleMessageClick = () => {
     navigate('/messaging');
     closeMenu();
   };
 
   // Check if user has admin privileges
-  const isAdmin = user?.role === 'Super Admin' || user?.role?.includes('Admin');
+  const isAdmin = user?.role === 'Super Admin' || user?.role.includes('Admin');
 
   // Navigation links that appear in both desktop and mobile views
   const navLinks = [
@@ -67,8 +61,8 @@ const Navbar = () => {
                 className={cn(
                   "px-4 py-2 rounded-md text-sm transition-colors",
                   isActive(link.path)
-                    ? theme === 'light'
-                      ? "bg-ottoman-100 text-ottoman-900"
+                    ? theme === 'light' 
+                      ? "bg-ottoman-100 text-ottoman-900" 
                       : "bg-ottoman-600/30 text-ottoman-100"
                     : theme === 'light'
                       ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900"
@@ -95,6 +89,8 @@ const Navbar = () => {
               )}
             </Button>
 
+
+
             {user ? (
               <div className="flex items-center gap-3">
                 {location.pathname !== '/messaging' && (
@@ -103,31 +99,31 @@ const Navbar = () => {
                     onClick={handleMessageClick} 
                   />
                 )}
-                {/* Avatar triggers profile sidebar only on desktop */}
-                <button
-                  type="button"
-                  className={cn(
-                    "w-8 h-8 rounded-full overflow-hidden ring-ottoman-300 flex items-center justify-center border focus:outline-none border-ottoman-200",
-                    theme === "light" ? "bg-ottoman-100" : "bg-ottoman-700"
-                  )}
-                  onClick={openProfileSheet}
-                  aria-label="Open profile menu"
-                  tabIndex={0}
-                >
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.username}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <User className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />
-                  )}
-                </button>
-                {/* The profile drawer/sidebar */}
-                <Sheet open={profileSheetOpen} onOpenChange={setProfileSheetOpen}>
-                  <ProfileSidebar open={profileSheetOpen} onOpenChange={setProfileSheetOpen} />
-                </Sheet>
+                
+                <Link to={`/profile/${user.id}`} className="flex items-center gap-2">
+                  <div className={`w-8 h-8 rounded-full ${theme === 'light' ? 'bg-ottoman-100' : 'bg-ottoman-700'} flex items-center justify-center overflow-hidden`}>
+                    {user.avatarUrl ? (
+                      <img 
+                        src={user.avatarUrl} 
+                        alt={user.username} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />
+                    )}
+                  </div>
+                  <div className="text-left hidden xl:block">
+                    <p className={`text-sm font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>{user.username}</p>
+                    <p className={`text-xs ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>{user.rank}</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className={`ml-2 ${theme === 'light' ? 'text-ottoman-800 border-ottoman-300 hover:bg-ottoman-100' : 'text-ottoman-100 border-ottoman-700 hover:bg-ottoman-700/50'}`}
+                    onClick={logout}
+                  >
+                    Logout
+                  </Button>
+                </Link>
               </div>
             ) : (
               <Link to="/auth">
@@ -168,6 +164,7 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+
       {/* Mobile navigation */}
       {isOpen && (
         <div className="md:hidden animate-fade-in">
