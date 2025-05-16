@@ -266,7 +266,7 @@ export type Database = {
       }
       collection_items: {
         Row: {
-          banknote_id: string
+          banknote_id: string | null
           condition: string | null
           created_at: string
           id: string
@@ -284,7 +284,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          banknote_id: string
+          banknote_id?: string | null
           condition?: string | null
           created_at?: string
           id?: string
@@ -302,7 +302,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          banknote_id?: string
+          banknote_id?: string | null
           condition?: string | null
           created_at?: string
           id?: string
