@@ -58,8 +58,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   });
 
   // Use custom images if available, otherwise fall back to banknote images
-  const displayImage = item?.obverseImage ||
-    (item?.banknote ? item.banknote.imageUrls : null);
+  const displayImage = item?.obverseImage;
 
   // Use BANKNOTE_CONDITIONS from constants
   const conditionColors: Partial<Record<BanknoteCondition, string>> = {

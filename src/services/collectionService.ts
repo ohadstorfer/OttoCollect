@@ -361,13 +361,13 @@ export async function addToCollection(
   params: {
     userId: string;
     banknoteId: string;
-    condition: BanknoteCondition;
-    purchasePrice?: number;
-    purchaseDate?: string;
-    publicNote?: string;
-    privateNote?: string;
-    salePrice?: number;
-    isForSale?: boolean;
+    // condition: BanknoteCondition;
+    // purchasePrice?: number;
+    // purchaseDate?: string;
+    // publicNote?: string;
+    // privateNote?: string;
+    // salePrice?: number;
+    // isForSale?: boolean;
   }
 ): Promise<CollectionItem | null> {
   try {
@@ -386,14 +386,14 @@ export async function addToCollection(
     const newItem = {
       user_id: params.userId,
       banknote_id: params.banknoteId,
-      condition: params.condition,
-      purchase_price: params.purchasePrice || null,
-      purchase_date: params.purchaseDate || null,
-      public_note: params.publicNote || null,
-      private_note: params.privateNote || null,
-      order_index: orderIndex,
-      is_for_sale: params.isForSale || false,
-      sale_price: params.salePrice || null
+      // condition: params.condition,
+      // purchase_price: params.purchasePrice || null,
+      // purchase_date: params.purchaseDate || null,
+      // public_note: params.publicNote || null,
+      // private_note: params.privateNote || null,
+      // order_index: orderIndex,
+      // is_for_sale: params.isForSale || false,
+      // sale_price: params.salePrice || null
     };
 
     const { data: insertedItem, error } = await supabase
