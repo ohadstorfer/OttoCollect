@@ -61,7 +61,7 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
         
         <div className={cn(
           viewMode === "grid"
-            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-start"
             : "flex flex-col space-y-4"
         )}>
           {banknotes.map((banknote) => (

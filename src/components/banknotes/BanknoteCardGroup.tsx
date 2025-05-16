@@ -36,8 +36,8 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
   const stackItems = items.slice(0, 4).map((banknote, index) => ({
     id: banknote.id || `stack-item-${index}`,
     content: (
-      <Card className="w-full h-full shadow-md overflow-hidden">
-        <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
+      <Card className="w-full h-full shadow-md overflow-hidden ">
+        <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3 ">
           <div className="flex justify-between items-start">
             <h4 className="font-bold">{banknote.denomination}</h4>
             <div className="pt-2 pr-1 flex items-center text-sm ">
