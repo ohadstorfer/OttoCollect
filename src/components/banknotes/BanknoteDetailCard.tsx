@@ -285,10 +285,7 @@ const BanknoteDetailCard = ({
 
   return (
     <Card
-      className={cn(
-        "overflow-hidden transition-all duration-300 cursor-pointer bg-card self-start",
-        isHovering ? "shadow-lg" : ""
-      )}
+      className="overflow-hidden transition-all hover:shadow-md cursor-pointer hover:scale-[1.01]"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       onClick={handleCardClick}
@@ -353,14 +350,11 @@ const BanknoteDetailCard = ({
         </div>
 
         {/* IMAGE: fully shown, dynamic height */}
-        <div className="relative w-full flex justify-center items-center bg-muted px-2 py-2">
+        <div className="relative w-full flex justify-center items-center bg-muted ">
           <img
             src={displayImage}
             alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-            className={cn(
-              "object-contain w-full h-auto max-h-60",
-              isHovering ? "scale-105" : "scale-100"
-            )}
+            className="object-contain w-full h-auto max-h-60"
           />
         </div>
 

@@ -256,7 +256,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         </div>
 
         {/* IMAGE: Display full image with dynamic height */}
-        <div className="relative w-full flex justify-center items-center bg-muted px-2 py-2">
+        <div className="relative w-full flex justify-center items-center bg-muted">
           <BanknoteImage
             imageUrl={displayImage}
             alt={getBanknoteTitle()}
