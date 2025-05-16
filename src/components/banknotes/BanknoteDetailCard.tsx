@@ -14,6 +14,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { addToCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -207,6 +208,29 @@ const BanknoteDetailCard = ({
     );
   };
 
+  // IMAGE: fully shown, dynamic height
+  const renderBanknoteImage = () => {
+    if (displayImage && displayImage !== '/placeholder.svg') {
+      return (
+        <img
+          src={displayImage}
+          alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
+          className="object-contain w-full h-auto max-h-60"
+        />
+      );
+    } else {
+      return (
+        <AspectRatio ratio={4 / 2}>
+          <img
+            src="/placeholder.svg"
+            alt="Placeholder"
+            className="w-full h-full object-cover"
+          />
+        </AspectRatio>
+      );
+    }
+  };
+
   if (viewMode === 'list') {
     return (
       <>
@@ -221,13 +245,22 @@ const BanknoteDetailCard = ({
           onClick={handleCardClick}
         >
           <div className="flex items-center p-2">
-            {/* Display image fully, not cropped */}
             <div className="w-16 flex-shrink-0 flex items-center justify-center overflow-hidden rounded">
-              <img
-                src={displayImage}
-                alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-                className="object-contain w-full h-auto max-h-16"
-              />
+              {displayImage && displayImage !== '/placeholder.svg' ? (
+                <img
+                  src={displayImage}
+                  alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
+                  className="object-contain w-full h-auto max-h-16"
+                />
+              ) : (
+                <AspectRatio ratio={4 / 2}>
+                  <img
+                    src="/placeholder.svg"
+                    alt="Placeholder"
+                    className="w-full h-full object-cover"
+                  />
+                </AspectRatio>
+              )}
             </div>
             <div className="flex-1 ml-4">
               <div className="flex justify-between items-start">
@@ -361,13 +394,9 @@ const BanknoteDetailCard = ({
             </div>
           </div>
 
-          {/* IMAGE: fully shown, dynamic height */}
+          {/* IMAGE slot */}
           <div className="relative w-full flex justify-center items-center bg-muted ">
-            <img
-              src={displayImage}
-              alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-              className="object-contain w-full h-auto max-h-60"
-            />
+            {renderBanknoteImage()}
           </div>
 
           <div className="p-3 bg-background border-t">

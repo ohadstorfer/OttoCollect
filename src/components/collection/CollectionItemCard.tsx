@@ -20,6 +20,7 @@ import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 import { formatPrice } from '@/utils/formatters';
 import { BANKNOTE_CONDITIONS } from '@/lib/constants';
 import { Badge } from '../ui/badge';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 // Define conditional props for the component
 export interface CollectionItemCardProps {
@@ -164,12 +165,22 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         className="flex flex-row overflow-hidden cursor-pointer hover:shadow-md transition-all"
         onClick={handleCardClick}
       >
-        <div className="w-24 flex-shrink-0 flex items-center justify-center"> {/* removed fixed height */}
-          <BanknoteImage
-            imageUrl={displayImage}
-            alt={getBanknoteTitle()}
-            className="object-contain w-full h-auto max-h-24" // show full image, not cropped; max-height for reasonable card size
-          />
+        <div className="w-24 flex-shrink-0 flex items-center justify-center">
+          {displayImage && displayImage !== '/placeholder.svg' ? (
+            <BanknoteImage
+              imageUrl={displayImage}
+              alt={getBanknoteTitle()}
+              className="object-contain w-full h-auto max-h-24"
+            />
+          ) : (
+            <AspectRatio ratio={4 / 2}>
+              <img
+                src="/placeholder.svg"
+                alt="Placeholder"
+                className="w-full h-full object-cover"
+              />
+            </AspectRatio>
+          )}
         </div>
         <div className="flex-grow flex flex-col justify-between p-3">
           <div>
@@ -216,7 +227,6 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       >
         <div className="relative">
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
-
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{item.banknote.denomination}</h4>
               {item?.condition && (
@@ -225,8 +235,6 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
                 </span>
               )}
             </div>
-
-
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm pt-2">
               {item.banknote.extendedPickNumber && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
@@ -254,16 +262,23 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             </div>
           </div>
         </div>
-
-        {/* IMAGE: Display full image with dynamic height */}
         <div className="relative w-full flex justify-center items-center bg-muted">
-          <BanknoteImage
-            imageUrl={displayImage}
-            alt={getBanknoteTitle()}
-            className="object-contain w-full h-auto max-h-60" // dynamically sized based on image, but constrained in height for layout
-          />
+          {displayImage && displayImage !== '/placeholder.svg' ? (
+            <BanknoteImage
+              imageUrl={displayImage}
+              alt={getBanknoteTitle()}
+              className="object-contain w-full h-auto max-h-60"
+            />
+          ) : (
+            <AspectRatio ratio={4 / 2}>
+              <img
+                src="/placeholder.svg"
+                alt="Placeholder"
+                className="w-full h-full object-cover"
+              />
+            </AspectRatio>
+          )}
         </div>
-
         <div className="p-3 bg-background border-t">
           {item.banknote.sultanName && (
             <p className="text-xs text-muted-foreground">
@@ -275,18 +290,13 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
               Seals: {item.banknote.sealNames}
             </p>
           )}
-
           {item?.isForSale && (
             <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
               For Sale: {formatPrice(item.salePrice)}
             </span>
           )}
-
         </div>
-
-
       </Card>
-
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent onClick={e => e.stopPropagation()}>
           <AlertDialogHeader>
