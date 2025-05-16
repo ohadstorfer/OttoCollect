@@ -9,7 +9,7 @@ export const Footer = () => {
   return (
     <footer className={`${theme === 'light' ? 'bg-ottoman-800' : 'bg-dark-600'} } animate-fade-in`}>        
 
-        <div className={`   px-4 py-6 mt-8 pt-6 border-t ${theme === 'light' ? 'border-ottoman-700/50' : 'border-ottoman-900/50'} flex flex-col md:flex-row justify-between items-center`}>
+        <div className={`   px-4 py-6 pt-6 border-t ${theme === 'light' ? 'border-ottoman-700/50' : 'border-ottoman-900/50'} flex flex-col md:flex-row justify-between items-center`}>
           <p className={`${theme === 'light' ? 'text-ottoman-300' : 'text-ottoman-400'} text-xs md:text-sm`}>
             &copy; {new Date().getFullYear()} Otto Collect. All rights reserved.
           </p>
