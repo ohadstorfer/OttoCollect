@@ -74,11 +74,14 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   // Add: State to force re-evaluate after adding another copy
   const [ownershipIncrement, setOwnershipIncrement] = useState(0);
 
+  // Track "just added" status to help with instant UI feedback and flicker prevention
+  const [hasJustBeenAdded, setHasJustBeenAdded] = useState(false);
+
   // Styling class for Check button
   const checkButtonClass =
     "h-8 w-8 shrink-0 rounded-full border border-green-900 bg-gradient-to-br from-green-900 via-green-800 to-green-950 text-green-200 hover:bg-green-900 hover:shadow-lg transition-all duration-200 shadow-lg";
 
-  // Handler for the ownership check button (shows custom toast/dialog)
+  // Handler for pressing the Check button (shows custom toast/dialog)
   const handleOwnershipCheckButton = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setShowOwnershipToast(true);
@@ -90,10 +93,18 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     await handleAddToCollection();
     // Increment ownership key to re-query and re-render after adding
     setOwnershipIncrement((k) => k + 1);
+    setHasJustBeenAdded(true);
+    // Show the notification toast as requested
+    toast({
+      title: "Added to your collection!",
+      description: "This banknote was added. Visit your collection to edit its details.",
+      className: "justify-center items-center w-full",
+      duration: 3000,
+    });
   };
   const handleOwnershipToastCancel = () => setShowOwnershipToast(false);
 
-  // Render the custom ownership toast/dialog (matches BanknoteDetailCard)
+  // Custom renderOwnershipToast (identical to BanknoteDetailCard.tsx)
   const renderOwnershipToast = () => {
     if (!showOwnershipToast) return null;
     return (
@@ -157,13 +168,16 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
 
   // --- Button Visibility and Ownership ---
   // Only calculate ownsThisBanknote if not loading collection and have userCollection array
+  // (add hasJustBeenAdded for immediate UI feedback after add)
   const ownsThisBanknote =
     user && banknote && Array.isArray(userCollection) && !collectionLoading
       ? userHasBanknoteInCollection(banknote, userCollection)
       : false;
+  const shouldShowCheckButton = (ownsThisBanknote || hasJustBeenAdded);
 
   // Functionality for add to collection; triggers refetch for the buttons
   const [adding, setAdding] = useState(false);
+  // refactored handleAddToCollection to NOT show the toast here, but only after confirmed add from toast or Add button
   const handleAddToCollection = async () => {
     if (!banknote || !user) return;
     try {
@@ -173,8 +187,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
         userId: user.id,
         banknoteId: banknote.id
       });
-      toast.success("Added to your collection!");
-      // Refetch user collection now (ownershipIncrement will also cause a refetch)
+      // Notification toast now shown in handleOwnershipToastYes and Add button only, to avoid double firing
       queryClient.invalidateQueries({ queryKey: ["userCollection", user.id] });
     } catch (err) {
       toast.error("Could not add to collection.");
@@ -371,23 +384,9 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-xl">Banknote Details</CardTitle>
-                  {/* Fixed conditional rendering:
-                      - Only render after loading userCollection, so no flicker.
-                      - On pressing Check, use correct toast and handlers.
-                  */}
-                  {user && !collectionLoading && !ownsThisBanknote && (
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={handleAddToCollection}
-                      disabled={adding}
-                      title="Add this banknote to your collection"
-                    >
-                      <Plus className="w-4 h-4" /> {adding ? "Adding..." : "Add to Collection"}
-                    </Button>
-                  )}
-                  {user && !collectionLoading && ownsThisBanknote && (
-                    <>
+                  {/* After collection is loaded, render ONLY the correct button */}
+                  {user && !collectionLoading && (
+                    shouldShowCheckButton ? (
                       <Button
                         variant="secondary"
                         size="icon"
@@ -398,7 +397,26 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                       >
                         <Check className="h-4 w-4" />
                       </Button>
-                    </>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={async () => {
+                          await handleAddToCollection();
+                          setHasJustBeenAdded(true);
+                          toast({
+                            title: "Added to your collection!",
+                            description: "This banknote was added. Visit your collection to edit its details.",
+                            className: "justify-center items-center w-full",
+                            duration: 3000,
+                          });
+                        }}
+                        disabled={adding}
+                        title="Add this banknote to your collection"
+                      >
+                        <Plus className="w-4 h-4" /> {adding ? "Adding..." : "Add to Collection"}
+                      </Button>
+                    )
                   )}
                 </div>
                 <CardDescription>Complete information about this banknote</CardDescription>
