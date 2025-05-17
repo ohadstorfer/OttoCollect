@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
-import CountryDetailMissingItems from '@/missingItems/CountryDetailMissingItems';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBanknotesByCountryId } from '@/services/banknoteService';
 import { fetchUserWishlistByCountry } from '@/services/wishlistService';
@@ -51,16 +50,9 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     queryKey: ['user-collection', userId, countryId],
     queryFn: () => fetchUserCollection(userId),
     enabled: !!userId && !!countryId,
-    // FIX: Be robust to whitespace/case/encoding mismatches - compare lower-trimmed.
-    select: (data) => data.filter(
-      item =>
-        item.banknote &&
-        typeof item.banknote.country === 'string' &&
-        typeof countryName === 'string' &&
-        item.banknote.country.trim().toLowerCase() === countryName.trim().toLowerCase()
-    )
+    select: (data) => data.filter(item => item.banknote?.country === countryName)
   });
-
+  
   // Fetch user's wishlist items (always with full banknote info), and filter by country
   const {
     data: wishlistItems,
@@ -72,26 +64,12 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     enabled: !!userId && !!countryName,
   });
 
-  // ---- DEBUG: Log data shapes for diagnosis ----
-  if (typeof window !== 'undefined') {
-    // Only log once per render in development
-    // eslint-disable-next-line no-console
-    console.log('[DEBUG][allBanknotes]', allBanknotes);
-    // eslint-disable-next-line no-console
-    console.log('[DEBUG][userCollection]', userCollection);
-  }
-
   // Calculate missing banknotes (ones in allBanknotes but not in userCollection)
   const missingBanknotes = React.useMemo(() => {
     if (!allBanknotes || !userCollection) return [];
-    // Defensive string cast for comparison
-    const userBanknoteIds = new Set(
-      userCollection.map(item => String(item.banknoteId))
-    );
-    const filtered = allBanknotes.filter(banknote => !userBanknoteIds.has(String(banknote.id)));
-    // eslint-disable-next-line no-console
-    console.log('[DEBUG][missingBanknotes]', filtered);
-    return filtered;
+    
+    const userBanknoteIds = new Set(userCollection.map(item => item.banknoteId));
+    return allBanknotes.filter(banknote => !userBanknoteIds.has(banknote.id));
   }, [allBanknotes, userCollection]);
 
   const handleViewModeChange = (mode: 'grid' | 'list') => {
@@ -117,7 +95,6 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       );
     }
     
-    // Clear explanation of no missing only if truly none are found
     if (!banknotes || banknotes.length === 0) {
       return (
         <Card className="p-8 text-center">
@@ -134,19 +111,38 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     return (
       <div className="page-container max-w-5xl mx-auto">
         <h3 className="text-xl font-medium mb-4">Missing Banknotes ({banknotes.length})</h3>
-        <div className={`grid ${viewMode === 'grid'
-          ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+        {/* <div className={`grid ${viewMode === 'grid' 
+          ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
+          : 'grid-cols-1'} gap-4`}>
+          {banknotes.map(banknote => (
+            <div key={banknote.id} className="border rounded-lg p-4">
+              <div className="font-medium">{banknote.denomination}</div>
+              <div className="text-sm text-muted-foreground">
+                {banknote.year} · {banknote.type || 'Standard Issue'}
+              </div>
+              <div className="text-sm mt-1">{banknote.pickNumber || banknote.extendedPickNumber}</div>
+            </div>
+          ))}
+        </div> */}
+
+
+
+        <div className={`grid ${viewMode === 'grid' 
+          ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
           {banknotes.map(banknote =>
             <BanknoteDetailCardMissingItems
               key={banknote.id}
               banknote={banknote}
-              onDeleted={refetchCollection}
-              refetchWishlist={wishlistLoading ? undefined : () => { void refetchCollection(); }}
+              // wishlistItemId={item.id} // <-- send the wishlist item id
+              onDeleted={refetchCollection} // handy event for parent to act if wish
+              refetchWishlist={wishlistLoading ? undefined : () => { void refetchCollection(); }} // to refresh on delete
               source="catalog"
             />
           )}
         </div>
+
+
       </div>
     );
   };
@@ -194,8 +190,8 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     return (
       <div className="page-container max-w-5xl mx-auto">
         <h3 className="text-xl font-medium mb-4">Wishlist Items ({validWishlist.length})</h3>
-        <div className={`grid ${viewMode === 'grid'
-          ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+        <div className={`grid ${viewMode === 'grid' 
+          ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
           {validWishlist.map(item =>
             <BanknoteDetailCardWishList
@@ -235,11 +231,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       </TabsContent>
 
       <TabsContent value="missing">
-        <CountryDetailMissingItems
-          userId={userId}
-          countryId={countryId}
-          countryName={countryName}
-        />
+        <MissingBanknotesDisplay banknotes={missingBanknotes || []} />
       </TabsContent>
     </Tabs>
   );
