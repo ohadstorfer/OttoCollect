@@ -414,7 +414,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         disabled={adding}
                         title="Add this banknote to your collection"
                       >
-                        <Plus className="w-4 h-4" /> {adding ? "Adding..." : "Add to Collection"}
+                        <Plus className="w-4 h-4" /> 
                       </Button>
                     )
                   )}
