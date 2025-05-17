@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from "react";
+
+import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
-import { cn } from "@/lib/utils";
 import { CountryHeader } from "@/components/country/CountryHeader";
 import { CountryFilterSection } from "@/components/country/CountryFilterSection";
 import { BanknoteDisplay } from "@/components/country/BanknoteDisplay";
@@ -9,12 +9,29 @@ import { useCountryData } from "@/hooks/use-country-data";
 import { useBanknoteFetching } from "@/hooks/use-banknote-fetching";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
-import { useEffect } from "react";
 import { fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
+import type { DetailedBanknote, CollectionItem } from "@/types";
 
-const CountryDetailMissingItems = () => {
-  const { country } = useParams();
+interface CountryDetailMissingItemsProps {
+  // Presentational props (optional)
+  missingBanknotes?: DetailedBanknote[];
+  userCollection?: CollectionItem[];
+  countryId?: string;
+  countryName?: string;
+  // Optionally, control viewMode, filters externally.
+}
+const CountryDetailMissingItems: React.FC<CountryDetailMissingItemsProps> = ({
+  missingBanknotes,
+  userCollection,
+  countryId: propCountryId,
+  countryName: propCountryName,
+}) => {
+  // Determines if presentational mode (render only props, not fetching)
+  const isPresentational = !!missingBanknotes;
+
+  // Parameter-based loading (for legacy route usage, fallback)
+  const { country: routeCountryParam } = useParams();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState<DynamicFilterState>({
@@ -24,38 +41,43 @@ const CountryDetailMissingItems = () => {
     sort: ["extPick"],
   });
 
-  // New: user + collection loading
   const { user } = useAuth();
-  const [userCollection, setUserCollection] = useState<CollectionItem[]>([]);
+  const [localUserCollection, setLocalUserCollection] = useState<CollectionItem[]>([]);
 
+  // Mode 1: Presentational (controlled via props)
+  let renderCountryId: string | undefined = isPresentational ? propCountryId : undefined;
+  let renderCountryName: string | undefined = isPresentational ? propCountryName : undefined;
+  let banknotes: DetailedBanknote[] = [];
+  let collection: CollectionItem[] = [];
+
+  if (isPresentational && missingBanknotes) {
+    // Provided via props
+    banknotes = missingBanknotes;
+    collection = userCollection ?? [];
+    renderCountryId = propCountryId;
+    renderCountryName = propCountryName;
+  } else {
+    // Parameter-based (from route)
+    renderCountryId = undefined;
+    renderCountryName = routeCountryParam ? decodeURIComponent(routeCountryParam) : undefined;
+  }
+
+  // For legacy behavior: fetch user collection if not provided via prop
   useEffect(() => {
+    if (isPresentational || !user) return;
     const fetchCollection = async () => {
-      if (!user) {
-        setUserCollection([]);
-        console.log("[CountryDetail] No user, empty userCollection");
-        return;
-      }
       try {
         const collection = await fetchUserCollection(user.id);
-        setUserCollection(collection);
-        console.log(`[CountryDetail] Loaded userCollection for user ${user.id}, count: ${collection.length}`);
-      } catch (e) {
-        setUserCollection([]);
-        console.log("[CountryDetail] Failed to fetch userCollection", e);
+        setLocalUserCollection(collection);
+      } catch {
+        setLocalUserCollection([]);
       }
-    }
-    fetchCollection();
-  }, [user]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      sessionStorage.setItem('scrollY', window.scrollY.toString());
     };
-  
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    fetchCollection();
+  }, [user, isPresentational]);
 
+  // For presentational: skip fetching country data, banknotes, sorting, grouping
+  // For usage via route, fetch via hooks
   const {
     countryId,
     categoryOrder,
@@ -63,25 +85,28 @@ const CountryDetailMissingItems = () => {
     loading: countryLoading,
     groupMode,
     handleGroupModeChange
-  } = useCountryData({ 
-    countryName: country || "", 
-    navigate 
+  } = useCountryData({
+    countryName: renderCountryName || "",
+    navigate
   });
 
-  const { banknotes, loading: banknotesLoading } = useBanknoteFetching({
+  const { banknotes: fetchedBanknotes, loading: banknotesLoading } = useBanknoteFetching({
     countryId,
     filters
   });
 
-  const sortedBanknotes = useBanknoteSorting({
-    banknotes,
-    currencies,
-    sortFields: filters.sort
-  });
+  // For presentational, group/organize the passed-in missingBanknotes
+  const sortedBanknotes = isPresentational
+    ? banknotes
+    : useBanknoteSorting({
+        banknotes: fetchedBanknotes,
+        currencies,
+        sortFields: filters.sort
+      });
 
   const groupedItems = useBanknoteGroups(
-    sortedBanknotes, 
-    filters.sort, 
+    sortedBanknotes,
+    filters.sort,
     categoryOrder
   );
 
@@ -98,16 +123,16 @@ const CountryDetailMissingItems = () => {
 
   const isLoading = countryLoading || banknotesLoading;
 
-  // Log right before rendering BanknoteDisplay
-  console.log("[CountryDetail] groupMode:", groupMode, "userCollection length:", userCollection.length);
+  // Use provided userCollection if present (for presentational mode), otherwise use local fetched one.
+  const displayUserCollection = isPresentational ? collection : localUserCollection;
 
   return (
     <div className="w-full px-2 sm:px-6 py-8">
-      <CountryHeader countryName={country ? decodeURIComponent(country) : ""} />
+      <CountryHeader countryName={renderCountryName || ""} />
 
       <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
         <CountryFilterSection
-          countryId={countryId}
+          countryId={renderCountryId ?? countryId}
           filters={filters}
           onFilterChange={handleFilterChange}
           isLoading={isLoading}
@@ -120,10 +145,10 @@ const CountryDetailMissingItems = () => {
           groups={groupedItems}
           showSultanGroups={filters.sort.includes('sultan')}
           viewMode={viewMode}
-          countryId={countryId}
+          countryId={renderCountryId ?? countryId}
           isLoading={isLoading}
           groupMode={groupMode}
-          userCollection={userCollection}
+          userCollection={displayUserCollection}
         />
       </div>
     </div>
@@ -131,3 +156,4 @@ const CountryDetailMissingItems = () => {
 };
 
 export default CountryDetailMissingItems;
+
