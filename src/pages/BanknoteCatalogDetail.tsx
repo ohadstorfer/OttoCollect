@@ -37,6 +37,7 @@ import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { fetchUserCollection } from "@/services/collectionService";
 import { addToWishlist } from "@/services/wishlistService";
 import { useToast } from "@/hooks/use-toast";
+import { fetchWishlistItem } from "@/services/wishlistService";
 
 interface LabelValuePairProps {
   label: string;
@@ -167,6 +168,17 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     queryKey: ["userCollection", user?.id, ownershipIncrement], // depend on increment for refetch
     queryFn: () => user?.id ? fetchUserCollection(user.id) : Promise.resolve([]),
     enabled: !!user?.id,
+  });
+
+  // === Wishlist Check: Fast existence lookup ===
+  const { data: wishlistItem, isLoading: wishlistLoading } = useQuery({
+    queryKey: ["wishlistStatus", user?.id, banknote?.id],
+    enabled: !!user?.id && !!banknote?.id,
+    queryFn: () =>
+      user && banknote
+        ? fetchWishlistItem(user.id, banknote.id)
+        : Promise.resolve(null),
+    staleTime: 1000 * 60 * 10, // cache for 10min
   });
 
   // --- Button Visibility and Ownership ---
@@ -436,16 +448,18 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                       </Button>
                     ) : (
                       <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          onClick={handleAddToWishList}
-                          title="Add to wish list"
-                          size="default"
-                          className="text-gold-600 border-gold-600 hover:bg-gold-100 px-2 py-1 space-x-1 h-auto"
+                        {/* === Only show if NOT in wishlist and not loading === */}
+                        {!wishlistLoading && !wishlistItem && (
+                          <Button
+                            variant="outline"
+                            onClick={handleAddToWishList}
+                            title="Add to wish list"
+                            size="default"
+                            className="text-gold-600 border-gold-600 hover:bg-gold-100 px-2 py-1 space-x-1 h-auto"
                           >
-                          Wish List <Plus></Plus>
-                        </Button>
-
+                            Wish List <Plus />
+                          </Button>
+                        )}
 
                         <Button
                           variant="default"
