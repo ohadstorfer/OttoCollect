@@ -56,7 +56,13 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     data: wishlistItems,
     isLoading: wishlistLoading,
     error: wishlistError
-  } = useQuery({
+  } = useQuery<{
+    id: string;
+    banknoteId: string;
+    userId: string;
+    detailed_banknotes: DetailedBanknote;
+    [key: string]: any;
+  }[]>({
     queryKey: ['user-wishlist', userId, countryName],
     queryFn: () => fetchUserWishlistByCountry(userId, countryName),
     enabled: !!userId && !!countryName,
@@ -126,7 +132,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     );
   };
   
-  // WishlistDisplay - updated: ONLY send full banknote data to BanknoteDetailCard
+  // WishlistDisplay - REFACTORED for harmonized data structure
   const WishlistDisplay: React.FC = () => {
     if (wishlistLoading) {
       return (
@@ -145,7 +151,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       );
     }
 
-    // Only show banknotes with a valid detailed_banknotes join
+    // Only show banknotes with a valid harmonized object
     const validWishlist = (wishlistItems || []).filter(item => !!item.detailed_banknotes);
 
     if (!validWishlist.length) {
@@ -172,13 +178,14 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         <div className={`grid ${viewMode === 'grid' 
           ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
-          {validWishlist.map(item =>
-            <BanknoteDetailCard
-              key={item.id}
-              banknote={item.detailed_banknotes}
-              source="catalog"
-              // Note: ONLY send banknote, not the wishlist item!
-            />
+          {validWishlist.map(({ id, detailed_banknotes }) =>
+            detailed_banknotes && (
+              <BanknoteDetailCard
+                key={id}
+                banknote={detailed_banknotes}
+                source="catalog"
+              />
+            )
           )}
         </div>
       </div>

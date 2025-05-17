@@ -1,15 +1,14 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import { DetailedBanknote } from "@/types";
 
 /**
- * Fetches wishlist items filtered by user
- * Always includes the full detailed banknote data as "detailed_banknotes"
+ * Fetches wishlist items filtered by user, with complete banknote objects.
  */
-export async function fetchUserWishlist(userId: string): Promise<any[]> {
+export async function fetchUserWishlist(userId: string): Promise<{ id: string; banknoteId: string; userId: string; detailed_banknotes: DetailedBanknote; [key: string]: any; }[]> {
   try {
     console.log("[fetchUserWishlist] Starting fetch for user:", userId);
 
-    // Updated: Always join full detailed_banknotes object in the response
+    // Perform complete join for all banknote fields
     const { data, error } = await supabase
       .from('wishlist_items')
       .select(`
@@ -23,9 +22,11 @@ export async function fetchUserWishlist(userId: string): Promise<any[]> {
       return [];
     }
 
-    console.log(`[fetchUserWishlist] Found ${data?.length || 0} wishlist items for user:`, userId);
-
-    return data || [];
+    // TYPE HARMONIZATION: Ensure .detailed_banknotes is DetailedBanknote type.
+    return (data || []).map((item: any) => ({
+      ...item,
+      detailed_banknotes: item.detailed_banknotes as DetailedBanknote,
+    }));
   } catch (error) {
     console.error("[fetchUserWishlist] Exception fetching wishlist:", error);
     return [];
@@ -33,14 +34,15 @@ export async function fetchUserWishlist(userId: string): Promise<any[]> {
 }
 
 /**
- * Fetches wishlist items filtered by country
- * Always includes the full detailed banknote data as "detailed_banknotes"
+ * Fetches wishlist items filtered by country, with complete banknote objects.
  */
-export async function fetchUserWishlistByCountry(userId: string, countryName: string): Promise<any[]> {
+export async function fetchUserWishlistByCountry(
+  userId: string,
+  countryName: string
+): Promise<{ id: string; banknoteId: string; userId: string; detailed_banknotes: DetailedBanknote; [key: string]: any; }[]> {
   try {
     console.log("[fetchUserWishlistByCountry] Starting fetch for:", { userId, countryName });
 
-    // Updated: Always join full detailed_banknotes
     const { data, error } = await supabase
       .from('wishlist_items')
       .select(`
@@ -54,10 +56,13 @@ export async function fetchUserWishlistByCountry(userId: string, countryName: st
       return [];
     }
 
-    // Filter by country using the joined detailed_banknotes for maximum accuracy
-    const filteredData = (data || []).filter(item =>
-      item.detailed_banknotes && item.detailed_banknotes.country === countryName
-    );
+    // Harmonize: Filter by exactly the banknote country (on full object)
+    const filteredData = (data || []).filter(
+      (item: any) => item.detailed_banknotes && item.detailed_banknotes.country === countryName
+    ).map((item: any) => ({
+      ...item,
+      detailed_banknotes: item.detailed_banknotes as DetailedBanknote,
+    }));
 
     console.log(`[fetchUserWishlistByCountry] Found ${filteredData?.length || 0} wishlist items for user ${userId} in country ${countryName}`);
 
