@@ -8,7 +8,7 @@ import CountryCollectionTabs from '@/components/profile/CountryCollectionTabs';
 interface ProfileCountrySelectionProps {
   userId: string;
   isOwnProfile: boolean;
-  selectedCountry: string | null; // This should be the countryId!
+  selectedCountry: string | null;
   showCountryDetail: boolean;
   profileId: string;
   onCountrySelect: (country: string) => void;
@@ -25,20 +25,23 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   onBackToCountries
 }) => {
   return showCountryDetail && selectedCountry ? (
-    <div>
-      <div className="max-w-5xl mx-auto">
+    <div >
+      <div className=" max-w-5xl mx-auto">
         <Button 
           variant="ghost" 
           onClick={onBackToCountries} 
+          
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
           Back to Countries
         </Button>
       </div>
+      
+      
       <CountryCollectionTabs
         userId={userId}
         countryId={selectedCountry} 
-        countryName={selectedCountry} // If you have countryName separately, use it!
+        countryName={selectedCountry}
         isOwner={isOwnProfile}
       />
     </div>
