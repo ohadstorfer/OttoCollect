@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
@@ -11,6 +10,7 @@ import { Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import { DetailedBanknote } from '@/types';
+import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
 
 interface CountryCollectionTabsProps {
   userId: string;
@@ -170,16 +170,14 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         <div className={`grid ${viewMode === 'grid' 
           ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
-          {wishlistItems.map(item => (
-            <div key={item.id} className="border rounded-lg p-4">
-              <div className="font-medium">{item.detailed_banknotes?.denomination}</div>
-              <div className="text-sm text-muted-foreground">
-                {item.detailed_banknotes?.year} · {item.detailed_banknotes?.type || 'Standard Issue'}
-              </div>
-              <div className="text-sm mt-1">{item.detailed_banknotes?.pickNumber || item.detailed_banknotes?.extendedPickNumber}</div>
-              <div className="text-sm font-medium mt-2">Priority: {item.priority}</div>
-              {item.note && <div className="text-sm mt-1">{item.note}</div>}
-            </div>
+          {wishlistItems.map(item => 
+            item.detailed_banknotes && (
+            <BanknoteDetailCard
+              key={item.id}
+              banknote={item.detailed_banknotes}
+              source="catalog"
+              // you can pass wishlist info in the future if needed
+            />
           ))}
         </div>
       </div>

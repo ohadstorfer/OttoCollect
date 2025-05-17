@@ -30,10 +30,13 @@ import {
   CircleDollarSign,
   Star,
   Plus,
-  Check
+  Check,
+  BookmarkPlus
 } from "lucide-react";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { fetchUserCollection } from "@/services/collectionService";
+import { addToWishlist } from "@/services/wishlistService";
+import { useToast } from "@/hooks/use-toast";
 
 interface LabelValuePairProps {
   label: string;
@@ -196,6 +199,37 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     }
   };
 
+  // Insert here: handleAddToWishList function
+  const { toast } = useToast();
+  const handleAddToWishList = async () => {
+    if (!user || !user.id || !banknote?.id) return;
+    try {
+      const result = await addToWishlist(user.id, banknote.id);
+      if (result) {
+        toast({
+          title: "Added to wish list!",
+          description: "This banknote was added to your wish list.",
+          className: "justify-center items-center w-full",
+          duration: 3000,
+        });
+      } else {
+        toast({
+          title: "Already in wish list",
+          description: "This banknote is already in your wish list.",
+          className: "justify-center items-center w-full",
+          duration: 3000,
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to add banknote to wish list.",
+        variant: "destructive",
+        duration: 3500,
+      });
+    }
+  };
+
   if (banknoteLoading) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
@@ -300,9 +334,20 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
           <div className="flex items-center justify-between">
             <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
             {!propsId && (
-              <Button variant="outline" onClick={() => navigate(-1)}>
-                Back
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={handleAddToWishList}
+                  title="Add to wish list"
+                  size="icon"
+                  className="text-yellow-600 border-yellow-600 hover:bg-yellow-100"
+                >
+                  <BookmarkPlus className="w-5 h-5" />
+                </Button>
+                <Button variant="outline" onClick={() => navigate(-1)}>
+                  Back
+                </Button>
+              </div>
             )}
           </div>
         </div>
