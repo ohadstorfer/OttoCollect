@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBanknotesByCountryId } from '@/services/banknoteService';
-import { fetchUserWishlistByCountry, camelCaseBanknoteFields } from '@/services/wishlistService';
+import { fetchUserWishlistByCountry } from '@/services/wishlistService';
 import { fetchUserCollection } from '@/services/collectionService';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -56,22 +56,11 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     data: wishlistItems,
     isLoading: wishlistLoading,
     error: wishlistError
-  } = useQuery<{
-    id: string;
-    banknoteId: string;
-    userId: string;
-    detailed_banknotes: DetailedBanknote;
-    [key: string]: any;
-  }[]>({
+  } = useQuery({
     queryKey: ['user-wishlist', userId, countryName],
     queryFn: () => fetchUserWishlistByCountry(userId, countryName),
     enabled: !!userId && !!countryName,
   });
-
-  // --- DEBUG LOG --- Wishlist Data after react-query fetch ---
-  useEffect(() => {
-    console.log("[CountryCollectionTabs] wishlistItems after fetch:", wishlistItems);
-  }, [wishlistItems]);
 
   // Calculate missing banknotes (ones in allBanknotes but not in userCollection)
   const missingBanknotes = React.useMemo(() => {
@@ -137,7 +126,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     );
   };
   
-  // WishlistDisplay - ENFORCE camelCase harmonization just before rendering
+  // WishlistDisplay - updated: ONLY send full banknote data to BanknoteDetailCard
   const WishlistDisplay: React.FC = () => {
     if (wishlistLoading) {
       return (
@@ -156,28 +145,10 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       );
     }
 
-    // --- ENFORCE: Harmonize each detailed_banknotes with camelCase conversion ---
-    const validWishlist = (wishlistItems || [])
-      .filter(item => !!item.detailed_banknotes)
-      .map(item => ({
-         ...item,
-         detailed_banknotes: camelCaseBanknoteFields(item.detailed_banknotes)
-      }));
-
-    // --- DEBUG LOG: After harmonization ---
-    useEffect(() => {
-      console.log(
-        "[CountryCollectionTabs/WishlistDisplay] validWishlist after harmonization (camelCase fields):",
-        validWishlist.map(({ id, detailed_banknotes }) => ({
-          id,
-          keys: Object.keys(detailed_banknotes),
-          example: detailed_banknotes
-        }))
-      );
-    }, [wishlistItems]);
+    // Only show banknotes with a valid detailed_banknotes join
+    const validWishlist = (wishlistItems || []).filter(item => !!item.detailed_banknotes);
 
     if (!validWishlist.length) {
-      // ... keep existing code (no wishlist items card) the same ...
       return (
         <Card className="p-8 text-center">
           <h3 className="text-xl font-medium mb-4">No Wishlist Items</h3>
@@ -201,22 +172,14 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         <div className={`grid ${viewMode === 'grid' 
           ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
-          {validWishlist.map(({ id, detailed_banknotes }) => {
-            // --- DEBUG LOG: Confirm just before rendering card ---
-            console.log(
-              "[CountryCollectionTabs/WishlistDisplay] Rendering BanknoteDetailCard. Id:",
-              id, "| Keys on banknote:", Object.keys(detailed_banknotes), "| Data:", detailed_banknotes
-            );
-            return (
-              detailed_banknotes && (
-                <BanknoteDetailCard
-                  key={id}
-                  banknote={detailed_banknotes}
-                  source="catalog"
-                />
-              )
-            );
-          })}
+          {validWishlist.map(item =>
+            <BanknoteDetailCard
+              key={item.id}
+              banknote={item.detailed_banknotes}
+              source="catalog"
+              // Note: ONLY send banknote, not the wishlist item!
+            />
+          )}
         </div>
       </div>
     );
