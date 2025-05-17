@@ -172,6 +172,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 
       <TabsContent value="missing">
         {/* Pass missingBanknotes and userCollection to CountryDetailMissingItems */}
+        <h3 className="text-xl font-medium  page-container max-w-5xl mx-auto ">Missing Banknotes ({missingBanknotes.length})</h3>
         <CountryDetailMissingItems
           missingBanknotes={missingBanknotes}
           userCollection={userCollection || []}
