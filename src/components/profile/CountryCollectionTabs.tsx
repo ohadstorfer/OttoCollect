@@ -13,6 +13,7 @@ import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
 import BanknoteDetailCardWishList from '../banknotes/BanknoteDetailCardWishList';
 import BanknoteDetailCardMissingItems from '../banknotes/BanknoteDetailCardMissingItems';
+import CountryDetailMissingItems from '@/components/missingItems/CountryDetailMissingItems';
 
 interface CountryCollectionTabsProps {
   userId: string;
