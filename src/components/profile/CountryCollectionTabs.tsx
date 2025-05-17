@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
+import BanknoteDetailCardWishList from '../banknotes/BanknoteDetailCardWishList';
 
 interface CountryCollectionTabsProps {
   userId: string;
@@ -173,9 +174,9 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
           {validWishlist.map(item =>
-            <BanknoteDetailCard
+            <BanknoteDetailCardWishList
               key={item.id}
-              banknote={item.detailed_banknotes}
+             banknote ={item.detailed_banknotes}
               source="catalog"
               // Note: ONLY send banknote, not the wishlist item!
             />

@@ -35,9 +35,8 @@ import {
 } from "lucide-react";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { fetchUserCollection } from "@/services/collectionService";
-import { addToWishlist } from "@/services/wishlistService";
+// Removed invalid imports from wishlistService
 import { useToast } from "@/hooks/use-toast";
-import { fetchWishlistItem } from "@/services/wishlistService";
 
 interface LabelValuePairProps {
   label: string;
