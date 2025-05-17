@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
+import CountryDetailMissingItems from '@/missingItems/CountryDetailMissingItems';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBanknotesByCountryId } from '@/services/banknoteService';
 import { fetchUserWishlistByCountry } from '@/services/wishlistService';
@@ -234,7 +235,11 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       </TabsContent>
 
       <TabsContent value="missing">
-        <MissingBanknotesDisplay banknotes={missingBanknotes || []} />
+        <CountryDetailMissingItems
+          userId={userId}
+          countryId={countryId}
+          countryName={countryName}
+        />
       </TabsContent>
     </Tabs>
   );
