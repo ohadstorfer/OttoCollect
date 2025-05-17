@@ -12,6 +12,7 @@ import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
 import BanknoteDetailCardWishList from '../banknotes/BanknoteDetailCardWishList';
+import BanknoteDetailCardMissingItems from '../banknotes/BanknoteDetailCardMissingItems';
 
 interface CountryCollectionTabsProps {
   userId: string;
@@ -110,7 +111,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     return (
       <div className="page-container max-w-5xl mx-auto">
         <h3 className="text-xl font-medium mb-4">Missing Banknotes ({banknotes.length})</h3>
-        <div className={`grid ${viewMode === 'grid' 
+        {/* <div className={`grid ${viewMode === 'grid' 
           ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
           {banknotes.map(banknote => (
@@ -122,7 +123,26 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
               <div className="text-sm mt-1">{banknote.pickNumber || banknote.extendedPickNumber}</div>
             </div>
           ))}
+        </div> */}
+
+
+
+        <div className={`grid ${viewMode === 'grid' 
+          ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
+          : 'grid-cols-1'} gap-4`}>
+          {banknotes.map(banknote =>
+            <BanknoteDetailCardMissingItems
+              key={banknote.id}
+              banknote={banknote}
+              // wishlistItemId={item.id} // <-- send the wishlist item id
+              onDeleted={refetchCollection} // handy event for parent to act if wish
+              refetchWishlist={wishlistLoading ? undefined : () => { void refetchCollection(); }} // to refresh on delete
+              source="catalog"
+            />
+          )}
         </div>
+
+
       </div>
     );
   };
@@ -194,7 +214,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         <TabsList className="inline-flex ">
           <TabsTrigger value="my-banknotes">My Banknotes</TabsTrigger>
           <TabsTrigger value="wishlist">Wish List</TabsTrigger>
-          {/* <TabsTrigger value="missing">Missing</TabsTrigger> */}
+          <TabsTrigger value="missing">Missing</TabsTrigger>
         </TabsList>
       </div>
 
