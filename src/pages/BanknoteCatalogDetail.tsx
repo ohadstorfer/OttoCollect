@@ -440,17 +440,16 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                           variant="outline"
                           onClick={handleAddToWishList}
                           title="Add to wish list"
-                          // size="icon"
-                          className="text-gold-600 border-gold-600 hover:bg-gold-100"
-                        >
+                          size="default"
+                          className="text-gold-600 border-gold-600 hover:bg-gold-100 px-2 py-1 space-x-1 h-auto"
+                          >
                           Wish List <Plus></Plus>
                         </Button>
 
 
                         <Button
+                          variant="default"
                           size="icon"
-                          variant="outline"
-                          className="text-gold-600 border-gold-600 hover:bg-gold-100"
                           onClick={async () => {
                             await handleAddToCollection();
                             setHasJustBeenAdded(true);
@@ -464,8 +463,9 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                           disabled={adding}
                           title="Add this banknote to your collection"
                         >
-                          <BookmarkPlus className="w-5 h-5" />
+                          <BookmarkPlus className="w-6 h-6" style={{ width: "1.4rem", height: "1.4rem" }} />
                         </Button>
+
 
                       </div>
                     )
