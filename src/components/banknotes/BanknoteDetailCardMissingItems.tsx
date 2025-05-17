@@ -336,28 +336,31 @@ const BanknoteDetailCardMissingItems = ({
                   </>
                 )}
               </div>
-              <div className="gap-1.5 flex flex-wrap items-center text-sm mt-1">
-                {banknote.extendedPickNumber && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
-                    {banknote.extendedPickNumber}
-                  </Badge>
-                )}
-                {banknote.turkCatalogNumber && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
-                    {banknote.turkCatalogNumber}
-                  </Badge>
-                )}
-                {banknote.year && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
-                    {banknote.year}
-                  </Badge>
-                )}
-                {banknote.rarity && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800">
-                    {banknote.rarity}
-                  </Badge>
-                )}
-              </div>
+              <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
+              {banknote.extendedPickNumber && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  {banknote.extendedPickNumber}
+                </Badge>
+              )}
+              {banknote.turkCatalogNumber && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  {banknote.turkCatalogNumber}
+                </Badge>
+              )}
+              {banknote.year && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  {banknote.year}
+                </Badge>
+              )}
+              {banknote.rarity && (
+                <Badge
+                  variant="secondary"
+                  className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
+                >
+                  {banknote.rarity}
+                </Badge>
+              )}
+            </div>
               <div className="text-xs text-muted-foreground mt-1">
                 {banknote.sultanName && <span>Sultan: {banknote.sultanName}</span>}
                 {banknote.sealNames && <span className="ml-2">Seals: {banknote.sealNames}</span>}
@@ -381,7 +384,7 @@ const BanknoteDetailCardMissingItems = ({
         <div className="relative">
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
-              <h4 className="font-bold">{banknote.face_value}</h4>
+              <h4 className="font-bold">{banknote.denomination}</h4>
               {/* Wishlist: Trash icon instead of Add/Check */}
               {wishlistItemId ? (
                 <Button
@@ -423,19 +426,19 @@ const BanknoteDetailCardMissingItems = ({
               )}
             </div>
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
-              {banknote.extended_pick_number && (
+              {banknote.extendedPickNumber && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {banknote.extended_pick_number}
+                  {banknote.extendedPickNumber}
                 </Badge>
               )}
-              {banknote.turk_catalog_number && (
+              {banknote.turkCatalogNumber && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {banknote.turk_catalog_number}
+                  {banknote.turkCatalogNumber}
                 </Badge>
               )}
-              {banknote.gregorian_year && (
+              {banknote.year && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {banknote.gregorian_year}
+                  {banknote.year}
                 </Badge>
               )}
               {banknote.rarity && (
@@ -455,14 +458,14 @@ const BanknoteDetailCardMissingItems = ({
           </div>
 
           <div className="p-3 bg-background border-t">
-            {banknote.sultan_name && (
+            {banknote.sultanName && (
               <p className="text-xs text-muted-foreground">
-                Sultan: {banknote.sultan_name}
+                Sultan: {banknote.sultanName}
               </p>
             )}
-            {banknote.seal_names && (
+            {banknote.sealNames && (
               <p className="text-xs text-muted-foreground">
-                Seals: {banknote.seal_names}
+                Seals: {banknote.sealNames}
               </p>
             )}
           </div>
