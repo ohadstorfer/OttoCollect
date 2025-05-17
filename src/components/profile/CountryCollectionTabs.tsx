@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBanknotesByCountryId } from '@/services/banknoteService';
-import { fetchUserWishlist } from '@/services/wishlistService';
+import { fetchUserWishlistByCountry } from '@/services/wishlistService';
 import { fetchUserCollection } from '@/services/collectionService';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -51,18 +51,17 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     select: (data) => data.filter(item => item.banknote?.country === countryName)
   });
   
-  // Fetch user's wishlist items
+  // Fetch user's wishlist items (always with full banknote info), and filter by country
   const {
     data: wishlistItems,
     isLoading: wishlistLoading,
     error: wishlistError
   } = useQuery({
-    queryKey: ['user-wishlist', userId],
-    queryFn: () => fetchUserWishlist(userId),
-    enabled: !!userId,
-    select: (data) => data.filter(item => item.detailed_banknotes?.country === countryName)
+    queryKey: ['user-wishlist', userId, countryName],
+    queryFn: () => fetchUserWishlistByCountry(userId, countryName),
+    enabled: !!userId && !!countryName,
   });
-  
+
   // Calculate missing banknotes (ones in allBanknotes but not in userCollection)
   const missingBanknotes = React.useMemo(() => {
     if (!allBanknotes || !userCollection) return [];
@@ -127,7 +126,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     );
   };
   
-  // Wrapper component to display wishlist items
+  // WishlistDisplay - updated: ONLY send full banknote data to BanknoteDetailCard
   const WishlistDisplay: React.FC = () => {
     if (wishlistLoading) {
       return (
@@ -136,7 +135,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         </div>
       );
     }
-    
+
     if (wishlistError) {
       return (
         <div className="text-center py-8">
@@ -145,8 +144,11 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         </div>
       );
     }
-    
-    if (!wishlistItems || wishlistItems.length === 0) {
+
+    // Only show banknotes with a valid detailed_banknotes join
+    const validWishlist = (wishlistItems || []).filter(item => !!item.detailed_banknotes);
+
+    if (!validWishlist.length) {
       return (
         <Card className="p-8 text-center">
           <h3 className="text-xl font-medium mb-4">No Wishlist Items</h3>
@@ -163,22 +165,21 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         </Card>
       );
     }
-    
+
     return (
       <div className="page-container max-w-5xl mx-auto">
-        <h3 className="text-xl font-medium mb-4">Wishlist Items ({wishlistItems.length})</h3>
+        <h3 className="text-xl font-medium mb-4">Wishlist Items ({validWishlist.length})</h3>
         <div className={`grid ${viewMode === 'grid' 
           ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
-          {wishlistItems.map(item => 
-            item.detailed_banknotes && (
+          {validWishlist.map(item =>
             <BanknoteDetailCard
               key={item.id}
               banknote={item.detailed_banknotes}
               source="catalog"
-              // you can pass wishlist info in the future if needed
+              // Note: ONLY send banknote, not the wishlist item!
             />
-          ))}
+          )}
         </div>
       </div>
     );
