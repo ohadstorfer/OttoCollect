@@ -50,11 +50,11 @@ export async function fetchBanknotesByCountryId(
 ): Promise<DetailedBanknote[]> {
   try {
     if (!countryId) {
-      console.error('No country ID provided to fetchBanknotesByCountryId');
+      console.error('[fetchBanknotesByCountryId] No country ID provided to fetchBanknotesByCountryId');
       return [];
     }
     
-    console.log(`Fetching banknotes for country ID: ${countryId} with filters:`, filters);
+    console.log(`[fetchBanknotesByCountryId] Called with countryId:`, countryId, "filters:", filters);
     
     // First, get the country name using the country ID
     const { data: country, error: countryError } = await supabase
@@ -64,11 +64,11 @@ export async function fetchBanknotesByCountryId(
       .single();
     
     if (countryError || !country) {
-      console.error('Error fetching country name:', countryError);
+      console.error('[fetchBanknotesByCountryId] Error fetching country name:', countryError, 'Result:', country);
       return [];
     }
     
-    console.log(`Found country name: ${country.name} for ID: ${countryId}`);
+    console.log(`[fetchBanknotesByCountryId] Found country name:`, country.name, 'for ID:', countryId);
     
     // Get category names from category IDs
     let categoryNames: string[] = [];
@@ -81,10 +81,10 @@ export async function fetchBanknotesByCountryId(
         
         if (categoryData && categoryData.length > 0) {
           categoryNames = categoryData.map(cat => cat.name);
-          console.log('Filtering by categories:', categoryNames);
+          console.log('[fetchBanknotesByCountryId] Filtering by categories:', categoryNames);
         }
       } catch (err) {
-        console.error('Error fetching category names:', err);
+        console.error('[fetchBanknotesByCountryId] Error fetching category names:', err);
       }
     }
     
@@ -99,10 +99,10 @@ export async function fetchBanknotesByCountryId(
         
         if (typeData && typeData.length > 0) {
           typeNames = typeData.map(type => type.name);
-          console.log('Filtering by types:', typeNames);
+          console.log('[fetchBanknotesByCountryId] Filtering by types:', typeNames);
         }
       } catch (err) {
-        console.error('Error fetching type names:', err);
+        console.error('[fetchBanknotesByCountryId] Error fetching type names:', err);
       }
     }
     
@@ -127,12 +127,14 @@ export async function fetchBanknotesByCountryId(
     const { data, error } = await query;
     
     if (error) {
-      console.error('Error fetching banknotes by country:', error);
+      console.error('[fetchBanknotesByCountryId] Error fetching banknotes by country:', error);
       return [];
     }
-    
+
+    console.log(`[fetchBanknotesByCountryId] Raw banknote data response for country "${country.name}":`, data);
+
     // Filter by category and type on the server side
-    let filteredData = [...data];
+    let filteredData = [...(data || [])];
     
     // Apply category filters if any
     if (categoryNames.length > 0) {
@@ -171,14 +173,14 @@ export async function fetchBanknotesByCountryId(
       });
     }
     
-    console.log(`Found ${filteredData.length} banknotes for country: ${country.name}`);
-    
+    console.log(`[fetchBanknotesByCountryId] Final filtered banknote count:`, filteredData.length);
+
     // Map database fields to client-side model
     const banknotes = filteredData.map(mapBanknoteFromDatabase);
     
     return banknotes;
   } catch (error) {
-    console.error('Unexpected error in fetchBanknotesByCountryId:', error);
+    console.error('[fetchBanknotesByCountryId] Unexpected error:', error);
     return [];
   }
 }
