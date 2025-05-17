@@ -297,7 +297,7 @@ const BanknoteDetailCardWishList = ({
               <div className="flex justify-between items-start">
                 <h4 className="font-bold">{banknote.denomination}</h4>
                 {/* Wishlist: Trash icon instead of Add/Check */}
-                {props.wishlistItemId ? (
+                {wishlistItemId ? (
                   <Button
                     variant="ghost"
                     size="icon"
@@ -309,7 +309,6 @@ const BanknoteDetailCardWishList = ({
                     <Trash className="h-4 w-4 text-destructive" />
                   </Button>
                 ) : shouldShowCheck ? (
-                  // ... keep existing code for check button ...
                   <>
                     {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (list view) | banknote id:', banknote.id)}
                     <Button
@@ -324,7 +323,6 @@ const BanknoteDetailCardWishList = ({
                     </Button>
                   </>
                 ) : (
-                  // ... keep existing code for plus button ...
                   <>
                     {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (list view) | banknote id:', banknote.id)}
                     <Button
@@ -385,7 +383,7 @@ const BanknoteDetailCardWishList = ({
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{banknote.face_value}</h4>
               {/* Wishlist: Trash icon instead of Add/Check */}
-              {props.wishlistItemId ? (
+              {wishlistItemId ? (
                 <Button
                   variant="ghost"
                   size="icon"
