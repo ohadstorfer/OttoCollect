@@ -22,13 +22,13 @@ export const CountryHeader: React.FC<CountryHeaderProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-4 mb-6">
+    <div className="flex items-center gap-4 mb-1">
       {!hideBackButton && (
         <Button variant="ghost" onClick={handleBack} className="p-2">
           <ArrowLeft className="h-5 w-5" />
         </Button>
       )}
-      <h1 className="text-3xl font-bold">{countryName} Banknotes</h1>
+      <h1 className="text-3xl font-bold">{countryName} Collection</h1>
     </div>
   );
 };

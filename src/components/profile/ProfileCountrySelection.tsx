@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import CountrySelection from '@/pages/CountrySelection';
 import CountryCollectionTabs from '@/components/profile/CountryCollectionTabs';
+import { CountryHeader } from '../country/CountryHeader';
 
 interface ProfileCountrySelectionProps {
   userId: string;
@@ -13,6 +14,7 @@ interface ProfileCountrySelectionProps {
   profileId: string;
   onCountrySelect: (country: string) => void;
   onBackToCountries: () => void;
+  profileView?: boolean;
 }
 
 const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
@@ -22,17 +24,24 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   showCountryDetail,
   profileId,
   onCountrySelect,
-  onBackToCountries
+  onBackToCountries,
+  profileView = true,
 }) => {
   return showCountryDetail && selectedCountry ? (
     <div >
       <div className=" max-w-5xl mx-auto">
+      <CountryHeader 
+        countryName={selectedCountry} 
+        returnPath={'returnPath'} 
+        hideBackButton={profileView} // Hide the back button when in profile view
+      />
+      
         <Button 
           variant="ghost" 
           onClick={onBackToCountries} 
           
         >
-          <ArrowLeft className="h-5 w-5 mr-2" />
+          <ArrowLeft className="h-5 w-5 mr-2  " />
           Back to Countries
         </Button>
       </div>
