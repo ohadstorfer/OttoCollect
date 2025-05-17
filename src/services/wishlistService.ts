@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -65,5 +64,26 @@ export async function fetchUserWishlistByCountry(userId: string, countryName: st
   } catch (error) {
     console.error("[fetchUserWishlistByCountry] Exception fetching wishlist by country:", error);
     return [];
+  }
+}
+
+/**
+ * Deletes a wishlist item by its id
+ */
+export async function deleteWishlistItem(wishlistItemId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('wishlist_items')
+      .delete()
+      .eq('id', wishlistItemId);
+
+    if (error) {
+      console.error("[deleteWishlistItem] Failed to delete wishlist item:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[deleteWishlistItem] Exception deleting wishlist item:", err);
+    return false;
   }
 }

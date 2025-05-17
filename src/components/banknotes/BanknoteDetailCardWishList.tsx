@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import { toast } from '@/hooks/use-toast';
 import { ToastAction } from "@/components/ui/toast";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { addToCollection } from "@/services/collectionService";
+import { deleteWishlistItem } from "@/services/wishlistService";
 import { useAuth } from "@/context/AuthContext";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
@@ -25,6 +26,9 @@ interface BanknoteDetailCardProps {
   countryId?: string;
   fromGroup?: boolean;
   userCollection?: CollectionItem[];
+  wishlistItemId?: string;      // NEW: Pass the wishlist item id if rendered from wishlist
+  onDeleted?: () => void;       // Optional callback to let parent know of deletion
+  refetchWishlist?: () => void; // Optional callback to trigger a wishlist refetch
 }
 
 const BanknoteDetailCardWishList = ({
@@ -34,11 +38,15 @@ const BanknoteDetailCardWishList = ({
   countryId,
   fromGroup = false,
   userCollection = [],
+  wishlistItemId,
+  onDeleted,
+  refetchWishlist,
 }: BanknoteDetailCardProps) => {
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useAuth();
 
   // Toast window state: track shown toast's ID to programmatically dismiss it
@@ -144,6 +152,29 @@ const BanknoteDetailCardWishList = ({
   const handleAddButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     createCollectionItem(e);
+  };
+
+  const handleDeleteWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!props.wishlistItemId) return;
+    setIsDeleting(true);
+    const ok = await deleteWishlistItem(props.wishlistItemId);
+    setIsDeleting(false);
+    if (ok) {
+      toast({
+        title: "Removed from wishlist",
+        description: "This banknote was removed from your wishlist.",
+        className: "justify-center items-center w-full",
+      });
+      props.onDeleted && props.onDeleted();
+      props.refetchWishlist && props.refetchWishlist();
+    } else {
+      toast({
+        title: "Error",
+        description: "Could not remove this item from your wishlist.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleUpdateSuccess = () => {
@@ -265,7 +296,20 @@ const BanknoteDetailCardWishList = ({
             <div className="flex-1 ml-4">
               <div className="flex justify-between items-start">
                 <h4 className="font-bold">{banknote.denomination}</h4>
-                {shouldShowCheck ? (
+                {/* Wishlist: Trash icon instead of Add/Check */}
+                {props.wishlistItemId ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={handleDeleteWishlist}
+                    disabled={isDeleting}
+                    aria-label="Remove from wishlist"
+                  >
+                    <Trash className="h-4 w-4 text-destructive" />
+                  </Button>
+                ) : shouldShowCheck ? (
+                  // ... keep existing code for check button ...
                   <>
                     {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (list view) | banknote id:', banknote.id)}
                     <Button
@@ -280,6 +324,7 @@ const BanknoteDetailCardWishList = ({
                     </Button>
                   </>
                 ) : (
+                  // ... keep existing code for plus button ...
                   <>
                     {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (list view) | banknote id:', banknote.id)}
                     <Button
@@ -339,7 +384,19 @@ const BanknoteDetailCardWishList = ({
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{banknote.face_value}</h4>
-              {shouldShowCheck ? (
+              {/* Wishlist: Trash icon instead of Add/Check */}
+              {props.wishlistItemId ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={handleDeleteWishlist}
+                  disabled={isDeleting}
+                  aria-label="Remove from wishlist"
+                >
+                  <Trash className="h-4 w-4 text-destructive" />
+                </Button>
+              ) : shouldShowCheck ? (
                 <>
                   {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (grid view) | banknote id:', banknote.id)}
                   <Button

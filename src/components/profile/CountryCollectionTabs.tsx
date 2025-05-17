@@ -127,7 +127,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     );
   };
   
-  // WishlistDisplay - updated: ONLY send full banknote data to BanknoteDetailCard
+  // WishlistDisplay - updated: pass wishlist item id prop
   const WishlistDisplay: React.FC = () => {
     if (wishlistLoading) {
       return (
@@ -176,9 +176,11 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           {validWishlist.map(item =>
             <BanknoteDetailCardWishList
               key={item.id}
-             banknote ={item.detailed_banknotes}
+              banknote={item.detailed_banknotes}
+              wishlistItemId={item.id} // <-- send the wishlist item id
+              onDeleted={refetchCollection} // handy event for parent to act if wish
+              refetchWishlist={wishlistLoading ? undefined : () => { void refetchCollection(); }} // to refresh on delete
               source="catalog"
-              // Note: ONLY send banknote, not the wishlist item!
             />
           )}
         </div>
