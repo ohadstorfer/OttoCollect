@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBanknotesByCountryId } from '@/services/banknoteService';
-import { fetchUserWishlistByCountry } from '@/services/wishlistService';
+import { fetchUserWishlistByCountry, camelCaseBanknoteFields } from '@/services/wishlistService';
 import { fetchUserCollection } from '@/services/collectionService';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -137,7 +137,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     );
   };
   
-  // WishlistDisplay - REFACTORED for harmonized data structure
+  // WishlistDisplay - ENFORCE camelCase harmonization just before rendering
   const WishlistDisplay: React.FC = () => {
     if (wishlistLoading) {
       return (
@@ -157,10 +157,16 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     }
 
     // Only show banknotes with a valid harmonized object
-    const validWishlist = (wishlistItems || []).filter(item => !!item.detailed_banknotes);
+    // --> Harmonize here
+    const validWishlist = (wishlistItems || [])
+      .filter(item => !!item.detailed_banknotes)
+      .map(item => ({
+         ...item,
+         detailed_banknotes: camelCaseBanknoteFields(item.detailed_banknotes)
+      }));
 
-    // --- DEBUG LOG --- Wishlist Valid Data for Display
-    console.log("[CountryCollectionTabs - WishlistDisplay] validWishlist:", validWishlist);
+    // Add debug log to verify final shape (should see camelCase fields!)
+    console.log("[CountryCollectionTabs - WishlistDisplay] validWishlist (camelCased):", validWishlist);
 
     if (!validWishlist.length) {
       return (
@@ -188,9 +194,9 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           : 'grid-cols-1'} gap-4`}>
           {validWishlist.map(({ id, detailed_banknotes }) =>
             detailed_banknotes && (
-              // Add console log per detailed_banknote for debug
+              // Add log to show what is passed
               (() => {
-                console.log("[CountryCollectionTabs - WishlistDisplay] Rendering BanknoteDetailCard id:", id, " detailed_banknotes:", detailed_banknotes);
+                console.log("[CountryCollectionTabs/WishlistDisplay] Rendering BanknoteDetailCard for id:", id, " banknote:", detailed_banknotes);
                 return (
                   <BanknoteDetailCard
                     key={id}

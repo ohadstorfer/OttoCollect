@@ -2,25 +2,50 @@ import { supabase } from "@/integrations/supabase/client";
 import { DetailedBanknote } from "@/types";
 
 // Convert snake_case keys in DetailedBanknote to camelCase for compatibility with BanknoteDetailCard
-function camelCaseBanknoteFields(banknote: any): DetailedBanknote {
+export function camelCaseBanknoteFields(banknote: any): DetailedBanknote {
   if (!banknote || typeof banknote !== "object") return banknote;
-  // Map each snake_case key to camelCase, with fallbacks for undefined keys
   return {
-    ...banknote,
-    extendedPickNumber: banknote.extended_pick_number ?? banknote.extendedPickNumber,
+    // Manually map/camel-case all expected props for DetailedBanknote
+    id: banknote.id,
+    catalogId: banknote.catalog_id ?? banknote.catalogId,
+    country: banknote.country,
+    denomination: banknote.denomination,
+    year: banknote.year ?? banknote.gregorian_year ?? banknote.year,
+    series: banknote.series,
+    description: banknote.description,
+    obverseDescription: banknote.obverse_description ?? banknote.obverseDescription,
+    reverseDescription: banknote.reverse_description ?? banknote.reverseDescription,
+    imageUrls: banknote.image_urls ?? banknote.imageUrls ?? [],
+    isApproved: banknote.is_approved ?? banknote.isApproved,
+    isPending: banknote.is_pending ?? banknote.isPending,
+    createdAt: banknote.created_at ?? banknote.createdAt,
+    updatedAt: banknote.updated_at ?? banknote.updatedAt,
+    createdBy: banknote.created_by ?? banknote.createdBy,
     pickNumber: banknote.pick_number ?? banknote.pickNumber,
+    turkCatalogNumber: banknote.turk_catalog_number ?? banknote.turkCatalogNumber,
     sultanName: banknote.sultan_name ?? banknote.sultanName,
     sealNames: banknote.seal_names ?? banknote.sealNames,
-    turkCatalogNumber: banknote.turk_catalog_number ?? banknote.turkCatalogNumber,
-    gregorianYear: banknote.gregorian_year ?? banknote.gregorianYear,
+    rarity: banknote.rarity,
+    printer: banknote.printer,
+    type: banknote.type,
+    category: banknote.category,
+    securityFeatures: banknote.security_features ?? banknote.securityFeatures ?? [],
+    watermark: banknote.watermark_picture ?? banknote.watermark,
+    signatures: banknote.signatures ?? [],
+    colors: banknote.colors,
+    gradeCounts: banknote.grade_counts ?? banknote.gradeCounts,
+    averagePrice: banknote.average_price ?? banknote.averagePrice,
     islamicYear: banknote.islamic_year ?? banknote.islamicYear,
+    gregorianYear: banknote.gregorian_year ?? banknote.gregorianYear,
     banknoteDescription: banknote.banknote_description ?? banknote.banknoteDescription,
     historicalDescription: banknote.historical_description ?? banknote.historicalDescription,
+    serialNumbering: banknote.serial_numbering ?? banknote.serialNumbering,
     securityElement: banknote.security_element ?? banknote.securityElement,
     signaturesFront: banknote.signatures_front ?? banknote.signaturesFront,
     signaturesBack: banknote.signatures_back ?? banknote.signaturesBack,
-    watermark: banknote.watermark_picture ?? banknote.watermark, // Note: Check for correct mapping
-    // Keep the rest of keys untouched
+    extendedPickNumber: banknote.extended_pick_number ?? banknote.extendedPickNumber,
+    // allow extra fields to flow if present
+    ...banknote,
   };
 }
 
