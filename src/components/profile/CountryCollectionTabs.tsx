@@ -51,7 +51,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     select: (data) => data.filter(item => item.banknote?.country === countryName)
   });
   
-  // Fetch user's wishlist items (must provide joined detailed_banknotes!)
+  // Fetch user's wishlist items
   const {
     data: wishlistItems,
     isLoading: wishlistLoading,
@@ -164,7 +164,6 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       );
     }
     
-    // *** Key change: Render fully-populated banknotes from join ***
     return (
       <div className="page-container max-w-5xl mx-auto">
         <h3 className="text-xl font-medium mb-4">Wishlist Items ({wishlistItems.length})</h3>
@@ -174,15 +173,10 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           {wishlistItems.map(item => 
             item.detailed_banknotes && (
             <BanknoteDetailCard
-              key={item.detailed_banknotes.id}
+              key={item.id}
               banknote={item.detailed_banknotes}
               source="catalog"
-              viewMode={viewMode}
-              // Pass countryId as well if needed
-              countryId={countryId}
-              // Optionally pass userCollection as prop if needed for ownership highlighting
-              userCollection={userCollection || []}
-              // Any other props desired
+              // you can pass wishlist info in the future if needed
             />
           ))}
         </div>
