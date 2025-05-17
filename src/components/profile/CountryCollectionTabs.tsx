@@ -67,10 +67,28 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
   // Calculate missing banknotes (ones in allBanknotes but not in userCollection)
   const missingBanknotes = React.useMemo(() => {
     if (!allBanknotes || !userCollection) return [];
-    
-    const userBanknoteIds = new Set(userCollection.map(item => item.banknoteId));
-    return allBanknotes.filter(banknote => !userBanknoteIds.has(banknote.id));
-  }, [allBanknotes, userCollection]);
+
+    // Extra: Log for debugging!
+    console.log('[DEBUG] allBanknotes:', allBanknotes);
+    console.log('[DEBUG] userCollection (unfiltered):', userCollection);
+
+    // Filter userCollection to only include items for this countryName
+    const userCountryCollection = userCollection.filter(
+      item =>
+        item.banknote &&
+        item.banknote.country &&
+        countryName &&
+        item.banknote.country.trim().toLowerCase() === countryName.trim().toLowerCase()
+    );
+
+    const userBanknoteIds = new Set(userCountryCollection.map(item => String(item.banknoteId)));
+    const filtered = allBanknotes.filter(banknote => !userBanknoteIds.has(String(banknote.id)));
+
+    // Extra: Debug the result
+    console.log('[DEBUG] UserBanknoteIds:', userBanknoteIds, 'Missing:', filtered);
+
+    return filtered;
+  }, [allBanknotes, userCollection, countryName]);
 
   const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
