@@ -156,8 +156,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       );
     }
 
-    // Only show banknotes with a valid harmonized object
-    // --> Harmonize here
+    // --- ENFORCE: Harmonize each detailed_banknotes with camelCase conversion ---
     const validWishlist = (wishlistItems || [])
       .filter(item => !!item.detailed_banknotes)
       .map(item => ({
@@ -165,10 +164,20 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
          detailed_banknotes: camelCaseBanknoteFields(item.detailed_banknotes)
       }));
 
-    // Add debug log to verify final shape (should see camelCase fields!)
-    console.log("[CountryCollectionTabs - WishlistDisplay] validWishlist (camelCased):", validWishlist);
+    // --- DEBUG LOG: After harmonization ---
+    useEffect(() => {
+      console.log(
+        "[CountryCollectionTabs/WishlistDisplay] validWishlist after harmonization (camelCase fields):",
+        validWishlist.map(({ id, detailed_banknotes }) => ({
+          id,
+          keys: Object.keys(detailed_banknotes),
+          example: detailed_banknotes
+        }))
+      );
+    }, [wishlistItems]);
 
     if (!validWishlist.length) {
+      // ... keep existing code (no wishlist items card) the same ...
       return (
         <Card className="p-8 text-center">
           <h3 className="text-xl font-medium mb-4">No Wishlist Items</h3>
@@ -192,21 +201,22 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         <div className={`grid ${viewMode === 'grid' 
           ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
-          {validWishlist.map(({ id, detailed_banknotes }) =>
-            detailed_banknotes && (
-              // Add log to show what is passed
-              (() => {
-                console.log("[CountryCollectionTabs/WishlistDisplay] Rendering BanknoteDetailCard for id:", id, " banknote:", detailed_banknotes);
-                return (
-                  <BanknoteDetailCard
-                    key={id}
-                    banknote={detailed_banknotes}
-                    source="catalog"
-                  />
-                );
-              })()
-            )
-          )}
+          {validWishlist.map(({ id, detailed_banknotes }) => {
+            // --- DEBUG LOG: Confirm just before rendering card ---
+            console.log(
+              "[CountryCollectionTabs/WishlistDisplay] Rendering BanknoteDetailCard. Id:",
+              id, "| Keys on banknote:", Object.keys(detailed_banknotes), "| Data:", detailed_banknotes
+            );
+            return (
+              detailed_banknotes && (
+                <BanknoteDetailCard
+                  key={id}
+                  banknote={detailed_banknotes}
+                  source="catalog"
+                />
+              )
+            );
+          })}
         </div>
       </div>
     );
