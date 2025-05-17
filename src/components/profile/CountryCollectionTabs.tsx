@@ -1,9 +1,8 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
 import { useQuery } from '@tanstack/react-query';
-import { fetchBanknotesByCountryId, fetchBanknoteById } from '@/services/banknoteService';
+import { fetchBanknotesByCountryId } from '@/services/banknoteService';
 import { fetchUserWishlist } from '@/services/wishlistService';
 import { fetchUserCollection } from '@/services/collectionService';
 import { Button } from '@/components/ui/button';
@@ -24,7 +23,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
   userId,
   countryId,
   countryName,
-  isOwner,
+  isOwner
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
@@ -51,60 +50,23 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     enabled: !!userId && !!countryId,
     select: (data) => data.filter(item => item.banknote?.country === countryName)
   });
-
+  
   // Fetch user's wishlist items
   const {
     data: wishlistItems,
     isLoading: wishlistLoading,
-    error: wishlistError,
+    error: wishlistError
   } = useQuery({
-    queryKey: ['user-wishlist', userId, countryName],
+    queryKey: ['user-wishlist', userId],
     queryFn: () => fetchUserWishlist(userId),
     enabled: !!userId,
     select: (data) => data.filter(item => item.detailed_banknotes?.country === countryName)
   });
-
-  // Memoize banknote ids to refetch only when wishlistItems change
-  const wishlistBanknoteIds = useMemo(
-    () =>
-      (wishlistItems || [])
-        .map(item => item.banknote_id)
-        .filter(Boolean),
-    [wishlistItems]
-  );
-
-  // Efficient batch fetch of all needed banknotes by ID
-  const {
-    data: wishlistBanknotes,
-    isLoading: wishlistBanknotesLoading,
-    error: wishlistBanknotesError,
-  } = useQuery({
-    queryKey: ['wishlist-banknotes', wishlistBanknoteIds],
-    queryFn: async () => {
-      if (!wishlistBanknoteIds.length) return [];
-      // fetchBanknotesByCountryId fetches by country, not by explicit ids, so let's fetch all and filter.
-      // Create a new helper function to fetch multiple by ids (not shown here, but if the fetchBanknotesByCountryId supports multiple, use it, otherwise fetch all and filter)
-      // The following is a custom implementation - you may want to implement a dedicated backend function for large lists
-      const all = await fetchBanknotesByCountryId(countryId);
-      return all.filter(bn => wishlistBanknoteIds.includes(bn.id));
-    },
-    enabled: wishlistBanknoteIds.length > 0 && !!countryId,
-    staleTime: 60 * 1000
-  });
-
-  // Map for quick lookup: { banknoteId: banknoteObj }
-  const wishlistBanknotesMap = useMemo(() => {
-    if (!wishlistBanknotes) return {};
-    const map: Record<string, DetailedBanknote> = {};
-    wishlistBanknotes.forEach(bn => {
-      map[bn.id] = bn;
-    });
-    return map;
-  }, [wishlistBanknotes]);
-
+  
   // Calculate missing banknotes (ones in allBanknotes but not in userCollection)
-  const missingBanknotes = useMemo(() => {
+  const missingBanknotes = React.useMemo(() => {
     if (!allBanknotes || !userCollection) return [];
+    
     const userBanknoteIds = new Set(userCollection.map(item => item.banknoteId));
     return allBanknotes.filter(banknote => !userBanknoteIds.has(banknote.id));
   }, [allBanknotes, userCollection]);
@@ -164,17 +126,18 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       </div>
     );
   };
-
-  // Wrapper component to display wishlist items with full banknote data
+  
+  // Wrapper component to display wishlist items
   const WishlistDisplay: React.FC = () => {
-    if (wishlistLoading || wishlistBanknotesLoading) {
+    if (wishlistLoading) {
       return (
         <div className="flex justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-ottoman-600" />
         </div>
       );
     }
-    if (wishlistError || wishlistBanknotesError) {
+    
+    if (wishlistError) {
       return (
         <div className="text-center py-8">
           <h3 className="text-xl font-medium mb-4 text-red-500">Error loading wishlist</h3>
@@ -182,7 +145,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         </div>
       );
     }
-
+    
     if (!wishlistItems || wishlistItems.length === 0) {
       return (
         <Card className="p-8 text-center">
@@ -200,38 +163,22 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         </Card>
       );
     }
-
-    // Filter items where a full banknote object exists
-    const wishlistToDisplay = wishlistItems.filter(item => !!wishlistBanknotesMap[item.banknote_id]);
-    if (wishlistToDisplay.length === 0) {
-      return (
-        <div className="text-center py-8">
-          <h3 className="text-xl font-medium mb-4">No Banknote Data</h3>
-          <p className="text-muted-foreground mb-6">
-            Could not load details for the banknotes in this wishlist.
-          </p>
-        </div>
-      );
-    }
-
+    
     return (
       <div className="page-container max-w-5xl mx-auto">
-        <h3 className="text-xl font-medium mb-4">Wishlist Items ({wishlistToDisplay.length})</h3>
+        <h3 className="text-xl font-medium mb-4">Wishlist Items ({wishlistItems.length})</h3>
         <div className={`grid ${viewMode === 'grid' 
           ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
-          {wishlistToDisplay.map(item => {
-            const banknote = wishlistBanknotesMap[item.banknote_id];
-            if (!banknote) return null;
-            return (
-              <BanknoteDetailCard
-                key={item.id}
-                banknote={banknote}
-                source="catalog"
-                // You can pass other info (e.g. isWishlisted) if needed
-              />
-            );
-          })}
+          {wishlistItems.map(item => 
+            item.detailed_banknotes && (
+            <BanknoteDetailCard
+              key={item.id}
+              banknote={item.detailed_banknotes}
+              source="catalog"
+              // you can pass wishlist info in the future if needed
+            />
+          ))}
         </div>
       </div>
     );
