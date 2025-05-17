@@ -85,6 +85,9 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const checkButtonClass =
     "h-8 w-8 shrink-0 rounded-full border border-green-900 bg-gradient-to-br from-green-900 via-green-800 to-green-950 text-green-200 hover:bg-green-900 hover:shadow-lg transition-all duration-200 shadow-lg";
 
+  // Add: State to force immediate UI update after wishlisting
+  const [hasJustBeenWishlisted, setHasJustBeenWishlisted] = useState(false);
+
   // Handler for pressing the Check button (shows custom toast/dialog)
   const handleOwnershipCheckButton = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -218,6 +221,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     try {
       const result = await addToWishlist(user.id, banknote.id);
       if (result) {
+        setHasJustBeenWishlisted(true); // User feedback: instantly hide button
         toast({
           title: "Added to wish list!",
           description: "This banknote was added to your wish list.",
@@ -448,8 +452,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                       </Button>
                     ) : (
                       <div className="flex items-center space-x-2">
-                        {/* === Only show if NOT in wishlist and not loading === */}
-                        {!wishlistLoading && !wishlistItem && (
+                        {/* === Only show if NOT in wishlist and hasn't just been added, and not loading === */}
+                        {!wishlistLoading && !wishlistItem && !hasJustBeenWishlisted && (
                           <Button
                             variant="outline"
                             onClick={handleAddToWishList}
@@ -479,8 +483,6 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         >
                           <BookmarkPlus className="w-6 h-6" style={{ width: "1.4rem", height: "1.4rem" }} />
                         </Button>
-
-
                       </div>
                     )
                   )}
