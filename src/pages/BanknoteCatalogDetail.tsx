@@ -12,16 +12,16 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
-import { 
-  Calendar, 
-  BookOpen, 
-  Users, 
-  PenTool, 
-  Stamp, 
-  Hash, 
-  Shield, 
-  ArrowLeft, 
-  Info, 
+import {
+  Calendar,
+  BookOpen,
+  Users,
+  PenTool,
+  Stamp,
+  Hash,
+  Shield,
+  ArrowLeft,
+  Info,
   ImagePlus,
   FileText,
   Map,
@@ -51,7 +51,7 @@ interface BanknoteCatalogDetailProps {
 
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
   if (!value) return null;
-  
+
   return (
     <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-1.5 py-1.5 border-b border-gray-100 last:border-0">
       <div className="text-right font-medium text-muted-foreground">{label}</div>
@@ -66,7 +66,7 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDetailProps = {}) {
   const { id: paramsId } = useParams<{ id: string }>();
   const id = propsId || paramsId; // Use the prop id if provided, otherwise use the URL param
-  
+
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -151,7 +151,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
-  
+
   // Query client for refreshing on add to collection
   const queryClient = useQueryClient();
 
@@ -275,7 +275,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       </div>
     );
   }
-  
+
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);
   };
@@ -300,8 +300,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
         { label: "Rarity", value: banknote?.rarity, icon: <Star className="h-4 w-4" /> }
       ]
     },
-    
-      
+
+
     {
       title: "Production Details",
       icon: <Building className="h-5 w-5" />,
@@ -335,15 +335,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
             <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
             {!propsId && (
               <div className="flex items-center space-x-2">
-                <Button 
-                  variant="outline" 
-                  onClick={handleAddToWishList}
-                  title="Add to wish list"
-                  size="icon"
-                  className="text-yellow-600 border-yellow-600 hover:bg-yellow-100"
-                >
-                  <BookmarkPlus className="w-5 h-5" />
-                </Button>
+
                 <Button variant="outline" onClick={() => navigate(-1)}>
                   Back
                 </Button>
@@ -362,11 +354,11 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-2 pt-2 pb-2">
-              <div className="flex flex-col space-y-3">
+                <div className="flex flex-col space-y-3">
                   {imageUrls.length > 0 ? (
                     imageUrls.slice(0, 4).map((url, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => openImageViewer(url)}
                       >
@@ -384,7 +376,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                       <p className="text-muted-foreground">No images available</p>
                     </div>
                   )}
-                  
+
                   {imageUrls.length > 4 && (
                     <Sheet>
                       <SheetTrigger asChild>
@@ -401,8 +393,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         </SheetHeader>
                         <div className="grid grid-cols-2 gap-4 mt-8">
                           {imageUrls.map((url, index) => (
-                            <div 
-                              key={index} 
+                            <div
+                              key={index}
                               className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
                               onClick={() => openImageViewer(url)}
                             >
@@ -423,7 +415,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               </CardContent>
             </Card>
           </div>
-          
+
           <div className="lg:col-span-3">
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
@@ -443,35 +435,50 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         <Check className="h-4 w-4" />
                       </Button>
                     ) : (
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onClick={async () => {
-                          await handleAddToCollection();
-                          setHasJustBeenAdded(true);
-                          toast({
-                            title: "Added to your collection!",
-                            description: "This banknote was added. Visit your collection to edit its details.",
-                            className: "justify-center items-center w-full",
-                            duration: 3000,
-                          });
-                        }}
-                        disabled={adding}
-                        title="Add this banknote to your collection"
-                      >
-                        <Plus className="w-4 h-4" /> 
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          onClick={handleAddToWishList}
+                          title="Add to wish list"
+                          // size="icon"
+                          className="text-gold-600 border-gold-600 hover:bg-gold-100"
+                        >
+                          Wish List <Plus></Plus>
+                        </Button>
+
+
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="text-gold-600 border-gold-600 hover:bg-gold-100"
+                          onClick={async () => {
+                            await handleAddToCollection();
+                            setHasJustBeenAdded(true);
+                            toast({
+                              title: "Added to your collection!",
+                              description: "This banknote was added. Visit your collection to edit its details.",
+                              className: "justify-center items-center w-full",
+                              duration: 3000,
+                            });
+                          }}
+                          disabled={adding}
+                          title="Add this banknote to your collection"
+                        >
+                          <BookmarkPlus className="w-5 h-5" />
+                        </Button>
+
+                      </div>
                     )
                   )}
                 </div>
                 <CardDescription>Complete information about this banknote</CardDescription>
               </CardHeader>
-              
+
               <CardContent className="p-6">
                 <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-0">
                   {detailGroups.map((group, groupIndex) => (
-                    <AccordionItem 
-                      key={`item-${groupIndex}`} 
+                    <AccordionItem
+                      key={`item-${groupIndex}`}
                       value={`item-${groupIndex}`}
                       className="border rounded-md px-2"
                     >
@@ -501,7 +508,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                     </AccordionItem>
                   ))}
                 </Accordion>
-                
+
                 {(banknote.banknoteDescription || banknote.historicalDescription) && (
                   <div className="mt-6 space-y-4">
                     {banknote.banknoteDescription && (
@@ -516,7 +523,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         </CardContent>
                       </Card>
                     )}
-                    
+
                     {banknote.historicalDescription && (
                       <Card className="overflow-hidden">
                         <CardHeader className="py-3 px-4 bg-muted/30">
@@ -535,16 +542,16 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
             </Card>
           </div>
         </div>
-        
+
       </div>
-      
+
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContent className="sm:max-w-[800px] p-1">
-            <img 
-              src={selectedImage} 
+            <img
+              src={selectedImage}
               alt="Banknote detail"
-              className="w-full h-auto rounded" 
+              className="w-full h-auto rounded"
             />
           </DialogContent>
         </Dialog>
