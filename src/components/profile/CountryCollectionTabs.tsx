@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
 import { useQuery } from '@tanstack/react-query';
@@ -67,6 +67,11 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     queryFn: () => fetchUserWishlistByCountry(userId, countryName),
     enabled: !!userId && !!countryName,
   });
+
+  // --- DEBUG LOG --- Wishlist Data after react-query fetch ---
+  useEffect(() => {
+    console.log("[CountryCollectionTabs] wishlistItems after fetch:", wishlistItems);
+  }, [wishlistItems]);
 
   // Calculate missing banknotes (ones in allBanknotes but not in userCollection)
   const missingBanknotes = React.useMemo(() => {
@@ -154,6 +159,9 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     // Only show banknotes with a valid harmonized object
     const validWishlist = (wishlistItems || []).filter(item => !!item.detailed_banknotes);
 
+    // --- DEBUG LOG --- Wishlist Valid Data for Display
+    console.log("[CountryCollectionTabs - WishlistDisplay] validWishlist:", validWishlist);
+
     if (!validWishlist.length) {
       return (
         <Card className="p-8 text-center">
@@ -180,11 +188,17 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           : 'grid-cols-1'} gap-4`}>
           {validWishlist.map(({ id, detailed_banknotes }) =>
             detailed_banknotes && (
-              <BanknoteDetailCard
-                key={id}
-                banknote={detailed_banknotes}
-                source="catalog"
-              />
+              // Add console log per detailed_banknote for debug
+              (() => {
+                console.log("[CountryCollectionTabs - WishlistDisplay] Rendering BanknoteDetailCard id:", id, " detailed_banknotes:", detailed_banknotes);
+                return (
+                  <BanknoteDetailCard
+                    key={id}
+                    banknote={detailed_banknotes}
+                    source="catalog"
+                  />
+                );
+              })()
             )
           )}
         </div>

@@ -49,9 +49,24 @@ const BanknoteDetailCard = ({
   const [hasJustBeenAdded, setHasJustBeenAdded] = useState(false);
   const [showOwnershipToast, setShowOwnershipToast] = useState(false);
 
-  // --- Debug logs: input props ---
-  console.log('[BanknoteDetailCard] banknote:', banknote);
-  console.log('[BanknoteDetailCard] userCollection:', userCollection);
+  // DEBUG: Log the incoming banknote prop in this component
+  console.log('[BanknoteDetailCard] received banknote prop:', banknote);
+
+  // Add further field-level logging to look for problematic or missing fields
+  console.log('[BanknoteDetailCard][DEBUG PROPS] id:', banknote.id,
+    '| denomination:', banknote.denomination,
+    '| country:', banknote.country,
+    '| extendedPickNumber:', (banknote as any).extendedPickNumber,
+    '| extended_pick_number:', (banknote as any).extended_pick_number,
+    '| turkCatalogNumber:', (banknote as any).turkCatalogNumber,
+    '| turk_catalog_number:', (banknote as any).turk_catalog_number,
+    '| year:', (banknote as any).year,
+    '| gregorian_year:', (banknote as any).gregorian_year,
+    '| sultanName:', (banknote as any).sultanName,
+    '| sultan_name:', (banknote as any).sultan_name,
+    '| sealNames:', (banknote as any).sealNames,
+    '| seal_names:', (banknote as any).seal_names
+  );
 
   // Only care about ownership when viewing from catalog
   const ownsThisBanknote =

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { DetailedBanknote } from "@/types";
 
@@ -8,7 +9,6 @@ export async function fetchUserWishlist(userId: string): Promise<{ id: string; b
   try {
     console.log("[fetchUserWishlist] Starting fetch for user:", userId);
 
-    // Perform complete join for all banknote fields
     const { data, error } = await supabase
       .from('wishlist_items')
       .select(`
@@ -22,11 +22,18 @@ export async function fetchUserWishlist(userId: string): Promise<{ id: string; b
       return [];
     }
 
+    // Debug log: fetched raw data from Supabase
+    console.log("[fetchUserWishlist] Raw data from Supabase:", data);
+
     // TYPE HARMONIZATION: Ensure .detailed_banknotes is DetailedBanknote type.
-    return (data || []).map((item: any) => ({
+    const result = (data || []).map((item: any) => ({
       ...item,
       detailed_banknotes: item.detailed_banknotes as DetailedBanknote,
     }));
+
+    console.log("[fetchUserWishlist] Harmonized result:", result);
+
+    return result;
   } catch (error) {
     console.error("[fetchUserWishlist] Exception fetching wishlist:", error);
     return [];
@@ -56,6 +63,9 @@ export async function fetchUserWishlistByCountry(
       return [];
     }
 
+    // Debug log: fetched raw data from Supabase
+    console.log("[fetchUserWishlistByCountry] Raw data from Supabase:", data);
+
     // Harmonize: Filter by exactly the banknote country (on full object)
     const filteredData = (data || []).filter(
       (item: any) => item.detailed_banknotes && item.detailed_banknotes.country === countryName
@@ -64,7 +74,7 @@ export async function fetchUserWishlistByCountry(
       detailed_banknotes: item.detailed_banknotes as DetailedBanknote,
     }));
 
-    console.log(`[fetchUserWishlistByCountry] Found ${filteredData?.length || 0} wishlist items for user ${userId} in country ${countryName}`);
+    console.log(`[fetchUserWishlistByCountry] Filtered and harmonized data:`, filteredData);
 
     return filteredData;
   } catch (error) {
