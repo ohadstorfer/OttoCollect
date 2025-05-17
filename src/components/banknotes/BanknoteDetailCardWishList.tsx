@@ -156,9 +156,9 @@ const BanknoteDetailCardWishList = ({
 
   const handleDeleteWishlist = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!props.wishlistItemId) return;
+    if (!wishlistItemId) return;
     setIsDeleting(true);
-    const ok = await deleteWishlistItem(props.wishlistItemId);
+    const ok = await deleteWishlistItem(wishlistItemId);
     setIsDeleting(false);
     if (ok) {
       toast({
@@ -166,8 +166,8 @@ const BanknoteDetailCardWishList = ({
         description: "This banknote was removed from your wishlist.",
         className: "justify-center items-center w-full",
       });
-      props.onDeleted && props.onDeleted();
-      props.refetchWishlist && props.refetchWishlist();
+      onDeleted && onDeleted();
+      refetchWishlist && refetchWishlist();
     } else {
       toast({
         title: "Error",
