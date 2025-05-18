@@ -42,6 +42,31 @@ export async function uploadCollectionImage(file: File): Promise<string> {
 
 export type { CollectionItem };
 
+// Utility for banknote normalization
+function normalizeBanknoteData(
+  banknote: any,
+  source: "detailed" | "unlisted"
+): any {
+  // Map both sources to a unified structure (consolidate required fields)
+  return {
+    id: banknote.id,
+    country: banknote.country ?? "",
+    denomination: banknote.denomination ?? banknote.face_value ?? "",
+    year: banknote.year ?? banknote.gregorian_year ?? "",
+    series: banknote.series ?? "",
+    extendedPickNumber: banknote.extendedPickNumber ?? banknote.extended_pick_number ?? "",
+    pickNumber: banknote.pickNumber ?? banknote.pick_number ?? "",
+    turkCatalogNumber: banknote.turkCatalogNumber ?? banknote.turk_catalog_number ?? "",
+    sultanName: banknote.sultanName ?? banknote.sultan_name ?? "",
+    type: banknote.type ?? "",
+    category: banknote.category ?? "",
+    rarity: banknote.rarity ?? "",
+    sealNames: banknote.sealNames ?? banknote.seal_names ?? "",
+    imageUrls: banknote.imageUrls ?? banknote.front_picture || [], // use front_picture for unlisted
+    // add any other mapped/required fields
+  };
+}
+
 // --- Replace fetchUserCollection with backend SQL sort using view ---
 
 export async function fetchUserCollection(userId: string): Promise<CollectionItem[]> {
@@ -63,16 +88,16 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
       return [];
     }
 
-    // Map each collection item with its correct banknote details
+    // Map each collection item with normalized banknote details
     const enrichedItems: CollectionItem[] = collectionData.map((item: any) => {
-      // Prefer detailed_banknotes unless it's unlisted
       let banknote;
       if (item.is_unlisted_banknote) {
-        banknote = item.unlisted_banknotes;
+        banknote = item.unlisted_banknotes
+          ? normalizeBanknoteData(item.unlisted_banknotes, "unlisted")
+          : undefined;
       } else {
-        // Map detailed_banknotes to correct frontend format if present
         banknote = item.detailed_banknotes
-          ? mapBanknoteFromDatabase(item.detailed_banknotes)
+          ? normalizeBanknoteData(mapBanknoteFromDatabase(item.detailed_banknotes), "detailed")
           : undefined;
       }
 
@@ -254,7 +279,11 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
   try {
     const { data: item, error } = await supabase
       .from('collection_items')
-      .select('*')
+      .select(`
+        *,
+        detailed_banknotes:banknote_id (*),
+        unlisted_banknotes:unlisted_banknotes_id (*)
+      `)
       .eq('id', itemId)
       .maybeSingle();
 
@@ -265,30 +294,10 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
 
     let banknote = null;
 
-    if (item.is_unlisted_banknote && item.unlisted_banknotes_id) {
-      // Join with unlisted_banknotes
-      const { data: unlisted, error: unlistedErr } = await supabase
-        .from('unlisted_banknotes')
-        .select('*')
-        .eq('id', item.unlisted_banknotes_id)
-        .maybeSingle();
-      if (unlistedErr) {
-        console.error(`Error fetching unlisted_banknotes for collection item: ${item.unlisted_banknotes_id}`, unlistedErr);
-        return null;
-      }
-      banknote = unlisted;
-    } else if (!item.is_unlisted_banknote && item.banknote_id) {
-      // Join with detailed_banknotes
-      const { data: detailed, error: detailedErr } = await supabase
-        .from('detailed_banknotes')
-        .select('*')
-        .eq('id', item.banknote_id)
-        .maybeSingle();
-      if (detailedErr) {
-        console.error(`Error fetching detailed_banknotes for collection item: ${item.banknote_id}`, detailedErr);
-        return null;
-      }
-      banknote = detailed ? mapBanknoteFromDatabase(detailed) : null;
+    if (item.is_unlisted_banknote && item.unlisted_banknotes) {
+      banknote = normalizeBanknoteData(item.unlisted_banknotes, "unlisted");
+    } else if (!item.is_unlisted_banknote && item.detailed_banknotes) {
+      banknote = normalizeBanknoteData(mapBanknoteFromDatabase(item.detailed_banknotes), "detailed");
     }
 
     if (!banknote) {
