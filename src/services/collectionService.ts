@@ -1,44 +1,50 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionItem } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
+import { fetchBanknoteById } from "@/services/banknoteService";
+import { fetchCountryById } from "@/services/countryService";
 import { BanknoteCondition } from "@/types";
 import type { Database } from "@/integrations/supabase/types";
 
 // Type definition for collection items table insert
 type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
 
-/**
- * Smartly fetches banknote details from either detailed_banknotes or unlisted_banknotes.
- */
-async function smartFetchBanknote(item: any) {
-  if (item.is_unlisted_banknote && item.unlisted_banknotes_id) {
-    const { data: bn, error } = await supabase
-      .from('unlisted_banknotes')
-      .select('*')
-      .eq('id', item.unlisted_banknotes_id)
-      .maybeSingle();
+export async function uploadCollectionImage(file: File): Promise<string> {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data.user) throw new Error("User not authenticated");
+
+    const userId = user.data.user.id;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from('banknote_images')
+      .upload(filePath, file);
+
     if (error) {
-      console.error('[fetchUserCollection] Error fetching unlisted_banknote:', error);
-      return null;
+      console.error("Error uploading image:", error);
+      throw error;
     }
-    return bn;
-  } else if (item.banknote_id) {
-    const { data: bn, error } = await supabase
-      .from('detailed_banknotes')
-      .select('*')
-      .eq('id', item.banknote_id)
-      .maybeSingle();
-    if (error) {
-      console.error('[fetchUserCollection] Error fetching detailed_banknote:', error);
-      return null;
-    }
-    return bn;
+
+    const { data } = supabase.storage
+      .from('banknote_images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  } catch (error) {
+    console.error("Error in uploadCollectionImage:", error);
+    throw error;
   }
-  return null;
 }
+
+export type { CollectionItem };
 
 export async function fetchUserCollection(userId: string): Promise<CollectionItem[]> {
   try {
+    console.log("[fetchUserCollection] Starting fetch for user:", userId);
+    
     const { data: collectionItems, error } = await supabase
       .from('collection_items')
       .select('*')
@@ -50,19 +56,42 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
       throw error;
     }
 
-    // Fetch actual banknote info for every item
+    console.log(`[fetchUserCollection] Found ${collectionItems?.length || 0} raw collection items for user:`, userId);
+    
+    if (collectionItems && collectionItems.length > 0) {
+      console.log("[fetchUserCollection] Sample raw item:", collectionItems[0]);
+    }
+
+    // Fetch banknote details for each collection item
     const enrichedItems = await Promise.all(
       (collectionItems || []).map(async (item) => {
-        const banknote = await smartFetchBanknote(item);
+        console.log(`[fetchUserCollection] Fetching banknote details for item ${item.id}, banknote_id: ${item.banknote_id}`);
+        const banknote = await fetchBanknoteById(item.banknote_id);
+        
         if (!banknote) {
-          console.error(`[fetchUserCollection] Banknote not found for collection item:`, item);
+          console.error(`[fetchUserCollection] Banknote not found for collection item: ${item.banknote_id}`);
           return null;
         }
-        return {
+        
+        console.log(`[fetchUserCollection] Retrieved banknote details for ${item.banknote_id}:`, {
+          country: banknote.country,
+          denomination: banknote.denomination,
+          year: banknote.year,
+          type: banknote.type || "NO_TYPE",
+          imageUrls: banknote.imageUrls,
+          imageUrlsType: typeof banknote.imageUrls
+        });
+        
+        // Ensure banknote.type is never undefined - default to "Issued note"
+        if (!banknote.type) {
+          banknote.type = "Issued note";
+        }
+        
+        const enrichedItem = {
           id: item.id,
           userId: item.user_id,
           banknoteId: item.banknote_id,
-          banknote, // always assigned, unlisted or regular
+          banknote: banknote,
           condition: item.condition as BanknoteCondition,
           salePrice: item.sale_price,
           isForSale: item.is_for_sale,
@@ -77,11 +106,17 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
           createdAt: item.created_at,
           updatedAt: item.updated_at
         } as CollectionItem;
+        
+        console.log(`[fetchUserCollection] Enriched item created for ${item.id}`);
+        return enrichedItem;
       })
     );
 
-    // Filter out nulls
-    return (enrichedItems.filter(Boolean) as CollectionItem[]);
+    // Filter out any null items (where banknote wasn't found)
+    const validItems = enrichedItems.filter(item => item !== null) as CollectionItem[];
+    console.log(`[fetchUserCollection] Returning ${validItems.length} enriched items after filtering nulls`);
+    
+    return validItems;
   } catch (error) {
     console.error("[fetchUserCollection] Error in fetchUserCollection:", error);
     return [];
@@ -94,29 +129,72 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
 }
 
 /**
- * Returns only items for a specific country, using the smart join.
+ * Fetches user's collection items filtered by country
+ * @param userId The user ID
+ * @param countryId The country ID to filter by
+ * @returns Collection items for the specified country
  */
 export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
   try {
-    // Fetch all items
-    const allItems = await fetchUserCollection(userId);
-
-    // Fetch country name to filter by
-    const { data: country, error } = await supabase
-      .from('countries')
-      .select('name')
-      .eq('id', countryId)
-      .maybeSingle();
-    if (error || !country) return [];
-
-    return allItems.filter(item =>
-      item.banknote &&
-      item.banknote.country &&
-      country.name &&
-      (item.banknote.country || '').toLowerCase() === (country.name || '').toLowerCase()
-    );
+    console.log("[fetchUserCollectionByCountry] Starting fetch for:", { userId, countryId });
+    
+    // First get the country data to get the name
+    const country = await fetchCountryById(countryId);
+    
+    if (!country) {
+      console.error(`[fetchUserCollectionByCountry] Country not found with ID: ${countryId}`);
+      return [];
+    }
+    
+    console.log(`[fetchUserCollectionByCountry] Found country: ${country.name} for ID: ${countryId}`);
+    
+    // Fetch all user's collection items
+    const allCollectionItems = await fetchUserCollection(userId);
+    
+    if (!allCollectionItems || allCollectionItems.length === 0) {
+      console.log("[fetchUserCollectionByCountry] No collection items found for user");
+      return [];
+    }
+    
+    console.log(`[fetchUserCollectionByCountry] Got ${allCollectionItems.length} collection items before filtering`);
+    
+    // Then filter by country name - this is important as the banknotes store country names, not IDs
+    const filteredItems = allCollectionItems.filter(item => {
+      const matchesCountry = item.banknote && item.banknote.country === country.name;
+      
+      if (!matchesCountry) {
+        console.log(`[fetchUserCollectionByCountry] Item ${item.id} has banknote country "${item.banknote?.country}" which doesn't match "${country.name}"`);
+      }
+      
+      return matchesCountry;
+    });
+    
+    console.log(`[fetchUserCollectionByCountry] Found ${filteredItems.length} items for country ${country.name} (ID: ${countryId})`);
+    
+    // Log the first item to debug
+    if (filteredItems.length > 0) {
+      const sampleItem = filteredItems[0];
+      console.log("[fetchUserCollectionByCountry] Sample filtered item:", {
+        id: sampleItem.id,
+        banknoteId: sampleItem.banknoteId,
+        banknote: {
+          id: sampleItem.banknote?.id,
+          country: sampleItem.banknote?.country,
+          denomination: sampleItem.banknote?.denomination,
+          year: sampleItem.banknote?.year,
+          imageUrls: sampleItem.banknote?.imageUrls
+        },
+        condition: sampleItem.condition,
+        images: {
+          obverseImage: sampleItem.obverseImage,
+          reverseImage: sampleItem.reverseImage
+        }
+      });
+    }
+    
+    return filteredItems;
   } catch (error) {
-    console.error("[fetchUserCollectionByCountry] Error:", error);
+    console.error("[fetchUserCollectionByCountry] Error in fetchUserCollectionByCountry:", error);
     return [];
   }
 }
@@ -211,27 +289,54 @@ function generateStableIdFromName(name: string): string {
   return `${hashString}-${hashString.substr(0, 4)}-4${hashString.substr(4, 3)}-${hashString.substr(7, 4)}-${hashString.substr(0, 12)}`;
 }
 
-/**
- * Fetch a single CollectionItem by id, with smart join for banknote type.
- */
 export async function fetchCollectionItem(itemId: string): Promise<CollectionItem | null> {
   try {
+    // First check if the item exists
     const { data: item, error } = await supabase
       .from('collection_items')
-      .select('*')
+      .select(`
+        id,
+        user_id,
+        banknote_id,
+        condition,
+        sale_price,
+        is_for_sale,
+        public_note,
+        private_note,
+        purchase_price,
+        purchase_date,
+        location,
+        obverse_image,
+        reverse_image,
+        order_index,
+        created_at,
+        updated_at
+      `)
       .eq('id', itemId)
       .maybeSingle();
 
-    if (error || !item) return null;
+    if (error) {
+      console.error("Error fetching collection item:", error);
+      return null;
+    }
 
-    const banknote = await smartFetchBanknote(item);
-    if (!banknote) return null;
+    if (!item) {
+      console.log(`Collection item not found: ${itemId}`);
+      return null;
+    }
 
+    // Fetch the banknote details
+    const banknote = await fetchBanknoteById(item.banknote_id);
+    if (!banknote) {
+      console.error(`Banknote not found for collection item: ${item.banknote_id}`);
+      return null;
+    }
+    
     return {
       id: item.id,
       userId: item.user_id,
       banknoteId: item.banknote_id,
-      banknote,
+      banknote: banknote,
       condition: item.condition as BanknoteCondition,
       salePrice: item.sale_price,
       isForSale: item.is_for_sale,
@@ -303,7 +408,7 @@ export async function addToCollection(
     }
 
     // Fetch the banknote details
-    const banknote = await smartFetchBanknote(insertedItem);
+    const banknote = await fetchBanknoteById(insertedItem.banknote_id);
     
     const collectionItem: CollectionItem = {
       id: insertedItem.id,
@@ -694,35 +799,5 @@ export async function fetchUserCollectionCountByCountry(userId: string): Promise
   } catch (err) {
     console.error("Error in fetchUserCollectionCountByCountry", err);
     return {};
-  }
-}
-
-export async function uploadCollectionImage(file: File): Promise<string> {
-  try {
-    const user = await supabase.auth.getUser();
-    if (!user.data.user) throw new Error("User not authenticated");
-
-    const userId = user.data.user.id;
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${uuidv4()}.${fileExt}`;
-    const filePath = `${userId}/${fileName}`;
-
-    const { error } = await supabase.storage
-      .from('banknote_images')
-      .upload(filePath, file);
-
-    if (error) {
-      console.error("Error uploading image:", error);
-      throw error;
-    }
-
-    const { data } = supabase.storage
-      .from('banknote_images')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
-  } catch (error) {
-    console.error("Error in uploadCollectionImage:", error);
-    throw error;
   }
 }
