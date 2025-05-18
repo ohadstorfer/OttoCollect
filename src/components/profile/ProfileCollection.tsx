@@ -8,6 +8,7 @@ import { DynamicFilterState } from '@/types/filter';
 import { Loader2, Plus, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
+import UnlistedBanknoteDialog from '@/components/collection/UnlistedBanknoteDialog';
 
 interface ProfileCollectionProps {
   userId: string;
@@ -43,6 +44,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid');
   const [editingItemId, setEditingItemId] = React.useState<string | null>(null);
   const [groupMode, setGroupMode] = React.useState(false);
+  const [unlistedDialogOpen, setUnlistedDialogOpen] = React.useState(false);
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFilterChange({ search: e.target.value });
@@ -97,6 +99,27 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Add the button only if it's the user's own profile */}
+      {isOwnProfile && (
+        <div className="flex justify-end pb-2">
+          <Button variant="default" onClick={() => setUnlistedDialogOpen(true)}>
+            Add an Unlisted Banknote
+          </Button>
+        </div>
+      )}
+      {/* Unlisted banknote dialog */}
+      {isOwnProfile && (
+        <UnlistedBanknoteDialog
+          open={unlistedDialogOpen}
+          onOpenChange={setUnlistedDialogOpen}
+          userId={userId}
+          onCreated={() => {
+            // Trigger a reload for collection after adding new
+            onRetry();
+          }}
+        />
+      )}
+
       <div className="flex flex-col gap-4">
         <CountryFilterSection
           countryId={countryId || ""}
