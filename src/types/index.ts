@@ -158,14 +158,19 @@ export interface BanknoteFilterState {
 }
 
 // Collection related interfaces
+// Only one declaration for CollectionItem (resolve duplicate/variant error)
+// Update to permit both banknote/unlistedBanknote (never both), with the union
 export interface CollectionItem {
   id: string;
   userId: string;
-  banknoteId: string;
-  banknote: DetailedBanknote;
+  // Discriminator: regular or unlisted
+  banknoteId?: string | null;
+  unlistedBanknotesId?: string | null;
+  banknote?: DetailedBanknote; // Only if regular
+  unlistedBanknote?: UnlistedBanknote; // Only if unlisted
   condition: BanknoteCondition;
   purchasePrice?: number;
-  purchaseDate?: string | Date;  // Allow both string and Date
+  purchaseDate?: string | Date;
   location?: string;
   obverseImage?: string;
   reverseImage?: string;
@@ -177,6 +182,7 @@ export interface CollectionItem {
   orderIndex?: number;
   createdAt?: string;
   updatedAt?: string;
+  isUnlistedBanknote?: boolean;
 }
 
 // Marketplace related interfaces
@@ -236,34 +242,6 @@ export interface UnlistedBanknote {
   serialNumbering?: string;
   banknoteDescription?: string;
   historicalDescription?: string;
-}
-
-// Update CollectionItem to support unlistedBanknote variant
-// Update CollectionItem to support unlistedBanknote variant
-export interface CollectionItem {
-  id: string;
-  userId: string;
-  // Either banknoteId OR unlistedBanknotesId
-  banknoteId?: string | null;
-  unlistedBanknotesId?: string | null;
-  banknote?: DetailedBanknote; // Normal flow
-  unlistedBanknote?: UnlistedBanknote; // New
-  condition: BanknoteCondition;
-  purchasePrice?: number;
-  purchaseDate?: string | Date;
-  location?: string;
-  obverseImage?: string;
-  reverseImage?: string;
-  personalImages?: string[];
-  publicNote?: string;
-  privateNote?: string;
-  isForSale: boolean;
-  salePrice?: number;
-  orderIndex?: number;
-  createdAt?: string;
-  updatedAt?: string;
-  // New
-  isUnlistedBanknote?: boolean;
 }
 
 // Import and re-export types from other files

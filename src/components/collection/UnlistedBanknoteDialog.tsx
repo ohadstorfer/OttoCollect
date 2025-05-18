@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -28,16 +27,19 @@ export const UnlistedBanknoteDialog: React.FC<UnlistedBanknoteDialogProps> = ({ 
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
+      // Prepare object to match UnlistedBanknote structure
+      // Remove 'condition' from unlistedBanknote, only include in collectionParams
+      const unlistedBanknoteData = {
+        country,
+        faceValue,
+        extendedPickNumber: pickNumber,
+        pickNumber,
+        banknoteDescription: note,
+      };
+
       const res = await addUnlistedBanknoteAndToCollection({
         userId,
-        unlistedBanknote: {
-          country,
-          faceValue,
-          condition, // can be string (add to model), or leave out for now
-          extendedPickNumber: pickNumber, // using as both for simplicity
-          pickNumber,
-          banknoteDescription: note,
-        },
+        unlistedBanknote: unlistedBanknoteData,
         collectionParams: { condition, publicNote: note }
       });
 
@@ -89,7 +91,9 @@ export const UnlistedBanknoteDialog: React.FC<UnlistedBanknoteDialogProps> = ({ 
           </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button onClick={() => onOpenChange(false)} variant="outline" disabled={submitting}>Cancel</Button>
-            <Button onClick={handleSubmit} loading={submitting}>Create Unlisted Banknote</Button>
+            <Button onClick={handleSubmit} disabled={submitting}>
+              {submitting ? "Creating..." : "Create Unlisted Banknote"}
+            </Button>
           </div>
         </div>
       </DialogContentWithScroll>
