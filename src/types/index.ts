@@ -1,5 +1,3 @@
-
-// Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
   sender_id: string;
@@ -201,6 +199,71 @@ export interface WishlistItem {
   priority: string;
   createdAt: string;
   banknote?: Banknote;
+}
+
+// Unlisted Banknote (mirrors DetailedBanknote but from user)
+export interface UnlistedBanknote {
+  id: string;
+  userId: string;
+  isApproved?: boolean;
+  isPending?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  country: string;
+  extendedPickNumber: string;
+  pickNumber: string;
+  turkCatalogNumber?: string;
+  faceValue: string;
+  islamicYear?: string;
+  gregorianYear?: string;
+  signaturesFront?: string;
+  signaturesBack?: string;
+  signaturePictures?: string[];
+  sealNames?: string;
+  sealPictures?: string[];
+  watermarkPicture?: string;
+  otherElementPictures?: string[];
+  frontPicture?: string;
+  backPicture?: string;
+  sultanName?: string;
+  tughraPicture?: string;
+  printer?: string;
+  type?: string;
+  category?: string;
+  rarity?: string;
+  securityElement?: string;
+  colors?: string;
+  serialNumbering?: string;
+  banknoteDescription?: string;
+  historicalDescription?: string;
+}
+
+// Update CollectionItem to support unlistedBanknote variant
+// Update CollectionItem to support unlistedBanknote variant
+export interface CollectionItem {
+  id: string;
+  userId: string;
+  // Either banknoteId OR unlistedBanknotesId
+  banknoteId?: string | null;
+  unlistedBanknotesId?: string | null;
+  banknote?: DetailedBanknote; // Normal flow
+  unlistedBanknote?: UnlistedBanknote; // New
+  condition: BanknoteCondition;
+  purchasePrice?: number;
+  purchaseDate?: string | Date;
+  location?: string;
+  obverseImage?: string;
+  reverseImage?: string;
+  personalImages?: string[];
+  publicNote?: string;
+  privateNote?: string;
+  isForSale: boolean;
+  salePrice?: number;
+  orderIndex?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  // New
+  isUnlistedBanknote?: boolean;
 }
 
 // Import and re-export types from other files
