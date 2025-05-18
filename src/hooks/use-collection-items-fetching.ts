@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CollectionItem } from "@/types";
@@ -66,18 +67,11 @@ export const useCollectionItemsFetching = ({
 
       try {
         // Fetch collection items for this country with the user ID
-        let filteredItems: CollectionItem[];
-        if (countryId) {
-          filteredItems = await fetchUserCollectionByCountry(effectiveUserId, countryId);
-          console.log(`Loaded ${filteredItems.length} collection items for country ${countryId}`);
-        } else {
-          // fallback to legacy
-          filteredItems = await fetchUserCollectionItems(effectiveUserId);
-          console.log('Loaded all collection items:', filteredItems.length);
-        }
+        const items = await fetchUserCollectionByCountry(effectiveUserId, countryId);
+        console.log("useCollectionItemsFetching: Collection items loaded:", items.length);
         
         // Apply filters if needed
-        
+        let filteredItems = items;
         
         // Apply search filter if provided
         if (filters.search && filters.search.trim() !== '') {

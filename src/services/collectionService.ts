@@ -136,60 +136,29 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
   return fetchUserCollection(userId);
 }
 
-// --- Use new SQL for country-specific sorted (parsed pick) collection ---
+// --- Update fetchUserCollectionByCountry: filter after enrichment ---
 export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
   try {
-    // 1. Fetch sorted collection_items using the custom SQL function (only for this country)
-    const { data: rows, error } = await supabase.rpc('collection_items_sorted_by_country', {
-      user_id_param: userId,
-      country_id: countryId,
-    });
-
-    if (error) {
-      console.error("[fetchUserCollectionByCountry] Error via SQL function:", error);
+    // Get the country name
+    const { data: country, error: countryErr } = await supabase
+      .from('countries')
+      .select('name')
+      .eq('id', countryId)
+      .maybeSingle();
+    if (countryErr || !country) {
+      console.error("[fetchUserCollectionByCountry] Could not fetch country:", countryErr);
       return [];
     }
-    if (!rows) return [];
 
-    // Enrich: attach relevant banknote details for each item (either detailed or unlisted)
-    const enriched: CollectionItem[] = [];
-    for (const row of rows) {
-      let banknote: any = undefined;
-      if (row.is_unlisted_banknote && row.unlisted_banknotes_id) {
-        // Get unlisted_banknote
-        const { data: unlisted, error: uerr } = await supabase
-          .from('unlisted_banknotes').select('*').eq('id', row.unlisted_banknotes_id).maybeSingle();
-        if (uerr) console.error(`Error fetching unlisted banknote for collection item: ${row.id}`, uerr);
-        else banknote = unlisted;
-      } else if (!row.is_unlisted_banknote && row.banknote_id) {
-        // Get detailed_banknote
-        const { data: detailed, error: derr } = await supabase
-          .from('detailed_banknotes').select('*').eq('id', row.banknote_id).maybeSingle();
-        if (derr) console.error(`Error fetching detailed banknote for collection item: ${row.id}`, derr);
-        else banknote = detailed ? mapBanknoteFromDatabase(detailed) : undefined;
-      }
+    // Fetch all collection items for user, dynamically joining banknotes as above
+    const allCollectionItems = await fetchUserCollection(userId);
 
-      enriched.push({
-        id: row.id,
-        userId: row.user_id,
-        banknoteId: row.banknote_id,
-        banknote,
-        condition: row.condition ?? undefined,
-        salePrice: row.sale_price,
-        isForSale: row.is_for_sale,
-        publicNote: row.public_note,
-        privateNote: row.private_note,
-        purchasePrice: row.purchase_price,
-        purchaseDate: row.purchase_date,
-        location: row.location,
-        obverseImage: row.obverse_image,
-        reverseImage: row.reverse_image,
-        orderIndex: row.order_index,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      } as CollectionItem)
-    }
-    return enriched;
+    // Now filter based on the correct 'banknote.country' property
+    return allCollectionItems.filter(item => {
+      // Both detailed_banknotes and unlisted_banknotes have a country property
+      const banknoteCountry = item.banknote?.country;
+      return banknoteCountry === country.name;
+    });
   } catch (error) {
     console.error("[fetchUserCollectionByCountry] Error:", error);
     return [];

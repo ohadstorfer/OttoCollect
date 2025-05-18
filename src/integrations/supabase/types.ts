@@ -1200,66 +1200,6 @@ export type Database = {
       }
     }
     Functions: {
-      catalog_banknotes_sorted_by_country: {
-        Args: { country_id: string }
-        Returns: {
-          id: string
-          country: string
-          extended_pick_number: string
-          pick_number: string
-          turk_catalog_number: string
-          face_value: string
-          islamic_year: string
-          gregorian_year: string
-          signatures_front: string
-          signatures_back: string
-          signature_pictures: string[]
-          seal_names: string
-          seal_pictures: string[]
-          watermark_picture: string
-          other_element_pictures: string[]
-          front_picture: string
-          back_picture: string
-          sultan_name: string
-          tughra_picture: string
-          printer: string
-          type: string
-          category: string
-          rarity: string
-          security_element: string
-          colors: string
-          serial_numbering: string
-          banknote_description: string
-          historical_description: string
-          is_approved: boolean
-          is_pending: boolean
-          created_at: string
-          updated_at: string
-        }[]
-      }
-      collection_items_sorted_by_country: {
-        Args: { user_id_param: string; country_id: string }
-        Returns: {
-          id: string
-          user_id: string
-          banknote_id: string
-          is_unlisted_banknote: boolean
-          unlisted_banknotes_id: string
-          sale_price: number
-          is_for_sale: boolean
-          purchase_price: number
-          purchase_date: string
-          order_index: number
-          created_at: string
-          updated_at: string
-          condition: string
-          public_note: string
-          private_note: string
-          location: string
-          obverse_image: string
-          reverse_image: string
-        }[]
-      }
       extract_numeric_value: {
         Args: { face_value: string }
         Returns: number
