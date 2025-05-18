@@ -14,6 +14,7 @@ import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
 import BanknoteDetailCardWishList from '../banknotes/BanknoteDetailCardWishList';
 import BanknoteDetailCardMissingItems from '../banknotes/BanknoteDetailCardMissingItems';
+import UnlistedBanknoteDialog from "@/components/collection/UnlistedBanknoteDialog";
 
 interface CountryCollectionTabsProps {
   userId: string;
@@ -29,6 +30,8 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
   isOwner
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [unlistedDialogOpen, setUnlistedDialogOpen] = useState(false);
+  const [collectionRefreshToggle, setCollectionRefreshToggle] = useState(false);
   
   // Fetch all banknotes for this country (for the "Missing" tab)
   const {
@@ -159,10 +162,33 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       </div>
 
       <TabsContent value="my-banknotes">
+        <div className="flex flex-col gap-4 mb-4">
+          {isOwner && (
+            <>
+              <Button
+                onClick={() => setUnlistedDialogOpen(true)}
+                className="w-fit"
+                variant="primary"
+              >
+                Add an unlisted banknote
+              </Button>
+              <UnlistedBanknoteDialog
+                open={unlistedDialogOpen}
+                onClose={() => setUnlistedDialogOpen(false)}
+                userId={userId}
+                countryName={countryName}
+                countryId={countryId}
+                onAdded={() => setCollectionRefreshToggle((v) => !v)}
+              />
+            </>
+          )}
+        </div>
+        {/* Pass collectionRefreshToggle to force CountryDetailCollection refresh if needed */}
         <CountryDetailCollection 
           userId={userId} 
           countryName={countryName}
           profileView={true}
+          key={collectionRefreshToggle ? "refresh-"+String(collectionRefreshToggle) : "default"}
         />
       </TabsContent>
 
