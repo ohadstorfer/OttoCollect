@@ -7,7 +7,6 @@ import { CountryFilterSection } from "@/components/country/CountryFilterSection"
 import { BanknoteDisplay } from "@/components/country/BanknoteDisplay";
 import { useCountryData } from "@/hooks/use-country-data";
 import { useBanknoteFetching } from "@/hooks/use-banknote-fetching";
-import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { useEffect } from "react";
 import { fetchUserCollection } from "@/services/collectionService";
@@ -73,14 +72,8 @@ const CountryDetail = () => {
     filters
   });
 
-  const sortedBanknotes = useBanknoteSorting({
-    banknotes,
-    currencies,
-    sortFields: filters.sort
-  });
-
   const groupedItems = useBanknoteGroups(
-    sortedBanknotes, 
+    banknotes, 
     filters.sort, 
     categoryOrder
   );

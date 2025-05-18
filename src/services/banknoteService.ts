@@ -41,148 +41,49 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
 
 export async function fetchBanknotesByCountryId(
   countryId: string, 
-  filters?: { 
-    search?: string;
-    categories?: string[];
-    types?: string[];
-    sort?: string[];
-  }
-): Promise<DetailedBanknote[]> {
-  try {
-    if (!countryId) {
-      console.error('[fetchBanknotesByCountryId] No country ID provided to fetchBanknotesByCountryId');
-      return [];
-    }
-    
-    console.log(`[fetchBanknotesByCountryId] Called with countryId:`, countryId, "filters:", filters);
-    
-    // First, get the country name using the country ID
-    const { data: country, error: countryError } = await supabase
-      .from('countries')
-      .select('name')
-      .eq('id', countryId)
-      .single();
-    
-    if (countryError || !country) {
-      console.error('[fetchBanknotesByCountryId] Error fetching country name:', countryError, 'Result:', country);
-      return [];
-    }
-    
-    console.log(`[fetchBanknotesByCountryId] Found country name:`, country.name, 'for ID:', countryId);
-    
-    // Get category names from category IDs
-    let categoryNames: string[] = [];
-    if (filters?.categories && filters.categories.length > 0) {
-      try {
-        const { data: categoryData } = await supabase
-          .from('banknote_category_definitions')
-          .select('name')
-          .in('id', filters.categories);
-        
-        if (categoryData && categoryData.length > 0) {
-          categoryNames = categoryData.map(cat => cat.name);
-          console.log('[fetchBanknotesByCountryId] Filtering by categories:', categoryNames);
-        }
-      } catch (err) {
-        console.error('[fetchBanknotesByCountryId] Error fetching category names:', err);
-      }
-    }
-    
-    // Get type names from type IDs
-    let typeNames: string[] = [];
-    if (filters?.types && filters.types.length > 0) {
-      try {
-        const { data: typeData } = await supabase
-          .from('banknote_type_definitions')
-          .select('name')
-          .in('id', filters.types);
-        
-        if (typeData && typeData.length > 0) {
-          typeNames = typeData.map(type => type.name);
-          console.log('[fetchBanknotesByCountryId] Filtering by types:', typeNames);
-        }
-      } catch (err) {
-        console.error('[fetchBanknotesByCountryId] Error fetching type names:', err);
-      }
-    }
-    
-    // Build the query with the country filter - using the sorted_banknotes view
-    let query = supabase
-      .from('sorted_banknotes')
-      .select('*')
-      .eq('country', country.name);
-    
-    // Apply search filter if provided
-    if (filters?.search && filters.search.trim() !== '') {
-      const searchTerm = filters.search.toLowerCase();
-      query = query.or(
-        `extended_pick_number.ilike.%${searchTerm}%,` +
-        `face_value.ilike.%${searchTerm}%,` + 
-        `banknote_description.ilike.%${searchTerm}%,` +
-        `sultan_name.ilike.%${searchTerm}%`
-      );
-    }
-    
-    // Execute the query to get all banknotes for this country
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error('[fetchBanknotesByCountryId] Error fetching banknotes by country:', error);
-      return [];
-    }
+  filterParams: { search?: string; categories?: string[]; types?: string[] }
+): Promise<any[]> {
+  // Use our new function for correct extended pick sorting
+  const { data: rows, error } = await supabase.rpc('catalog_banknotes_sorted_by_country', {
+    country_id: countryId
+  });
 
-    console.log(`[fetchBanknotesByCountryId] Raw banknote data response for country "${country.name}":`, data);
-
-    // Filter by category and type on the server side
-    let filteredData = [...(data || [])];
-    
-    // Apply category filters if any
-    if (categoryNames.length > 0) {
-      const lowerCaseCategories = categoryNames.map(cat => cat.toLowerCase());
-      
-      filteredData = filteredData.filter(banknote => {
-        const itemCategory = (banknote.category || "").toLowerCase();
-        return lowerCaseCategories.some(categoryName => 
-          itemCategory === categoryName.toLowerCase() ||
-          itemCategory.includes(categoryName.toLowerCase()) ||
-          categoryName.toLowerCase().includes(itemCategory)
-        );
-      });
-    }
-    
-    // Apply type filters if any
-    if (typeNames.length > 0) {
-      const lowerCaseTypes = typeNames.map(type => type.toLowerCase());
-      
-      filteredData = filteredData.filter(banknote => {
-        const itemType = (banknote.type || "").toLowerCase();
-        return lowerCaseTypes.some(typeName => {
-          const normalizedTypeName = typeName.toLowerCase();
-          // Direct match
-          if (itemType === normalizedTypeName) return true;
-          
-          // Special case for "Issued notes" which might be stored as "Issued note"
-          if ((normalizedTypeName === "issued notes" && itemType === "issued note") ||
-              (normalizedTypeName === "issued note" && itemType === "issued notes")) {
-            return true;
-          }
-          
-          // Partial match (more flexible)
-          return itemType.includes(normalizedTypeName) || normalizedTypeName.includes(itemType);
-        });
-      });
-    }
-    
-    console.log(`[fetchBanknotesByCountryId] Final filtered banknote count:`, filteredData.length);
-
-    // Map database fields to client-side model
-    const banknotes = filteredData.map(mapBanknoteFromDatabase);
-    
-    return banknotes;
-  } catch (error) {
-    console.error('[fetchBanknotesByCountryId] Unexpected error:', error);
+  if (error) {
+    console.error("[fetchBanknotesByCountryId] Error from SQL function:", error);
     return [];
   }
+  if (!rows) return [];
+
+  // Apply search, categories, types filters here (since we can't add them server-side easily)
+  let filtered = [...rows];
+
+  // Filter: search
+  if (filterParams.search?.trim()) {
+    const q = filterParams.search.toLowerCase();
+    filtered = filtered.filter(banknote =>
+      banknote.face_value?.toLowerCase().includes(q)
+      || banknote.gregorian_year?.toLowerCase().includes(q)
+      || banknote.extended_pick_number?.toLowerCase().includes(q)
+      || banknote.type?.toLowerCase().includes(q)
+      || banknote.category?.toLowerCase().includes(q)
+      || banknote.sultan_name?.toLowerCase().includes(q)
+    );
+  }
+
+  // Filter: categories/types (using names)
+  if (filterParams.categories?.length) {
+    filtered = filtered.filter(b => filterParams.categories!.includes(
+      b.category // This matches by name
+    ));
+  }
+  if (filterParams.types?.length) {
+    filtered = filtered.filter(b => filterParams.types!.includes(
+      b.type // This matches by name
+    ));
+  }
+
+  // No further client-side sorting needed.
+  return filtered.map(mapBanknoteFromDatabase);
 }
 
 export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | null> {
