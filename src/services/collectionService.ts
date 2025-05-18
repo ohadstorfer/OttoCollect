@@ -41,10 +41,12 @@ export async function uploadCollectionImage(file: File): Promise<string> {
 
 export type { CollectionItem };
 
+// --- Replace fetchUserCollection with dynamic join of detailed/unlisted banknotes ---
+
 export async function fetchUserCollection(userId: string): Promise<CollectionItem[]> {
   try {
     console.log("[fetchUserCollection] Starting fetch for user:", userId);
-    
+
     const { data: collectionItems, error } = await supabase
       .from('collection_items')
       .select('*')
@@ -56,43 +58,53 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
       throw error;
     }
 
-    console.log(`[fetchUserCollection] Found ${collectionItems?.length || 0} raw collection items for user:`, userId);
-    
-    if (collectionItems && collectionItems.length > 0) {
-      console.log("[fetchUserCollection] Sample raw item:", collectionItems[0]);
+    if (!collectionItems || collectionItems.length === 0) {
+      return [];
     }
 
-    // Fetch banknote details for each collection item
+    // For each collection item, dynamically join the proper banknote table
     const enrichedItems = await Promise.all(
-      (collectionItems || []).map(async (item) => {
-        console.log(`[fetchUserCollection] Fetching banknote details for item ${item.id}, banknote_id: ${item.banknote_id}`);
-        const banknote = await fetchBanknoteById(item.banknote_id);
-        
+      collectionItems.map(async (item) => {
+        let banknote = null;
+
+        if (item.is_unlisted_banknote && item.unlisted_banknotes_id) {
+          // Join with unlisted_banknotes
+          const { data: unlisted, error: unlistedErr } = await supabase
+            .from('unlisted_banknotes')
+            .select('*')
+            .eq('id', item.unlisted_banknotes_id)
+            .maybeSingle();
+          if (unlistedErr) {
+            console.error(`[fetchUserCollection] Error fetching unlisted_banknotes for item ${item.id}:`, unlistedErr);
+            return null;
+          }
+          banknote = unlisted;
+        } else if (!item.is_unlisted_banknote && item.banknote_id) {
+          // Join with detailed_banknotes
+          const { data: detailed, error: detailedErr } = await supabase
+            .from('detailed_banknotes')
+            .select('*')
+            .eq('id', item.banknote_id)
+            .maybeSingle();
+          if (detailedErr) {
+            console.error(`[fetchUserCollection] Error fetching detailed_banknotes for item ${item.id}:`, detailedErr);
+            return null;
+          }
+          banknote = detailed;
+        }
+
+        // If there's no banknote retrieved, filter out
         if (!banknote) {
-          console.error(`[fetchUserCollection] Banknote not found for collection item: ${item.banknote_id}`);
           return null;
         }
-        
-        console.log(`[fetchUserCollection] Retrieved banknote details for ${item.banknote_id}:`, {
-          country: banknote.country,
-          denomination: banknote.denomination,
-          year: banknote.year,
-          type: banknote.type || "NO_TYPE",
-          imageUrls: banknote.imageUrls,
-          imageUrlsType: typeof banknote.imageUrls
-        });
-        
-        // Ensure banknote.type is never undefined - default to "Issued note"
-        if (!banknote.type) {
-          banknote.type = "Issued note";
-        }
-        
-        const enrichedItem = {
+
+        // The rest of the properties/shape stays the same
+        return {
           id: item.id,
           userId: item.user_id,
           banknoteId: item.banknote_id,
-          banknote: banknote,
-          condition: item.condition as BanknoteCondition,
+          banknote,
+          condition: item.condition,
           salePrice: item.sale_price,
           isForSale: item.is_for_sale,
           publicNote: item.public_note,
@@ -104,28 +116,51 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
           reverseImage: item.reverse_image,
           orderIndex: item.order_index,
           createdAt: item.created_at,
-          updatedAt: item.updated_at
+          updatedAt: item.updated_at,
         } as CollectionItem;
-        
-        console.log(`[fetchUserCollection] Enriched item created for ${item.id}`);
-        return enrichedItem;
       })
     );
 
-    // Filter out any null items (where banknote wasn't found)
-    const validItems = enrichedItems.filter(item => item !== null) as CollectionItem[];
-    console.log(`[fetchUserCollection] Returning ${validItems.length} enriched items after filtering nulls`);
-    
-    return validItems;
+    // Filter out any null items (e.g. where no matching banknote found)
+    return (enrichedItems.filter(Boolean) as CollectionItem[]);
   } catch (error) {
     console.error("[fetchUserCollection] Error in fetchUserCollection:", error);
     return [];
   }
 }
 
+// For these helpers, delegate to fetchUserCollection (no change needed)
 export async function fetchUserCollectionItems(userId: string): Promise<CollectionItem[]> {
-  // This function replaces fetchUserCollection but with a more accurate name
   return fetchUserCollection(userId);
+}
+
+// --- Update fetchUserCollectionByCountry: filter after enrichment ---
+export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
+  try {
+    // Get the country name
+    const { data: country, error: countryErr } = await supabase
+      .from('countries')
+      .select('name')
+      .eq('id', countryId)
+      .maybeSingle();
+    if (countryErr || !country) {
+      console.error("[fetchUserCollectionByCountry] Could not fetch country:", countryErr);
+      return [];
+    }
+
+    // Fetch all collection items for user, dynamically joining banknotes as above
+    const allCollectionItems = await fetchUserCollection(userId);
+
+    // Now filter based on the correct 'banknote.country' property
+    return allCollectionItems.filter(item => {
+      // Both detailed_banknotes and unlisted_banknotes have a country property
+      const banknoteCountry = item.banknote?.country;
+      return banknoteCountry === country.name;
+    });
+  } catch (error) {
+    console.error("[fetchUserCollectionByCountry] Error:", error);
+    return [];
+  }
 }
 
 /**
@@ -134,70 +169,7 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
  * @param countryId The country ID to filter by
  * @returns Collection items for the specified country
  */
-export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
-  try {
-    console.log("[fetchUserCollectionByCountry] Starting fetch for:", { userId, countryId });
-    
-    // First get the country data to get the name
-    const country = await fetchCountryById(countryId);
-    
-    if (!country) {
-      console.error(`[fetchUserCollectionByCountry] Country not found with ID: ${countryId}`);
-      return [];
-    }
-    
-    console.log(`[fetchUserCollectionByCountry] Found country: ${country.name} for ID: ${countryId}`);
-    
-    // Fetch all user's collection items
-    const allCollectionItems = await fetchUserCollection(userId);
-    
-    if (!allCollectionItems || allCollectionItems.length === 0) {
-      console.log("[fetchUserCollectionByCountry] No collection items found for user");
-      return [];
-    }
-    
-    console.log(`[fetchUserCollectionByCountry] Got ${allCollectionItems.length} collection items before filtering`);
-    
-    // Then filter by country name - this is important as the banknotes store country names, not IDs
-    const filteredItems = allCollectionItems.filter(item => {
-      const matchesCountry = item.banknote && item.banknote.country === country.name;
-      
-      if (!matchesCountry) {
-        console.log(`[fetchUserCollectionByCountry] Item ${item.id} has banknote country "${item.banknote?.country}" which doesn't match "${country.name}"`);
-      }
-      
-      return matchesCountry;
-    });
-    
-    console.log(`[fetchUserCollectionByCountry] Found ${filteredItems.length} items for country ${country.name} (ID: ${countryId})`);
-    
-    // Log the first item to debug
-    if (filteredItems.length > 0) {
-      const sampleItem = filteredItems[0];
-      console.log("[fetchUserCollectionByCountry] Sample filtered item:", {
-        id: sampleItem.id,
-        banknoteId: sampleItem.banknoteId,
-        banknote: {
-          id: sampleItem.banknote?.id,
-          country: sampleItem.banknote?.country,
-          denomination: sampleItem.banknote?.denomination,
-          year: sampleItem.banknote?.year,
-          imageUrls: sampleItem.banknote?.imageUrls
-        },
-        condition: sampleItem.condition,
-        images: {
-          obverseImage: sampleItem.obverseImage,
-          reverseImage: sampleItem.reverseImage
-        }
-      });
-    }
-    
-    return filteredItems;
-  } catch (error) {
-    console.error("[fetchUserCollectionByCountry] Error in fetchUserCollectionByCountry:", error);
-    return [];
-  }
-}
+
 
 export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): Promise<{
   categories: { id: string; name: string; count: number }[];
@@ -289,55 +261,58 @@ function generateStableIdFromName(name: string): string {
   return `${hashString}-${hashString.substr(0, 4)}-4${hashString.substr(4, 3)}-${hashString.substr(7, 4)}-${hashString.substr(0, 12)}`;
 }
 
+// --- Update fetchCollectionItem to use dynamic banknote joining ---
 export async function fetchCollectionItem(itemId: string): Promise<CollectionItem | null> {
   try {
-    // First check if the item exists
     const { data: item, error } = await supabase
       .from('collection_items')
-      .select(`
-        id,
-        user_id,
-        banknote_id,
-        condition,
-        sale_price,
-        is_for_sale,
-        public_note,
-        private_note,
-        purchase_price,
-        purchase_date,
-        location,
-        obverse_image,
-        reverse_image,
-        order_index,
-        created_at,
-        updated_at
-      `)
+      .select('*')
       .eq('id', itemId)
       .maybeSingle();
 
-    if (error) {
+    if (error || !item) {
       console.error("Error fetching collection item:", error);
       return null;
     }
 
-    if (!item) {
-      console.log(`Collection item not found: ${itemId}`);
+    let banknote = null;
+
+    if (item.is_unlisted_banknote && item.unlisted_banknotes_id) {
+      // Join with unlisted_banknotes
+      const { data: unlisted, error: unlistedErr } = await supabase
+        .from('unlisted_banknotes')
+        .select('*')
+        .eq('id', item.unlisted_banknotes_id)
+        .maybeSingle();
+      if (unlistedErr) {
+        console.error(`Error fetching unlisted_banknotes for collection item: ${item.unlisted_banknotes_id}`, unlistedErr);
+        return null;
+      }
+      banknote = unlisted;
+    } else if (!item.is_unlisted_banknote && item.banknote_id) {
+      // Join with detailed_banknotes
+      const { data: detailed, error: detailedErr } = await supabase
+        .from('detailed_banknotes')
+        .select('*')
+        .eq('id', item.banknote_id)
+        .maybeSingle();
+      if (detailedErr) {
+        console.error(`Error fetching detailed_banknotes for collection item: ${item.banknote_id}`, detailedErr);
+        return null;
+      }
+      banknote = detailed;
+    }
+
+    if (!banknote) {
       return null;
     }
 
-    // Fetch the banknote details
-    const banknote = await fetchBanknoteById(item.banknote_id);
-    if (!banknote) {
-      console.error(`Banknote not found for collection item: ${item.banknote_id}`);
-      return null;
-    }
-    
     return {
       id: item.id,
       userId: item.user_id,
       banknoteId: item.banknote_id,
-      banknote: banknote,
-      condition: item.condition as BanknoteCondition,
+      banknote,
+      condition: item.condition,
       salePrice: item.sale_price,
       isForSale: item.is_for_sale,
       publicNote: item.public_note,

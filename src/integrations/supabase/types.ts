@@ -271,6 +271,7 @@ export type Database = {
           created_at: string
           id: string
           is_for_sale: boolean
+          is_unlisted_banknote: boolean
           location: string | null
           obverse_image: string | null
           order_index: number
@@ -280,6 +281,7 @@ export type Database = {
           purchase_price: number | null
           reverse_image: string | null
           sale_price: number | null
+          unlisted_banknotes_id: string | null
           updated_at: string
           user_id: string
         }
@@ -289,6 +291,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_for_sale?: boolean
+          is_unlisted_banknote?: boolean
           location?: string | null
           obverse_image?: string | null
           order_index?: number
@@ -298,6 +301,7 @@ export type Database = {
           purchase_price?: number | null
           reverse_image?: string | null
           sale_price?: number | null
+          unlisted_banknotes_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -307,6 +311,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_for_sale?: boolean
+          is_unlisted_banknote?: boolean
           location?: string | null
           obverse_image?: string | null
           order_index?: number
@@ -316,6 +321,7 @@ export type Database = {
           purchase_price?: number | null
           reverse_image?: string | null
           sale_price?: number | null
+          unlisted_banknotes_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -332,6 +338,13 @@ export type Database = {
             columns: ["banknote_id"]
             isOneToOne: false
             referencedRelation: "sorted_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_collection_unlisted_banknote"
+            columns: ["unlisted_banknotes_id"]
+            isOneToOne: false
+            referencedRelation: "unlisted_banknotes"
             referencedColumns: ["id"]
           },
         ]
@@ -851,6 +864,122 @@ export type Database = {
             columns: ["sort_option"]
             isOneToOne: false
             referencedRelation: "banknote_sort_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unlisted_banknotes: {
+        Row: {
+          back_picture: string | null
+          banknote_description: string | null
+          category: string | null
+          colors: string | null
+          country: string
+          created_at: string | null
+          extended_pick_number: string
+          face_value: string
+          front_picture: string | null
+          gregorian_year: string | null
+          historical_description: string | null
+          id: string
+          is_approved: boolean | null
+          is_pending: boolean | null
+          islamic_year: string | null
+          other_element_pictures: string[] | null
+          pick_number: string
+          printer: string | null
+          rarity: string | null
+          seal_names: string | null
+          seal_pictures: string[] | null
+          security_element: string | null
+          serial_numbering: string | null
+          signature_pictures: string[] | null
+          signatures_back: string | null
+          signatures_front: string | null
+          sultan_name: string | null
+          tughra_picture: string | null
+          turk_catalog_number: string | null
+          type: string | null
+          updated_at: string | null
+          user_id: string
+          watermark_picture: string | null
+        }
+        Insert: {
+          back_picture?: string | null
+          banknote_description?: string | null
+          category?: string | null
+          colors?: string | null
+          country: string
+          created_at?: string | null
+          extended_pick_number: string
+          face_value: string
+          front_picture?: string | null
+          gregorian_year?: string | null
+          historical_description?: string | null
+          id?: string
+          is_approved?: boolean | null
+          is_pending?: boolean | null
+          islamic_year?: string | null
+          other_element_pictures?: string[] | null
+          pick_number: string
+          printer?: string | null
+          rarity?: string | null
+          seal_names?: string | null
+          seal_pictures?: string[] | null
+          security_element?: string | null
+          serial_numbering?: string | null
+          signature_pictures?: string[] | null
+          signatures_back?: string | null
+          signatures_front?: string | null
+          sultan_name?: string | null
+          tughra_picture?: string | null
+          turk_catalog_number?: string | null
+          type?: string | null
+          updated_at?: string | null
+          user_id: string
+          watermark_picture?: string | null
+        }
+        Update: {
+          back_picture?: string | null
+          banknote_description?: string | null
+          category?: string | null
+          colors?: string | null
+          country?: string
+          created_at?: string | null
+          extended_pick_number?: string
+          face_value?: string
+          front_picture?: string | null
+          gregorian_year?: string | null
+          historical_description?: string | null
+          id?: string
+          is_approved?: boolean | null
+          is_pending?: boolean | null
+          islamic_year?: string | null
+          other_element_pictures?: string[] | null
+          pick_number?: string
+          printer?: string | null
+          rarity?: string | null
+          seal_names?: string | null
+          seal_pictures?: string[] | null
+          security_element?: string | null
+          serial_numbering?: string | null
+          signature_pictures?: string[] | null
+          signatures_back?: string | null
+          signatures_front?: string | null
+          sultan_name?: string | null
+          tughra_picture?: string | null
+          turk_catalog_number?: string | null
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string
+          watermark_picture?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_unlisted_banknote_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
