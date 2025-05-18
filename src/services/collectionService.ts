@@ -62,7 +62,7 @@ function normalizeBanknoteData(
     category: banknote.category ?? "",
     rarity: banknote.rarity ?? "",
     sealNames: banknote.sealNames ?? banknote.seal_names ?? "",
-    imageUrls: banknote.imageUrls ?? banknote.front_picture || [], // use front_picture for unlisted
+    imageUrls: banknote.imageUrls ?? banknote.front_picture ?? [],
     // add any other mapped/required fields
   };
 }
