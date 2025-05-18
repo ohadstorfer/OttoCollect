@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
@@ -7,13 +8,15 @@ import { fetchBanknotesByCountryId } from '@/services/banknoteService';
 import { fetchUserWishlistByCountry } from '@/services/wishlistService';
 import { fetchUserCollection } from '@/services/collectionService';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
 import BanknoteDetailCardWishList from '../banknotes/BanknoteDetailCardWishList';
 import BanknoteDetailCardMissingItems from '../banknotes/BanknoteDetailCardMissingItems';
+// ---- Import UnlistedBanknoteDialog for adding unlisted banknotes ----
+import UnlistedBanknoteDialog from "@/components/collection/UnlistedBanknoteDialog";
 
 interface CountryCollectionTabsProps {
   userId: string;
@@ -29,6 +32,8 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
   isOwner
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  // --- Add state to control Add Unlisted dialog ---
+  const [showUnlistedDialog, setShowUnlistedDialog] = useState(false);
   
   // Fetch all banknotes for this country (for the "Missing" tab)
   const {
@@ -158,7 +163,33 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         </TabsList>
       </div>
 
+      {/* --- Add Unlisted Banknote Button & Dialog in the right place --- */}
       <TabsContent value="my-banknotes">
+        <div className="mb-4 flex flex-row justify-between items-center max-w-5xl mx-auto">
+          <h3 className="text-xl font-semibold">My Banknotes</h3>
+          {isOwner && (
+            <>
+              <Button
+                variant="primary"
+                className="flex gap-2"
+                onClick={() => setShowUnlistedDialog(true)}
+              >
+                <Plus className="w-4 h-4" />
+                Add Unlisted Banknote
+              </Button>
+              <UnlistedBanknoteDialog
+                open={showUnlistedDialog}
+                onOpenChange={setShowUnlistedDialog}
+                userId={userId}
+                onCreated={() => {
+                  // Close and refresh the collection
+                  setShowUnlistedDialog(false);
+                  refetchCollection();
+                }}
+              />
+            </>
+          )}
+        </div>
         <CountryDetailCollection 
           userId={userId} 
           countryName={countryName}
@@ -185,3 +216,4 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 };
 
 export default CountryCollectionTabs;
+
