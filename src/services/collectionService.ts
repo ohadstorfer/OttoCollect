@@ -46,12 +46,16 @@ export type { CollectionItem };
 
 export async function fetchUserCollection(userId: string): Promise<CollectionItem[]> {
   try {
-    console.log("[fetchUserCollection] (Reverted) Fetching collection items for user:", userId);
+    console.log("[fetchUserCollection] (FAST) Fetching items for user:", userId);
 
-    // Fetch all collection items for the user
+    // Fetch collection items with left join to detailed_banknotes & unlisted_banknotes
     const { data: collectionData, error: collectionError } = await supabase
       .from('collection_items')
-      .select('*')
+      .select(`
+        *,
+        detailed_banknotes:banknote_id (*),
+        unlisted_banknotes:unlisted_banknotes_id (*)
+      `)
       .eq('user_id', userId);
 
     if (collectionError || !collectionData) {
@@ -59,37 +63,20 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
       return [];
     }
 
-    // For each item, fetch its banknote details (detailed or unlisted)
-    const enrichedItems: CollectionItem[] = [];
-    for (const item of collectionData) {
-      let banknote = undefined;
-      if (item.is_unlisted_banknote && item.unlisted_banknotes_id) {
-        // Join with unlisted_banknotes
-        const { data: unlisted, error: unlistedErr } = await supabase
-          .from('unlisted_banknotes')
-          .select('*')
-          .eq('id', item.unlisted_banknotes_id)
-          .maybeSingle();
-        if (unlistedErr) {
-          console.error(`Error fetching unlisted_banknotes for item ${item.id}:`, unlistedErr);
-        } else {
-          banknote = unlisted;
-        }
-      } else if (!item.is_unlisted_banknote && item.banknote_id) {
-        // Join with detailed_banknotes
-        const { data: detailed, error: detailedErr } = await supabase
-          .from('detailed_banknotes')
-          .select('*')
-          .eq('id', item.banknote_id)
-          .maybeSingle();
-        if (detailedErr) {
-          console.error(`Error fetching detailed_banknotes for item ${item.id}:`, detailedErr);
-        } else {
-          banknote = detailed ? mapBanknoteFromDatabase(detailed) : undefined;
-        }
+    // Map each collection item with its correct banknote details
+    const enrichedItems: CollectionItem[] = collectionData.map((item: any) => {
+      // Prefer detailed_banknotes unless it's unlisted
+      let banknote;
+      if (item.is_unlisted_banknote) {
+        banknote = item.unlisted_banknotes;
+      } else {
+        // Map detailed_banknotes to correct frontend format if present
+        banknote = item.detailed_banknotes
+          ? mapBanknoteFromDatabase(item.detailed_banknotes)
+          : undefined;
       }
 
-      enrichedItems.push({
+      return {
         id: item.id,
         userId: item.user_id,
         banknoteId: item.banknote_id,
@@ -107,26 +94,25 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
         orderIndex: item.order_index,
         createdAt: item.created_at,
         updatedAt: item.updated_at
-      } as CollectionItem);
-    }
+      } as CollectionItem;
+    });
 
-    // Sort:
-    // (a) detailed banknotes first by extendedPickNumber, (b) unlisted last.
+    // Sort as before, keeping all previous logic
     enrichedItems.sort((a, b) => {
       const aUnlisted = a.banknote && (a.banknote as any).extendedPickNumber ? false : true;
       const bUnlisted = b.banknote && (b.banknote as any).extendedPickNumber ? false : true;
       if (aUnlisted !== bUnlisted) {
-        return aUnlisted ? 1 : -1; // Unlisted last
+        return aUnlisted ? 1 : -1;
       }
-      // Both are detailed, sort by pick number string (simple)
       const aPick = (a.banknote && (a.banknote as any).extendedPickNumber) || "";
       const bPick = (b.banknote && (b.banknote as any).extendedPickNumber) || "";
       return aPick.localeCompare(bPick, undefined, { numeric: true });
     });
 
+    console.log("[fetchUserCollection] (FAST) Returning", enrichedItems.length, "items");
     return enrichedItems;
   } catch (error) {
-    console.error("[fetchUserCollection] Error (Reverted):", error);
+    console.error("[fetchUserCollection] Error (FAST):", error);
     return [];
   }
 }
@@ -150,7 +136,7 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
       return [];
     }
 
-    // Fetch all collection items for user, dynamically joining banknotes as above
+    // Use faster fetchUserCollection (already optimized!)
     const allCollectionItems = await fetchUserCollection(userId);
 
     // Now filter based on the correct 'banknote.country' property
@@ -160,7 +146,7 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
       return banknoteCountry === country.name;
     });
   } catch (error) {
-    console.error("[fetchUserCollectionByCountry] Error:", error);
+    console.error("[fetchUserCollectionByCountry] Error (FAST):", error);
     return [];
   }
 }
