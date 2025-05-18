@@ -730,6 +730,13 @@ export type Database = {
             referencedRelation: "collection_items"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "marketplace_items_collection_item_id_fkey"
+            columns: ["collection_item_id"]
+            isOneToOne: false
+            referencedRelation: "user_collection_view"
+            referencedColumns: ["collection_item_id"]
+          },
         ]
       }
       messages: {
@@ -1142,6 +1149,54 @@ export type Database = {
           watermark_picture: string | null
         }
         Relationships: []
+      }
+      user_collection_view: {
+        Row: {
+          banknote_id: string | null
+          collection_item_id: string | null
+          condition: string | null
+          created_at: string | null
+          detailed_country: string | null
+          extended_pick_number: string | null
+          is_for_sale: boolean | null
+          is_unlisted_banknote: boolean | null
+          location: string | null
+          obverse_image: string | null
+          order_index: number | null
+          private_note: string | null
+          public_note: string | null
+          purchase_date: string | null
+          purchase_price: number | null
+          reverse_image: string | null
+          sale_price: number | null
+          unlisted_banknotes_id: string | null
+          unlisted_country: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "detailed_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "sorted_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_collection_unlisted_banknote"
+            columns: ["unlisted_banknotes_id"]
+            isOneToOne: false
+            referencedRelation: "unlisted_banknotes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

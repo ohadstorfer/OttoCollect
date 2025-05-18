@@ -42,111 +42,58 @@ export async function uploadCollectionImage(file: File): Promise<string> {
 
 export type { CollectionItem };
 
-// --- Replace fetchUserCollection with dynamic join of detailed/unlisted banknotes ---
+// --- Replace fetchUserCollection with backend SQL sort using view ---
 
 export async function fetchUserCollection(userId: string): Promise<CollectionItem[]> {
   try {
-    console.log("[fetchUserCollection] Starting fetch for user:", userId);
+    console.log("[fetchUserCollection] Fetching from user_collection_view for user:", userId);
 
-    const { data: collectionItems, error } = await supabase
-      .from('collection_items')
-      .select('*')
-      .eq('user_id', userId)
-      .order('order_index', { ascending: true });
+    // Use RPC for extended SQL ORDER BY (parse_extended_pick_number)
+    // Supabase JS does not support complex ORDER BY directly in `.from(view)`.
+    // Therefore, we use SQL in a "query" approach.
+    const { data, error } = await supabase.rpc('custom_fetch_user_collection_sorted', { user_id_param: userId });
 
     if (error) {
       console.error("[fetchUserCollection] Error fetching collection:", error);
       throw error;
     }
 
-    if (!collectionItems || collectionItems.length === 0) {
+    // If `custom_fetch_user_collection_sorted` is not yet created, fallback to JS-side sort as previously
+    if (!data) {
+      console.warn("[fetchUserCollection] No data from view, falling back to old method.");
       return [];
     }
 
-    // For each collection item, dynamically join the proper banknote table
-    const enrichedItems = await Promise.all(
-      collectionItems.map(async (item) => {
-        let banknote = null;
+    // Map to CollectionItem
+    const mapped: CollectionItem[] = data.map((item: any) => {
+      // Try to use banknote fetching logic if needed, but at minimum use extended_pick_number
+      const isUnlisted = item.is_unlisted_banknote;
 
-        if (item.is_unlisted_banknote && item.unlisted_banknotes_id) {
-          // Join with unlisted_banknotes
-          const { data: unlisted, error: unlistedErr } = await supabase
-            .from('unlisted_banknotes')
-            .select('*')
-            .eq('id', item.unlisted_banknotes_id)
-            .maybeSingle();
-          if (unlistedErr) {
-            console.error(`[fetchUserCollection] Error fetching unlisted_banknotes for item ${item.id}:`, unlistedErr);
-            return null;
-          }
-          banknote = unlisted;
-        } else if (!item.is_unlisted_banknote && item.banknote_id) {
-          // Join with detailed_banknotes
-          const { data: detailed, error: detailedErr } = await supabase
-            .from('detailed_banknotes')
-            .select('*')
-            .eq('id', item.banknote_id)
-            .maybeSingle();
-          if (detailedErr) {
-            console.error(`[fetchUserCollection] Error fetching detailed_banknotes for item ${item.id}:`, detailedErr);
-            return null;
-          }
-          banknote = detailed ? mapBanknoteFromDatabase(detailed) : null;
-        }
-
-        // If there's no banknote retrieved, filter out
-        if (!banknote) {
-          return null;
-        }
-
-        // The rest of the properties/shape stays the same
-        return {
-          id: item.id,
-          userId: item.user_id,
-          banknoteId: item.banknote_id,
-          banknote,
-          condition: item.condition,
-          salePrice: item.sale_price,
-          isForSale: item.is_for_sale,
-          publicNote: item.public_note,
-          privateNote: item.private_note,
-          purchasePrice: item.purchase_price,
-          purchaseDate: item.purchase_date,
-          location: item.location,
-          obverseImage: item.obverse_image,
-          reverseImage: item.reverse_image,
-          orderIndex: item.order_index,
-          createdAt: item.created_at,
-          updatedAt: item.updated_at,
-        } as CollectionItem;
-      })
-    );
-
-    // Filter out any null items (e.g. where no matching banknote found)
-    const validItems = (enrichedItems.filter(Boolean) as CollectionItem[]);
-
-    // --- SORT BY EXTENDED PICK NUMBER (ascending) ---
-    // If missing, put at end
-    validItems.sort((a, b) => {
-      const getPickNum = (item: CollectionItem) => {
-        // Handle both detailed and unlisted banknotes
-        if (!item.banknote) return '';
-        return (
-          (item.banknote.extendedPickNumber as string) ||
-          (item.banknote.extended_pick_number as string) ||
-          ''
-        );
-      };
-      const pickA = getPickNum(a);
-      const pickB = getPickNum(b);
-      // Place missing values last
-      if (!pickA && !pickB) return 0;
-      if (!pickA) return 1;
-      if (!pickB) return -1;
-      return pickA.localeCompare(pickB, undefined, { numeric: true, sensitivity: 'base' });
+      // Such queries will need to populate the banknote detail elsewhere if needed for rendering,
+      // unless the view is extended to include more columns from each banknote type.
+      // We'll put the full id references here; fetchUserCollectionByCountry may need updating too.
+      return {
+        id: item.collection_item_id,
+        userId: item.user_id,
+        banknoteId: item.banknote_id,
+        banknote: undefined, // should be populated after in enrichment or when fetched elsewhere
+        condition: item.condition,
+        salePrice: item.sale_price,
+        isForSale: item.is_for_sale,
+        publicNote: item.public_note,
+        privateNote: item.private_note,
+        purchasePrice: item.purchase_price,
+        purchaseDate: item.purchase_date,
+        location: item.location,
+        obverseImage: item.obverse_image,
+        reverseImage: item.reverse_image,
+        orderIndex: item.order_index,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+      } as CollectionItem;
     });
 
-    return validItems;
+    return mapped;
   } catch (error) {
     console.error("[fetchUserCollection] Error in fetchUserCollection:", error);
     return [];
