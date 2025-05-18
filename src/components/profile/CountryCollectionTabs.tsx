@@ -14,7 +14,6 @@ import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
 import BanknoteDetailCardWishList from '../banknotes/BanknoteDetailCardWishList';
 import BanknoteDetailCardMissingItems from '../banknotes/BanknoteDetailCardMissingItems';
-import UnlistedBanknoteDialog from '@/components/collection/UnlistedBanknoteDialog';
 
 interface CountryCollectionTabsProps {
   userId: string;
@@ -30,7 +29,6 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
   isOwner
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [unlistedDialogOpen, setUnlistedDialogOpen] = useState(false);
   
   // Fetch all banknotes for this country (for the "Missing" tab)
   const {
@@ -161,27 +159,6 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       </div>
 
       <TabsContent value="my-banknotes">
-        <div className="mb-4 flex justify-end">
-          {isOwner && (
-            <>
-              <Button variant="outline" onClick={() => setUnlistedDialogOpen(true)}>
-                Add an Unlisted Banknote
-              </Button>
-              <UnlistedBanknoteDialog
-                open={unlistedDialogOpen}
-                onOpenChange={setUnlistedDialogOpen}
-                userId={userId}
-                countryName={countryName}
-                onBanknoteAdded={() => {
-                  // Refresh user's collection after adding
-                  if (typeof window !== "undefined") {
-                    window.location.reload();
-                  }
-                }}
-              />
-            </>
-          )}
-        </div>
         <CountryDetailCollection 
           userId={userId} 
           countryName={countryName}
