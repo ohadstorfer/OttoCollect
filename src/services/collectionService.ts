@@ -123,7 +123,30 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
     );
 
     // Filter out any null items (e.g. where no matching banknote found)
-    return (enrichedItems.filter(Boolean) as CollectionItem[]);
+    const validItems = (enrichedItems.filter(Boolean) as CollectionItem[]);
+
+    // --- SORT BY EXTENDED PICK NUMBER (ascending) ---
+    // If missing, put at end
+    validItems.sort((a, b) => {
+      const getPickNum = (item: CollectionItem) => {
+        // Handle both detailed and unlisted banknotes
+        if (!item.banknote) return '';
+        return (
+          (item.banknote.extendedPickNumber as string) ||
+          (item.banknote.extended_pick_number as string) ||
+          ''
+        );
+      };
+      const pickA = getPickNum(a);
+      const pickB = getPickNum(b);
+      // Place missing values last
+      if (!pickA && !pickB) return 0;
+      if (!pickA) return 1;
+      if (!pickB) return -1;
+      return pickA.localeCompare(pickB, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    return validItems;
   } catch (error) {
     console.error("[fetchUserCollection] Error in fetchUserCollection:", error);
     return [];
