@@ -5,6 +5,7 @@ import { fetchBanknoteById } from "@/services/banknoteService";
 import { fetchCountryById } from "@/services/countryService";
 import { BanknoteCondition } from "@/types";
 import type { Database } from "@/integrations/supabase/types";
+import { mapBanknoteFromDatabase } from "@/services/banknoteService";
 
 // Type definition for collection items table insert
 type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
@@ -68,7 +69,6 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
         let banknote = null;
 
         if (item.is_unlisted_banknote && item.unlisted_banknotes_id) {
-          // Join with unlisted_banknotes
           const { data: unlisted, error: unlistedErr } = await supabase
             .from('unlisted_banknotes')
             .select('*')
@@ -80,7 +80,6 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
           }
           banknote = unlisted;
         } else if (!item.is_unlisted_banknote && item.banknote_id) {
-          // Join with detailed_banknotes
           const { data: detailed, error: detailedErr } = await supabase
             .from('detailed_banknotes')
             .select('*')
@@ -90,15 +89,13 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
             console.error(`[fetchUserCollection] Error fetching detailed_banknotes for item ${item.id}:`, detailedErr);
             return null;
           }
-          banknote = detailed;
+          banknote = detailed ? mapBanknoteFromDatabase(detailed) : null;
         }
 
-        // If there's no banknote retrieved, filter out
         if (!banknote) {
           return null;
         }
 
-        // The rest of the properties/shape stays the same
         return {
           id: item.id,
           userId: item.user_id,
@@ -121,7 +118,6 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
       })
     );
 
-    // Filter out any null items (e.g. where no matching banknote found)
     return (enrichedItems.filter(Boolean) as CollectionItem[]);
   } catch (error) {
     console.error("[fetchUserCollection] Error in fetchUserCollection:", error);
@@ -278,7 +274,6 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
     let banknote = null;
 
     if (item.is_unlisted_banknote && item.unlisted_banknotes_id) {
-      // Join with unlisted_banknotes
       const { data: unlisted, error: unlistedErr } = await supabase
         .from('unlisted_banknotes')
         .select('*')
@@ -290,7 +285,6 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
       }
       banknote = unlisted;
     } else if (!item.is_unlisted_banknote && item.banknote_id) {
-      // Join with detailed_banknotes
       const { data: detailed, error: detailedErr } = await supabase
         .from('detailed_banknotes')
         .select('*')
@@ -300,7 +294,7 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
         console.error(`Error fetching detailed_banknotes for collection item: ${item.banknote_id}`, detailedErr);
         return null;
       }
-      banknote = detailed;
+      banknote = detailed ? mapBanknoteFromDatabase(detailed) : null;
     }
 
     if (!banknote) {
