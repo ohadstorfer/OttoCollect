@@ -326,6 +326,26 @@ export async function fetchCollectionItem(id: string): Promise<CollectionItem | 
   return null;
 }
 
+/**
+ * Fetch a user's collection items filtered by country ID.
+ * This returns both regular and unlisted banknotes from this country.
+ */
+export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
+  // Fetch the full collection for the user first
+  const allItems = await fetchUserCollection(userId);
+
+  // Now, filter collection items by country:
+  // - If regular banknote: item.banknote?.country
+  // - If unlisted: item.unlistedBanknote?.country
+  const filtered = (allItems || []).filter((item) => {
+    const country = item.banknote?.country || item.unlistedBanknote?.country || undefined;
+    // Accept nan/undefined/empty as not matching
+    return country ? country === countryId : false;
+  });
+
+  return filtered;
+}
+
 // ---- For compatibility with uses in other files ----
 // export async function fetchUserCollectionByCountry(userId: string, countryId: string) { ... }
 
