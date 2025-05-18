@@ -290,7 +290,7 @@ export const uploadBanknoteImage = async (file: File): Promise<string> => {
 };
 
 // Helper function to map database fields to client-side model
-function mapBanknoteFromDatabase(item: any): DetailedBanknote {
+export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
   return {
     id: item.id,
     catalogId: item.extended_pick_number || '',

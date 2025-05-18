@@ -5,6 +5,7 @@ import { fetchBanknoteById } from "@/services/banknoteService";
 import { fetchCountryById } from "@/services/countryService";
 import { BanknoteCondition } from "@/types";
 import type { Database } from "@/integrations/supabase/types";
+import { mapBanknoteFromDatabase } from "@/services/banknoteService";
 
 // Type definition for collection items table insert
 type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
@@ -90,7 +91,7 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
             console.error(`[fetchUserCollection] Error fetching detailed_banknotes for item ${item.id}:`, detailedErr);
             return null;
           }
-          banknote = detailed;
+          banknote = detailed ? mapBanknoteFromDatabase(detailed) : null;
         }
 
         // If there's no banknote retrieved, filter out
@@ -300,7 +301,7 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
         console.error(`Error fetching detailed_banknotes for collection item: ${item.banknote_id}`, detailedErr);
         return null;
       }
-      banknote = detailed;
+      banknote = detailed ? mapBanknoteFromDatabase(detailed) : null;
     }
 
     if (!banknote) {
