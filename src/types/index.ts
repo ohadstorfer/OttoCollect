@@ -1,3 +1,5 @@
+
+// Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
   sender_id: string;
@@ -158,19 +160,14 @@ export interface BanknoteFilterState {
 }
 
 // Collection related interfaces
-// Only one declaration for CollectionItem (resolve duplicate/variant error)
-// Update to permit both banknote/unlistedBanknote (never both), with the union
 export interface CollectionItem {
   id: string;
   userId: string;
-  // Discriminator: regular or unlisted
-  banknoteId?: string | null;
-  unlistedBanknotesId?: string | null;
-  banknote?: DetailedBanknote; // Only if regular
-  unlistedBanknote?: UnlistedBanknote; // Only if unlisted
+  banknoteId: string;
+  banknote: DetailedBanknote;
   condition: BanknoteCondition;
   purchasePrice?: number;
-  purchaseDate?: string | Date;
+  purchaseDate?: string | Date;  // Allow both string and Date
   location?: string;
   obverseImage?: string;
   reverseImage?: string;
@@ -182,7 +179,6 @@ export interface CollectionItem {
   orderIndex?: number;
   createdAt?: string;
   updatedAt?: string;
-  isUnlistedBanknote?: boolean;
 }
 
 // Marketplace related interfaces
@@ -205,43 +201,6 @@ export interface WishlistItem {
   priority: string;
   createdAt: string;
   banknote?: Banknote;
-}
-
-// Unlisted Banknote (mirrors DetailedBanknote but from user)
-export interface UnlistedBanknote {
-  id: string;
-  userId: string;
-  isApproved?: boolean;
-  isPending?: boolean;
-  createdAt: string;
-  updatedAt: string;
-  country: string;
-  extendedPickNumber: string;
-  pickNumber: string;
-  turkCatalogNumber?: string;
-  faceValue: string;
-  islamicYear?: string;
-  gregorianYear?: string;
-  signaturesFront?: string;
-  signaturesBack?: string;
-  signaturePictures?: string[];
-  sealNames?: string;
-  sealPictures?: string[];
-  watermarkPicture?: string;
-  otherElementPictures?: string[];
-  frontPicture?: string;
-  backPicture?: string;
-  sultanName?: string;
-  tughraPicture?: string;
-  printer?: string;
-  type?: string;
-  category?: string;
-  rarity?: string;
-  securityElement?: string;
-  colors?: string;
-  serialNumbering?: string;
-  banknoteDescription?: string;
-  historicalDescription?: string;
 }
 
 // Import and re-export types from other files
