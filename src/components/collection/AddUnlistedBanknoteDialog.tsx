@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Dialog,
@@ -16,6 +15,7 @@ import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { createUnlistedBanknoteWithCollectionItem } from "@/services/collectionService";
+import { SimpleImageUpload } from "@/components/ui/simple-image-upload";
 
 interface AddUnlistedBanknoteDialogProps {
   userId: string;
@@ -50,8 +50,6 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     front_picture: "",
     back_picture: "",
     seal_names: "",
-    // Add more fields if needed for unlisted
-    // Defaults set to blank string for easy controlled components
   });
 
   const handleFieldChange = (
@@ -124,6 +122,21 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     }
   };
 
+  // ---- New handlers for image upload to work with SimpleImageUpload
+  const handleFrontImageUploaded = (url: string) => {
+    setForm((prev: any) => ({
+      ...prev,
+      front_picture: url,
+    }));
+  };
+
+  const handleBackImageUploaded = (url: string) => {
+    setForm((prev: any) => ({
+      ...prev,
+      back_picture: url,
+    }));
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -134,7 +147,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
           <DialogTitle>Add Unlisted Banknote</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-3 mb-4">
               <TabsTrigger value="basic">Basic Information</TabsTrigger>
               <TabsTrigger value="details">Additional Details</TabsTrigger>
@@ -281,28 +294,24 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
             <TabsContent value="images" className="space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <Label htmlFor="front_picture">Front Image URL</Label>
-                  <Input
-                    id="front_picture"
-                    name="front_picture"
-                    value={form.front_picture}
-                    onChange={handleFieldChange}
-                    placeholder="https://..."
+                  <Label>Front Image</Label>
+                  <SimpleImageUpload
+                    image={form.front_picture}
+                    side="front"
+                    onImageUploaded={handleFrontImageUploaded}
                   />
                 </div>
                 <div className="space-y-4">
-                  <Label htmlFor="back_picture">Back Image URL</Label>
-                  <Input
-                    id="back_picture"
-                    name="back_picture"
-                    value={form.back_picture}
-                    onChange={handleFieldChange}
-                    placeholder="https://..."
+                  <Label>Back Image</Label>
+                  <SimpleImageUpload
+                    image={form.back_picture}
+                    side="back"
+                    onImageUploaded={handleBackImageUploaded}
                   />
                 </div>
               </div>
               <p className="text-sm text-muted-foreground mt-4">
-                Paste image URLs. For best results, use high-resolution images with clear details.
+                Upload images directly or paste image URLs. For best results, use high-resolution images with clear details.
               </p>
             </TabsContent>
           </Tabs>
