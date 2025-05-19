@@ -773,3 +773,90 @@ export async function fetchUserCollectionCountByCountry(userId: string): Promise
     return {};
   }
 }
+
+export async function addUnlistedBanknoteAndCollectionItem({
+  userId,
+  country,
+  denomination,
+  year,
+  series,
+  pickNumber,
+  extPickNumber,
+  turkCatalogNumber,
+  sultanName,
+  type,
+  category,
+  rarity,
+  sealNames,
+  faceValue,
+  obverseImage,
+  reverseImage,
+  additionalNotes,
+}: {
+  userId: string;
+  country: string;
+  denomination?: string;
+  year?: string;
+  series?: string;
+  pickNumber?: string;
+  extPickNumber?: string;
+  turkCatalogNumber?: string;
+  sultanName?: string;
+  type?: string;
+  category?: string;
+  rarity?: string;
+  sealNames?: string;
+  faceValue?: string;
+  obverseImage?: string;
+  reverseImage?: string;
+  additionalNotes?: string;
+}) {
+  // Create in unlisted_banknotes, then add to collection_items
+  // minimal required are country, userId, denomination, year
+  try {
+    const { data: banknote, error } = await supabase
+      .from("unlisted_banknotes")
+      .insert([
+        {
+          user_id: userId,
+          country: country,
+          denomination: denomination ?? "",
+          year: year ?? "",
+          series: series ?? "",
+          pick_number: pickNumber ?? "",
+          extended_pick_number: extPickNumber ?? "",
+          turk_catalog_number: turkCatalogNumber ?? "",
+          sultan_name: sultanName ?? "",
+          type: type ?? "",
+          category: category ?? "",
+          rarity: rarity ?? "",
+          seal_names: sealNames ?? "",
+          face_value: faceValue ?? denomination ?? "",
+          front_picture: obverseImage ?? "",
+          back_picture: reverseImage ?? "",
+          banknote_description: additionalNotes ?? "",
+        },
+      ])
+      .select("*")
+      .single();
+
+    if (error) throw error;
+
+    // Now insert into collection_items
+    const { error: ciError } = await supabase
+      .from("collection_items")
+      .insert([
+        {
+          user_id: userId,
+          unlisted_banknotes_id: banknote.id,
+          is_unlisted_banknote: true,
+        },
+      ]);
+
+    if (ciError) throw ciError;
+    return true;
+  } catch (e) {
+    console.error("[addUnlistedBanknoteAndCollectionItem]:", e);
+    throw e;
+  }
+}

@@ -14,6 +14,7 @@ import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
 import BanknoteDetailCardWishList from '../banknotes/BanknoteDetailCardWishList';
 import BanknoteDetailCardMissingItems from '../banknotes/BanknoteDetailCardMissingItems';
+import { AddUnlistedBanknoteDialog } from '@/components/collection/AddUnlistedBanknoteDialog';
 
 interface CountryCollectionTabsProps {
   userId: string;
@@ -159,6 +160,15 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       </div>
 
       <TabsContent value="my-banknotes">
+        {isOwner && (
+          <div className="mb-4 flex justify-end">
+            <AddUnlistedBanknoteDialog
+              userId={userId}
+              countryName={countryName}
+              onCreated={refetchCollection}
+            />
+          </div>
+        )}
         <CountryDetailCollection 
           userId={userId} 
           countryName={countryName}
