@@ -860,3 +860,74 @@ export async function addUnlistedBanknoteAndCollectionItem({
     throw e;
   }
 }
+
+// Utility function for creating an unlisted_banknotes entry and linking it to collection_items
+export async function createUnlistedBanknoteWithCollectionItem(params: {
+  userId: string;
+  country: string;
+  extended_pick_number: string;
+  pick_number?: string;
+  turk_catalog_number?: string;
+  face_value: string;
+  gregorian_year?: string;
+  islamic_year?: string;
+  sultan_name?: string;
+  printer?: string;
+  type?: string;
+  category?: string;
+  rarity?: string;
+  banknote_description?: string;
+  historical_description?: string;
+  front_picture?: string;
+  back_picture?: string;
+  seal_names?: string;
+}) {
+  try {
+    // 1. Create the unlisted_banknotes entry
+    const { data: unlisted, error: unlistedErr } = await supabase
+      .from('unlisted_banknotes')
+      .insert([{
+        ...params,
+        user_id: params.userId,
+        country: params.country,
+        extended_pick_number: params.extended_pick_number,
+        pick_number: params.pick_number,
+        turk_catalog_number: params.turk_catalog_number,
+        face_value: params.face_value,
+        gregorian_year: params.gregorian_year,
+        islamic_year: params.islamic_year,
+        sultan_name: params.sultan_name,
+        printer: params.printer,
+        type: params.type,
+        category: params.category,
+        rarity: params.rarity,
+        banknote_description: params.banknote_description,
+        historical_description: params.historical_description,
+        front_picture: params.front_picture,
+        back_picture: params.back_picture,
+        seal_names: params.seal_names,
+        is_approved: false,
+        is_pending: true,
+      }])
+      .select('*')
+      .single();
+
+    if (unlistedErr || !unlisted) throw unlistedErr || new Error("Could not create unlisted_banknote");
+
+    // 2. Insert into collection_items and link to the new unlisted_banknotes ID
+    const { data: collectionItem, error: itemErr } = await supabase
+      .from('collection_items')
+      .insert([{
+        user_id: params.userId,
+        is_unlisted_banknote: true,
+        unlisted_banknotes_id: unlisted.id,
+      }]);
+
+    if (itemErr) throw itemErr;
+
+    return true;
+  } catch (err) {
+    console.error("Failed to create unlisted banknote or collection link:", err);
+    throw err;
+  }
+}
