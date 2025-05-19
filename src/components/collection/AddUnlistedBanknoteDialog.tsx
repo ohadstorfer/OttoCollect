@@ -15,7 +15,7 @@ import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { createUnlistedBanknoteWithCollectionItem } from "@/services/collectionService";
-import { SimpleImageUpload } from "@/components/ui/simple-image-upload";
+import SimpleImageUpload from "@/components/collection/SimpleImageUpload";
 
 interface AddUnlistedBanknoteDialogProps {
   userId: string;
