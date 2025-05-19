@@ -160,7 +160,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       </div>
 
       <TabsContent value="my-banknotes">
-        {isOwner && (
+        {/* {isOwner && (
           <div className="mb-4 flex justify-end">
             <AddUnlistedBanknoteDialog
               userId={userId}
@@ -168,7 +168,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
               onCreated={refetchCollection}
             />
           </div>
-        )}
+        )} */}
         <CountryDetailCollection 
           userId={userId} 
           countryName={countryName}
