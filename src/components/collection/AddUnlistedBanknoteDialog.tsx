@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Dialog,
@@ -278,31 +277,59 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                 />
               </div>
             </TabsContent>
-            <TabsContent value="images" className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+            <TabsContent value="images" className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-4">
-                  <Label htmlFor="front_picture">Front Image URL</Label>
-                  <Input
-                    id="front_picture"
-                    name="front_picture"
-                    value={form.front_picture}
-                    onChange={handleFieldChange}
-                    placeholder="https://..."
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="front_picture">Front Image URL</Label>
+                    <Input
+                      id="front_picture"
+                      name="front_picture"
+                      value={form.front_picture}
+                      onChange={handleFieldChange}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  {form.front_picture && (
+                    <div className="border rounded p-2">
+                      <img
+                        src={form.front_picture}
+                        alt="Front image"
+                        className="w-full h-auto max-h-48 object-contain"
+                        onError={(e) =>
+                          ((e.target as HTMLImageElement).src = '/placeholder.svg')
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-4">
-                  <Label htmlFor="back_picture">Back Image URL</Label>
-                  <Input
-                    id="back_picture"
-                    name="back_picture"
-                    value={form.back_picture}
-                    onChange={handleFieldChange}
-                    placeholder="https://..."
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="back_picture">Back Image URL</Label>
+                    <Input
+                      id="back_picture"
+                      name="back_picture"
+                      value={form.back_picture}
+                      onChange={handleFieldChange}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  {form.back_picture && (
+                    <div className="border rounded p-2">
+                      <img
+                        src={form.back_picture}
+                        alt="Back image"
+                        className="w-full h-auto max-h-48 object-contain"
+                        onError={(e) =>
+                          ((e.target as HTMLImageElement).src = '/placeholder.svg')
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-4">
-                Paste image URLs. For best results, use high-resolution images with clear details.
+              <p className="text-sm text-muted-foreground">
+                Note: For uploading new images, please use the image suggestion workflow. These fields are for setting existing image URLs.
               </p>
             </TabsContent>
           </Tabs>
