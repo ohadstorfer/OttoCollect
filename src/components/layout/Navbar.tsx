@@ -34,7 +34,7 @@ const Navbar = () => {
 
   // Navigation links that appear in both desktop and mobile views
   const navLinks = [
-    { path: '/catalog', label: 'Catalog' },
+    { path: '/catalog', label: 'Catalogue' },
     { path: '/collection', label: 'My Collection' },
     { path: '/marketplace', label: 'Marketplace' },
     { path: '/community', label: 'Community' },
