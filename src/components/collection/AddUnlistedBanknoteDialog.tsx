@@ -80,7 +80,9 @@ const formSchema = z.object({
 });
 
 const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
-  userId, countryName, onCreated
+  userId, // <-- We'll keep this in props for now (could be used for display), but do NOT use for submissions.
+  countryName,
+  onCreated
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -128,11 +130,12 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
 
-    // Extra debugging
-    console.log("[DEBUG] Provided userId prop:", userId);
-    console.log("[DEBUG] Current Auth user from useAuth():", user);
+    // Always log for debugging
+    console.log("[DEBUG] PROPS: userId:", userId);
+    console.log("[DEBUG] useAuth() user:", user);
 
     try {
+      // Guard: Only proceed if logged in and user.id exists!
       if (!user || !user.id) {
         toast({
           title: "Authentication error",
@@ -142,13 +145,11 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         setIsSubmitting(false);
         return;
       }
-      // DEBUG: Log userID sources
-      console.log("[DEBUG] Provided userId prop:", userId);
-      console.log("[DEBUG] Current Auth user id:", user?.id);
 
+      // Use user.id from auth for all inserts! NOT the props.userId!
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       const unlistedBanknoteData = {
-        user_id: user.id, // Use ONLY the authenticated user id
+        user_id: user.id, // Enforced!
         country: countryName,
         face_value,
         name: values.name,
@@ -162,9 +163,10 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         extended_pick_number: "",
       };
 
-      console.log("[DEBUG] About to insert unlistedBanknoteData:", unlistedBanknoteData);
+      // Extra logging
+      console.log("[DEBUG] Will insert unlistedBanknoteData:", unlistedBanknoteData);
 
-      // PATCH: Create unlisted banknote first
+      // INSERT
       const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem(unlistedBanknoteData);
 
       if (!unlistedBanknote || !unlistedBanknote.id) {
@@ -182,7 +184,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       }
 
       const collectionItemData = {
-        user_id: user.id, // Use ONLY the authenticated user id
+        user_id: user.id, // Enforced!
         is_unlisted_banknote: true,
         unlisted_banknotes_id: unlistedBanknote.id,
         condition: values.condition,
@@ -196,6 +198,9 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         obverse_image: obverseImageUrl,
         reverse_image: reverseImageUrl,
       };
+
+      // Logging
+      console.log("[DEBUG] Will insert collectionItemData:", collectionItemData);
 
       const collectionItem = await createCollectionItem(collectionItemData);
       if (!collectionItem || !collectionItem.id) {
