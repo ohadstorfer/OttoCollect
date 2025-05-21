@@ -15,6 +15,7 @@ import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
 import BanknoteDetailCardWishList from '../banknotes/BanknoteDetailCardWishList';
 import BanknoteDetailCardMissingItems from '../banknotes/BanknoteDetailCardMissingItems';
 import { AddUnlistedBanknoteDialog } from '@/components/collection/AddUnlistedBanknoteDialog';
+import { useAuth } from '@/context/AuthContext';
 
 interface CountryCollectionTabsProps {
   userId: string;
@@ -30,6 +31,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
   isOwner
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const { user, logout } = useAuth();
   
   // Fetch all banknotes for this country (for the "Missing" tab)
   const {
@@ -149,6 +151,11 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     );
   };
 
+
+    // Check if user has admin privileges
+  const isAdmin = user?.role === 'Palestine Admin' || user?.role.includes('Palestine Admin');
+
+  
   return (
     <Tabs defaultValue="my-banknotes" className="w-full">
       <div className=" pl-4 max-w-5xl mx-auto mt-4">
@@ -160,7 +167,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       </div>
 
       <TabsContent value="my-banknotes">
-        {/* {isOwner && (
+        {isOwner && isAdmin &&(
           <div className="mb-4 flex justify-end">
             <AddUnlistedBanknoteDialog
               userId={userId}
@@ -168,7 +175,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
               onCreated={refetchCollection}
             />
           </div>
-        )} */}
+        )}
         <CountryDetailCollection 
           userId={userId} 
           countryName={countryName}
