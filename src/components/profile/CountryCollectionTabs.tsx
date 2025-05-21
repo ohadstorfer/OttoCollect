@@ -31,7 +31,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
   isOwner
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   
   // Fetch all banknotes for this country (for the "Missing" tab)
   const {
@@ -151,10 +151,13 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     );
   };
 
-  // Add debug log to make sure the prop is passed through correctly
+  // Add debug log to see what userId is just before passing to dialog
   React.useEffect(() => {
-    console.log("[DEBUG][CountryCollectionTabs] userId prop =", userId, "| typeof =", typeof userId);
+    console.log("[DEBUG][CountryCollectionTabs] userId passed to AddUnlistedBanknoteDialog (should be string):", userId, "| typeof:", typeof userId);
   }, [userId]);
+
+  // Guard: Only render AddUnlistedBanknoteDialog if userId is a non-empty string
+  const isValidUserId = typeof userId === 'string' && userId.length === 36 && userId !== 'null' && userId !== 'undefined';
 
   // Check if user has admin privileges
   const isAdmin = user?.role === 'Palestine Admin' || user?.role.includes('Palestine Admin');
@@ -171,14 +174,20 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       </div>
 
       <TabsContent value="my-banknotes">
-        {isOwner && isAdmin &&(
+        {isOwner && isAdmin && (
           <div className="mb-4 flex justify-end">
             {console.log("[DEBUG][Render AddUnlistedBanknoteDialog] userId passed =", userId, "| typeof =", typeof userId)}
-            <AddUnlistedBanknoteDialog
-              userId={userId}
-              countryName={countryName}
-              onCreated={refetchCollection}
-            />
+            {isValidUserId ? (
+              <AddUnlistedBanknoteDialog
+                userId={userId}
+                countryName={countryName}
+                onCreated={refetchCollection}
+              />
+            ) : (
+              <Button variant="outline" disabled title="User unavailable">
+                Add an Unlisted Banknote (User unavailable)
+              </Button>
+            )}
           </div>
         )}
         <CountryDetailCollection 

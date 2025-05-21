@@ -108,7 +108,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     }
   });
 
-  // Add more prop runtime logging
+  // Add log for each render and on open change
   React.useEffect(() => {
     console.log("[DEBUG][AddUnlistedBanknoteDialog] userId prop =", userId, "| typeof =", typeof userId);
     if (
@@ -120,10 +120,14 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     ) {
       console.error("[ERROR][AddUnlistedBanknoteDialog] BAD userId value:", userId, "| typeof:", typeof userId);
     }
+    if (typeof userId !== "string" || userId.length !== 36) {
+      console.error("[ERROR][AddUnlistedBanknoteDialog] userId is not a valid UUID:", userId, "| typeof:", typeof userId);
+    }
   }, [userId]);
 
   // Defensive: show an alert and do not render the dialog trigger if userId is unsafe
   const isUserIdInvalid =
+    typeof userId !== "string" || userId.length !== 36 ||
     userId === null ||
     userId === undefined ||
     userId === "" ||
@@ -165,10 +169,9 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
 
-    // Strong log
-    console.log("[DEBUG][AddUnlistedBanknoteDialog] userId before submit:", userId, "| typeof:", typeof userId, "| user from useAuth:", user);
+    // Log the userId and its details right before submit
+    console.log("[DEBUG][AddUnlistedBanknoteDialog] userId BEFORE submit (should be valid UUID):", userId, "| typeof:", typeof userId);
 
-    // Strict guard for userId
     if (isUserIdInvalid) {
       toast({
         title: "User Not Loaded",

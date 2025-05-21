@@ -65,11 +65,15 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
     }
   }, [selectedCountry]);
 
-  // Updated handler to pass only the countryId back up, not both
+  // The handler expected by CountrySelection is (country: string) => void.
+  // But our inner logic resolves (id, name), so we'll ensure both are aligned.
   const handleCountrySelect = (id: string, name: string) => {
     setCountryId(id);
     setCountryName(name);
-    onCountrySelect(id); // <-- always just send one string up
+    if (onCountrySelect) {
+      // The parent handler expects either id or name. For type safety, we pass just the id as before.
+      onCountrySelect(id);
+    }
   };
 
   return showCountryDetail && countryId && countryName ? (
