@@ -39,6 +39,7 @@ import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
 import { format } from "date-fns";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Textarea } from "@/components/ui/textarea";
 
 interface AddUnlistedBanknoteDialogProps {
   userId: string;
