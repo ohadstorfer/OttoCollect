@@ -130,7 +130,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       // 1. Build & save unlisted_banknote
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       const unlistedBanknoteData = {
-        userId: userId,
+        user_id: userId,
         country: countryName,
         face_value,
         name: values.name,
@@ -141,13 +141,14 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         sultan_name: values.sultan_name || null,
         printer: values.printer || null,
         rarity: values.rarity || null,
-        extended_pick_number: "", // required, set to empty if not present
+        extended_pick_number: "", // required even if blank
+        // Add any additional snake_case fields here if needed in future
       };
 
-      // NOTE: Only the above fields are sent to unlisted_banknotes
+      // This must match the backend expectation exactly (snake_case only).
       const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem({ ...unlistedBanknoteData });
 
-      // If it's a boolean (legacy behavior), throw error; if nullish or missing id, also error.
+      // We now expect the backend to succeed and the result to be either true (legacy) or an object with id.
       if (!unlistedBanknote || typeof unlistedBanknote !== "object" || !("id" in unlistedBanknote)) {
         throw new Error("Failed to create unlisted banknote");
       }
@@ -163,7 +164,6 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         reverseImageUrl = await uploadCollectionImage(reverseImageFile);
       }
 
-      // 3. Save collection_items
       const collectionItemData = {
         user_id: userId,
         is_unlisted_banknote: true,
@@ -179,7 +179,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         obverse_image: obverseImageUrl,
         reverse_image: reverseImageUrl,
       };
-      // If you have a real "addToCollection" function, call it here (uncomment after adding to services)
+      // If you have a real "addToCollection" function, call it here. Uncomment if needed.
       // await addToCollection(collectionItemData);
 
       setOpen(false);
