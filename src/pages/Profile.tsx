@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -113,6 +112,13 @@ const Profile: React.FC = () => {
     );
   }
 
+  // Add explicit debug log for userId at the point of passing as prop
+  React.useEffect(() => {
+    if (profile?.id) {
+      console.log("[DEBUG][Profile] Passing userId prop to ProfileCountrySelection:", profile.id, "| typeof:", typeof profile.id);
+    }
+  }, [profile?.id]);
+
   // Render profile edit form if editing and is owner
   if (isEditingProfile && isOwnProfile) {
     return (
@@ -153,4 +159,3 @@ const Profile: React.FC = () => {
 };
 
 export default Profile;
-

@@ -108,10 +108,31 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     }
   });
 
-  // Defensive render: don't show dialog trigger if no userId
-  if (!userId) {
+  // Add more prop runtime logging
+  React.useEffect(() => {
+    console.log("[DEBUG][AddUnlistedBanknoteDialog] userId prop =", userId, "| typeof =", typeof userId);
+    if (
+      userId === null ||
+      userId === undefined ||
+      userId === "" ||
+      userId === "null" ||
+      userId === "undefined"
+    ) {
+      console.error("[ERROR][AddUnlistedBanknoteDialog] BAD userId value:", userId, "| typeof:", typeof userId);
+    }
+  }, [userId]);
+
+  // Defensive: show an alert and do not render the dialog trigger if userId is unsafe
+  const isUserIdInvalid =
+    userId === null ||
+    userId === undefined ||
+    userId === "" ||
+    userId === "null" ||
+    userId === "undefined";
+
+  if (isUserIdInvalid) {
     return (
-      <Button variant="outline" disabled title="User not loaded">
+      <Button variant="outline" disabled title="User ID not loaded">
         Add an Unlisted Banknote (User unavailable)
       </Button>
     );
@@ -145,13 +166,13 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     setIsSubmitting(true);
 
     // Strong log
-    console.log("[DEBUG][AddUnlistedBanknoteDialog] onSubmit triggered, userId prop:", userId, "user from useAuth:", user);
+    console.log("[DEBUG][AddUnlistedBanknoteDialog] userId before submit:", userId, "| typeof:", typeof userId, "| user from useAuth:", user);
 
-    // Hard guard, don't allow submit if userId falsy
-    if (!userId) {
+    // Strict guard for userId
+    if (isUserIdInvalid) {
       toast({
         title: "User Not Loaded",
-        description: "Cannot add banknote: user info missing. Try reloading the profile page.",
+        description: `Cannot add banknote: user id is invalid ("${userId}"). Try reloading the profile page.`,
         variant: "destructive"
       });
       setIsSubmitting(false);
@@ -256,8 +277,11 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         </DialogHeader>
         <Card>
           <CardContent className="pt-6">
+            {/* Add visible debugging information */}
             <div className="mb-4 text-xs text-muted-foreground">
-              <span>UserId being used: <strong>{userId || 'null/undefined'}</strong></span>
+              <span>
+                <strong>DEBUG:</strong> userId = <code>{String(userId)}</code> (typeof: <code>{typeof userId}</code>)
+              </span>
             </div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

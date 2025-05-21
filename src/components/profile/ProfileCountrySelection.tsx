@@ -32,6 +32,11 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   const [countryId, setCountryId] = useState<string | null>(null);
   const [countryName, setCountryName] = useState<string | null>(null);
 
+  // Debug log for userId passed through props
+  React.useEffect(() => {
+    console.log("[DEBUG][ProfileCountrySelection] userId prop =", userId, "| typeof =", typeof userId);
+  }, [userId]);
+
   // On mount (or when selectedCountry changes), resolve both countryId and countryName
   useEffect(() => {
     // If selectedCountry is null, reset both

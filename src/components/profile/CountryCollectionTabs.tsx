@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
 import CountryDetailMissingItems from '@/pages/CountryDetailMissingItems';
@@ -151,8 +151,12 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     );
   };
 
+  // Add debug log to make sure the prop is passed through correctly
+  React.useEffect(() => {
+    console.log("[DEBUG][CountryCollectionTabs] userId prop =", userId, "| typeof =", typeof userId);
+  }, [userId]);
 
-    // Check if user has admin privileges
+  // Check if user has admin privileges
   const isAdmin = user?.role === 'Palestine Admin' || user?.role.includes('Palestine Admin');
 
   
@@ -169,6 +173,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       <TabsContent value="my-banknotes">
         {isOwner && isAdmin &&(
           <div className="mb-4 flex justify-end">
+            {console.log("[DEBUG][Render AddUnlistedBanknoteDialog] userId passed =", userId, "| typeof =", typeof userId)}
             <AddUnlistedBanknoteDialog
               userId={userId}
               countryName={countryName}
