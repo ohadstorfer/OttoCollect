@@ -100,3 +100,36 @@ export async function createCollectionItem(
     return null;
   }
 }
+
+// Stub missing exports for compatibility
+export async function addToCollection(...args: any[]): Promise<any> {
+  throw new Error("addToCollection is not implemented in this context.");
+}
+
+export async function updateCollectionItem(...args: any[]): Promise<any> {
+  throw new Error("updateCollectionItem is not implemented in this context.");
+}
+
+export async function removeFromCollection(...args: any[]): Promise<any> {
+  throw new Error("removeFromCollection is not implemented in this context.");
+}
+
+export async function fetchUserCollection(...args: any[]): Promise<any> {
+  throw new Error("fetchUserCollection is not implemented in this context.");
+}
+
+export async function fetchUserCollectionByCountry(...args: any[]): Promise<any> {
+  throw new Error("fetchUserCollectionByCountry is not implemented in this context.");
+}
+
+export async function fetchUserCollectionItems(...args: any[]): Promise<any> {
+  throw new Error("fetchUserCollectionItems is not implemented in this context.");
+}
+
+export async function fetchBanknoteCategoriesAndTypes(...args: any[]): Promise<any> {
+  throw new Error("fetchBanknoteCategoriesAndTypes is not implemented in this context.");
+}
+
+export async function fetchCollectionItem(...args: any[]): Promise<any> {
+  throw new Error("fetchCollectionItem is not implemented in this context.");
+}

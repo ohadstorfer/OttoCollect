@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -40,6 +40,7 @@ import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
 import { format } from "date-fns";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/context/AuthContext";
 
 interface AddUnlistedBanknoteDialogProps {
   userId: string;
@@ -82,6 +83,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   userId, countryName, onCreated
 }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -126,10 +128,17 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
 
+    // DEBUG: Log userID sources
+    console.log("[DEBUG] Provided userId prop:", userId);
+    console.log("[DEBUG] Current Auth user id:", user?.id);
+
     try {
+      if (!user?.id) {
+        throw new Error("User not authenticated. Please login again.");
+      }
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       const unlistedBanknoteData = {
-        user_id: userId,
+        user_id: user.id, // Force user_id to be actual logged-in user id
         country: countryName,
         face_value,
         name: values.name,
@@ -161,7 +170,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       }
 
       const collectionItemData = {
-        user_id: userId,
+        user_id: user.id, // Match above!
         is_unlisted_banknote: true,
         unlisted_banknotes_id: unlistedBanknote.id,
         condition: values.condition,
@@ -176,7 +185,6 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         reverse_image: reverseImageUrl,
       };
 
-      // ADD: Create a collection item linked to the unlisted banknote
       const collectionItem = await createCollectionItem(collectionItemData);
       if (!collectionItem || !collectionItem.id) {
         throw new Error("Failed to create collection item for unlisted banknote");
