@@ -130,10 +130,10 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       // 1. Build & save unlisted_banknote
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       const unlistedBanknoteData = {
-        user_id: userId,
+        userId: userId,
         country: countryName,
         face_value,
-        Name: values.name,
+        name: values.name,
         category: categories.find((c) => c.id === values.categoryId)?.name || "",
         type: types.find((t) => t.id === values.typeId)?.name || "",
         gregorian_year: values.gregorian_year || null,
@@ -141,18 +141,21 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         sultan_name: values.sultan_name || null,
         printer: values.printer || null,
         rarity: values.rarity || null,
+        extended_pick_number: "", // required, set to empty if not present
       };
 
       // NOTE: Only the above fields are sent to unlisted_banknotes
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem({ ...unlistedBanknoteData });
-      if (!unlistedBanknote?.id) throw new Error("Failed to create unlisted banknote");
+
+      // If it's a boolean (legacy behavior), throw error; if nullish or missing id, also error.
+      if (!unlistedBanknote || typeof unlistedBanknote !== "object" || !("id" in unlistedBanknote)) {
+        throw new Error("Failed to create unlisted banknote");
+      }
 
       // 2. Upload images and create collection_items
       let obverseImageUrl: string | null = null;
       let reverseImageUrl: string | null = null;
 
-      // Upload images if provided
       if (obverseImageFile) {
         obverseImageUrl = await uploadCollectionImage(obverseImageFile);
       }
@@ -176,8 +179,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         obverse_image: obverseImageUrl,
         reverse_image: reverseImageUrl,
       };
-      // Now use whatever service you have to save collectionItemData to collection_items table
-      // (We assume such a function exists, e.g., addToCollection, if you want to pass onCreated)
+      // If you have a real "addToCollection" function, call it here (uncomment after adding to services)
       // await addToCollection(collectionItemData);
 
       setOpen(false);
