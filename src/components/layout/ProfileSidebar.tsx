@@ -1,4 +1,3 @@
-
 import React from "react";
 import { SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -44,7 +43,6 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       }`}
       onInteractOutside={() => onOpenChange(false)}
       onEscapeKeyDown={() => onOpenChange(false)}
-      open={open}
       onOpenChange={onOpenChange}
     >
       {/* Profile Block */}
@@ -141,4 +139,3 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     </SheetContent>
   );
 };
-

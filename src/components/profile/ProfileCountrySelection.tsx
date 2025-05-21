@@ -66,13 +66,25 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   }, [selectedCountry]);
 
   // The handler expected by CountrySelection is (country: string) => void.
-  // But our inner logic resolves (id, name), so we'll ensure both are aligned.
-  const handleCountrySelect = (id: string, name: string) => {
-    setCountryId(id);
-    setCountryName(name);
+  // Our logic sometimes expects both id and name, but the prop expects only one.
+  const handleCountrySelect = (country: string) => {
+    // Try to get both id and name if possible (could be UUID or readable name)
+    const isUuid = /^[0-9a-fA-F-]{36}$/.test(country);
+    if (isUuid) {
+      setCountryId(country);
+      fetchCountryById(country).then(countryData => {
+        if (countryData) setCountryName(countryData.name);
+      });
+    } else {
+      fetchCountryByName(country).then(countryData => {
+        if (countryData) {
+          setCountryId(countryData.id);
+          setCountryName(countryData.name);
+        }
+      });
+    }
     if (onCountrySelect) {
-      // The parent handler expects either id or name. For type safety, we pass just the id as before.
-      onCountrySelect(id);
+      onCountrySelect(country);
     }
   };
 
@@ -105,7 +117,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
       customTitle={`${isOwnProfile ? 'My' : `${userId}'s`} Collection`}
       customDescription="Browse your banknote collection by country"
       userId={userId}
-      onCountrySelect={handleCountrySelect}
+      onCountrySelect={handleCountrySelect} // <-- fixed signature
     />
   );
 };
