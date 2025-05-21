@@ -176,6 +176,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       <TabsContent value="my-banknotes">
         {isOwner && isAdmin && (
           <div className="mb-4 flex justify-end">
+            {console.log("[DEBUG][Render AddUnlistedBanknoteDialog] userId passed =", userId, "| typeof =", typeof userId)}
             {isValidUserId ? (
               <AddUnlistedBanknoteDialog
                 userId={userId}
