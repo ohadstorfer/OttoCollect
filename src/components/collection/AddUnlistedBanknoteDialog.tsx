@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage } from "@/services/collectionService";
+import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createCollectionItem } from "@/services/collectionService";
 import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
@@ -143,7 +143,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         extended_pick_number: "",
       };
 
-      // PATCH: Fix call for return type and handle null
+      // PATCH: Create unlisted banknote first
       const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem(unlistedBanknoteData);
 
       if (!unlistedBanknote || !unlistedBanknote.id) {
@@ -165,8 +165,8 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         is_unlisted_banknote: true,
         unlisted_banknotes_id: unlistedBanknote.id,
         condition: values.condition,
-        public_note: values.publicNote,
-        private_note: values.privateNote,
+        public_note: values.publicNote || null,
+        private_note: values.privateNote || null,
         purchase_price: values.purchasePrice === "" ? null : Number(values.purchasePrice),
         purchase_date: values.purchaseDate ? format(values.purchaseDate, "yyyy-MM-dd") : null,
         location: values.location || null,
@@ -175,6 +175,12 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         obverse_image: obverseImageUrl,
         reverse_image: reverseImageUrl,
       };
+
+      // ADD: Create a collection item linked to the unlisted banknote
+      const collectionItem = await createCollectionItem(collectionItemData);
+      if (!collectionItem || !collectionItem.id) {
+        throw new Error("Failed to create collection item for unlisted banknote");
+      }
 
       setOpen(false);
       toast({ title: "Success", description: "Your unlisted banknote was added." });

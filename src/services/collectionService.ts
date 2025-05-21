@@ -39,12 +39,13 @@ export async function createUnlistedBanknoteWithCollectionItem(
   }
 }
 
+// Fix: upload to correct bucket
 export async function uploadCollectionImage(file: File): Promise<string | null> {
   try {
     const imageName = `${uuidv4()}-${file.name}`;
     const { data, error } = await supabase
       .storage
-      .from('collection-images')
+      .from('banknote_images')
       .upload(imageName, file, {
         cacheControl: '3600',
         upsert: false
@@ -55,10 +56,47 @@ export async function uploadCollectionImage(file: File): Promise<string | null> 
       return null;
     }
 
-    const publicUrl = `https://psnzolounfwgvkupepxb.supabase.co/storage/v1/object/public/collection-images/${data.path}`;
+    const publicUrl = `https://psnzolounfwgvkupepxb.supabase.co/storage/v1/object/public/banknote_images/${data.path}`;
     return publicUrl;
   } catch (error) {
     console.error('Error during image upload:', error);
+    return null;
+  }
+}
+
+// ADD: Create a collection item after unlisted banknote creation
+type CollectionItemInsert = {
+  user_id: string;
+  unlisted_banknotes_id: string;
+  is_unlisted_banknote: boolean;
+  condition?: string;
+  public_note?: string | null;
+  private_note?: string | null;
+  purchase_price?: number | null;
+  purchase_date?: string | null;
+  location?: string | null;
+  is_for_sale?: boolean;
+  sale_price?: number | null;
+  obverse_image?: string | null;
+  reverse_image?: string | null;
+};
+
+export async function createCollectionItem(
+  item: CollectionItemInsert
+): Promise<{ id: string } | null> {
+  try {
+    const { data, error } = await supabase
+      .from('collection_items')
+      .insert([item])
+      .select('id')
+      .single();
+    if (error) {
+      console.error("Error creating collection item:", error);
+      return null;
+    }
+    return data ? { id: data.id } : null;
+  } catch (error) {
+    console.error("Error in createCollectionItem:", error);
     return null;
   }
 }
