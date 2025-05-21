@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage } from "@/services/collectionService";
+import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createCollectionItem } from "@/services/collectionService";
 import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
@@ -160,6 +160,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         reverseImageUrl = await uploadCollectionImage(reverseImageFile);
       }
 
+      // PATCH: Now actually create collection item in the database!
       const collectionItemData = {
         user_id: userId,
         is_unlisted_banknote: true,
@@ -175,6 +176,12 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         obverse_image: obverseImageUrl,
         reverse_image: reverseImageUrl,
       };
+
+      // Actually insert the collection item
+      const collectionItem = await createCollectionItem(collectionItemData);
+      if (!collectionItem || !collectionItem.id) {
+        throw new Error("Failed to create collection item after unlisted banknote");
+      }
 
       setOpen(false);
       toast({ title: "Success", description: "Your unlisted banknote was added." });

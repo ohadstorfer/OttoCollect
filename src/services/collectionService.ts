@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -17,6 +18,7 @@ type UnlistedBanknoteInsert = {
   extended_pick_number: string;
 };
 
+/** Create Unlisted Banknote and return only banknote object with id */
 export async function createUnlistedBanknoteWithCollectionItem(
   banknote: UnlistedBanknoteInsert
 ): Promise<{ id: string } | null> {
@@ -25,7 +27,7 @@ export async function createUnlistedBanknoteWithCollectionItem(
       .from('unlisted_banknotes')
       .insert([banknote])
       .select('id')
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error creating unlisted banknote:", error);
@@ -39,12 +41,33 @@ export async function createUnlistedBanknoteWithCollectionItem(
   }
 }
 
+/** Insert a new collection item (for unlisted or listed banknotes) */
+export async function createCollectionItem(item: any): Promise<{ id: string } | null> {
+  try {
+    const { data, error } = await supabase
+      .from('collection_items')
+      .insert([item])
+      .select('id')
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error creating collection item:", error);
+      return null;
+    }
+    return data ? { id: data.id } : null;
+  } catch (error) {
+    console.error("Error in createCollectionItem:", error);
+    return null;
+  }
+}
+
+// PATCH: Use correct bucket
 export async function uploadCollectionImage(file: File): Promise<string | null> {
   try {
     const imageName = `${uuidv4()}-${file.name}`;
     const { data, error } = await supabase
       .storage
-      .from('collection-images')
+      .from('banknote_images')
       .upload(imageName, file, {
         cacheControl: '3600',
         upsert: false
@@ -55,10 +78,24 @@ export async function uploadCollectionImage(file: File): Promise<string | null> 
       return null;
     }
 
-    const publicUrl = `https://psnzolounfwgvkupepxb.supabase.co/storage/v1/object/public/collection-images/${data.path}`;
+    const publicUrl = `https://psnzolounfwgvkupepxb.supabase.co/storage/v1/object/public/banknote_images/${data.path}`;
     return publicUrl;
   } catch (error) {
     console.error('Error during image upload:', error);
     return null;
   }
 }
+
+// ========== PLACEHOLDER STUBS for BUILD ==========
+// TODO: Properly implement these in future
+
+export async function addToCollection() { throw new Error("addToCollection not implemented"); }
+export async function removeFromCollection() { throw new Error("removeFromCollection not implemented"); }
+export async function fetchUserCollection() { throw new Error("fetchUserCollection not implemented"); }
+export async function fetchUserCollectionByCountry() { throw new Error("fetchUserCollectionByCountry not implemented"); }
+export async function fetchUserCollectionItems() { throw new Error("fetchUserCollectionItems not implemented"); }
+export async function fetchCollectionItem() { throw new Error("fetchCollectionItem not implemented"); }
+export async function fetchBanknoteCategoriesAndTypes() { throw new Error("fetchBanknoteCategoriesAndTypes not implemented"); }
+export async function fetchUserCollectionCountByCountry() { throw new Error("fetchUserCollectionCountByCountry not implemented"); }
+export async function updateCollectionItem() { throw new Error("updateCollectionItem not implemented"); }
+
