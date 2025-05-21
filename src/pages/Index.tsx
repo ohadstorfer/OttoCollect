@@ -125,7 +125,7 @@ const Index = () => {
 
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Button className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg group">
-              <span className="group-hover:animate-bounce-subtle">Explore Catalog</span>
+              <span className="group-hover:animate-bounce-subtle">Explore Catalogue</span>
               <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
             </Button>
             {!user && (
@@ -160,9 +160,9 @@ const Index = () => {
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <Database className="h-6 w-6 text-white" />
               </div>
-              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>Catalog Management</h3>
+              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>Catalogue Management</h3>
               <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
-                Browse comprehensive catalog of Ottoman banknotes organized by country and era
+                Browse comprehensive catalogue of Ottoman banknotes organized by country and era
               </p>
             </div>
             
@@ -290,12 +290,12 @@ const Index = () => {
         <div className="container mx-auto px-4 reveal fade-bottom">
           <div className="max-w-4xl mx-auto">
             <h3 className={`text-2xl font-serif font-semibold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-6`}>
-              Search Our Catalog
+              Search Our Catalogue
             </h3>
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search by country, denomination, year, or catalog ID..."
+                placeholder="Search by country, denomination, year, or catalogue ID..."
                 className={`w-full px-4 py-4 pr-12 rounded-lg ${
                   theme === 'light' 
                     ? 'bg-white border-ottoman-300 text-ottoman-800 focus:border-ottoman-500' 
