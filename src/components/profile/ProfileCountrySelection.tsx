@@ -12,7 +12,7 @@ interface ProfileCountrySelectionProps {
   selectedCountry: string | null; // previous: could be either country name or id, but let's clarify!
   showCountryDetail: boolean;
   profileId: string;
-  onCountrySelect: (country: string) => void; // update to send both
+  onCountrySelect: (country: string) => void; // update stays
   onBackToCountries: () => void;
   profileView?: boolean;
 }
@@ -64,7 +64,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   const handleCountrySelect = (id: string, name: string) => {
     setCountryId(id);
     setCountryName(name);
-    onCountrySelect(id);
+    onCountrySelect(id); // <-- always just send one string up
   };
 
   return showCountryDetail && countryId && countryName ? (
@@ -96,7 +96,6 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
       customTitle={`${isOwnProfile ? 'My' : `${userId}'s`} Collection`}
       customDescription="Browse your banknote collection by country"
       userId={userId}
-      // The onCountrySelect now passes BOTH id and name
       onCountrySelect={handleCountrySelect}
     />
   );

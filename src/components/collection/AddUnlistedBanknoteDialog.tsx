@@ -108,6 +108,15 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     }
   });
 
+  // Defensive render: don't show dialog trigger if no userId
+  if (!userId) {
+    return (
+      <Button variant="outline" disabled title="User not loaded">
+        Add an Unlisted Banknote (User unavailable)
+      </Button>
+    );
+  }
+
   // Log the userId every render for debugging
   React.useEffect(() => {
     console.log("[DEBUG][AddUnlistedBanknoteDialog] userId prop:", userId);
@@ -135,14 +144,14 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
 
-    // Log values for debugging
-    console.log("[DEBUG][AddUnlistedBanknoteDialog] onSubmit, userId prop:", userId);
+    // Strong log
+    console.log("[DEBUG][AddUnlistedBanknoteDialog] onSubmit triggered, userId prop:", userId, "user from useAuth:", user);
 
-    // Guard: Reject if userId missing
+    // Hard guard, don't allow submit if userId falsy
     if (!userId) {
       toast({
-        title: "Error",
-        description: "User information not loaded. Please reload the page and try again.",
+        title: "User Not Loaded",
+        description: "Cannot add banknote: user info missing. Try reloading the profile page.",
         variant: "destructive"
       });
       setIsSubmitting(false);
@@ -247,6 +256,9 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         </DialogHeader>
         <Card>
           <CardContent className="pt-6">
+            <div className="mb-4 text-xs text-muted-foreground">
+              <span>UserId being used: <strong>{userId || 'null/undefined'}</strong></span>
+            </div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Section: Public Details */}
