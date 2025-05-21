@@ -80,7 +80,7 @@ const formSchema = z.object({
 });
 
 const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
-  userId, // <-- We'll keep this in props for now (could be used for display), but do NOT use for submissions.
+  userId, // <-- We'll use this ONLY for user_id field from now on!
   countryName,
   onCreated
 }) => {
@@ -108,6 +108,11 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     }
   });
 
+  // Log the userId every render for debugging
+  React.useEffect(() => {
+    console.log("[DEBUG][AddUnlistedBanknoteDialog] userId prop:", userId);
+  }, [userId]);
+
   // Handle image changes (front and back)
   const handleObverseImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -130,9 +135,19 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
 
-    // Always log for debugging
-    console.log("[DEBUG] PROPS: userId:", userId);
-    console.log("[DEBUG] useAuth() user:", user);
+    // Log values for debugging
+    console.log("[DEBUG][AddUnlistedBanknoteDialog] onSubmit, userId prop:", userId);
+
+    // Guard: Reject if userId missing
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "User information not loaded. Please reload the page and try again.",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       // Guard: Only proceed if logged in and user.id exists!
@@ -147,9 +162,10 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       }
 
       // Use user.id from auth for all inserts! NOT the props.userId!
-      const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
+      const face_value =
+        `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       const unlistedBanknoteData = {
-        user_id: userId, // Enforced!
+        user_id: userId, // use prop!
         country: countryName,
         face_value,
         name: values.name,
@@ -162,9 +178,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         rarity: values.rarity || null,
         extended_pick_number: "",
       };
-
-      // Extra logging
-      console.log("[DEBUG] Will insert unlistedBanknoteData:", unlistedBanknoteData);
+      console.log("[DEBUG] unlistedBanknoteData being sent:", unlistedBanknoteData);
 
       // INSERT
       const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem(unlistedBanknoteData);
