@@ -128,17 +128,27 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
 
-    // DEBUG: Log userID sources
+    // Extra debugging
     console.log("[DEBUG] Provided userId prop:", userId);
-    console.log("[DEBUG] Current Auth user id:", user?.id);
+    console.log("[DEBUG] Current Auth user from useAuth():", user);
 
     try {
-      if (!user?.id) {
-        throw new Error("User not authenticated. Please login again.");
+      if (!user || !user.id) {
+        toast({
+          title: "Authentication error",
+          description: "You must be logged in to add a banknote. Please log in and try again.",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
       }
+      // DEBUG: Log userID sources
+      console.log("[DEBUG] Provided userId prop:", userId);
+      console.log("[DEBUG] Current Auth user id:", user?.id);
+
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       const unlistedBanknoteData = {
-        user_id: user.id, // Force user_id to be actual logged-in user id
+        user_id: user.id, // Use ONLY the authenticated user id
         country: countryName,
         face_value,
         name: values.name,
@@ -151,6 +161,8 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         rarity: values.rarity || null,
         extended_pick_number: "",
       };
+
+      console.log("[DEBUG] About to insert unlistedBanknoteData:", unlistedBanknoteData);
 
       // PATCH: Create unlisted banknote first
       const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem(unlistedBanknoteData);
@@ -170,7 +182,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       }
 
       const collectionItemData = {
-        user_id: user.id, // Match above!
+        user_id: user.id, // Use ONLY the authenticated user id
         is_unlisted_banknote: true,
         unlisted_banknotes_id: unlistedBanknote.id,
         condition: values.condition,
