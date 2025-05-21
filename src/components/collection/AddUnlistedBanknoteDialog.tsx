@@ -149,7 +149,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       // Use user.id from auth for all inserts! NOT the props.userId!
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       const unlistedBanknoteData = {
-        user_id: user.id, // Enforced!
+        user_id: userId, // Enforced!
         country: countryName,
         face_value,
         name: values.name,
@@ -184,7 +184,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       }
 
       const collectionItemData = {
-        user_id: user.id, // Enforced!
+        user_id: userId, // Enforced!
         is_unlisted_banknote: true,
         unlisted_banknotes_id: unlistedBanknote.id,
         condition: values.condition,
