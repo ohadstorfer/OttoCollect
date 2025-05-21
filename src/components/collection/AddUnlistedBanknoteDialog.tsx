@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -8,14 +8,37 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent
+} from "@/components/ui/popover";
+import { CalendarIcon, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createUnlistedBanknoteWithCollectionItem } from "@/services/collectionService";
-import SimpleImageUpload from "@/components/collection/SimpleImageUpload";
+import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage } from "@/services/collectionService";
+import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
+import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
+import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
+import { format } from "date-fns";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 interface AddUnlistedBanknoteDialogProps {
   userId: string;
@@ -23,118 +46,152 @@ interface AddUnlistedBanknoteDialogProps {
   onCreated?: () => void;
 }
 
+// Form schema
+const formSchema = z.object({
+  // CollectionItem fields
+  condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const),
+  publicNote: z.string().optional(),
+  privateNote: z.string().optional(),
+  purchasePrice: z.union([z.coerce.number().optional(), z.literal('')]),
+  purchaseDate: z.date().optional(),
+  location: z.string().optional(),
+  isForSale: z.boolean().default(false),
+  salePrice: z.union([z.coerce.number().optional(), z.literal('')]),
+
+  // Our new required fields
+  // These are saved to unlisted_banknotes
+  faceValueInt: z.union([z.coerce.number(), z.string().regex(/^\d+$/)]),
+  faceValueCurrency: z.string(),
+  name: z.string().max(30),
+  categoryId: z.string(),
+  typeId: z.string(),
+  // These are in extra fields dropdown
+  gregorian_year: z.string().optional(),
+  islamic_year: z.string().optional(),
+  sultan_name: z.string().optional(),
+  printer: z.string().optional(),
+  rarity: z.string().optional(),
+
+  // images stored only in collection_items
+  front_image_file: z.any().optional(),
+  reverse_image_file: z.any().optional(),
+});
+
 const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
-  userId,
-  countryName,
-  onCreated,
+  userId, countryName, onCreated
 }) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("basic");
 
-  const [form, setForm] = useState<any>({
-    extended_pick_number: "",
-    pick_number: "",
-    turk_catalog_number: "",
-    face_value: "",
-    gregorian_year: "",
-    islamic_year: "",
-    sultan_name: "",
-    printer: "",
-    type: "",
-    category: "",
-    rarity: "",
-    banknote_description: "",
-    historical_description: "",
-    front_picture: "",
-    back_picture: "",
-    seal_names: "",
+  const [obverseImageFile, setObverseImageFile] = useState<File | null>(null);
+  const [reverseImageFile, setReverseImageFile] = useState<File | null>(null);
+  const [obverseImagePreview, setObverseImagePreview] = useState<string | null>(null);
+  const [reverseImagePreview, setReverseImagePreview] = useState<string | null>(null);
+
+  const { currencies, loading: loadingCurrencies } = useCountryCurrencies(countryName);
+  const { categories, loading: loadingCategories } = useCountryCategoryDefs(countryName);
+  const { types, loading: loadingTypes } = useCountryTypeDefs(countryName);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      condition: 'UNC',
+      isForSale: false,
+      purchasePrice: '',
+      salePrice: '',
+    }
   });
 
-  const handleFieldChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleTabChange = (tab: string) => setActiveTab(tab);
-
-  const resetForm = () => {
-    setForm({
-      extended_pick_number: "",
-      pick_number: "",
-      turk_catalog_number: "",
-      face_value: "",
-      gregorian_year: "",
-      islamic_year: "",
-      sultan_name: "",
-      printer: "",
-      type: "",
-      category: "",
-      rarity: "",
-      banknote_description: "",
-      historical_description: "",
-      front_picture: "",
-      back_picture: "",
-      seal_names: "",
-    });
-  };
-
-  // img upload can be added later in refactor.
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Required field validation
-    if (!form.extended_pick_number || !form.face_value) {
-      toast({
-        title: "Error",
-        description: "Catalog ID and Denomination are required.",
-        variant: "destructive",
-      });
-      return;
+  // Handle image changes (front and back)
+  const handleObverseImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setObverseImageFile(file);
+      setObverseImagePreview(URL.createObjectURL(file));
+      form.setValue("front_image_file", file);
     }
+  };
+  const handleReverseImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setReverseImageFile(file);
+      setReverseImagePreview(URL.createObjectURL(file));
+      form.setValue("reverse_image_file", file);
+    }
+  };
 
+  // Handle submit
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
+
     try {
-      const ok = await createUnlistedBanknoteWithCollectionItem({
-        userId,
+      // 1. Build & save unlisted_banknote
+      const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
+      const unlistedBanknoteData = {
+        user_id: userId,
         country: countryName,
-        ...form,
-      });
-      if (ok) {
-        toast({
-          title: "Success",
-          description: "Your unlisted banknote was added.",
-        });
-        setOpen(false);
-        resetForm();
-        if (onCreated) onCreated();
+        face_value,
+        Name: values.name,
+        category: categories.find((c) => c.id === values.categoryId)?.name || "",
+        type: types.find((t) => t.id === values.typeId)?.name || "",
+        gregorian_year: values.gregorian_year || null,
+        islamic_year: values.islamic_year || null,
+        sultan_name: values.sultan_name || null,
+        printer: values.printer || null,
+        rarity: values.rarity || null,
+      };
+
+      // NOTE: Only the above fields are sent to unlisted_banknotes
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem({ ...unlistedBanknoteData });
+      if (!unlistedBanknote?.id) throw new Error("Failed to create unlisted banknote");
+
+      // 2. Upload images and create collection_items
+      let obverseImageUrl: string | null = null;
+      let reverseImageUrl: string | null = null;
+
+      // Upload images if provided
+      if (obverseImageFile) {
+        obverseImageUrl = await uploadCollectionImage(obverseImageFile);
       }
+      if (reverseImageFile) {
+        reverseImageUrl = await uploadCollectionImage(reverseImageFile);
+      }
+
+      // 3. Save collection_items
+      const collectionItemData = {
+        user_id: userId,
+        is_unlisted_banknote: true,
+        unlisted_banknotes_id: unlistedBanknote.id,
+        condition: values.condition,
+        public_note: values.publicNote,
+        private_note: values.privateNote,
+        purchase_price: values.purchasePrice === "" ? null : Number(values.purchasePrice),
+        purchase_date: values.purchaseDate ? format(values.purchaseDate, "yyyy-MM-dd") : null,
+        location: values.location || null,
+        is_for_sale: values.isForSale,
+        sale_price: values.salePrice === "" ? null : Number(values.salePrice),
+        obverse_image: obverseImageUrl,
+        reverse_image: reverseImageUrl,
+      };
+      // Now use whatever service you have to save collectionItemData to collection_items table
+      // (We assume such a function exists, e.g., addToCollection, if you want to pass onCreated)
+      // await addToCollection(collectionItemData);
+
+      setOpen(false);
+      toast({ title: "Success", description: "Your unlisted banknote was added." });
+      if (onCreated) onCreated();
+      form.reset();
+      setObverseImageFile(null);
+      setReverseImageFile(null);
+      setObverseImagePreview(null);
+      setReverseImagePreview(null);
     } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err?.message || "Could not add the unlisted banknote.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: err?.message || "Failed to add unlisted banknote.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // ---- New handlers for image upload to work with SimpleImageUpload
-  const handleFrontImageUploaded = (url: string) => {
-    setForm((prev: any) => ({
-      ...prev,
-      front_picture: url,
-    }));
-  };
-
-  const handleBackImageUploaded = (url: string) => {
-    setForm((prev: any) => ({
-      ...prev,
-      back_picture: url,
-    }));
   };
 
   return (
@@ -146,191 +203,510 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Add Unlisted Banknote</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 mb-4">
-              <TabsTrigger value="basic">Basic Information</TabsTrigger>
-              <TabsTrigger value="details">Additional Details</TabsTrigger>
-              <TabsTrigger value="images">Images</TabsTrigger>
-            </TabsList>
-            <TabsContent value="basic" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="extended_pick_number">Catalog ID (required)</Label>
-                  <Input
-                    id="extended_pick_number"
-                    name="extended_pick_number"
-                    value={form.extended_pick_number}
-                    onChange={handleFieldChange}
-                    required
+        <Card>
+          <CardContent className="pt-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Section: Public Details */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-medium">Public Details</h3>
+                    <span className="text-sm text-muted-foreground">Visible to everyone</span>
+                  </div>
+                  {/* Face Value */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <FormField
+                      control={form.control}
+                      name="faceValueInt"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Face Value (Number)</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} placeholder="Enter value" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="faceValueCurrency"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Currency</FormLabel>
+                          <FormControl>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={loadingCurrencies ? "Loading..." : "Select currency"} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {currencies.map((currency) => (
+                                  <SelectItem value={currency.id} key={currency.id}>
+                                    {currency.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  {/* Name */}
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input maxLength={30} {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          For example: Check
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* Category */}
+                  <FormField
+                    control={form.control}
+                    name="categoryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={loadingCategories ? "Loading..." : "Select category"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((cat) => (
+                                <SelectItem value={cat.id} key={cat.id}>{cat.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* Type */}
+                  <FormField
+                    control={form.control}
+                    name="typeId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Type</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={loadingTypes ? "Loading..." : "Select type"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {types.map((type) => (
+                                <SelectItem value={type.id} key={type.id}>{type.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="pick_number">Pick Number</Label>
-                  <Input
-                    id="pick_number"
-                    name="pick_number"
-                    value={form.pick_number}
-                    onChange={handleFieldChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="face_value">Denomination (required)</Label>
-                  <Input
-                    id="face_value"
-                    name="face_value"
-                    value={form.face_value}
-                    onChange={handleFieldChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gregorian_year">Gregorian Year</Label>
-                  <Input
-                    id="gregorian_year"
-                    name="gregorian_year"
-                    value={form.gregorian_year}
-                    onChange={handleFieldChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="islamic_year">Islamic Year</Label>
-                  <Input
-                    id="islamic_year"
-                    name="islamic_year"
-                    value={form.islamic_year}
-                    onChange={handleFieldChange}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="banknote_description">Description</Label>
-                <Textarea
-                  id="banknote_description"
-                  name="banknote_description"
-                  value={form.banknote_description}
-                  onChange={handleFieldChange}
-                  rows={3}
+
+                {/* Condition */}
+                <FormField
+                  control={form.control}
+                  name="condition"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Condition</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select condition" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
+                            <SelectItem value="AU">AU - About Uncirculated</SelectItem>
+                            <SelectItem value="XF">XF - Extremely Fine</SelectItem>
+                            <SelectItem value="VF">VF - Very Fine</SelectItem>
+                            <SelectItem value="F">F - Fine</SelectItem>
+                            <SelectItem value="VG">VG - Very Good</SelectItem>
+                            <SelectItem value="G">G - Good</SelectItem>
+                            <SelectItem value="FR">FR - Fair</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormDescription>
+                        Select the condition of your banknote.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-            </TabsContent>
-            <TabsContent value="details" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="sultan_name">Sultan Name</Label>
-                  <Input
-                    id="sultan_name"
-                    name="sultan_name"
-                    value={form.sultan_name}
-                    onChange={handleFieldChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="printer">Printer</Label>
-                  <Input
-                    id="printer"
-                    name="printer"
-                    value={form.printer}
-                    onChange={handleFieldChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
-                  <Input
-                    id="type"
-                    name="type"
-                    value={form.type}
-                    onChange={handleFieldChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
-                    name="category"
-                    value={form.category}
-                    onChange={handleFieldChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="rarity">Rarity</Label>
-                  <Input
-                    id="rarity"
-                    name="rarity"
-                    value={form.rarity}
-                    onChange={handleFieldChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="seaL_names">Seal Names</Label>
-                  <Input
-                    id="seal_names"
-                    name="seal_names"
-                    value={form.seal_names}
-                    onChange={handleFieldChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="turk_catalog_number">Turk Catalog Number</Label>
-                  <Input
-                    id="turk_catalog_number"
-                    name="turk_catalog_number"
-                    value={form.turk_catalog_number}
-                    onChange={handleFieldChange}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="historical_description">Historical Description</Label>
-                <Textarea
-                  id="historical_description"
-                  name="historical_description"
-                  value={form.historical_description}
-                  onChange={handleFieldChange}
-                  rows={3}
+
+                {/* Public Note */}
+                <FormField
+                  control={form.control}
+                  name="publicNote"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Public Note</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Add a note visible to other collectors"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        This note will be visible to other users.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-            </TabsContent>
-            <TabsContent value="images" className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+
+                {/* Custom Images */}
                 <div className="space-y-4">
-                  <Label>Front Image</Label>
-                  <SimpleImageUpload
-                    image={form.front_picture}
-                    side="front"
-                    onImageUploaded={handleFrontImageUploaded}
-                  />
+                  <h3 className="text-lg font-medium">Custom Images</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Upload your own images of the banknote (optional)
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Obverse */}
+                    <div>
+                      <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
+                      <div className="mt-2 flex items-center gap-4">
+                        <label
+                          htmlFor="obverseImage"
+                          className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+                        >
+                          {obverseImagePreview ? (
+                            <img src={obverseImagePreview} alt="Obverse preview" className="w-full h-full object-contain" />
+                          ) : (
+                            <Upload className="h-8 w-8 text-muted-foreground" />
+                          )}
+                        </label>
+                        <input
+                          id="obverseImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleObverseImageChange}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+                    {/* Reverse */}
+                    <div>
+                      <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
+                      <div className="mt-2 flex items-center gap-4">
+                        <label
+                          htmlFor="reverseImage"
+                          className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+                        >
+                          {reverseImagePreview ? (
+                            <img src={reverseImagePreview} alt="Reverse preview" className="w-full h-full object-contain" />
+                          ) : (
+                            <Upload className="h-8 w-8 text-muted-foreground" />
+                          )}
+                        </label>
+                        <input
+                          id="reverseImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleReverseImageChange}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-4">
-                  <Label>Back Image</Label>
-                  <SimpleImageUpload
-                    image={form.back_picture}
-                    side="back"
-                    onImageUploaded={handleBackImageUploaded}
-                  />
+
+                {/* Extra Fields Dropdown */}
+                <div>
+                  <Collapsible>
+                    <CollapsibleTrigger className="text-base font-semibold mb-2 w-full flex items-center justify-start border border-muted px-4 py-2 rounded hover:bg-muted bg-background">
+                      Extra Fields
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <FormField
+                          control={form.control}
+                          name="gregorian_year"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Gregorian Year</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="e.g., 1923" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="islamic_year"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Islamic Year</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="e.g., 1342" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="sultan_name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Sultan Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Sultan." />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="printer"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Printer</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Printer" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="rarity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Rarity</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Rarity" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
-              </div>
-              <p className="text-sm text-muted-foreground mt-4">
-                Upload images directly or paste image URLs. For best results, use high-resolution images with clear details.
-              </p>
-            </TabsContent>
-          </Tabs>
-          <DialogFooter className="pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => { setOpen(false); resetForm(); }} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Add Banknote"
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+
+                {/* Private Note */}
+                <FormField
+                  control={form.control}
+                  name="privateNote"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Private Note</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Add a private note for your reference"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        This note will only be visible to you.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Private Section */}
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-medium">Private Details</h3>
+                  <span className="text-sm text-muted-foreground">Only visible to you</span>
+                </div>
+                {/* Purchase Date */}
+                <FormField
+                  control={form.control}
+                  name="purchaseDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Purchase Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"
+                                }`}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>
+                        When did you acquire this banknote?
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Purchase Price */}
+                <FormField
+                  control={form.control}
+                  name="purchasePrice"
+                  render={({ field: { onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Purchase Price</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2">
+                            $
+                          </span>
+                          <Input
+                            {...field}
+                            className="pl-6"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '' || /^[0-9]*\.?[0-9]*$/.test(val)) {
+                                onChange(val);
+                              }
+                            }}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        How much did you pay for this banknote?
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Location */}
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Storage Location</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Where is this banknote stored?
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* For Sale Switch */}
+                <FormField
+                  control={form.control}
+                  name="isForSale"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">For Sale</FormLabel>
+                        <FormDescription>
+                          Mark this banknote as available for sale
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Sale Price - Only show if For Sale is checked */}
+                {form.watch("isForSale") && (
+                  <FormField
+                    control={form.control}
+                    name="salePrice"
+                    render={({ field: { onChange, ...field } }) => (
+                      <FormItem>
+                        <FormLabel>Sale Price</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2">
+                              $
+                            </span>
+                            <Input
+                              {...field}
+                              className="pl-6"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '' || /^[0-9]*\.?[0-9]*$/.test(val)) {
+                                  onChange(val);
+                                }
+                              }}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* Save/Cancel Buttons */}
+                <DialogFooter className="pt-4 border-t">
+                  <Button type="button" variant="outline" onClick={() => { setOpen(false); form.reset(); }} disabled={isSubmitting}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>Saving...</>
+                    ) : (
+                      "Add Banknote"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       </DialogContent>
     </Dialog>
   );

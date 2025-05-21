@@ -883,7 +883,7 @@ export type Database = {
           colors: string | null
           country: string
           created_at: string | null
-          extended_pick_number: string
+          extended_pick_number: string | null
           face_value: string
           front_picture: string | null
           gregorian_year: string | null
@@ -892,8 +892,9 @@ export type Database = {
           is_approved: boolean | null
           is_pending: boolean | null
           islamic_year: string | null
+          Name: string | null
           other_element_pictures: string[] | null
-          pick_number: string
+          pick_number: string | null
           printer: string | null
           rarity: string | null
           seal_names: string | null
@@ -918,7 +919,7 @@ export type Database = {
           colors?: string | null
           country: string
           created_at?: string | null
-          extended_pick_number: string
+          extended_pick_number?: string | null
           face_value: string
           front_picture?: string | null
           gregorian_year?: string | null
@@ -927,8 +928,9 @@ export type Database = {
           is_approved?: boolean | null
           is_pending?: boolean | null
           islamic_year?: string | null
+          Name?: string | null
           other_element_pictures?: string[] | null
-          pick_number: string
+          pick_number?: string | null
           printer?: string | null
           rarity?: string | null
           seal_names?: string | null
@@ -953,7 +955,7 @@ export type Database = {
           colors?: string | null
           country?: string
           created_at?: string | null
-          extended_pick_number?: string
+          extended_pick_number?: string | null
           face_value?: string
           front_picture?: string | null
           gregorian_year?: string | null
@@ -962,8 +964,9 @@ export type Database = {
           is_approved?: boolean | null
           is_pending?: boolean | null
           islamic_year?: string | null
+          Name?: string | null
           other_element_pictures?: string[] | null
-          pick_number?: string
+          pick_number?: string | null
           printer?: string | null
           rarity?: string | null
           seal_names?: string | null
