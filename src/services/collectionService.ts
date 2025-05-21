@@ -101,6 +101,43 @@ export async function createCollectionItem(
   }
 }
 
+/**
+ * Fetch the count of collection items in each country for a given user.
+ * Returns an object { [countryName]: count }
+ */
+export async function fetchUserCollectionCountByCountry(userId: string): Promise<Record<string, number>> {
+  // Query all collection_items for user with linked detailed_banknotes (not unlisted_only),
+  // group/join by detailed_banknotes.country, and count occurrences.
+  const { data, error } = await supabase
+    .from('collection_items')
+    .select(`
+      banknote_id,
+      is_unlisted_banknote,
+      banknote:detailed_banknotes (
+        country
+      )
+    `)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error("[collectionService] Error fetching collection items for user", userId, error);
+    return {};
+  }
+
+  // Aggregate counts per country.
+  const counts: Record<string, number> = {};
+
+  (data || []).forEach((item: any) => {
+    // Only count if not "unlisted" and a valid country exists.
+    if (!item.is_unlisted_banknote && item.banknote && item.banknote.country) {
+      const countryName = item.banknote.country;
+      counts[countryName] = (counts[countryName] || 0) + 1;
+    }
+  });
+
+  return counts;
+}
+
 // Stub missing exports for compatibility
 export async function addToCollection(...args: any[]): Promise<any> {
   throw new Error("addToCollection is not implemented in this context.");
