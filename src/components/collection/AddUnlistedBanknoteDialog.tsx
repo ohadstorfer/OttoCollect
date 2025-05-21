@@ -127,7 +127,6 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     setIsSubmitting(true);
 
     try {
-      // 1. Build & save unlisted_banknote
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       const unlistedBanknoteData = {
         user_id: userId,
@@ -141,19 +140,16 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         sultan_name: values.sultan_name || null,
         printer: values.printer || null,
         rarity: values.rarity || null,
-        extended_pick_number: "", // required even if blank
-        // Add any additional snake_case fields here if needed in future
+        extended_pick_number: "",
       };
 
-      // This must match the backend expectation exactly (snake_case only).
-      const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem({ ...unlistedBanknoteData });
+      // PATCH: Fix call for return type and handle null
+      const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem(unlistedBanknoteData);
 
-      // We now expect the backend to succeed and the result to be either true (legacy) or an object with id.
-      if (!unlistedBanknote || typeof unlistedBanknote !== "object" || !("id" in unlistedBanknote)) {
+      if (!unlistedBanknote || !unlistedBanknote.id) {
         throw new Error("Failed to create unlisted banknote");
       }
 
-      // 2. Upload images and create collection_items
       let obverseImageUrl: string | null = null;
       let reverseImageUrl: string | null = null;
 
@@ -179,8 +175,6 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         obverse_image: obverseImageUrl,
         reverse_image: reverseImageUrl,
       };
-      // If you have a real "addToCollection" function, call it here. Uncomment if needed.
-      // await addToCollection(collectionItemData);
 
       setOpen(false);
       toast({ title: "Success", description: "Your unlisted banknote was added." });

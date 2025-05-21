@@ -12,7 +12,7 @@ interface ProfileCountrySelectionProps {
   selectedCountry: string | null; // previous: could be either country name or id, but let's clarify!
   showCountryDetail: boolean;
   profileId: string;
-  onCountrySelect: (countryId: string, countryName: string) => void; // update to send both
+  onCountrySelect: (country: string) => void; // update to send both
   onBackToCountries: () => void;
   profileView?: boolean;
 }
@@ -60,11 +60,11 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
     }
   }, [selectedCountry]);
 
-  // Updated handler to pass both values up
+  // Updated handler to pass only the countryId back up, not both
   const handleCountrySelect = (id: string, name: string) => {
     setCountryId(id);
     setCountryName(name);
-    onCountrySelect(id, name);
+    onCountrySelect(id);
   };
 
   return showCountryDetail && countryId && countryName ? (
