@@ -63,7 +63,7 @@ function normalizeBanknoteData(
     rarity: banknote.rarity ?? "",
     sealNames: banknote.sealNames ?? banknote.seal_names ?? "",
     imageUrls: banknote.imageUrls ?? banknote.front_picture ?? [],
-    // add any other mapped/required fields
+    name: banknote.name,
   };
 }
 
@@ -889,6 +889,7 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
   location?: string;
   is_for_sale?: boolean;
   sale_price?: number;
+  name?: string;
 }) {
   try {
     // 1. Create the unlisted_banknotes entry
@@ -913,6 +914,7 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
         seal_names: params.seal_names,
         is_approved: false,
         is_pending: true,
+        name: params.name,
       }])
       .select('*')
       .single();

@@ -50,6 +50,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     banknoteId: item?.banknoteId,
     banknote: item?.banknote ? {
       id: item.banknote.id,
+      name: item.banknote.name,
       country: item.banknote.country || 'Missing country',
       denomination: item.banknote.denomination || 'Missing denomination',
       year: item.banknote.year || 'Missing year',

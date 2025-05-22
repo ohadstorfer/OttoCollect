@@ -139,7 +139,13 @@ export interface DetailedBanknote extends Banknote {
   signaturesFront?: string;
   signaturesBack?: string;
   extendedPickNumber?: string;
+  name?: string;
 }
+
+
+
+
+
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
 

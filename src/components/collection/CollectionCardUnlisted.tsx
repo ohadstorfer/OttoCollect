@@ -229,6 +229,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{item.banknote.denomination}</h4>
+              
               {item?.condition && (
                 <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
                   {item.condition}
@@ -236,29 +237,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
               )}
             </div>
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm pt-2">
-              {item.banknote.extendedPickNumber && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {item.banknote.extendedPickNumber}
-                </Badge>
-              )}
-              {item.banknote.turkCatalogNumber && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {item.banknote.turkCatalogNumber}
-                </Badge>
-              )}
-              {item.banknote.year && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {item.banknote.year}
-                </Badge>
-              )}
-              {item.banknote.rarity && (
-                <Badge
-                  variant="secondary"
-                  className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
-                >
-                  {item.banknote.rarity}
-                </Badge>
-              )}
+            <h2 className="font-bold">{item.banknote.name}</h2>
             </div>
           </div>
         </div>
