@@ -82,11 +82,11 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
         {isOwnProfile ? (
           <Button
             onClick={onEditProfileClick}
-            className="flex items-center gap-2"
+            className="flex items-center "
             variant="outline"
           >
             <Edit className="h-4 w-4" />
-            Edit Profile
+
           </Button>
         ) : (
           user && (
