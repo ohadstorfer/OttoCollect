@@ -49,6 +49,9 @@ export default function CollectionItem() {
   const [hasPendingSuggestion, setHasPendingSuggestion] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, []);
 
   // Fetch collection item directly by ID
   const { data: collectionItem, isLoading, isError, refetch } = useQuery({

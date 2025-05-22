@@ -49,6 +49,11 @@ export default function CollectionItemUnlisted() {
   const [hasPendingSuggestion, setHasPendingSuggestion] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, []);
+
 
   // Fetch collection item directly by ID
   const { data: collectionItem, isLoading, isError, refetch } = useQuery({
@@ -56,6 +61,9 @@ export default function CollectionItemUnlisted() {
     queryFn: () => fetchCollectionItem(id || ""),
     enabled: !!id,
   });
+
+  
+  
 
   // Check if user has pending image suggestions for this banknote
   useEffect(() => {
