@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { CollectionItem, DetailedBanknote } from '@/types';
 import CollectionItemCard from './CollectionItemCard';
+import CollectionCardUnlisted from './CollectionCardUnlisted';
 import { CollectionItemCardGroup } from './CollectionItemCardGroup';
 import { CollectionItemGroupDialog } from './CollectionItemGroupDialog';
 import { cn } from '@/lib/utils';
@@ -319,13 +319,23 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                   // Normal display
                   group.items.map((item, index) => (
                     <div key={`item-${group.category}-${index}`} className="self-start">
-                      <CollectionItemCard
-                        item={item}
-                        onEdit={() => {}} // We'll implement this later
-                        onUpdate={onUpdate}
-                        viewMode={viewMode}
-                        isOwner={isOwner}
-                      />
+                      {item.is_unlisted_banknote ? (
+                        <CollectionCardUnlisted
+                          item={item}
+                          onEdit={() => {}} // We'll implement this later
+                          onUpdate={onUpdate}
+                          viewMode={viewMode}
+                          isOwner={isOwner}
+                        />
+                      ) : (
+                        <CollectionItemCard
+                          item={item}
+                          onEdit={() => {}} // We'll implement this later
+                          onUpdate={onUpdate}
+                          viewMode={viewMode}
+                          isOwner={isOwner}
+                        />
+                      )}
                     </div>
                   ))
                 )}

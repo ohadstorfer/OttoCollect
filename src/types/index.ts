@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -142,11 +141,6 @@ export interface DetailedBanknote extends Banknote {
   name?: string;
 }
 
-
-
-
-
-
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
 
 export interface BanknoteFilters {
@@ -185,6 +179,7 @@ export interface CollectionItem {
   orderIndex?: number;
   createdAt?: string;
   updatedAt?: string;
+  is_unlisted_banknote: boolean;
 }
 
 // Marketplace related interfaces

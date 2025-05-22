@@ -118,7 +118,8 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
         reverseImage: item.reverse_image,
         orderIndex: item.order_index,
         createdAt: item.created_at,
-        updatedAt: item.updated_at
+        updatedAt: item.updated_at,
+        is_unlisted_banknote: item.is_unlisted_banknote,
       } as CollectionItem;
     });
 
@@ -321,7 +322,8 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
       reverseImage: item.reverse_image,
       orderIndex: item.order_index,
       createdAt: item.created_at,
-      updatedAt: item.updated_at
+      updatedAt: item.updated_at,
+      is_unlisted_banknote: item.is_unlisted_banknote,
     } as CollectionItem;
   } catch (error) {
     console.error("Error in fetchCollectionItem:", error);
@@ -399,7 +401,8 @@ export async function addToCollection(
       reverseImage: insertedItem.reverse_image,
       orderIndex: insertedItem.order_index,
       createdAt: insertedItem.created_at,
-      updatedAt: insertedItem.updated_at
+      updatedAt: insertedItem.updated_at,
+      is_unlisted_banknote: insertedItem.is_unlisted_banknote,
     };
 
     return collectionItem;

@@ -237,7 +237,8 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
               )}
             </div>
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm pt-2">
-            <h2 className="font-bold">{item.banknote.name}</h2>
+            <h6 className="font-bold text-sm">Unlisted Banknote</h6>
+            
             </div>
           </div>
         </div>
@@ -259,16 +260,19 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
           )}
         </div>
         <div className="p-3 bg-background border-t">
-          {item.banknote.sultanName && (
-            <p className="text-xs text-muted-foreground">
-              Sultan: {item.banknote.sultanName}
+
+          {item.banknote.name && (
+            <p className="text-sm text-muted-foreground">
+              {item.banknote.name}
             </p>
           )}
-          {item.banknote.sealNames && (
+
+          {/* here, in the future, we will replace the seal name with the serial number */}
+          {/* {item.banknote.sealNames && (
             <p className="text-xs text-muted-foreground">
               Seals: {item.banknote.sealNames}
             </p>
-          )}
+          )} */}
           {item?.isForSale && (
             <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
               For Sale: {formatPrice(item.salePrice)}
