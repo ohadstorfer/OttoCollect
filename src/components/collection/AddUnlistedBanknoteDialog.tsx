@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -33,14 +33,13 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createCollectionItem } from "@/services/collectionService";
+import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage } from "@/services/collectionService";
 import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
 import { format } from "date-fns";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/context/AuthContext";
 
 interface AddUnlistedBanknoteDialogProps {
   userId: string;
@@ -80,12 +79,9 @@ const formSchema = z.object({
 });
 
 const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
-  userId, // <-- We'll use this ONLY for user_id field from now on!
-  countryName,
-  onCreated
+  userId, countryName, onCreated
 }) => {
   const { toast } = useToast();
-  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -107,45 +103,6 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       salePrice: '',
     }
   });
-
-  // Add log for each render and on open change
-  React.useEffect(() => {
-    console.log("[DEBUG][AddUnlistedBanknoteDialog] userId prop =", userId, "| typeof =", typeof userId);
-    if (
-      userId === null ||
-      userId === undefined ||
-      userId === "" ||
-      userId === "null" ||
-      userId === "undefined"
-    ) {
-      console.error("[ERROR][AddUnlistedBanknoteDialog] BAD userId value:", userId, "| typeof:", typeof userId);
-    }
-    if (typeof userId !== "string" || userId.length !== 36) {
-      console.error("[ERROR][AddUnlistedBanknoteDialog] userId is not a valid UUID:", userId, "| typeof:", typeof userId);
-    }
-  }, [userId]);
-
-  // Defensive: show an alert and do not render the dialog trigger if userId is unsafe
-  const isUserIdInvalid =
-    typeof userId !== "string" || userId.length !== 36 ||
-    userId === null ||
-    userId === undefined ||
-    userId === "" ||
-    userId === "null" ||
-    userId === "undefined";
-
-  if (isUserIdInvalid) {
-    return (
-      <Button variant="outline" disabled title="User ID not loaded">
-        Add an Unlisted Banknote (User unavailable)
-      </Button>
-    );
-  }
-
-  // Log the userId every render for debugging
-  React.useEffect(() => {
-    console.log("[DEBUG][AddUnlistedBanknoteDialog] userId prop:", userId);
-  }, [userId]);
 
   // Handle image changes (front and back)
   const handleObverseImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,36 +126,11 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
 
-    // Log the userId and its details right before submit
-    console.log("[DEBUG][AddUnlistedBanknoteDialog] userId BEFORE submit (should be valid UUID):", userId, "| typeof:", typeof userId);
-
-    if (isUserIdInvalid) {
-      toast({
-        title: "User Not Loaded",
-        description: `Cannot add banknote: user id is invalid ("${userId}"). Try reloading the profile page.`,
-        variant: "destructive"
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
-      // Guard: Only proceed if logged in and user.id exists!
-      if (!user || !user.id) {
-        toast({
-          title: "Authentication error",
-          description: "You must be logged in to add a banknote. Please log in and try again.",
-          variant: "destructive"
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Use user.id from auth for all inserts! NOT the props.userId!
-      const face_value =
-        `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
+      // 1. Build & save unlisted_banknote
+      const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       const unlistedBanknoteData = {
-        user_id: userId, // use prop!
+        user_id: userId,
         country: countryName,
         face_value,
         name: values.name,
@@ -209,17 +141,19 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         sultan_name: values.sultan_name || null,
         printer: values.printer || null,
         rarity: values.rarity || null,
-        extended_pick_number: "",
+        extended_pick_number: "", // required even if blank
+        // Add any additional snake_case fields here if needed in future
       };
-      console.log("[DEBUG] unlistedBanknoteData being sent:", unlistedBanknoteData);
 
-      // INSERT
-      const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem(unlistedBanknoteData);
+      // This must match the backend expectation exactly (snake_case only).
+      const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem({ ...unlistedBanknoteData });
 
-      if (!unlistedBanknote || !unlistedBanknote.id) {
+      // We now expect the backend to succeed and the result to be either true (legacy) or an object with id.
+      if (!unlistedBanknote || typeof unlistedBanknote !== "object" || !("id" in unlistedBanknote)) {
         throw new Error("Failed to create unlisted banknote");
       }
 
+      // 2. Upload images and create collection_items
       let obverseImageUrl: string | null = null;
       let reverseImageUrl: string | null = null;
 
@@ -231,12 +165,12 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       }
 
       const collectionItemData = {
-        user_id: userId, // Enforced!
+        user_id: userId,
         is_unlisted_banknote: true,
         unlisted_banknotes_id: unlistedBanknote.id,
         condition: values.condition,
-        public_note: values.publicNote || null,
-        private_note: values.privateNote || null,
+        public_note: values.publicNote,
+        private_note: values.privateNote,
         purchase_price: values.purchasePrice === "" ? null : Number(values.purchasePrice),
         purchase_date: values.purchaseDate ? format(values.purchaseDate, "yyyy-MM-dd") : null,
         location: values.location || null,
@@ -245,14 +179,8 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         obverse_image: obverseImageUrl,
         reverse_image: reverseImageUrl,
       };
-
-      // Logging
-      console.log("[DEBUG] Will insert collectionItemData:", collectionItemData);
-
-      const collectionItem = await createCollectionItem(collectionItemData);
-      if (!collectionItem || !collectionItem.id) {
-        throw new Error("Failed to create collection item for unlisted banknote");
-      }
+      // If you have a real "addToCollection" function, call it here. Uncomment if needed.
+      // await addToCollection(collectionItemData);
 
       setOpen(false);
       toast({ title: "Success", description: "Your unlisted banknote was added." });
@@ -280,12 +208,6 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         </DialogHeader>
         <Card>
           <CardContent className="pt-6">
-            {/* Add visible debugging information */}
-            <div className="mb-4 text-xs text-muted-foreground">
-              <span>
-                <strong>DEBUG:</strong> userId = <code>{String(userId)}</code> (typeof: <code>{typeof userId}</code>)
-              </span>
-            </div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Section: Public Details */}

@@ -12,7 +12,7 @@ interface ProfileCountrySelectionProps {
   selectedCountry: string | null; // previous: could be either country name or id, but let's clarify!
   showCountryDetail: boolean;
   profileId: string;
-  onCountrySelect: (country: string) => void; // update stays
+  onCountrySelect: (countryId: string, countryName: string) => void; // update to send both
   onBackToCountries: () => void;
   profileView?: boolean;
 }
@@ -31,11 +31,6 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   // State for both country ID and countryName (after lookup, if necessary)
   const [countryId, setCountryId] = useState<string | null>(null);
   const [countryName, setCountryName] = useState<string | null>(null);
-
-  // Debug log for userId passed through props
-  React.useEffect(() => {
-    console.log("[DEBUG][ProfileCountrySelection] userId prop =", userId, "| typeof =", typeof userId);
-  }, [userId]);
 
   // On mount (or when selectedCountry changes), resolve both countryId and countryName
   useEffect(() => {
@@ -65,15 +60,11 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
     }
   }, [selectedCountry]);
 
-  // The handler expected by CountrySelection is (country: string) => void.
-  // But our inner logic resolves (id, name), so we'll ensure both are aligned.
+  // Updated handler to pass both values up
   const handleCountrySelect = (id: string, name: string) => {
     setCountryId(id);
     setCountryName(name);
-    if (onCountrySelect) {
-      // The parent handler expects either id or name. For type safety, we pass just the id as before.
-      onCountrySelect(id);
-    }
+    onCountrySelect(id, name);
   };
 
   return showCountryDetail && countryId && countryName ? (
@@ -105,6 +96,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
       customTitle={`${isOwnProfile ? 'My' : `${userId}'s`} Collection`}
       customDescription="Browse your banknote collection by country"
       userId={userId}
+      // The onCountrySelect now passes BOTH id and name
       onCountrySelect={handleCountrySelect}
     />
   );
