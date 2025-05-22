@@ -108,7 +108,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
   // Handle card click to navigate to collection item details
   const handleCardClick = () => {
     if (item?.id) {
-      navigate(`/collection-item/${item.id}`);
+      navigate(`/collection-item-unlisted/${item.id}`);
     }
   };
 

@@ -149,10 +149,17 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
       }));
     }
 
-    // Group by base pick number
+    // Group by base pick number, but only for non-unlisted banknotes
     const groupMap = new Map<string, CollectionItem[]>();
+    const unlistedItems: CollectionItem[] = [];
     
     items.forEach(item => {
+      // If it's an unlisted banknote, don't group it
+      if (item.is_unlisted_banknote) {
+        unlistedItems.push(item);
+        return;
+      }
+
       if (!item.banknote || !item.banknote.extendedPickNumber) return;
       
       // Get base pick number (without letters, just the numeric part)
@@ -167,7 +174,15 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
     
     const result: CollectionGroupItem[] = [];
     
-    // Convert the map to array of group items
+    // Add unlisted items as single items
+    unlistedItems.forEach(item => {
+      result.push({
+        type: 'single',
+        collectionItem: item
+      });
+    });
+    
+    // Convert the map to array of group items for regular banknotes
     groupMap.forEach((groupItems, baseNumber) => {
       if (groupItems.length > 1) {
         result.push({
@@ -232,13 +247,23 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                             if (item.type === 'single' && item.collectionItem) {
                               return (
                                 <div key={`single-${sultanGroup.sultan}-${item.collectionItem.id || index}`} className="self-start">
-                                  <CollectionItemCard
-                                    item={item.collectionItem}
-                                    onEdit={() => {}} // We'll implement this later
-                                    onUpdate={onUpdate}
-                                    viewMode={viewMode}
-                                    isOwner={isOwner}
-                                  />
+                                  {item.collectionItem.is_unlisted_banknote ? (
+                                    <CollectionCardUnlisted
+                                      item={item.collectionItem}
+                                      onEdit={() => {}} // We'll implement this later
+                                      onUpdate={onUpdate}
+                                      viewMode={viewMode}
+                                      isOwner={isOwner}
+                                    />
+                                  ) : (
+                                    <CollectionItemCard
+                                      item={item.collectionItem}
+                                      onEdit={() => {}} // We'll implement this later
+                                      onUpdate={onUpdate}
+                                      viewMode={viewMode}
+                                      isOwner={isOwner}
+                                    />
+                                  )}
                                 </div>
                               );
                             } else if (item.type === 'group' && item.group) {
@@ -293,13 +318,23 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                       if (item.type === 'single' && item.collectionItem) {
                         return (
                           <div key={`single-${group.category}-${item.collectionItem.id || index}`} className="self-start">
-                            <CollectionItemCard
-                              item={item.collectionItem}
-                              onEdit={() => {}} // We'll implement this later
-                              onUpdate={onUpdate}
-                              viewMode={viewMode}
-                              isOwner={isOwner}
-                            />
+                            {item.collectionItem.is_unlisted_banknote ? (
+                              <CollectionCardUnlisted
+                                item={item.collectionItem}
+                                onEdit={() => {}} // We'll implement this later
+                                onUpdate={onUpdate}
+                                viewMode={viewMode}
+                                isOwner={isOwner}
+                              />
+                            ) : (
+                              <CollectionItemCard
+                                item={item.collectionItem}
+                                onEdit={() => {}} // We'll implement this later
+                                onUpdate={onUpdate}
+                                viewMode={viewMode}
+                                isOwner={isOwner}
+                              />
+                            )}
                           </div>
                         );
                       } else if (item.type === 'group' && item.group) {
