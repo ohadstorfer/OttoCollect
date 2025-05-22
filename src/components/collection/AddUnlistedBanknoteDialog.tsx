@@ -126,6 +126,19 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
 
+
+    // 2. Upload images and create collection_items
+    let obverseImageUrl: string | null = null;
+    let reverseImageUrl: string | null = null;
+
+    if (obverseImageFile) {
+      obverseImageUrl = await uploadCollectionImage(obverseImageFile);
+    }
+    if (reverseImageFile) {
+      reverseImageUrl = await uploadCollectionImage(reverseImageFile);
+    }
+
+
     try {
       // 1. Build & save unlisted_banknote
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
@@ -142,7 +155,18 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         printer: values.printer || null,
         rarity: values.rarity || null,
         extended_pick_number: "", // required even if blank
-        // Add any additional snake_case fields here if needed in future
+        // Collection items fields
+        is_unlisted_banknote: true,
+        condition: values.condition,
+        public_note: values.publicNote,
+        private_note: values.privateNote,
+        purchase_price: values.purchasePrice === "" ? null : Number(values.purchasePrice),
+        purchase_date: values.purchaseDate ? format(values.purchaseDate, "yyyy-MM-dd") : null,
+        location: values.location || null,
+        is_for_sale: values.isForSale,
+        sale_price: values.salePrice === "" ? null : Number(values.salePrice),
+        obverse_image: obverseImageUrl,
+        reverse_image: reverseImageUrl,
       };
 
       // This must match the backend expectation exactly (snake_case only).
@@ -154,20 +178,19 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
 
 
       // 2. Upload images and create collection_items
-      let obverseImageUrl: string | null = null;
-      let reverseImageUrl: string | null = null;
+      // let obverseImageUrl: string | null = null;
+      // let reverseImageUrl: string | null = null;
 
-      if (obverseImageFile) {
-        obverseImageUrl = await uploadCollectionImage(obverseImageFile);
-      }
-      if (reverseImageFile) {
-        reverseImageUrl = await uploadCollectionImage(reverseImageFile);
-      }
+      // if (obverseImageFile) {
+      //   obverseImageUrl = await uploadCollectionImage(obverseImageFile);
+      // }
+      // if (reverseImageFile) {
+      //   reverseImageUrl = await uploadCollectionImage(reverseImageFile);
+      // }
 
       const collectionItemData = {
         user_id: userId,
         is_unlisted_banknote: true,
-        unlisted_banknotes_id: unlistedBanknote.id,
         condition: values.condition,
         public_note: values.publicNote,
         private_note: values.privateNote,

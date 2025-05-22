@@ -878,9 +878,17 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
   rarity?: string;
   banknote_description?: string;
   historical_description?: string;
-  front_picture?: string;
-  back_picture?: string;
+  obverse_image?: string;
+  reverse_image?: string;
   seal_names?: string;
+  condition?: string;
+  public_note?: string;
+  private_note?: string;
+  purchase_price?: number;
+  purchase_date?: string;
+  location?: string;
+  is_for_sale?: boolean;
+  sale_price?: number;
 }) {
   try {
     // 1. Create the unlisted_banknotes entry
@@ -902,8 +910,6 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
         rarity: params.rarity,
         banknote_description: params.banknote_description,
         historical_description: params.historical_description,
-        front_picture: params.front_picture,
-        back_picture: params.back_picture,
         seal_names: params.seal_names,
         is_approved: false,
         is_pending: true,
@@ -920,6 +926,16 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
         user_id: params.userId,
         is_unlisted_banknote: true,
         unlisted_banknotes_id: unlisted.id,
+        obverse_image: params.obverse_image,
+        reverse_image: params.reverse_image,
+        condition: params.condition,
+        public_note: params.public_note,
+        private_note: params.private_note,
+        purchase_price: params.purchase_price,
+        purchase_date: params.purchase_date,
+        location: params.location,
+        is_for_sale: params.is_for_sale ?? false,
+        sale_price: params.sale_price,
       }]);
 
     if (itemErr) throw itemErr;
