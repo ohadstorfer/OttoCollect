@@ -277,7 +277,7 @@ export default function CollectionItemUnlisted() {
                         disabled={isDeleting}
                       >
                         <Edit className="w-4 h-4" />
-                        <span>Edit</span>
+                        
                       </Button>
                     </div>
                   )}
