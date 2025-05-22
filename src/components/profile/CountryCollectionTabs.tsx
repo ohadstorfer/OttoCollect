@@ -163,19 +163,23 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           <TabsTrigger value="my-banknotes">My Banknotes</TabsTrigger>
           <TabsTrigger value="wishlist">Wish List</TabsTrigger>
           <TabsTrigger value="missing">Missing</TabsTrigger>
-        </TabsList>
-      </div>
 
-      <TabsContent value="my-banknotes">
-        {isOwner && isAdmin &&(
-          <div className="mb-4 flex justify-end">
+          {isOwner && isAdmin &&(
+          
             <AddUnlistedBanknoteDialog
               userId={userId}
               countryName={countryName}
               onCreated={refetchCollection}
             />
-          </div>
+          
         )}
+
+        </TabsList>
+        
+      </div>
+
+      <TabsContent value="my-banknotes">
+        
         <CountryDetailCollection 
           userId={userId} 
           countryName={countryName}

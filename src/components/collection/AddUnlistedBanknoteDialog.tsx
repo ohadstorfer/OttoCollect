@@ -31,7 +31,7 @@ import {
   PopoverTrigger,
   PopoverContent
 } from "@/components/ui/popover";
-import { CalendarIcon, Upload } from "lucide-react";
+import { BookmarkPlus, CalendarIcon, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage } from "@/services/collectionService";
 import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
@@ -223,7 +223,9 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Add an Unlisted Banknote</Button>
+        <Button variant="outline" title="Add a new unlisted banknote">
+        <BookmarkPlus  style={{ width: "1.4rem", height: "1.4rem" }} />
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
