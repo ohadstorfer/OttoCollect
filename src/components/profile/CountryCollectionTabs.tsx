@@ -165,17 +165,14 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           <TabsTrigger value="missing">Missing</TabsTrigger>
 
           {isOwner && isAdmin &&(
-          
             <AddUnlistedBanknoteDialog
               userId={userId}
               countryName={countryName}
               onCreated={refetchCollection}
             />
-          
         )}
 
-        </TabsList>
-        
+        </TabsList>       
       </div>
 
       <TabsContent value="my-banknotes">

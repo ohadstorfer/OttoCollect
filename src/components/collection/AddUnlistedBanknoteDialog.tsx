@@ -31,7 +31,7 @@ import {
   PopoverTrigger,
   PopoverContent
 } from "@/components/ui/popover";
-import { BookmarkPlus, CalendarIcon, Upload } from "lucide-react";
+import { BookmarkPlus, CalendarIcon, Upload, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage } from "@/services/collectionService";
 import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
@@ -97,7 +97,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      condition: 'UNC',
+
       isForSale: false,
       purchasePrice: '',
       salePrice: '',
@@ -170,9 +170,9 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       };
 
       // This must match the backend expectation exactly (snake_case only).
-      const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem({ 
+      const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem({
         userId: userId,  // Keep this as userId for the function parameter
-        ...unlistedBanknoteData 
+        ...unlistedBanknoteData
       });
 
 
@@ -223,12 +223,12 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" title="Add a new unlisted banknote">
-        <BookmarkPlus  style={{ width: "1.4rem", height: "1.4rem" }} />
+        <Button variant="ghost" title="Add a new unlisted banknote">
+          <BookmarkPlus style={{ width: "1.4rem", height: "1.4rem" }} />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="mt-4">
           <DialogTitle>Add Unlisted Banknote</DialogTitle>
         </DialogHeader>
         <Card>
@@ -284,111 +284,127 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                       )}
                     />
                   </div>
+
+
+
                   {/* Name */}
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input maxLength={30} {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          For example: Check
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {/* Category */}
-                  <FormField
-                    control={form.control}
-                    name="categoryId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder={loadingCategories ? "Loading..." : "Select category"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {categories.map((cat) => (
-                                <SelectItem value={cat.id} key={cat.id}>{cat.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {/* Type */}
-                  <FormField
-                    control={form.control}
-                    name="typeId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Type</FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder={loadingTypes ? "Loading..." : "Select type"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {types.map((type) => (
-                                <SelectItem value={type.id} key={type.id}>{type.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input maxLength={30} {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            For example: Check
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {/* Condition */}
+                    <FormField
+                      control={form.control}
+                      name="condition"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Condition</FormLabel>
+                          <FormControl>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select condition" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
+                                <SelectItem value="AU">AU - About Uncirculated</SelectItem>
+                                <SelectItem value="XF">XF - Extremely Fine</SelectItem>
+                                <SelectItem value="VF">VF - Very Fine</SelectItem>
+                                <SelectItem value="F">F - Fine</SelectItem>
+                                <SelectItem value="VG">VG - Very Good</SelectItem>
+                                <SelectItem value="G">G - Good</SelectItem>
+                                <SelectItem value="FR">FR - Fair</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormDescription>
+                            Select the condition of your banknote.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                  </div>
+
+
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-4">
+                    {/* Category */}
+                    <FormField
+                      control={form.control}
+                      name="categoryId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <FormControl>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={loadingCategories ? "Loading..." : "Select category"} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((cat) => (
+                                  <SelectItem value={cat.id} key={cat.id}>{cat.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormDescription>
+                            Default to Unlisted Banknotes.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {/* Type */}
+                    <FormField
+                      control={form.control}
+                      name="typeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Type</FormLabel>
+                          <FormControl>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={loadingTypes ? "Loading..." : "Select type"} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {types.map((type) => (
+                                  <SelectItem value={type.id} key={type.id}>{type.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                  </div>
                 </div>
 
-                {/* Condition */}
-                <FormField
-                  control={form.control}
-                  name="condition"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Condition</FormLabel>
-                      <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select condition" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
-                            <SelectItem value="AU">AU - About Uncirculated</SelectItem>
-                            <SelectItem value="XF">XF - Extremely Fine</SelectItem>
-                            <SelectItem value="VF">VF - Very Fine</SelectItem>
-                            <SelectItem value="F">F - Fine</SelectItem>
-                            <SelectItem value="VG">VG - Very Good</SelectItem>
-                            <SelectItem value="G">G - Good</SelectItem>
-                            <SelectItem value="FR">FR - Fair</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormDescription>
-                        Select the condition of your banknote.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
 
                 {/* Public Note */}
                 <FormField
@@ -470,8 +486,9 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                 {/* Extra Fields Dropdown */}
                 <div>
                   <Collapsible>
-                    <CollapsibleTrigger className="text-base font-semibold mb-2 w-full flex items-center justify-start border border-muted px-4 py-2 rounded hover:bg-muted bg-background">
-                      Extra Fields
+                    <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg border border-muted bg-background px-4 py-3 text-sm font-medium transition-all hover:bg-muted/50">
+                      <span>Extra Fields</span>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
@@ -545,6 +562,20 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                   </Collapsible>
                 </div>
 
+
+                <div className="py-6">
+                  <div className="w-full h-px bg-muted" />
+                </div>
+
+
+
+
+                {/* Private Section */}
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-medium">Private Details</h3>
+                  <span className="text-sm text-muted-foreground">Only visible to you</span>
+                </div>
+
                 {/* Private Note */}
                 <FormField
                   control={form.control}
@@ -566,11 +597,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                   )}
                 />
 
-                {/* Private Section */}
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-medium">Private Details</h3>
-                  <span className="text-sm text-muted-foreground">Only visible to you</span>
-                </div>
+
                 {/* Purchase Date */}
                 <FormField
                   control={form.control}
@@ -664,6 +691,12 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                     </FormItem>
                   )}
                 />
+
+
+                <div className="py-6">
+                  <div className="w-full h-px bg-muted" />
+                </div>
+
 
                 {/* For Sale Switch */}
                 <FormField
