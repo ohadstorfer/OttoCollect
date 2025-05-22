@@ -152,8 +152,9 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
   };
 
 
+    // Check if user has admin privileges
+  const isAdmin = user?.role === 'Palestine Admin' || user?.role.includes('Palestine Admin');
 
-  
   
   return (
     <Tabs defaultValue="Collection" className="w-full">
@@ -163,7 +164,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           <TabsTrigger value="wishlist">Wish List</TabsTrigger>
           <TabsTrigger value="missing">Missing</TabsTrigger>
 
-          {isOwner && (
+          {isOwner && isAdmin &&(
             <AddUnlistedBanknoteDialog
               userId={userId}
               countryName={countryName}
