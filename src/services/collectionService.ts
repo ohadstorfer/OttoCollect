@@ -887,7 +887,6 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
     const { data: unlisted, error: unlistedErr } = await supabase
       .from('unlisted_banknotes')
       .insert([{
-        ...params,
         user_id: params.userId,
         country: params.country,
         extended_pick_number: params.extended_pick_number,

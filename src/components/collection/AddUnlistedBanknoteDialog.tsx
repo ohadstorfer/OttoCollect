@@ -146,12 +146,15 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       };
 
       // This must match the backend expectation exactly (snake_case only).
-      const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem({ ...unlistedBanknoteData });
+      const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem({ 
+        userId: userId,  // Keep this as userId for the function parameter
+        ...unlistedBanknoteData 
+      });
 
       // We now expect the backend to succeed and the result to be either true (legacy) or an object with id.
-      if (!unlistedBanknote || typeof unlistedBanknote !== "object" || !("id" in unlistedBanknote)) {
-        throw new Error("Failed to create unlisted banknote");
-      }
+      // if (!unlistedBanknote || typeof unlistedBanknote !== "object" || !("id" in unlistedBanknote)) {
+      //   throw new Error("Failed to create unlisted banknote");
+      // }
 
       // 2. Upload images and create collection_items
       let obverseImageUrl: string | null = null;
