@@ -83,10 +83,12 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           fetchSortOptionsByCountryId(countryId)
         ]);
         
-        const mappedCategories = categoriesData.map(cat => ({
-          id: cat.id,
-          name: cat.name,
-        }));
+        const mappedCategories = categoriesData
+          .filter(cat => cat.name !== "Unlisted Banknotes")
+          .map(cat => ({
+            id: cat.id,
+            name: cat.name,
+          }));
         
         const mappedTypes = typesData.map(type => ({
           id: type.id,
