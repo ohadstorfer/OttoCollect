@@ -151,10 +151,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         ...unlistedBanknoteData 
       });
 
-      // We now expect the backend to succeed and the result to be either true (legacy) or an object with id.
-      // if (!unlistedBanknote || typeof unlistedBanknote !== "object" || !("id" in unlistedBanknote)) {
-      //   throw new Error("Failed to create unlisted banknote");
-      // }
+
 
       // 2. Upload images and create collection_items
       let obverseImageUrl: string | null = null;
