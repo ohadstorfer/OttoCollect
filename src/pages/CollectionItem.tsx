@@ -196,7 +196,9 @@ export default function CollectionItem() {
           </div>
 
           <p className="text-xl text-muted-foreground">
-            {collectionItem.banknote.country}, {collectionItem.banknote.year}
+          {collectionItem.banknote.country}
+            {collectionItem.banknote.country && collectionItem.banknote.year && ", "}
+            {collectionItem.banknote.year}
           </p>
         </div>
 

@@ -883,7 +883,6 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
   historical_description?: string;
   obverse_image?: string;
   reverse_image?: string;
-  seal_names?: string;
   condition?: string;
   public_note?: string;
   private_note?: string;
@@ -893,6 +892,7 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
   is_for_sale?: boolean;
   sale_price?: number;
   name?: string;
+  seal_names?: string;
 }) {
   try {
     // 1. Create the unlisted_banknotes entry
@@ -949,5 +949,111 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
   } catch (err) {
     console.error("Failed to create unlisted banknote or collection link:", err);
     throw err;
+  }
+}
+
+export async function updateUnlistedBanknoteWithCollectionItem(
+  collectionItemId: string,
+  params: {
+    userId: string;
+    country: string;
+    extended_pick_number: string;
+    pick_number?: string;
+    turk_catalog_number?: string;
+    face_value: string;
+    gregorian_year?: string;
+    islamic_year?: string;
+    sultan_name?: string;
+    printer?: string;
+    type?: string;
+    category?: string;
+    rarity?: string;
+    banknote_description?: string;
+    historical_description?: string;
+    obverse_image?: string;
+    reverse_image?: string;
+    condition?: string;
+    public_note?: string;
+    private_note?: string;
+    purchase_price?: number;
+    purchase_date?: string;
+    location?: string;
+    is_for_sale?: boolean;
+    sale_price?: number;
+    name?: string;
+    seal_names?: string;
+  }
+): Promise<CollectionItem> {
+  try {
+    // Start a transaction
+    const { data: collectionItem, error: fetchError } = await supabase
+      .from('collection_items')
+      .select('*, banknote:unlisted_banknotes(*)')
+      .eq('id', collectionItemId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!collectionItem) throw new Error('Collection item not found');
+
+    // Update the unlisted banknote
+    const { error: banknoteError } = await supabase
+      .from('unlisted_banknotes')
+      .update({
+        country: params.country,
+        extended_pick_number: params.extended_pick_number,
+        pick_number: params.pick_number,
+        turk_catalog_number: params.turk_catalog_number,
+        face_value: params.face_value,
+        gregorian_year: params.gregorian_year,
+        islamic_year: params.islamic_year,
+        sultan_name: params.sultan_name,
+        printer: params.printer,
+        type: params.type,
+        category: params.category,
+        rarity: params.rarity,
+        banknote_description: params.banknote_description,
+        historical_description: params.historical_description,
+        seal_names: params.seal_names,
+        name: params.name,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', collectionItem.banknote.id);
+
+    if (banknoteError) throw banknoteError;
+
+    // Update the collection item
+    const { error: itemError } = await supabase
+      .from('collection_items')
+      .update({
+        condition: params.condition,
+        public_note: params.public_note,
+        private_note: params.private_note,
+        location: params.location,
+        purchase_price: params.purchase_price,
+        purchase_date: params.purchase_date,
+        is_for_sale: params.is_for_sale ?? false,
+        sale_price: params.sale_price,
+        obverse_image: params.obverse_image,
+        reverse_image: params.reverse_image,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', collectionItemId);
+
+    if (itemError) throw itemError;
+
+    // Fetch and return the updated collection item
+    const { data: updatedItem, error: fetchUpdatedError } = await supabase
+      .from('collection_items')
+      .select('*, banknote:unlisted_banknotes(*)')
+      .eq('id', collectionItemId)
+      .single();
+
+    if (fetchUpdatedError) throw fetchUpdatedError;
+    if (!updatedItem) throw new Error('Failed to fetch updated collection item');
+
+    return normalizeBanknoteData(updatedItem, "unlisted");
+  } catch (error) {
+    console.error('Error updating unlisted banknote:', error);
+    throw error;
   }
 }

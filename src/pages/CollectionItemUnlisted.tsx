@@ -14,7 +14,7 @@ import { ArrowLeft, Star, ImagePlus, Edit, Trash } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
-import CollectionItemFormEdit from "@/components/collection/CollectionItemFormEdit";
+import EditUnlistedBanknoteDialog from "@/components/collection/EditUnlistedBanknoteDialog";
 import { submitImageSuggestion, hasExistingImageSuggestion } from "@/services/imageSuggestionsService";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 
@@ -196,7 +196,9 @@ export default function CollectionItemUnlisted() {
           </div>
 
           <p className="text-xl text-muted-foreground">
-            {collectionItem.banknote.country}, {collectionItem.banknote.year}
+            {collectionItem.banknote.country}
+            {collectionItem.banknote.country && collectionItem.banknote.year && ", "}
+            {collectionItem.banknote.year}
           </p>
         </div>
 
@@ -316,15 +318,12 @@ export default function CollectionItemUnlisted() {
       )}
 
       {/* Edit dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContentWithScroll className="sm:max-w-[800px]" onClick={(e) => e.stopPropagation()}>
-          <CollectionItemFormEdit
-            collectionItem={collectionItem}
-            onUpdate={handleUpdateSuccess}
-            onCancel={() => setIsEditDialogOpen(false)}
-          />
-        </DialogContentWithScroll>
-      </Dialog>
+      <EditUnlistedBanknoteDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        onUpdate={handleUpdateSuccess}
+        collectionItem={collectionItem}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
