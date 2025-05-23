@@ -33,6 +33,7 @@ import { useAuth } from "./context/AuthContext";
 import "./App.css";
 import CountryDetailCollection from "./pages/CountryDetailCollection";
 import CollectionItemUnlisted from "./pages/CollectionItemUnlisted";
+import MarketplaceItemDetailUnlisted from "./pages/MarketplaceItemDetailUnlisted";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +72,7 @@ function App() {
             <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/marketplace/:id" element={<MarketplaceItemDetail />} />
+            <Route path="/marketplace-unlisted/:id" element={<MarketplaceItemDetailUnlisted />} />
             <Route path="/community" element={<Community />} />
             <Route path="/community/forum" element={<Forum />} />
             <Route path="/community/forum/post/:id" element={<ForumPost />} />
