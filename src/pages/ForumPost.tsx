@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,8 @@ import ForumCommentComponent from "@/components/forum/ForumComment";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
+import { ArrowLeft } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 const ForumPostPage = () => {
   const { id: postId } = useParams();
@@ -23,6 +25,8 @@ const ForumPostPage = () => {
   const [commentContent, setCommentContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (postId) {
@@ -136,11 +140,28 @@ const ForumPostPage = () => {
     });
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="page-container">
-      <h1 className="page-title animate-fade-in">{post.title}</h1>
-
+      
+      
+          
       <div className="max-w-4xl mx-auto">
+
+      <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button> 
+
+
         <div className="glass-card p-6 rounded-md shadow-md mb-6 animate-fade-in">
           <div className="flex items-start gap-4">
             <Avatar className="h-12 w-12 border">
@@ -155,6 +176,7 @@ const ForumPostPage = () => {
                 <span className="font-semibold">{post.author?.username || 'Unknown User'}</span>
                 <span className="text-sm text-muted-foreground">{formattedDate}</span>
               </div>
+              <h6 className="font-semibold text-2xl animate-fade-in">{post.title}</h6>
               <div className="whitespace-pre-line mb-4">{post.content}</div>
 
               {post.imageUrls && post.imageUrls.length > 0 && (

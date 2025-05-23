@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ForumPost, ForumComment } from '@/types/forum';
 
@@ -9,10 +8,13 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
   try {
     console.log("Fetching forum posts...");
     
-    // Step 1: Fetch forum posts
+    // Step 1: Fetch forum posts with comment counts
     const { data: posts, error: postsError } = await supabase
       .from('forum_posts')
-      .select('*')
+      .select(`
+        *,
+        forum_comments:forum_comments(count)
+      `)
       .order('created_at', { ascending: false });
 
     if (postsError) {
@@ -60,6 +62,7 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
         updated_at: post.updated_at,
         createdAt: post.created_at,
         updatedAt: post.updated_at,
+        commentCount: post.forum_comments?.[0]?.count || 0,
         author: authorProfile ? {
           id: authorProfile.id,
           username: authorProfile.username,
@@ -606,10 +609,10 @@ export const uploadForumImage = async (file: File): Promise<string> => {
     }
 
     const fileName = `${Math.random().toString(36).substring(2)}-${file.name}`;
-    const filePath = `forum-images/${user.id}/${fileName}`;
+    const filePath = `${user.id}/${fileName}`;
 
     const { error } = await supabase.storage
-      .from('public')
+      .from('forum_images')
       .upload(filePath, file);
 
     if (error) {
@@ -619,7 +622,7 @@ export const uploadForumImage = async (file: File): Promise<string> => {
 
     // Get the public URL
     const { data } = supabase.storage
-      .from('public')
+      .from('forum_images')
       .getPublicUrl(filePath);
 
     console.log("Uploaded image:", data.publicUrl);
