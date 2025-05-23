@@ -16,11 +16,11 @@ import { ContactSeller } from "@/components/messages/ContactSeller";
 import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 
-const MarketplaceItemDetail = () => {
+const MarketplaceItemDetailUnlisted = () => {
   console.log('Rendering MarketplaceItemDetail component');
   const { id } = useParams<{ id: string }>();
   console.log('MarketplaceItemDetail ID from params:', id);
-  
+
   const [item, setItem] = useState<MarketplaceItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -170,7 +170,7 @@ const MarketplaceItemDetail = () => {
                       {seller.username} <Badge variant="user" rank={sellerRank as UserRank} />
                     </Link>
                   </div>
-                  
+
                 </div>
 
                 {user && user.id !== seller.id && (
@@ -196,8 +196,12 @@ const MarketplaceItemDetail = () => {
                 {banknote.denomination}
               </h2>
 
+              <h2 className="text-2xl font-serif font-bold text-parchment-500 mb-2">
+                Unlisted Banknote
+              </h2>
+
               <div className="flex items-center gap-2 mb-4">
-              <p className="text-lg text-ottoman-300">
+                <p className="text-lg text-ottoman-300">
                   {banknote.country}
                   {banknote.country && banknote.year ? ', ' : ''}
                   {banknote.year}
@@ -216,7 +220,7 @@ const MarketplaceItemDetail = () => {
                   ${salePrice}
                 </div>
 
-                
+
               </div>
 
               {publicNote && (
@@ -230,14 +234,11 @@ const MarketplaceItemDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
-          <BanknoteProvider banknoteId={banknote.id}>
-            <BanknoteCatalogDetailMinimized />
-          </BanknoteProvider>
+
         </div>
       </div>
     </div>
   );
 };
 
-export default MarketplaceItemDetail;
+export default MarketplaceItemDetailUnlisted;
