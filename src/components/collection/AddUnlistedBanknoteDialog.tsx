@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { BookmarkPlus, CalendarIcon, Upload, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage } from "@/services/collectionService";
+import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem } from "@/services/collectionService";
 import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
@@ -125,96 +125,80 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   // Handle submit
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-
-
-    // 2. Upload images and create collection_items
-    let obverseImageUrl: string | null = null;
-    let reverseImageUrl: string | null = null;
-
-    if (obverseImageFile) {
-      obverseImageUrl = await uploadCollectionImage(obverseImageFile);
-    }
-    if (reverseImageFile) {
-      reverseImageUrl = await uploadCollectionImage(reverseImageFile);
-    }
-
-
     try {
-      // 1. Build & save unlisted_banknote
+      // Upload images if provided
+      let obverseImageUrl = null;
+      let reverseImageUrl = null;
+
+      if (obverseImageFile) {
+        obverseImageUrl = await uploadCollectionImage(obverseImageFile);
+      }
+      if (reverseImageFile) {
+        reverseImageUrl = await uploadCollectionImage(reverseImageFile);
+      }
+
+      // Build the update data
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
-      const unlistedBanknoteData = {
-        user_id: userId,
+      
+      const result = await createUnlistedBanknoteWithCollectionItem({
+        userId: userId,
         country: countryName,
-        face_value,
+        extended_pick_number: "",
+        pick_number: "",
+        turk_catalog_number: "",
+        face_value: face_value,
+        gregorian_year: values.gregorian_year,
+        islamic_year: values.islamic_year,
+        sultan_name: values.sultan_name,
+        printer: values.printer,
+        type: types.find(t => t.id === values.typeId)?.name,
+        category: categories.find(c => c.id === values.categoryId)?.name,
+        rarity: values.rarity,
         name: values.name,
-        category: categories.find((c) => c.id === values.categoryId)?.name || "",
-        type: types.find((t) => t.id === values.typeId)?.name || "",
-        gregorian_year: values.gregorian_year || null,
-        islamic_year: values.islamic_year || null,
-        sultan_name: values.sultan_name || null,
-        printer: values.printer || null,
-        rarity: values.rarity || null,
-        extended_pick_number: "", // required even if blank
-        // Collection items fields
-        is_unlisted_banknote: true,
         condition: values.condition,
         public_note: values.publicNote,
         private_note: values.privateNote,
-        purchase_price: values.purchasePrice === "" ? null : Number(values.purchasePrice),
-        purchase_date: values.purchaseDate ? format(values.purchaseDate, "yyyy-MM-dd") : null,
-        location: values.location || null,
+        location: values.location,
+        purchase_price: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
+        purchase_date: values.purchaseDate ? format(values.purchaseDate, 'yyyy-MM-dd') : undefined,
         is_for_sale: values.isForSale,
-        sale_price: values.salePrice === "" ? null : Number(values.salePrice),
+        sale_price: values.salePrice === '' ? undefined : Number(values.salePrice),
         obverse_image: obverseImageUrl,
         reverse_image: reverseImageUrl,
-      };
-
-      // This must match the backend expectation exactly (snake_case only).
-      const unlistedBanknote = await createUnlistedBanknoteWithCollectionItem({
-        userId: userId,  // Keep this as userId for the function parameter
-        ...unlistedBanknoteData
       });
 
+      if (result) {
+        // If item is marked for sale, create marketplace item
+        if (values.isForSale) {
+          await createMarketplaceItem({
+            collectionItemId: result.id,
+            sellerId: userId,
+            banknoteId: result.banknoteId
+          });
+        }
 
+        toast({
+          title: "Success",
+          description: "Banknote added successfully",
+        });
 
-      // 2. Upload images and create collection_items
-      // let obverseImageUrl: string | null = null;
-      // let reverseImageUrl: string | null = null;
-
-      // if (obverseImageFile) {
-      //   obverseImageUrl = await uploadCollectionImage(obverseImageFile);
-      // }
-      // if (reverseImageFile) {
-      //   reverseImageUrl = await uploadCollectionImage(reverseImageFile);
-      // }
-
-      const collectionItemData = {
-        user_id: userId,
-        is_unlisted_banknote: true,
-        condition: values.condition,
-        public_note: values.publicNote,
-        private_note: values.privateNote,
-        purchase_price: values.purchasePrice === "" ? null : Number(values.purchasePrice),
-        purchase_date: values.purchaseDate ? format(values.purchaseDate, "yyyy-MM-dd") : null,
-        location: values.location || null,
-        is_for_sale: values.isForSale,
-        sale_price: values.salePrice === "" ? null : Number(values.salePrice),
-        obverse_image: obverseImageUrl,
-        reverse_image: reverseImageUrl,
-      };
-      // If you have a real "addToCollection" function, call it here. Uncomment if needed.
-      // await addToCollection(collectionItemData);
-
-      setOpen(false);
-      toast({ title: "Success", description: "Your unlisted banknote was added." });
-      if (onCreated) onCreated();
-      form.reset();
-      setObverseImageFile(null);
-      setReverseImageFile(null);
-      setObverseImagePreview(null);
-      setReverseImagePreview(null);
-    } catch (err: any) {
-      toast({ title: "Error", description: err?.message || "Failed to add unlisted banknote.", variant: "destructive" });
+        if (onCreated) onCreated();
+        form.reset();
+        setObverseImageFile(null);
+        setReverseImageFile(null);
+        setObverseImagePreview(null);
+        setReverseImagePreview(null);
+        setOpen(false);
+      } else {
+        throw new Error("Failed to add banknote");
+      }
+    } catch (error) {
+      console.error('Error adding banknote:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add banknote",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,7 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 
 import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { addToCollection, updateCollectionItem, uploadCollectionImage } from '@/services/collectionService';
+import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem } from '@/services/collectionService';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
 
 // Define props for CollectionItemForm
@@ -186,7 +185,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       const collectionData = {
         userId: user.id,
         banknoteId: values.banknoteId,
-        condition: values.condition as BanknoteCondition, // Type assertion to match BanknoteCondition
+        condition: values.condition as BanknoteCondition,
         purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
         purchaseDate: values.purchaseDate ? format(values.purchaseDate, 'yyyy-MM-dd') : undefined,
         location: values.location || undefined,
@@ -203,7 +202,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       if (currentItem?.id) {
         // Update existing item
         const success = await updateCollectionItem(currentItem.id, {
-          condition: values.condition as BanknoteCondition, // Type assertion
+          condition: values.condition as BanknoteCondition,
           purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
           purchaseDate: values.purchaseDate,
           location: values.location,
@@ -221,8 +220,18 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             ...currentItem,
             ...collectionData,
             id: currentItem.id,
-            banknote: currentItem.banknote // Ensure we keep the banknote reference
+            banknote: currentItem.banknote
           };
+
+          // If item is marked for sale, create marketplace item
+          if (values.isForSale) {
+            await createMarketplaceItem({
+              collectionItemId: currentItem.id,
+              sellerId: user.id,
+              banknoteId: currentItem.banknoteId,
+              isUnlisted: currentItem.is_unlisted_banknote || false
+            });
+          }
 
           toast({
             title: "Success",
@@ -236,6 +245,16 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         savedItem = await addToCollection(collectionData);
 
         if (savedItem) {
+          // If item is marked for sale, create marketplace item
+          if (values.isForSale) {
+            await createMarketplaceItem({
+              collectionItemId: savedItem.id,
+              sellerId: user.id,
+              banknoteId: savedItem.banknoteId,
+              isUnlisted: savedItem.is_unlisted_banknote || false
+            });
+          }
+
           toast({
             title: "Success",
             description: "Banknote added to your collection.",

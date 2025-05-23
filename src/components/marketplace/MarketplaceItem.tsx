@@ -76,9 +76,10 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
+      onClick={handleViewDetails}
     >
       <div className="relative">
-        <div className="aspect-[4/2] overflow-hidden">
+        <div className = "w-full h-full object-cover">
           <img
             src={displayImage}
             alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
@@ -108,9 +109,11 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
               {banknote.country}, {banknote.year}
             </p>
           </div>
+          {condition && (
           <Badge variant="secondary" className="self-start">
             {condition}
           </Badge>
+          )}
         </div>
       </CardHeader>
       
@@ -133,14 +136,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
       </CardContent>
       
       <CardFooter className="pt-2 pb-0 px-4 flex justify-between">
-        <Button 
-          size="sm"
-          className="text-ottoman-300 text-ottoman-100 bg-ottoman-700/50 hover:bg-ottoman-800/50"
-          onClick={handleViewDetails}
-        >
-          <Eye className="h-4 w-4 mr-1" />
-          Details
-        </Button>
+        
 
         <ContactSellerButton item={item} />
       </CardFooter>

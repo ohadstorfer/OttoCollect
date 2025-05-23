@@ -1,8 +1,9 @@
-
 // This fixes the conversion from the Supabase seller format to the User type in MarketplaceItem
 import { supabase } from "@/integrations/supabase/client";
-import { MarketplaceItem, UserRank, User } from "@/types";
+import { MarketplaceItem, UserRank, User, BanknoteCondition } from "@/types";
 import { fetchCollectionItem } from "./collectionService";
+import { normalizeBanknoteData } from "@/services/collectionService";
+import { mapBanknoteFromDatabase } from "@/services/banknoteService";
 
 // Add user type adaptations to fix typescript errors
 const adaptSellerToUserType = (seller: { 
@@ -31,7 +32,14 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
     // Fetch marketplace items with status 'Available'
     const { data: marketplaceItems, error } = await supabase
       .from('marketplace_items')
-      .select('*')
+      .select(`
+        *,
+        collection_items!inner (
+          *,
+          detailed_banknotes:banknote_id (*),
+          unlisted_banknotes:unlisted_banknotes_id (*)
+        )
+      `)
       .eq('status', 'Available');
       
     if (error) {
@@ -52,16 +60,30 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
         try {
           console.log(`Processing marketplace item ${item.id}`);
           
-          // Get collection item details
-          const collectionItem = await fetchCollectionItem(item.collection_item_id);
+          const collectionItem = item.collection_items;
           if (!collectionItem) {
             console.log(`Collection item not found: ${item.collection_item_id}`);
             return null;
           }
           
           // Verify that the collection item is actually for sale
-          if (!collectionItem.isForSale) {
+          if (!collectionItem.is_for_sale) {
             console.log(`Collection item ${item.collection_item_id} is no longer marked for sale, skipping`);
+            return null;
+          }
+
+          // Get banknote data based on whether it's an unlisted banknote or not
+          let banknote;
+          if (collectionItem.is_unlisted_banknote && collectionItem.unlisted_banknotes) {
+            console.log(`Processing unlisted banknote for item ${item.id}`);
+            banknote = normalizeBanknoteData(collectionItem.unlisted_banknotes, "unlisted");
+          } else if (!collectionItem.is_unlisted_banknote && collectionItem.detailed_banknotes) {
+            console.log(`Processing detailed banknote for item ${item.id}`);
+            banknote = normalizeBanknoteData(mapBanknoteFromDatabase(collectionItem.detailed_banknotes), "detailed");
+          }
+
+          if (!banknote) {
+            console.log(`No banknote data found for collection item ${item.collection_item_id}`);
             return null;
           }
           
@@ -93,7 +115,26 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           return {
             id: item.id,
             collectionItemId: item.collection_item_id,
-            collectionItem: collectionItem,
+            collectionItem: {
+              id: collectionItem.id,
+              userId: collectionItem.user_id,
+              banknoteId: collectionItem.banknote_id,
+              banknote,
+              condition: collectionItem.condition as BanknoteCondition,
+              salePrice: collectionItem.sale_price,
+              isForSale: collectionItem.is_for_sale,
+              publicNote: collectionItem.public_note,
+              privateNote: collectionItem.private_note,
+              purchasePrice: collectionItem.purchase_price,
+              purchaseDate: collectionItem.purchase_date,
+              location: collectionItem.location,
+              obverseImage: collectionItem.obverse_image,
+              reverseImage: collectionItem.reverse_image,
+              orderIndex: collectionItem.order_index,
+              createdAt: collectionItem.created_at,
+              updatedAt: collectionItem.updated_at,
+              is_unlisted_banknote: collectionItem.is_unlisted_banknote
+            },
             sellerId: item.seller_id,
             seller,
             status: item.status,

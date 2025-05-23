@@ -11,7 +11,7 @@ import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollectionItem } from '@/types';
-import { updateUnlistedBanknoteWithCollectionItem, uploadCollectionImage } from '@/services/collectionService';
+import { updateUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem } from '@/services/collectionService';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Upload, CalendarIcon } from 'lucide-react';
@@ -136,7 +136,7 @@ export default function EditUnlistedBanknoteDialog({
       // Build the update data
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       
-      await updateUnlistedBanknoteWithCollectionItem(collectionItem.id, {
+      const updatedItem = await updateUnlistedBanknoteWithCollectionItem(collectionItem.id, {
         userId: collectionItem.userId,
         country: collectionItem.banknote?.country || '',
         extended_pick_number: collectionItem.banknote?.extendedPickNumber || '',
@@ -160,6 +160,15 @@ export default function EditUnlistedBanknoteDialog({
         obverse_image: obverseImageUrl,
         reverse_image: reverseImageUrl,
       });
+
+      // If item is marked for sale, create marketplace item
+      if (values.isForSale) {
+        await createMarketplaceItem({
+          collectionItemId: collectionItem.id,
+          sellerId: collectionItem.userId,
+          banknoteId: collectionItem.banknote?.id || ''
+        });
+      }
 
       toast({
         title: "Success",

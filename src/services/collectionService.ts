@@ -43,7 +43,7 @@ export async function uploadCollectionImage(file: File): Promise<string> {
 export type { CollectionItem };
 
 // Utility for banknote normalization
-function normalizeBanknoteData(
+export function normalizeBanknoteData(
   banknote: any,
   source: "detailed" | "unlisted"
 ): any {
@@ -53,7 +53,7 @@ function normalizeBanknoteData(
     country: banknote.country ?? "",
     denomination: banknote.denomination ?? banknote.face_value ?? "",
     year: banknote.year ?? banknote.gregorian_year ?? "",
-    series: banknote.series ?? "",
+    series: source === "unlisted" ? "Unlisted Banknotes" : (banknote.series ?? ""),
     extendedPickNumber: banknote.extendedPickNumber ?? banknote.extended_pick_number ?? "",
     pickNumber: banknote.pickNumber ?? banknote.pick_number ?? "",
     turkCatalogNumber: banknote.turkCatalogNumber ?? banknote.turk_catalog_number ?? "",
@@ -893,7 +893,7 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
   sale_price?: number;
   name?: string;
   seal_names?: string;
-}) {
+}): Promise<{ id: string; banknoteId: string } | null> {
   try {
     // 1. Create the unlisted_banknotes entry
     const { data: unlisted, error: unlistedErr } = await supabase
@@ -941,14 +941,19 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
         location: params.location,
         is_for_sale: params.is_for_sale ?? false,
         sale_price: params.sale_price,
-      }]);
+      }])
+      .select('*')
+      .single();
 
-    if (itemErr) throw itemErr;
+    if (itemErr || !collectionItem) throw itemErr || new Error("Could not create collection item");
 
-    return true;
-  } catch (err) {
-    console.error("Failed to create unlisted banknote or collection link:", err);
-    throw err;
+    return {
+      id: collectionItem.id,
+      banknoteId: unlisted.id
+    };
+  } catch (error) {
+    console.error('Error creating unlisted banknote:', error);
+    return null;
   }
 }
 
@@ -1054,6 +1059,29 @@ export async function updateUnlistedBanknoteWithCollectionItem(
     return normalizeBanknoteData(updatedItem, "unlisted");
   } catch (error) {
     console.error('Error updating unlisted banknote:', error);
+    throw error;
+  }
+}
+
+export async function createMarketplaceItem(params: {
+  collectionItemId: string;
+  sellerId: string;
+  banknoteId: string;
+}): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('marketplace_items')
+      .insert([{
+        collection_item_id: params.collectionItemId,
+        seller_id: params.sellerId,
+        status: 'Available',
+        banknote_id: params.banknoteId
+      }]);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error creating marketplace item:', error);
     throw error;
   }
 }
