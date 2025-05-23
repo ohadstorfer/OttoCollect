@@ -171,9 +171,9 @@ export default function CollectionItem() {
   const displayImages = [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[];
 
   return (
-    <div className="page-container max-w-5xl mx-auto py-10">
+    <div className="page-container">
       <div className="flex flex-col space-y-6">
-        <div className="space-y-1">
+        <div className="space-y-1 page-container max-w-5xl mx-auto">
           <div className="flex justify-between items-center">
             <div className="flex items-baseline  gap-2">
               <Button
@@ -206,7 +206,7 @@ export default function CollectionItem() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-3 space-y-4">
             <Card>
               <CardContent className="px-2 pt-2 pb-2">
                 <div className="flex flex-col space-y-3">
@@ -254,7 +254,7 @@ export default function CollectionItem() {
             </Card>
           </div>
 
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-2">
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">

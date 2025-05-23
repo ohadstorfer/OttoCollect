@@ -112,13 +112,13 @@ const BanknoteCatalogDetailMinimized: React.FC = () => {
         <CardTitle className="text-xl">Banknote Details</CardTitle>
         <CardDescription>Complete information about this banknote</CardDescription>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="p-2">
         <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-0">
           {detailGroups.map((group, groupIndex) => (
             <AccordionItem 
               key={`item-${groupIndex}`} 
               value={`item-${groupIndex}`}
-              className="border rounded-md px-2"
+              className="border rounded-md "
             >
               <AccordionTrigger className="hover:no-underline px-4">
                 <div className="flex items-center gap-2">

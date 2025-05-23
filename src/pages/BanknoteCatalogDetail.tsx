@@ -31,7 +31,8 @@ import {
   Star,
   Plus,
   Check,
-  BookmarkPlus
+  BookmarkPlus,
+  Image
 } from "lucide-react";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { fetchUserCollection } from "@/services/collectionService";
@@ -339,10 +340,10 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   ];
 
   return (
-    <div className="page-container max-w-5xl mx-auto py-10">
+    <div className="page-container  mx-auto ">
       {renderOwnershipToast()}
-      <div className="flex flex-col space-y-6">
-        <div className="space-y-1">
+      <div className="flex flex-col ">
+        <div className="space-y-1 page-container max-w-5xl mx-auto">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             {banknote.denomination}
           </h1>
@@ -351,7 +352,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
             {!propsId && (
               <div className="flex items-center space-x-2">
 
-                <Button variant="outline" onClick={() => navigate(-1)}>
+                <Button variant="ghost" onClick={() => navigate(-1)}>
                   Back
                 </Button>
               </div>
@@ -360,11 +361,11 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-3 space-y-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
-                  <ImagePlus className="h-5 w-5 mr-2" />
+                  <Image className="h-5 w-5 mr-2" />
                   Banknote Images
                 </CardTitle>
               </CardHeader>
@@ -431,7 +432,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
             </Card>
           </div>
 
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-2">
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
@@ -489,13 +490,13 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                 <CardDescription>Complete information about this banknote</CardDescription>
               </CardHeader>
 
-              <CardContent className="p-6">
+              <CardContent className="p-2">
                 <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-0">
                   {detailGroups.map((group, groupIndex) => (
                     <AccordionItem
                       key={`item-${groupIndex}`}
                       value={`item-${groupIndex}`}
-                      className="border rounded-md px-2"
+                      className="border rounded-md "
                     >
                       <AccordionTrigger className="hover:no-underline px-4">
                         <div className="flex items-center gap-2">
