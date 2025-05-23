@@ -58,9 +58,7 @@ export function ContactSeller({ sellerId, sellerName, itemId, itemName }: Contac
   
   if (!user) {
     return (
-      <div className="text-sm text-muted-foreground mt-2">
-        Please log in to contact the seller
-      </div>
+      <div> </div>
     );
   }
   
