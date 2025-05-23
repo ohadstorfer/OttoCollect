@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import CountrySelection from '@/pages/CountrySelection';
 import CountryCollectionTabs from '@/components/profile/CountryCollectionTabs';
 import { CountryHeader } from '../country/CountryHeader';
@@ -60,11 +62,16 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
     }
   }, [selectedCountry]);
 
-  // Updated handler to pass both values up
-  const handleCountrySelect = (id: string, name: string) => {
-    setCountryId(id);
-    setCountryName(name);
-    onCountrySelect(id, name);
+  // Updated handler to match CountrySelection's expected type
+  const handleCountrySelect = (country: string) => {
+    // First fetch the country by name to get its ID
+    fetchCountryByName(country).then(countryData => {
+      if (countryData) {
+        setCountryId(countryData.id);
+        setCountryName(countryData.name);
+        onCountrySelect(countryData.id, countryData.name);
+      }
+    });
   };
 
   return showCountryDetail && countryId && countryName ? (
@@ -96,7 +103,6 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
       customTitle={`${isOwnProfile ? 'My' : `${userId}'s`} Collection`}
       customDescription="Browse your banknote collection by country"
       userId={userId}
-      // The onCountrySelect now passes BOTH id and name
       onCountrySelect={handleCountrySelect}
     />
   );

@@ -87,3 +87,59 @@ export async function deleteWishlistItem(wishlistItemId: string): Promise<boolea
     return false;
   }
 }
+
+export async function addToWishlist(userId: string, banknoteId: string): Promise<boolean> {
+  try {
+    // Check if the item is already in the wishlist
+    const { data: existingItem } = await supabase
+      .from('wishlist_items')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('banknote_id', banknoteId)
+      .single();
+
+    if (existingItem) {
+      return false; // Item already in wishlist
+    }
+
+    // Add to wishlist
+    const { error } = await supabase
+      .from('wishlist_items')
+      .insert([
+        {
+          user_id: userId,
+          banknote_id: banknoteId,
+          priority: 'Medium' // Default priority
+        }
+      ]);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error adding to wishlist:', error);
+    throw error;
+  }
+}
+
+export async function fetchWishlistItem(userId: string, banknoteId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('wishlist_items')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('banknote_id', banknoteId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') { // No rows returned
+        return null;
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching wishlist item:', error);
+    throw error;
+  }
+}

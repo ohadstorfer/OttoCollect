@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarketplaceItem as MarketplaceItemType, UserRank } from "@/types";
@@ -37,10 +38,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   
   const handleViewDetails = () => {
     console.log(`Navigating to marketplace item detail: ${item.id}`);
-    const isUnlisted = item.collectionItem?.is_unlisted_banknote;
-    const route = isUnlisted ? `/marketplace-unlisted/${item.id}` : `/marketplace/${item.id}`;
-    console.log(`Using route: ${route} (isUnlisted: ${isUnlisted})`);
-    navigate(route);
+    navigate(`/marketplace/${item.id}`);
   };
   
   const getStatusBadge = () => {
@@ -108,9 +106,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
               {banknote.denomination}
             </h3>
             <p className="text-sm text-ottoman-300">
-            {banknote.country}
-                  {banknote.country && banknote.year ? ', ' : ''}
-                  {banknote.year}
+              {banknote.country}, {banknote.year}
             </p>
           </div>
           {condition && (

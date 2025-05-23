@@ -32,10 +32,13 @@ import {
   Plus,
   Check,
   BookmarkPlus,
-  Image
+  Image,
+  HeartPulse,
+  HeartIcon
 } from "lucide-react";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { fetchUserCollection } from "@/services/collectionService";
+import { addToWishlist, fetchWishlistItem } from "@/services/wishlistService";
 // Removed invalid imports from wishlistService
 import { useToast } from "@/hooks/use-toast";
 
@@ -208,7 +211,11 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       // Notification toast now shown in handleOwnershipToastYes and Add button only, to avoid double firing
       queryClient.invalidateQueries({ queryKey: ["userCollection", user.id] });
     } catch (err) {
-      toast.error("Could not add to collection.");
+      toast({
+        title: "Error",
+        description: "Could not add to collection.",
+        variant: "destructive"
+      });
     } finally {
       setAdding(false);
     }
@@ -454,14 +461,14 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                       <div className="flex items-center space-x-2">
                         {/* === Only show if NOT in wishlist and hasn't just been added, and not loading === */}
                         {!wishlistLoading && !wishlistItem && !hasJustBeenWishlisted && (
-                          <Button
-                            variant="outline"
+                           <Button
+                           variant="ghost"
+                           size="icon"
                             onClick={handleAddToWishList}
                             title="Add to wish list"
-                            size="default"
-                            className="text-gold-600 border-gold-600 hover:bg-gold-100 px-2 py-1 space-x-1 h-auto"
+
                           >
-                            Wish List <Plus />
+                            <HeartIcon className="h-4 w-4" />
                           </Button>
                         )}
 
@@ -481,7 +488,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                           disabled={adding}
                           title="Add this banknote to your collection"
                         >
-                          <BookmarkPlus className="w-6 h-6" style={{ width: "1.4rem", height: "1.4rem" }} />
+                          <Plus className="w-6 h-6" style={{ width: "1.4rem", height: "1.4rem" }} />
                         </Button>
                       </div>
                     )
