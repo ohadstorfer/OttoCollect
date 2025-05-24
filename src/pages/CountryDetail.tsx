@@ -4,7 +4,7 @@ import { DynamicFilterState } from "@/types/filter";
 import { cn } from "@/lib/utils";
 import { CountryHeader } from "@/components/country/CountryHeader";
 import { CountryFilterSection } from "@/components/country/CountryFilterSection";
-import { BanknoteDisplay } from "@/components/country/BanknoteDisplay";
+import BanknoteDisplay from "@/components/country/BanknoteDisplay";
 import { useCountryData } from "@/hooks/use-country-data";
 import { useBanknoteFetching } from "@/hooks/use-banknote-fetching";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";

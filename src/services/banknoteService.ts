@@ -53,23 +53,23 @@ export async function fetchBanknotesByCountryId(
       console.error('[fetchBanknotesByCountryId] No country ID provided to fetchBanknotesByCountryId');
       return [];
     }
-    
+
     console.log(`[fetchBanknotesByCountryId] Called with countryId:`, countryId, "filters:", filters);
-    
+
     // First, get the country name using the country ID
     const { data: country, error: countryError } = await supabase
       .from('countries')
       .select('name')
       .eq('id', countryId)
       .single();
-    
+
     if (countryError || !country) {
       console.error('[fetchBanknotesByCountryId] Error fetching country name:', countryError, 'Result:', country);
       return [];
     }
-    
+
     console.log(`[fetchBanknotesByCountryId] Found country name:`, country.name, 'for ID:', countryId);
-    
+
     // Get category names from category IDs
     let categoryNames: string[] = [];
     if (filters?.categories && filters.categories.length > 0) {
@@ -78,7 +78,7 @@ export async function fetchBanknotesByCountryId(
           .from('banknote_category_definitions')
           .select('name')
           .in('id', filters.categories);
-        
+
         if (categoryData && categoryData.length > 0) {
           categoryNames = categoryData.map(cat => cat.name);
           console.log('[fetchBanknotesByCountryId] Filtering by categories:', categoryNames);
@@ -87,7 +87,7 @@ export async function fetchBanknotesByCountryId(
         console.error('[fetchBanknotesByCountryId] Error fetching category names:', err);
       }
     }
-    
+
     // Get type names from type IDs
     let typeNames: string[] = [];
     if (filters?.types && filters.types.length > 0) {
@@ -96,7 +96,7 @@ export async function fetchBanknotesByCountryId(
           .from('banknote_type_definitions')
           .select('name')
           .in('id', filters.types);
-        
+
         if (typeData && typeData.length > 0) {
           typeNames = typeData.map(type => type.name);
           console.log('[fetchBanknotesByCountryId] Filtering by types:', typeNames);
@@ -105,79 +105,101 @@ export async function fetchBanknotesByCountryId(
         console.error('[fetchBanknotesByCountryId] Error fetching type names:', err);
       }
     }
-    
-    // Build the query with the country filter - using the sorted_banknotes view
+
+    // Query detailed_banknotes (not sorted_banknotes)
+    // The sorting must match the one from sorted_banknotes, which uses parse_extended_pick_number
     let query = supabase
-      .from('sorted_banknotes')
+      .from('detailed_banknotes')
       .select('*')
       .eq('country', country.name);
-    
+
     // Apply search filter if provided
     if (filters?.search && filters.search.trim() !== '') {
       const searchTerm = filters.search.toLowerCase();
       query = query.or(
         `extended_pick_number.ilike.%${searchTerm}%,` +
-        `face_value.ilike.%${searchTerm}%,` + 
+        `face_value.ilike.%${searchTerm}%,` +
         `banknote_description.ilike.%${searchTerm}%,` +
         `sultan_name.ilike.%${searchTerm}%`
       );
     }
-    
-    // Execute the query to get all banknotes for this country
+
+    // Perform initial fetch to get all banknotes (unfiltered by category/type)
     const { data, error } = await query;
-    
+
     if (error) {
       console.error('[fetchBanknotesByCountryId] Error fetching banknotes by country:', error);
       return [];
     }
 
-    console.log(`[fetchBanknotesByCountryId] Raw banknote data response for country "${country.name}":`, data);
+    if (!data || data.length === 0) {
+      console.log('[fetchBanknotesByCountryId] No banknotes found for country');
+      return [];
+    }
 
-    // Filter by category and type on the server side
-    let filteredData = [...(data || [])];
-    
+    // Filter by category and type client-side (as before)
+    let filteredData = [...data];
+
     // Apply category filters if any
     if (categoryNames.length > 0) {
       const lowerCaseCategories = categoryNames.map(cat => cat.toLowerCase());
-      
+
       filteredData = filteredData.filter(banknote => {
         const itemCategory = (banknote.category || "").toLowerCase();
-        return lowerCaseCategories.some(categoryName => 
+        return lowerCaseCategories.some(categoryName =>
           itemCategory === categoryName.toLowerCase() ||
           itemCategory.includes(categoryName.toLowerCase()) ||
           categoryName.toLowerCase().includes(itemCategory)
         );
       });
     }
-    
+
     // Apply type filters if any
     if (typeNames.length > 0) {
       const lowerCaseTypes = typeNames.map(type => type.toLowerCase());
-      
+
       filteredData = filteredData.filter(banknote => {
         const itemType = (banknote.type || "").toLowerCase();
         return lowerCaseTypes.some(typeName => {
           const normalizedTypeName = typeName.toLowerCase();
-          // Direct match
           if (itemType === normalizedTypeName) return true;
-          
-          // Special case for "Issued notes" which might be stored as "Issued note"
           if ((normalizedTypeName === "issued notes" && itemType === "issued note") ||
               (normalizedTypeName === "issued note" && itemType === "issued notes")) {
             return true;
           }
-          
-          // Partial match (more flexible)
           return itemType.includes(normalizedTypeName) || normalizedTypeName.includes(itemType);
         });
       });
     }
-    
+
     console.log(`[fetchBanknotesByCountryId] Final filtered banknote count:`, filteredData.length);
+
+    // Sort client-side to match parse_extended_pick_number order in Postgres
+    // Helper for pick parsing that matches db logic (basic, most common cases)
+    function parsePick(pick: string = "") {
+      const match = pick.match(/^(\d+)([A-Za-z]?)([A-Za-z]?)(\d*)([a-zA-Z]*)$/);
+      return {
+        base_num: match?.[1] ? parseInt(match[1]) : 0,
+        letter_type: match?.[2]?.toUpperCase() === match?.[2] ? 'capital' : (match?.[2] ? 'lowercase' : ""),
+        letter_value: match?.[2] || "",
+        suffix_num: match?.[4] ? parseInt(match[4]) : 0,
+        trailing_text: match?.[5] || "",
+      };
+    }
+
+    filteredData.sort((a, b) => {
+      const aParsed = parsePick(a.extended_pick_number || "");
+      const bParsed = parsePick(b.extended_pick_number || "");
+      if (aParsed.base_num !== bParsed.base_num) return aParsed.base_num - bParsed.base_num;
+      if (aParsed.letter_type !== bParsed.letter_type) return (aParsed.letter_type || "").localeCompare(bParsed.letter_type || "");
+      if (aParsed.letter_value !== bParsed.letter_value) return (aParsed.letter_value || "").localeCompare(bParsed.letter_value || "");
+      if (aParsed.suffix_num !== bParsed.suffix_num) return aParsed.suffix_num - bParsed.suffix_num;
+      return (aParsed.trailing_text || "").localeCompare(bParsed.trailing_text || "");
+    });
 
     // Map database fields to client-side model
     const banknotes = filteredData.map(mapBanknoteFromDatabase);
-    
+
     return banknotes;
   } catch (error) {
     console.error('[fetchBanknotesByCountryId] Unexpected error:', error);
