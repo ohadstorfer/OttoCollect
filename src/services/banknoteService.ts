@@ -176,26 +176,26 @@ export async function fetchBanknotesByCountryId(
 
     // Sort client-side to match parse_extended_pick_number order in Postgres
     // Helper for pick parsing that matches db logic (basic, most common cases)
-    function parsePick(pick: string = "") {
-      const match = pick.match(/^(\d+)([A-Za-z]?)([A-Za-z]?)(\d*)([a-zA-Z]*)$/);
-      return {
-        base_num: match?.[1] ? parseInt(match[1]) : 0,
-        letter_type: match?.[2]?.toUpperCase() === match?.[2] ? 'capital' : (match?.[2] ? 'lowercase' : ""),
-        letter_value: match?.[2] || "",
-        suffix_num: match?.[4] ? parseInt(match[4]) : 0,
-        trailing_text: match?.[5] || "",
-      };
-    }
+    // function parsePick(pick: string = "") {
+    //   const match = pick.match(/^(\d+)([A-Za-z]?)([A-Za-z]?)(\d*)([a-zA-Z]*)$/);
+    //   return {
+    //     base_num: match?.[1] ? parseInt(match[1]) : 0,
+    //     letter_type: match?.[2]?.toUpperCase() === match?.[2] ? 'capital' : (match?.[2] ? 'lowercase' : ""),
+    //     letter_value: match?.[2] || "",
+    //     suffix_num: match?.[4] ? parseInt(match[4]) : 0,
+    //     trailing_text: match?.[5] || "",
+    //   };
+    // }
 
-    filteredData.sort((a, b) => {
-      const aParsed = parsePick(a.extended_pick_number || "");
-      const bParsed = parsePick(b.extended_pick_number || "");
-      if (aParsed.base_num !== bParsed.base_num) return aParsed.base_num - bParsed.base_num;
-      if (aParsed.letter_type !== bParsed.letter_type) return (aParsed.letter_type || "").localeCompare(bParsed.letter_type || "");
-      if (aParsed.letter_value !== bParsed.letter_value) return (aParsed.letter_value || "").localeCompare(bParsed.letter_value || "");
-      if (aParsed.suffix_num !== bParsed.suffix_num) return aParsed.suffix_num - bParsed.suffix_num;
-      return (aParsed.trailing_text || "").localeCompare(bParsed.trailing_text || "");
-    });
+    // filteredData.sort((a, b) => {
+    //   const aParsed = parsePick(a.extended_pick_number || "");
+    //   const bParsed = parsePick(b.extended_pick_number || "");
+    //   if (aParsed.base_num !== bParsed.base_num) return aParsed.base_num - bParsed.base_num;
+    //   if (aParsed.letter_type !== bParsed.letter_type) return (aParsed.letter_type || "").localeCompare(bParsed.letter_type || "");
+    //   if (aParsed.letter_value !== bParsed.letter_value) return (aParsed.letter_value || "").localeCompare(bParsed.letter_value || "");
+    //   if (aParsed.suffix_num !== bParsed.suffix_num) return aParsed.suffix_num - bParsed.suffix_num;
+    //   return (aParsed.trailing_text || "").localeCompare(bParsed.trailing_text || "");
+    // });
 
     // Map database fields to client-side model
     const banknotes = filteredData.map(mapBanknoteFromDatabase);
