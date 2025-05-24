@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -164,7 +163,10 @@ const ForumPostPage = () => {
 
         <div className="glass-card p-6 rounded-md shadow-md mb-6 animate-fade-in">
           <div className="flex items-start gap-4">
-            <Avatar className="h-12 w-12 border">
+          <Avatar
+  className="h-12 w-12 border cursor-pointer hover:opacity-80 active:scale-95 transition"
+  onClick={() => post?.author?.id && navigate(`/profile/${post.author.id}`)}
+>
               <AvatarImage src={post.author?.avatarUrl} />
               <AvatarFallback className="bg-ottoman-700 text-parchment-100">
                 {post.author?.username ? getInitials(post.author.username) : '??'}
@@ -173,7 +175,18 @@ const ForumPostPage = () => {
 
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold">{post.author?.username || 'Unknown User'}</span>
+                <div
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => post.author && navigate(`/profile/${post.author.id}`)}
+                  tabIndex={0}
+                  role="button"
+                  aria-label="Go to author profile"
+                  
+                >
+                  <span onClick={() => post?.author?.id && navigate(`/profile/${post.author.id}`)} className="font-semibold text-base text-ottoman-900 dark:text-parchment-200">
+                    {post.author?.username || 'Anonymous'}
+                  </span>
+                </div>
                 <span className="text-sm text-muted-foreground">{formattedDate}</span>
               </div>
               <h6 className="font-semibold text-2xl animate-fade-in">{post.title}</h6>
@@ -226,13 +239,38 @@ const ForumPostPage = () => {
             {comments.length > 0 ? (
               <div className="bg-parchment-10/20 rounded-md border p-6">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="group mb-3 last:mb-0">
-                    <ForumCommentComponent
-                      comment={comment}
-                      currentUserId={user?.id || ''}
-                      onUpdate={onUpdateComment}
-                      onDelete={onDeleteComment}
-                    />
+                  <div key={comment.id} className="group mb-3 last:mb-0 flex items-start gap-3">
+                    <div
+                      className="cursor-pointer"
+                      onClick={() => comment.author && navigate(`/profile/${comment.author.id}`)}
+                      tabIndex={0}
+                      role="button"
+                      aria-label="Go to comment author profile"
+                      onKeyDown={e => { if (e.key === 'Enter' && comment.author) navigate(`/profile/${comment.author.id}`); }}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={comment.author?.avatarUrl} />
+                        <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                          {getInitials(comment.author?.username || 'Anonymous')}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="font-semibold text-sm text-ottoman-900 dark:text-parchment-200 cursor-pointer"
+                          onClick={() => comment.author && navigate(`/profile/${comment.author.id}`)}
+                          tabIndex={0}
+                          role="button"
+                          aria-label="Go to comment author profile"
+                          onKeyDown={e => { if (e.key === 'Enter' && comment.author) navigate(`/profile/${comment.author.id}`); }}
+                        >
+                          {comment.author?.username || 'Anonymous'}
+                        </span>
+                        <span className="text-sm text-muted-foreground">{formattedDate}</span>
+                      </div>
+                      <div className="whitespace-pre-line mb-4">{comment.content}</div>
+                    </div>
                   </div>
                 ))}
               </div>

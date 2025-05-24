@@ -128,7 +128,7 @@ export async function fetchUserFilterPreferences(userId: string, countryId: stri
       .select('*')
       .eq('user_id', userId)
       .eq('country_id', countryId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error(`Error fetching user filter preferences for user ID ${userId} and country ID ${countryId}:`, error);

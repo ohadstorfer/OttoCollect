@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { MOCK_BANKNOTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Search, Database, BookOpen, Users, DollarSign } from "lucide-react";
 import LatestForumPosts from "@/components/home/LatestForumPosts";
@@ -22,6 +22,7 @@ const Index = () => {
   const [loadingMarketplace, setLoadingMarketplace] = useState(false);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const animatedWords = ["Rare", "Historic", "Valuable", "Unique", "Exquisite"];
+  const navigate = useNavigate();
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -124,7 +125,10 @@ const Index = () => {
           </p>
 
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Button className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg group">
+            <Button
+              className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg group"
+              onClick={() => navigate('/catalog')}
+            >
               <span className="group-hover:animate-bounce-subtle">Explore Catalogue</span>
               <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
             </Button>
@@ -156,44 +160,68 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="glass-card p-6 reveal fade-bottom" style={{ animationDelay: '100ms' }}>
+            <div
+              className="glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-lg transition"
+              style={{ animationDelay: '100ms' }}
+              onClick={() => navigate('/catalog')}
+              tabIndex={0}
+              role="button"
+              aria-label="Go to Catalogue"
+              onKeyDown={e => { if (e.key === 'Enter') navigate('/catalog'); }}
+            >
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <Database className="h-6 w-6 text-white" />
               </div>
               <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>Catalogue Management</h3>
-              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
-                Browse comprehensive catalogue of Ottoman banknotes organized by country and era
-              </p>
+              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Browse comprehensive catalogue of Ottoman banknotes organized by country and era</p>
             </div>
             
-            <div className="glass-card p-6 reveal fade-bottom" style={{ animationDelay: '200ms' }}>
+            <div
+              className="glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-lg transition"
+              style={{ animationDelay: '200ms' }}
+              onClick={() => navigate('/collection')}
+              tabIndex={0}
+              role="button"
+              aria-label="Go to Collection"
+              onKeyDown={e => { if (e.key === 'Enter') navigate('/collection'); }}
+            >
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
               <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>Collection Tools</h3>
-              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
-                Track your collection, wishlist, and display missing items with detailed information
-              </p>
+              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Track your collection, wishlist, and display missing items with detailed information</p>
             </div>
             
-            <div className="glass-card p-6 reveal fade-bottom" style={{ animationDelay: '300ms' }}>
+            <div
+              className="glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-lg transition"
+              style={{ animationDelay: '300ms' }}
+              onClick={() => navigate('/marketplace')}
+              tabIndex={0}
+              role="button"
+              aria-label="Go to Marketplace"
+              onKeyDown={e => { if (e.key === 'Enter') navigate('/marketplace'); }}
+            >
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <DollarSign className="h-6 w-6 text-white" />
               </div>
               <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>Marketplace</h3>
-              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
-                Buy and sell banknotes within the community through our integrated marketplace
-              </p>
+              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Buy and sell banknotes within the community through our integrated marketplace</p>
             </div>
             
-            <div className="glass-card p-6 reveal fade-bottom" style={{ animationDelay: '400ms' }}>
+            <div
+              className="glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-lg transition"
+              style={{ animationDelay: '400ms' }}
+              onClick={() => navigate('/community')}
+              tabIndex={0}
+              role="button"
+              aria-label="Go to Community"
+              onKeyDown={e => { if (e.key === 'Enter') navigate('/community'); }}
+            >
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <Users className="h-6 w-6 text-white" />
               </div>
               <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>Community</h3>
-              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
-                Connect with fellow collectors through forums, blogs, and private messaging
-              </p>
+              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Connect with fellow collectors through forums, blogs, and private messaging</p>
             </div>
           </div>
         </div>
@@ -269,7 +297,10 @@ const Index = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg">
+            <Button
+              className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg"
+              onClick={() => navigate('/catalog')}
+            >
               Start Exploring
             </Button>
             

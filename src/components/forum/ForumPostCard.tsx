@@ -57,12 +57,18 @@ const ForumPostCard = ({ post }: ForumPostCardProps) => {
           {/* Author and Date */}
           <div className="flex items-center gap-2 min-w-0">
             {post.author ? (
-              <UserProfileLink
-                userId={post.author.id}
-                username={post.author.username}
-                avatarUrl={post.author.avatarUrl}
-                size="sm"
-              />
+              <span
+                onClick={e => { e.stopPropagation(); }}
+                onMouseDown={e => e.stopPropagation()}
+                className="inline-flex"
+              >
+                <UserProfileLink
+                  userId={post.author.id}
+                  username={post.author.username}
+                  avatarUrl={post.author.avatarUrl}
+                  size="sm"
+                />
+              </span>
             ) : (
               <div className="flex items-center gap-2 min-w-0">
                 <Avatar className="h-6 w-6 flex-shrink-0">

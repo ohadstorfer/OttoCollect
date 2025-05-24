@@ -1,12 +1,14 @@
-
+import React from 'react';
 import AuthForm from "@/components/auth/AuthForm";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useTheme } from '@/context/ThemeContext';
 
 const Auth = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { theme } = useTheme();
   
   useEffect(() => {
     // If user is already logged in, redirect to home
@@ -16,7 +18,7 @@ const Auth = () => {
   }, [user, navigate]);
   
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-dark-500 animate-fade-in">
+    <div className={`min-h-screen flex items-center justify-center ${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-900'} py-12 px-4 sm:px-6 lg:px-8 animate-fade-in`}>
       <div className="absolute inset-0 -z-10">
         <div
           className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] bg-dark-600/40 shadow-xl shadow-ottoman-900/20 ring-1 ring-inset ring-ottoman-900/10"
