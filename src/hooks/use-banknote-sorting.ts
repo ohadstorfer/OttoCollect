@@ -25,10 +25,62 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
             comparison = (a.sultanName || "").localeCompare(b.sultanName || "");
             break;
 
-          case "extPick":
-            // No need for custom sorting here as data should already be sorted by the database
-            comparison = 0;
-            break;
+          case "extPick": {
+            // Helper to parse the extended pick number
+            const parseExtPick = (pick: string) => {
+              const regex = /^(\d+)([A-Za-z])?(\d+)?([A-Za-z]*)?$/;
+              const match = (pick || '').match(regex);
+              if (!match) {
+                return {
+                  base_num: 0,
+                  letter_type: null,
+                  letter_value: null,
+                  suffix_num: 0,
+                  trailing_text: ''
+                };
+              }
+              const base_num = parseInt(match[1], 10);
+              const letter_value = match[2] || null;
+              const letter_type = letter_value
+                ? (letter_value === letter_value.toUpperCase() ? 'capital' : 'lowercase')
+                : null;
+              const suffix_num = match[3] ? parseInt(match[3], 10) : 0;
+              const trailing_text = match[4] || '';
+              return {
+                base_num,
+                letter_type,
+                letter_value,
+                suffix_num,
+                trailing_text
+              };
+            };
+
+            const aPick = parseExtPick(a.extendedPickNumber || a.catalogId || '');
+            const bPick = parseExtPick(b.extendedPickNumber || b.catalogId || '');
+
+            // Sort by base_num
+            if (aPick.base_num !== bPick.base_num) {
+              return aPick.base_num - bPick.base_num;
+            }
+            // Sort by letter_type: null < capital < lowercase
+            const letterTypeOrder = { null: 0, capital: 1, lowercase: 2 };
+            if (letterTypeOrder[aPick.letter_type || 'null'] !== letterTypeOrder[bPick.letter_type || 'null']) {
+              return letterTypeOrder[aPick.letter_type || 'null'] - letterTypeOrder[bPick.letter_type || 'null'];
+            }
+            // Sort by letter_value
+            if ((aPick.letter_value || '') !== (bPick.letter_value || '')) {
+              return (aPick.letter_value || '').localeCompare(bPick.letter_value || '');
+            }
+            // Sort by suffix_num
+            if (aPick.suffix_num !== bPick.suffix_num) {
+              return aPick.suffix_num - bPick.suffix_num;
+            }
+            // Sort by trailing_text
+            if ((aPick.trailing_text || '') !== (bPick.trailing_text || '')) {
+              return (aPick.trailing_text || '').localeCompare(bPick.trailing_text || '');
+            }
+            return 0;
+          }
 
           case "faceValue":
 

@@ -106,9 +106,9 @@ export async function fetchBanknotesByCountryId(
       }
     }
     
-    // Build the query with the country filter - using the sorted_banknotes view
+    // Build the query with the country filter - using the detailed_banknotes
     let query = supabase
-      .from('sorted_banknotes')
+      .from('detailed_banknotes')
       .select('*')
       .eq('country', country.name);
     
