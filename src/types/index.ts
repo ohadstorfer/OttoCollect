@@ -63,6 +63,7 @@ export interface User {
   points: number;
   createdAt: string;
   updatedAt?: string;
+  blocked?: boolean;
 }
 
 // Banknote related interfaces

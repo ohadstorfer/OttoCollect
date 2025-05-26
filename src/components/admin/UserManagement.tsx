@@ -22,6 +22,9 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [userToRemove, setUserToRemove] = useState<User | null>(null);
+  const [unblockingUserId, setUnblockingUserId] = useState<string | null>(null);
+  const [showUnblockDialog, setShowUnblockDialog] = useState(false);
+  const [userToUnblock, setUserToUnblock] = useState<User | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -56,6 +59,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         avatarUrl: profile.avatar_url,
         country: profile.country,
         about: profile.about,
+        blocked: profile.blocked || false,
       }));
       
       setUsers(formattedUsers);
@@ -174,6 +178,40 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
     }
   };
 
+  const handleUnblock = (user: User) => {
+    setUserToUnblock(user);
+    setShowUnblockDialog(true);
+  };
+
+  const confirmUnblock = async () => {
+    if (!userToUnblock) return;
+    setUnblockingUserId(userToUnblock.id);
+    try {
+      // Unblock user in profiles table
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          blocked: false,
+          blocked_at: null,
+          blocked_reason: null,
+          blocked_by: null,
+        })
+        .eq('id', userToUnblock.id);
+
+      if (updateError) throw updateError;
+
+      toast.success('User has been unblocked successfully.');
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error unblocking user:', error);
+      toast.error('Failed to unblock user');
+    } finally {
+      setUnblockingUserId(null);
+      setShowUnblockDialog(false);
+      setUserToUnblock(null);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -205,6 +243,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
               <TableHead>Username</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -217,6 +256,15 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                 <TableCell>
                   <Badge variant="secondary">
                     {getRoleDisplay(user)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge 
+                    variant={user.blocked ? "destructive" : "default"}
+                    className={`cursor-pointer hover:opacity-80 ${user.blocked ? "bg-red-100 text-red-800 border-red-300" : "bg-green-100 text-green-800 border-green-300"}`}
+                    onClick={() => user.blocked ? handleUnblock(user) : handleRemoveAndBlock(user)}
+                  >
+                    {user.blocked ? "Blocked" : "Active"}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -240,15 +288,6 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Button
-                      className="w-[200px]"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemoveAndBlock(user)}
-                        disabled={removingUserId === user.id}
-                      >
-                        Remove and block
-                      </Button>
                     </div>
                   )}
                 </TableCell>
@@ -260,12 +299,26 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       {showRemoveDialog && userToRemove && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h2 className="text-lg font-bold mb-2">Remove and block user</h2>
-            <p className="mb-4">Are you sure that you want to remove this user from the website and prevent them from opening another account with this email address in the future?</p>
+            <h2 className="text-lg font-bold mb-2">Block user</h2>
+            <p className="mb-4">Are you sure that you want to block this user from the website and prevent them from opening another account with this email address in the future?</p>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowRemoveDialog(false)} disabled={removingUserId === userToRemove.id}>Cancel</Button>
               <Button variant="destructive" onClick={confirmRemoveAndBlock} disabled={removingUserId === userToRemove.id}>
-                {removingUserId === userToRemove.id ? 'Removing...' : 'Remove and block'}
+                {removingUserId === userToRemove.id ? 'Blocking...' : 'Block user'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showUnblockDialog && userToUnblock && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full">
+            <h2 className="text-lg font-bold mb-2">Unblock user</h2>
+            <p className="mb-4">Are you sure you want to unblock this user? They will be able to log in and access the website again.</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowUnblockDialog(false)} disabled={unblockingUserId === userToUnblock.id}>Cancel</Button>
+              <Button variant="default" onClick={confirmUnblock} disabled={unblockingUserId === userToUnblock.id}>
+                {unblockingUserId === userToUnblock.id ? 'Unblocking...' : 'Unblock user'}
               </Button>
             </div>
           </div>
