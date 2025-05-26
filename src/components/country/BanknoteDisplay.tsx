@@ -44,7 +44,7 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
         <>
           <div>
             {/* Log before passing down */}
-            {console.log("[BanknoteDisplay] Passing userCollection to BanknoteGroups, length:", userCollection?.length)}
+            {/* {console.log("[BanknoteDisplay] Passing userCollection to BanknoteGroups, length:", userCollection?.length)} */}
           </div>
           <BanknoteGroups
             groups={groups}

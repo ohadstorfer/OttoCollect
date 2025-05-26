@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
 
 const AuthForm = () => {
   const { login, register } = useAuth();
@@ -27,11 +27,28 @@ const AuthForm = () => {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [passwordsMatch, setPasswordsMatch] = useState(true);
 
+  const checkBlockedEmail = async (email: string) => {
+    const { data, error } = await supabase
+      .from('blocked_emails')
+      .select('email')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
+    return !!data;
+  };
+
+  const [blockedError, setBlockedError] = useState<string | null>(null);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
-    
+    setBlockedError(null);
     try {
+      const isBlocked = await checkBlockedEmail(loginEmail);
+      if (isBlocked) {
+        setBlockedError('Your account has been blocked. You probably violated the website terms of service. If you believe this is a mistake, please contact support.');
+        setLoginLoading(false);
+        return;
+      }
       await login(loginEmail, loginPassword);
       navigate("/");
     } catch (error) {
@@ -43,15 +60,19 @@ const AuthForm = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setBlockedError(null);
     if (registerPassword !== registerConfirmPassword) {
       setPasswordsMatch(false);
       return;
     }
-    
     setRegisterLoading(true);
-    
     try {
+      const isBlocked = await checkBlockedEmail(registerEmail);
+      if (isBlocked) {
+        setBlockedError('This email has been blocked from registering. You probably violated the website terms of service. If you believe this is a mistake, please contact support.');
+        setRegisterLoading(false);
+        return;
+      }
       await register(registerUsername, registerEmail, registerPassword);
       navigate("/");
     } catch (error) {
@@ -89,6 +110,9 @@ const AuthForm = () => {
                 <p className="text-ottoman-200 text-sm">
                   Log in to access your Ottoman banknote collection
                 </p>
+                {blockedError && (
+                  <div className="text-red-600 text-sm mt-2">{blockedError}</div>
+                )}
               </div>
 
               <form onSubmit={handleLogin} className="space-y-4">
@@ -189,6 +213,9 @@ const AuthForm = () => {
                 <p className="text-ottoman-200 text-sm">
                   Join the Ottoman banknote collector community
                 </p>
+                {blockedError && (
+                  <div className="text-red-600 text-sm mt-2">{blockedError}</div>
+                )}
               </div>
 
               <form onSubmit={handleRegister} className="space-y-4">

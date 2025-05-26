@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Role } from '@/types';
 import { Search, Loader2 } from 'lucide-react';
+import { blockUserByEmail, deleteUserById } from '@/services/profileService';
 
 interface UserManagementProps {
   isSuperAdmin: boolean;
@@ -19,6 +19,9 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [removingUserId, setRemovingUserId] = useState<string | null>(null);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [userToRemove, setUserToRemove] = useState<User | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -129,6 +132,36 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleRemoveAndBlock = (user: User) => {
+    setUserToRemove(user);
+    setShowRemoveDialog(true);
+  };
+
+  const confirmRemoveAndBlock = async () => {
+    if (!userToRemove) return;
+    setRemovingUserId(userToRemove.id);
+    try {
+      // Block the user's email
+      const blockSuccess = await blockUserByEmail(userToRemove.email);
+      if (!blockSuccess) throw new Error('Failed to block user email');
+      // Delete the user
+      console.log('Deleting user with ID:', userToRemove.id);
+      const deleteSuccess = await deleteUserById(userToRemove.id);
+      console.log('Delete success:', deleteSuccess);
+      if (!deleteSuccess) throw new Error('Failed to delete user');
+      toast.success('User removed and blocked successfully');
+      // Refresh users
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error removing and blocking user:', error);
+      toast.error('Failed to remove and block user');
+    } finally {
+      setRemovingUserId(null);
+      setShowRemoveDialog(false);
+      setUserToRemove(null);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -179,21 +212,32 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                 </TableCell>
                 <TableCell>
                   {isSuperAdmin && (
-                    <Select
-                      value={user.role_id || undefined}
-                      onValueChange={(value) => updateUserRole(user.id, value)}
-                    >
-                      <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roles.map((role) => (
-                          <SelectItem key={role.id} value={role.id}>
-                            {role.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-col gap-2">
+                      <Select
+                        value={user.role_id || undefined}
+                        onValueChange={(value) => updateUserRole(user.id, value)}
+                      >
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roles.map((role) => (
+                            <SelectItem key={role.id} value={role.id}>
+                              {role.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                      className="w-[200px]"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRemoveAndBlock(user)}
+                        disabled={removingUserId === user.id}
+                      >
+                        Remove and block
+                      </Button>
+                    </div>
                   )}
                 </TableCell>
               </TableRow>
@@ -201,6 +245,20 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
           </TableBody>
         </Table>
       </div>
+      {showRemoveDialog && userToRemove && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full">
+            <h2 className="text-lg font-bold mb-2">Remove and block user</h2>
+            <p className="mb-4">Are you sure that you want to remove this user from the website and prevent them from opening another account with this email address in the future?</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowRemoveDialog(false)} disabled={removingUserId === userToRemove.id}>Cancel</Button>
+              <Button variant="destructive" onClick={confirmRemoveAndBlock} disabled={removingUserId === userToRemove.id}>
+                {removingUserId === userToRemove.id ? 'Removing...' : 'Remove and block'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

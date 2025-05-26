@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole, UserRank } from "@/types";
 import { toast } from "sonner";
@@ -134,5 +133,40 @@ export async function uploadAvatar(
     console.error("Error in uploadAvatar:", error);
     toast.error("Failed to upload avatar");
     return null;
+  }
+}
+
+// Block a user by email
+export async function blockUserByEmail(email: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('blocked_emails')
+      .insert([{ email }]);
+    if (error) {
+      console.error('Error blocking user email:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Error in blockUserByEmail:', error);
+    return false;
+  }
+}
+
+// Delete a user by ID
+export async function deleteUserById(userId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+    if (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Error in deleteUserById:', error);
+    return false;
   }
 }
