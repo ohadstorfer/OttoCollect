@@ -10,7 +10,7 @@ import { useBanknoteFetching } from "@/hooks/use-banknote-fetching";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { useEffect } from "react";
-import { fetchUserCollection } from "@/services/collectionService";
+import { CollectionItem, fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
 
 const CountryDetail = () => {
