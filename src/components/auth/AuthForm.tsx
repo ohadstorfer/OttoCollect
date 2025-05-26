@@ -7,9 +7,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/hooks/use-toast";
 
 const AuthForm = () => {
   const { login, register, blockedNotice } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -43,21 +45,74 @@ const AuthForm = () => {
     setLoginLoading(true);
     setBlockedError(null);
     try {
+      console.log('Starting login process...');
+      
       const isBlocked = await checkBlockedEmail(loginEmail);
       if (isBlocked) {
-        setBlockedError('Your account has been blocked. You probably violated the website terms of service. If you believe this is a mistake, please contact support.');
+        console.log('Email is blocked');
+        toast({
+          variant: "destructive",
+          title: "Account Blocked",
+          description: "Your account has been blocked. You probably violated the website terms of service. If you believe this is a mistake, please contact support.",
+        });
         setLoginLoading(false);
         return;
       }
+
+      console.log('Attempting to login with Supabase...');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPassword,
+      });
+
+      if (error) {
+        console.log('Login failed:', error.message);
+        throw error;
+      }
+
+      if (!data?.user) {
+        console.log('No user data returned from login');
+        throw new Error('Login failed - no user data returned');
+      }
+
+      console.log('Login successful, user:', data.user.id);
       await login(loginEmail, loginPassword);
-      // Wait a short moment to ensure blockedNotice updates
-      setTimeout(() => {
-        if (!blockedNotice) {
-          navigate("/");
-        }
-      }, 400);
-    } catch (error) {
-      console.error("Login error:", error);
+      
+      // Only navigate if we have a user and no blocked notice
+      if (data.user && !blockedNotice) {
+        console.log('Login successful, navigating to home...');
+        navigate("/");
+      } else {
+        console.log('Login successful but not navigating - blocked notice:', blockedNotice);
+      }
+    } catch (error: any) {
+      console.error("Login error details:", error);
+      // Handle different error scenarios
+      if (error.message?.includes('Invalid login credentials')) {
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: "Invalid email or password. Please try again.",
+        });
+      } else if (error.message?.includes('Email not confirmed')) {
+        toast({
+          variant: "destructive",
+          title: "Email Not Verified",
+          description: "Please verify your email address before logging in.",
+        });
+      } else if (error.message?.includes('Too many requests')) {
+        toast({
+          variant: "destructive",
+          title: "Too Many Attempts",
+          description: "Too many login attempts. Please try again later.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login Error",
+          description: "An error occurred during login. Please try again.",
+        });
+      }
     } finally {
       setLoginLoading(false);
     }
@@ -68,20 +123,100 @@ const AuthForm = () => {
     setBlockedError(null);
     if (registerPassword !== registerConfirmPassword) {
       setPasswordsMatch(false);
+      toast({
+        variant: "destructive",
+        title: "Password Mismatch",
+        description: "Passwords do not match. Please try again.",
+      });
       return;
     }
     setRegisterLoading(true);
     try {
+      console.log('Starting registration process...');
+      
       const isBlocked = await checkBlockedEmail(registerEmail);
       if (isBlocked) {
-        setBlockedError('This email has been blocked from registering. You probably violated the website terms of service. If you believe this is a mistake, please contact support.');
+        console.log('Email is blocked');
+        toast({
+          variant: "destructive",
+          title: "Email Blocked",
+          description: "This email has been blocked from registering. You probably violated the website terms of service. If you believe this is a mistake, please contact support.",
+        });
         setRegisterLoading(false);
         return;
       }
+
+      console.log('Attempting to register with Supabase...');
+      const { data, error } = await supabase.auth.signUp({
+        email: registerEmail,
+        password: registerPassword,
+        options: {
+          data: {
+            username: registerUsername,
+          },
+        },
+      });
+
+      if (error) {
+        console.log('Registration failed:', error.message);
+        throw error;
+      }
+
+      if (!data?.user) {
+        console.log('No user data returned from registration');
+        throw new Error('Registration failed - no user data returned');
+      }
+
+      console.log('Registration successful, user:', data.user.id);
       await register(registerUsername, registerEmail, registerPassword);
-      navigate("/");
-    } catch (error) {
-      console.error("Register error:", error);
+      
+      // Only navigate if we have a user
+      if (data.user) {
+        console.log('Registration successful, navigating to home...');
+        navigate("/");
+      } else {
+        console.log('Registration successful but not navigating - no user data');
+      }
+    } catch (error: any) {
+      console.error("Register error details:", error);
+      // Handle different error scenarios
+      if (error.message?.includes('User already registered')) {
+        toast({
+          variant: "destructive",
+          title: "Account Exists",
+          description: "An account with this email already exists. Please try logging in instead.",
+        });
+      } else if (error.message?.includes('Username already taken')) {
+        toast({
+          variant: "destructive",
+          title: "Username Taken",
+          description: "This username is already taken. Please choose a different one.",
+        });
+      } else if (error.message?.includes('Password too weak')) {
+        toast({
+          variant: "destructive",
+          title: "Weak Password",
+          description: "Password is too weak. Please use a stronger password with at least 8 characters, including numbers and special characters.",
+        });
+      } else if (error.message?.includes('Invalid email')) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+        });
+      } else if (error.message?.includes('Username too short')) {
+        toast({
+          variant: "destructive",
+          title: "Username Too Short",
+          description: "Username must be at least 3 characters long.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Registration Error",
+          description: "An error occurred during registration. Please try again.",
+        });
+      }
     } finally {
       setRegisterLoading(false);
     }

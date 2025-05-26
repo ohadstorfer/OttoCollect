@@ -86,22 +86,25 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
     try {
       console.log(`Updating user ${userId} to role ${roleId}`);
       
-      // Update the user's role_id in the database
+      // Get the name of the selected role first
+      const selectedRole = roles.find(r => r.id === roleId);
+      
+      if (!selectedRole) {
+        throw new Error('Selected role not found');
+      }
+
+      // Update both role_id and role in the database
       const { error } = await supabase
         .from('profiles')
-        .update({ role_id: roleId })
+        .update({ 
+          role_id: roleId,
+          role: selectedRole.name 
+        })
         .eq('id', userId);
 
       if (error) {
         console.error('Error details:', error);
         throw error;
-      }
-
-      // Get the name of the selected role
-      const selectedRole = roles.find(r => r.id === roleId);
-      
-      if (!selectedRole) {
-        throw new Error('Selected role not found');
       }
       
       toast.success(`User role updated to ${selectedRole.name}`);
