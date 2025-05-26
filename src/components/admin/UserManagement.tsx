@@ -144,16 +144,25 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       // Block the user's email
       const blockSuccess = await blockUserByEmail(userToRemove.email);
       if (!blockSuccess) throw new Error('Failed to block user email');
-      // Delete the user
-      console.log('Deleting user with ID:', userToRemove.id);
-      const deleteSuccess = await deleteUserById(userToRemove.id);
-      console.log('Delete success:', deleteSuccess);
-      if (!deleteSuccess) throw new Error('Failed to delete user');
-      toast.success('User removed and blocked successfully');
-      // Refresh users
+
+      // Block user in profiles table instead of deleting
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          blocked: true,
+          blocked_at: new Date().toISOString(),
+          blocked_reason: "Blocked by Admin", // Optionally allow admin input for reasons
+          blocked_by: /* Optionally, pass current admin ID here if available */
+            null,
+        })
+        .eq('id', userToRemove.id);
+
+      if (updateError) throw updateError;
+
+      toast.success('User blocked and prevented from logging in.');
       await fetchUsers();
     } catch (error) {
-      console.error('Error removing and blocking user:', error);
+      console.error('Error blocking user:', error);
       toast.error('Failed to remove and block user');
     } finally {
       setRemovingUserId(null);

@@ -13,6 +13,7 @@ type AuthContextType = {
   logout: () => void;
   getUserRankFromPoints: (points: number, role: UserRole) => UserRank;
   updateUserState: (updates: Partial<User>) => void;
+  blockedNotice: string | null;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -29,14 +30,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [blockedNotice, setBlockedNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, sessionData) => {
         setSession(sessionData);
-        
+
         if (sessionData?.user) {
-          fetchUserProfile(sessionData.user.id);
+          setTimeout(() => {
+            fetchUserProfile(sessionData.user.id);
+          }, 0);
         } else {
           setUser(null);
         }
@@ -64,28 +68,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error("Error fetching user profile:", error);
         setUser(null);
+        setBlockedNotice(null);
+        setLoading(false);
       } else if (data) {
-        const userProfile: User = {
-          id: data.id,
-          username: data.username,
-          email: data.email,
-          role: data.role as UserRole,
-          role_id: data.role_id,
-          rank: data.rank as UserRank,
-          points: data.points,
-          createdAt: data.created_at,
-          avatarUrl: data.avatar_url || '/placeholder.svg',
-          ...(data.country && { country: data.country }),
-          ...(data.about && { about: data.about })
-        };
-        setUser(userProfile);
-        console.log("User profile loaded:", userProfile);
+        if (data.blocked) {
+          // Log out and show a block notice
+          setBlockedNotice(
+            data.blocked_reason ||
+              "Your account has been blocked by an administrator. If you think this is a mistake, please contact support."
+          );
+          setUser(null);
+          await supabase.auth.signOut();
+        } else {
+          const userProfile: User = {
+            id: data.id,
+            username: data.username,
+            email: data.email,
+            role: data.role as UserRole,
+            role_id: data.role_id,
+            rank: data.rank as UserRank,
+            points: data.points,
+            createdAt: data.created_at,
+            avatarUrl: data.avatar_url || '/placeholder.svg',
+            ...(data.country && { country: data.country }),
+            ...(data.about && { about: data.about })
+          };
+          setUser(userProfile);
+          setBlockedNotice(null);
+        }
       }
     } catch (error) {
-      console.error("Error in profile fetch:", error);
       setUser(null);
+      setBlockedNotice(null);
     } finally {
       setLoading(false);
     }
@@ -93,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUserState = (updates: Partial<User>) => {
     if (user) {
-      setUser({...user, ...updates});
+      setUser({ ...user, ...updates });
     }
   };
 
@@ -113,6 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     setLoading(true);
+    setBlockedNotice(null);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -121,13 +137,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         toast.error(error.message || "Login failed");
-        console.error("Login error:", error);
       } else {
+        // fetchUserProfile will run in useEffect, so nothing to do here
         toast.success("Login successful!");
       }
     } catch (error: any) {
       toast.error("Login failed");
-      console.error("Login error:", error);
     } finally {
       setLoading(false);
     }
@@ -148,13 +163,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         toast.error(error.message || "Registration failed");
-        console.error("Registration error:", error);
       } else {
         toast.success("Registration successful! Please check your email for verification.");
       }
     } catch (error: any) {
       toast.error("Registration failed");
-      console.error("Registration error:", error);
     } finally {
       setLoading(false);
     }
@@ -165,7 +178,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await supabase.auth.signOut();
       toast.info("Logged out successfully");
     } catch (error) {
-      console.error("Logout error:", error);
       toast.error("Logout failed");
     }
   };
@@ -178,6 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     getUserRankFromPoints,
     updateUserState,
+    blockedNotice,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

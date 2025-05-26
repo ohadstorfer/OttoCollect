@@ -9,7 +9,7 @@ import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 
 const AuthForm = () => {
-  const { login, register } = useAuth();
+  const { login, register, blockedNotice } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -50,7 +50,12 @@ const AuthForm = () => {
         return;
       }
       await login(loginEmail, loginPassword);
-      navigate("/");
+      // Wait a short moment to ensure blockedNotice updates
+      setTimeout(() => {
+        if (!blockedNotice) {
+          navigate("/");
+        }
+      }, 400);
     } catch (error) {
       console.error("Login error:", error);
     } finally {
@@ -85,6 +90,12 @@ const AuthForm = () => {
   return (
     <div className="w-full max-w-md mx-auto animate-fade-in">
       <Card className="ottoman-card shadow-lg">
+        {/* Show blocked notice if user is blocked */}
+        {blockedNotice && (
+          <div className="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded mb-4 text-center animate-fade-in">
+            <span>{blockedNotice}</span>
+          </div>
+        )}
         <Tabs
           defaultValue="login"
           value={activeTab}

@@ -791,6 +791,10 @@ export type Database = {
         Row: {
           about: string | null
           avatar_url: string | null
+          blocked: boolean
+          blocked_at: string | null
+          blocked_by: string | null
+          blocked_reason: string | null
           country: string | null
           created_at: string
           email: string
@@ -805,6 +809,10 @@ export type Database = {
         Insert: {
           about?: string | null
           avatar_url?: string | null
+          blocked?: boolean
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
           country?: string | null
           created_at?: string
           email: string
@@ -819,6 +827,10 @@ export type Database = {
         Update: {
           about?: string | null
           avatar_url?: string | null
+          blocked?: boolean
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
           country?: string | null
           created_at?: string
           email?: string
@@ -831,6 +843,13 @@ export type Database = {
           username?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_blocked_by_admin"
+            columns: ["blocked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_role_id_fkey"
             columns: ["role_id"]
@@ -1300,6 +1319,10 @@ export type Database = {
         Returns: {
           about: string | null
           avatar_url: string | null
+          blocked: boolean
+          blocked_at: string | null
+          blocked_by: string | null
+          blocked_reason: string | null
           country: string | null
           created_at: string
           email: string
