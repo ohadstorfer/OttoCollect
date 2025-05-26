@@ -153,9 +153,10 @@ export async function blockUserByEmail(email: string): Promise<boolean> {
   }
 }
 
-// Delete a user by ID
+// Delete a user by ID (also deletes Auth user via edge function)
 export async function deleteUserById(userId: string): Promise<boolean> {
   try {
+    // 1. Delete profile from profiles table
     const { error } = await supabase
       .from('profiles')
       .delete()
@@ -164,9 +165,30 @@ export async function deleteUserById(userId: string): Promise<boolean> {
       console.error('Error deleting user:', error);
       return false;
     }
+
+    // 2. Call edge function to delete the Supabase Auth user
+    // eslint-disable-next-line no-undef
+    const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseEdgeUrl = '/functions/v1/delete-auth-user';
+
+    const res = await fetch(supabaseEdgeUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, serviceKey }),
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      console.error("Failed to delete Auth user:", txt);
+      toast.error('Deleted profile row, but failed to delete authentication user.');
+      return false;
+    }
+
+    toast.success('User removed and blocked successfully');
     return true;
   } catch (error) {
     console.error('Error in deleteUserById:', error);
+    toast.error('Failed to remove and block user');
     return false;
   }
 }

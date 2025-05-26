@@ -231,6 +231,24 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: number
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_id: string
@@ -1109,24 +1127,6 @@ export type Database = {
           },
         ]
       }
-      blocked_emails: {
-        Row: {
-          id: string;
-          email: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          email: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          email?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      },
     }
     Views: {
       sorted_banknotes: {
@@ -1318,6 +1318,10 @@ export type Database = {
       }
       is_super_admin: {
         Args: { user_uuid: string }
+        Returns: boolean
+      }
+      is_super_or_country_admin: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       parse_extended_pick_number: {
