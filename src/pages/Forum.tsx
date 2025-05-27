@@ -9,6 +9,7 @@ import { fetchForumPosts } from '@/services/forumService';
 import { ForumPost } from '@/types/forum';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from "@/context/ThemeContext";
+import { supabase } from '@/integrations/supabase/client';
 
 
 const Forum = () => {
@@ -19,6 +20,7 @@ const Forum = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
+  const [isUserBlocked, setIsUserBlocked] = useState(false);
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -36,6 +38,27 @@ const Forum = () => {
 
     loadPosts();
   }, []);
+
+  useEffect(() => {
+    const checkUserBlockStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('is_forum_blocked')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+        setIsUserBlocked(data?.is_forum_blocked || false);
+      } catch (error) {
+        console.error('Error checking user block status:', error);
+      }
+    };
+
+    checkUserBlockStatus();
+  }, [user]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
@@ -109,7 +132,7 @@ const Forum = () => {
                 )}
               </TabsList>
 
-              {user && (
+              {user && !isUserBlocked && (
                 <Button
                   onClick={handleCreatePost}
                   className="flex-shrink-0"
@@ -117,6 +140,12 @@ const Forum = () => {
                   <PenSquare className="mr-2 h-4 w-4" />
                   Create Post
                 </Button>
+              )}
+
+              {user && isUserBlocked && (
+                <div className="text-red-600 text-sm">
+                  You have been blocked from creating posts
+                </div>
               )}
 
               <div className="relative w-full sm:w-64">

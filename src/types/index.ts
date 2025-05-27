@@ -64,6 +64,7 @@ export interface User {
   createdAt: string;
   updatedAt?: string;
   blocked?: boolean;
+  is_forum_blocked?: boolean;
 }
 
 // Banknote related interfaces

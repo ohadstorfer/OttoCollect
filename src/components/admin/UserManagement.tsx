@@ -25,6 +25,9 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
   const [unblockingUserId, setUnblockingUserId] = useState<string | null>(null);
   const [showUnblockDialog, setShowUnblockDialog] = useState(false);
   const [userToUnblock, setUserToUnblock] = useState<User | null>(null);
+  const [showForumBlockDialog, setShowForumBlockDialog] = useState(false);
+  const [userToForumBlock, setUserToForumBlock] = useState<User | null>(null);
+  const [forumBlockingUserId, setForumBlockingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -60,6 +63,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         country: profile.country,
         about: profile.about,
         blocked: profile.blocked || false,
+        is_forum_blocked: profile.is_forum_blocked || false,
       }));
       
       setUsers(formattedUsers);
@@ -212,6 +216,36 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
     }
   };
 
+  const handleForumBlockToggle = (user: User) => {
+    setUserToForumBlock(user);
+    setShowForumBlockDialog(true);
+  };
+
+  const confirmForumBlockToggle = async () => {
+    if (!userToForumBlock) return;
+    setForumBlockingUserId(userToForumBlock.id);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          is_forum_blocked: !userToForumBlock.is_forum_blocked
+        })
+        .eq('id', userToForumBlock.id);
+
+      if (error) throw error;
+
+      toast.success(userToForumBlock.is_forum_blocked ? 'User unblocked from forum' : 'User blocked from forum');
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error toggling forum block:', error);
+      toast.error('Failed to update forum access');
+    } finally {
+      setForumBlockingUserId(null);
+      setShowForumBlockDialog(false);
+      setUserToForumBlock(null);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -244,6 +278,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Forum</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -265,6 +300,15 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                     onClick={() => user.blocked ? handleUnblock(user) : handleRemoveAndBlock(user)}
                   >
                     {user.blocked ? "Blocked" : "Active"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge 
+                    variant={user.is_forum_blocked ? "destructive" : "default"}
+                    className={`cursor-pointer hover:opacity-80 ${user.is_forum_blocked ? "bg-red-100 text-red-800 border-red-300" : "bg-green-100 text-green-800 border-green-300"}`}
+                    onClick={() => handleForumBlockToggle(user)}
+                  >
+                    {user.is_forum_blocked ? "Blocked" : "Active"}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -319,6 +363,38 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
               <Button variant="outline" onClick={() => setShowUnblockDialog(false)} disabled={unblockingUserId === userToUnblock.id}>Cancel</Button>
               <Button variant="default" onClick={confirmUnblock} disabled={unblockingUserId === userToUnblock.id}>
                 {unblockingUserId === userToUnblock.id ? 'Unblocking...' : 'Unblock user'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showForumBlockDialog && userToForumBlock && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full">
+            <h2 className="text-lg font-bold mb-2">
+              {userToForumBlock.is_forum_blocked ? 'Unblock from Forum' : 'Block from Forum'}
+            </h2>
+            <p className="mb-4">
+              {userToForumBlock.is_forum_blocked
+                ? 'Are you sure you want to unblock this user from the forum? They will be able to create posts and comments again.'
+                : 'Are you sure you want to block this user from the forum? They will not be able to create posts or comments.'}
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowForumBlockDialog(false)} 
+                disabled={forumBlockingUserId === userToForumBlock.id}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant={userToForumBlock.is_forum_blocked ? "default" : "destructive"}
+                onClick={confirmForumBlockToggle} 
+                disabled={forumBlockingUserId === userToForumBlock.id}
+              >
+                {forumBlockingUserId === userToForumBlock.id 
+                  ? (userToForumBlock.is_forum_blocked ? 'Unblocking...' : 'Blocking...') 
+                  : (userToForumBlock.is_forum_blocked ? 'Unblock' : 'Block')}
               </Button>
             </div>
           </div>

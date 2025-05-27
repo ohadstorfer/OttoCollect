@@ -8,12 +8,13 @@ import { ForumPost as ForumPostType, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
 import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment } from "@/services/forumService";
+import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumCommentComponent from "@/components/forum/ForumComment";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
-import { ArrowLeft, Trash2, Edit2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit2, Ban } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
   AlertDialog,
@@ -40,12 +41,37 @@ const ForumPostPage = () => {
   const [editedContent, setEditedContent] = useState('');
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const [showProfileActionDialog, setShowProfileActionDialog] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isBlockingUser, setIsBlockingUser] = useState(false);
+  const [isUserBlocked, setIsUserBlocked] = useState(false);
 
   useEffect(() => {
     if (postId) {
       loadPost(postId);
     }
   }, [postId]);
+
+  useEffect(() => {
+    const checkUserBlockStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('is_forum_blocked')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+        setIsUserBlocked(data?.is_forum_blocked || false);
+      } catch (error) {
+        console.error('Error checking user block status:', error);
+      }
+    };
+
+    checkUserBlockStatus();
+  }, [user]);
 
   const loadPost = async (postId: string) => {
     setIsLoading(true);
@@ -165,6 +191,41 @@ const ForumPostPage = () => {
     setEditedContent('');
   };
 
+  // Function to block user from forum
+  const handleBlockUserFromForum = async (userId: string) => {
+    if (!user?.role?.includes('Super Admin')) return;
+    
+    setIsBlockingUser(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_forum_blocked: true })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      toast.success('User has been blocked from the forum');
+      setShowProfileActionDialog(false);
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      toast.error('Failed to block user from forum');
+    } finally {
+      setIsBlockingUser(false);
+    }
+  };
+
+  // Profile click handler
+  const handleOnProfileClick = (userId: string | undefined) => {
+    if (!userId) return;
+
+    if (user?.role === 'Super Admin') {
+      setSelectedUserId(userId);
+      setShowProfileActionDialog(true);
+    } else {
+      navigate(`/profile/${userId}`);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="page-container">
@@ -274,7 +335,7 @@ const ForumPostPage = () => {
           <div className="flex items-start gap-4">
             <Avatar
               className="h-12 w-12 border cursor-pointer hover:opacity-80 active:scale-95 transition"
-              onClick={() => post?.author?.id && navigate(`/profile/${post.author.id}`)}
+              onClick={() => handleOnProfileClick(post?.author?.id)}
             >
               <AvatarImage src={post.author?.avatarUrl} />
               <AvatarFallback className="bg-ottoman-700 text-parchment-100">
@@ -286,13 +347,12 @@ const ForumPostPage = () => {
               <div className="flex items-center gap-2 mb-1">
                 <div
                   className="flex items-center gap-2 cursor-pointer"
-                  onClick={() => post.author && navigate(`/profile/${post.author.id}`)}
+                  onClick={() => handleOnProfileClick(post?.author?.id)}
                   tabIndex={0}
                   role="button"
                   aria-label="Go to author profile"
-
                 >
-                  <span onClick={() => post?.author?.id && navigate(`/profile/${post.author.id}`)} className="font-semibold text-base text-ottoman-900 dark:text-parchment-200">
+                  <span className="font-semibold text-base text-ottoman-900 dark:text-parchment-200">
                     {post.author?.username || 'Anonymous'}
                   </span>
                 </div>
@@ -312,30 +372,38 @@ const ForumPostPage = () => {
           <h2 className="text-xl font-semibold mb-4">Comments • {post.commentCount || 0}</h2>
 
           {user ? (
-            <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border ">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatarUrl} />
-                <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                  {getInitials(user.username)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 space-y-2">
-                <Textarea
-                  value={commentContent}
-                  onChange={(e) => setCommentContent(e.target.value)}
-                  placeholder="Add your comment..."
-                  className="resize-none min-h-[100px]"
-                />
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleAddComment}
-                    disabled={isSubmitting || commentContent.trim() === ''}
-                  >
-                    {isSubmitting ? 'Posting...' : 'Post Comment'}
-                  </Button>
+            isUserBlocked ? (
+              <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800 text-center mb-6">
+                <p className="text-red-600 dark:text-red-400">
+                  You have been blocked from commenting on forum posts
+                </p>
+              </div>
+            ) : (
+              <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border ">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.avatarUrl} />
+                  <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                    {getInitials(user.username)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-2">
+                  <Textarea
+                    value={commentContent}
+                    onChange={(e) => setCommentContent(e.target.value)}
+                    placeholder="Add your comment..."
+                    className="resize-none min-h-[100px]"
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleAddComment}
+                      disabled={isSubmitting || commentContent.trim() === ''}
+                    >
+                      {isSubmitting ? 'Posting...' : 'Post Comment'}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )
           ) : (
             <div className="bg-parchment-10/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">
               <p className="text-muted-foreground">
@@ -351,11 +419,11 @@ const ForumPostPage = () => {
                   <div key={comment.id} className="group mb-3 last:mb-0 flex items-start gap-3">
                     <div
                       className="cursor-pointer"
-                      onClick={() => comment.author && navigate(`/profile/${comment.author.id}`)}
+                      onClick={() => handleOnProfileClick(comment.author?.id)}
                       tabIndex={0}
                       role="button"
                       aria-label="Go to comment author profile"
-                      onKeyDown={e => { if (e.key === 'Enter' && comment.author) navigate(`/profile/${comment.author.id}`); }}
+                      onKeyDown={e => { if (e.key === 'Enter') handleOnProfileClick(comment.author?.id); }}
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={comment.author?.avatarUrl} />
@@ -368,11 +436,11 @@ const ForumPostPage = () => {
                       <div className="flex items-center gap-2">
                         <span
                           className="font-semibold text-sm text-ottoman-900 dark:text-parchment-200 cursor-pointer"
-                          onClick={() => comment.author && navigate(`/profile/${comment.author.id}`)}
+                          onClick={() => handleOnProfileClick(comment.author?.id)}
                           tabIndex={0}
                           role="button"
                           aria-label="Go to comment author profile"
-                          onKeyDown={e => { if (e.key === 'Enter' && comment.author) navigate(`/profile/${comment.author.id}`); }}
+                          onKeyDown={e => { if (e.key === 'Enter') handleOnProfileClick(comment.author?.id); }}
                         >
                           {comment.author?.username || 'Anonymous'}
                         </span>
@@ -470,6 +538,38 @@ const ForumPostPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Profile Action Dialog for Super Admin */}
+      <AlertDialog open={showProfileActionDialog} onOpenChange={setShowProfileActionDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>User Profile Actions</AlertDialogTitle>
+
+          </AlertDialogHeader>
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                navigate(`/profile/${selectedUserId}`);
+                setShowProfileActionDialog(false);
+              }}
+            >
+              Go to Profile
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => selectedUserId && handleBlockUserFromForum(selectedUserId)}
+              disabled={isBlockingUser}
+            >
+              <Ban className="h-4 w-4 mr-2" />
+              {isBlockingUser ? 'Blocking...' : 'Block from Forum'}
+            </Button>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
