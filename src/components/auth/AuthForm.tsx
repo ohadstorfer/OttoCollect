@@ -248,7 +248,7 @@ const AuthForm = () => {
     setResetLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: window.location.origin + "/auth",
+        redirectTo: "https://preview--ottoman-banknote-archive-hub.lovable.app/reset-password" , 
       });
       if (error) {
         toast.error(error.message || "Failed to send reset email.");
