@@ -818,6 +818,7 @@ export type Database = {
           created_at?: string
           email: string
           id: string
+          is_forum_blocked?: boolean | null
           points?: number
           rank?: string
           role?: string
@@ -836,6 +837,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          is_forum_blocked?: boolean | null
           points?: number
           rank?: string
           role?: string
@@ -1328,6 +1330,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          is_forum_blocked: boolean | null
           points: number
           rank: string
           role: string

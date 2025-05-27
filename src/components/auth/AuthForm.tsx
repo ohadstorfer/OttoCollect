@@ -8,6 +8,9 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useRef } from "react";
+import { toast } from "sonner";
 
 const AuthForm = () => {
   const { login, register, blockedNotice } = useAuth();
@@ -15,6 +18,9 @@ const AuthForm = () => {
   const [activeTab, setActiveTab] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -222,6 +228,41 @@ const AuthForm = () => {
     }
   };
 
+  const handleGoogleAuth = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+      toast.success("Redirecting to Google...");
+    } catch (err: any) {
+      toast.error("Google sign-in error: " + (err?.message || "Unknown error"));
+    }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: window.location.origin + "/auth",
+      });
+      if (error) {
+        toast.error(error.message || "Failed to send reset email.");
+      } else {
+        toast.success("Reset link sent! Please check your email.");
+        setResetOpen(false);
+      }
+    } catch (err: any) {
+      toast.error("Failed to send password reset email.");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md mx-auto animate-fade-in">
       <Card className="ottoman-card shadow-lg">
@@ -246,7 +287,7 @@ const AuthForm = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Login Form */}
+          {/* ========== Login Form Tab ========== */}
           <TabsContent value="login">
             <div className="space-y-6">
               <div className="text-center">
@@ -263,10 +304,7 @@ const AuthForm = () => {
 
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <label
-                    htmlFor="email"
-                    className="text-sm font-medium text-ottoman-200"
-                  >
+                  <label htmlFor="email" className="text-sm font-medium text-ottoman-200">
                     Email
                   </label>
                   <Input
@@ -288,12 +326,13 @@ const AuthForm = () => {
                     >
                       Password
                     </label>
-                    <a
-                      href="#"
-                      className="text-xs text-ottoman-400 hover:text-ottoman-300"
+                    <button
+                      type="button"
+                      className="text-xs text-ottoman-400 hover:text-ottoman-300 px-0 underline"
+                      onClick={() => setResetOpen(true)}
                     >
                       Forgot password?
-                    </a>
+                    </button>
                   </div>
                   <div className="relative">
                     <Input
@@ -335,6 +374,23 @@ const AuthForm = () => {
                 </Button>
               </form>
 
+              {/* Google login button */}
+              <div className="flex items-center justify-center gap-2 my-2">
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full flex items-center justify-center gap-2 mt-2"
+                  onClick={handleGoogleAuth}
+                >
+                  <img
+                    src="https://www.svgrepo.com/show/475656/google-color.svg"
+                    alt="Google"
+                    className="w-5 h-5"
+                  />
+                  Sign in with Google
+                </Button>
+              </div>
+
               <div className="text-center">
                 <p className="text-sm text-ottoman-400">
                   Don't have an account?{" "}
@@ -349,7 +405,7 @@ const AuthForm = () => {
             </div>
           </TabsContent>
 
-          {/* Register Form */}
+          {/* ========== Register Form Tab ========== */}
           <TabsContent value="register">
             <div className="space-y-6">
               <div className="text-center">
@@ -504,6 +560,23 @@ const AuthForm = () => {
                 </Button>
               </form>
 
+              {/* Google sign-up button */}
+              <div className="flex items-center justify-center gap-2 my-2">
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full flex items-center justify-center gap-2 mt-2"
+                  onClick={handleGoogleAuth}
+                >
+                  <img
+                    src="https://www.svgrepo.com/show/475656/google-color.svg"
+                    alt="Google"
+                    className="w-5 h-5"
+                  />
+                  Sign up with Google
+                </Button>
+              </div>
+
               <div className="text-center">
                 <p className="text-sm text-ottoman-400">
                   Already have an account?{" "}
@@ -519,6 +592,47 @@ const AuthForm = () => {
           </TabsContent>
         </Tabs>
       </Card>
+
+      {/* Password reset dialog */}
+      <Dialog open={resetOpen} onOpenChange={setResetOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Password Reset</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handlePasswordReset} className="space-y-4 mt-2">
+            <div className="space-y-1">
+              <label htmlFor="reset-email" className="text-sm font-medium">
+                Enter your email to receive a password reset link:
+              </label>
+              <Input
+                id="reset-email"
+                type="email"
+                required
+                autoFocus
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setResetOpen(false)}
+                disabled={resetLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="ottoman-button"
+                disabled={resetLoading}
+              >
+                {resetLoading ? "Sending..." : "Send Reset Link"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
