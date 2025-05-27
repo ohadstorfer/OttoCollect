@@ -247,17 +247,30 @@ const AuthForm = () => {
     e.preventDefault();
     setResetLoading(true);
     try {
+      // IMPORTANT: redirectTo param should end with '?' so Supabase appends ?access_token and NOT a hash!
+      // Otherwise, the tokens are inaccessible from window.location.search in React Router.
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: "https://preview--ottoman-banknote-archive-hub.lovable.app/reset-password" , 
+        redirectTo: "https://preview--ottoman-banknote-archive-hub.lovable.app/reset-password?", // Trailing '?' is required here!
       });
       if (error) {
-        toast.error(error.message || "Failed to send reset email.");
+        toast({
+          variant: "destructive",
+          title: "Password Reset Failed",
+          description: error.message || "Failed to send reset email.",
+        });
       } else {
-        toast.success("Reset link sent! Please check your email.");
+        toast({
+          title: "Reset link sent",
+          description: "Reset link sent! Please check your email.",
+        });
         setResetOpen(false);
       }
     } catch (err: any) {
-      toast.error("Failed to send password reset email.");
+      toast({
+        variant: "destructive",
+        title: "Password Reset Failed",
+        description: "Failed to send password reset email.",
+      });
     } finally {
       setResetLoading(false);
     }
