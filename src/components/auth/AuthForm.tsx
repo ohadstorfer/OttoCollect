@@ -375,7 +375,7 @@ const AuthForm = () => {
               </form>
 
               {/* Google login button */}
-              <div className="flex items-center justify-center gap-2 my-2">
+              {/* <div className="flex items-center justify-center gap-2 my-2">
                 <Button
                   variant="outline"
                   type="button"
@@ -389,7 +389,7 @@ const AuthForm = () => {
                   />
                   Sign in with Google
                 </Button>
-              </div>
+              </div> */}
 
               <div className="text-center">
                 <p className="text-sm text-ottoman-400">
