@@ -246,6 +246,15 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
     }
   };
 
+  const isCountryAdmin = (userRole: string) => {
+    return userRole.toLowerCase().includes('admin') && !userRole.toLowerCase().includes('super');
+  };
+
+  const getUserCountry = (userRole: string) => {
+    if (!isCountryAdmin(userRole)) return null;
+    return userRole.toLowerCase().replace(' admin', '').trim();
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">

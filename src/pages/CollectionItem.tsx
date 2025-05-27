@@ -10,13 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
-import { ArrowLeft, Star, ImagePlus, Edit, Trash } from "lucide-react";
+import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2 } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
 import CollectionItemFormEdit from "@/components/collection/CollectionItemFormEdit";
 import { submitImageSuggestion, hasExistingImageSuggestion } from "@/services/imageSuggestionsService";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { supabase } from '@/integrations/supabase/client';
 
 interface LabelValuePairProps {
   label: string;
@@ -49,6 +51,9 @@ export default function CollectionItem() {
   const [hasPendingSuggestion, setHasPendingSuggestion] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<'obverse' | 'reverse' | null>(null);
+  const [isDeletingImage, setIsDeletingImage] = useState(false);
+
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, []);
@@ -135,6 +140,67 @@ export default function CollectionItem() {
   };
 
   const hasCustomImages = Boolean(collectionItem?.obverseImage || collectionItem?.reverseImage);
+
+  const isUserSuperAdmin = user?.role === 'Super Admin';
+  const isUserCountryAdmin = user?.role && user.role.toLowerCase().includes('admin') && !user.role.toLowerCase().includes('super');
+  const userAdminCountry = isUserCountryAdmin ? user?.role.toLowerCase().replace(' admin', '').trim() : null;
+  
+  // Fetch the owner's role to check if they are a Super Admin
+  const [itemOwnerRole, setItemOwnerRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchOwnerRole = async () => {
+      if (!collectionItem?.userId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', collectionItem.userId)
+          .single();
+
+        if (error) throw error;
+        setItemOwnerRole(data?.role || null);
+      } catch (error) {
+        console.error('Error fetching owner role:', error);
+      }
+    };
+
+    fetchOwnerRole();
+  }, [collectionItem?.userId]);
+
+  const isOwnerSuperAdmin = itemOwnerRole === 'Super Admin';
+  
+  const canDeleteImages = !isOwnerSuperAdmin && (
+    isUserSuperAdmin || 
+    (isUserCountryAdmin && 
+     userAdminCountry === collectionItem?.banknote.country.toLowerCase())
+  );
+
+  const handleDeleteImage = async () => {
+    if (!imageToDelete || !collectionItem) return;
+    
+    setIsDeletingImage(true);
+    try {
+      const { error } = await supabase
+        .from('collection_items')
+        .update({
+          [`${imageToDelete}_image`]: null
+        })
+        .eq('id', collectionItem.id);
+
+      if (error) throw error;
+
+      toast.success('Image deleted successfully');
+      await refetch();
+      setImageToDelete(null);
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast.error('Failed to delete image');
+    } finally {
+      setIsDeletingImage(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -232,15 +298,55 @@ export default function CollectionItem() {
                     displayImages.map((url, index) => (
                       <div
                         key={index}
-                        className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => openImageViewer(url)}
+                        className="w-full relative"
                       >
-                        <div className="w-full rounded-md overflow-hidden border">
-                          <img
-                            src={url}
-                            alt={`Banknote Image ${index + 1}`}
-                            className="w-full h-auto object-contain"
-                          />
+                        {canDeleteImages && (
+                          <div className="absolute top-2 right-2 z-10">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this image? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => {
+                                      setImageToDelete(index === 0 ? 'obverse' : 'reverse');
+                                      handleDeleteImage();
+                                    }}
+                                    className="bg-red-600 hover:bg-red-700"
+                                    disabled={isDeletingImage}
+                                  >
+                                    {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        )}
+                        <div
+                          className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => openImageViewer(url)}
+                        >
+                          <div className="w-full rounded-md overflow-hidden border">
+                            <img
+                              src={url}
+                              alt={`Banknote Image ${index + 1}`}
+                              className="w-full h-auto object-contain"
+                            />
+                          </div>
                         </div>
                       </div>
                     ))
