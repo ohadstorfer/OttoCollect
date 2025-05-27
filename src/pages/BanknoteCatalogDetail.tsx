@@ -351,9 +351,16 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       {renderOwnershipToast()}
       <div className="flex flex-col ">
         <div className="space-y-1 page-container max-w-5xl mx-auto">
+        <div className="flex items-baseline  gap-4">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             {banknote.denomination}
           </h1>
+          {banknote.extendedPickNumber && (
+                <p className="text-xl leading-tight">
+                  {banknote.extendedPickNumber}
+                </p>
+              )}
+              </div>
           <div className="flex items-center justify-between">
             <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
             {!propsId && (
