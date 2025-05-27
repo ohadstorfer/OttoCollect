@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,14 +7,25 @@ import { toast } from "sonner";
 import { ForumPost as ForumPostType, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
-import { addForumComment, fetchForumPostById } from "@/services/forumService";
+import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment } from "@/services/forumService";
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumCommentComponent from "@/components/forum/ForumComment";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const ForumPostPage = () => {
   const { id: postId } = useParams();
@@ -24,6 +35,9 @@ const ForumPostPage = () => {
   const [commentContent, setCommentContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editedContent, setEditedContent] = useState('');
   const navigate = useNavigate();
   const { theme } = useTheme();
 
@@ -82,6 +96,73 @@ const ForumPostPage = () => {
     if (post) {
       setPost({ ...post, commentCount: (post.commentCount || 1) - 1 });
     }
+  };
+
+  const canDeletePost = useMemo(() => {
+    if (!user || !post) return false;
+    const isAdmin = user.role?.includes('Admin');
+    const isAuthor = post.authorId === user.id;
+    return isAdmin || isAuthor;
+  }, [user, post]);
+
+  const handleDeletePost = async () => {
+    if (!post || !user) return;
+
+    setIsDeleting(true);
+    try {
+      const success = await deleteForumPost(post.id);
+
+      if (success) {
+        toast.success("Post deleted successfully");
+        navigate('/community/forum');
+      } else {
+        toast.error("Failed to delete post");
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast.error("Failed to delete post");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleEditComment = async (commentId: string, newContent: string) => {
+    if (!user) return;
+
+    setIsSubmitting(true);
+    try {
+      const updatedComment = await updateForumComment(commentId, newContent);
+
+      if (updatedComment) {
+        setComments(prevComments =>
+          prevComments.map(comment =>
+            comment.id === commentId
+              ? { ...comment, content: newContent, isEdited: true }
+              : comment
+          )
+        );
+        setEditingCommentId(null);
+        setEditedContent('');
+        toast.success("Comment updated successfully");
+      } else {
+        toast.error("Failed to update comment");
+      }
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      toast.error("Failed to update comment");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const startEditing = (comment: ForumComment) => {
+    setEditingCommentId(comment.id);
+    setEditedContent(comment.content);
+  };
+
+  const cancelEditing = () => {
+    setEditingCommentId(null);
+    setEditedContent('');
   };
 
   if (isLoading) {
@@ -145,28 +226,56 @@ const ForumPostPage = () => {
 
   return (
     <div className="page-container">
-      
-      
-          
       <div className="max-w-4xl mx-auto">
-
-      <Button
+        <div className="flex items-center justify-between mb-2">
+          <Button
             variant="ghost"
             size="icon"
             onClick={handleBack}
-            
             aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5" />
-          </Button> 
+          </Button>
 
+          {canDeletePost && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {/* Delete Post */}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this post? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeletePost}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
 
         <div className="glass-card p-6 rounded-md shadow-md mb-6 animate-fade-in">
           <div className="flex items-start gap-4">
-          <Avatar
-  className="h-12 w-12 border cursor-pointer hover:opacity-80 active:scale-95 transition"
-  onClick={() => post?.author?.id && navigate(`/profile/${post.author.id}`)}
->
+            <Avatar
+              className="h-12 w-12 border cursor-pointer hover:opacity-80 active:scale-95 transition"
+              onClick={() => post?.author?.id && navigate(`/profile/${post.author.id}`)}
+            >
               <AvatarImage src={post.author?.avatarUrl} />
               <AvatarFallback className="bg-ottoman-700 text-parchment-100">
                 {post.author?.username ? getInitials(post.author.username) : '??'}
@@ -181,7 +290,7 @@ const ForumPostPage = () => {
                   tabIndex={0}
                   role="button"
                   aria-label="Go to author profile"
-                  
+
                 >
                   <span onClick={() => post?.author?.id && navigate(`/profile/${post.author.id}`)} className="font-semibold text-base text-ottoman-900 dark:text-parchment-200">
                     {post.author?.username || 'Anonymous'}
@@ -268,8 +377,86 @@ const ForumPostPage = () => {
                           {comment.author?.username || 'Anonymous'}
                         </span>
                         <span className="text-sm text-muted-foreground">{formattedDate}</span>
+                        {comment.isEdited && <span className="text-xs italic text-muted-foreground">(edited)</span>}
                       </div>
-                      <div className="whitespace-pre-line mb-4">{comment.content}</div>
+
+                      {editingCommentId === comment.id ? (
+                        <div className="mt-2 space-y-2">
+                          <Textarea
+                            value={editedContent}
+                            onChange={(e) => setEditedContent(e.target.value)}
+                            className="min-h-[100px]"
+                            disabled={isSubmitting}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={cancelEditing}
+                              disabled={isSubmitting}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleEditComment(comment.id, editedContent)}
+                              disabled={isSubmitting || editedContent.trim() === ''}
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="whitespace-pre-line mb-2">{comment.content}</div>
+
+                          {/* Comment Actions */}
+                          {((user?.id === comment.authorId) || user?.role?.includes('Admin')) && (
+                            <div className="flex gap-2 justify-end">
+                              {user?.id === comment.authorId && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => startEditing(comment)}
+                                  className="text-ottoman-600 hover:text-ottoman-700 hover:bg-ottoman-100/50"
+                                >
+                                  <Edit2 className="h-4 w-4 mr-1" />
+                                  {/* Edit */}
+                                </Button>
+                              )}
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    {/* Delete */}
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this comment? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => onDeleteComment(comment.id)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}

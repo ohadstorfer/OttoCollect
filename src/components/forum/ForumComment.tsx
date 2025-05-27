@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -41,6 +40,13 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
   // Format date for display
   const formattedDate = formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true });
   
+  // Check if user can delete comment (admin or author)
+  const canDeleteComment = useMemo(() => {
+    if (!user) return false;
+    const isAdmin = user.role?.includes('Admin');
+    return isAdmin || isAuthor;
+  }, [user, isAuthor]);
+  
   // Handle comment edit
   const handleSaveEdit = async () => {
     if (!user || !isAuthor || editedContent.trim() === '') return;
@@ -70,7 +76,7 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
   
   // Handle comment deletion
   const handleDelete = async () => {
-    if (!user || !isAuthor) return;
+    if (!canDeleteComment) return;
     
     setIsSubmitting(true);
     try {
@@ -146,48 +152,52 @@ function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
             </div>
           )}
           
-          {isAuthor && !isEditing && (
+          {(isAuthor || canDeleteComment) && !isEditing && (
             <div className="flex gap-2 mt-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                className="text-ottoman-600 hover:text-ottoman-700 hover:bg-ottoman-100/50"
-              >
-                <Edit2 size={16} className="mr-1" />
-                Edit
-              </Button>
+              {isAuthor && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  className="text-ottoman-600 hover:text-ottoman-700 hover:bg-ottoman-100/50"
+                >
+                  <Edit2 size={16} className="mr-1" />
+                  Edit
+                </Button>
+              )}
               
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
-                  >
-                    <Trash2 size={16} className="mr-1" />
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Comment</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this comment? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={handleDelete} 
-                      disabled={isSubmitting}
-                      className="bg-red-600 hover:bg-red-700"
+              {canDeleteComment && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
                     >
+                      <Trash2 size={16} className="mr-1" />
                       Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this comment? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDelete} 
+                        disabled={isSubmitting}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           )}
         </div>

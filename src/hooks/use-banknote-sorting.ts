@@ -118,20 +118,7 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
             }
             break;
 
-          // Assuming other cases like "condition", "purchaseDate" also exist
-          // and follow the `comparison = ...; break;` pattern. Example:
-          /*
-          case "condition":
-            if (a.collectionData?.condition && b.collectionData?.condition) {
-              const conditionOrder: Record<BanknoteCondition, number> = {
-                'UNC': 1, 'AU': 2, 'XF': 3, 'VF': 4, 'F': 5, 'VG': 6, 'G': 7, 'Fair': 8, 'Poor': 9
-              };
-              const conditionA = conditionOrder[a.collectionData.condition as BanknoteCondition] || 10;
-              const conditionB = conditionOrder[b.collectionData.condition as BanknoteCondition] || 10;
-              comparison = conditionA - conditionB;
-            }
-            break;
-          */
+          
         }
 
         if (comparison !== 0) {
