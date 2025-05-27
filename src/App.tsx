@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -34,6 +33,7 @@ import "./App.css";
 import CountryDetailCollection from "./pages/CountryDetailCollection";
 import CollectionItemUnlisted from "./pages/CollectionItemUnlisted";
 import MarketplaceItemDetailUnlisted from "./pages/MarketplaceItemDetailUnlisted";
+import ResetPassword from "@/pages/ResetPassword";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,6 +82,7 @@ function App() {
             <Route path="/members" element={<Members />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </main>
