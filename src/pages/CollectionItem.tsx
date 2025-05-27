@@ -223,7 +223,7 @@ export default function CollectionItem() {
                           ? "Image Suggestion Pending"
                           : isSubmittingImages
                             ? "Submitting..."
-                            : "Suggest Images to Catalog"}
+                            : "Suggest Images to Catalogue"}
                       </Button>
                     </div>
                   )}
