@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,11 +22,17 @@ const ResetPassword: React.FC = () => {
   const [tokenValid, setTokenValid] = useState(false);
 
   useEffect(() => {
-    // Check required params
-    const accessToken = searchParams.get("access_token");
-    const type = searchParams.get("type");
+    // Check for token in both query params and hash
+    const accessToken = searchParams.get("access_token") || new URLSearchParams(window.location.hash.substring(1)).get("access_token");
+    const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
+    
     if (accessToken && type === "recovery") {
       setTokenValid(true);
+      // If token is in hash, update URL to use query params instead
+      if (window.location.hash && !searchParams.get("access_token")) {
+        const newUrl = window.location.pathname + "?" + window.location.hash.substring(1);
+        window.history.replaceState({}, "", newUrl);
+      }
     }
     setTokenChecked(true);
   }, [searchParams]);

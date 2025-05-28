@@ -247,11 +247,10 @@ const AuthForm = () => {
     e.preventDefault();
     setResetLoading(true);
     try {
-      // IMPORTANT: redirectTo param should end with '?' so Supabase appends ?access_token and NOT a hash!
-      // Otherwise, the tokens are inaccessible from window.location.search in React Router.
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: "https://preview--ottoman-banknote-archive-hub.lovable.app/reset-password?", // Trailing '?' is required here!
+        redirectTo: `${window.location.origin}/reset-password`
       });
+
       if (error) {
         toast({
           variant: "destructive",
