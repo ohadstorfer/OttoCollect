@@ -189,11 +189,16 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
               {item?.banknote?.country || "Unknown Country"} · {item?.banknote?.series || "Unknown Series"}
             </p>
             <div className="flex gap-2 mt-1">
-              {item?.condition && (
+            {item?.condition && !item?.grade && (
                 <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
                   {item.condition}
                 </span>
               )}
+             {item?.grade && (
+  <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-800">
+    {item.grade_by && `${item.grade_by} `}{item.grade}
+  </span>
+)}
               {item?.isForSale && (
                 <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
                   For Sale: {formatPrice(item.salePrice)}
@@ -229,16 +234,21 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
               <h4 className="font-bold">{item.banknote.denomination}</h4>
-              
-              {item?.condition && (
+
+              {item?.condition && !item?.grade && (
                 <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
                   {item.condition}
                 </span>
               )}
+              {item?.grade && (
+                <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-800">
+                  {item.grade_by && `${item.grade_by} `}{item.grade}
+                </span>
+              )}
             </div>
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm pt-2">
-            <h6 className="font-bold text-sm">Unlisted Banknote</h6>
-            
+              <h6 className="font-bold text-sm">Unlisted Banknote</h6>
+
             </div>
           </div>
         </div>

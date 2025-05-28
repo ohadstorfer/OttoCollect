@@ -107,6 +107,9 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
         banknoteId: item.banknote_id,
         banknote,
         condition: item.condition,
+        grade_by: item.grade_by,
+        grade: item.grade,
+        grade_condition_description: item.grade_condition_description,
         salePrice: item.sale_price,
         isForSale: item.is_for_sale,
         publicNote: item.public_note,
@@ -311,6 +314,9 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
       banknoteId: item.banknote_id,
       banknote,
       condition: item.condition,
+      grade_by: item.grade_by,
+      grade: item.grade,
+      grade_condition_description: item.grade_condition_description,
       salePrice: item.sale_price,
       isForSale: item.is_for_sale,
       publicNote: item.public_note,
@@ -390,6 +396,9 @@ export async function addToCollection(
       banknoteId: insertedItem.banknote_id,
       banknote: banknote!,
       condition: insertedItem.condition as BanknoteCondition,
+      grade_by: insertedItem.grade_by,
+      grade: insertedItem.grade,
+      grade_condition_description: insertedItem.grade_condition_description,
       salePrice: insertedItem.sale_price,
       isForSale: insertedItem.is_for_sale,
       publicNote: insertedItem.public_note,
@@ -445,6 +454,9 @@ export async function updateCollectionItem(
     };
     
     if (updates.condition) dbUpdates.condition = updates.condition;
+    if (updates.grade_by !== undefined) dbUpdates.grade_by = updates.grade_by;
+    if (updates.grade !== undefined) dbUpdates.grade = updates.grade;
+    if (updates.grade_condition_description !== undefined) dbUpdates.grade_condition_description = updates.grade_condition_description;
     if (updates.salePrice !== undefined) dbUpdates.sale_price = updates.salePrice;
     if (updates.isForSale !== undefined) dbUpdates.is_for_sale = updates.isForSale;
     if (updates.publicNote !== undefined) dbUpdates.public_note = updates.publicNote;
@@ -884,6 +896,9 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
   obverse_image?: string;
   reverse_image?: string;
   condition?: string;
+  grade_by?: string;
+  grade?: string;
+  grade_condition_description?: string;
   public_note?: string;
   private_note?: string;
   purchase_price?: number;
@@ -895,11 +910,10 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
   seal_names?: string;
 }): Promise<{ id: string; banknoteId: string } | null> {
   try {
-    // 1. Create the unlisted_banknotes entry
-    const { data: unlisted, error: unlistedErr } = await supabase
+    // Create unlisted banknote
+    const { data: banknote, error: banknoteError } = await supabase
       .from('unlisted_banknotes')
-      .insert([{
-        user_id: params.userId,
+      .insert({
         country: params.country,
         extended_pick_number: params.extended_pick_number,
         pick_number: params.pick_number,
@@ -914,45 +928,52 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
         rarity: params.rarity,
         banknote_description: params.banknote_description,
         historical_description: params.historical_description,
-        seal_names: params.seal_names,
-        is_approved: false,
-        is_pending: true,
         name: params.name,
-      }])
-      .select('*')
+        seal_names: params.seal_names,
+      })
+      .select()
       .single();
 
-    if (unlistedErr || !unlisted) throw unlistedErr || new Error("Could not create unlisted_banknote");
+    if (banknoteError) {
+      console.error('Error creating unlisted banknote:', banknoteError);
+      throw banknoteError;
+    }
 
-    // 2. Insert into collection_items and link to the new unlisted_banknotes ID
-    const { data: collectionItem, error: itemErr } = await supabase
+    // Create collection item
+    const { data: collectionItem, error: collectionError } = await supabase
       .from('collection_items')
-      .insert([{
+      .insert({
         user_id: params.userId,
-        is_unlisted_banknote: true,
-        unlisted_banknotes_id: unlisted.id,
-        obverse_image: params.obverse_image,
-        reverse_image: params.reverse_image,
+        banknote_id: banknote.id,
         condition: params.condition,
+        grade_by: params.grade_by,
+        grade: params.grade,
+        grade_condition_description: params.grade_condition_description,
         public_note: params.public_note,
         private_note: params.private_note,
         purchase_price: params.purchase_price,
         purchase_date: params.purchase_date,
         location: params.location,
-        is_for_sale: params.is_for_sale ?? false,
+        is_for_sale: params.is_for_sale,
         sale_price: params.sale_price,
-      }])
-      .select('*')
+        obverse_image: params.obverse_image,
+        reverse_image: params.reverse_image,
+        is_unlisted_banknote: true,
+      })
+      .select()
       .single();
 
-    if (itemErr || !collectionItem) throw itemErr || new Error("Could not create collection item");
+    if (collectionError) {
+      console.error('Error creating collection item:', collectionError);
+      throw collectionError;
+    }
 
     return {
       id: collectionItem.id,
-      banknoteId: unlisted.id
+      banknoteId: banknote.id
     };
   } catch (error) {
-    console.error('Error creating unlisted banknote:', error);
+    console.error('Error in createUnlistedBanknoteWithCollectionItem:', error);
     return null;
   }
 }
@@ -978,6 +999,9 @@ export async function updateUnlistedBanknoteWithCollectionItem(
     obverse_image?: string;
     reverse_image?: string;
     condition?: string;
+    grade_by?: string;
+    grade?: string;
+    grade_condition_description?: string;
     public_note?: string;
     private_note?: string;
     purchase_price?: number;
@@ -990,17 +1014,23 @@ export async function updateUnlistedBanknoteWithCollectionItem(
   }
 ): Promise<CollectionItem> {
   try {
-    // Start a transaction
-    const { data: collectionItem, error: fetchError } = await supabase
+    // First get the collection item to get the unlisted_banknotes_id
+    const { data: existingItem, error: itemError } = await supabase
       .from('collection_items')
-      .select('*, banknote:unlisted_banknotes(*)')
+      .select('unlisted_banknotes_id')
       .eq('id', collectionItemId)
       .single();
 
-    if (fetchError) throw fetchError;
-    if (!collectionItem) throw new Error('Collection item not found');
+    if (itemError) {
+      console.error('Error fetching collection item:', itemError);
+      throw itemError;
+    }
 
-    // Update the unlisted banknote
+    if (!existingItem?.unlisted_banknotes_id) {
+      throw new Error('No unlisted banknote ID found for this collection item');
+    }
+
+    // Update unlisted banknote
     const { error: banknoteError } = await supabase
       .from('unlisted_banknotes')
       .update({
@@ -1018,47 +1048,45 @@ export async function updateUnlistedBanknoteWithCollectionItem(
         rarity: params.rarity,
         banknote_description: params.banknote_description,
         historical_description: params.historical_description,
-        seal_names: params.seal_names,
         name: params.name,
-        updated_at: new Date().toISOString()
+        seal_names: params.seal_names,
       })
-      .eq('id', collectionItem.banknote.id);
+      .eq('id', existingItem.unlisted_banknotes_id);
 
-    if (banknoteError) throw banknoteError;
+    if (banknoteError) {
+      console.error('Error updating unlisted banknote:', banknoteError);
+      throw banknoteError;
+    }
 
-    // Update the collection item
-    const { error: itemError } = await supabase
+    // Update collection item
+    const { error: collectionError } = await supabase
       .from('collection_items')
       .update({
         condition: params.condition,
+        grade_by: params.grade_by,
+        grade: params.grade,
+        grade_condition_description: params.grade_condition_description,
         public_note: params.public_note,
         private_note: params.private_note,
-        location: params.location,
         purchase_price: params.purchase_price,
         purchase_date: params.purchase_date,
-        is_for_sale: params.is_for_sale ?? false,
+        location: params.location,
+        is_for_sale: params.is_for_sale,
         sale_price: params.sale_price,
         obverse_image: params.obverse_image,
         reverse_image: params.reverse_image,
-        updated_at: new Date().toISOString()
       })
       .eq('id', collectionItemId);
 
-    if (itemError) throw itemError;
+    if (collectionError) {
+      console.error('Error updating collection item:', collectionError);
+      throw collectionError;
+    }
 
     // Fetch and return the updated collection item
-    const { data: updatedItem, error: fetchUpdatedError } = await supabase
-      .from('collection_items')
-      .select('*, banknote:unlisted_banknotes(*)')
-      .eq('id', collectionItemId)
-      .single();
-
-    if (fetchUpdatedError) throw fetchUpdatedError;
-    if (!updatedItem) throw new Error('Failed to fetch updated collection item');
-
-    return normalizeBanknoteData(updatedItem, "unlisted");
+    return await fetchCollectionItem(collectionItemId) as CollectionItem;
   } catch (error) {
-    console.error('Error updating unlisted banknote:', error);
+    console.error('Error in updateUnlistedBanknoteWithCollectionItem:', error);
     throw error;
   }
 }

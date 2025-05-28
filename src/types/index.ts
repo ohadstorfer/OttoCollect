@@ -111,7 +111,7 @@ export interface DetailedBanknote extends Banknote {
   description?: string;
   obverseDescription?: string;
   reverseDescription?: string;
-  imageUrls: string[];  // Change to string[] to fix TypeScript errors
+  imageUrls: string[];
   isApproved: boolean;
   isPending: boolean;
   createdAt: string;
@@ -167,9 +167,12 @@ export interface CollectionItem {
   userId: string;
   banknoteId: string;
   banknote: DetailedBanknote;
-  condition: BanknoteCondition;
+  condition?: BanknoteCondition;
+  grade_by?: string;
+  grade?: string;
+  grade_condition_description?: string;
   purchasePrice?: number;
-  purchaseDate?: string | Date;  // Allow both string and Date
+  purchaseDate?: string | Date;
   location?: string;
   obverseImage?: string;
   reverseImage?: string;

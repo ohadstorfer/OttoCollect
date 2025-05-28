@@ -289,14 +289,14 @@ const ForumPostPage = () => {
     <div className="page-container">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-2">
-          <Button
+      <Button
             variant="ghost"
             size="icon"
             onClick={handleBack}
             aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5" />
-          </Button>
+          </Button> 
 
           {canDeletePost && (
             <AlertDialog>
@@ -379,30 +379,30 @@ const ForumPostPage = () => {
                 </p>
               </div>
             ) : (
-              <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border ">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatarUrl} />
-                  <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                    {getInitials(user.username)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-2">
-                  <Textarea
-                    value={commentContent}
-                    onChange={(e) => setCommentContent(e.target.value)}
-                    placeholder="Add your comment..."
-                    className="resize-none min-h-[100px]"
-                  />
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={handleAddComment}
-                      disabled={isSubmitting || commentContent.trim() === ''}
-                    >
-                      {isSubmitting ? 'Posting...' : 'Post Comment'}
-                    </Button>
-                  </div>
+            <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border ">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user.avatarUrl} />
+                <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                  {getInitials(user.username)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-2">
+                <Textarea
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+                  placeholder="Add your comment..."
+                  className="resize-none min-h-[100px]"
+                />
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleAddComment}
+                    disabled={isSubmitting || commentContent.trim() === ''}
+                  >
+                    {isSubmitting ? 'Posting...' : 'Post Comment'}
+                  </Button>
                 </div>
               </div>
+            </div>
             )
           ) : (
             <div className="bg-parchment-10/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">

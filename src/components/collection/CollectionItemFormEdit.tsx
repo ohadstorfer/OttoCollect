@@ -29,6 +29,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, Upload } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { getGradeDescription } from '@/utils/grading';
 
 import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -47,7 +48,11 @@ export interface CollectionItemFormProps {
 // Create a schema for form validation with coerced number types
 const formSchema = z.object({
   banknoteId: z.string().min(1, { message: "Banknote must be selected" }),
-  condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const),
+  useGrading: z.boolean().default(false),
+  condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const).optional(),
+  gradeBy: z.string().max(8, { message: "Maximum 8 characters allowed" }).optional(),
+  gradeNumber: z.coerce.number().min(1).max(70).optional(),
+  gradeLetters: z.string().max(3, { message: "Maximum 3 characters allowed" }).optional(),
   purchasePrice: z.union([z.coerce.number().optional(), z.literal('')]),
   purchaseDate: z.date().optional(),
   location: z.string().optional(),
@@ -84,13 +89,18 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   const [reverseImagePreview, setReverseImagePreview] = useState<string | null>(
     currentItem?.reverseImage || null
   );
+  const [useGrading, setUseGrading] = useState(!!currentItem?.grade);
 
   // Initialize form with existing values if editing
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       banknoteId: currentItem?.banknoteId || '',
-      condition: (currentItem?.condition || 'UNC') as 'UNC' | 'AU' | 'XF' | 'VF' | 'F' | 'VG' | 'G' | 'FR',
+      useGrading: !!currentItem?.grade,
+      condition: currentItem?.condition as 'UNC' | 'AU' | 'XF' | 'VF' | 'F' | 'VG' | 'G' | 'FR' | undefined,
+      gradeBy: currentItem?.grade_by || '',
+      gradeNumber: currentItem?.grade ? parseInt(currentItem.grade.split(' ')[0]) : undefined,
+      gradeLetters: currentItem?.grade ? currentItem.grade.split(' ')[1] : '',
       purchasePrice: currentItem?.purchasePrice || '',
       purchaseDate: currentItem?.purchaseDate ? new Date(currentItem.purchaseDate) : undefined,
       location: currentItem?.location || '',
@@ -181,11 +191,28 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         reverseImageUrl = await uploadCollectionImage(reverseImageFile);
       }
 
+      // Handle grading vs condition
+      let condition = undefined;
+      let grade = undefined;
+      let grade_by = undefined;
+      let grade_condition_description = undefined;
+
+      if (values.useGrading && values.gradeNumber) {
+        grade_by = values.gradeBy || undefined;
+        grade = values.gradeNumber + (values.gradeLetters ? ` ${values.gradeLetters}` : '');
+        grade_condition_description = getGradeDescription(values.gradeNumber);
+      } else if (!values.useGrading && values.condition) {
+        condition = values.condition;
+      }
+
       // Convert form values to correct types
       const collectionData = {
         userId: user.id,
         banknoteId: values.banknoteId,
-        condition: values.condition as BanknoteCondition,
+        condition,
+        grade_by,
+        grade,
+        grade_condition_description,
         purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
         purchaseDate: values.purchaseDate ? format(values.purchaseDate, 'yyyy-MM-dd') : undefined,
         location: values.location || undefined,
@@ -202,7 +229,10 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       if (currentItem?.id) {
         // Update existing item
         const success = await updateCollectionItem(currentItem.id, {
-          condition: values.condition as BanknoteCondition,
+          condition,
+          grade_by,
+          grade,
+          grade_condition_description,
           purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
           purchaseDate: values.purchaseDate,
           location: values.location,
@@ -228,8 +258,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             await createMarketplaceItem({
               collectionItemId: currentItem.id,
               sellerId: user.id,
-              banknoteId: currentItem.banknoteId,
-              isUnlisted: currentItem.is_unlisted_banknote || false
+              banknoteId: currentItem.banknoteId
             });
           }
 
@@ -250,8 +279,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             await createMarketplaceItem({
               collectionItemId: savedItem.id,
               sellerId: user.id,
-              banknoteId: savedItem.banknoteId,
-              isUnlisted: savedItem.is_unlisted_banknote || false
+              banknoteId: savedItem.banknoteId
             });
           }
 
@@ -306,13 +334,38 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
               <div className="grid grid-cols-1 gap-y-4">
 
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
                   <h3 className="text-lg font-medium">Public Details</h3>
                   <span className="text-sm text-muted-foreground">Visible to everyone</span>
                 </div>
+                <FormField
+                  control={form.control}
+                  name="useGrading"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2">
+                      <FormLabel>Use Grading System</FormLabel>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          setUseGrading(checked);
+                          if (checked) {
+                            form.setValue('condition', undefined);
+                          } else {
+                            form.setValue('gradeBy', undefined);
+                            form.setValue('gradeNumber', undefined);
+                            form.setValue('gradeLetters', undefined);
+                          }
+                        }}
+                      />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-
-                {/* Condition */}
+              {/* Condition or Grading Fields */}
+              {!useGrading ? (
                 <FormField
                   control={form.control}
                   name="condition"
@@ -322,7 +375,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                       <FormControl>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select condition" />
@@ -346,32 +399,108 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                     </FormItem>
                   )}
                 />
+              ) : (
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="gradeBy"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Grading By</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            maxLength={8}
+                            placeholder="e.g. PMG"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Enter the grading company or authority (max 8 characters)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                {/* Public Note */}
-                <FormField
-                  control={form.control}
-                  name="publicNote"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Public Note</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          placeholder="Add a note visible to other collectors"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        This note will be visible to other users.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="gradeNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Grade</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={(value) => field.onChange(parseInt(value))}
+                            value={field.value?.toString()}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select grade" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 70 }, (_, i) => i + 1).map((num) => (
+                                <SelectItem key={num} value={num.toString()}>
+                                  {num}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormDescription>
+                          Select the numeric grade (1-70)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="gradeLetters"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Grade Letters</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            maxLength={3}
+                            placeholder="e.g. EPQ"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Enter up to 3 letters for additional grade information
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {/* Public Note */}
+              <FormField
+                control={form.control}
+                name="publicNote"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Public Note</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Add a note visible to other collectors"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      This note will be visible to other users.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
 
 
 
-                {/* Custom Images Section */}
+              {/* Custom Images Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Custom Images</h3>
                 <p className="text-muted-foreground text-sm">

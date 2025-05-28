@@ -88,12 +88,20 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         {/* Collection Item Details */}
         <div>
           <div className="space-y-2">
-            {collectionItem.condition && (
+          {collectionItem.condition && !collectionItem.grade && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">Condition</span>
                 <span className="text-base">{collectionItem.condition}</span>
               </div>
             )}
+            {collectionItem.grade && (
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                 <span className="text-sm font-medium text-muted-foreground w-32">Grading</span>
+                 <span className="text-base">
+                  {collectionItem.grade_by && `${collectionItem.grade_by} `}{collectionItem.grade}{collectionItem.grade_condition_description && ` - ${collectionItem.grade_condition_description}`}
+                </span>
+                </div>
+              )}
             {collectionItem.publicNote && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">Notes</span>

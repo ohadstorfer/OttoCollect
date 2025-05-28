@@ -87,7 +87,7 @@ const AuthForm = () => {
       // Only navigate if we have a user and no blocked notice
       if (data.user && !blockedNotice) {
         console.log('Login successful, navigating to home...');
-        navigate("/");
+      navigate("/");
       } else {
         console.log('Login successful but not navigating - blocked notice:', blockedNotice);
       }
@@ -179,7 +179,7 @@ const AuthForm = () => {
       // Only navigate if we have a user
       if (data.user) {
         console.log('Registration successful, navigating to home...');
-        navigate("/");
+      navigate("/");
       } else {
         console.log('Registration successful but not navigating - no user data');
       }
