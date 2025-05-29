@@ -34,7 +34,8 @@ import {
   BookmarkPlus,
   Image,
   HeartPulse,
-  HeartIcon
+  HeartIcon,
+  LogIn
 } from "lucide-react";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { fetchUserCollection } from "@/services/collectionService";
@@ -298,6 +299,29 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       </div>
     );
   }
+
+
+  if (!user) {
+    return (
+      <div className="page-container">
+        <h1 className="page-title">Banknote Details</h1>
+        
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="ottoman-card p-8 flex flex-col items-center">
+            <h2 className="text-2xl font-serif mb-4">Join the Community</h2>
+            <p className="mb-6 text-muted-foreground">
+            Please sign in to view the details of this banknote.
+            </p>
+            <Button onClick={() => navigate('/auth')}>
+              <LogIn className="mr-2 h-4 w-4" />
+              Sign In
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
 
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);
