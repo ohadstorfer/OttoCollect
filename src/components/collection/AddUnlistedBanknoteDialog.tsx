@@ -152,11 +152,15 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       let grade_condition_description = undefined;
 
       if (values.useGrading && values.gradeNumber) {
-        grade_by = values.gradeBy || undefined;
+        grade_by = values.gradeBy || null;
         grade = values.gradeNumber + (values.gradeLetters ? ` ${values.gradeLetters}` : '');
         grade_condition_description = getGradeDescription(values.gradeNumber);
+        condition = null; // Explicitly clear condition
       } else if (!values.useGrading && values.condition) {
         condition = values.condition;
+        grade_by = null;
+        grade = null;
+        grade_condition_description = null;
       }
       
       const result = await createUnlistedBanknoteWithCollectionItem({

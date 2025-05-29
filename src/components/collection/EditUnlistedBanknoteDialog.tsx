@@ -184,11 +184,15 @@ export default function EditUnlistedBanknoteDialog({
       let grade_condition_description = undefined;
 
       if (values.useGrading && values.gradeNumber) {
-        grade_by = values.gradeBy || undefined;
+        grade_by = values.gradeBy || null;
         grade = values.gradeNumber + (values.gradeLetters ? ` ${values.gradeLetters}` : '');
         grade_condition_description = getGradeDescription(values.gradeNumber);
+        condition = null; // Explicitly clear condition
       } else if (!values.useGrading && values.condition) {
         condition = values.condition;
+        grade_by = null;
+        grade = null;
+        grade_condition_description = null;
       }
 
       const updatedItem = await updateUnlistedBanknoteWithCollectionItem(collectionItem.id, {
@@ -266,7 +270,7 @@ export default function EditUnlistedBanknoteDialog({
 
 
 
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <FormLabel>Condition</FormLabel>
                       
