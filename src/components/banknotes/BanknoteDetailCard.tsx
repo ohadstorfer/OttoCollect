@@ -319,6 +319,11 @@ const BanknoteDetailCard = ({
                 {banknote.sultanName && <span>Sultan: {banknote.sultanName}</span>}
                 {banknote.sealNames && <span className="ml-2">Seals: {banknote.sealNames}</span>}
               </div>
+              {(banknote.signaturesFront || banknote.signaturesBack) && (
+                <p className="text-xs text-muted-foreground">
+                  Signatures: {banknote.signaturesFront} {banknote.signaturesBack}
+                </p>
+              )}
             </div>
           </div>
         </Card>
@@ -405,9 +410,19 @@ const BanknoteDetailCard = ({
                 Sultan: {banknote.sultanName}
               </p>
             )}
+            {(banknote.signaturesFront || banknote.signaturesBack) && (
+              <p className="text-xs text-muted-foreground">
+                Signatures: {banknote.signaturesFront} {banknote.signaturesBack}
+              </p>
+            )}
             {banknote.sealNames && (
               <p className="text-xs text-muted-foreground">
                 Seals: {banknote.sealNames}
+              </p>
+            )}
+             {banknote.securityElement&& (
+              <p className="text-xs text-muted-foreground">
+                {banknote.securityElement}
               </p>
             )}
           </div>
