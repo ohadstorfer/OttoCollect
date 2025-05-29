@@ -134,7 +134,7 @@ export async function fetchUserFilterPreferences(userId: string, countryId: stri
       console.error(`Error fetching user filter preferences for user ID ${userId} and country ID ${countryId}:`, error);
       return null;
     }
-
+    console.log("User filter preferences:", data);
     return data as UserFilterPreference;
   } catch (error) {
     console.error("Error in fetchUserFilterPreferences:", error);

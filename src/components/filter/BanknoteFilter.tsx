@@ -78,7 +78,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   );
   
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
-    currentFilters.types || (availableTypes.length > 0 ? ["issued notes"] : [])
+    currentFilters.types || (availableTypes.length > 0 ? ["issued notes" , "Other notes"] : [])
   );
   
   const [selectedSort, setSelectedSort] = useState<string[]>(
@@ -106,7 +106,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     }
     
     if (availableTypes.length > 0 && selectedTypes.length === 0) {
-      const newTypes = ["issued notes"];
+      const newTypes = ["issued notes" , "Other notes"];
       setSelectedTypes(newTypes);
       handleFilterChange({ types: newTypes });
     }

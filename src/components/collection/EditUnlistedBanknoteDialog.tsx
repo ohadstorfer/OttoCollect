@@ -259,17 +259,17 @@ export default function EditUnlistedBanknoteDialog({
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Section: Public Details */}
                 <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-7">
                     <h3 className="text-lg font-medium">Public Details</h3>
                     <span className="text-sm text-muted-foreground">Visible to everyone</span>
                   </div>
 
 
 
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <FormLabel>Condition</FormLabel>
-                      </div>
+                      
                       <FormField
                         control={form.control}
                         name="useGrading"
@@ -293,6 +293,7 @@ export default function EditUnlistedBanknoteDialog({
                         )}
                       />
                       <FormLabel>Grading</FormLabel>
+                      </div>
                     </div>
 
 
@@ -412,7 +413,7 @@ export default function EditUnlistedBanknoteDialog({
 
 
                   {/* Face Value */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 mt-7">
                     <FormField
                       control={form.control}
                       name="faceValueInt"
@@ -453,11 +454,10 @@ export default function EditUnlistedBanknoteDialog({
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  {/* Name and Condition */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-4">
-                    <FormField
+
+                     {/* Name and Condition */}
+                     <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
@@ -473,14 +473,19 @@ export default function EditUnlistedBanknoteDialog({
                         </FormItem>
                       )}
                     />
-                   
+
+
                   </div>
+
+                 
+                   
+                
 
 
 
 
                   {/* Category and Type */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-7">
                     <FormField
                       control={form.control}
                       name="categoryId"

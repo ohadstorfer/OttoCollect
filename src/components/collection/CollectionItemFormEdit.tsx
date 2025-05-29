@@ -334,246 +334,257 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
               <div className="grid grid-cols-1 gap-y-4">
 
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-7 ">
                   <h3 className="text-lg font-medium">Public Details</h3>
                   <span className="text-sm text-muted-foreground">Visible to everyone</span>
                 </div>
-                <FormField
-                  control={form.control}
-                  name="useGrading"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2">
-                      <FormLabel>Use Grading System</FormLabel>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={(checked) => {
-                          field.onChange(checked);
-                          setUseGrading(checked);
-                          if (checked) {
-                            form.setValue('condition', undefined);
-                          } else {
-                            form.setValue('gradeBy', undefined);
-                            form.setValue('gradeNumber', undefined);
-                            form.setValue('gradeLetters', undefined);
-                          }
-                        }}
-                      />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
-              {/* Condition or Grading Fields */}
-              {!useGrading ? (
+
+                <div className="flex items-center justify-between mb-0">
+                  <div className="flex items-center gap-2">
+                    <FormLabel>Condition</FormLabel>
+
+                    <FormField
+                      control={form.control}
+                      name="useGrading"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2">
+
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked);
+                              if (checked) {
+                                form.setValue('condition', null);
+                              } else {
+                                form.setValue('gradeBy', undefined);
+                                form.setValue('gradeNumber', undefined);
+                                form.setValue('gradeLetters', undefined);
+                              }
+                            }}
+                          />
+                        </FormItem>
+                      )}
+                    />
+                    <FormLabel>Grading</FormLabel>
+                  </div>
+                </div>
+
+
+
+                {/* Condition or Grading Fields */}
+                {!useGrading ? (
+                  <FormField
+                    control={form.control}
+                    name="condition"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Condition</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select condition" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
+                              <SelectItem value="AU">AU - About Uncirculated</SelectItem>
+                              <SelectItem value="XF">XF - Extremely Fine</SelectItem>
+                              <SelectItem value="VF">VF - Very Fine</SelectItem>
+                              <SelectItem value="F">F - Fine</SelectItem>
+                              <SelectItem value="VG">VG - Very Good</SelectItem>
+                              <SelectItem value="G">G - Good</SelectItem>
+                              <SelectItem value="FR">FR - Fair</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormDescription>
+                          Select the condition of your banknote.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="gradeBy"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Grading By</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              maxLength={8}
+                              placeholder="e.g. PMG"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Enter the grading company or authority (max 8 characters)
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="gradeNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Grade</FormLabel>
+                          <FormControl>
+                            <Select
+                              onValueChange={(value) => field.onChange(parseInt(value))}
+                              value={field.value?.toString()}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select grade" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 70 }, (_, i) => i + 1).map((num) => (
+                                  <SelectItem key={num} value={num.toString()}>
+                                    {num}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormDescription>
+                            Select the numeric grade (1-70)
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="gradeLetters"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Grade Letters</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              maxLength={3}
+                              placeholder="e.g. EPQ"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Enter up to 3 letters for additional grade information
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+
+<div className="mt-7 mb-7 ">
+                {/* Public Note */}
                 <FormField
                   control={form.control}
-                  name="condition"
+                  name="publicNote"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Condition</FormLabel>
+                      <FormLabel>Public Note</FormLabel>
                       <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select condition" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
-                            <SelectItem value="AU">AU - About Uncirculated</SelectItem>
-                            <SelectItem value="XF">XF - Extremely Fine</SelectItem>
-                            <SelectItem value="VF">VF - Very Fine</SelectItem>
-                            <SelectItem value="F">F - Fine</SelectItem>
-                            <SelectItem value="VG">VG - Very Good</SelectItem>
-                            <SelectItem value="G">G - Good</SelectItem>
-                            <SelectItem value="FR">FR - Fair</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Textarea
+                          {...field}
+                          placeholder="Add a note visible to other collectors"
+                        />
                       </FormControl>
                       <FormDescription>
-                        Select the condition of your banknote.
+                        This note will be visible to other users.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              ) : (
+                </div>
+
+
+
+
+                {/* Custom Images Section */}
                 <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="gradeBy"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Grading By</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            maxLength={8}
-                            placeholder="e.g. PMG"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Enter the grading company or authority (max 8 characters)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <h3 className="text-lg font-medium">Custom Images</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Upload your own images of the banknote (optional)
+                  </p>
 
-                  <FormField
-                    control={form.control}
-                    name="gradeNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Grade</FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={(value) => field.onChange(parseInt(value))}
-                            value={field.value?.toString()}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select grade" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 70 }, (_, i) => i + 1).map((num) => (
-                                <SelectItem key={num} value={num.toString()}>
-                                  {num}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormDescription>
-                          Select the numeric grade (1-70)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Obverse (Front) Image */}
+                    <div>
+                      <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
+                      <div className="mt-2 flex items-center gap-4">
+                        <label
+                          htmlFor="obverseImage"
+                          className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+                        >
+                          {obverseImagePreview ? (
+                            <img
+                              src={obverseImagePreview}
+                              alt="Obverse preview"
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <Upload className="h-8 w-8 text-muted-foreground" />
+                          )}
+                        </label>
 
-                  <FormField
-                    control={form.control}
-                    name="gradeLetters"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Grade Letters</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            maxLength={3}
-                            placeholder="e.g. EPQ"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Enter up to 3 letters for additional grade information
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <input
+                          id="obverseImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleObverseImageChange}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Reverse Image */}
+                    <div>
+                      <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
+                      <div className="mt-2 flex items-center gap-4">
+                        <label
+                          htmlFor="reverseImage"
+                          className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+                        >
+                          {reverseImagePreview ? (
+                            <img
+                              src={reverseImagePreview}
+                              alt="Reverse preview"
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <Upload className="h-8 w-8 text-muted-foreground" />
+                          )}
+                        </label>
+
+                        <input
+                          id="reverseImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleReverseImageChange}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
-              )}
-
-              {/* Public Note */}
-              <FormField
-                control={form.control}
-                name="publicNote"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Public Note</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Add a note visible to other collectors"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      This note will be visible to other users.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-
-
-
-              {/* Custom Images Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Custom Images</h3>
-                <p className="text-muted-foreground text-sm">
-                  Upload your own images of the banknote (optional)
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Obverse (Front) Image */}
-                  <div>
-  <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
-  <div className="mt-2 flex items-center gap-4">
-    <label
-      htmlFor="obverseImage"
-      className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
-    >
-      {obverseImagePreview ? (
-        <img
-          src={obverseImagePreview}
-          alt="Obverse preview"
-          className="w-full h-full object-contain"
-        />
-      ) : (
-        <Upload className="h-8 w-8 text-muted-foreground" />
-      )}
-    </label>
-
-    <input
-      id="obverseImage"
-      type="file"
-      accept="image/*"
-      onChange={handleObverseImageChange}
-      className="hidden"
-    />
-  </div>
-</div>
-
-{/* Reverse Image */}
-<div>
-  <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
-  <div className="mt-2 flex items-center gap-4">
-    <label
-      htmlFor="reverseImage"
-      className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
-    >
-      {reverseImagePreview ? (
-        <img
-          src={reverseImagePreview}
-          alt="Reverse preview"
-          className="w-full h-full object-contain"
-        />
-      ) : (
-        <Upload className="h-8 w-8 text-muted-foreground" />
-      )}
-    </label>
-
-    <input
-      id="reverseImage"
-      type="file"
-      accept="image/*"
-      onChange={handleReverseImageChange}
-      className="hidden"
-    />
-  </div>
-</div>
-
-                </div>
-              </div>
 
 
 
 
 
-<div className="w-full h-px bg-muted my-6" />
+                <div className="w-full h-px bg-muted my-6" />
 
 
                 <div className="flex items-center gap-2 mb-2">
@@ -676,7 +687,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 />
               </div>
 
-              
+
 
 
 
@@ -702,7 +713,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
               />
 
 
-<div className="w-full h-px bg-muted my-6" />
+              <div className="w-full h-px bg-muted my-6" />
 
               {/* For Sale Switch */}
               <FormField
@@ -759,7 +770,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
 
 
-              
+
             </div>
 
             <div className="flex justify-end space-x-4 pt-4">
