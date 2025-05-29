@@ -60,6 +60,7 @@ const BanknoteDetailCardWishList = ({
   // --- Debug logs: input props ---
   console.log('[BanknoteDetailCard] banknote:', banknote);
   console.log('[BanknoteDetailCard] userCollection:', userCollection);
+  console.log('Wishlist banknote.imageUrls:', banknote.imageUrls);
 
   // Only care about ownership when viewing from catalog
   const ownsThisBanknote =
@@ -83,14 +84,21 @@ const BanknoteDetailCardWishList = ({
   };
 
   const getDisplayImage = (): string => {
+    console.log("banknote: " + banknote)
+    
     if (!banknote) return '/placeholder.svg';
-    if (!banknote.imageUrls) return '/placeholder.svg';
+    // if (!banknote.imageUrls) return '/placeholder.svg';
     if (Array.isArray(banknote.imageUrls)) {
       return banknote.imageUrls.length > 0 ? banknote.imageUrls[0] : '/placeholder.svg';
     }
     if (typeof banknote.imageUrls === 'string') {
       return banknote.imageUrls || '/placeholder.svg';
     }
+    if(banknote.front_picture){
+      return banknote.front_picture;
+    }
+   
+    
     return '/placeholder.svg';
   };
 
@@ -262,112 +270,7 @@ const BanknoteDetailCardWishList = ({
     }
   };
 
-  if (viewMode === 'list') {
-    return (
-      <>
-        {renderOwnershipToast()}
-        <Card
-          className={cn(
-            "overflow-hidden transition-all duration-300 cursor-pointer bg-card",
-            isHovering ? "shadow-lg" : ""
-          )}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-          onClick={handleCardClick}
-        >
-          <div className="flex items-center p-2">
-            <div className="w-16 flex-shrink-0 flex items-center justify-center overflow-hidden rounded">
-              {displayImage && displayImage !== '/placeholder.svg' ? (
-                <img
-                  src={displayImage}
-                  alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-                  className="object-contain w-full h-auto max-h-16"
-                />
-              ) : (
-                <AspectRatio ratio={4 / 2}>
-                  <img
-                    src="/placeholder.svg"
-                    alt="Placeholder"
-                    className="w-full h-full object-cover"
-                  />
-                </AspectRatio>
-              )}
-            </div>
-            <div className="flex-1 ml-4">
-              <div className="flex justify-between items-start">
-                <h4 className="font-bold">{banknote.denomination}</h4>
-                {/* Wishlist: Trash icon instead of Add/Check */}
-                {wishlistItemId ? (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0"
-                    onClick={handleDeleteWishlist}
-                    disabled={isDeleting}
-                    aria-label="Remove from wishlist"
-                  >
-                    <Trash className="h-4 w-4 text-destructive" />
-                  </Button>
-                ) : shouldShowCheck ? (
-                  <>
-                    {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (list view) | banknote id:', banknote.id)}
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className={checkButtonClass}
-                      aria-label="You already own this banknote"
-                      onClick={handleOwnershipCheckButton}
-                      tabIndex={0}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (list view) | banknote id:', banknote.id)}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={handleAddButtonClick}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-              </div>
-              <div className="gap-1.5 flex flex-wrap items-center text-sm mt-1">
-                {banknote.extendedPickNumber && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
-                    {banknote.extendedPickNumber}
-                  </Badge>
-                )}
-                {banknote.turkCatalogNumber && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
-                    {banknote.turkCatalogNumber}
-                  </Badge>
-                )}
-                {banknote.year && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
-                    {banknote.year}
-                  </Badge>
-                )}
-                {banknote.rarity && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800">
-                    {banknote.rarity}
-                  </Badge>
-                )}
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {banknote.sultanName && <span>Sultan: {banknote.sultanName}</span>}
-                {banknote.sealNames && <span className="ml-2">Seals: {banknote.sealNames}</span>}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </>
-    );
-  }
+  
 
   return (
     <>
@@ -460,9 +363,19 @@ const BanknoteDetailCardWishList = ({
                 Sultan: {banknote.sultan_name}
               </p>
             )}
-            {banknote.seal_names && (
+             {(banknote.signaturesFront || banknote.signaturesBack) && (
               <p className="text-xs text-muted-foreground">
-                Seals: {banknote.seal_names}
+                Signatures: {banknote.signaturesFront} {banknote.signaturesBack}
+              </p>
+            )}
+            {banknote.sealNames && (
+              <p className="text-xs text-muted-foreground">
+                Seals: {banknote.sealNames}
+              </p>
+            )}
+             {banknote.securityElement&& (
+              <p className="text-xs text-muted-foreground">
+                {banknote.securityElement}
               </p>
             )}
           </div>

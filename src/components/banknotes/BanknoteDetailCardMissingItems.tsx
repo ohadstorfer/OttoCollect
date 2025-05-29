@@ -463,9 +463,19 @@ const BanknoteDetailCardMissingItems = ({
                 Sultan: {banknote.sultanName}
               </p>
             )}
+            {(banknote.signaturesFront || banknote.signaturesBack) && (
+              <p className="text-xs text-muted-foreground">
+                Signatures: {banknote.signaturesFront} {banknote.signaturesBack}
+              </p>
+            )}
             {banknote.sealNames && (
               <p className="text-xs text-muted-foreground">
                 Seals: {banknote.sealNames}
+              </p>
+            )}
+             {banknote.securityElement&& (
+              <p className="text-xs text-muted-foreground">
+                {banknote.securityElement}
               </p>
             )}
           </div>

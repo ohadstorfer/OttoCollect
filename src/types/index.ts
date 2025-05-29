@@ -206,7 +206,7 @@ export interface WishlistItem {
   note?: string;
   priority: string;
   createdAt: string;
-  banknote?: Banknote;
+  banknote?: DetailedBanknote;
 }
 
 // Import and re-export types from other files
