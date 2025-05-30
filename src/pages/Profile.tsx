@@ -8,6 +8,7 @@ import { getUserProfile } from '@/services/profileService';
 import { Button } from '@/components/ui/button';
 import { ProfileEditForm } from '@/components/profile/ProfileEditForm';
 import ProfileCountrySelection from '@/components/profile/ProfileCountrySelection';
+import { useTheme } from "@/context/ThemeContext";
 
 const Profile: React.FC = () => {
   const { username: routeUsername } = useParams<{ username?: string }>();
@@ -16,6 +17,7 @@ const Profile: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = React.useState<string | null>(null);
   const [showCountryDetail, setShowCountryDetail] = React.useState(false);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
+  const { theme } = useTheme();
 
   const username = routeUsername || authUser?.username;
 
@@ -128,13 +130,17 @@ const Profile: React.FC = () => {
 
   return ( 
     <div>
+      <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-0 sm:py-6 relative overflow-hidden`}>
       <div className="page-container max-w-5xl mx-auto py-5">
+     
         <ProfileHeader 
           profile={profile} 
           isEditingProfile={isEditingProfile} 
           onEditProfileClick={() => setIsEditingProfile(true)}
         />
+        
       </div>
+      </section>
 
       {/* Directly render the country selection/collection view */}
       <div>

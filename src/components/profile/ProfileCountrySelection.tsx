@@ -78,7 +78,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   return showCountryDetail && countryId && countryName ? (
     <div>
       <div className="max-w-5xl mx-auto">
-      <div className="flex flex-row items-center gap-3 mb-2 max-w-5xl mx-auto">
+      <div className="flex flex-row items-center gap-3 mb-2 mt-2 max-w-5xl mx-auto">
       <Button 
           variant="ghost" 
           onClick={onBackToCountries}

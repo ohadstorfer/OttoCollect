@@ -129,7 +129,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
         </div>
       </Card>
 
-      <div className="sm:hidden flex justify-center mt-2 mb-4">
+      <div className="sm:hidden flex justify-center mt-2">
       {isOwnProfile ? (
               <Button
                 onClick={onEditProfileClick}
