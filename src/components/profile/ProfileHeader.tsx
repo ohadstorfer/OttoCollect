@@ -1,4 +1,3 @@
-
 import React from "react";
 import { User, UserRank } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -23,9 +22,6 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
 
   const isOwnProfile = user && profile && user.id === profile.id;
   const userRank = (profile?.rank || "Newbie") as UserRank;
-
-  // Display logic: Show "Admin" for Super Admin users
-  const displayRank = userRank.includes('Super Admin') ? 'Admin' : userRank;
 
   const handleMessageClick = () => {
     if (!user) {
@@ -62,9 +58,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
             <h1 className="text-2xl font-serif font-semibold text-foreground">
               {profile.username}
             </h1>
-            <Badge variant="user" rank={userRank} showIcon>
-              {displayRank}
-            </Badge>
+            <Badge variant="user" rank={userRank} showIcon />
           </div>
 
           <div className="text-sm text-muted-foreground max-w-xl">

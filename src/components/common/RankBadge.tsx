@@ -39,15 +39,12 @@ export default function RankBadge({ rank, size = 'md', showPoints = false, point
     }
   };
 
-  // Display logic: Show "Admin" for Super Admin users
-  const displayRank = rank.includes('Super Admin') ? 'Admin' : rank;
-
   return (
     <Badge 
       className={`${getRankColor(rank)} ${getSizeClass()} font-medium border`}
       variant="secondary"
     >
-      {displayRank}
+      {rank}
       {showPoints && points !== undefined && (
         <span className="ml-1 opacity-90">({points} pts)</span>
       )}

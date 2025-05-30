@@ -43,9 +43,6 @@ export default function UserProfileLink({
     }
   };
 
-  // Display logic: Show "Admin" for Super Admin users
-  const displayRank = rank?.includes('Super Admin') ? 'Admin' : rank;
-
   // Return children if provided, otherwise render the default link content
   if (children) {
     return (
@@ -75,8 +72,8 @@ export default function UserProfileLink({
       )}
       <div className={`flex ${showRank ? 'flex-col' : 'items-center'}`}>
         <span className={`${getFontSize()} font-medium`}>{username}</span>
-        {showRank && displayRank && (
-          <span className={`text-xs text-muted-foreground`}>{displayRank}</span>
+        {showRank && rank && (
+          <span className={`text-xs text-muted-foreground`}>{rank}</span>
         )}
       </div>
     </Link>
