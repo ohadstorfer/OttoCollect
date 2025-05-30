@@ -1,7 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
-import { UserRank } from "@/types"
 import { Shield, Award, Star } from "lucide-react"
 
 const badgeVariants = cva(
@@ -37,12 +36,12 @@ const badgeVariants = cva(
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {
-  rank?: UserRank;
+  rank?: string;
   showIcon?: boolean;
 }
 
 const getUserRankVariant = (
-  rank: UserRank
+  rank: string
 ): "user" | "admin" | "super" => {
   if (rank.includes("Super Admin")) {
     return "super";
@@ -79,11 +78,11 @@ function Badge({
     return null;
   };
 
-  const getDisplayRank = (userRank: UserRank) => {
-    if (userRank.includes('Super Admin')) {
-      // Replace "Super Admin" with "Admin" and keep the collector rank
-      return userRank.replace('Super Admin ', 'Admin ');
-    }
+  const getDisplayRank = (userRank: string) => {
+    // if (userRank.includes('Super Admin')) {
+    //   // Replace "Super Admin" with "Admin" and keep the collector rank
+    //   return userRank.replace('Super Admin ', 'Admin ');
+    // }
     return userRank;
   };
   

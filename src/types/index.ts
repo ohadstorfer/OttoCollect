@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -42,7 +41,6 @@ export type UserRank =
   | 'Super Admin Advance Collector'
   | 'Super Admin Master Collector';
 
-// Update UserRole type to allow any string since roles are now dynamic
 export type UserRole = string;
 
 // Add interface for country admin assignment
@@ -63,7 +61,7 @@ export interface User {
   country?: string;
   role_id: string;
   role: UserRole;
-  rank: UserRank;
+  rank: string;
   points: number;
   createdAt: string;
   updatedAt?: string;

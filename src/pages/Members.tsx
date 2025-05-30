@@ -1,15 +1,14 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User, UserRole, UserRank } from "@/types";
+import { User, UserRole } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Search, Users, Award } from "lucide-react";
-import RankBadge from "@/components/common/RankBadge";
+import { Badge } from "@/components/ui/badge";
 
 export default function Members() {
   const [members, setMembers] = useState<User[]>([]);
@@ -37,7 +36,7 @@ export default function Members() {
           email: profile.email,
           role_id: profile.role_id || '', // Add required role_id
           role: profile.role as UserRole, // Cast to UserRole type
-          rank: profile.rank as UserRank, // Cast to UserRank type
+          rank: profile.rank as string,
           points: profile.points,
           createdAt: profile.created_at,
           updatedAt: profile.updated_at || '',
@@ -170,7 +169,7 @@ export default function Members() {
                     <div className="flex-1">
                       <h3 className="font-medium text-lg">{member.username}</h3>
                       <div className="flex items-center gap-2 mb-1">
-                        <RankBadge rank={member.rank} size="sm" showPoints points={member.points} />
+                      <Badge variant="user" rank={member.rank} showIcon />
                       </div>
                       {member.country && (
                         <p className="text-sm text-muted-foreground mt-1">{member.country}</p>
