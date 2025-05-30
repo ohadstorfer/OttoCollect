@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
@@ -79,11 +78,19 @@ function Badge({
     
     return null;
   };
+
+  const getDisplayRank = (userRank: UserRank) => {
+    if (userRank.includes('Super Admin')) {
+      // Replace "Super Admin" with "Admin" and keep the collector rank
+      return userRank.replace('Super Admin ', 'Admin ');
+    }
+    return userRank;
+  };
   
   return (
     <div className={cn(badgeVariants({ variant: badgeVariant }), className)} {...props}>
       {renderIcon()}
-      {props.children || rank}
+      {props.children || (rank ? getDisplayRank(rank) : '')}
     </div>
   )
 }

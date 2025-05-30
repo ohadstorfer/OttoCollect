@@ -1,4 +1,3 @@
-
 import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
@@ -43,6 +42,14 @@ export default function UserProfileLink({
     }
   };
 
+  const getDisplayRank = (userRank: UserRank) => {
+    if (userRank.includes('Super Admin')) {
+      // Replace "Super Admin" with "Admin" and keep the collector rank
+      return userRank.replace('Super Admin ', 'Admin ');
+    }
+    return userRank;
+  };
+
   // Return children if provided, otherwise render the default link content
   if (children) {
     return (
@@ -73,7 +80,7 @@ export default function UserProfileLink({
       <div className={`flex ${showRank ? 'flex-col' : 'items-center'}`}>
         <span className={`${getFontSize()} font-medium`}>{username}</span>
         {showRank && rank && (
-          <span className={`text-xs text-muted-foreground`}>{rank}</span>
+          <span className={`text-xs text-muted-foreground`}>{getDisplayRank(rank)}</span>
         )}
       </div>
     </Link>

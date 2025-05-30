@@ -12,7 +12,7 @@ interface Author {
   username: string;
   avatarUrl?: string;
   rank: string;
-  role: string;
+  role?: string;
 }
 
 interface ForumPost {

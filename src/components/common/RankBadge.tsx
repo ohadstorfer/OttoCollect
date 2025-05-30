@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { UserRank } from '@/types';
@@ -39,12 +38,20 @@ export default function RankBadge({ rank, size = 'md', showPoints = false, point
     }
   };
 
+  const getDisplayRank = (userRank: UserRank) => {
+    if (userRank.includes('Super Admin')) {
+      // Replace "Super Admin" with "Admin" and keep the collector rank
+      return userRank.replace('Super Admin ', 'Admin ');
+    }
+    return userRank;
+  };
+
   return (
     <Badge 
       className={`${getRankColor(rank)} ${getSizeClass()} font-medium border`}
       variant="secondary"
     >
-      {rank}
+      {getDisplayRank(rank)}
       {showPoints && points !== undefined && (
         <span className="ml-1 opacity-90">({points} pts)</span>
       )}

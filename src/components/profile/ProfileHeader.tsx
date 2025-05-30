@@ -36,6 +36,14 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
     navigate('/settings');
   };
 
+  const getDisplayRank = (rank: UserRank) => {
+    if (rank.includes('Super Admin')) {
+      // Replace "Super Admin" with "Admin" and keep the collector rank
+      return rank.replace('Super Admin ', 'Admin ') as UserRank;
+    }
+    return rank;
+  };
+
   return (
     <div className="relative">
       {/* Banner background */}
@@ -58,7 +66,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
             <h1 className="text-2xl font-serif font-semibold text-foreground">
               {profile.username}
             </h1>
-            <Badge variant="user" rank={userRank} showIcon />
+            <Badge variant="user" rank={getDisplayRank(userRank)} showIcon />
           </div>
 
           <div className="text-sm text-muted-foreground max-w-xl">
