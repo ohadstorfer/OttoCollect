@@ -1,13 +1,17 @@
+
 import { BanknoteCondition, UserRank } from '@/types';
 
-// Define rank thresholds for points
-export const RANK_THRESHOLDS: Partial<Record<UserRank, number>> = {
-  'Newbie Collector': 0,
-  'Beginner Collector': 2,
-  'Mid Collector': 6,
-  'Known Collector': 51,
-  'Advance Collector': 151,
-  'Master Collector': 301,
+// Fix the UserRank point values by using a partial record
+export const USER_RANK_POINTS: Partial<Record<UserRank, number>> = {
+  'Newbie': 0,
+  'Beginner Collector': 100,
+  'Casual Collector': 500,
+  'Known Collector': 1000,
+  'Advance Collector': 2000,
+  'Expert': 5000,
+  'Master': 10000,
+  'Admin': -1,
+  'Super Admin': -1
 };
 
 // Fix the banknote conditions to match the BanknoteCondition type
