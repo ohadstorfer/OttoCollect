@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { SendMessage } from "@/components/messages/SendMessage";
 import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
 
 interface ProfileHeaderProps {
   profile: User;
@@ -21,7 +22,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
   const [showMessageDialog, setShowMessageDialog] = React.useState(false);
 
   const isOwnProfile = user && profile && user.id === profile.id;
-  const userRank = (profile?.rank || "Newbie") ;
+  const userRank = (profile?.rank || "Newbie");
 
   const handleMessageClick = () => {
     if (!user) {
@@ -32,81 +33,124 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
   };
 
   const handleEditClick = () => {
-    // Navigate to settings page for profile editing
     navigate('/settings');
   };
 
-  // const getDisplayRank = (rank: UserRank) => {
-  //   if (rank.includes('Super Admin')) {
-  //     // Replace "Super Admin" with "Admin" and keep the collector rank
-  //     return rank.replace('Super Admin ', 'Admin ') as UserRank;
-  //   }
-  //   return rank;
-  // };
-
   return (
-    <div className="relative">
-      {/* Banner background */}
-      <div className="h-40 bg-gradient-to-r from-ottoman-800 to-ottoman-600" />
+    <div>
+      {/* Mobile Edit Button - Show above card on mobile only */}
+     
 
-      {/* Profile info overlay */}
-      <div className="px-6  pt-0 flex flex-col md:flex-row items-center md:items-end space-y-4 md:space-y-0 md:space-x-5 -mt-16">
-        <Avatar className="h-32 w-32 border-4 border-background bg-background shadow-lg">
-          {profile.avatarUrl ? (
-            <AvatarImage src={profile.avatarUrl} alt={profile.username} />
-          ) : (
-            <AvatarFallback className="bg-ottoman-700 text-parchment-100 text-xs">
-              {profile?.username ? getInitials(profile.username) : "U"}
-            </AvatarFallback>
-          )}
-        </Avatar>
+      <Card className="overflow-hidden shadow-lg">
+        <div className="p-2">
+          {/* Mobile View */}
+          <div className="sm:hidden bg-card/50">
+            <div className="flex items-start gap-4">
+              <Avatar className="h-20 w-20 border-4 border-background bg-background shadow-lg flex-shrink-0">
+                {profile.avatarUrl ? (
+                  <AvatarImage src={profile.avatarUrl} alt={profile.username} />
+                ) : (
+                  <AvatarFallback className="bg-ottoman-700 text-parchment-100 text-lg">
+                    {profile?.username ? getInitials(profile.username) : "U"}
+                  </AvatarFallback>
+                )}
+              </Avatar>
 
-        <div className="flex-1 flex flex-col items-center md:items-start space-y-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-serif font-semibold text-foreground">
-              {profile.username}
-            </h1>
-            <Badge variant="user" rank={userRank} showIcon />
+              <div className="flex-1 space-y-1.5">
+                <h1 className="text-2xl font-serif">{profile.username}</h1>
+                <Badge variant="user" rank={userRank} showIcon />
+                {profile.about && (
+                  <p className="text-sm text-muted-foreground">
+                    {profile.about}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            
           </div>
 
-          <div className="text-sm text-muted-foreground max-w-xl">
-            {profile.about ? (
-              <p>{profile.about}</p>
+          {/* Desktop View */}
+          <div className="hidden sm:flex flex-row items-center gap-6 p-2">
+            <Avatar className="h-20 w-20 border-4 border-background bg-background shadow-lg">
+              {profile.avatarUrl ? (
+                <AvatarImage src={profile.avatarUrl} alt={profile.username} />
+              ) : (
+                <AvatarFallback className="bg-ottoman-700 text-parchment-100 text-lg">
+                  {profile?.username ? getInitials(profile.username) : "U"}
+                </AvatarFallback>
+              )}
+            </Avatar>
+
+            <div className="flex-1">
+              <div className="flex flex-row items-center gap-3 mb-2">
+                <h1 className="text-2xl font-serif font-semibold">
+                  {profile.username}
+                </h1>
+                <Badge variant="user" rank={userRank} showIcon />
+              </div>
+
+              <div className="text-sm text-muted-foreground max-w-2xl">
+                {profile.about ? (
+                  <p>{profile.about}</p>
+                ) : (
+                  <p className="italic">
+                    {isOwnProfile
+                      ? "You haven't added any information about yourself yet."
+                      : "This user hasn't added any information about themselves yet."
+                    }
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {isOwnProfile ? (
+              <Button
+                onClick={onEditProfileClick}
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
             ) : (
-              <p className="italic">
-                {isOwnProfile
-                  ? "You haven't added any information about yourself yet."
-                  : "This user hasn't added any information about themselves yet."
-                }
-              </p>
-            )}
-            {profile.country && (
-              <p className="mt-1">{profile.country}</p>
+              user && (
+                <Button
+                  onClick={handleMessageClick}
+                  className="flex items-center gap-2"
+                   variant="outline"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Message
+                </Button>
+              )
             )}
           </div>
         </div>
-        
-        {/* Show Edit or Message button as appropriate */}
-        {isOwnProfile ? (
-          <Button
-            onClick={onEditProfileClick}
-            className="flex items-center "
-            variant="outline"
-          >
-            <Edit className="h-4 w-4" />
+      </Card>
 
-          </Button>
-        ) : (
-          user && (
-            <Button
-              onClick={handleMessageClick}
-              className="flex items-center gap-2"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Message
-            </Button>
-          )
-        )}
+      <div className="sm:hidden flex justify-center mt-2 mb-4">
+      {isOwnProfile ? (
+              <Button
+                onClick={onEditProfileClick}
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+            ) : (
+              user && (
+                <Button
+                  onClick={handleMessageClick}
+                  className="flex items-center gap-2"
+                  variant="outline"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Message
+                </Button>
+              )
+            )}
       </div>
 
       {!isOwnProfile && user && profile?.id && (

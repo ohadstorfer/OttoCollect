@@ -137,7 +137,7 @@ const Profile: React.FC = () => {
       </div>
 
       {/* Directly render the country selection/collection view */}
-      <div className="  mx-auto py-5">
+      <div>
         <ProfileCountrySelection
           userId={profile.id}
           isOwnProfile={isOwnProfile}

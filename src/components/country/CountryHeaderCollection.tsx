@@ -10,7 +10,7 @@ interface CountryHeaderProps {
   hideBackButton?: boolean; // New prop to control back button visibility
 }
 
-export const CountryHeader: React.FC<CountryHeaderProps> = ({ 
+export const CountryHeaderCollection: React.FC<CountryHeaderProps> = ({ 
   countryName,
   returnPath = '/catalog', // Default to catalog if not specified
   hideBackButton = false // Default to showing the back button
@@ -28,7 +28,7 @@ export const CountryHeader: React.FC<CountryHeaderProps> = ({
           <ArrowLeft className="h-5 w-5" />
         </Button>
       )}
-      <h1 className="text-2xl font-bold">{countryName} Banknotes</h1>
+      <h1 className="text-2xl font-bold">{countryName} collection</h1>
     </div>
   );
 };

@@ -7,6 +7,7 @@ import CountrySelection from '@/pages/CountrySelection';
 import CountryCollectionTabs from '@/components/profile/CountryCollectionTabs';
 import { CountryHeader } from '../country/CountryHeader';
 import { fetchCountryById, fetchCountryByName } from '@/services/countryService'; // assuming you have this
+import { CountryHeaderCollection } from '../country/CountryHeaderCollection';
 
 interface ProfileCountrySelectionProps {
   userId: string;
@@ -77,19 +78,22 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   return showCountryDetail && countryId && countryName ? (
     <div>
       <div className="max-w-5xl mx-auto">
-        <CountryHeader 
+      <div className="flex flex-row items-center gap-3 mb-2 max-w-5xl mx-auto">
+      <Button 
+          variant="ghost" 
+          onClick={onBackToCountries}
+        >
+          <ArrowLeft className="h-5 w-5 " />
+        </Button>
+
+        <CountryHeaderCollection 
           countryName={countryName} 
           returnPath={'returnPath'} 
           hideBackButton={profileView}
         />
-        <Button 
-          variant="ghost" 
-          onClick={onBackToCountries}
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Back to Countries
-        </Button>
+        </div>
       </div>
+
       <CountryCollectionTabs
         userId={userId}
         countryId={countryId}

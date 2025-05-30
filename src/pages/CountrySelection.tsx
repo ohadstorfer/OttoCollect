@@ -98,7 +98,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
         />
       )}
 
-      <div className="py-10">
+<div className="py-1 sm:py-10">
         <div className="max-w-md mx-auto mb-4">
           <div className="relative">
             <Search className="mb-2 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
