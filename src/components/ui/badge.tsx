@@ -45,9 +45,9 @@ export interface BadgeProps
 const getUserRankVariant = (
   rank: UserRank
 ): "user" | "admin" | "super" => {
-  if (rank === "Super Admin") {
+  if (rank.includes("Super Admin")) {
     return "super";
-  } else if (rank === "Admin") {
+  } else if (rank.includes("Admin")) {
     return "admin";
   } else {
     return "user";
@@ -68,12 +68,12 @@ function Badge({
   const renderIcon = () => {
     if (!showIcon || !rank) return null;
     
-    if (rank === "Super Admin") {
+    if (rank.includes("Super Admin")) {
       return <Shield className="h-3 w-3 mr-1" />;
-    } else if (rank === "Admin") {
+    } else if (rank.includes("Admin")) {
       return <Award className="h-3 w-3 mr-1" />;
     } else if (rank === "Advance Collector" || rank === "Known Collector" || 
-               rank === "Expert" || rank === "Master" || rank === "Grandmaster") {
+               rank === "Master Collector") {
       return <Star className="h-3 w-3 mr-1" />;
     }
     

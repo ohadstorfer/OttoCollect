@@ -1,4 +1,3 @@
-
 import { User, UserRank, UserRole } from "@/types";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -114,15 +113,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getUserRankFromPoints = (points: number, role: UserRole): UserRank => {
     if (role === 'Super Admin') {
-      return 'Super Admin';
+      return 'Super Admin Newbie Collector';
     } else if (role === 'Admin') {
-      return 'Admin';
+      return 'Admin Newbie Collector';
     } else {
-      if (points >= 1000) return 'Advance Collector';
-      if (points >= 500) return 'Known Collector';
-      if (points >= 200) return 'Casual Collector';
-      if (points >= 50) return 'Beginner Collector';
-      return 'Newbie';
+      if (points >= 300) return 'Master Collector';
+      if (points >= 150) return 'Advance Collector';
+      if (points >= 50) return 'Known Collector';
+      if (points >= 5) return 'Mid Collector';
+      if (points >= 1) return 'Beginner Collector';
+      return 'Newbie Collector';
     }
   };
 

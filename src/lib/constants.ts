@@ -1,17 +1,25 @@
-
 import { BanknoteCondition, UserRank } from '@/types';
 
 // Fix the UserRank point values by using a partial record
 export const USER_RANK_POINTS: Partial<Record<UserRank, number>> = {
-  'Newbie': 0,
-  'Beginner Collector': 100,
-  'Casual Collector': 500,
-  'Known Collector': 1000,
-  'Advance Collector': 2000,
-  'Expert': 5000,
-  'Master': 10000,
-  'Admin': -1,
-  'Super Admin': -1
+  'Newbie Collector': 0,
+  'Beginner Collector': 1,
+  'Mid Collector': 5,
+  'Known Collector': 50,
+  'Advance Collector': 150,
+  'Master Collector': 300,
+  'Admin Newbie Collector': -1,
+  'Admin Beginner Collector': -1,
+  'Admin Mid Collector': -1,
+  'Admin Known Collector': -1,
+  'Admin Advance Collector': -1,
+  'Admin Master Collector': -1,
+  'Super Admin Newbie Collector': -1,
+  'Super Admin Beginner Collector': -1,
+  'Super Admin Mid Collector': -1,
+  'Super Admin Known Collector': -1,
+  'Super Admin Advance Collector': -1,
+  'Super Admin Master Collector': -1
 };
 
 // Fix the banknote conditions to match the BanknoteCondition type
@@ -62,7 +70,7 @@ export const MOCK_USERS = [
     about: 'Administering the banknote collecting platform.',
     country: 'UK',
     role: 'Admin',
-    rank: 'Admin',
+    rank: 'Admin Newbie Collector',
     points: 9999,
     createdAt: '2022-11-20T10:00:00Z',
     updatedAt: '2023-04-20T16:45:00Z',
