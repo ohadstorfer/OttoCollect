@@ -39,10 +39,16 @@ export default function RankBadge({ rank, size = 'md', showPoints = false, point
   };
 
   const getDisplayRank = (userRank: UserRank) => {
+    // For country admin roles (e.g., "Palestine Admin", "Ottoman Empire Admin"), show the full role
+    if (userRank.includes('Admin') && !userRank.includes('Super Admin') && !userRank.includes('Collector')) {
+      return userRank;
+    }
+    
+    // For Super Admin roles, replace "Super Admin" with "Admin" and keep the collector rank
     if (userRank.includes('Super Admin')) {
-      // Replace "Super Admin" with "Admin" and keep the collector rank
       return userRank.replace('Super Admin ', 'Admin ');
     }
+    
     return userRank;
   };
 

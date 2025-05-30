@@ -170,7 +170,12 @@ export default function Members() {
                     <div className="flex-1">
                       <h3 className="font-medium text-lg">{member.username}</h3>
                       <div className="flex items-center gap-2 mb-1">
-                        <RankBadge rank={member.rank} size="sm" showPoints points={member.points} />
+                        <RankBadge 
+                          rank={member.role.includes('Admin') && !member.role.includes('Super Admin') ? member.role as UserRank : member.rank} 
+                          size="sm" 
+                          showPoints 
+                          points={member.points} 
+                        />
                       </div>
                       {member.country && (
                         <p className="text-sm text-muted-foreground mt-1">{member.country}</p>
