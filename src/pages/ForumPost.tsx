@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -252,21 +253,32 @@ const ForumPostPage = () => {
 
   const getRankAsUserRank = (rank: string): UserRank => {
     const validRanks: UserRank[] = [
-      'Newbie',
+      'Newbie Collector',
       'Beginner Collector',
-      'Casual Collector',
+      'Mid Collector',
       'Known Collector',
       'Advance Collector',
-      'Admin',
-      'Super Admin'
+      'Master Collector',
+      'Admin Newbie Collector',
+      'Admin Beginner Collector',
+      'Admin Mid Collector',
+      'Admin Known Collector',
+      'Admin Advance Collector',
+      'Admin Master Collector',
+      'Super Admin Newbie Collector',
+      'Super Admin Beginner Collector',
+      'Super Admin Mid Collector',
+      'Super Admin Known Collector',
+      'Super Admin Advance Collector',
+      'Super Admin Master Collector'
     ];
 
     return validRanks.includes(rank as UserRank)
       ? (rank as UserRank)
-      : 'Newbie';
+      : 'Newbie Collector';
   };
 
-  const authorRank = getRankAsUserRank(post.author?.rank || 'Newbie');
+  const authorRank = getRankAsUserRank(post.author?.rank || 'Newbie Collector');
 
   const formattedDate = formatDistanceToNow(new Date(post.createdAt), {
     addSuffix: true,
