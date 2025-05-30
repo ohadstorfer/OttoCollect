@@ -248,9 +248,16 @@ const AuthForm = () => {
         },
       });
       if (error) throw error;
-      toast.success("Redirecting to Google...");
+      toast({
+        title: "Redirecting to Google...",
+        description: "Please wait while we redirect you to Google for authentication.",
+      });
     } catch (err: any) {
-      toast.error("Google sign-in error: " + (err?.message || "Unknown error"));
+      toast({
+        variant: "destructive",
+        title: "Google Sign-In Error",
+        description: err?.message || "Unknown error occurred",
+      });
     }
   };
 
@@ -259,7 +266,7 @@ const AuthForm = () => {
     setResetLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`
+        redirectTo: `${window.location.origin}/reset-password?`
       });
 
       if (error) {

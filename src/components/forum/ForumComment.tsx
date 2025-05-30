@@ -1,209 +1,135 @@
-import React, { useState, useMemo } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDistanceToNow } from 'date-fns';
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
-import { ForumComment } from "@/types/forum";
-import { useAuth } from "@/context/AuthContext";
-import { Edit2, Trash2 } from "lucide-react";
-import { updateForumComment, deleteForumComment } from "@/services/forumService";
-import { getInitials } from '@/lib/utils';
 
-interface CommentProps {
-  comment: ForumComment;
-  currentUserId: string;
-  onUpdate: (commentId: string, content: string) => void;
-  onDelete: (commentId: string) => void;
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Edit2, Save, X } from 'lucide-react';
+import { updateForumComment } from '@/services/forumService';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
+import UserProfileLink from '@/components/common/UserProfileLink';
+import RankBadge from '@/components/common/RankBadge';
+
+interface Author {
+  id: string;
+  username: string;
+  avatarUrl?: string;
+  rank: string;
+  role: string;
 }
 
-function Comment({ comment, currentUserId, onUpdate, onDelete }: CommentProps) {
+interface ForumCommentProps {
+  id: string;
+  content: string;
+  author: Author;
+  createdAt: string;
+  isEdited?: boolean;
+  onCommentUpdate?: () => void;
+}
+
+export default function ForumComment({
+  id,
+  content,
+  author,
+  createdAt,
+  isEdited = false,
+  onCommentUpdate
+}: ForumCommentProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState(comment.content);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const isAuthor = currentUserId === comment.authorId;
-  
-  // Format date for display
-  const formattedDate = formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true });
-  
-  // Check if user can delete comment (admin or author)
-  const canDeleteComment = useMemo(() => {
-    if (!user) return false;
-    const isAdmin = user.role?.includes('Admin');
-    return isAdmin || isAuthor;
-  }, [user, isAuthor]);
-  
-  // Handle comment edit
-  const handleSaveEdit = async () => {
-    if (!user || !isAuthor || editedContent.trim() === '') return;
-    
-    setIsSubmitting(true);
-    try {
-      const updatedComment = await updateForumComment(comment.id, editedContent);
-      
-      if (updatedComment) {
-        onUpdate(comment.id, editedContent);
-        setIsEditing(false);
-        toast({
-          title: "Comment updated",
-          description: "Your comment has been updated successfully.",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to update comment. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setIsSubmitting(false);
+  const [editContent, setEditContent] = useState(content);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const canEdit = user?.id === author.id;
+
+  const handleSave = async () => {
+    if (!editContent.trim()) {
+      toast.error('Comment cannot be empty');
+      return;
     }
-  };
-  
-  // Handle comment deletion
-  const handleDelete = async () => {
-    if (!canDeleteComment) return;
-    
-    setIsSubmitting(true);
+
+    setIsSaving(true);
     try {
-      const success = await deleteForumComment(comment.id);
-      
+      const success = await updateForumComment(id, editContent.trim());
       if (success) {
-        onDelete(comment.id);
-        toast({
-          title: "Comment deleted",
-          description: "Your comment has been deleted successfully.",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete comment. Please try again.",
-          variant: "destructive",
-        });
+        setIsEditing(false);
+        onCommentUpdate?.();
+        toast.success('Comment updated successfully');
       }
+    } catch (error) {
+      console.error('Error updating comment:', error);
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
-  
+
+  const handleCancel = () => {
+    setEditContent(content);
+    setIsEditing(false);
+  };
+
   return (
-    <div className="py-4 border-b last:border-b-0 animate-fade-in transition-all duration-300">
-      <div className="flex gap-3">
-        <div className="flex-shrink-0">
-          <Avatar className="h-10 w-10 border">
-            <AvatarImage src={comment.author?.avatarUrl} />
-            <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-              {comment.author?.username ? getInitials(comment.author.username) : '??'}
-            </AvatarFallback>
-          </Avatar>
+    <div className="border-l-2 border-muted pl-4 py-3">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <UserProfileLink
+            userId={author.id}
+            username={author.username}
+            avatarUrl={author.avatarUrl}
+            size="sm"
+          />
+          <RankBadge rank={author.rank as any} size="sm" />
         </div>
-        
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">{comment.author?.username || 'Unknown User'}</span>
-            <span className="text-xs text-muted-foreground">{formattedDate}</span>
-            {comment.isEdited && <span className="text-xs italic text-muted-foreground">(edited)</span>}
-          </div>
-          
-          {isEditing ? (
-            <div className="mt-2 space-y-2 animate-scale-in">
-              <Textarea 
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
-                className="min-h-[100px]"
-                disabled={isSubmitting}
-              />
-              
-              <div className="flex justify-end gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setIsEditing(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={handleSaveEdit}
-                  disabled={isSubmitting || editedContent.trim() === ''}
-                >
-                  Save
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-1">
-              <p className="whitespace-pre-line">{comment.content}</p>
-            </div>
-          )}
-          
-          {(isAuthor || canDeleteComment) && !isEditing && (
-            <div className="flex gap-2 mt-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-              {isAuthor && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setIsEditing(true)}
-                  className="text-ottoman-600 hover:text-ottoman-700 hover:bg-ottoman-100/50"
-                >
-                  <Edit2 size={16} className="mr-1" />
-                  Edit
-                </Button>
-              )}
-              
-              {canDeleteComment && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
-                    >
-                      <Trash2 size={16} className="mr-1" />
-                      Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Comment</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this comment? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleDelete} 
-                        disabled={isSubmitting}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {new Date(createdAt).toLocaleDateString()}
+            {isEdited && <span className="ml-1">(edited)</span>}
+          </span>
+          {canEdit && !isEditing && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditing(true)}
+              className="h-6 w-6 p-0"
+            >
+              <Edit2 className="h-3 w-3" />
+            </Button>
           )}
         </div>
       </div>
+
+      {isEditing ? (
+        <div className="space-y-3">
+          <Textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            className="min-h-[80px]"
+            placeholder="Write your comment..."
+          />
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={isSaving || !editContent.trim()}
+            >
+              <Save className="h-3 w-3 mr-1" />
+              {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isSaving}
+            >
+              <X className="h-3 w-3 mr-1" />
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="prose prose-sm max-w-none">
+          <p className="text-sm whitespace-pre-wrap">{content}</p>
+        </div>
+      )}
     </div>
   );
 }
-
-export default Comment;

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Search, Users, Award } from "lucide-react";
+import RankBadge from "@/components/common/RankBadge";
 
 export default function Members() {
   const [members, setMembers] = useState<User[]>([]);
@@ -83,28 +85,8 @@ export default function Members() {
     setFilteredMembers(sorted);
   }, [members, searchQuery, sortBy]);
 
-  const handleUserClick = (userId: string) => {
-    navigate(`/profile/${userId}`);
-  };
-
-  const getRankColor = (rank: string) => {
-    switch (rank) {
-      case 'Newbie':
-        return 'bg-gray-100 text-gray-800';
-      case 'Beginner Collector':
-        return 'bg-green-100 text-green-800';
-      case 'Casual Collector':
-        return 'bg-blue-100 text-blue-800';
-      case 'Known Collector':
-        return 'bg-purple-100 text-purple-800';
-      case 'Advance Collector':
-        return 'bg-indigo-100 text-indigo-800';
-      case 'Admin':
-      case 'Super Admin':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const handleUserClick = (username: string) => {
+    navigate(`/profile/${username}`);
   };
 
   return (
@@ -148,7 +130,7 @@ export default function Members() {
                   <SelectItem value="oldest">Oldest Members</SelectItem>
                   <SelectItem value="a-z">A-Z</SelectItem>
                   <SelectItem value="z-a">Z-A</SelectItem>
-                  <SelectItem value="rank">By Rank</SelectItem>
+                  <SelectItem value="rank">By Points</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -170,7 +152,7 @@ export default function Members() {
               <Card 
                 key={member.id} 
                 className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => handleUserClick(member.id)}
+                onClick={() => handleUserClick(member.username)}
               >
                 <CardContent className="p-0">
                   <div className="p-4 flex items-center gap-4">
@@ -185,13 +167,10 @@ export default function Members() {
                         <Users className="h-6 w-6 text-muted-foreground" />
                       )}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-medium text-lg">{member.username}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Award className="h-4 w-4" />
-                        <span className={`px-2 py-0.5 rounded-full text-xs ${getRankColor(member.rank)}`}>
-                          {member.rank}
-                        </span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <RankBadge rank={member.rank} size="sm" showPoints points={member.points} />
                       </div>
                       {member.country && (
                         <p className="text-sm text-muted-foreground mt-1">{member.country}</p>

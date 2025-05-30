@@ -284,82 +284,97 @@ export type Database = {
       }
       collection_items: {
         Row: {
-          id: string;
-          user_id: string;
-          banknote_id: string;
-          condition: string | null;
-          grade_by: string | null;
-          grade: string | null;
-          grade_condition_description: string | null;
-          public_note: string | null;
-          private_note: string | null;
-          purchase_price: number | null;
-          purchase_date: string | null;
-          location: string | null;
-          is_for_sale: boolean;
-          sale_price: number | null;
-          obverse_image: string | null;
-          reverse_image: string | null;
-          created_at: string;
-          updated_at: string;
-          is_unlisted_banknote: boolean;
-        };
+          banknote_id: string | null
+          condition: string | null
+          created_at: string
+          grade: string | null
+          grade_by: string | null
+          grade_condition_description: string | null
+          id: string
+          is_for_sale: boolean
+          is_unlisted_banknote: boolean
+          location: string | null
+          obverse_image: string | null
+          order_index: number
+          private_note: string | null
+          public_note: string | null
+          purchase_date: string | null
+          purchase_price: number | null
+          reverse_image: string | null
+          sale_price: number | null
+          unlisted_banknotes_id: string | null
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          banknote_id: string;
-          condition?: string | null;
-          grade_by?: string | null;
-          grade?: string | null;
-          grade_condition_description?: string | null;
-          public_note?: string | null;
-          private_note?: string | null;
-          purchase_price?: number | null;
-          purchase_date?: string | null;
-          location?: string | null;
-          is_for_sale?: boolean;
-          sale_price?: number | null;
-          obverse_image?: string | null;
-          reverse_image?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          is_unlisted_banknote?: boolean;
-        };
+          banknote_id?: string | null
+          condition?: string | null
+          created_at?: string
+          grade?: string | null
+          grade_by?: string | null
+          grade_condition_description?: string | null
+          id?: string
+          is_for_sale?: boolean
+          is_unlisted_banknote?: boolean
+          location?: string | null
+          obverse_image?: string | null
+          order_index?: number
+          private_note?: string | null
+          public_note?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          reverse_image?: string | null
+          sale_price?: number | null
+          unlisted_banknotes_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          id?: string;
-          user_id?: string;
-          banknote_id?: string;
-          condition?: string | null;
-          grade_by?: string | null;
-          grade?: string | null;
-          grade_condition_description?: string | null;
-          public_note?: string | null;
-          private_note?: string | null;
-          purchase_price?: number | null;
-          purchase_date?: string | null;
-          location?: string | null;
-          is_for_sale?: boolean;
-          sale_price?: number | null;
-          obverse_image?: string | null;
-          reverse_image?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          is_unlisted_banknote?: boolean;
-        };
+          banknote_id?: string | null
+          condition?: string | null
+          created_at?: string
+          grade?: string | null
+          grade_by?: string | null
+          grade_condition_description?: string | null
+          id?: string
+          is_for_sale?: boolean
+          is_unlisted_banknote?: boolean
+          location?: string | null
+          obverse_image?: string | null
+          order_index?: number
+          private_note?: string | null
+          public_note?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          reverse_image?: string | null
+          sale_price?: number | null
+          unlisted_banknotes_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "collection_items_banknote_id_fkey";
-            columns: ["banknote_id"];
-            referencedRelation: "detailed_banknotes";
-            referencedColumns: ["id"];
+            foreignKeyName: "collection_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "detailed_banknotes"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "collection_items_user_id_fkey";
-            columns: ["user_id"];
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          }
-        ];
+            foreignKeyName: "collection_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "sorted_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_collection_unlisted_banknote"
+            columns: ["unlisted_banknotes_id"]
+            isOneToOne: false
+            referencedRelation: "unlisted_banknotes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       countries: {
         Row: {
@@ -911,78 +926,122 @@ export type Database = {
       }
       unlisted_banknotes: {
         Row: {
-          id: string;
-          country: string;
-          extended_pick_number: string;
-          pick_number: string | null;
-          turk_catalog_number: string | null;
-          face_value: string;
-          gregorian_year: string | null;
-          islamic_year: string | null;
-          sultan_name: string | null;
-          printer: string | null;
-          type: string | null;
-          category: string | null;
-          rarity: string | null;
-          banknote_description: string | null;
-          historical_description: string | null;
-          name: string | null;
-          seal_names: string | null;
-          created_at: string;
-          updated_at: string;
-          grade_by: string | null;
-          grade: string | null;
-          grade_condition_description: string | null;
-        };
+          back_picture: string | null
+          banknote_description: string | null
+          category: string | null
+          colors: string | null
+          country: string
+          created_at: string | null
+          extended_pick_number: string | null
+          face_value: string
+          front_picture: string | null
+          gregorian_year: string | null
+          historical_description: string | null
+          id: string
+          is_approved: boolean | null
+          is_pending: boolean | null
+          islamic_year: string | null
+          name: string | null
+          other_element_pictures: string[] | null
+          pick_number: string | null
+          printer: string | null
+          rarity: string | null
+          seal_names: string | null
+          seal_pictures: string[] | null
+          security_element: string | null
+          serial_numbering: string | null
+          signature_pictures: string[] | null
+          signatures_back: string | null
+          signatures_front: string | null
+          sultan_name: string | null
+          tughra_picture: string | null
+          turk_catalog_number: string | null
+          type: string | null
+          updated_at: string | null
+          user_id: string
+          watermark_picture: string | null
+        }
         Insert: {
-          id?: string;
-          country: string;
-          extended_pick_number: string;
-          pick_number?: string | null;
-          turk_catalog_number?: string | null;
-          face_value: string;
-          gregorian_year?: string | null;
-          islamic_year?: string | null;
-          sultan_name?: string | null;
-          printer?: string | null;
-          type?: string | null;
-          category?: string | null;
-          rarity?: string | null;
-          banknote_description?: string | null;
-          historical_description?: string | null;
-          name?: string | null;
-          seal_names?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          grade_by?: string | null;
-          grade?: string | null;
-          grade_condition_description?: string | null;
-        };
+          back_picture?: string | null
+          banknote_description?: string | null
+          category?: string | null
+          colors?: string | null
+          country: string
+          created_at?: string | null
+          extended_pick_number?: string | null
+          face_value: string
+          front_picture?: string | null
+          gregorian_year?: string | null
+          historical_description?: string | null
+          id?: string
+          is_approved?: boolean | null
+          is_pending?: boolean | null
+          islamic_year?: string | null
+          name?: string | null
+          other_element_pictures?: string[] | null
+          pick_number?: string | null
+          printer?: string | null
+          rarity?: string | null
+          seal_names?: string | null
+          seal_pictures?: string[] | null
+          security_element?: string | null
+          serial_numbering?: string | null
+          signature_pictures?: string[] | null
+          signatures_back?: string | null
+          signatures_front?: string | null
+          sultan_name?: string | null
+          tughra_picture?: string | null
+          turk_catalog_number?: string | null
+          type?: string | null
+          updated_at?: string | null
+          user_id: string
+          watermark_picture?: string | null
+        }
         Update: {
-          id?: string;
-          country?: string;
-          extended_pick_number?: string;
-          pick_number?: string | null;
-          turk_catalog_number?: string | null;
-          face_value?: string;
-          gregorian_year?: string | null;
-          islamic_year?: string | null;
-          sultan_name?: string | null;
-          printer?: string | null;
-          type?: string | null;
-          category?: string | null;
-          rarity?: string | null;
-          banknote_description?: string | null;
-          historical_description?: string | null;
-          name?: string | null;
-          seal_names?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          grade_by?: string | null;
-          grade?: string | null;
-          grade_condition_description?: string | null;
-        };
-        Relationships: [];
+          back_picture?: string | null
+          banknote_description?: string | null
+          category?: string | null
+          colors?: string | null
+          country?: string
+          created_at?: string | null
+          extended_pick_number?: string | null
+          face_value?: string
+          front_picture?: string | null
+          gregorian_year?: string | null
+          historical_description?: string | null
+          id?: string
+          is_approved?: boolean | null
+          is_pending?: boolean | null
+          islamic_year?: string | null
+          name?: string | null
+          other_element_pictures?: string[] | null
+          pick_number?: string | null
+          printer?: string | null
+          rarity?: string | null
+          seal_names?: string | null
+          seal_pictures?: string[] | null
+          security_element?: string | null
+          serial_numbering?: string | null
+          signature_pictures?: string[] | null
+          signatures_back?: string | null
+          signatures_front?: string | null
+          sultan_name?: string | null
+          tughra_picture?: string | null
+          turk_catalog_number?: string | null
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string
+          watermark_picture?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_unlisted_banknote_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_badges: {
         Row: {
@@ -1099,57 +1158,6 @@ export type Database = {
           },
         ]
       }
-      user_collection_view: {
-        Row: {
-          banknote_id: string | null
-          collection_item_id: string | null
-          condition: string | null
-          created_at: string | null
-          detailed_country: string | null
-          extended_pick_number: string | null
-          grade_by: string | null
-          grade: string | null
-          grade_condition_description: string | null
-          is_for_sale: boolean | null
-          is_unlisted_banknote: boolean | null
-          location: string | null
-          obverse_image: string | null
-          order_index: number | null
-          private_note: string | null
-          public_note: string | null
-          purchase_date: string | null
-          purchase_price: number | null
-          reverse_image: string | null
-          sale_price: number | null
-          unlisted_banknotes_id: string | null
-          unlisted_country: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "collection_items_banknote_id_fkey"
-            columns: ["banknote_id"]
-            isOneToOne: false
-            referencedRelation: "detailed_banknotes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "collection_items_banknote_id_fkey"
-            columns: ["banknote_id"]
-            isOneToOne: false
-            referencedRelation: "sorted_banknotes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_collection_unlisted_banknote"
-            columns: ["unlisted_banknotes_id"]
-            isOneToOne: false
-            referencedRelation: "unlisted_banknotes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       sorted_banknotes: {
@@ -1202,9 +1210,6 @@ export type Database = {
           created_at: string | null
           detailed_country: string | null
           extended_pick_number: string | null
-          grade_by: string | null
-          grade: string | null
-          grade_condition_description: string | null
           is_for_sale: boolean | null
           is_unlisted_banknote: boolean | null
           location: string | null
@@ -1247,6 +1252,14 @@ export type Database = {
       }
     }
     Functions: {
+      award_points_and_update_rank: {
+        Args: { user_id_param: string; points_to_add: number }
+        Returns: undefined
+      }
+      calculate_user_rank: {
+        Args: { user_points: number; user_role: string }
+        Returns: string
+      }
       catalog_banknotes_sorted_by_country: {
         Args: { country_id: string }
         Returns: {
@@ -1379,106 +1392,106 @@ type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof Database },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof Database
   }
-  ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
+    ? R
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof Database
   }
-  ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
+      Insert: infer I
+    }
+    ? I
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof Database
   }
-  ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
-  : never
+      Update: infer U
+    }
+    ? U
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof Database },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof Database
   }
-  ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
   }
-  ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {

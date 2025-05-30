@@ -1,3 +1,4 @@
+
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -20,23 +21,26 @@ export interface Role {
   created_at: string;
 }
 
-// Add explicit UserRank type
+// Add explicit UserRank type with new ranking system
 export type UserRank = 
-  | 'Newbie' 
-  | 'Bronze' 
-  | 'Silver' 
-  | 'Gold' 
-  | 'Platinum' 
-  | 'Super Collector'
-  | 'Beginner Collector'
-  | 'Casual Collector'
+  | 'Newbie Collector'
+  | 'Beginner Collector' 
+  | 'Mid Collector'
   | 'Known Collector'
   | 'Advance Collector'
-  | 'Expert'
-  | 'Master'
-  | 'Grandmaster'
-  | 'Admin'
-  | 'Super Admin';
+  | 'Master Collector'
+  | 'Admin Newbie Collector'
+  | 'Admin Beginner Collector'
+  | 'Admin Mid Collector'
+  | 'Admin Known Collector'
+  | 'Admin Advance Collector'
+  | 'Admin Master Collector'
+  | 'Super Admin Newbie Collector'
+  | 'Super Admin Beginner Collector'
+  | 'Super Admin Mid Collector'
+  | 'Super Admin Known Collector'
+  | 'Super Admin Advance Collector'
+  | 'Super Admin Master Collector';
 
 // Update UserRole type to allow any string since roles are now dynamic
 export type UserRole = string;

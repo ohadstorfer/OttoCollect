@@ -43,30 +43,10 @@ export default function UserProfileLink({
     }
   };
 
-  const getRankColor = (userRank?: UserRank) => {
-    if (!userRank) return '';
-    
-    if (userRank === 'Newbie') {
-      return 'text-gray-500';
-    } else if (userRank === 'Beginner Collector') {
-      return 'text-green-600';
-    } else if (userRank === 'Casual Collector') {
-      return 'text-blue-600';
-    } else if (userRank === 'Known Collector') {
-      return 'text-purple-600';
-    } else if (userRank === 'Advance Collector') {
-      return 'text-indigo-600';
-    } else if (userRank === 'Admin' || userRank === 'Super Admin') {
-      return 'text-red-600';
-    } else {
-      return 'text-gray-500';
-    }
-  };
-
   // Return children if provided, otherwise render the default link content
   if (children) {
     return (
-      <Link to={`/profile/${userId}`} className={`hover:underline ${className}`}>
+      <Link to={`/profile/${username}`} className={`hover:underline ${className}`}>
         {children}
       </Link>
     );
@@ -74,7 +54,7 @@ export default function UserProfileLink({
 
   return (
     <Link 
-      to={`/profile/${userId}`} 
+      to={`/profile/${username}`} 
       className={`flex items-center gap-2 hover:underline ${className}`}
     >
       {showAvatar && (
@@ -93,7 +73,7 @@ export default function UserProfileLink({
       <div className={`flex ${showRank ? 'flex-col' : 'items-center'}`}>
         <span className={`${getFontSize()} font-medium`}>{username}</span>
         {showRank && rank && (
-          <span className={`text-xs ${getRankColor(rank)}`}>{rank}</span>
+          <span className={`text-xs text-muted-foreground`}>{rank}</span>
         )}
       </div>
     </Link>
