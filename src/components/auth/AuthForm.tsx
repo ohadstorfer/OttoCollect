@@ -30,10 +30,12 @@ const AuthForm = () => {
   // Register form state
   const [registerUsername, setRegisterUsername] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
+  const [registerConfirmEmail, setRegisterConfirmEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
   const [registerLoading, setRegisterLoading] = useState(false);
   const [passwordsMatch, setPasswordsMatch] = useState(true);
+  const [emailsMatch, setEmailsMatch] = useState(true);
 
   const checkBlockedEmail = async (email: string) => {
     const { data, error } = await supabase
@@ -133,6 +135,15 @@ const AuthForm = () => {
         variant: "destructive",
         title: "Password Mismatch",
         description: "Passwords do not match. Please try again.",
+      });
+      return;
+    }
+    if (registerEmail !== registerConfirmEmail) {
+      setEmailsMatch(false);
+      toast({
+        variant: "destructive",
+        title: "Email Mismatch",
+        description: "Email addresses do not match. Please try again.",
       });
       return;
     }
@@ -462,10 +473,47 @@ const AuthForm = () => {
                     type="email"
                     placeholder="name@example.com"
                     required
-                    className="ottoman-input"
+                    className={`ottoman-input ${
+                      !emailsMatch && registerConfirmEmail
+                        ? "border-red-500"
+                        : ""
+                    }`}
                     value={registerEmail}
-                    onChange={(e) => setRegisterEmail(e.target.value)}
+                    onChange={(e) => {
+                      setRegisterEmail(e.target.value);
+                      setEmailsMatch(e.target.value === registerConfirmEmail);
+                    }}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="confirm-email"
+                    className="text-sm font-medium text-ottoman-200"
+                  >
+                    Confirm Email
+                  </label>
+                  <Input
+                    id="confirm-email"
+                    type="email"
+                    placeholder="name@example.com"
+                    required
+                    className={`ottoman-input ${
+                      !emailsMatch && registerConfirmEmail
+                        ? "border-red-500"
+                        : ""
+                    }`}
+                    value={registerConfirmEmail}
+                    onChange={(e) => {
+                      setRegisterConfirmEmail(e.target.value);
+                      setEmailsMatch(registerEmail === e.target.value);
+                    }}
+                  />
+                  {!emailsMatch && registerConfirmEmail && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Email addresses do not match
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -559,7 +607,7 @@ const AuthForm = () => {
                 <Button
                   type="submit"
                   className="ottoman-button w-full"
-                  disabled={registerLoading || !passwordsMatch}
+                  disabled={registerLoading || !passwordsMatch || !emailsMatch}
                 >
                   {registerLoading ? (
                     <span className="animate-pulse">Creating account...</span>
