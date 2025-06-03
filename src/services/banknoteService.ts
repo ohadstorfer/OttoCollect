@@ -327,5 +327,7 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     signaturesFront: item.signatures_front,
     signaturesBack: item.signatures_back,
     colors: item.colors,
+    watermark: item.watermark_picture,
+
   } as DetailedBanknote;
 }

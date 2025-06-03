@@ -156,8 +156,8 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         grade = values.gradeNumber + (values.gradeLetters ? ` ${values.gradeLetters}` : '');
         grade_condition_description = getGradeDescription(values.gradeNumber);
         condition = null; // Explicitly clear condition
-      } else if (!values.useGrading && values.condition) {
-        condition = values.condition;
+      } else if (!values.useGrading) {
+        condition = values.condition || null;
         grade_by = null;
         grade = null;
         grade_condition_description = null;

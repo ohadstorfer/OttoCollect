@@ -87,6 +87,8 @@ export interface Banknote {
   country: string;
   denomination: string;
   year: string;
+  islamicYear?: string;
+  gregorianYear?: string;
   series?: string;
   description?: string;
   obverseDescription?: string;

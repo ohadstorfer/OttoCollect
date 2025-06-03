@@ -188,8 +188,8 @@ export default function EditUnlistedBanknoteDialog({
         grade = values.gradeNumber + (values.gradeLetters ? ` ${values.gradeLetters}` : '');
         grade_condition_description = getGradeDescription(values.gradeNumber);
         condition = null; // Explicitly clear condition
-      } else if (!values.useGrading && values.condition) {
-        condition = values.condition;
+      } else if (!values.useGrading) {
+        condition = values.condition || null;
         grade_by = null;
         grade = null;
         grade_condition_description = null;
@@ -268,18 +268,15 @@ export default function EditUnlistedBanknoteDialog({
                     <span className="text-sm text-muted-foreground">Visible to everyone</span>
                   </div>
 
-
-
+                  {/* Condition/Grading Toggle Row */}
                   <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <FormLabel>Condition</FormLabel>
-                      
+                    <div className="flex items-center gap-2">
+                      <FormLabel>Condition</FormLabel>
                       <FormField
                         control={form.control}
                         name="useGrading"
                         render={({ field }) => (
                           <FormItem className="flex items-center gap-2">
-                           
                             <Switch
                               checked={field.value}
                               onCheckedChange={(checked) => {
@@ -297,126 +294,120 @@ export default function EditUnlistedBanknoteDialog({
                         )}
                       />
                       <FormLabel>Grading</FormLabel>
-                      </div>
                     </div>
+                  </div>
 
-
-                    
+                  {/* Condition/Grading Fields */}
                   {!form.watch("useGrading") ? (
-                  <FormField
-                    control={form.control}
-                    name="condition"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Condition</FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value || undefined}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select condition" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
-                              <SelectItem value="AU">AU - About Uncirculated</SelectItem>
-                              <SelectItem value="XF">XF - Extremely Fine</SelectItem>
-                              <SelectItem value="VF">VF - Very Fine</SelectItem>
-                              <SelectItem value="F">F - Fine</SelectItem>
-                              <SelectItem value="VG">VG - Very Good</SelectItem>
-                              <SelectItem value="G">G - Good</SelectItem>
-                              <SelectItem value="FR">FR - Fair</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormDescription>
-                          Select the condition of your banknote.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ) : (
-                  <div className="space-y-4 mb-8">
                     <FormField
                       control={form.control}
-                      name="gradeBy"
+                      name="condition"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Grading By</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              maxLength={8}
-                              placeholder="e.g. PMG"
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Enter the grading company or authority (max 8 characters)
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="gradeNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Grade</FormLabel>
+                          <FormLabel>Condition</FormLabel>
                           <FormControl>
                             <Select
-                              onValueChange={(value) => field.onChange(parseInt(value))}
-                              value={field.value?.toString()}
+                              onValueChange={field.onChange}
+                              value={field.value || undefined}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Select grade" />
+                                <SelectValue placeholder="Select condition" />
                               </SelectTrigger>
                               <SelectContent>
-                                {Array.from({ length: 70 }, (_, i) => i + 1).map((num) => (
-                                  <SelectItem key={num} value={num.toString()}>
-                                    {num}
-                                  </SelectItem>
-                                ))}
+                                <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
+                                <SelectItem value="AU">AU - About Uncirculated</SelectItem>
+                                <SelectItem value="XF">XF - Extremely Fine</SelectItem>
+                                <SelectItem value="VF">VF - Very Fine</SelectItem>
+                                <SelectItem value="F">F - Fine</SelectItem>
+                                <SelectItem value="VG">VG - Very Good</SelectItem>
+                                <SelectItem value="G">G - Good</SelectItem>
+                                <SelectItem value="FR">FR - Fair</SelectItem>
                               </SelectContent>
                             </Select>
                           </FormControl>
                           <FormDescription>
-                            Select the numeric grade (1-70)
+                            Select the condition of your banknote.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                  ) : (
+                    <div className="space-y-4 mb-8">
+                      <FormField
+                        control={form.control}
+                        name="gradeBy"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Grading By</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                maxLength={8}
+                                placeholder="e.g. PMG"
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Enter the grading company or authority (max 8 characters)
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="gradeNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Grade</FormLabel>
+                            <FormControl>
+                              <Select
+                                onValueChange={(value) => field.onChange(parseInt(value))}
+                                value={field.value?.toString()}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select grade" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Array.from({ length: 70 }, (_, i) => i + 1).map((num) => (
+                                    <SelectItem key={num} value={num.toString()}>
+                                      {num}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormDescription>
+                              Select the numeric grade (1-70)
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="gradeLetters"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Grade Letters</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                maxLength={3}
+                                placeholder="e.g. EPQ"
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Enter up to 3 letters for additional grade information
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
 
-                    <FormField
-                      control={form.control}
-                      name="gradeLetters"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Grade Letters</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              maxLength={3}
-                              placeholder="e.g. EPQ"
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Enter up to 3 letters for additional grade information
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-
-
-
-
-                  {/* Face Value */}
+                  {/* Face Value, Currency, Name Row */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 mt-7">
                     <FormField
                       control={form.control}
@@ -459,9 +450,8 @@ export default function EditUnlistedBanknoteDialog({
                       )}
                     />
 
-
-                     {/* Name and Condition */}
-                     <FormField
+                    {/* Name and Condition */}
+                    <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
@@ -477,16 +467,7 @@ export default function EditUnlistedBanknoteDialog({
                         </FormItem>
                       )}
                     />
-
-
                   </div>
-
-                 
-                   
-                
-
-
-
 
                   {/* Category and Type */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-7">
@@ -876,8 +857,6 @@ export default function EditUnlistedBanknoteDialog({
                     )}
                   />
                 )}
-
-                
 
                 {/* Save/Cancel Buttons */}
                 <div className="flex justify-end space-x-2">

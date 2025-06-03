@@ -22,6 +22,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
   const { id } = useParams<{ id: string }>();
   const { banknoteId } = useBanknoteContext();
   const { toast } = useToast();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Determine which ID to use
   const itemId = id || banknoteId;
@@ -43,15 +44,46 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
 
   const isUnlisted = collectionItem.is_unlisted_banknote;
 
+
+
+  const openImageViewer = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
+
+
+
+  
+
   return (
+
+
+    
     <div className="p-6">
-      
+
 
       {/* Banknote Details Section */}
       <div className="space-y-6">
         <div>
           <h3 className="text-lg font-medium mb-4">Public Details</h3>
           <div className="space-y-2">
+            {collectionItem.banknote?.extendedPickNumber && (
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                <span className="text-sm font-medium text-muted-foreground w-32">Extended Pick Number</span>
+                <span className="text-base">{collectionItem.banknote.extendedPickNumber}</span>
+              </div>
+            )}
+            {collectionItem.banknote?.pickNumber && (
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                <span className="text-sm font-medium text-muted-foreground w-32">Pick Number</span>
+                <span className="text-base">{collectionItem.banknote.pickNumber} </span>
+              </div>
+            )}
+            {collectionItem.banknote?.turkCatalogNumber && (
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                <span className="text-sm font-medium text-muted-foreground w-32">Turk Catalog Number</span>
+                <span className="text-base">{collectionItem.banknote.turkCatalogNumber}</span>
+              </div>
+            )}
             {collectionItem.banknote?.denomination && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">Denomination</span>
@@ -64,18 +96,31 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                 <span className="text-base">{collectionItem.banknote.country}</span>
               </div>
             )}
-            {collectionItem.banknote?.year && (
+            {collectionItem.banknote?.category && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Year</span>
-                <span className="text-base">{collectionItem.banknote.year}</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">Category</span>
+                <span className="text-base">{collectionItem.banknote.category}</span>
               </div>
             )}
-            {collectionItem.banknote?.series && (
+            {collectionItem.banknote?.sultanName && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Series</span>
-                <span className="text-base">{collectionItem.banknote.series}</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">Sultan Name</span>
+                <span className="text-base">{collectionItem.banknote.sultanName}</span>
               </div>
             )}
+            {collectionItem.banknote?.type && (
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                <span className="text-sm font-medium text-muted-foreground w-32">Type</span>
+                <span className="text-base">{collectionItem.banknote.type}</span>
+              </div>
+            )}
+            {collectionItem.banknote?.serialNumbering && (
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                <span className="text-sm font-medium text-muted-foreground w-32">Prefix Range</span>
+                <span className="text-base">{collectionItem.banknote.serialNumbering}</span>
+              </div>
+            )}
+
             {isUnlisted && collectionItem.banknote?.name && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">Name</span>
@@ -84,11 +129,12 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             )}
           </div>
         </div>
+        <div className="w-full h-px bg-muted my-6" />
 
         {/* Collection Item Details */}
         <div>
           <div className="space-y-2">
-          {collectionItem.condition && !collectionItem.grade && (
+            {collectionItem.condition && !collectionItem.grade && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">Condition</span>
                 <span className="text-base">{collectionItem.condition}</span>
@@ -96,12 +142,12 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             )}
             {collectionItem.grade && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                 <span className="text-sm font-medium text-muted-foreground w-32">Grading</span>
-                 <span className="text-base">
+                <span className="text-sm font-medium text-muted-foreground w-32">Grading</span>
+                <span className="text-base">
                   {collectionItem.grade_by && `${collectionItem.grade_by} `}{collectionItem.grade}{collectionItem.grade_condition_description && ` - ${collectionItem.grade_condition_description}`}
                 </span>
-                </div>
-              )}
+              </div>
+            )}
             {collectionItem.publicNote && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">Notes</span>
@@ -116,11 +162,87 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             )}
           </div>
         </div>
+        <div className="w-full h-px bg-muted my-6" />
+
+
+        <div className="space-y-2">
+          {collectionItem.banknote?.islamicYear && (
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Islamic Year</span>
+              <span className="text-base">{collectionItem.banknote.islamicYear}</span>
+            </div>
+          )}
+          {collectionItem.banknote?.gregorianYear && (
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Gregorian Year</span>
+              <span className="text-base">{collectionItem.banknote.gregorianYear}</span>
+            </div>
+          )}
+          {collectionItem.banknote?.description && (
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Description</span>
+              <span className="text-base">{collectionItem.banknote.description}</span>
+            </div>
+          )}
+          {collectionItem.banknote?.securityElement && (
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+
+              <span className="text-base">{collectionItem.banknote.securityElement}</span>
+            </div>
+          )}
+          {collectionItem.banknote?.sealNames && (
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Seal Names</span>
+              <span className="text-base">{collectionItem.banknote.sealNames}</span>
+            </div>
+          )}
+          {collectionItem.banknote?.signaturesFront && (
+            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Front Signature</span>
+              <img
+                src={collectionItem.banknote.signaturesFront}
+                alt="Front Signature"
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700"
+                onClick={() => openImageViewer(collectionItem.banknote.signaturesFront)} 
+              />
+            </div>
+          )}
+
+          {collectionItem.banknote?.signaturesBack && (
+            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Back Signature</span>
+              <img
+                src={collectionItem.banknote.signaturesBack}
+                alt="Back Signature"
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700"
+                onClick={() => openImageViewer(collectionItem.banknote.signaturesBack)} 
+              />
+            </div>
+          )}
+
+          {collectionItem.banknote?.watermark && (
+            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Watermark</span>
+              <img
+                src={collectionItem.banknote.watermark}
+                alt="Watermark"
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700"
+                onClick={() => openImageViewer(collectionItem.banknote.watermark)}
+              />
+            </div>
+          )}
+
+
+
+
+        </div>
+
+
 
         {/* Private Details Section - Only visible to owner */}
+        <div className="w-full h-px bg-muted my-6" />
         {isOwner && (
           <div>
-            <div className="w-full h-px bg-muted my-6" />
             <div className="flex items-center gap-2 mb-4">
               <h3 className="text-lg font-medium">Private Details</h3>
               <span className="text-sm text-muted-foreground">Only visible to you</span>
@@ -154,8 +276,25 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           </div>
         )}
       </div>
+
+      {selectedImage && (
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContentWithScroll className="sm:max-w-[800px] p-1">
+          <img
+            src={selectedImage}
+            alt="Banknote detail"
+            className="w-full h-auto rounded"
+          />
+        </DialogContentWithScroll>
+      </Dialog>
+    )}
+
     </div>
   );
 };
+
+
+
+
 
 export default BanknoteCollectionDetail;

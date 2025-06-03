@@ -49,7 +49,7 @@ export interface CollectionItemFormProps {
 const formSchema = z.object({
   banknoteId: z.string().min(1, { message: "Banknote must be selected" }),
   useGrading: z.boolean().default(false),
-  condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const).optional(),
+  condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const).nullable(),
   gradeBy: z.string().max(8, { message: "Maximum 8 characters allowed" }).optional(),
   gradeNumber: z.coerce.number().min(1).max(70).optional(),
   gradeLetters: z.string().max(3, { message: "Maximum 3 characters allowed" }).optional(),
@@ -202,8 +202,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         grade = values.gradeNumber + (values.gradeLetters ? ` ${values.gradeLetters}` : '');
         grade_condition_description = getGradeDescription(values.gradeNumber);
         condition = null; // Explicitly clear condition
-      } else if (!values.useGrading && values.condition) {
-        condition = values.condition;
+      } else if (!values.useGrading) {
+        condition = values.condition || null;
         grade_by = null;
         grade = null;
         grade_condition_description = null;
@@ -344,6 +344,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 </div>
 
 
+ {/* Condition/Grading Toggle Row */}
                 <div className="flex items-center justify-between mb-0">
                   <div className="flex items-center gap-2">
                     <FormLabel>Condition</FormLabel>
@@ -377,7 +378,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
 
                 {/* Condition or Grading Fields */}
-                {!useGrading ? (
+                {!form.watch("useGrading") ? (
                   <FormField
                     control={form.control}
                     name="condition"
@@ -387,7 +388,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                         <FormControl>
                           <Select
                             onValueChange={field.onChange}
-                            value={field.value}
+                            value={field.value || undefined}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select condition" />
@@ -412,7 +413,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                     )}
                   />
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 mb-8">
                     <FormField
                       control={form.control}
                       name="gradeBy"
@@ -449,11 +450,11 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                                 <SelectValue placeholder="Select grade" />
                               </SelectTrigger>
                               <SelectContent>
-                                {Array.from({ length: 70 }, (_, i) => i + 1).map((num) => (
-                                  <SelectItem key={num} value={num.toString()}>
-                                    {num}
-                                  </SelectItem>
-                                ))}
+                                  {Array.from({ length: 70 }, (_, i) => i + 1).map((num) => (
+                                    <SelectItem key={num} value={num.toString()}>
+                                      {num}
+                                    </SelectItem>
+                                  ))}
                               </SelectContent>
                             </Select>
                           </FormControl>
