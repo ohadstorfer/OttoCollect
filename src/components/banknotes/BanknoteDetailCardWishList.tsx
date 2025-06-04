@@ -363,9 +363,9 @@ const BanknoteDetailCardWishList = ({
                 Sultan: {banknote.sultan_name}
               </p>
             )}
-             {(banknote.signaturesFront || banknote.signaturesBack) && (
+            {(banknote.signatures_front || banknote.signatures_back) && (
               <p className="text-xs text-muted-foreground">
-                Signatures: {banknote.signaturesFront} {banknote.signaturesBack}
+                Signatures: {Array.isArray(banknote.signatures_front) ? banknote.signatures_front.join(', ') : banknote.signatures_front} {Array.isArray(banknote.signatures_back) ? banknote.signatures_back.join(', ') : banknote.signatures_back}
               </p>
             )}
             {banknote.sealNames && (
@@ -373,7 +373,7 @@ const BanknoteDetailCardWishList = ({
                 Seals: {banknote.sealNames}
               </p>
             )}
-             {banknote.securityElement&& (
+            {banknote.securityElement && (
               <p className="text-xs text-muted-foreground">
                 {banknote.securityElement}
               </p>

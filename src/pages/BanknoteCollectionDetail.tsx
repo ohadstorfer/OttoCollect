@@ -44,23 +44,12 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
 
   const isUnlisted = collectionItem.is_unlisted_banknote;
 
-
-
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);
   };
 
-
-
-  
-
   return (
-
-
-    
     <div className="p-6">
-
-
       {/* Banknote Details Section */}
       <div className="space-y-6">
         <div>
@@ -164,7 +153,6 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         </div>
         <div className="w-full h-px bg-muted my-6" />
 
-
         <div className="space-y-2">
           {collectionItem.banknote?.islamicYear && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
@@ -186,7 +174,6 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           )}
           {collectionItem.banknote?.securityElement && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-
               <span className="text-base">{collectionItem.banknote.securityElement}</span>
             </div>
           )}
@@ -199,24 +186,52 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           {collectionItem.banknote?.signaturesFront && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
               <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Front Signature</span>
-              <img
-                src={collectionItem.banknote.signaturesFront}
-                alt="Front Signature"
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700"
-                onClick={() => openImageViewer(collectionItem.banknote.signaturesFront)} 
-              />
+              <div className="flex flex-wrap gap-2">
+                {Array.isArray(collectionItem.banknote.signaturesFront) 
+                  ? collectionItem.banknote.signaturesFront.map((signature, index) => (
+                      <img
+                        key={index}
+                        src={signature}
+                        alt={`Front Signature ${index + 1}`}
+                        className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                        onClick={() => openImageViewer(signature)} 
+                      />
+                    ))
+                  : (
+                      <img
+                        src={collectionItem.banknote.signaturesFront}
+                        alt="Front Signature"
+                        className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                        onClick={() => openImageViewer(collectionItem.banknote.signaturesFront)} 
+                      />
+                    )}
+              </div>
             </div>
           )}
 
           {collectionItem.banknote?.signaturesBack && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
               <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Back Signature</span>
-              <img
-                src={collectionItem.banknote.signaturesBack}
-                alt="Back Signature"
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700"
-                onClick={() => openImageViewer(collectionItem.banknote.signaturesBack)} 
-              />
+              <div className="flex flex-wrap gap-2">
+                {Array.isArray(collectionItem.banknote.signaturesBack) 
+                  ? collectionItem.banknote.signaturesBack.map((signature, index) => (
+                      <img
+                        key={index}
+                        src={signature}
+                        alt={`Back Signature ${index + 1}`}
+                        className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                        onClick={() => openImageViewer(signature)} 
+                      />
+                    ))
+                  : (
+                      <img
+                        src={collectionItem.banknote.signaturesBack}
+                        alt="Back Signature"
+                        className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                        onClick={() => openImageViewer(collectionItem.banknote.signaturesBack)} 
+                      />
+                    )}
+              </div>
             </div>
           )}
 
@@ -231,13 +246,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               />
             </div>
           )}
-
-
-
-
         </div>
-
-
 
         {/* Private Details Section - Only visible to owner */}
         <div className="w-full h-px bg-muted my-6" />
@@ -292,9 +301,5 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
     </div>
   );
 };
-
-
-
-
 
 export default BanknoteCollectionDetail;

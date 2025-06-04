@@ -420,7 +420,7 @@ const BanknoteDetailCard = ({
                 Seals: {banknote.sealNames}
               </p>
             )}
-             {banknote.securityElement&& (
+            {banknote.securityElement && (
               <p className="text-xs text-muted-foreground">
                 {banknote.securityElement}
               </p>

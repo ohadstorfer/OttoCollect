@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters } from '@/types';
 
@@ -324,8 +325,8 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     historicalDescription: item.historical_description,
     serialNumbering: item.serial_numbering,
     securityElement: item.security_element,
-    signaturesFront: item.signatures_front,
-    signaturesBack: item.signatures_back,
+    signaturesFront: Array.isArray(item.signatures_front) ? item.signatures_front.join(', ') : (item.signatures_front || ''),
+    signaturesBack: Array.isArray(item.signatures_back) ? item.signatures_back.join(', ') : (item.signatures_back || ''),
     colors: item.colors,
     watermark: item.watermark_picture,
 
