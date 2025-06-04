@@ -11,12 +11,22 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from "@/context/ThemeContext";
 import { supabase } from '@/integrations/supabase/client';
 
+interface Author {
+  id: string;
+  username: string;
+  avatarUrl?: string;
+  rank: string;
+}
+
+interface ForumPostWithAuthor extends Omit<ForumPost, 'author'> {
+  author: Author;
+}
 
 const Forum = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [posts, setPosts] = useState<ForumPost[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<ForumPost[]>([]);
+  const [posts, setPosts] = useState<ForumPostWithAuthor[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<ForumPostWithAuthor[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();

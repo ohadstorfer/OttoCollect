@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -184,54 +185,16 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             </div>
           )}
           {collectionItem.banknote?.signaturesFront && (
-            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Front Signature</span>
-              <div className="flex flex-wrap gap-2">
-                {Array.isArray(collectionItem.banknote.signaturesFront) 
-                  ? collectionItem.banknote.signaturesFront.map((signature, index) => (
-                      <img
-                        key={index}
-                        src={signature}
-                        alt={`Front Signature ${index + 1}`}
-                        className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                        onClick={() => openImageViewer(signature)} 
-                      />
-                    ))
-                  : (
-                      <img
-                        src={collectionItem.banknote.signaturesFront}
-                        alt="Front Signature"
-                        className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                        onClick={() => openImageViewer(collectionItem.banknote.signaturesFront)} 
-                      />
-                    )}
-              </div>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Front Signatures</span>
+              <span className="text-base">{collectionItem.banknote.signaturesFront}</span>
             </div>
           )}
 
           {collectionItem.banknote?.signaturesBack && (
-            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Back Signature</span>
-              <div className="flex flex-wrap gap-2">
-                {Array.isArray(collectionItem.banknote.signaturesBack) 
-                  ? collectionItem.banknote.signaturesBack.map((signature, index) => (
-                      <img
-                        key={index}
-                        src={signature}
-                        alt={`Back Signature ${index + 1}`}
-                        className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                        onClick={() => openImageViewer(signature)} 
-                      />
-                    ))
-                  : (
-                      <img
-                        src={collectionItem.banknote.signaturesBack}
-                        alt="Back Signature"
-                        className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                        onClick={() => openImageViewer(collectionItem.banknote.signaturesBack)} 
-                      />
-                    )}
-              </div>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Back Signatures</span>
+              <span className="text-base">{collectionItem.banknote.signaturesBack}</span>
             </div>
           )}
 
@@ -241,7 +204,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               <img
                 src={collectionItem.banknote.watermark}
                 alt="Watermark"
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700"
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
                 onClick={() => openImageViewer(collectionItem.banknote.watermark)}
               />
             </div>

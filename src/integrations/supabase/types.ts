@@ -464,8 +464,8 @@ export type Database = {
           security_element: string | null
           serial_numbering: string | null
           signature_pictures: string[] | null
-          signatures_back: string[] | null
-          signatures_front: string[] | null
+          signatures_back: string | null
+          signatures_front: string | null
           sultan_name: string | null
           tughra_picture: string | null
           turk_catalog_number: string | null
@@ -498,8 +498,8 @@ export type Database = {
           security_element?: string | null
           serial_numbering?: string | null
           signature_pictures?: string[] | null
-          signatures_back?: string[] | null
-          signatures_front?: string[] | null
+          signatures_back?: string | null
+          signatures_front?: string | null
           sultan_name?: string | null
           tughra_picture?: string | null
           turk_catalog_number?: string | null
@@ -532,8 +532,8 @@ export type Database = {
           security_element?: string | null
           serial_numbering?: string | null
           signature_pictures?: string[] | null
-          signatures_back?: string[] | null
-          signatures_front?: string[] | null
+          signatures_back?: string | null
+          signatures_front?: string | null
           sultan_name?: string | null
           tughra_picture?: string | null
           turk_catalog_number?: string | null
@@ -1189,8 +1189,8 @@ export type Database = {
           security_element: string | null
           serial_numbering: string | null
           signature_pictures: string[] | null
-          signatures_back: string[] | null
-          signatures_front: string[] | null
+          signatures_back: string | null
+          signatures_front: string | null
           suffix_num: number | null
           sultan_name: string | null
           trailing_text: string | null

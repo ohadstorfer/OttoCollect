@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,7 @@ export interface CollectionItemFormProps {
   item: CollectionItem;
   onCancel: () => void;
   onSaveComplete?: () => void;
-  onUpdate?: () => void;  // Add this prop to fix the build error
+  onUpdate?: () => void;
 }
 
 const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel, onSaveComplete, onUpdate }) => {
@@ -52,7 +53,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel,
         ...formData,
         salePrice: formData.isForSale ? formData.salePrice : null,
       };
-      await updateCollectionItem(item, updatedItem);
+      await updateCollectionItem(item.id, updatedItem);
       if (onSaveComplete) {
         onSaveComplete();
       }
@@ -170,7 +171,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel,
           <div>
             <Label>Obverse (Front)</Label>
             <CollectionImageUpload
-              url={formData.obverseImage}
+              imageUrl={formData.obverseImage}
               onImageUpload={(url) => handleChange("obverseImage", url)}
               imageType="obverse"
               disabled={isSubmitting}
@@ -179,7 +180,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel,
           <div>
             <Label>Reverse (Back)</Label>
             <CollectionImageUpload
-              url={formData.reverseImage}
+              imageUrl={formData.reverseImage}
               onImageUpload={(url) => handleChange("reverseImage", url)}
               imageType="reverse"
               disabled={isSubmitting}

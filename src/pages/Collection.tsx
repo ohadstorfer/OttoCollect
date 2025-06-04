@@ -16,6 +16,8 @@ import { CollectionItem, DetailedBanknote, CountryData } from '@/types';
 import { CountryFilterSection } from '@/components/country/CountryFilterSection';
 import { DynamicFilterState } from '@/types/filter';
 import { useDynamicFilter } from '@/hooks/use-dynamic-filter';
+import { updateCollectionItem } from '@/services/collectionService';
+import { Dialog, DialogContentWithScroll } from '@/components/ui/dialog';
 
 const Collection = () => {
   const { user } = useAuth();
@@ -133,12 +135,23 @@ const Collection = () => {
     setEditingItem(null);
   };
   
-  const handleSaveItem = async (item: CollectionItem) => {
-    // Form component handles the actual saving
-    console.log('Saving collection item:', item);
-    setShowForm(false);
-    setEditingItem(null);
-    await loadUserCollection(); // Refresh the list
+  const handleSaveItem = async (updatedItem: CollectionItem) => {
+    try {
+      await updateCollectionItem(updatedItem.id, updatedItem);
+      setEditingItem(null);
+      refetch();
+      toast({
+        title: "Success",
+        description: "Collection item updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating collection item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update collection item",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
@@ -374,6 +387,25 @@ const Collection = () => {
           )}
         </div>
       </div>
+      
+      <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
+        <DialogContentWithScroll className="sm:max-w-[600px]">
+          {editingItem && (
+            <CollectionItemForm
+              item={editingItem}
+              onCancel={() => setEditingItem(null)}
+              onSaveComplete={() => {
+                setEditingItem(null);
+                refetch();
+                toast({
+                  title: "Success",
+                  description: "Collection item updated successfully",
+                });
+              }}
+            />
+          )}
+        </DialogContentWithScroll>
+      </Dialog>
     </div>
   );
 };

@@ -1,144 +1,157 @@
 
-import React from "react";
-import { SheetContent } from "@/components/ui/sheet";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, MessageSquare } from "lucide-react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { MessageButton } from "@/components/messages/MessageButton";
-import { cn } from "@/lib/utils";
-import { useTheme } from "@/context/ThemeContext";
+import { User, LogOut, Settings, Home, BookOpen, ShoppingBag, Users, MessageSquare, Heart } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 interface ProfileSidebarProps {
-  open: boolean;
+  isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
-  open,
-  onOpenChange,
-}) => {
-  const { user, logout } = useAuth();
+const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange }) => {
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { theme } = useTheme();
+
+  const handleSignOut = async () => {
+    await signOut();
+    onOpenChange(false);
+    navigate('/');
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    onOpenChange(false);
+  };
 
   if (!user) return null;
 
-  const handleLogout = async () => {
-    await logout();
-    onOpenChange(false);
-    navigate("/");
-  };
-
-  const handleMessages = () => {
-    onOpenChange(false);
-    navigate("/messaging");
-  };
-
   return (
-    <SheetContent
-      side="right"
-      className={`max-w-xs w-[320px] p-0 border-l ${
-        theme === "light" ? "bg-white border-ottoman-200" : "bg-dark-600 border-ottoman-900/50"
-      }`}
-      onInteractOutside={() => onOpenChange(false)}
-      onEscapeKeyDown={() => onOpenChange(false)}
-      open={open}
-      onOpenChange={onOpenChange}
-    >
-      {/* Profile Block */}
-      <div className="flex flex-col gap-4 border-b px-6 py-6">
-        <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              "w-11 h-11 rounded-full flex items-center justify-center overflow-hidden",
-              theme === "light" ? "bg-ottoman-100" : "bg-ottoman-700"
-            )}
-          >
-            {user.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt={user.username}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <User
-                className={cn(
-                  "h-6 w-6",
-                  theme === "light" ? "text-ottoman-700" : "text-ottoman-100"
-                )}
-              />
-            )}
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetContent 
+        side="right" 
+        className="w-80"
+        onInteractOutside={() => onOpenChange(false)}
+        onEscapeKeyDown={() => onOpenChange(false)}
+      >
+        <SheetHeader className="pb-6">
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={user.avatarUrl} alt={user.username} />
+              <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <SheetTitle className="text-left">{user.username}</SheetTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant="user" rank={user.rank}>
+                  {user.rank}
+                </Badge>
+                <span className="text-sm text-muted-foreground">{user.points} pts</span>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span
-              className={cn(
-                "text-base font-medium",
-                theme === "light" ? "text-ottoman-900" : "text-ottoman-100"
-              )}
+        </SheetHeader>
+
+        <div className="space-y-2">
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/')}
+          >
+            <Home className="mr-2 h-4 w-4" />
+            Home
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/catalog')}
+          >
+            <BookOpen className="mr-2 h-4 w-4" />
+            Catalog
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/collection')}
+          >
+            <User className="mr-2 h-4 w-4" />
+            My Collection
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/wishlist')}
+          >
+            <Heart className="mr-2 h-4 w-4" />
+            My Wishlist
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/marketplace')}
+          >
+            <ShoppingBag className="mr-2 h-4 w-4" />
+            Marketplace
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/forum')}
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Forum
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/members')}
+          >
+            <Users className="mr-2 h-4 w-4" />
+            Members
+          </Button>
+
+          <div className="border-t pt-2 mt-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => handleNavigation(`/profile/${user.id}`)}
             >
-              {user.username}
-            </span>
-            <span
-              className={cn(
-                "text-xs",
-                theme === "light" ? "text-ottoman-600" : "text-ottoman-300"
-              )}
+              <User className="mr-2 h-4 w-4" />
+              View Profile
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => handleNavigation('/settings')}
             >
-              {user.rank}
-            </span>
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={handleSignOut}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
           </div>
         </div>
-      </div>
-      {/* Menu Section */}
-      <div className="flex flex-col gap-1 p-4">
-        {/* Profile */}
-        <Link
-          to={`/profile/${user.id}`}
-          className={cn(
-            "px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2",
-            theme === "light"
-              ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900"
-              : "text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
-          )}
-          onClick={() => onOpenChange(false)}
-        >
-          <User className="h-4 w-4" /> Profile
-        </Link>
-        {/* Messages */}
-        <button
-          onClick={handleMessages}
-          className={cn(
-            "px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2 cursor-pointer",
-            theme === "light"
-              ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900"
-              : "text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
-          )}
-        >
-          <MessageSquare className="h-4 w-4" />
-          Messages
-          {location.pathname !== "/messaging" && (
-            <div className="ml-auto">
-              <MessageButton userId={user.id} onClick={handleMessages} />
-            </div>
-          )}
-        </button>
-        {/* Log out */}
-        <button
-          onClick={handleLogout}
-          className={cn(
-            "px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2 mt-2",
-            theme === "light"
-              ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900"
-              : "text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
-          )}
-        >
-          <LogOut className="h-4 w-4" />
-          Log out
-        </button>
-      </div>
-    </SheetContent>
+      </SheetContent>
+    </Sheet>
   );
 };
 
+export default ProfileSidebar;
