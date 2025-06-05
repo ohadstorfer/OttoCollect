@@ -63,3 +63,6 @@ export type BanknoteCondition =
   | 'Good'
   | 'About Good'
   | 'Poor';
+
+// Add explicit definition for string or string[] type for imageUrls
+export type ImageUrls = string | string[];

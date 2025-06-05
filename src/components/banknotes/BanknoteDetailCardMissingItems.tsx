@@ -108,11 +108,7 @@ const BanknoteDetailCardMissingItems = ({
       return;
     }
     try {
-      const res = await addToCollection({
-        userId: user.id,
-        banknoteId: banknote.id
-        // Only send userId and banknoteId per requirements; condition and others will be added later.
-      });
+      const res = await addToCollection(banknote.id, user.id);
       if (res) {
         setHasJustBeenAdded(true);  // Optimistically update UI
         toast({
