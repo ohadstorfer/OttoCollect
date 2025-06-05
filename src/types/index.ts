@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -146,10 +145,6 @@ export interface DetailedBanknote extends Banknote {
   signaturesBack?: string;
   extendedPickNumber?: string;
   name?: string;
-  // Add the resolved URL fields for stamp images
-  signaturePictureUrls?: string[];
-  sealPictureUrls?: string[];
-  watermarkUrl?: string | null;
 }
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
