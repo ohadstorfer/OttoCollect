@@ -7,7 +7,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MessageButton } from "@/components/messages/MessageButton";
 import { useTheme } from "@/context/ThemeContext";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
-import { ProfileSidebar } from "@/components/layout/ProfileSidebar";
+import ProfileSidebar from "@/components/layout/ProfileSidebar";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
