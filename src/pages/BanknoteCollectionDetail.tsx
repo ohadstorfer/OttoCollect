@@ -198,14 +198,51 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             </div>
           )}
 
-          {collectionItem.banknote?.watermark && (
+          {/* Signature Pictures */}
+          {collectionItem.banknote?.signaturePictureUrls && collectionItem.banknote.signaturePictureUrls.length > 0 && (
+            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Signature Pictures</span>
+              <div className="flex flex-wrap gap-2">
+                {collectionItem.banknote.signaturePictureUrls.map((url, index) => (
+                  <img
+                    key={index}
+                    src={url}
+                    alt={`Signature ${index + 1}`}
+                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                    onClick={() => openImageViewer(url)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Seal Pictures */}
+          {collectionItem.banknote?.sealPictureUrls && collectionItem.banknote.sealPictureUrls.length > 0 && (
+            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Seal Pictures</span>
+              <div className="flex flex-wrap gap-2">
+                {collectionItem.banknote.sealPictureUrls.map((url, index) => (
+                  <img
+                    key={index}
+                    src={url}
+                    alt={`Seal ${index + 1}`}
+                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                    onClick={() => openImageViewer(url)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Watermark Picture - using the new resolved URL */}
+          {collectionItem.banknote?.watermarkUrl && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
               <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Watermark</span>
               <img
-                src={collectionItem.banknote.watermark}
+                src={collectionItem.banknote.watermarkUrl}
                 alt="Watermark"
                 className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => openImageViewer(collectionItem.banknote.watermark)}
+                onClick={() => openImageViewer(collectionItem.banknote.watermarkUrl!)}
               />
             </div>
           )}

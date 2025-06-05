@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters } from '@/types';
 
@@ -5,7 +6,7 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
   try {
     console.log("Fetching banknotes with filters:", filters);
     let query = supabase
-      .from('detailed_banknotes')
+      .from('enhanced_detailed_banknotes')
       .select('*');
     
     // Apply filters if provided
@@ -106,9 +107,9 @@ export async function fetchBanknotesByCountryId(
       }
     }
     
-    // Build the query with the country filter - using the detailed_banknotes
+    // Build the query with the country filter - using the enhanced_detailed_banknotes view
     let query = supabase
-      .from('detailed_banknotes')
+      .from('enhanced_detailed_banknotes')
       .select('*')
       .eq('country', country.name);
     
@@ -194,7 +195,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
     
     console.log(`Fetching banknote with ID: ${id}`);
     const { data, error } = await supabase
-      .from('detailed_banknotes')
+      .from('enhanced_detailed_banknotes')
       .select('*')
       .eq('id', id)
       .maybeSingle();
@@ -219,7 +220,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
 export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote | null> {
   try {
     const { data, error } = await supabase
-      .from('detailed_banknotes')
+      .from('enhanced_detailed_banknotes')
       .select('*')
       .eq('id', id)
       .single();
@@ -244,7 +245,7 @@ export async function searchBanknotes(searchTerm: string): Promise<DetailedBankn
   try {
     console.log("Searching banknotes with term:", searchTerm);
     const { data, error } = await supabase
-      .from('detailed_banknotes')
+      .from('enhanced_detailed_banknotes')
       .select('*')
       .or(`extended_pick_number.ilike.%${searchTerm}%,face_value.ilike.%${searchTerm}%,banknote_description.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
       .limit(20);
@@ -327,6 +328,10 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     signaturesFront: item.signatures_front || '',
     signaturesBack: item.signatures_back || '',
     colors: item.colors,
-    watermark: item.watermark_picture,
+    watermark: item.watermark_picture_url || item.watermark_picture,
+    // Add new resolved URL fields
+    signaturePictureUrls: item.signature_picture_urls || [],
+    sealPictureUrls: item.seal_picture_urls || [],
+    watermarkUrl: item.watermark_picture_url || null,
   } as DetailedBanknote;
 }
