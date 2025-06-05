@@ -1,231 +1,411 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Search, Plus, Filter } from 'lucide-react';
-import CollectionItemCard from '@/components/collection/CollectionItemCard';
-import { fetchCollectionItems, updateCollectionItem } from '@/services/collectionService';
-import { CollectionItem } from '@/types';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useTheme } from "@/context/ThemeContext";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { fetchCountries } from '@/services/countryService';
-import { CountryData } from '@/types';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Plus, ChevronLeft } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import CollectionItemForm from '@/components/collection/CollectionItemForm';
-
-interface CollectionItemWithBanknote extends CollectionItem {
-  banknote: {
-    country: string;
-    denomination: string;
-    year: string;
-    pickNumber: string;
-  };
-}
+import { 
+  fetchUserCollectionItems, 
+  fetchBanknoteCategoriesAndTypes, 
+  fetchUserCollectionByCountry
+} from '@/services/collectionService';
+import { fetchCountryById } from '@/services/countryService';
+import { CollectionItem, DetailedBanknote, CountryData } from '@/types';
+import { CountryFilterSection } from '@/components/country/CountryFilterSection';
+import { DynamicFilterState } from '@/types/filter';
+import { useDynamicFilter } from '@/hooks/use-dynamic-filter';
+import { updateCollectionItem } from '@/services/collectionService';
+import { Dialog, DialogContentWithScroll } from '@/components/ui/dialog';
 
 const Collection = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const [collectionItems, setCollectionItems] = useState<CollectionItemWithBanknote[]>([]);
-  const [filteredItems, setFilteredItems] = useState<CollectionItemWithBanknote[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+  const { countryId } = useParams<{ countryId: string }>();
+  const { toast } = useToast();
+  
+  const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { theme } = useTheme();
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [countries, setCountries] = useState<CountryData[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<CollectionItem | null>(null);
-
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [groupMode, setGroupMode] = useState(false);
+  const [country, setCountry] = useState<CountryData | null>(null);
+  
+  // Collection data for filtering
+  const [collectionCategories, setCollectionCategories] = useState<
+    { id: string; name: string; count: number }[]
+  >([]);
+  const [collectionTypes, setCollectionTypes] = useState<
+    { id: string; name: string; count: number }[]
+  >([]);
+  
+  // Filter state
+  const [currentFilters, setCurrentFilters] = useState<DynamicFilterState>({
+    search: '',
+    categories: [],
+    types: [],
+    sort: ['extPick']
+  });
+  
+  // Load country information if countryId is provided
+  useEffect(() => {
+    if (countryId) {
+      fetchCountryById(countryId)
+        .then(countryData => {
+          if (countryData) {
+            setCountry(countryData);
+            document.title = `${countryData.name} Collection - Ottoman Banknotes`;
+          } else {
+            setError(`Country with ID ${countryId} not found`);
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching country:", err);
+          setError("Failed to load country information");
+        });
+    } else {
+      document.title = "My Collection - Ottoman Banknotes";
+    }
+  }, [countryId]);
+  
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      navigate('/auth');
       return;
     }
-
-    const loadCollection = async () => {
-      setLoading(true);
-      try {
-        const items = await fetchCollectionItems(user.id);
-        setCollectionItems(items);
-        setFilteredItems(items);
-      } catch (error) {
-        console.error('Error fetching collection items:', error);
-      } finally {
-        setLoading(false);
+    
+    loadUserCollection();
+  }, [user, navigate, countryId]);
+  
+  const loadUserCollection = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      if (!user?.id) return;
+      
+      let items: CollectionItem[];
+      
+      // Fetch user's collection items based on whether we have a countryId
+      if (countryId) {
+        items = await fetchUserCollectionByCountry(user.id, countryId);
+        console.log(`Loaded ${items.length} collection items for country ${countryId}`);
+      } else {
+        items = await fetchUserCollectionItems(user.id);
+        console.log('Loaded all collection items:', items.length);
       }
-    };
-
-    loadCollection();
-
-    const loadCountries = async () => {
-      try {
-        const countryList = await fetchCountries();
-        setCountries(countryList);
-      } catch (error) {
-        console.error('Error fetching countries:', error);
-      }
-    };
-
-    loadCountries();
-  }, [user, navigate]);
-
-  useEffect(() => {
-    let items = [...collectionItems];
-
-    if (selectedCountry) {
-      items = items.filter(item => item.banknote.country === selectedCountry);
+      
+      setCollectionItems(items);
+      
+      // Extract categories and types from collection items
+      const { categories, types } = await fetchBanknoteCategoriesAndTypes(items);
+      console.log('Extracted categories and types:', { categories, types });
+      
+      setCollectionCategories(categories);
+      setCollectionTypes(types);
+      
+    } catch (err) {
+      console.error('Error loading collection:', err);
+      setError('Failed to load your collection. Please try again later.');
+      toast({
+        title: 'Error',
+        description: 'Failed to load your collection',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
-
-    if (searchTerm) {
-      items = items.filter(item =>
-        item.banknote.denomination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.banknote.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.banknote.year.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.banknote.pickNumber?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    setFilteredItems(items);
-  }, [collectionItems, searchTerm, selectedCountry]);
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
   };
-
-  const handleCountryChange = (countryId: string) => {
-    setSelectedCountry(countryId === 'all' ? null : countryId);
+  
+  const handleAddItem = () => {
+    setEditingItem(null);
+    setShowForm(true);
   };
-
-  const handleUpdate = () => {
-    // Trigger refetch of data
-    window.location.reload();
-  };
-
+  
   const handleEditItem = (item: CollectionItem) => {
     setEditingItem(item);
+    setShowForm(true);
   };
-
+  
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingItem(null);
+  };
+  
   const handleSaveItem = async (updatedItem: CollectionItem) => {
     try {
       await updateCollectionItem(updatedItem.id, updatedItem);
       setEditingItem(null);
-      handleUpdate();
+      refetch();
+      toast({
+        title: "Success",
+        description: "Collection item updated successfully",
+      });
     } catch (error) {
-      console.error('Error saving item:', error);
+      console.error("Error updating collection item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update collection item",
+        variant: "destructive",
+      });
     }
   };
+  
+  const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    setCurrentFilters(prev => ({
+      ...prev,
+      ...newFilters
+    }));
+  }, []);
+  
+  // Handle view mode changes
+  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    // Save preference in session storage
+    try {
+      sessionStorage.setItem(`collectionViewMode-${user?.id}`, JSON.stringify(mode));
+    } catch (e) {
+      console.error("Unable to store view mode preference:", e);
+    }
+  }, [user]);
+  
+  // Handle group mode changes
+  const handleGroupModeChange = useCallback((mode: boolean) => {
+    setGroupMode(mode);
+    // Save preference in session storage
+    try {
+      sessionStorage.setItem(`collectionGroupMode-${user?.id}`, JSON.stringify(mode));
+    } catch (e) {
+      console.error("Unable to store group mode preference:", e);
+    }
+  }, [user]);
+  
+  // Create collection items with banknote data for filtering, but preserve ALL banknote data
+  const collectionItemsWithBanknote = useMemo(() => {
+    console.log("Collection - Creating collectionItemsWithBanknote with", collectionItems.length, "items");
+    
+    return collectionItems.map(item => {
+      // Log the original banknote data
+      console.log("Collection - Original banknote data for item", item.id, {
+        hasFullBanknote: !!item.banknote,
+        banknoteId: item.banknoteId,
+        country: item.banknote?.country,
+        denomination: item.banknote?.denomination,
+        year: item.banknote?.year,
+        series: item.banknote?.series,
+        type: item.banknote?.type,
+      });
+      
+      // Create a new object for filtering that preserves the original banknote
+      const result = {
+        ...item,
+        // Only add type info fields for filtering, but keep the original banknote intact
+        banknote: item.banknote ? {
+          ...item.banknote,
+          categoryId: '', // This will be populated
+          typeId: '', // This will be populated
+        } : {
+          id: item.banknoteId,
+          series: '',
+          type: '',
+          categoryId: '',
+          typeId: '',
+        }
+      };
+      
+      // Log the created item
+      console.log("Collection - Created item for filtering:", {
+        id: result.id,
+        banknoteId: result.banknoteId,
+        hasOriginalBanknoteData: !!result.banknote,
+        banknoteType: result.banknote?.type,
+        banknoteSeries: result.banknote?.series,
+      });
+      
+      return result;
+    });
+  }, [collectionItems]);
+  
+  // Use the dynamic filter hook
+  const { 
+    filteredItems,
+    groupedItems,
+    isLoading: filterLoading
+  } = useDynamicFilter({
+    items: collectionItemsWithBanknote,
+    initialFilters: currentFilters,
+    collectionCategories: collectionCategories,
+    collectionTypes: collectionTypes
+  });
 
   return (
-    <div>
-      <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden`}>
-        <div className="absolute inset-0 -z-10">
-          <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${theme === 'light'
-            ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
-            : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
-            } shadow-xl ring-1 ring-inset`} aria-hidden="true" />
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10 flex items-center justify-center">
-          <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
-            My Collection
-          </h1>
-        </div>
-        <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
-          Browse and manage your banknote collection
-        </p>
-      </section>
-
-      <div className="page-container">
-        <div className="max-w-6xl mx-auto">
-          <Tabs defaultValue="all" className="mb-10">
-            <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
-              <TabsList className="shrink-0">
-                <TabsTrigger value="all">All Items</TabsTrigger>
-                <TabsTrigger value="unlisted">Unlisted</TabsTrigger>
-              </TabsList>
-
-              <div className="flex items-center space-x-2">
-                <Select onValueChange={handleCountryChange} defaultValue="all">
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by Country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Countries</SelectItem>
-                    {countries.map(country => (
-                      <SelectItem key={country.id} value={country.name}>
-                        {country.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search collection..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={handleSearch}
-                  />
-                </div>
-              </div>
+    <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        {country ? (
+          <div className="flex flex-col gap-2 mb-4 md:mb-0">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/collection')}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back to Countries
+              </Button>
             </div>
-
-            <TabsContent value="all" className="mt-8">
-              {loading ? (
-                <div className="text-center py-10">
-                  <p>Loading collection items...</p>
+            <h1 className="text-3xl font-bold">
+              {country.name} Collection
+            </h1>
+          </div>
+        ) : (
+          <h1 className="text-3xl font-bold mb-4 md:mb-0">My Collection</h1>
+        )}
+        
+        <Button onClick={handleAddItem} className="flex items-center gap-2">
+          <Plus className="h-5 w-5" /> Add Item
+        </Button>
+      </div>
+      
+      {showForm && (
+        <div className="mb-8">
+          <CollectionItemForm
+            item={editingItem}
+            onSave={handleSaveItem}
+            onCancel={handleCloseForm}
+          />
+        </div>
+      )}
+      
+      <div className="bg-card border rounded-lg p-6 mb-6">
+        <CountryFilterSection
+          countryId={countryId || ""}
+          filters={currentFilters}
+          onFilterChange={handleFilterChange}
+          isLoading={loading || filterLoading}
+          onViewModeChange={handleViewModeChange}
+          groupMode={groupMode}
+          onGroupModeChange={handleGroupModeChange}
+          source="collection"
+          collectionCategories={collectionCategories}
+          collectionTypes={collectionTypes}
+        />
+        
+        <div className="mt-6">
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <h3 className="text-xl font-medium mb-4 text-red-500">{error}</h3>
+              <Button onClick={() => loadUserCollection()}>Retry</Button>
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="text-center py-8">
+              <h3 className="text-xl font-medium mb-4">
+                {collectionItems.length === 0
+                  ? country 
+                    ? `Your collection doesn't have any items from ${country.name}` 
+                    : "Your collection is empty"
+                  : "No items match your filter criteria"
+                }
+              </h3>
+              {collectionItems.length === 0 ? (
+                <div className="flex flex-col gap-4 items-center">
+                  <Button onClick={handleAddItem} className="mt-2">Add Your First Item</Button>
+                  {country && (
+                    <Button variant="outline" onClick={() => navigate(`/catalog/${countryId}`)}>
+                      Browse {country.name} Catalog
+                    </Button>
+                  )}
                 </div>
               ) : (
-                <>
-                  {filteredItems.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {filteredItems.map((item) => (
-                        <CollectionItemCard
-                          key={item.id}
-                          collectionItem={item}
-                          isOwner={true}
-                          onUpdate={handleUpdate}
-                          onEdit={() => handleEditItem(item)}
-                        />
+                <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {groupedItems.map((group, groupIndex) => (
+                <div key={`group-${groupIndex}`} className="space-y-4">
+                  <div className="sticky top-[100px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
+                    <h2 className="text-xl font-bold">{group.category}</h2>
+                  </div>
+                  
+                  {group.sultanGroups ? (
+                    // Group by sultan within category
+                    <div className="space-y-6">
+                      {group.sultanGroups.map((sultanGroup, sultanIndex) => (
+                        <div key={`sultan-${sultanIndex}`} className="space-y-4">
+                          <div className="sticky top-[150px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
+                            <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
+                              {sultanGroup.sultan}
+                            </h3>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {sultanGroup.items.map((item) => {
+                              const collectionItem = item as any as CollectionItem;
+                              return (
+                                <CollectionItemCard
+                                  key={collectionItem.id}
+                                  item={collectionItem}
+                                  onEdit={() => handleEditItem(collectionItem)}
+                                  onUpdate={loadUserCollection}
+                                  viewMode={viewMode}
+                                  isOwner={true} // User is always owner of their own collection
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-10">
-                      {searchTerm || selectedCountry ? (
-                        <p>No items found matching your search and filters.</p>
-                      ) : (
-                        <p>Your collection is empty. Start adding banknotes!</p>
-                      )}
+                    // Simple category grouping
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {group.items.map((item) => {
+                        const collectionItem = item as any as CollectionItem;
+                        return (
+                          <CollectionItemCard
+                            key={collectionItem.id}
+                            item={collectionItem}
+                            onEdit={() => handleEditItem(collectionItem)}
+                            onUpdate={loadUserCollection}
+                            viewMode={viewMode}
+                            isOwner={true} // User is always owner of their own collection
+                          />
+                        );
+                      })}
                     </div>
                   )}
-                </>
-              )}
-            </TabsContent>
-
-            <TabsContent value="unlisted" className="mt-8">
-              <div className="text-center py-10">
-                <p>Unlisted banknotes will be shown here.</p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {editingItem && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-4xl max-h-[90vh] overflow-y-auto">
-              <CollectionItemForm
-                item={editingItem}
-                onCancel={() => setEditingItem(null)}
-                onSaveComplete={() => {
-                  setEditingItem(null);
-                  handleUpdate();
-                }}
-              />
+                </div>
+              ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+      
+      <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
+        <DialogContentWithScroll className="sm:max-w-[600px]">
+          {editingItem && (
+            <CollectionItemForm
+              item={editingItem}
+              onCancel={() => setEditingItem(null)}
+              onSaveComplete={() => {
+                setEditingItem(null);
+                refetch();
+                toast({
+                  title: "Success",
+                  description: "Collection item updated successfully",
+                });
+              }}
+            />
+          )}
+        </DialogContentWithScroll>
+      </Dialog>
     </div>
   );
 };

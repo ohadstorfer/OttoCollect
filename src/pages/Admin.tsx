@@ -171,7 +171,7 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="stamps">
               <Stamp className="mr-2 h-4 w-4" />
-              Stamps Management
+              Stamps
             </TabsTrigger>
             <TabsTrigger value="countries">
               <Globe className="mr-2 h-4 w-4" />
@@ -219,7 +219,7 @@ const Admin = () => {
           <TabsContent value="stamps">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif">Stamps Management</CardTitle>
+                <CardTitle className="text-xl font-serif">Stamps</CardTitle>
               </CardHeader>
               <CardContent>
                 <StampsManagement />
