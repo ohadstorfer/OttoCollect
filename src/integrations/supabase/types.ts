@@ -892,6 +892,76 @@ export type Database = {
         }
         Relationships: []
       }
+      seal_pictures: {
+        Row: {
+          country_id: string
+          created_at: string
+          id: string
+          image_url: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seal_pictures_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signature_pictures: {
+        Row: {
+          country_id: string
+          created_at: string
+          id: string
+          image_url: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signature_pictures_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sort_fields: {
         Row: {
           created_at: string
@@ -1109,6 +1179,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_filter_preferences_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      watermark_pictures: {
+        Row: {
+          country_id: string
+          created_at: string
+          id: string
+          image_url: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watermark_pictures_country_id_fkey"
             columns: ["country_id"]
             isOneToOne: false
             referencedRelation: "countries"

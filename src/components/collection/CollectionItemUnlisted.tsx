@@ -6,7 +6,7 @@ import { CollectionItem } from '@/types';
 interface CollectionItemUnlistedProps {
   collectionItem: CollectionItem;
   isOwner: boolean;
-  onUpdate: () => void;
+  onUpdate: () => Promise<void>;
 }
 
 export default function CollectionItemUnlisted({ collectionItem, isOwner, onUpdate }: CollectionItemUnlistedProps) {

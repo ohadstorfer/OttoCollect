@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -171,18 +170,18 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel,
           <div>
             <Label>Obverse (Front)</Label>
             <CollectionImageUpload
-              imageUrl={formData.obverseImage}
-              onImageUpload={(url) => handleChange("obverseImage", url)}
-              imageType="obverse"
+              image={formData.obverseImage}
+              side="obverse"
+              onImageUploaded={(url) => handleChange("obverseImage", url)}
               disabled={isSubmitting}
             />
           </div>
           <div>
             <Label>Reverse (Back)</Label>
             <CollectionImageUpload
-              imageUrl={formData.reverseImage}
-              onImageUpload={(url) => handleChange("reverseImage", url)}
-              imageType="reverse"
+              image={formData.reverseImage}
+              side="reverse"
+              onImageUploaded={(url) => handleChange("reverseImage", url)}
               disabled={isSubmitting}
             />
           </div>

@@ -1,12 +1,12 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { User, LogOut, Settings, Home, BookOpen, ShoppingBag, Users, MessageSquare, Heart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileSidebarProps {
   isOpen: boolean;
@@ -14,11 +14,11 @@ interface ProfileSidebarProps {
 }
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange }) => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    await signOut();
+    await supabase.auth.signOut();
     onOpenChange(false);
     navigate('/');
   };

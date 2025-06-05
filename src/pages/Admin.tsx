@@ -5,13 +5,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Shield, Users, Book, Image, Globe, Settings } from 'lucide-react';
+import { Shield, Users, Book, Image, Globe, Settings, Stamp } from 'lucide-react';
 import UserManagement from '@/components/admin/UserManagement';
 import BanknotesManagement from '@/components/admin/BanknotesManagement';
 import ImageSuggestions from '@/components/admin/ImageSuggestions';
 import CountryManagement from '@/components/admin/CountryManagement';
 import CountryFilterSettings from '@/components/admin/CountryFilterSettings';
 import CountryAdminDashboard from '@/components/admin/CountryAdminDashboard';
+import StampsManagement from '@/components/admin/StampsManagement';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -168,6 +169,10 @@ const Admin = () => {
               <Image className="mr-2 h-4 w-4" />
               Image Suggestions
             </TabsTrigger>
+            <TabsTrigger value="stamps">
+              <Stamp className="mr-2 h-4 w-4" />
+              Stamps Management
+            </TabsTrigger>
             <TabsTrigger value="countries">
               <Globe className="mr-2 h-4 w-4" />
               Countries
@@ -211,6 +216,17 @@ const Admin = () => {
             </Card>
           </TabsContent>
           
+          <TabsContent value="stamps">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-serif">Stamps Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <StampsManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="countries">
             <CountryManagement />
           </TabsContent>

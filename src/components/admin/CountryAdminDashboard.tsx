@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BanknotesManagement from './BanknotesManagement';
 import ImageSuggestions from './ImageSuggestions';
 import CountryFilterSettings from './CountryFilterSettings';
+import StampsManagement from './StampsManagement';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CountryData } from '@/types';
@@ -77,6 +78,7 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
           <TabsList className="w-full">
             <TabsTrigger value="banknotes">Banknotes Management</TabsTrigger>
             <TabsTrigger value="images">Image Suggestions</TabsTrigger>
+            <TabsTrigger value="stamps">Stamps Management</TabsTrigger>
             <TabsTrigger value="filters">Filter Settings</TabsTrigger>
           </TabsList>
 
@@ -105,6 +107,22 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
                 <ImageSuggestions 
                   countryId={countryId}
                   countryName={adminCountry.name}
+                  isCountryAdmin={true}
+                  disableCountrySelect={true}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="stamps">
+            <Card>
+              <CardHeader>
+                <CardTitle>Stamps Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <StampsManagement 
+                  countryId={countryId}
+                  countryName={adminCountry?.name}
                   isCountryAdmin={true}
                   disableCountrySelect={true}
                 />
