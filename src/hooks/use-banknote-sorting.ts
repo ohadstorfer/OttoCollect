@@ -64,7 +64,7 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
             } else if (currencyB) { // Only B has a recognized currency
               comparison = 1;  // B comes before A
             } else { // Neither has a recognized currency, fallback to numeric value sort
-              comparison = valueA - valueB;
+            comparison = valueA - valueB;
             }
             break; // Crucial break
           }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { StampPicture, StampType } from '@/types/stamps';
 import { fetchStampPictures, deleteStampPicture } from '@/services/stampsService';
 import { useToast } from '@/hooks/use-toast';
 import StampImageEditDialog from './StampImageEditDialog';
+import { Dialog, DialogContentWithScroll } from '@/components/ui/dialog';
 
 interface StampPicturesManagerProps {
   stampType: StampType;
@@ -30,6 +30,7 @@ const StampPicturesManager: React.FC<StampPicturesManagerProps> = ({
   const [editingPicture, setEditingPicture] = useState<StampPicture | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pictureToDelete, setPictureToDelete] = useState<StampPicture | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     loadPictures();
@@ -101,6 +102,10 @@ const StampPicturesManager: React.FC<StampPicturesManagerProps> = ({
     loadPictures();
   };
 
+  const openImageViewer = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
+
   if (loading) {
     return <div className="text-center py-8">Loading...</div>;
   }
@@ -129,37 +134,56 @@ const StampPicturesManager: React.FC<StampPicturesManagerProps> = ({
           {searchTerm ? 'No images found matching your search.' : 'No images uploaded yet.'}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredPictures.map((picture) => (
-            <Card key={picture.id} className="group">
-              <CardContent className="p-4">
-                <div className="relative">
+            <Card 
+              key={picture.id} 
+              className="group overflow-hidden transition-all duration-200 hover:shadow-lg bg-card"
+            >
+              <CardContent className="p-0">
+                <div 
+                  className="relative w-full cursor-pointer"
+                  onClick={() => openImageViewer(picture.image_url)}
+                >
                   <img
                     src={picture.image_url}
                     alt={picture.name}
-                    className="w-full h-32 object-contain rounded-md border"
+                    className="w-full h-auto object-contain"
                   />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-white"
-                      onClick={() => handleEdit(picture)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDeleteClick(picture)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium truncate flex-1" title={picture.name}>
+                      {picture.name}
+                    </p>
+                    <div className="flex gap-2 ml-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(picture);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(picture);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Delete</span>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-                <p className="mt-2 text-sm font-medium truncate" title={picture.name}>
-                  {picture.name}
-                </p>
               </CardContent>
             </Card>
           ))}
@@ -189,6 +213,18 @@ const StampPicturesManager: React.FC<StampPicturesManagerProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {selectedImage && (
+        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContentWithScroll className="sm:max-w-[800px] p-1">
+            <img
+              src={selectedImage}
+              alt="Stamp detail"
+              className="w-full h-auto rounded"
+            />
+          </DialogContentWithScroll>
+        </Dialog>
+      )}
     </div>
   );
 };

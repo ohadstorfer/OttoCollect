@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -26,20 +25,29 @@ const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
   countryId,
   editingStamp
 }) => {
+  console.log('[StampImageEditDialog] Initializing with props:', { isOpen, stampType, countryId, editingStamp });
+  
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     image_url: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isImageUploading, setIsImageUploading] = useState(false);
 
   useEffect(() => {
+    console.log('[StampImageEditDialog] useEffect triggered:', { editingStamp, isOpen });
     if (editingStamp) {
+      console.log('[StampImageEditDialog] Setting form data from editingStamp:', { 
+        name: editingStamp.name, 
+        image_url: editingStamp.image_url 
+      });
       setFormData({
         name: editingStamp.name,
         image_url: editingStamp.image_url
       });
     } else {
+      console.log('[StampImageEditDialog] Resetting form data');
       setFormData({
         name: '',
         image_url: ''
@@ -49,8 +57,13 @@ const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('[StampImageEditDialog] handleSubmit called with formData:', formData);
+    console.log('[StampImageEditDialog] Current states:', { isSubmitting, isImageUploading });
     
     if (!formData.name.trim()) {
+      console.log('[StampImageEditDialog] Name validation failed');
       toast({
         title: "Name Required",
         description: "Please enter a name for the image.",
@@ -60,6 +73,7 @@ const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
     }
 
     if (!formData.image_url.trim()) {
+      console.log('[StampImageEditDialog] Image URL validation failed');
       toast({
         title: "Image Required",
         description: "Please upload an image.",
@@ -68,20 +82,36 @@ const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
       return;
     }
 
+    if (isImageUploading) {
+      console.log('[StampImageEditDialog] Attempted to submit while image is uploading');
+      toast({
+        title: "Wait for Upload",
+        description: "Please wait for the image to finish uploading.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
+    console.log('[StampImageEditDialog] Starting submission process');
+
     try {
       if (editingStamp) {
+        console.log('[StampImageEditDialog] Updating existing stamp:', { id: editingStamp.id, formData });
         await updateStampPicture(stampType, editingStamp.id, formData);
+        console.log('[StampImageEditDialog] Update successful');
         toast({
           title: "Success",
           description: "Image updated successfully.",
         });
       } else {
+        console.log('[StampImageEditDialog] Creating new stamp:', { formData, countryId });
         const data: StampUploadData = {
           ...formData,
           country_id: countryId
         };
         await createStampPicture(stampType, data);
+        console.log('[StampImageEditDialog] Creation successful');
         toast({
           title: "Success",
           description: "Image created successfully.",
@@ -90,37 +120,74 @@ const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('Error saving stamp image:', error);
+      console.error('[StampImageEditDialog] Error in submission:', error);
       toast({
         title: "Error",
         description: "Failed to save image. Please try again.",
         variant: "destructive",
       });
     } finally {
+      console.log('[StampImageEditDialog] Submission process completed');
       setIsSubmitting(false);
     }
   };
 
   const handleImageUploaded = (url: string) => {
-    setFormData(prev => ({ ...prev, image_url: url }));
+    console.log('[StampImageEditDialog] Image uploaded callback received with URL:', url);
+    setFormData(prev => {
+      console.log('[StampImageEditDialog] Updating form data with new image URL. Previous:', prev);
+      return { ...prev, image_url: url };
+    });
   };
 
+  const handleImageUploadStart = () => {
+    console.log('[StampImageEditDialog] Image upload started');
+    setIsImageUploading(true);
+  };
+
+  const handleImageUploadEnd = () => {
+    console.log('[StampImageEditDialog] Image upload ended');
+    setIsImageUploading(false);
+  };
+
+  const handleClose = () => {
+    console.log('[StampImageEditDialog] Handling close');
+    if (isImageUploading) {
+      console.log('[StampImageEditDialog] Preventing close during upload');
+      toast({
+        title: "Wait for Upload",
+        description: "Please wait for the image to finish uploading.",
+        variant: "destructive",
+      });
+      return;
+    }
+    onClose();
+  };
+
+  console.log('[StampImageEditDialog] Rendering with states:', { formData, isSubmitting, isImageUploading });
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      console.log('[StampImageEditDialog] Dialog onOpenChange:', open);
+      if (!open) handleClose();
+    }}>
+      <DialogContent className="max-w-md" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>
             {editingStamp ? 'Edit' : 'Add'} {stampType.charAt(0).toUpperCase() + stampType.slice(1)} Image
           </DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" onClick={(e) => e.stopPropagation()}>
           <div>
             <Label htmlFor="name">Name</Label>
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => {
+                console.log('[StampImageEditDialog] Name input changed:', e.target.value);
+                setFormData(prev => ({ ...prev, name: e.target.value }));
+              }}
               placeholder="Enter image name"
               disabled={isSubmitting}
             />
@@ -131,6 +198,8 @@ const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
             <StampImageUpload
               imageUrl={formData.image_url}
               onImageUploaded={handleImageUploaded}
+              onUploadStart={handleImageUploadStart}
+              onUploadEnd={handleImageUploadEnd}
               disabled={isSubmitting}
             />
           </div>
@@ -139,13 +208,22 @@ const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[StampImageEditDialog] Cancel button clicked');
+                handleClose();
+              }}
+              disabled={isSubmitting || isImageUploading}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || isImageUploading}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {isSubmitting ? 'Saving...' : (isImageUploading ? 'Uploading...' : 'Save')}
             </Button>
           </div>
         </form>

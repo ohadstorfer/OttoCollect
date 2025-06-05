@@ -430,79 +430,79 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input maxLength={30} {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            For example: Check
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input maxLength={30} {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          For example: Check
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   </div>
                   {/* Category and Type Row */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-7">
-                    <FormField
-                      control={form.control}
-                      name="categoryId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Category</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder={loadingCategories ? "Loading..." : "Select category"} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {categories.map((cat) => (
-                                  <SelectItem value={cat.id} key={cat.id}>{cat.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
+                  <FormField
+                    control={form.control}
+                    name="categoryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={loadingCategories ? "Loading..." : "Select category"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((cat) => (
+                                <SelectItem value={cat.id} key={cat.id}>{cat.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
                           <FormDescription>
                             Default to Unlisted Banknotes.
                           </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="typeId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Type</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder={loadingTypes ? "Loading..." : "Select type"} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {types.map((type) => (
-                                  <SelectItem value={type.id} key={type.id}>{type.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="typeId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Type</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={loadingTypes ? "Loading..." : "Select type"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {types.map((type) => (
+                                <SelectItem value={type.id} key={type.id}>{type.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 </div>
 
                 {/* Public Note */}

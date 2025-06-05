@@ -66,7 +66,7 @@ export default function ForumComment({
     setEditContent(content);
     setIsEditing(false);
   };
-
+  
   return (
     <div className="border-l-2 border-muted pl-4 py-3">
       <div className="flex items-start justify-between mb-2">
@@ -79,7 +79,7 @@ export default function ForumComment({
           />
           <RankBadge rank={author.rank as any} size="sm" />
         </div>
-        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
             {new Date(createdAt).toLocaleDateString()}
             {isEdited && <span className="ml-1">(edited)</span>}
@@ -95,37 +95,37 @@ export default function ForumComment({
             </Button>
           )}
         </div>
-      </div>
-
-      {isEditing ? (
+          </div>
+          
+          {isEditing ? (
         <div className="space-y-3">
-          <Textarea
+              <Textarea 
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
             className="min-h-[80px]"
             placeholder="Write your comment..."
           />
           <div className="flex gap-2">
-            <Button
-              size="sm"
+                <Button 
+                  size="sm" 
               onClick={handleSave}
               disabled={isSaving || !editContent.trim()}
-            >
+                >
               <Save className="h-3 w-3 mr-1" />
               {isSaving ? 'Saving...' : 'Save'}
-            </Button>
-            <Button
-              size="sm"
+                </Button>
+                <Button 
+                  size="sm" 
               variant="outline"
               onClick={handleCancel}
               disabled={isSaving}
-            >
+                >
               <X className="h-3 w-3 mr-1" />
               Cancel
-            </Button>
-          </div>
-        </div>
-      ) : (
+                </Button>
+              </div>
+            </div>
+          ) : (
         <div className="prose prose-sm max-w-none">
           <p className="text-sm whitespace-pre-wrap">{content}</p>
         </div>
