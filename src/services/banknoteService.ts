@@ -292,7 +292,12 @@ export const uploadBanknoteImage = async (file: File): Promise<string> => {
 
 // Helper function to map database fields to client-side model
 export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
-  return {
+  console.log('[mapBanknoteFromDatabase] Raw database item:', item);
+  console.log('[mapBanknoteFromDatabase] Signature picture URLs:', item.signature_picture_urls);
+  console.log('[mapBanknoteFromDatabase] Seal picture URLs:', item.seal_picture_urls);
+  console.log('[mapBanknoteFromDatabase] Watermark picture URL:', item.watermark_picture_url);
+  
+  const mapped = {
     id: item.id,
     catalogId: item.extended_pick_number || '',
     extendedPickNumber: item.extended_pick_number || '', 
@@ -334,4 +339,11 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     sealPictureUrls: item.seal_picture_urls || [],
     watermarkUrl: item.watermark_picture_url || null,
   } as DetailedBanknote;
+
+  console.log('[mapBanknoteFromDatabase] Mapped banknote:', mapped);
+  console.log('[mapBanknoteFromDatabase] Final signaturePictureUrls:', mapped.signaturePictureUrls);
+  console.log('[mapBanknoteFromDatabase] Final sealPictureUrls:', mapped.sealPictureUrls);
+  console.log('[mapBanknoteFromDatabase] Final watermarkUrl:', mapped.watermarkUrl);
+
+  return mapped;
 }

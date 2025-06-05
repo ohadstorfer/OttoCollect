@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -28,6 +27,8 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
   // Determine which ID to use
   const itemId = id || banknoteId;
 
+  console.log('[BanknoteCollectionDetail] Component mounted with params:', { id, banknoteId, itemId });
+
   // Fetch collection item data
   const { data: collectionItem, isLoading, refetch } = useQuery({
     queryKey: ["collectionItem", itemId],
@@ -35,7 +36,29 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
     enabled: !!itemId,
   });
 
+  console.log('[BanknoteCollectionDetail] Query state:', { 
+    isLoading, 
+    hasData: !!collectionItem,
+    itemId 
+  });
+
+  if (collectionItem) {
+    console.log('[BanknoteCollectionDetail] Collection item received:', collectionItem);
+    console.log('[BanknoteCollectionDetail] Banknote data:', collectionItem.banknote);
+    
+    if (collectionItem.banknote) {
+      console.log('[BanknoteCollectionDetail] Banknote stamp image data:');
+      console.log('  - signaturePictureUrls:', collectionItem.banknote.signaturePictureUrls);
+      console.log('  - sealPictureUrls:', collectionItem.banknote.sealPictureUrls);
+      console.log('  - watermarkUrl:', collectionItem.banknote.watermarkUrl);
+      console.log('  - signaturePictureUrls type:', typeof collectionItem.banknote.signaturePictureUrls);
+      console.log('  - sealPictureUrls type:', typeof collectionItem.banknote.sealPictureUrls);
+      console.log('  - watermarkUrl type:', typeof collectionItem.banknote.watermarkUrl);
+    }
+  }
+
   if (isLoading || !collectionItem) {
+    console.log('[BanknoteCollectionDetail] Loading or no data state');
     return (
       <div className="p-4">
         <p className="text-muted-foreground text-center">Loading collection details...</p>
@@ -46,8 +69,14 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
   const isUnlisted = collectionItem.is_unlisted_banknote;
 
   const openImageViewer = (imageUrl: string) => {
+    console.log('[BanknoteCollectionDetail] Opening image viewer for:', imageUrl);
     setSelectedImage(imageUrl);
   };
+
+  console.log('[BanknoteCollectionDetail] About to render with stamp data:');
+  console.log('  - Signature URLs:', collectionItem.banknote?.signaturePictureUrls);
+  console.log('  - Seal URLs:', collectionItem.banknote?.sealPictureUrls);
+  console.log('  - Watermark URL:', collectionItem.banknote?.watermarkUrl);
 
   return (
     <div className="p-6">
@@ -203,15 +232,21 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
               <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Signature Pictures</span>
               <div className="flex flex-wrap gap-2">
-                {collectionItem.banknote.signaturePictureUrls.map((url, index) => (
-                  <img
-                    key={index}
-                    src={url}
-                    alt={`Signature ${index + 1}`}
-                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                    onClick={() => openImageViewer(url)}
-                  />
-                ))}
+                {(() => {
+                  console.log('[BanknoteCollectionDetail] Rendering signature pictures:', collectionItem.banknote.signaturePictureUrls);
+                  return collectionItem.banknote.signaturePictureUrls.map((url, index) => {
+                    console.log('[BanknoteCollectionDetail] Rendering signature image:', { index, url });
+                    return (
+                      <img
+                        key={index}
+                        src={url}
+                        alt={`Signature ${index + 1}`}
+                        className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                        onClick={() => openImageViewer(url)}
+                      />
+                    );
+                  });
+                })()}
               </div>
             </div>
           )}
@@ -221,15 +256,21 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
               <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Seal Pictures</span>
               <div className="flex flex-wrap gap-2">
-                {collectionItem.banknote.sealPictureUrls.map((url, index) => (
-                  <img
-                    key={index}
-                    src={url}
-                    alt={`Seal ${index + 1}`}
-                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                    onClick={() => openImageViewer(url)}
-                  />
-                ))}
+                {(() => {
+                  console.log('[BanknoteCollectionDetail] Rendering seal pictures:', collectionItem.banknote.sealPictureUrls);
+                  return collectionItem.banknote.sealPictureUrls.map((url, index) => {
+                    console.log('[BanknoteCollectionDetail] Rendering seal image:', { index, url });
+                    return (
+                      <img
+                        key={index}
+                        src={url}
+                        alt={`Seal ${index + 1}`}
+                        className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                        onClick={() => openImageViewer(url)}
+                      />
+                    );
+                  });
+                })()}
               </div>
             </div>
           )}
@@ -238,12 +279,17 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           {collectionItem.banknote?.watermarkUrl && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
               <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Watermark</span>
-              <img
-                src={collectionItem.banknote.watermarkUrl}
-                alt="Watermark"
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => openImageViewer(collectionItem.banknote.watermarkUrl!)}
-              />
+              {(() => {
+                console.log('[BanknoteCollectionDetail] Rendering watermark image:', collectionItem.banknote.watermarkUrl);
+                return (
+                  <img
+                    src={collectionItem.banknote.watermarkUrl}
+                    alt="Watermark"
+                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                    onClick={() => openImageViewer(collectionItem.banknote.watermarkUrl!)}
+                  />
+                );
+              })()}
             </div>
           )}
         </div>

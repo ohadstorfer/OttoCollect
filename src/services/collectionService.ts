@@ -129,7 +129,7 @@ export async function fetchUserCollectionByCountry(
 
 export async function fetchCollectionItem(itemId: string): Promise<CollectionItem | null> {
   try {
-    console.log('Fetching collection item with ID:', itemId);
+    console.log('[fetchCollectionItem] Fetching collection item with ID:', itemId);
     
     const { data: item, error } = await supabase
       .from('collection_items')
@@ -142,17 +142,22 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
       .single();
 
     if (error) {
-      console.error('Error fetching collection item:', error);
+      console.error('[fetchCollectionItem] Error fetching collection item:', error);
       return null;
     }
 
     if (!item) {
+      console.log('[fetchCollectionItem] No collection item found with ID:', itemId);
       return null;
     }
+
+    console.log('[fetchCollectionItem] Raw collection item data:', item);
 
     // If this is a regular banknote, fetch enhanced data
     let banknoteData;
     if (!item.is_unlisted_banknote && item.banknote_id) {
+      console.log('[fetchCollectionItem] Fetching enhanced banknote data for ID:', item.banknote_id);
+      
       const { data: enhancedBanknote, error: enhancedError } = await supabase
         .from('enhanced_detailed_banknotes')
         .select('*')
@@ -160,23 +165,28 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
         .single();
 
       if (enhancedError) {
-        console.error('Error fetching enhanced banknote data:', enhancedError);
+        console.error('[fetchCollectionItem] Error fetching enhanced banknote data:', enhancedError);
+        console.log('[fetchCollectionItem] Falling back to regular banknote data');
         banknoteData = mapBanknoteFromDatabase(item.banknote);
       } else {
+        console.log('[fetchCollectionItem] Enhanced banknote data received:', enhancedBanknote);
         banknoteData = mapBanknoteFromDatabase(enhancedBanknote);
       }
     } else if (item.is_unlisted_banknote && item.unlisted_banknote) {
+      console.log('[fetchCollectionItem] Processing unlisted banknote');
       banknoteData = {
         ...mapBanknoteFromDatabase(item.unlisted_banknote),
         name: item.unlisted_banknote.name
       } as any;
     }
 
-    return {
+    console.log('[fetchCollectionItem] Final processed banknote data:', banknoteData);
+
+    const collectionItem = {
       id: item.id,
       userId: item.user_id,
       banknoteId: item.is_unlisted_banknote ? item.unlisted_banknotes_id : item.banknote_id,
-      isUnlistedBanknote: item.is_unlisted_banknote,
+      is_unlisted_banknote: item.is_unlisted_banknote,
       salePrice: item.sale_price,
       isForSale: item.is_for_sale,
       purchasePrice: item.purchase_price,
@@ -196,8 +206,16 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
       banknote: banknoteData || null
     };
 
+    console.log('[fetchCollectionItem] Final collection item result:', collectionItem);
+    console.log('[fetchCollectionItem] Collection item banknote stamp URLs:');
+    console.log('  - signaturePictureUrls:', collectionItem.banknote?.signaturePictureUrls);
+    console.log('  - sealPictureUrls:', collectionItem.banknote?.sealPictureUrls);
+    console.log('  - watermarkUrl:', collectionItem.banknote?.watermarkUrl);
+
+    return collectionItem;
+
   } catch (error) {
-    console.error('Unexpected error in fetchCollectionItem:', error);
+    console.error('[fetchCollectionItem] Unexpected error:', error);
     return null;
   }
 }
