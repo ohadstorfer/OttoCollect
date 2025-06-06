@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, ImagePlus } from 'lucide-react';
 import { StampPicture, StampType } from '@/types/stamps';
 import { fetchStampPictures, deleteStampPicture } from '@/services/stampsService';
 import { useToast } from '@/hooks/use-toast';
@@ -123,9 +123,9 @@ const StampPicturesManager: React.FC<StampPicturesManagerProps> = ({
           />
         </div>
         
-        <Button onClick={handleAddNew}>
-          <Plus className="h-4 w-4 mr-2" />
-          Upload Image
+        <Button onClick={handleAddNew} variant="outline">
+        <ImagePlus className="h-4 w-4" />
+         
         </Button>
       </div>
 
