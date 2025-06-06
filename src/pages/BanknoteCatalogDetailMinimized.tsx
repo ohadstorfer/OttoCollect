@@ -66,6 +66,14 @@ const BanknoteCatalogDetailMinimized: React.FC = () => {
     );
   }
 
+  // Log the resolved URLs for testing
+  console.log("BanknoteCatalogDetailMinimized - Banknote resolved URLs:", {
+    id: banknote.id,
+    signaturePictureUrls: banknote.signaturePictureUrls,
+    sealPictureUrls: banknote.sealPictureUrls,
+    watermarkUrl: banknote.watermarkUrl
+  });
+
   // Define detail groups similar to BanknoteCatalogDetail.tsx
   const detailGroups = [
     {
@@ -102,6 +110,31 @@ const BanknoteCatalogDetailMinimized: React.FC = () => {
         { label: "Seal Names", value: banknote.sealNames, icon: <Stamp className="h-4 w-4" /> },
         { label: "Front Signatures", value: banknote.signaturesFront, icon: <Hash className="h-4 w-4" /> },
         { label: "Back Signatures", value: banknote.signaturesBack, icon: <Hash className="h-4 w-4" /> }
+      ]
+    },
+    {
+      title: "Stamp Images",
+      icon: <Stamp className="h-5 w-5" />,
+      fields: [
+        { 
+          label: "Signature Images", 
+          value: banknote.signaturePictureUrls && banknote.signaturePictureUrls.length > 0 ? 
+            `${banknote.signaturePictureUrls.length} image(s)` : 
+            "No signature images", 
+          icon: <PenTool className="h-4 w-4" /> 
+        },
+        { 
+          label: "Seal Images", 
+          value: banknote.sealPictureUrls && banknote.sealPictureUrls.length > 0 ? 
+            `${banknote.sealPictureUrls.length} image(s)` : 
+            "No seal images", 
+          icon: <Stamp className="h-4 w-4" /> 
+        },
+        { 
+          label: "Watermark Image", 
+          value: banknote.watermarkUrl ? "Available" : "No watermark image", 
+          icon: <Shield className="h-4 w-4" /> 
+        }
       ]
     }
   ];
@@ -174,6 +207,47 @@ const BanknoteCatalogDetailMinimized: React.FC = () => {
                 </CardContent>
               </Card>
             )}
+          </div>
+        )}
+        
+        {/* Display resolved stamp image URLs for testing */}
+        {(banknote.signaturePictureUrls?.length || banknote.sealPictureUrls?.length || banknote.watermarkUrl) && (
+          <div className="mt-6">
+            <Card className="overflow-hidden">
+              <CardHeader className="py-3 px-4 bg-muted/30">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Stamp className="h-4 w-4" /> Resolved Image URLs (Testing)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 text-sm space-y-2">
+                {banknote.signaturePictureUrls && banknote.signaturePictureUrls.length > 0 && (
+                  <div>
+                    <strong>Signature URLs:</strong>
+                    <ul className="list-disc ml-4">
+                      {banknote.signaturePictureUrls.map((url, index) => (
+                        <li key={index} className="break-all">{url}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {banknote.sealPictureUrls && banknote.sealPictureUrls.length > 0 && (
+                  <div>
+                    <strong>Seal URLs:</strong>
+                    <ul className="list-disc ml-4">
+                      {banknote.sealPictureUrls.map((url, index) => (
+                        <li key={index} className="break-all">{url}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {banknote.watermarkUrl && (
+                  <div>
+                    <strong>Watermark URL:</strong>
+                    <div className="break-all">{banknote.watermarkUrl}</div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         )}
       </CardContent>

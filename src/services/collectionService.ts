@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { CollectionItem, DetailedBanknote } from '@/types';
 import { mapBanknoteFromDatabase } from './banknoteService';
@@ -31,26 +32,45 @@ export const uploadCollectionImage = async (file: File): Promise<string> => {
 };
 
 // Function to add a banknote to a user's collection
-export const addToCollection = async (
-  userId: string,
-  banknoteId: string,
-  condition?: string,
-  grade_by?: string,
-  grade?: string,
-  grade_condition_description?: string,
-  purchasePrice?: number,
-  purchaseDate?: string | Date,
-  location?: string,
-  obverseImage?: string,
-  reverseImage?: string,
-  personalImages?: string[],
-  publicNote?: string,
-  privateNote?: string,
-  isForSale: boolean = false,
-  salePrice?: number,
-  orderIndex?: number,
-  is_unlisted_banknote: boolean = false
-): Promise<CollectionItem | null> => {
+export const addToCollection = async ({
+  userId,
+  banknoteId,
+  condition,
+  grade_by,
+  grade,
+  grade_condition_description,
+  purchasePrice,
+  purchaseDate,
+  location,
+  obverseImage,
+  reverseImage,
+  personalImages,
+  publicNote,
+  privateNote,
+  isForSale = false,
+  salePrice,
+  orderIndex,
+  is_unlisted_banknote = false
+}: {
+  userId: string;
+  banknoteId: string;
+  condition?: string;
+  grade_by?: string;
+  grade?: string;
+  grade_condition_description?: string;
+  purchasePrice?: number;
+  purchaseDate?: string | Date;
+  location?: string;
+  obverseImage?: string;
+  reverseImage?: string;
+  personalImages?: string[];
+  publicNote?: string;
+  privateNote?: string;
+  isForSale?: boolean;
+  salePrice?: number;
+  orderIndex?: number;
+  is_unlisted_banknote?: boolean;
+}): Promise<CollectionItem | null> => {
   try {
     const { data, error } = await supabase
       .from('collection_items')
@@ -62,16 +82,16 @@ export const addToCollection = async (
           grade_by,
           grade,
           grade_condition_description,
-          purchase_price,
+          purchase_price: purchasePrice,
           purchase_date: purchaseDate,
           location,
-          obverse_image,
-          reverse_image,
+          obverse_image: obverseImage,
+          reverse_image: reverseImage,
           personal_images: personalImages,
-          public_note,
-          private_note,
+          public_note: publicNote,
+          private_note: privateNote,
           is_for_sale: isForSale,
-          sale_price,
+          sale_price: salePrice,
           order_index: orderIndex,
           is_unlisted_banknote
         },
