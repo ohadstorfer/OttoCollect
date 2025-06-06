@@ -403,25 +403,7 @@ export default function CollectionItem() {
               </CardContent>
             </Card>
 
-            {/* Banknote Details */}
-            <Card className="border-t-4 border-t-primary shadow-md">
-              <CardHeader className="border-b bg-muted/20">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-xl m-0">
-                    Banknote Details
-                  </CardTitle>
-                </div>
-                <CardDescription>
-                  Detailed information about this banknote
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                <BanknoteCatalogDetailMinimized 
-                  banknote={collectionItem.banknote} 
-                  onImageClick={(url) => setSelectedImage(url)} 
-                />
-              </CardContent>
-            </Card>
+            
           </div>
         </div>
 
