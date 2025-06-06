@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters } from '@/types';
 
@@ -5,7 +6,7 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
   try {
     console.log("Fetching banknotes with filters:", filters);
     let query = supabase
-      .from('detailed_banknotes')
+      .from('enhanced_detailed_banknotes')
       .select('*');
     
     // Apply filters if provided
@@ -32,6 +33,7 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
       return [];
     }
 
+    console.log("Raw banknotes data from enhanced view:", data);
     return data.map(banknote => mapBanknoteFromDatabase(banknote));
   } catch (error) {
     console.error('Unexpected error in fetchBanknotes:', error);
@@ -106,9 +108,9 @@ export async function fetchBanknotesByCountryId(
       }
     }
     
-    // Build the query with the country filter - using the detailed_banknotes
+    // Build the query with the country filter - using the enhanced_detailed_banknotes view
     let query = supabase
-      .from('detailed_banknotes')
+      .from('enhanced_detailed_banknotes')
       .select('*')
       .eq('country', country.name);
     
@@ -132,6 +134,12 @@ export async function fetchBanknotesByCountryId(
     }
 
     console.log(`[fetchBanknotesByCountryId] Raw banknote data response for country "${country.name}":`, data);
+    console.log(`[fetchBanknotesByCountryId] Sample banknote with resolved URLs:`, data?.[0] ? {
+      id: data[0].id,
+      signature_picture_urls: data[0].signature_picture_urls,
+      seal_picture_urls: data[0].seal_picture_urls,
+      watermark_picture_url: data[0].watermark_picture_url
+    } : 'No data');
 
     // Filter by category and type on the server side
     let filteredData = [...(data || [])];
@@ -177,6 +185,14 @@ export async function fetchBanknotesByCountryId(
 
     // Map database fields to client-side model
     const banknotes = filteredData.map(mapBanknoteFromDatabase);
+    console.log(`[fetchBanknotesByCountryId] Mapped banknotes with resolved URLs:`, banknotes.length > 0 ? {
+      firstBanknote: {
+        id: banknotes[0].id,
+        signaturePictureUrls: banknotes[0].signaturePictureUrls,
+        sealPictureUrls: banknotes[0].sealPictureUrls, 
+        watermarkUrl: banknotes[0].watermarkUrl
+      }
+    } : 'No banknotes to map');
     
     return banknotes;
   } catch (error) {
@@ -194,7 +210,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
     
     console.log(`Fetching banknote with ID: ${id}`);
     const { data, error } = await supabase
-      .from('detailed_banknotes')
+      .from('enhanced_detailed_banknotes')
       .select('*')
       .eq('id', id)
       .maybeSingle();
@@ -209,6 +225,13 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       return null;
     }
     
+    console.log(`Fetched banknote with resolved URLs:`, {
+      id: data.id,
+      signature_picture_urls: data.signature_picture_urls,
+      seal_picture_urls: data.seal_picture_urls,
+      watermark_picture_url: data.watermark_picture_url
+    });
+    
     return mapBanknoteFromDatabase(data);
   } catch (error) {
     console.error('Unexpected error in fetchBanknoteById:', error);
@@ -219,7 +242,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
 export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote | null> {
   try {
     const { data, error } = await supabase
-      .from('detailed_banknotes')
+      .from('enhanced_detailed_banknotes')
       .select('*')
       .eq('id', id)
       .single();
@@ -233,6 +256,13 @@ export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote 
       return null;
     }
     
+    console.log(`Fetched banknote detail with resolved URLs:`, {
+      id: data.id,
+      signature_picture_urls: data.signature_picture_urls,
+      seal_picture_urls: data.seal_picture_urls,
+      watermark_picture_url: data.watermark_picture_url
+    });
+    
     return mapBanknoteFromDatabase(data);
   } catch (error) {
     console.error('Unexpected error in fetchBanknoteDetail:', error);
@@ -244,7 +274,7 @@ export async function searchBanknotes(searchTerm: string): Promise<DetailedBankn
   try {
     console.log("Searching banknotes with term:", searchTerm);
     const { data, error } = await supabase
-      .from('detailed_banknotes')
+      .from('enhanced_detailed_banknotes')
       .select('*')
       .or(`extended_pick_number.ilike.%${searchTerm}%,face_value.ilike.%${searchTerm}%,banknote_description.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
       .limit(20);
@@ -291,7 +321,7 @@ export const uploadBanknoteImage = async (file: File): Promise<string> => {
 
 // Helper function to map database fields to client-side model
 export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
-  return {
+  const mapped = {
     id: item.id,
     catalogId: item.extended_pick_number || '',
     extendedPickNumber: item.extended_pick_number || '', 
@@ -328,5 +358,19 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     signaturesBack: item.signatures_back || '',
     colors: item.colors,
     watermark: item.watermark_picture,
+    
+    // Add the new resolved URL fields from the enhanced view
+    signaturePictureUrls: item.signature_picture_urls || [],
+    sealPictureUrls: item.seal_picture_urls || [],
+    watermarkUrl: item.watermark_picture_url || null,
   } as DetailedBanknote;
+
+  console.log(`mapBanknoteFromDatabase - Mapped banknote ${item.id} with resolved URLs:`, {
+    id: mapped.id,
+    signaturePictureUrls: mapped.signaturePictureUrls,
+    sealPictureUrls: mapped.sealPictureUrls,
+    watermarkUrl: mapped.watermarkUrl
+  });
+
+  return mapped;
 }
