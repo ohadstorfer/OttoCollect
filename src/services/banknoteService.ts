@@ -369,7 +369,12 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     id: mapped.id,
     signaturePictureUrls: mapped.signaturePictureUrls,
     sealPictureUrls: mapped.sealPictureUrls,
-    watermarkUrl: mapped.watermarkUrl
+    watermarkUrl: mapped.watermarkUrl,
+    rawData: {
+      signature_picture_urls: item.signature_picture_urls,
+      seal_picture_urls: item.seal_picture_urls,
+      watermark_picture_url: item.watermark_picture_url
+    }
   });
 
   return mapped;
