@@ -42,6 +42,7 @@ import { fetchUserCollection } from "@/services/collectionService";
 import { addToWishlist, fetchWishlistItem } from "@/services/wishlistService";
 // Removed invalid imports from wishlistService
 import { useToast } from "@/hooks/use-toast";
+import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
 
 interface LabelValuePairProps {
   label: string;
@@ -305,12 +306,12 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     return (
       <div className="page-container">
         <h1 className="page-title">Banknote Details</h1>
-        
+
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
             <h2 className="text-2xl font-serif mb-4">Join the Community</h2>
             <p className="mb-6 text-muted-foreground">
-            Please sign in to view the details of this banknote.
+              Please sign in to view the details of this banknote.
             </p>
             <Button onClick={() => navigate('/auth')}>
               <LogIn className="mr-2 h-4 w-4" />
@@ -321,7 +322,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       </div>
     );
   }
-  
+
 
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);
@@ -375,16 +376,16 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       {renderOwnershipToast()}
       <div className="flex flex-col ">
         <div className="space-y-1 page-container max-w-5xl mx-auto">
-        <div className="flex items-baseline  gap-4">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            {banknote.denomination}
-          </h1>
-          {banknote.extendedPickNumber && (
-                <p className="text-xl leading-tight">
-                  {banknote.extendedPickNumber}
-                </p>
-              )}
-              </div>
+          <div className="flex items-baseline  gap-4">
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              {banknote.denomination}
+            </h1>
+            {banknote.extendedPickNumber && (
+              <p className="text-xl leading-tight">
+                {banknote.extendedPickNumber}
+              </p>
+            )}
+          </div>
           <div className="flex items-center justify-between">
             <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
             {!propsId && (
@@ -474,142 +475,36 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
-                  <CardTitle className="text-xl">Banknote Details</CardTitle>
-                  {/* After collection is loaded, render ONLY the correct button */}
-                  {user && !collectionLoading && (
-                    shouldShowCheckButton ? (
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className={checkButtonClass}
-                        aria-label="You already own this banknote"
-                        onClick={handleOwnershipCheckButton}
-                        tabIndex={0}
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        {/* === Only show if NOT in wishlist and hasn't just been added, and not loading === */}
-                        {!wishlistLoading && !wishlistItem && !hasJustBeenWishlisted && (
-                           <Button
-                           variant="ghost"
-                           size="icon"
-                            onClick={handleAddToWishList}
-                            title="Add to wish list"
-
-                          >
-                            <HeartIcon className="h-4 w-4" />
-                          </Button>
-                        )}
-
-                        <Button
-                          variant="default"
-                          size="icon"
-                          onClick={async () => {
-                            await handleAddToCollection();
-                            setHasJustBeenAdded(true);
-                            toast({
-                              title: "Added to your collection!",
-                              description: "This banknote was added. Visit your collection to edit its details.",
-                              className: "justify-center items-center w-full",
-                              duration: 3000,
-                            });
-                          }}
-                          disabled={adding}
-                          title="Add this banknote to your collection"
-                        >
-                          <Plus className="w-6 h-6" style={{ width: "1.4rem", height: "1.4rem" }} />
-                        </Button>
-                      </div>
-                    )
-                  )}
+                  <CardTitle className="text-xl m-0">
+                    Banknote Details
+                  </CardTitle>
                 </div>
-                <CardDescription>Complete information about this banknote</CardDescription>
+                <CardDescription>
+                  Detailed information about this banknote
+                </CardDescription>
               </CardHeader>
-
-              <CardContent className="p-2">
-                <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-0">
-                  {detailGroups.map((group, groupIndex) => (
-                    <AccordionItem
-                      key={`item-${groupIndex}`}
-                      value={`item-${groupIndex}`}
-                      className="border rounded-md "
-                    >
-                      <AccordionTrigger className="hover:no-underline px-4">
-                        <div className="flex items-center gap-2">
-                          {group.icon}
-                          <span className="font-medium">{group.title}</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4 pb-4">
-                        <div className="space-y-2">
-                          {group.fields
-                            .filter(field => field.value !== null && field.value !== undefined)
-                            .map((field, fieldIndex) => (
-                              <LabelValuePair
-                                key={fieldIndex}
-                                label={field.label}
-                                value={field.value.toString()}
-                                icon={field.icon}
-                              />
-                            ))}
-                          {!group.fields.some(field => field.value !== null && field.value !== undefined) && (
-                            <p className="text-sm text-muted-foreground italic py-2">No information available</p>
-                          )}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-
-                {(banknote.banknoteDescription || banknote.historicalDescription) && (
-                  <div className="mt-6 space-y-4">
-                    {banknote.banknoteDescription && (
-                      <Card className="overflow-hidden">
-                        <CardHeader className="py-3 px-4 bg-muted/30">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <FileText className="h-4 w-4" /> Banknote Description
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 text-sm">
-                          {banknote.banknoteDescription}
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {banknote.historicalDescription && (
-                      <Card className="overflow-hidden">
-                        <CardHeader className="py-3 px-4 bg-muted/30">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <History className="h-4 w-4" /> Historical Background
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 text-sm">
-                          {banknote.historicalDescription}
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                )}
+              <CardContent className="p-6">
+                <BanknoteCatalogDetailMinimized 
+                  banknote={banknote} 
+                  onImageClick={openImageViewer} 
+                />
               </CardContent>
             </Card>
+
+            {selectedImage && (
+              <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+                <DialogContent className="sm:max-w-[800px] p-1">
+                  <img
+                    src={selectedImage}
+                    alt="Banknote detail"
+                    className="w-full h-auto rounded"
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
-
       </div>
-
-      {selectedImage && (
-        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="sm:max-w-[800px] p-1">
-            <img
-              src={selectedImage}
-              alt="Banknote detail"
-              className="w-full h-auto rounded"
-            />
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }

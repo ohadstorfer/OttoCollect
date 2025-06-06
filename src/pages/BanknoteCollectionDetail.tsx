@@ -63,6 +63,10 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
   };
 
   return (
+
+
+
+    
     <div className="p-6">
       {/* Banknote Details Section */}
       <div className="space-y-6">

@@ -402,11 +402,7 @@ export default function CollectionItem() {
                 <BanknoteCollectionDetail isOwner={isOwner} />
               </CardContent>
             </Card>
-            {/* <BanknoteProvider banknoteId={collectionItem.banknote.id}>
-              <div className="mt-6">
-                <BanknoteCatalogDetailMinimized />
-              </div>
-            </BanknoteProvider> */}
+
           </div>
         </div>
 
