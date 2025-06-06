@@ -118,7 +118,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
               <Badge variant="secondary">
                 {collectionItem.grade_by && `${collectionItem.grade_by} `}
                 {collectionItem.grade}
-                {collectionItem.grade_condition_description && ` - ${collectionItem.grade_condition_description}`}
+               
               </Badge>
             )}
           </div>
