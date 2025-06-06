@@ -428,6 +428,7 @@ export async function addToCollection(
       .select('*')
       .single();
     
+    
     if (error) {
       console.error("Error adding to collection:", error);
       throw error;
