@@ -86,12 +86,13 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
           <span className="text-base">{banknote.securityElement}</span>
         </div>
       )}
-      {banknote?.sealNames && (
-        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-          <span className="text-sm font-medium text-muted-foreground w-32">Seal Names</span>
-          <span className="text-base">{banknote.sealNames}</span>
-        </div>
-      )}
+      {banknote?.sealNames &&
+  (!banknote.sealPictureUrls || banknote.sealPictureUrls.length === 0) && (
+    <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+      <span className="text-sm font-medium text-muted-foreground w-32">Seal Names</span>
+      <span className="text-base">{banknote.sealNames}</span>
+    </div>
+)}
       {banknote?.signaturesFront && (
         <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
           <span className="text-sm font-medium text-muted-foreground w-32">Front Signatures</span>

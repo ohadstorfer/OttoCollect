@@ -195,12 +195,14 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               <span className="text-base">{collectionItem.banknote.securityElement}</span>
             </div>
           )}
-          {collectionItem.banknote?.sealNames && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Seal Names</span>
-              <span className="text-base">{collectionItem.banknote.sealNames}</span>
-            </div>
-          )}
+          {collectionItem.banknote?.sealNames &&
+  (!collectionItem.banknote.sealPictureUrls ||
+    collectionItem.banknote.sealPictureUrls.length === 0) && (
+    <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+      <span className="text-sm font-medium text-muted-foreground w-32">Seal Names</span>
+      <span className="text-base">{collectionItem.banknote.sealNames}</span>
+    </div>
+)}
           {collectionItem.banknote?.signaturesFront && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">Front Signatures</span>
