@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarketplaceItem as MarketplaceItemType, UserRank } from "@/types";
@@ -109,11 +108,20 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
               {banknote.country}, {banknote.year}
             </p>
           </div>
-          {condition && (
-          <Badge variant="secondary" className="self-start">
-            {condition}
-          </Badge>
-          )}
+          <div className="self-start">
+            {collectionItem.condition && !collectionItem.grade && (
+              <Badge variant="secondary">
+                {collectionItem.condition}
+              </Badge>
+            )}
+            {collectionItem.grade && (
+              <Badge variant="secondary">
+                {collectionItem.grade_by && `${collectionItem.grade_by} `}
+                {collectionItem.grade}
+                {collectionItem.grade_condition_description && ` - ${collectionItem.grade_condition_description}`}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       

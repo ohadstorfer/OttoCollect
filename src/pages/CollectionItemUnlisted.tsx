@@ -13,7 +13,7 @@ import CollectionItemForm from "@/components/collection/CollectionItemForm";
 import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2 } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
-import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
+import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
 import EditUnlistedBanknoteDialog from "@/components/collection/EditUnlistedBanknoteDialog";
 import { submitImageSuggestion, hasExistingImageSuggestion } from "@/services/imageSuggestionsService";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -407,6 +407,25 @@ export default function CollectionItemUnlisted() {
               </CardContent>
             </Card>
             
+            {/* Banknote Details */}
+            <Card className="border-t-4 border-t-primary shadow-md">
+              <CardHeader className="border-b bg-muted/20">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-xl m-0">
+                    Banknote Details
+                  </CardTitle>
+                </div>
+                <CardDescription>
+                  Detailed information about this banknote
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <BanknoteCatalogDetailMinimized 
+                  banknote={collectionItem.banknote} 
+                  onImageClick={(url) => setSelectedImage(url)} 
+                />
+              </CardContent>
+            </Card>
           </div>
         </div>
 

@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquare, AlertCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +12,7 @@ import { MarketplaceItem, UserRank } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ContactSeller } from "@/components/messages/ContactSeller";
-import BanknoteCatalogDetailMinimized from "./BanknoteCatalogDetailMinimized";
+import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 
 const MarketplaceItemDetail = () => {
@@ -24,6 +23,7 @@ const MarketplaceItemDetail = () => {
   const [item, setItem] = useState<MarketplaceItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -197,16 +197,25 @@ const MarketplaceItemDetail = () => {
               </h2>
 
               <div className="flex items-center gap-2 mb-4">
-              <p className="text-lg text-ottoman-300">
+                <p className="text-lg text-ottoman-300">
                   {banknote.country}
                   {banknote.country && banknote.year ? ', ' : ''}
                   {banknote.year}
                 </p>
-                {condition && (
-                <Badge variant="secondary" className="ml-auto">
-                  {condition}
-                </Badge>
-                )}
+                <div className="ml-auto">
+                  {collectionItem.condition && !collectionItem.grade && (
+                    <Badge variant="secondary">
+                      {collectionItem.condition}
+                    </Badge>
+                  )}
+                  {collectionItem.grade && (
+                    <Badge variant="secondary">
+                      {collectionItem.grade_by && `${collectionItem.grade_by} `}
+                      {collectionItem.grade}
+                      {collectionItem.grade_condition_description && ` - ${collectionItem.grade_condition_description}`}
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               <Separator className="mb-4" />
@@ -231,9 +240,24 @@ const MarketplaceItemDetail = () => {
           </Card>
 
           {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
-          <BanknoteProvider banknoteId={banknote.id}>
-            <BanknoteCatalogDetailMinimized />
-          </BanknoteProvider>
+          <Card className="border-t-4 border-t-primary shadow-md">
+            <CardHeader className="border-b bg-muted/20">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-xl m-0">
+                  Banknote Details
+                </CardTitle>
+              </div>
+              <CardDescription>
+                Detailed information about this banknote
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <BanknoteCatalogDetailMinimized 
+                banknote={banknote} 
+                onImageClick={(url) => setSelectedImage(url)} 
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
