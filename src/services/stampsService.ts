@@ -5,7 +5,8 @@ import { StampPicture, StampUploadData, StampType } from '@/types/stamps';
 const TABLE_NAMES = {
   signature: 'signature_pictures',
   seal: 'seal_pictures', 
-  watermark: 'watermark_pictures'
+  watermark: 'watermark_pictures',
+  tughra: 'tughra_pictures'
 } as const;
 
 export async function fetchStampPictures(type: StampType, countryId?: string): Promise<StampPicture[]> {

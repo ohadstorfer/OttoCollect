@@ -11,8 +11,9 @@ export interface StampPicture {
 export interface SignaturePicture extends StampPicture {}
 export interface SealPicture extends StampPicture {}
 export interface WatermarkPicture extends StampPicture {}
+export interface TughraPicture extends StampPicture {}
 
-export type StampType = 'signature' | 'seal' | 'watermark';
+export type StampType = 'signature' | 'seal' | 'watermark' | 'tughra';
 
 export interface StampUploadData {
   name: string;

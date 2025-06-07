@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -43,7 +42,8 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
       console.log("BanknoteCollectionDetail - Resolved stamp URLs:", {
         signaturePictureUrls: collectionItem.banknote?.signaturePictureUrls,
         sealPictureUrls: collectionItem.banknote?.sealPictureUrls,
-        watermarkUrl: collectionItem.banknote?.watermarkUrl
+        watermarkUrl: collectionItem.banknote?.watermarkUrl,
+        tughraUrl: collectionItem.banknote?.tughraUrl
       });
     }
   }, [collectionItem]);
@@ -63,10 +63,6 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
   };
 
   return (
-
-
-
-    
     <div className="p-6">
       {/* Banknote Details Section */}
       <div className="space-y-6">
@@ -262,6 +258,19 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                 alt="Watermark"
                 className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
                 onClick={() => openImageViewer(collectionItem.banknote.watermarkUrl!)}
+              />
+            </div>
+          )}
+
+          {/* Display resolved tughra picture URL from enhanced view */}
+          {collectionItem.banknote?.tughraUrl && (
+            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Tughra</span>
+              <img
+                src={collectionItem.banknote.tughraUrl}
+                alt="Tughra"
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                onClick={() => openImageViewer(collectionItem.banknote.tughraUrl!)}
               />
             </div>
           )}

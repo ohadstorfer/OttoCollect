@@ -68,10 +68,11 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
 
       {selectedCountryId && (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="signatures">Signatures</TabsTrigger>
             <TabsTrigger value="seals">Seals</TabsTrigger>
             <TabsTrigger value="watermarks">Watermarks</TabsTrigger>
+            <TabsTrigger value="tughras">Tughras</TabsTrigger>
           </TabsList>
 
           <TabsContent value="signatures" className="mt-6">
@@ -112,6 +113,21 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
               <CardContent>
                 <StampPicturesManager
                   stampType="watermark"
+                  countryId={selectedCountryId}
+                  disableCountrySelect={disableCountrySelect}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tughras" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tughra Pictures</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <StampPicturesManager
+                  stampType="tughra"
                   countryId={selectedCountryId}
                   disableCountrySelect={disableCountrySelect}
                 />

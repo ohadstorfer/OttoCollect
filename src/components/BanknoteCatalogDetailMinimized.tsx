@@ -154,6 +154,19 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
           />
         </div>
       )}
+
+      {/* Display resolved tughra picture URL from enhanced view */}
+      {banknote?.tughraUrl && (
+        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Tughra</span>
+          <img
+            src={banknote.tughraUrl}
+            alt="Tughra"
+            className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+            onClick={() => onImageClick?.(banknote.tughraUrl!)}
+          />
+        </div>
+      )}
     </div>
   );
-} 
+}

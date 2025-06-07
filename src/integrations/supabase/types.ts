@@ -1008,6 +1008,41 @@ export type Database = {
           },
         ]
       }
+      tughra_pictures: {
+        Row: {
+          country_id: string
+          created_at: string
+          id: string
+          image_url: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tughra_pictures_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unlisted_banknotes: {
         Row: {
           back_picture: string | null
@@ -1318,6 +1353,7 @@ export type Database = {
           signatures_front: string | null
           sultan_name: string | null
           tughra_picture: string | null
+          tughra_picture_url: string | null
           turk_catalog_number: string | null
           type: string | null
           updated_at: string | null
@@ -1355,6 +1391,7 @@ export type Database = {
           signatures_front?: string | null
           sultan_name?: string | null
           tughra_picture?: string | null
+          tughra_picture_url?: never
           turk_catalog_number?: string | null
           type?: string | null
           updated_at?: string | null
@@ -1392,6 +1429,7 @@ export type Database = {
           signatures_front?: string | null
           sultan_name?: string | null
           tughra_picture?: string | null
+          tughra_picture_url?: never
           turk_catalog_number?: string | null
           type?: string | null
           updated_at?: string | null
