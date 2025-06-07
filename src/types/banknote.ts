@@ -72,4 +72,5 @@ export interface EnhancedBanknote {
   signature_picture_urls?: string[];
   seal_picture_urls?: string[];
   watermark_picture_url?: string;
+  tughra_picture_url?: string;
 }

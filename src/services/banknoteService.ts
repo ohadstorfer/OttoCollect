@@ -363,6 +363,7 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     signaturePictureUrls: item.signature_picture_urls || [],
     sealPictureUrls: item.seal_picture_urls || [],
     watermarkUrl: item.watermark_picture_url || null,
+    tughraUrl: item.tughra_picture_url || null
   } as DetailedBanknote;
 
   console.log(`mapBanknoteFromDatabase - Mapped banknote ${item.id} with resolved URLs:`, {

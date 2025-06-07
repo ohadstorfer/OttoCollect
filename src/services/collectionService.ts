@@ -61,7 +61,8 @@ export function normalizeBanknoteData(data: any, source: 'detailed' | 'unlisted'
       // Add empty arrays for stamp URLs since unlisted banknotes don't have stamps
       signaturePictureUrls: [],
       sealPictureUrls: [],
-      watermarkUrl: null
+      watermarkUrl: null,
+      tughraUrl: null
     } as DetailedBanknote;
   } else {
     // For detailed banknotes, the data is already normalized by mapBanknoteFromDatabase
@@ -114,13 +115,16 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
         banknoteId: item.banknote_id,
         hasSignatures: banknote?.signaturePictureUrls?.length,
         hasSeals: banknote?.sealPictureUrls?.length,
-        hasWatermark: banknote?.watermarkUrl
+        hasWatermark: banknote?.watermarkUrl,
+        hasTughra: banknote?.tughraUrl
       });
 
       return {
         id: item.id,
         userId: item.user_id,
         banknoteId: item.banknote_id,
+        banknote_id: item.banknote_id,
+        user_id: item.user_id,
         banknote,
         condition: item.condition,
         grade_by: item.grade_by,
@@ -334,7 +338,8 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
         console.log('[fetchCollectionItem] Resolved stamp URLs:', {
           signaturePictureUrls: banknote.signaturePictureUrls,
           sealPictureUrls: banknote.sealPictureUrls,
-          watermarkUrl: banknote.watermarkUrl
+          watermarkUrl: banknote.watermarkUrl,
+          tughraUrl: banknote.tughraUrl
         });
       }
     }
@@ -373,7 +378,8 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
       id: collectionItem.id,
       banknoteSignatureUrls: collectionItem.banknote?.signaturePictureUrls,
       banknoteSealUrls: collectionItem.banknote?.sealPictureUrls,
-      banknoteWatermarkUrl: collectionItem.banknote?.watermarkUrl
+      banknoteWatermarkUrl: collectionItem.banknote?.watermarkUrl,
+      banknoteTughraUrl: collectionItem.banknote?.tughraUrl
     });
 
     return collectionItem;
