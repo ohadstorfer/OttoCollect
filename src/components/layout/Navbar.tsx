@@ -114,7 +114,7 @@ const Navbar = () => {
                       )}
                     </button>
                   </SheetTrigger>
-                  <ProfileSidebar open={profileSidebarOpen} onOpenChange={setProfileSidebarOpen} />
+                  <ProfileSidebar isOpen={profileSidebarOpen} onOpenChange={setProfileSidebarOpen} />
                 </Sheet>
               </div>
             ) : (

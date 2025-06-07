@@ -38,7 +38,10 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
         onInteractOutside={() => onOpenChange(false)}
         onEscapeKeyDown={() => onOpenChange(false)}
       >
-        <SheetHeader className="pb-6">
+        <SheetHeader
+  className="pb-6 cursor-pointer hover:opacity-80 active:scale-95 transition"
+  onClick={() => handleNavigation(`/profile/${user.id}`)}
+>
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12">
               <AvatarImage src={user.avatarUrl} alt={user.username} />
@@ -50,7 +53,6 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
                 <Badge variant="user" rank={user.rank}>
                   {user.rank}
                 </Badge>
-                <span className="text-sm text-muted-foreground">{user.points} pts</span>
               </div>
             </div>
           </div>
@@ -84,14 +86,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
             My Collection
           </Button>
 
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => handleNavigation('/wishlist')}
-          >
-            <Heart className="mr-2 h-4 w-4" />
-            My Wishlist
-          </Button>
+         
 
           <Button
             variant="ghost"
@@ -105,7 +100,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={() => handleNavigation('/forum')}
+            onClick={() => handleNavigation('/community/forum')}
           >
             <MessageSquare className="mr-2 h-4 w-4" />
             Forum
@@ -121,19 +116,13 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
           </Button>
 
           <div className="border-t pt-2 mt-4">
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => handleNavigation(`/profile/${user.id}`)}
-            >
-              <User className="mr-2 h-4 w-4" />
-              View Profile
-            </Button>
+          
 
             <Button
               variant="ghost"
               className="w-full justify-start"
-              onClick={() => handleNavigation('/settings')}
+              // for now we don't have a settings page
+              // onClick={() => handleNavigation('/settings')}
             >
               <Settings className="mr-2 h-4 w-4" />
               Settings

@@ -12,7 +12,7 @@ interface RankBadgeProps {
 export default function RankBadge({ rank, size = 'md', showPoints = false, points }: RankBadgeProps) {
   const getRankColor = (userRank: UserRank) => {
     if (userRank.includes('Super Admin')) {
-      return 'bg-red-600 text-white border-red-700';
+      return 'bg-gray-500 text-white border-gray-600';
     } else if (userRank.includes('Admin')) {
       return 'bg-red-500 text-white border-red-600';
     } else if (userRank === 'Master Collector') {
