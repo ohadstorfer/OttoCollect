@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, Settings, Home, BookOpen, ShoppingBag, Users, MessageSquare, Heart } from 'lucide-react';
+import { User, LogOut, Settings, Home, BookOpen, ShoppingBag, Users, MessageSquare, Heart, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ interface ProfileSidebarProps {
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user?.role === 'Super Admin' || user?.role?.includes('Admin');
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -39,9 +40,9 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
         onEscapeKeyDown={() => onOpenChange(false)}
       >
         <SheetHeader
-  className="pb-6 cursor-pointer hover:opacity-80 active:scale-95 transition"
-  onClick={() => handleNavigation(`/profile/${user.id}`)}
->
+          className="pb-6 cursor-pointer hover:opacity-80 active:scale-95 transition"
+          onClick={() => handleNavigation(`/profile/${user.id}`)}
+        >
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12">
               <AvatarImage src={user.avatarUrl} alt={user.username} />
@@ -59,64 +60,77 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
         </SheetHeader>
 
         <div className="space-y-2">
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => handleNavigation('/')}
-          >
-            <Home className="mr-2 h-4 w-4" />
-            Home
-          </Button>
+          {/* Mobile-only buttons */}
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => handleNavigation('/catalog')}
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Catalog
+            </Button>
 
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => handleNavigation('/catalog')}
-          >
-            <BookOpen className="mr-2 h-4 w-4" />
-            Catalog
-          </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => handleNavigation(`/profile/${user.id}`)}
+            >
+              <User className="mr-2 h-4 w-4" />
+              My Collection
+            </Button>
 
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => handleNavigation('/collection')}
-          >
-            <User className="mr-2 h-4 w-4" />
-            My Collection
-          </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => handleNavigation('/marketplace')}
+            >
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              Marketplace
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => handleNavigation('/community/forum')}
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Forum
+            </Button>
+          </div>
 
          
 
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={() => handleNavigation('/marketplace')}
-          >
-            <ShoppingBag className="mr-2 h-4 w-4" />
-            Marketplace
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => handleNavigation('/community/forum')}
-          >
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Forum
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => handleNavigation('/members')}
+            onClick={() => handleNavigation('/community')}
           >
             <Users className="mr-2 h-4 w-4" />
-            Members
+            Community
           </Button>
 
           <div className="border-t pt-2 mt-4">
-          
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => handleNavigation('/admin')}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Admin Dashboard
+              </Button>
+            )}
+
+             {/* Always visible buttons */}
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/messaging')}
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Messages
+          </Button>
 
             <Button
               variant="ghost"

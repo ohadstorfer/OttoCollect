@@ -37,8 +37,8 @@ const Navbar = () => {
     { path: '/catalog', label: 'Catalogue' },
     { path: `/profile/${user?.id}`, label: 'My Collection' },
     { path: '/marketplace', label: 'Marketplace' },
-    { path: '/community', label: 'Community' },
-    ...(isAdmin ? [{ path: '/admin', label: 'Admin Dashboard' }] : []),
+    { path: '/community/forum', label: 'Forum' },
+    // ...(isAdmin ? [{ path: '/admin', label: 'Admin Dashboard' }] : []),
   ];
 
   return (
