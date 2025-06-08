@@ -113,15 +113,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           };
         });
         
-        // Add default sort options if they don't exist
-        if (!hasSultanOption) {
-          mappedSortOptions.push({
-            id: "sultan-default",
-            name: "Sultan",
-            fieldName: "sultan",
-            isRequired: false
-          });
-        }
+    
         
         if (!hasFaceValueOption) {
           mappedSortOptions.push({
