@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Edit, Trash2, Plus, MoveUp, MoveDown } from 'lucide-react';
+import { updateTypeDefinition } from '@/services/adminService';
 
 interface Type {
   id: string;
@@ -113,42 +113,28 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
     }
   };
   
-  const handleEditType = async () => {
-    if (!selectedType || !formName.trim()) {
-      toast({
-        title: "Error",
-        description: "Type name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  const handleEdit = async (id: string, newName: string, oldName: string) => {
+    setLoading(true);
     try {
-      await updateType(
-        selectedType.id,
-        countryId,
-        {
-          name: formName.trim(),
-          description: formDescription.trim(),
-          display_order: formOrder
-        }
-      );
-      
+      const result = await updateTypeDefinition(id, newName, oldName);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
       toast({
         title: "Success",
         description: "Type updated successfully",
       });
-      
-      setShowEditDialog(false);
-      resetForm();
-      loadTypes();
+      // Refresh the types list
+      fetchTypes();
     } catch (error) {
-      console.error("Error updating type:", error);
+      console.error('Error updating type:', error);
       toast({
         title: "Error",
         description: "Failed to update type",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -423,7 +409,7 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
-            <Button onClick={handleEditType}>Update Type</Button>
+            <Button onClick={() => handleEdit(selectedType?.id || '', formName, selectedType?.name || '')}>Update Type</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

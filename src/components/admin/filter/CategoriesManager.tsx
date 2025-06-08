@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Edit, Trash2, Plus, MoveUp, MoveDown } from 'lucide-react';
+import { updateCategoryDefinition } from '@/services/adminService';
 
 interface Category {
   id: string;
@@ -113,42 +113,28 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
     }
   };
   
-  const handleEditCategory = async () => {
-    if (!selectedCategory || !formName.trim()) {
-      toast({
-        title: "Error",
-        description: "Category name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  const handleEdit = async (id: string, newName: string, oldName: string) => {
+    setLoading(true);
     try {
-      await updateCategory(
-        selectedCategory.id,
-        countryId,
-        {
-          name: formName.trim(),
-          description: formDescription.trim(),
-          display_order: formOrder
-        }
-      );
-      
+      const result = await updateCategoryDefinition(id, newName, oldName);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
       toast({
         title: "Success",
         description: "Category updated successfully",
       });
-      
-      setShowEditDialog(false);
-      resetForm();
+      // Refresh the categories list
       loadCategories();
     } catch (error) {
-      console.error("Error updating category:", error);
+      console.error('Error updating category:', error);
       toast({
         title: "Error",
         description: "Failed to update category",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -423,7 +409,7 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
-            <Button onClick={handleEditCategory}>Update Category</Button>
+            <Button onClick={() => handleEdit(selectedCategory?.id || '', formName, selectedCategory?.name || '')}>Update Category</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

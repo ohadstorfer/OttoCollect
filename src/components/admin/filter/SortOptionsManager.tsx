@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -133,18 +132,17 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
     }
     
     try {
-      await updateSortOption(
-        selectedSortOption.id,
-        countryId,
-        {
-          name: formName.trim(),
-          field_name: formFieldName.trim(),
-          description: formDescription.trim(),
-          is_default: formIsDefault,
-          is_required: formIsRequired,
-          display_order: formOrder
-        }
-      );
+      const result = await updateSortOption(selectedSortOption.id, {
+        name: formName.trim(),
+        field_name: formFieldName.trim(),
+        description: formDescription.trim(),
+        is_default: formIsDefault,
+        is_required: formIsRequired,
+        display_order: formOrder
+      });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
       
       toast({
         title: "Success",
@@ -228,11 +226,11 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
     const sortOptionAbove = sortOptions[index - 1];
     
     try {
-      await updateSortOption(sortOption.id, countryId, {
+      await updateSortOption(sortOption.id, {
         display_order: sortOptionAbove.display_order
       });
       
-      await updateSortOption(sortOptionAbove.id, countryId, {
+      await updateSortOption(sortOptionAbove.id, {
         display_order: sortOption.display_order
       });
       
@@ -254,11 +252,11 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
     const sortOptionBelow = sortOptions[index + 1];
     
     try {
-      await updateSortOption(sortOption.id, countryId, {
+      await updateSortOption(sortOption.id, {
         display_order: sortOptionBelow.display_order
       });
       
-      await updateSortOption(sortOptionBelow.id, countryId, {
+      await updateSortOption(sortOptionBelow.id, {
         display_order: sortOption.display_order
       });
       
