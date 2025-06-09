@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Edit, Trash2, Plus, MoveUp, MoveDown } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 interface SortOption {
   id: string;
@@ -132,14 +133,19 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
     }
     
     try {
-      const result = await updateSortOption(selectedSortOption.id, {
-        name: formName.trim(),
-        field_name: formFieldName.trim(),
-        description: formDescription.trim(),
-        is_default: formIsDefault,
-        is_required: formIsRequired,
-        display_order: formOrder
-      });
+      const result = await updateSortOption(
+        selectedSortOption.id,
+        countryId,
+        {
+          name: formName.trim(),
+          field_name: formFieldName.trim(),
+          description: formDescription.trim(),
+          is_default: formIsDefault,
+          is_required: formIsRequired,
+          display_order: formOrder
+        }
+      );
+
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -219,22 +225,45 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
     setShowAddDialog(true);
   };
 
-  const handleMoveUp = async (index: number) => {
-    if (index <= 0) return;
-    
-    const sortOption = sortOptions[index];
-    const sortOptionAbove = sortOptions[index - 1];
-    
+  const handleDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(sortOptions);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update display orders
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      display_order: index
+    }));
+
+    setLoading(true);
     try {
-      await updateSortOption(sortOption.id, {
-        display_order: sortOptionAbove.display_order
+      // Update all items with new display orders
+      for (const item of updatedItems) {
+        const result = await updateSortOption(
+          item.id,
+          countryId,
+          {
+            name: item.name,
+            field_name: item.field_name,
+            description: item.description || '',
+            is_default: item.is_default,
+            is_required: item.is_required,
+            display_order: item.display_order
+          }
+        );
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+      }
+
+      setSortOptions(updatedItems);
+      toast({
+        title: "Success",
+        description: "Sort options reordered successfully",
       });
-      
-      await updateSortOption(sortOptionAbove.id, {
-        display_order: sortOption.display_order
-      });
-      
-      loadSortOptions();
     } catch (error) {
       console.error("Error reordering sort options:", error);
       toast({
@@ -242,32 +271,9 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
         description: "Failed to reorder sort options",
         variant: "destructive",
       });
-    }
-  };
-  
-  const handleMoveDown = async (index: number) => {
-    if (index >= sortOptions.length - 1) return;
-    
-    const sortOption = sortOptions[index];
-    const sortOptionBelow = sortOptions[index + 1];
-    
-    try {
-      await updateSortOption(sortOption.id, {
-        display_order: sortOptionBelow.display_order
-      });
-      
-      await updateSortOption(sortOptionBelow.id, {
-        display_order: sortOption.display_order
-      });
-      
-      loadSortOptions();
-    } catch (error) {
-      console.error("Error reordering sort options:", error);
-      toast({
-        title: "Error",
-        description: "Failed to reorder sort options",
-        variant: "destructive",
-      });
+      loadSortOptions(); // Reload original order on error
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -294,73 +300,78 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {/* <TableHead>Order</TableHead> */}
-              <TableHead>Name</TableHead>
-              <TableHead>Default</TableHead>
-              <TableHead>Required</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortOptions.map((sortOption, index) => (
-              <TableRow key={sortOption.id}>
-                {/* <TableCell>
-                  <div className="flex items-center space-x-1">
-                    <span>{sortOption.display_order}</span>
-                    <div className="flex flex-col">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        disabled={index === 0}
-                        onClick={() => handleMoveUp(index)}
-                      >
-                        <MoveUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        disabled={index === sortOptions.length - 1}
-                        onClick={() => handleMoveDown(index)}
-                      >
-                        <MoveDown className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </TableCell> */}
-                <TableCell>{sortOption.name}</TableCell>
-                <TableCell>{sortOption.is_default ? 'Yes' : 'No'}</TableCell>
-                <TableCell>{sortOption.is_required ? 'Yes' : 'No'}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditDialog(sortOption)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openDeleteDialog(sortOption)}
-                      className="text-destructive"
-                      disabled={sortOption.is_required} // Can't delete required sort options
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Database Name</TableHead>
+                <TableHead>Default</TableHead>
+                <TableHead>Required</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <Droppable droppableId="sort-options">
+              {(provided) => (
+                <TableBody
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                >
+                  {sortOptions.map((sortOption, index) => (
+                    <Draggable
+                      key={sortOption.id}
+                      draggableId={sortOption.id}
+                      index={index}
+                    >
+                      {(provided, snapshot) => (
+                        <TableRow
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className={snapshot.isDragging ? "bg-muted" : ""}
+                        >
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{sortOption.name}</TableCell>
+                          <TableCell>{sortOption.field_name}</TableCell>
+                          <TableCell>{sortOption.is_default ? 'Yes' : 'No'}</TableCell>
+                          <TableCell>{sortOption.is_required ? 'Yes' : 'No'}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditDialog(sortOption)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openDeleteDialog(sortOption)}
+                                className="text-destructive"
+                                disabled={sortOption.is_required}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </TableBody>
+              )}
+            </Droppable>
+          </Table>
+        </DragDropContext>
       )}
       
+
+
+
+
       {/* Add Sort Option Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
@@ -479,16 +490,6 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
                 disabled={selectedSortOption?.is_required}
               />
               <Label htmlFor="edit-isRequired">Required Sort Option</Label>
-            </div>
-            <div>
-              <Label htmlFor="edit-order">Display Order</Label>
-              <Input
-                id="edit-order"
-                type="number"
-                value={formOrder}
-                onChange={(e) => setFormOrder(parseInt(e.target.value) || 0)}
-                placeholder="Enter display order"
-              />
             </div>
           </div>
           <DialogFooter>

@@ -136,16 +136,28 @@ export async function updateTypeDefinition(
 
 export async function updateSortOption(
   sortOptionId: string,
-  newName: string
+  newName: string,
+  fieldName: string,
+  description: string = '',
+  isDefault: boolean = false,
+  isRequired: boolean = false,
+  displayOrder: number = 0
 ): Promise<{ success: boolean; error?: string }> {
   try {
     console.log('=== UPDATE SORT OPTION START ===');
     console.log(`Updating sort option: ID=${sortOptionId}`);
-    console.log(`New name: "${newName}"`);
+    console.log(`New name: "${newName}", Field name: "${fieldName}"`);
 
     const { data, error } = await supabase
       .from('banknote_sort_options')
-      .update({ name: newName })
+      .update({ 
+        name: newName,
+        field_name: fieldName,
+        description: description,
+        is_default: isDefault,
+        is_required: isRequired,
+        display_order: displayOrder
+      })
       .eq('id', sortOptionId)
       .select();
 

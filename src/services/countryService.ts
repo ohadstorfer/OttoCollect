@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CategoryDefinition, TypeDefinition, SortOption, UserFilterPreference, CountryData } from "@/types/filter";
 
@@ -358,9 +357,9 @@ export async function createSortOption(
 }
 
 export async function updateSortOption(
-  sortOptionId: string,
+  id: string,
   countryId: string,
-  updates: {
+  data: {
     name?: string;
     field_name?: string;
     description?: string;
@@ -368,24 +367,26 @@ export async function updateSortOption(
     is_required?: boolean;
     display_order?: number;
   }
-): Promise<void> {
+): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase
       .from('banknote_sort_options')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', sortOptionId)
+      .update(data)
+      .eq('id', id)
       .eq('country_id', countryId);
 
     if (error) {
-      console.error("Error updating sort option:", error);
+      console.error('Error updating sort option:', error);
       throw error;
     }
+
+    return { success: true };
   } catch (error) {
-    console.error("Error in updateSortOption:", error);
-    throw error;
+    console.error('Error in updateSortOption:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    };
   }
 }
 

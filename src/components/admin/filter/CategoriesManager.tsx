@@ -28,6 +28,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Edit, Trash2, Plus, MoveUp, MoveDown } from 'lucide-react';
 import { updateCategoryDefinition } from '@/services/adminService';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 interface Category {
   id: string;
@@ -241,6 +242,46 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
     }
   };
   
+  const handleDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(categories);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update display orders
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      display_order: index
+    }));
+
+    setLoading(true);
+    try {
+      // Update all items with new display orders
+      for (const item of updatedItems) {
+        await updateCategory(item.id, countryId, {
+          display_order: item.display_order
+        });
+      }
+
+      setCategories(updatedItems);
+      toast({
+        title: "Success",
+        description: "Categories reordered successfully",
+      });
+    } catch (error) {
+      console.error("Error reordering categories:", error);
+      toast({
+        title: "Error",
+        description: "Failed to reorder categories",
+        variant: "destructive",
+      });
+      loadCategories(); // Reload original order on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -264,68 +305,67 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {/* <TableHead>Order</TableHead> */}
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {categories.map((category, index) => (
-              <TableRow key={category.id}>
-                {/* <TableCell>
-                  <div className="flex items-center space-x-1">
-                    <span>{category.display_order}</span>
-                    <div className="flex flex-col">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        disabled={index === 0}
-                        onClick={() => handleMoveUp(index)}
-                      >
-                        <MoveUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        disabled={index === categories.length - 1}
-                        onClick={() => handleMoveDown(index)}
-                      >
-                        <MoveDown className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </TableCell> */}
-                <TableCell>{category.name}</TableCell>
-                <TableCell>{category.description || '-'}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditDialog(category)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openDeleteDialog(category)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <Droppable droppableId="categories">
+              {(provided) => (
+                <TableBody
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                >
+                  {categories.map((category, index) => (
+                    <Draggable
+                      key={category.id}
+                      draggableId={category.id}
+                      index={index}
+                    >
+                      {(provided, snapshot) => (
+                        <TableRow
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className={snapshot.isDragging ? "bg-muted" : ""}
+                        >
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{category.name}</TableCell>
+                          <TableCell>{category.description || '-'}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditDialog(category)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openDeleteDialog(category)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </TableBody>
+              )}
+            </Droppable>
+          </Table>
+        </DragDropContext>
       )}
       
       {/* Add Category Dialog */}
@@ -394,16 +434,6 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
                 placeholder="Enter description (optional)"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-order">Display Order</Label>
-              <Input
-                id="edit-order"
-                type="number"
-                value={formOrder}
-                onChange={(e) => setFormOrder(parseInt(e.target.value) || 0)}
-                placeholder="Enter display order"
               />
             </div>
           </div>
