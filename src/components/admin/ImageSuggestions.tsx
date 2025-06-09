@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Search, Loader2, Check, X, Image as ImageIcon, Eye } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import { AdminComponentProps } from '@/types/admin';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import BanknoteDetailDialog from './BanknoteDetailDialog';
 
 interface ImageSuggestion {
@@ -35,6 +35,193 @@ interface ImageSuggestion {
 
 interface ImageSuggestionsProps extends AdminComponentProps {}
 
+interface ComparisonDialogProps {
+  suggestion: ImageSuggestion;
+  currentImages: {
+    front: string | null;
+    back: string | null;
+  };
+  onApprove: () => Promise<void>;
+  onReject: () => Promise<void>;
+  onClose: () => void;
+  loading: boolean;
+}
+
+const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
+  suggestion,
+  currentImages,
+  onApprove,
+  onReject,
+  onClose,
+  loading
+}) => {
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+
+  const renderStatus = () => {
+    switch (suggestion.status) {
+      case 'approved':
+        return (
+          <div className="flex items-center gap-2 text-green-600">
+            <Check className="h-5 w-5" />
+            <span className="font-medium">Approved</span>
+          </div>
+        );
+      case 'rejected':
+        return (
+          <div className="flex items-center gap-2 text-red-600">
+            <X className="h-5 w-5" />
+            <span className="font-medium">Rejected</span>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <>
+       <DialogContent className="sm:max-w-[99vw] md:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Compare Images</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium mb-2">Current Images</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div 
+                className=" bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => currentImages.front && setEnlargedImage(currentImages.front)}
+              >
+                {currentImages.front ? (
+                  <img 
+                    src={currentImages.front} 
+                    alt="Current front"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              <div 
+                className=" bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => currentImages.back && setEnlargedImage(currentImages.back)}
+              >
+                {currentImages.back ? (
+                  <img 
+                    src={currentImages.back} 
+                    alt="Current back"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-medium mb-2">Suggested Images</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div 
+                className=" bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => suggestion.obverse_image && setEnlargedImage(suggestion.obverse_image)}
+              >
+                {suggestion.obverse_image ? (
+                  <img 
+                    src={suggestion.obverse_image} 
+                    alt="Suggested front"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              <div 
+                className=" bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => suggestion.reverse_image && setEnlargedImage(suggestion.reverse_image)}
+              >
+                {suggestion.reverse_image ? (
+                  <img 
+                    src={suggestion.reverse_image} 
+                    alt="Suggested back"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center">
+            {suggestion.status !== 'pending' && (
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Status:</span>
+                {renderStatus()}
+              </div>
+            )}
+            
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+              >
+                Close
+              </Button>
+              
+              {suggestion.status === 'pending' && (
+                <>
+                  <Button
+                    variant="destructive"
+                    onClick={onReject}
+                    disabled={loading}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Reject
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={onApprove}
+                    disabled={loading}
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    Approve
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+
+      {/* Enlarged Image Dialog */}
+      <Dialog open={enlargedImage !== null} onOpenChange={() => setEnlargedImage(null)}>
+        <DialogContent className="w-full sm:max-w-none sm:w-[90vw] p-2">
+          {enlargedImage && (
+            <div className="relative w-full flex items-center justify-center">
+              <img 
+                src={enlargedImage} 
+                alt="Enlarged banknote image" 
+                className="w-full object-contain max-h-[80vh]"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
   countryId,
   countryName,
@@ -50,6 +237,12 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
   // New state variables for image and banknote dialogs
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedBanknoteId, setSelectedBanknoteId] = useState<string | null>(null);
+  const [showCompareDialog, setShowCompareDialog] = useState(false);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<ImageSuggestion | null>(null);
+  const [currentImages, setCurrentImages] = useState<{ front: string | null; back: string | null }>({
+    front: null,
+    back: null
+  });
   
   const PAGE_SIZE = 10;
   
@@ -284,10 +477,36 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
     setSelectedBanknoteId(banknoteId);
   };
 
+  // Add this function to fetch current banknote images
+  const fetchCurrentImages = async (banknoteId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('detailed_banknotes')
+        .select('front_picture, back_picture')
+        .eq('id', banknoteId)
+        .single();
+
+      if (error) throw error;
+
+      return {
+        front: data?.front_picture || null,
+        back: data?.back_picture || null
+      };
+    } catch (error) {
+      console.error('Error fetching current images:', error);
+      return { front: null, back: null };
+    }
+  };
+
+  const openCompareDialog = async (suggestion: ImageSuggestion) => {
+    setSelectedSuggestion(suggestion);
+    const images = await fetchCurrentImages(suggestion.banknote_id);
+    setCurrentImages(images);
+    setShowCompareDialog(true);
+  };
+
   return (
     <div>
-
-
       {loading && suggestions.length === 0 ? (
         <div className="flex justify-center py-10">
           <Loader2 className="h-8 w-8 animate-spin text-ottoman-600" />
@@ -298,8 +517,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Obverse</TableHead>
-                  <TableHead>Reverse</TableHead>
+                  <TableHead>Compare</TableHead>
                   <TableHead>Banknote</TableHead>
                   <TableHead>Ext. Pick</TableHead>
                   <TableHead>Country</TableHead>
@@ -314,40 +532,14 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                   suggestions.map((suggestion) => (
                     <TableRow key={suggestion.id}>
                       <TableCell>
-                        <div 
-                          className="w-16 h-12 relative bg-muted rounded overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => openImageDialog(suggestion.obverse_image)}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openCompareDialog(suggestion)}
+                          className="flex items-center gap-1"
                         >
-                          {suggestion.obverse_image ? (
-                            <img 
-                              src={suggestion.obverse_image} 
-                              alt={`Obverse of ${suggestion.banknote_catalog_id}`}
-                              className="w-full h-full object-contain"
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div 
-                          className="w-16 h-12 relative bg-muted rounded overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => openImageDialog(suggestion.reverse_image)}
-                        >
-                          {suggestion.reverse_image ? (
-                            <img 
-                              src={suggestion.reverse_image} 
-                              alt={`Reverse of ${suggestion.banknote_catalog_id}`}
-                              className="w-full h-full object-contain"
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
+                          <Eye className="h-4 w-4" /> Compare
+                        </Button>
                       </TableCell>
                       <TableCell>
                         <Button 
@@ -362,7 +554,6 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                       <TableCell className="font-medium">{suggestion.banknote_catalog_id}</TableCell>
                       <TableCell>{suggestion.banknote_country}</TableCell>
                       <TableCell>{suggestion.banknote_denomination}</TableCell>
-                      
                       <TableCell>{suggestion.user_name || 'Unknown'}</TableCell>
                       <TableCell>
                         {suggestion.status === 'pending' ? (
@@ -405,7 +596,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-10">
+                    <TableCell colSpan={8} className="text-center py-10">
                       No image suggestions found
                     </TableCell>
                   </TableRow>
@@ -446,6 +637,26 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             <BanknoteDetailDialog id={selectedBanknoteId} />
           )}
         </DialogContent>
+      </Dialog>
+
+      {/* Compare Dialog */}
+      <Dialog open={showCompareDialog} onOpenChange={(open) => !open && setShowCompareDialog(false)}>
+        {selectedSuggestion && (
+          <ComparisonDialog
+            suggestion={selectedSuggestion}
+            currentImages={currentImages}
+            onApprove={async () => {
+              await handleApprove(selectedSuggestion);
+              setShowCompareDialog(false);
+            }}
+            onReject={async () => {
+              await handleReject(selectedSuggestion);
+              setShowCompareDialog(false);
+            }}
+            onClose={() => setShowCompareDialog(false)}
+            loading={loading}
+          />
+        )}
       </Dialog>
     </div>
   );
