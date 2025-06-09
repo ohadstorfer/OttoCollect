@@ -73,4 +73,7 @@ export interface EnhancedBanknote {
   seal_picture_urls?: string[];
   watermark_picture_url?: string;
   tughra_picture_url?: string;
+  
+  // New authority_name field
+  authority_name?: string;
 }

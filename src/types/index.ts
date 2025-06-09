@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -152,6 +151,9 @@ export interface DetailedBanknote extends Banknote {
   sealPictureUrls?: string[];
   watermarkUrl?: string | null;
   tughraUrl?: string | null;
+  
+  // New authority_name field
+  authorityName?: string;
 }
 
 export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';

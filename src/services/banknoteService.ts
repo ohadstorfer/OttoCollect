@@ -363,18 +363,23 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     signaturePictureUrls: item.signature_picture_urls || [],
     sealPictureUrls: item.seal_picture_urls || [],
     watermarkUrl: item.watermark_picture_url || null,
-    tughraUrl: item.tughra_picture_url || null
+    tughraUrl: item.tughra_picture_url || null,
+    
+    // Map the new authority_name field
+    authorityName: item.authority_name || null
   } as DetailedBanknote;
 
-  console.log(`mapBanknoteFromDatabase - Mapped banknote ${item.id} with resolved URLs:`, {
+  console.log(`mapBanknoteFromDatabase - Mapped banknote ${item.id} with resolved URLs and authority name:`, {
     id: mapped.id,
     signaturePictureUrls: mapped.signaturePictureUrls,
     sealPictureUrls: mapped.sealPictureUrls,
     watermarkUrl: mapped.watermarkUrl,
+    authorityName: mapped.authorityName,
     rawData: {
       signature_picture_urls: item.signature_picture_urls,
       seal_picture_urls: item.seal_picture_urls,
-      watermark_picture_url: item.watermark_picture_url
+      watermark_picture_url: item.watermark_picture_url,
+      authority_name: item.authority_name
     }
   });
 

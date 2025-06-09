@@ -1323,6 +1323,7 @@ export type Database = {
     Views: {
       enhanced_detailed_banknotes: {
         Row: {
+          authority_name: string | null
           back_picture: string | null
           banknote_description: string | null
           category: string | null
@@ -1361,6 +1362,7 @@ export type Database = {
           watermark_picture_url: string | null
         }
         Insert: {
+          authority_name?: never
           back_picture?: string | null
           banknote_description?: string | null
           category?: string | null
@@ -1399,6 +1401,7 @@ export type Database = {
           watermark_picture_url?: never
         }
         Update: {
+          authority_name?: never
           back_picture?: string | null
           banknote_description?: string | null
           category?: string | null
