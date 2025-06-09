@@ -77,7 +77,7 @@ const CollectionItemDetailCard = ({ banknote, collectionItem }: CollectionItemCa
             )}
             {banknote.sultanName && (
               <p className="text-sm text-muted-foreground">
-                Sultan Name: {banknote.sultanName}
+                {banknote.authorityName || "Authority"}: {banknote.sultanName}
               </p>
             )}
             {banknote.sealNames && (

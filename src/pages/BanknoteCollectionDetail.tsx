@@ -107,7 +107,9 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             )}
             {collectionItem.banknote?.sultanName && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Sultan Name</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">
+                  {collectionItem.banknote.authorityName || "Authority"}
+                </span>
                 <span className="text-base">{collectionItem.banknote.sultanName}</span>
               </div>
             )}
@@ -192,13 +194,13 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             </div>
           )}
           {collectionItem.banknote?.sealNames &&
-  (!collectionItem.banknote.sealPictureUrls ||
-    collectionItem.banknote.sealPictureUrls.length === 0) && (
-    <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-      <span className="text-sm font-medium text-muted-foreground w-32">Seal Names</span>
-      <span className="text-base">{collectionItem.banknote.sealNames}</span>
-    </div>
-)}
+            (!collectionItem.banknote.sealPictureUrls ||
+              collectionItem.banknote.sealPictureUrls.length === 0) && (
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                <span className="text-sm font-medium text-muted-foreground w-32">Seal Names</span>
+                <span className="text-base">{collectionItem.banknote.sealNames}</span>
+              </div>
+            )}
           {collectionItem.banknote?.signaturesFront && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">Front Signatures</span>
@@ -315,16 +317,16 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
       </div>
 
       {selectedImage && (
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContentWithScroll className="sm:max-w-[800px] p-1">
-          <img
-            src={selectedImage}
-            alt="Banknote detail"
-            className="w-full h-auto rounded"
-          />
-        </DialogContentWithScroll>
-      </Dialog>
-    )}
+        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContentWithScroll className="sm:max-w-[800px] p-1">
+            <img
+              src={selectedImage}
+              alt="Banknote detail"
+              className="w-full h-auto rounded"
+            />
+          </DialogContentWithScroll>
+        </Dialog>
+      )}
 
     </div>
   );

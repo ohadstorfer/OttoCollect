@@ -62,7 +62,8 @@ export function normalizeBanknoteData(data: any, source: 'detailed' | 'unlisted'
       signaturePictureUrls: [],
       sealPictureUrls: [],
       watermarkUrl: null,
-      tughraUrl: null
+      tughraUrl: null,
+      authorityName: null
     } as DetailedBanknote;
   } else {
     // For detailed banknotes, the data is already normalized by mapBanknoteFromDatabase

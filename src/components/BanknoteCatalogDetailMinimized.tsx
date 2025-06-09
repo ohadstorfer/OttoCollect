@@ -47,7 +47,7 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
       )}
       {banknote?.sultanName && (
         <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-          <span className="text-sm font-medium text-muted-foreground w-32">Sultan Name</span>
+           <span className="text-sm font-medium text-muted-foreground w-32">{banknote.authorityName}</span>
           <span className="text-base">{banknote.sultanName}</span>
         </div>
       )}

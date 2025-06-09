@@ -405,9 +405,9 @@ const BanknoteDetailCard = ({
           </div>
 
           <div className="p-3 bg-background border-t">
-            {banknote.sultanName && (
+            {banknote?.sultanName && (
               <p className="text-xs text-muted-foreground">
-                Sultan: {banknote.sultanName}
+                {banknote.authorityName || "Authority"}: {banknote.sultanName}
               </p>
             )}
             {(banknote.signaturesFront || banknote.signaturesBack) && (

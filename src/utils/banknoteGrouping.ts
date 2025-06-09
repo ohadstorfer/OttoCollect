@@ -170,7 +170,7 @@ export const getMixedBanknoteItemsBySultan = (
   const sultanMap = new Map<string, DetailedBanknote[]>();
   
   banknotes.forEach(banknote => {
-    const sultan = banknote.sultanName || 'Unknown';
+    const sultan = banknote.sultanName || 'Unknown Sultan';
     if (!sultanMap.has(sultan)) {
       sultanMap.set(sultan, []);
     }

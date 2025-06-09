@@ -337,32 +337,34 @@ const BanknoteDetailCardMissingItems = ({
                 )}
               </div>
               <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
-              {banknote.extendedPickNumber && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {banknote.extendedPickNumber}
-                </Badge>
-              )}
-              {banknote.turkCatalogNumber && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {banknote.turkCatalogNumber}
-                </Badge>
-              )}
-              {banknote.year && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {banknote.year}
-                </Badge>
-              )}
-              {banknote.rarity && (
-                <Badge
-                  variant="secondary"
-                  className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
-                >
-                  {banknote.rarity}
-                </Badge>
-              )}
-            </div>
+                {banknote.extendedPickNumber && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                    {banknote.extendedPickNumber}
+                  </Badge>
+                )}
+                {banknote.turkCatalogNumber && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                    {banknote.turkCatalogNumber}
+                  </Badge>
+                )}
+                {banknote.year && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                    {banknote.year}
+                  </Badge>
+                )}
+                {banknote.rarity && (
+                  <Badge
+                    variant="secondary"
+                    className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
+                  >
+                    {banknote.rarity}
+                  </Badge>
+                )}
+              </div>
               <div className="text-xs text-muted-foreground mt-1">
-                {banknote.sultanName && <span>Sultan: {banknote.sultanName}</span>}
+                {banknote.sultanName && (
+                  <span>{banknote.authorityName || "Authority"}: {banknote.sultanName}</span>
+                )}
                 {banknote.sealNames && <span className="ml-2">Seals: {banknote.sealNames}</span>}
               </div>
             </div>
@@ -458,9 +460,9 @@ const BanknoteDetailCardMissingItems = ({
           </div>
 
           <div className="p-3 bg-background border-t">
-            {banknote.sultanName && (
+            {banknote?.sultanName && (
               <p className="text-xs text-muted-foreground">
-                Sultan: {banknote.sultanName}
+                {banknote.authorityName || "Authority"}: {banknote.sultanName}
               </p>
             )}
             {(banknote.signaturesFront || banknote.signaturesBack) && (
@@ -473,7 +475,7 @@ const BanknoteDetailCardMissingItems = ({
                 Seals: {banknote.sealNames}
               </p>
             )}
-             {banknote.securityElement&& (
+            {banknote.securityElement && (
               <p className="text-xs text-muted-foreground">
                 {banknote.securityElement}
               </p>

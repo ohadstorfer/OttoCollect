@@ -85,7 +85,7 @@ const BanknoteDetailCardWishList = ({
 
   const getDisplayImage = (): string => {
     console.log("banknote: " + banknote)
-    
+
     if (!banknote) return '/placeholder.svg';
     // if (!banknote.imageUrls) return '/placeholder.svg';
     if (Array.isArray(banknote.imageUrls)) {
@@ -94,11 +94,11 @@ const BanknoteDetailCardWishList = ({
     if (typeof banknote.imageUrls === 'string') {
       return banknote.imageUrls || '/placeholder.svg';
     }
-    if(banknote.front_picture){
+    if (banknote.front_picture) {
       return banknote.front_picture;
     }
-   
-    
+
+
     return '/placeholder.svg';
   };
 
@@ -270,7 +270,7 @@ const BanknoteDetailCardWishList = ({
     }
   };
 
-  
+
 
   return (
     <>
@@ -358,9 +358,9 @@ const BanknoteDetailCardWishList = ({
           </div>
 
           <div className="p-3 bg-background border-t">
-            {banknote.sultan_name && (
+            {banknote?.sultanName && (
               <p className="text-xs text-muted-foreground">
-                Sultan: {banknote.sultan_name}
+                {banknote.authorityName || "Authority"}: {banknote.sultanName}
               </p>
             )}
             {(banknote.signatures_front || banknote.signatures_back) && (

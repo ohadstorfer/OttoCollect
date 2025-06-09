@@ -87,16 +87,16 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
 
       {selectedCountryId && (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-2 mb-6">
+          <TabsList className="grid grid-cols-3 mb-6">
             <TabsTrigger value="categories">
               Categories
             </TabsTrigger>
             <TabsTrigger value="types">
               Types
             </TabsTrigger>
-            {/* <TabsTrigger value="sort">
+            <TabsTrigger value="sort">
               Sort Options
-            </TabsTrigger> */}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="categories">
