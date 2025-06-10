@@ -201,6 +201,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
         </div>
       ) : (
         <>
+        
           <div className="border rounded-md overflow-hidden">
             <Table>
               <TableHeader>
