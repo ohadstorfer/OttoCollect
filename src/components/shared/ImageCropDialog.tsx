@@ -65,6 +65,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
     setImageLoaded(true);
   };
 
+  
   const handleSave = async () => {
     if (!imgRef.current || !crop) return;
 
