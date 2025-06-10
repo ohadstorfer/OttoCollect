@@ -104,14 +104,14 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
 
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
-        .from('banknote-images')
+        .from('banknote_images')
         .upload(`suggestions/${suggestion.id}/${selectedImageToCrop.type}_${Date.now()}.jpg`, file);
 
       if (error) throw error;
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('banknote-images')
+        .from('banknote_images')
         .getPublicUrl(data.path);
 
       // Update suggestion with new image URL
