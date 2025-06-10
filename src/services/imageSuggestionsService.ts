@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -49,14 +48,17 @@ export async function submitImageSuggestion(data: {
 /**
  * Check if user has already submitted an image suggestion for this banknote
  */
-export async function hasExistingImageSuggestion(banknoteId: string, userId: string): Promise<boolean> {
+export async function hasExistingImageSuggestion(banknoteId: string, userId: string): Promise<{ 
+  hasSuggestion: boolean; 
+  status: 'pending' | 'approved' | 'rejected' | null;
+}> {
   try {
     const { data, error } = await supabase
       .from('image_suggestions')
-      .select('id')
+      .select('status')
       .eq('banknote_id', banknoteId)
       .eq('user_id', userId)
-      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
       .limit(1);
 
     if (error) {
@@ -64,9 +66,15 @@ export async function hasExistingImageSuggestion(banknoteId: string, userId: str
       throw new Error(`Failed to check existing suggestions: ${error.message}`);
     }
 
-    return data && data.length > 0;
+    return {
+      hasSuggestion: data && data.length > 0,
+      status: data?.[0]?.status || null
+    };
   } catch (error) {
     console.error("Error checking existing image suggestions:", error);
-    return false;
+    return {
+      hasSuggestion: false,
+      status: null
+    };
   }
 }

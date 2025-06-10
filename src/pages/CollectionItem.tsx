@@ -53,6 +53,7 @@ export default function CollectionItem() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<'obverse' | 'reverse' | null>(null);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
+  const [suggestionStatus, setSuggestionStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -65,26 +66,44 @@ export default function CollectionItem() {
     enabled: !!id,
   });
 
-  // Check if user has pending image suggestions for this banknote
+  // Determine if the current user is the owner of this item
+  const isOwner = user?.id === collectionItem?.userId;
+
+  // Check for image suggestion status
   useEffect(() => {
-    if (collectionItem && user && isOwner) {
-      checkExistingSuggestion();
-    }
-  }, [collectionItem, user]);
+    const checkImageStatus = async () => {
+      if (!collectionItem?.banknote.id) return;
 
-  const checkExistingSuggestion = async () => {
-    if (!collectionItem?.banknote.id || !user?.id) return;
+      try {
+        // First check for any approved suggestions for this banknote
+        const { data: approvedData, error: approvedError } = await supabase
+          .from('image_suggestions')
+          .select('status')
+          .eq('banknote_id', collectionItem.banknote.id)
+          .eq('status', 'approved')
+          .limit(1);
 
-    try {
-      const hasExisting = await hasExistingImageSuggestion(
-        collectionItem.banknote.id,
-        user.id
-      );
-      setHasPendingSuggestion(hasExisting);
-    } catch (error) {
-      console.error("Failed to check existing suggestions:", error);
-    }
-  };
+        if (approvedError) throw approvedError;
+        
+        if (approvedData && approvedData.length > 0) {
+          setSuggestionStatus('approved');
+          setHasPendingSuggestion(false);
+        } else if (isOwner && user?.id) {
+          // Only check other statuses for owner
+          const result = await hasExistingImageSuggestion(
+            collectionItem.banknote.id,
+            user.id
+          );
+          setHasPendingSuggestion(result.hasSuggestion && result.status === 'pending');
+          setSuggestionStatus(result.status);
+        }
+      } catch (error) {
+        console.error("Failed to check image status:", error);
+      }
+    };
+
+    checkImageStatus();
+  }, [collectionItem?.banknote.id, isOwner, user?.id]);
 
   const handleUpdateSuccess = async () => {
     setIsEditDialogOpen(false);
@@ -92,10 +111,6 @@ export default function CollectionItem() {
     // Refetch the data to get the latest updates
     await refetch();
   };
-
-  // Determine if the current user is the owner of this item
-  const isOwner = user?.id === collectionItem?.userId;
-  console.log("CollectionItem - isOwner:", isOwner, "userId:", user?.id, "itemUserId:", collectionItem?.userId);
 
   const handleSuggestToCatalog = async () => {
     if (!collectionItem || !user) return;
@@ -202,6 +217,12 @@ export default function CollectionItem() {
     }
   };
 
+  // Add reset function for rejected status
+  const handleResetSuggestion = () => {
+    setSuggestionStatus(null);
+    setHasPendingSuggestion(false);
+  };
+
   if (isLoading) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
@@ -273,24 +294,50 @@ export default function CollectionItem() {
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <div className="lg:col-span-3 space-y-4">
-            <Card>
+            <Card className={suggestionStatus === 'approved' ? 'border-2 border-gold-500 bg-gold-50/50' : ''}>
               <CardContent className="px-2 pt-2 pb-2">
                 <div className="flex flex-col space-y-3">
-                  {isOwner && hasCustomImages && (
-                    <div className="w-full flex justify-between items-center py-2">
-                      <Button
-                        onClick={handleSuggestToCatalog}
-                        variant="outline"
-                        className="w-full flex items-center gap-2"
-                        disabled={isSubmittingImages || hasPendingSuggestion}
-                      >
-                        <ImagePlus className="h-4 w-4" />
-                        {hasPendingSuggestion
-                          ? "Image Suggestion Pending"
-                          : isSubmittingImages
-                            ? "Submitting..."
-                            : "Suggest Images to Catalogue"}
-                      </Button>
+                  {(suggestionStatus === 'approved' || (isOwner && hasCustomImages)) && (
+                    <div className="w-full rounded-md">
+                      <div className="w-full flex justify-between items-center py-2 px-3">
+                        {suggestionStatus === 'approved' ? (
+                          <div className="w-full flex items-center justify-center gap-2 py-1.5">
+                            <Star className="h-5 w-5 fill-gold-500 text-gold-500" />
+                            <span className="font-medium text-gold-600">
+                              Catalogue Image
+                            </span>
+                          </div>
+                        ) : suggestionStatus === 'rejected' ? (
+                          <div className="w-full flex items-center gap-2">
+                            <Button
+                              onClick={handleSuggestToCatalog}
+                              variant="outline"
+                              className="flex-2 flex items-center gap-2"
+                              disabled={isSubmittingImages}
+                            >
+                              <ImagePlus className="h-4 w-4" />
+                              Try Again
+                            </Button>
+                            <span className="text-sm text-red-600 font-medium px-2">
+                              Request rejected
+                            </span>
+                          </div>
+                        ) : (
+                          <Button
+                            onClick={handleSuggestToCatalog}
+                            variant="outline"
+                            className="w-full flex items-center gap-2"
+                            disabled={isSubmittingImages || hasPendingSuggestion}
+                          >
+                            <ImagePlus className="h-4 w-4" />
+                            {hasPendingSuggestion
+                              ? "Image Suggestion Pending"
+                              : isSubmittingImages
+                                ? "Submitting..."
+                                : "Suggest Images to Catalogue"}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   )}
 
