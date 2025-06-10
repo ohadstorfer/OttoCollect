@@ -1,111 +1,120 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Trash2, UploadCloud } from 'lucide-react';
-import { uploadCollectionImage } from '@/services/collectionService';
-import { useToast } from '@/hooks/use-toast';
+import { Image as ImageIcon, Crop } from 'lucide-react';
+import { uploadBanknoteImage } from '@/services/banknoteService';
+import ImageCropDialog from '@/components/shared/ImageCropDialog';
 
-export interface SimpleImageUploadProps {
+interface SimpleImageUploadProps {
   image: string;
-  side: string;
+  side: 'front' | 'back';
   onImageUploaded: (url: string) => void;
 }
 
-const SimpleImageUpload = ({ image, side, onImageUploaded }: SimpleImageUploadProps) => {
-  const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
+const SimpleImageUpload: React.FC<SimpleImageUploadProps> = ({
+  image,
+  side,
+  onImageUploaded
+}) => {
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid File Type",
-        description: "Please select an image file.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Image must be less than 5MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsUploading(true);
     try {
-      // Use the correct function to upload to the banknote_images bucket
-      const imageUrl = await uploadCollectionImage(file);
-      onImageUploaded(imageUrl);
-      toast({
-        title: "Image Uploaded",
-        description: `${side.charAt(0).toUpperCase() + side.slice(1)} image uploaded successfully.`,
-      });
+      const url = await uploadBanknoteImage(file);
+      onImageUploaded(url);
     } catch (error) {
-      console.error("Error uploading image:", error);
-      toast({
-        title: "Upload Failed",
-        description: "Failed to upload image. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
+      console.error('Error uploading image:', error);
+    }
+  };
+
+  const handleChange = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent form submission
+    fileInputRef.current?.click();
+  };
+
+  const handleCropClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent form submission
+    if (image) {
+      setCropDialogOpen(true);
+    }
+  };
+
+  const handleCroppedImage = async (croppedImageUrl: string) => {
+    try {
+      // Convert data URL to Blob
+      const response = await fetch(croppedImageUrl);
+      const blob = await response.blob();
+
+      // Create a file from the blob
+      const file = new File([blob], `cropped_${side}.jpg`, { type: 'image/jpeg' });
+
+      // Upload the cropped image
+      const url = await uploadBanknoteImage(file);
+      onImageUploaded(url);
+    } catch (error) {
+      console.error('Error saving cropped image:', error);
     }
   };
 
   return (
-    <div className="w-full">
-      {image ? (
-        <div className="relative">
-          <img 
-            src={image} 
-            alt={`${side} of banknote`} 
-            className="w-full h-40 object-contain border rounded-md"
+    <div className="relative">
+      <div className="aspect-[3/2] bg-muted rounded-lg overflow-hidden">
+        {image ? (
+          <img
+            src={image}
+            alt={`${side} of banknote`}
+            className="w-full h-full object-contain"
           />
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/50">
-            <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="text-white"
-                onClick={() => document.getElementById(`upload-${side}`)?.click()}
-                disabled={isUploading}
-              >
-                <UploadCloud className="h-4 w-4 mr-1" /> Change
-              </Button>
-              <Button 
-                size="sm" 
-                variant="destructive"
-                onClick={() => onImageUploaded('')}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ImageIcon className="h-12 w-12 text-muted-foreground" />
           </div>
-        </div>
-      ) : (
-        <div 
-          className="border-2 border-dashed rounded-md border-gray-300 p-4 flex flex-col items-center justify-center h-40 cursor-pointer hover:border-primary transition-colors"
-          onClick={() => document.getElementById(`upload-${side}`)?.click()}
+        )}
+      </div>
+
+      <div className="absolute bottom-2 right-2 flex gap-2">
+        {image && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="bg-white/80 hover:bg-white"
+            onClick={handleCropClick}
+          >
+            <Crop className="h-4 w-4" />
+          </Button>
+        )}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="bg-white/80 hover:bg-white"
+          onClick={handleChange}
         >
-          <UploadCloud className="h-8 w-8 text-gray-500 mb-2" />
-          <p className="text-sm text-gray-500">
-            {isUploading ? 'Uploading...' : 'Click to upload'}
-          </p>
-        </div>
-      )}
-      <input 
+          {image ? 'Change' : 'Upload'}
+        </Button>
+      </div>
+
+      <input
+        ref={fileInputRef}
         type="file"
-        id={`upload-${side}`}
-        className="hidden"
         accept="image/*"
-        onChange={handleUpload}
-        disabled={isUploading}
+        onChange={handleFileChange}
+        className="hidden"
       />
+
+      {cropDialogOpen && image && (
+        <ImageCropDialog
+          imageUrl={image}
+          open={cropDialogOpen}
+          onClose={() => setCropDialogOpen(false)}
+          onSave={handleCroppedImage}
+          title={`Edit ${side === 'front' ? 'Front' : 'Back'} Image`}
+        />
+      )}
     </div>
   );
 };

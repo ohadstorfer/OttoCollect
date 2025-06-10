@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Table, 
@@ -13,9 +12,11 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Banknote, DetailedBanknote } from '@/types';
-import { Search, Loader2, Plus, Edit, Check, X } from 'lucide-react';
+import { Search, Loader2, Plus, Edit, Check, X, Eye } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import BanknoteEditDialog from './BanknoteEditDialog';
+import BanknoteDetailDialog from './BanknoteDetailDialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AdminComponentProps } from '@/types/admin';
 
 interface BanknotesManagementProps extends AdminComponentProps {}
@@ -34,6 +35,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
   const [selectedBanknote, setSelectedBanknote] = useState<Banknote | null>(null);
   const [isNewBanknote, setIsNewBanknote] = useState<boolean>(false);
+  const [selectedBanknoteId, setSelectedBanknoteId] = useState<string | null>(null);
   
   const PAGE_SIZE = 10;
   
@@ -157,6 +159,10 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
     toast.success('New banknote created successfully');
   };
 
+  const handleViewBanknote = (banknote: Banknote) => {
+    setSelectedBanknoteId(banknote.id);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -199,6 +205,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>View</TableHead>
                   <TableHead>Catalog ID</TableHead>
                   <TableHead>Country</TableHead>
                   <TableHead>Denomination</TableHead>
@@ -211,6 +218,16 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                 {banknotes.length > 0 ? (
                   banknotes.map((banknote) => (
                     <TableRow key={banknote.id}>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewBanknote(banknote)}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-4 w-4" /> View
+                        </Button>
+                      </TableCell>
                       <TableCell className="font-medium">{banknote.catalogId}</TableCell>
                       <TableCell>{banknote.country}</TableCell>
                       <TableCell>{banknote.denomination}</TableCell>
@@ -254,7 +271,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-10">
+                    <TableCell colSpan={7} className="text-center py-10">
                       No banknotes found
                     </TableCell>
                   </TableRow>
@@ -283,6 +300,15 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
           onCreate={handleBanknoteCreated}
         />
       )}
+
+      {/* Dialog for banknote details */}
+      <Dialog open={selectedBanknoteId !== null} onOpenChange={() => setSelectedBanknoteId(null)}>
+        <DialogContent className="sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto">
+          {selectedBanknoteId && (
+            <BanknoteDetailDialog id={selectedBanknoteId} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
