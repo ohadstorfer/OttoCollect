@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,6 +24,7 @@ import { useCountryCurrencies } from '@/hooks/useCountryCurrencies';
 import { useCountryCategoryDefs } from '@/hooks/useCountryCategoryDefs';
 import { useCountryTypeDefs } from '@/hooks/useCountryTypeDefs';
 import { getGradeDescription } from '@/utils/grading';
+import ImageCropDialog from '@/components/shared/ImageCropDialog';
 
 const formSchema = z.object({
   // CollectionItem fields
@@ -108,6 +109,16 @@ export default function EditUnlistedBanknoteDialog({
   const [reverseImageFile, setReverseImageFile] = useState<File | null>(null);
   const [obverseImagePreview, setObverseImagePreview] = useState<string | null>(collectionItem.obverseImage || null);
   const [reverseImagePreview, setReverseImagePreview] = useState<string | null>(collectionItem.reverseImage || null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImageToCrop, setSelectedImageToCrop] = useState<{
+    url: string;
+    type: 'obverse' | 'reverse';
+  } | null>(null);
+  const [imagePreviewDialogOpen, setImagePreviewDialogOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{ url: string; alt: string } | null>(null);
+  const obverseInputRef = useRef<HTMLInputElement>(null);
+  const reverseInputRef = useRef<HTMLInputElement>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { currencies, loading: loadingCurrencies } = useCountryCurrencies(collectionItem.banknote?.country || '');
   const { categories, loading: loadingCategories } = useCountryCategoryDefs(collectionItem.banknote?.country || '');
@@ -158,6 +169,53 @@ export default function EditUnlistedBanknoteDialog({
       setReverseImagePreview(URL.createObjectURL(file));
       form.setValue("reverse_image_file", file);
     }
+  };
+
+  const handleCropClick = (imageUrl: string | null, type: 'obverse' | 'reverse') => {
+    if (imageUrl) {
+      setSelectedImageToCrop({ url: imageUrl, type });
+      setCropDialogOpen(true);
+    }
+  };
+
+  const handleCroppedImage = async (croppedImageUrl: string) => {
+    try {
+      // Convert data URL to Blob
+      const response = await fetch(croppedImageUrl);
+      const blob = await response.blob();
+
+      // Create a file from the blob
+      const file = new File([blob], `cropped_${selectedImageToCrop?.type}.jpg`, { type: 'image/jpeg' });
+
+      if (selectedImageToCrop?.type === 'obverse') {
+        setObverseImageFile(file);
+        setObverseImagePreview(URL.createObjectURL(file));
+        form.setValue("front_image_file", file);
+      } else {
+        setReverseImageFile(file);
+        setReverseImagePreview(URL.createObjectURL(file));
+        form.setValue("reverse_image_file", file);
+      }
+    } catch (error) {
+      console.error('Error saving cropped image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save cropped image",
+        variant: "destructive",
+      });
+    } finally {
+      setCropDialogOpen(false);
+      setSelectedImageToCrop(null);
+    }
+  };
+
+  const handleImageClick = (imageUrl: string, alt: string) => {
+    setPreviewImage({ url: imageUrl, alt });
+    setImagePreviewDialogOpen(true);
+  };
+
+  const openImageViewer = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -637,21 +695,58 @@ export default function EditUnlistedBanknoteDialog({
                         <FormLabel>Front Image</FormLabel>
                         <FormControl>
                           <div className="flex flex-col gap-2">
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleObverseImageChange}
-                              {...field}
-                            />
-                            {obverseImagePreview && (
-                              <div className="relative w-full aspect-[2/1] border rounded-md overflow-hidden">
-                                <img
-                                  src={obverseImagePreview}
-                                  alt="Front preview"
-                                  className="object-contain w-full h-full"
-                                />
+                            <div className="flex items-center gap-4">
+                              <div
+                                onClick={() => obverseImagePreview && openImageViewer(obverseImagePreview)}
+                                className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+                              >
+                                {obverseImagePreview ? (
+                                  <img src={obverseImagePreview} alt="Front preview" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Upload className="h-8 w-8 text-muted-foreground" />
+                                )}
                               </div>
-                            )}
+                              <div className="flex flex-col gap-2">
+                                <input
+                                  id="obverseImage"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleObverseImageChange}
+                                  className="hidden"
+                                  ref={obverseInputRef}
+                                />
+                                {obverseImagePreview && (
+                                  <>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleCropClick(obverseImagePreview, 'obverse')}
+                                    >
+                                      Edit Image
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => obverseInputRef.current?.click()}
+                                    >
+                                      Change Image
+                                    </Button>
+                                  </>
+                                )}
+                                {!obverseImagePreview && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => obverseInputRef.current?.click()}
+                                  >
+                                    Upload Image
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -666,21 +761,58 @@ export default function EditUnlistedBanknoteDialog({
                         <FormLabel>Back Image</FormLabel>
                         <FormControl>
                           <div className="flex flex-col gap-2">
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleReverseImageChange}
-                              {...field}
-                            />
-                            {reverseImagePreview && (
-                              <div className="relative w-full aspect-[2/1] border rounded-md overflow-hidden">
-                                <img
-                                  src={reverseImagePreview}
-                                  alt="Back preview"
-                                  className="object-contain w-full h-full"
-                                />
+                            <div className="flex items-center gap-4">
+                              <div
+                                onClick={() => reverseImagePreview && openImageViewer(reverseImagePreview)}
+                                className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
+                              >
+                                {reverseImagePreview ? (
+                                  <img src={reverseImagePreview} alt="Back preview" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Upload className="h-8 w-8 text-muted-foreground" />
+                                )}
                               </div>
-                            )}
+                              <div className="flex flex-col gap-2">
+                                <input
+                                  id="reverseImage"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleReverseImageChange}
+                                  className="hidden"
+                                  ref={reverseInputRef}
+                                />
+                                {reverseImagePreview && (
+                                  <>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleCropClick(reverseImagePreview, 'reverse')}
+                                    >
+                                      Edit Image
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => reverseInputRef.current?.click()}
+                                    >
+                                      Change Image
+                                    </Button>
+                                  </>
+                                )}
+                                {!reverseImagePreview && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => reverseInputRef.current?.click()}
+                                  >
+                                    Upload Image
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -872,6 +1004,33 @@ export default function EditUnlistedBanknoteDialog({
           </CardContent>
         </Card>
       </DialogContent>
+
+      {/* Add Image Preview Dialog */}
+      {selectedImage && (
+        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContent className="sm:max-w-[800px] p-1">
+            <img
+              src={selectedImage}
+              alt="Banknote detail"
+              className="w-full h-auto rounded"
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Add the ImageCropDialog */}
+      {cropDialogOpen && selectedImageToCrop && (
+        <ImageCropDialog
+          imageUrl={selectedImageToCrop.url}
+          open={cropDialogOpen}
+          onClose={() => {
+            setCropDialogOpen(false);
+            setSelectedImageToCrop(null);
+          }}
+          onSave={handleCroppedImage}
+          title={`Edit ${selectedImageToCrop.type === 'obverse' ? 'Front' : 'Back'} Image`}
+        />
+      )}
     </Dialog>
   );
 } 

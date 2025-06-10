@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -30,6 +30,8 @@ import { CalendarIcon, Upload } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { getGradeDescription } from '@/utils/grading';
+import ImageCropDialog from '@/components/shared/ImageCropDialog';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -90,6 +92,16 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
     currentItem?.reverseImage || null
   );
   const [useGrading, setUseGrading] = useState(!!currentItem?.grade);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImageToCrop, setSelectedImageToCrop] = useState<{
+    url: string;
+    type: 'obverse' | 'reverse';
+  } | null>(null);
+  const [imagePreviewDialogOpen, setImagePreviewDialogOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{ url: string; alt: string } | null>(null);
+  const obverseInputRef = useRef<HTMLInputElement>(null);
+  const reverseInputRef = useRef<HTMLInputElement>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Initialize form with existing values if editing
   const form = useForm<z.infer<typeof formSchema>>({
@@ -164,6 +176,64 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       const fileUrl = URL.createObjectURL(file);
       setReverseImagePreview(fileUrl);
     }
+  };
+
+  const handleCropClick = (imageUrl: string | null, type: 'obverse' | 'reverse') => {
+    console.log('handleCropClick called with:', { imageUrl, type });
+    if (imageUrl) {
+      console.log('Setting selectedImageToCrop and opening crop dialog');
+      setSelectedImageToCrop({ url: imageUrl, type });
+      setCropDialogOpen(true);
+      console.log('Current state after setting:', { cropDialogOpen: true, selectedImageToCrop: { url: imageUrl, type } });
+    } else {
+      console.log('No imageUrl provided to handleCropClick');
+    }
+  };
+
+  const handleCroppedImage = async (croppedImageUrl: string) => {
+    console.log('handleCroppedImage called with:', croppedImageUrl);
+    try {
+      console.log('Converting data URL to Blob');
+      const response = await fetch(croppedImageUrl);
+      const blob = await response.blob();
+      console.log('Blob created successfully');
+
+      console.log('Creating File from blob');
+      const file = new File([blob], `cropped_${selectedImageToCrop?.type}.jpg`, { type: 'image/jpeg' });
+      console.log('File created successfully');
+
+      if (selectedImageToCrop?.type === 'obverse') {
+        console.log('Updating obverse image');
+        setObverseImageFile(file);
+        setObverseImagePreview(URL.createObjectURL(file));
+      } else {
+        console.log('Updating reverse image');
+        setReverseImageFile(file);
+        setReverseImagePreview(URL.createObjectURL(file));
+      }
+    } catch (error) {
+      console.error('Error in handleCroppedImage:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save cropped image",
+        variant: "destructive",
+      });
+    } finally {
+      console.log('Cleaning up crop dialog state');
+      setCropDialogOpen(false);
+      setSelectedImageToCrop(null);
+    }
+  };
+
+  const handleImageClick = (imageUrl: string, alt: string) => {
+    setPreviewImage({ url: imageUrl, alt });
+    setImagePreviewDialogOpen(true);
+  };
+
+  const openImageViewer = (imageUrl: string) => {
+    console.log('openImageViewer called with:', imageUrl);
+    setSelectedImage(imageUrl);
+    console.log('selectedImage state set to:', imageUrl);
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -328,7 +398,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             Update the details of this banknote in your collection.
           </p>
         </div>
-
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -528,8 +597,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                     <div>
                       <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
                       <div className="mt-2 flex items-center gap-4">
-                        <label
-                          htmlFor="obverseImage"
+                        <div
+                          onClick={() => obverseImagePreview && openImageViewer(obverseImagePreview)}
                           className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
                         >
                           {obverseImagePreview ? (
@@ -541,15 +610,48 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                           ) : (
                             <Upload className="h-8 w-8 text-muted-foreground" />
                           )}
-                        </label>
+                        </div>
 
-                        <input
-                          id="obverseImage"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleObverseImageChange}
-                          className="hidden"
-                        />
+                        <div className="flex flex-col gap-2">
+                          <input
+                            id="obverseImage"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleObverseImageChange}
+                            className="hidden"
+                            ref={obverseInputRef}
+                          />
+                          {obverseImagePreview && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCropClick(obverseImagePreview, 'obverse')}
+                              >
+                                Edit Image
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => obverseInputRef?.current?.click()}
+                              >
+                                Change Image
+                              </Button>
+                            </>
+                          )}
+                          {!obverseImagePreview && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => obverseInputRef?.current?.click()}
+                            >
+                              Upload Image
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -557,8 +659,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                     <div>
                       <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
                       <div className="mt-2 flex items-center gap-4">
-                        <label
-                          htmlFor="reverseImage"
+                        <div
+                          onClick={() => reverseImagePreview && openImageViewer(reverseImagePreview)}
                           className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
                         >
                           {reverseImagePreview ? (
@@ -570,15 +672,48 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                           ) : (
                             <Upload className="h-8 w-8 text-muted-foreground" />
                           )}
-                        </label>
+                        </div>
 
-                        <input
-                          id="reverseImage"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleReverseImageChange}
-                          className="hidden"
-                        />
+                        <div className="flex flex-col gap-2">
+                          <input
+                            id="reverseImage"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleReverseImageChange}
+                            className="hidden"
+                            ref={reverseInputRef}
+                          />
+                          {reverseImagePreview && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCropClick(reverseImagePreview, 'reverse')}
+                              >
+                                Edit Image
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => reverseInputRef?.current?.click()}
+                              >
+                                Change Image
+                              </Button>
+                            </>
+                          )}
+                          {!reverseImagePreview && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => reverseInputRef?.current?.click()}
+                            >
+                              Upload Image
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -797,6 +932,45 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             </div>
           </form>
         </Form>
+
+        {/* Image Preview Dialog - Moved outside Form */}
+        {selectedImage && (
+          <Dialog 
+            open={!!selectedImage} 
+            onOpenChange={(open) => {
+              console.log('Image preview dialog onOpenChange:', { open });
+              if (!open) setSelectedImage(null);
+            }}
+          >
+            <DialogContent className="sm:max-w-[800px] p-1">
+              <img
+                src={selectedImage}
+                alt="Banknote detail"
+                className="w-full h-auto rounded"
+                onLoad={() => console.log('Preview image loaded successfully')}
+                onError={(e) => console.error('Error loading preview image:', e)}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Image Crop Dialog - Moved outside Form */}
+        {cropDialogOpen && selectedImageToCrop && (
+          <ImageCropDialog
+            imageUrl={selectedImageToCrop.url}
+            open={cropDialogOpen}
+            onClose={() => {
+              console.log('ImageCropDialog onClose called');
+              setCropDialogOpen(false);
+              setSelectedImageToCrop(null);
+            }}
+            onSave={async (url) => {
+              console.log('ImageCropDialog onSave called with url:', url);
+              await handleCroppedImage(url);
+            }}
+            title={`Edit ${selectedImageToCrop.type === 'obverse' ? 'Front' : 'Back'} Image`}
+          />
+        )}
       </CardContent>
     </Card>
   );
