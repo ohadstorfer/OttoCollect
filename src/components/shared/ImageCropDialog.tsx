@@ -89,17 +89,8 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
 
       // Calculate the bounding box of the rotated image
       const radians = (rotation * Math.PI) / 180;
-      const sin = Math.abs(Math.sin(radians));
-      const cos = Math.abs(Math.cos(radians));
       
-      const imgWidth = tempImage.naturalWidth;
-      const imgHeight = tempImage.naturalHeight;
-      
-      // Calculate dimensions after rotation
-      const rotatedWidth = Math.floor(imgWidth * cos + imgHeight * sin);
-      const rotatedHeight = Math.floor(imgWidth * sin + imgHeight * cos);
-
-      // Set canvas size to fit the rotated and cropped image
+      // Set canvas size to fit the cropped area
       canvas.width = crop.width;
       canvas.height = crop.height;
 
@@ -107,26 +98,38 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Move to center of canvas
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(radians);
-      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      // Calculate scaling factors based on the displayed image size vs natural size
+      const scaleX = tempImage.naturalWidth / imgRef.current.width;
+      const scaleY = tempImage.naturalHeight / imgRef.current.height;
 
-      // Calculate scaling factors
-      const scaleX = imgWidth / imgRef.current.width;
-      const scaleY = imgHeight / imgRef.current.height;
+      // Create a temporary canvas for rotation
+      const rotationCanvas = document.createElement('canvas');
+      const rotationCtx = rotationCanvas.getContext('2d');
+      if (!rotationCtx) return;
 
-      // Draw the cropped and rotated image
+      // Set the rotation canvas size to the full image size
+      rotationCanvas.width = tempImage.naturalWidth;
+      rotationCanvas.height = tempImage.naturalHeight;
+
+      // Rotate around the center of the full image
+      rotationCtx.translate(rotationCanvas.width / 2, rotationCanvas.height / 2);
+      rotationCtx.rotate(radians);
+      rotationCtx.translate(-rotationCanvas.width / 2, -rotationCanvas.height / 2);
+
+      // Draw the full image rotated
+      rotationCtx.drawImage(tempImage, 0, 0);
+
+      // Now draw the cropped portion onto the final canvas
       ctx.drawImage(
-        tempImage,
-        crop.x * scaleX,
-        crop.y * scaleY,
-        crop.width * scaleX,
-        crop.height * scaleY,
-        0,
-        0,
-        canvas.width,
-        canvas.height
+        rotationCanvas,
+        crop.x * scaleX,  // source x
+        crop.y * scaleY,  // source y
+        crop.width * scaleX,  // source width
+        crop.height * scaleY,  // source height
+        0,  // destination x
+        0,  // destination y
+        crop.width,  // destination width
+        crop.height  // destination height
       );
 
       // Convert to blob
