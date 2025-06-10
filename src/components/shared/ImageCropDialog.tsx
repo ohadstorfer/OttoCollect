@@ -47,10 +47,10 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
       setImageLoaded(false);
       setCrop({
         unit: '%',
-        width: 90,
-        height: 90,
-        x: 5,
-        y: 5
+        width: 100,
+        height: 100,
+        x: 0,
+        y: 0
       });
     }
   }, [open]);
@@ -64,7 +64,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
     // Set up continuous rotation
     rotationInterval.current = setInterval(() => {
       setRotation(prev => direction === 'left' ? prev - 1 : prev + 1);
-    }, 50); // Adjust speed by changing interval (lower = faster)
+    }, 100); // Adjust speed by changing interval (lower = faster)
   };
 
   const stopRotation = () => {
