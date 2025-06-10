@@ -11,11 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Loader2, Check, X, Image as ImageIcon, Eye } from 'lucide-react';
+import { Search, Loader2, Check, X, Image as ImageIcon, Eye, Crop } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import { AdminComponentProps } from '@/types/admin';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import BanknoteDetailDialog from './BanknoteDetailDialog';
+import ImageCropDialog from '@/components/shared/ImageCropDialog';
 
 interface ImageSuggestion {
   id: string;
@@ -56,6 +57,11 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
   loading
 }) => {
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImageToCrop, setSelectedImageToCrop] = useState<{
+    url: string;
+    type: 'obverse' | 'reverse';
+  } | null>(null);
 
   const renderStatus = () => {
     switch (suggestion.status) {
@@ -78,9 +84,65 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
     }
   };
 
+  const handleCropClick = (imageUrl: string | null, type: 'obverse' | 'reverse') => {
+    if (imageUrl) {
+      setSelectedImageToCrop({ url: imageUrl, type });
+      setCropDialogOpen(true);
+    }
+  };
+
+  const handleSaveCroppedImage = async (croppedImageUrl: string) => {
+    if (!selectedImageToCrop) return;
+
+    try {
+      // Convert data URL to Blob
+      const response = await fetch(croppedImageUrl);
+      const blob = await response.blob();
+
+      // Create a file from the blob
+      const file = new File([blob], `cropped_${selectedImageToCrop.type}.jpg`, { type: 'image/jpeg' });
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('banknote-images')
+        .upload(`suggestions/${suggestion.id}/${selectedImageToCrop.type}_${Date.now()}.jpg`, file);
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('banknote-images')
+        .getPublicUrl(data.path);
+
+      // Update suggestion with new image URL
+      const updateData = selectedImageToCrop.type === 'obverse' 
+        ? { obverse_image: publicUrl }
+        : { reverse_image: publicUrl };
+
+      const { error: updateError } = await supabase
+        .from('image_suggestions')
+        .update(updateData)
+        .eq('id', suggestion.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      if (selectedImageToCrop.type === 'obverse') {
+        suggestion.obverse_image = publicUrl;
+      } else {
+        suggestion.reverse_image = publicUrl;
+      }
+
+      toast.success('Image updated successfully');
+    } catch (error) {
+      console.error('Error saving cropped image:', error);
+      toast.error('Failed to save cropped image');
+    }
+  };
+
   return (
     <>
-       <DialogContent className="sm:max-w-[99vw] md:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[99vw] md:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Compare Images</DialogTitle>
         </DialogHeader>
@@ -89,37 +151,41 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
           <div>
             <h3 className="text-lg font-medium mb-2">Current Images</h3>
             <div className="grid grid-cols-2 gap-2">
-              <div 
-                className=" bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => currentImages.front && setEnlargedImage(currentImages.front)}
-              >
-                {currentImages.front ? (
-                  <img 
-                    src={currentImages.front} 
-                    alt="Current front"
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                  </div>
-                )}
+              <div className="relative">
+                <div 
+                  className="bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => currentImages.front && setEnlargedImage(currentImages.front)}
+                >
+                  {currentImages.front ? (
+                    <img 
+                      src={currentImages.front} 
+                      alt="Current front"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
               </div>
-              <div 
-                className=" bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => currentImages.back && setEnlargedImage(currentImages.back)}
-              >
-                {currentImages.back ? (
-                  <img 
-                    src={currentImages.back} 
-                    alt="Current back"
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                  </div>
-                )}
+              <div className="relative">
+                <div 
+                  className="bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => currentImages.back && setEnlargedImage(currentImages.back)}
+                >
+                  {currentImages.back ? (
+                    <img 
+                      src={currentImages.back} 
+                      alt="Current back"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -127,36 +193,60 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
           <div>
             <h3 className="text-lg font-medium mb-2">Suggested Images</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div 
-                className=" bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => suggestion.obverse_image && setEnlargedImage(suggestion.obverse_image)}
-              >
-                {suggestion.obverse_image ? (
-                  <img 
-                    src={suggestion.obverse_image} 
-                    alt="Suggested front"
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                  </div>
+              <div className="relative">
+                <div 
+                  className="bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => suggestion.obverse_image && setEnlargedImage(suggestion.obverse_image)}
+                >
+                  {suggestion.obverse_image ? (
+                    <img 
+                      src={suggestion.obverse_image} 
+                      alt="Suggested front"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                {suggestion.status === 'pending' && suggestion.obverse_image && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                    onClick={() => handleCropClick(suggestion.obverse_image, 'obverse')}
+                  >
+                    <Crop className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
-              <div 
-                className=" bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => suggestion.reverse_image && setEnlargedImage(suggestion.reverse_image)}
-              >
-                {suggestion.reverse_image ? (
-                  <img 
-                    src={suggestion.reverse_image} 
-                    alt="Suggested back"
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                  </div>
+              <div className="relative">
+                <div 
+                  className="bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => suggestion.reverse_image && setEnlargedImage(suggestion.reverse_image)}
+                >
+                  {suggestion.reverse_image ? (
+                    <img 
+                      src={suggestion.reverse_image} 
+                      alt="Suggested back"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                {suggestion.status === 'pending' && suggestion.reverse_image && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                    onClick={() => handleCropClick(suggestion.reverse_image, 'reverse')}
+                  >
+                    <Crop className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
             </div>
@@ -218,6 +308,20 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Image Crop Dialog */}
+      {selectedImageToCrop && (
+        <ImageCropDialog
+          imageUrl={selectedImageToCrop.url}
+          open={cropDialogOpen}
+          onClose={() => {
+            setCropDialogOpen(false);
+            setSelectedImageToCrop(null);
+          }}
+          onSave={handleSaveCroppedImage}
+          title={`Edit ${selectedImageToCrop.type === 'obverse' ? 'Front' : 'Back'} Image`}
+        />
+      )}
     </>
   );
 };
