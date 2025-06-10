@@ -206,7 +206,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>View</TableHead>
-                  <TableHead>Catalog ID</TableHead>
+                  <TableHead>Extended Pick</TableHead>
                   <TableHead>Country</TableHead>
                   <TableHead>Denomination</TableHead>
                   <TableHead>Year</TableHead>
