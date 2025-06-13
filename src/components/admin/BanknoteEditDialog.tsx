@@ -584,6 +584,7 @@ const BanknoteEditDialog = ({
                       />
                     </div>
 
+
                     <div className="space-y-2">
                       <Label>Watermark</Label>
                       <Select
