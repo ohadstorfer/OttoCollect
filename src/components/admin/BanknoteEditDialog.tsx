@@ -443,7 +443,7 @@ const BanknoteEditDialog = ({
                 <Textarea
                   id="banknote_description"
                   name="banknote_description"
-                  value={formData.banknote_description}
+                  value={formData.banknote_description || ''}
                   onChange={handleChange}
                   rows={3}
                 />
@@ -520,7 +520,7 @@ const BanknoteEditDialog = ({
                 <Textarea
                   id="historical_description"
                   name="historical_description"
-                  value={formData.historical_description}
+                  value={formData.historical_description || ''}
                   onChange={handleChange}
                   rows={3}
                 />
