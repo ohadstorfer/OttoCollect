@@ -316,7 +316,7 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
               </TableRow>
             </TableHeader>
             <Droppable droppableId="categories">
-              {(provided) => (
+              {(provided, snapshot) => (
                 <TableBody
                   {...provided.droppableProps}
                   ref={provided.innerRef}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -18,6 +17,10 @@ import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SimpleImageUpload from '@/components/collection/SimpleImageUpload';
 import { uploadBanknoteImage } from '@/services/banknoteService';
+import { fetchStampPictures } from '@/services/stampsService';
+import { StampPicture } from '@/types/stamps';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import MultiSelect from '@/components/ui/multiselect';
 
 interface BanknoteEditDialogProps {
   open: boolean;
@@ -52,12 +55,24 @@ const BanknoteEditDialog = ({
     historical_description: '',
     front_picture: '',
     back_picture: '',
+    signature_pictures: [],
+    seal_pictures: [],
+    watermark_picture: '',
+    tughra_picture: '',
     is_approved: true,
     is_pending: false
   });
   
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('basic');
+  const [signaturePictures, setSignaturePictures] = useState<StampPicture[]>([]);
+  const [sealPictures, setSealPictures] = useState<StampPicture[]>([]);
+  const [watermarkPictures, setWatermarkPictures] = useState<StampPicture[]>([]);
+  const [tughraPictures, setTughraPictures] = useState<StampPicture[]>([]);
+  const [isLoadingStamps, setIsLoadingStamps] = useState<boolean>(false);
+  const [countryIdForStamps, setCountryIdForStamps] = useState<string | null>(null);
+  const [selectedSignatureIds, setSelectedSignatureIds] = useState<string[]>([]);
+  const [selectedSealIds, setSelectedSealIds] = useState<string[]>([]);
   
   useEffect(() => {
     if (banknote && !isNew) {
@@ -78,14 +93,46 @@ const BanknoteEditDialog = ({
         historical_description: '',
         front_picture: banknote.imageUrls[0] || '',
         back_picture: banknote.imageUrls[1] || '',
+        signature_pictures: [],
+        seal_pictures: [],
+        watermark_picture: '',
+        tughra_picture: '',
         is_approved: banknote.isApproved,
         is_pending: banknote.isPending
       });
       
       // If we have a detailed banknote, fetch the extra details
       fetchDetailedBanknoteInfo(banknote.id);
+      setSelectedSignatureIds([]);
+      setSelectedSealIds([]);
     }
   }, [banknote, isNew]);
+  
+  useEffect(() => {
+    if (formData.country) {
+      fetchCountryId(formData.country).then(countryId => {
+        if (countryId) {
+          setCountryIdForStamps(countryId);
+          fetchStampPicturesForCountry(countryId);
+        }
+      });
+    }
+  }, [formData.country]);
+  
+  useEffect(() => {
+    const sigPics = formData.signature_pictures || [];
+    const sealPics = formData.seal_pictures || [];
+    if (signaturePictures.length && sigPics.length) {
+      setSelectedSignatureIds(
+        signaturePictures.filter(p => sigPics.includes(p.name)).map(p => p.id)
+      );
+    }
+    if (sealPictures.length && sealPics.length) {
+      setSelectedSealIds(
+        sealPictures.filter(p => sealPics.includes(p.name)).map(p => p.id)
+      );
+    }
+  }, [signaturePictures, sealPictures, formData.signature_pictures, formData.seal_pictures]);
   
   const fetchDetailedBanknoteInfo = async (banknoteId: string) => {
     try {
@@ -106,6 +153,46 @@ const BanknoteEditDialog = ({
     } catch (error) {
       console.error('Error fetching detailed banknote info:', error);
       toast.error('Failed to load complete banknote details');
+    }
+  };
+  
+  const fetchCountryId = async (countryName: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('countries')
+        .select('id')
+        .eq('name', countryName)
+        .single();
+      
+      if (error) throw error;
+      
+      if (data) return data.id;
+    } catch (error) {
+      console.error('Error fetching country ID:', error);
+      toast.error('Failed to fetch country ID');
+    }
+    return null;
+  };
+  
+  const fetchStampPicturesForCountry = async (countryId: string) => {
+    setIsLoadingStamps(true);
+    try {
+      const [signatures, seals, watermarks, tughras] = await Promise.all([
+        fetchStampPictures('signature', countryId),
+        fetchStampPictures('seal', countryId),
+        fetchStampPictures('watermark', countryId),
+        fetchStampPictures('tughra', countryId)
+      ]);
+
+      setSignaturePictures(signatures);
+      setSealPictures(seals);
+      setWatermarkPictures(watermarks);
+      setTughraPictures(tughras);
+    } catch (error) {
+      console.error('Error fetching stamp pictures:', error);
+      toast.error('Failed to load stamp pictures');
+    } finally {
+      setIsLoadingStamps(false);
     }
   };
   
@@ -138,6 +225,46 @@ const BanknoteEditDialog = ({
       ...prev,
       back_picture: url
     }));
+  };
+  
+  const handleStampChange = (type: string, value: string) => {
+    if (value === 'none') {
+      if (type === 'signature' || type === 'seal') {
+        setFormData(prev => ({
+          ...prev,
+          [`${type}_pictures`]: []
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [`${type}_picture`]: ''
+        }));
+      }
+      return;
+    }
+
+    // Find the selected picture to get its name
+    const pictures = {
+      signature: signaturePictures,
+      seal: sealPictures,
+      watermark: watermarkPictures,
+      tughra: tughraPictures
+    }[type];
+
+    const selectedPicture = pictures.find(p => p.id === value);
+    if (!selectedPicture) return;
+
+    if (type === 'signature' || type === 'seal') {
+      setFormData(prev => ({
+        ...prev,
+        [`${type}_pictures`]: [selectedPicture.name]
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [`${type}_picture`]: selectedPicture.name
+      }));
+    }
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -420,10 +547,87 @@ const BanknoteEditDialog = ({
                   />
                 </div>
               </div>
+
+              <div className="space-y-6 pt-6 border-t">
+                <h3 className="text-lg font-medium">Stamp Pictures</h3>
+                {isLoadingStamps ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label>Signature</Label>
+                      <MultiSelect
+                        options={signaturePictures.map((picture) => ({ value: picture.id, label: picture.name }))}
+                        selected={selectedSignatureIds}
+                        onChange={(selectedIds) => {
+                          setSelectedSignatureIds(selectedIds);
+                          const selectedNames = signaturePictures.filter(p => selectedIds.includes(p.id)).map(p => p.name);
+                          setFormData(prev => ({ ...prev, signature_pictures: selectedNames }));
+                        }}
+                        placeholder="Select signatures"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Seal</Label>
+                      <MultiSelect
+                        options={sealPictures.map((picture) => ({ value: picture.id, label: picture.name }))}
+                        selected={selectedSealIds}
+                        onChange={(selectedIds) => {
+                          setSelectedSealIds(selectedIds);
+                          const selectedNames = sealPictures.filter(p => selectedIds.includes(p.id)).map(p => p.name);
+                          setFormData(prev => ({ ...prev, seal_pictures: selectedNames }));
+                        }}
+                        placeholder="Select seals"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Watermark</Label>
+                      <Select
+                        value={watermarkPictures.find(p => p.name === formData.watermark_picture)?.id || ''}
+                        onValueChange={(value) => handleStampChange('watermark', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select watermark" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {watermarkPictures.map((picture) => (
+                            <SelectItem key={picture.id} value={picture.id}>
+                              {picture.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Tughra</Label>
+                      <Select
+                        value={tughraPictures.find(p => p.name === formData.tughra_picture)?.id || ''}
+                        onValueChange={(value) => handleStampChange('tughra', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select tughra" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {tughraPictures.map((picture) => (
+                            <SelectItem key={picture.id} value={picture.id}>
+                              {picture.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </div>
               
-              <p className="text-sm text-muted-foreground mt-4">
-                Upload images directly or paste image URLs. For best results, use high-resolution images with clear details.
-              </p>
+
             </TabsContent>
           </Tabs>
           

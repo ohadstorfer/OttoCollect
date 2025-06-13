@@ -313,7 +313,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
               </TableRow>
             </TableHeader>
             <Droppable droppableId="sort-options">
-              {(provided) => (
+              {(provided, snapshot) => (
                 <TableBody
                   {...provided.droppableProps}
                   ref={provided.innerRef}

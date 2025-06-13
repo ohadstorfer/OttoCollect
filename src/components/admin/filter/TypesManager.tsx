@@ -316,7 +316,7 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
               </TableRow>
             </TableHeader>
             <Droppable droppableId="types">
-              {(provided) => (
+              {(provided, snapshot) => (
                 <TableBody
                   {...provided.droppableProps}
                   ref={provided.innerRef}
