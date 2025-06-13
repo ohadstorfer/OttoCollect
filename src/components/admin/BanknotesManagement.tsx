@@ -21,6 +21,26 @@ import { AdminComponentProps } from '@/types/admin';
 
 interface BanknotesManagementProps extends AdminComponentProps {}
 
+const SEARCHABLE_FIELDS = [
+  'country',
+  'face_value',
+  'gregorian_year',
+  'islamic_year',
+  'sultan_name',
+  'printer',
+  'type',
+  'category',
+  'rarity',
+  'banknote_description',
+  'historical_description',
+  'extended_pick_number',
+  'pick_number',
+  'denomination',
+  'series',
+  'description',
+  'name',
+];
+
 const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   countryId,
   countryName,
@@ -46,10 +66,18 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   const fetchBanknotes = async () => {
     setLoading(true);
     try {
+      // Build the search filter for all fields
       let query = supabase
         .from('detailed_banknotes')
-        .select('*', { count: 'exact', head: true })
-        .ilike('country', `%${searchQuery}%`);
+        .select('*', { count: 'exact', head: true });
+
+      if (searchQuery) {
+        // Build an OR ilike filter for all searchable fields
+        const orFilters = SEARCHABLE_FIELDS.map(
+          (field) => `${field}.ilike.%${searchQuery}%`
+        ).join(',');
+        query = query.or(orFilters);
+      }
 
       // If in country admin mode, filter by country
       if (isCountryAdmin && countryName) {
@@ -65,22 +93,32 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
       // Then fetch data with pagination
       let dataQuery = supabase
         .from('detailed_banknotes')
-        .select('*')
-        .ilike('country', `%${searchQuery}%`);
+        .select('*');
 
-      // If in country admin mode, filter by country
+      if (searchQuery) {
+        const orFilters = SEARCHABLE_FIELDS.map(
+          (field) => `${field}.ilike.%${searchQuery}%`
+        ).join(',');
+        dataQuery = dataQuery.or(orFilters);
+      }
+
       if (isCountryAdmin && countryName) {
         dataQuery = dataQuery.eq('country', countryName);
       }
 
       const { data, error } = await dataQuery
-        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
-        .order('country', { ascending: true })
-        .order('face_value', { ascending: true });
+        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1);
 
       if (error) throw error;
 
-      setBanknotes(data.map(item => ({
+      // Sort by extended_pick_number (extPick logic)
+      const sortedData = [...data].sort((a, b) => {
+        const aPick = a.extended_pick_number || a.catalogId || '';
+        const bPick = b.extended_pick_number || b.catalogId || '';
+        return aPick.localeCompare(bPick, undefined, { numeric: true, sensitivity: 'base' });
+      });
+
+      setBanknotes(sortedData.map(item => ({
         id: item.id,
         catalogId: item.extended_pick_number,
         country: item.country,
