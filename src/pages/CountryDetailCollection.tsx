@@ -494,6 +494,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           onTabChange={handleTabChange}
           source="collection"
           onPreferencesLoaded={handlePreferencesLoaded}
+          isOwner={isOwner}
         />
 
         {/* Conditionally render content based on activeTab */}

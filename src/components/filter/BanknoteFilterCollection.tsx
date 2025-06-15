@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { BaseBanknoteFilterProfile } from "./BaseBanknoteFilterProfile";
 
-interface BanknoteFilterCollectionProps {
+export interface BanknoteFilterCollectionProps {
   countryId: string;
   onFilterChange: (filters: Partial<DynamicFilterState>) => void;
   currentFilters: DynamicFilterState;
@@ -25,6 +25,7 @@ interface BanknoteFilterCollectionProps {
   onPreferencesLoaded?: () => void;
   activeTab?: 'collection' | 'wishlist' | 'missing';
   onTabChange?: (tab: 'collection' | 'wishlist' | 'missing') => void;
+  isOwner?: boolean;
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -39,7 +40,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   onGroupModeChange,
   onPreferencesLoaded,
   activeTab,
-  onTabChange
+  onTabChange,
+  isOwner,
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -367,6 +369,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         onGroupModeChange={handleGroupModeChange}
         activeTab={activeTab}
         onTabChange={onTabChange}
+        isOwner={isOwner}
       />
     </div>
   );

@@ -17,6 +17,7 @@ interface CountryFilterSectionProps {
   onPreferencesLoaded?: () => void;
   activeTab?: 'collection' | 'wishlist' | 'missing';
   onTabChange?: (tab: 'collection' | 'wishlist' | 'missing') => void;
+  isOwner?: boolean;
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -33,7 +34,8 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   collectionTypes = [],
   onPreferencesLoaded,
   activeTab,
-  onTabChange
+  onTabChange,
+  isOwner = false
 }) => {
   // Memoize handleFilterChange to prevent it from causing re-renders
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
@@ -54,6 +56,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
         onPreferencesLoaded={onPreferencesLoaded}
         activeTab={activeTab}
         onTabChange={onTabChange}
+        isOwner={isOwner}
       />
     );
   }

@@ -284,8 +284,13 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" title="Add a new unlisted banknote">
-          <BookmarkPlus style={{ width: "1.4rem", height: "1.4rem" }} />
+        {/* <Button variant="ghost" title="Add a new unlisted banknote"> */}
+        <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label={"Add a new unlisted banknote"}
+                  >
+          <BookmarkPlus style={{ width: "1.1rem", height: "1.1rem" }} />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
