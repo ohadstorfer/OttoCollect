@@ -374,6 +374,20 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   );
   console.log("[MissingItems] Grouped missing items:", groupedMissingItems);
 
+  // On mount, restore tab from sessionStorage if available
+  useEffect(() => {
+    const savedTab = sessionStorage.getItem('countryDetailActiveTab');
+    if (savedTab === 'collection' || savedTab === 'missing' || savedTab === 'wishlist') {
+      setActiveTab(savedTab);
+    }
+  }, []);
+
+  // Handler to change tab and persist it
+  const handleTabChange = (tab: 'collection' | 'missing' | 'wishlist') => {
+    setActiveTab(tab);
+    sessionStorage.setItem('countryDetailActiveTab', tab);
+  };
+
   return (
     <div className="w-full px-2 sm:px-6 py-1">
 
@@ -395,7 +409,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={handleTabChange}
           source="collection"
           onPreferencesLoaded={handlePreferencesLoaded}
         />
