@@ -1,4 +1,3 @@
-
 import React, { useCallback, memo } from "react";
 import { BanknoteFilterCatalog } from "@/components/filter/BanknoteFilterCatalog";
 import { BanknoteFilterCollection } from "@/components/filter/BanknoteFilterCollection";
@@ -16,6 +15,8 @@ interface CountryFilterSectionProps {
   collectionCategories?: { id: string; name: string; count: number }[];
   collectionTypes?: { id: string; name: string; count: number }[];
   onPreferencesLoaded?: () => void;
+  activeTab?: 'collection' | 'wishlist' | 'missing';
+  onTabChange?: (tab: 'collection' | 'wishlist' | 'missing') => void;
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -30,7 +31,9 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   source = 'catalog',
   collectionCategories = [],
   collectionTypes = [],
-  onPreferencesLoaded
+  onPreferencesLoaded,
+  activeTab,
+  onTabChange
 }) => {
   // Memoize handleFilterChange to prevent it from causing re-renders
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
@@ -49,6 +52,8 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
         groupMode={groupMode}
         onGroupModeChange={onGroupModeChange}
         onPreferencesLoaded={onPreferencesLoaded}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
       />
     );
   }

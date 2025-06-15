@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
 import { CountryHeader } from "@/components/country/CountryHeader";
@@ -14,18 +13,34 @@ import { useAuth } from "@/context/AuthContext";
 import type { DetailedBanknote, CollectionItem } from "@/types";
 
 interface CountryDetailMissingItemsProps {
-  // Presentational props (optional)
   missingBanknotes?: DetailedBanknote[];
   userCollection?: CollectionItem[];
   countryId?: string;
   countryName?: string;
-  // Optionally, control viewMode, filters externally.
+  filters?: DynamicFilterState;
+  onFilterChange?: (newFilters: Partial<DynamicFilterState>) => void;
+  isLoading?: boolean;
+  viewMode?: 'grid' | 'list';
+  groupMode?: boolean;
+  onGroupModeChange?: (mode: boolean) => void;
+  groups?: any[];
+  showSultanGroups?: boolean;
+  isOwner?: boolean;
 }
 const CountryDetailMissingItems: React.FC<CountryDetailMissingItemsProps> = ({
   missingBanknotes,
   userCollection,
   countryId: propCountryId,
   countryName: propCountryName,
+  filters: propFilters,
+  onFilterChange: propOnFilterChange,
+  isLoading: propIsLoading,
+  viewMode: propViewMode,
+  groupMode: propGroupMode,
+  onGroupModeChange: propOnGroupModeChange,
+  groups: propGroups,
+  showSultanGroups: propShowSultanGroups,
+  isOwner: propIsOwner
 }) => {
   // Determines if presentational mode (render only props, not fetching)
   const isPresentational = !!missingBanknotes;
@@ -33,8 +48,8 @@ const CountryDetailMissingItems: React.FC<CountryDetailMissingItemsProps> = ({
   // Parameter-based loading (for legacy route usage, fallback)
   const { country: routeCountryParam } = useParams();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [filters, setFilters] = useState<DynamicFilterState>({
+  const [internalViewMode, setInternalViewMode] = useState<'grid' | 'list'>('grid');
+  const [internalFilters, setInternalFilters] = useState<DynamicFilterState>({
     search: "",
     categories: [],
     types: [],
@@ -43,6 +58,12 @@ const CountryDetailMissingItems: React.FC<CountryDetailMissingItemsProps> = ({
 
   const { user } = useAuth();
   const [localUserCollection, setLocalUserCollection] = useState<CollectionItem[]>([]);
+
+  // Use controlled or internal state
+  const filters = propFilters || internalFilters;
+  const onFilterChange = propOnFilterChange || ((newFilters: Partial<DynamicFilterState>) => setInternalFilters(prev => ({ ...prev, ...newFilters })));
+  const viewMode = propViewMode || internalViewMode;
+  const setViewMode = propViewMode ? propOnFilterChange as any : setInternalViewMode; // Only use setInternalViewMode if uncontrolled
 
   // Mode 1: Presentational (controlled via props)
   let renderCountryId: string | undefined = isPresentational ? propCountryId : undefined;
@@ -95,41 +116,21 @@ const CountryDetailMissingItems: React.FC<CountryDetailMissingItemsProps> = ({
     filters
   });
 
-  // For presentational, group/organize the passed-in missingBanknotes
-  const sortedBanknotes = isPresentational
-    ? banknotes
-    : useBanknoteSorting({
-        banknotes: fetchedBanknotes,
-        currencies,
-        sortFields: filters.sort
-      });
 
-  const groupedItems = useBanknoteGroups(
-    sortedBanknotes,
-    filters.sort,
-    categoryOrder
-  );
+  
 
-  const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters
-    }));
-  }, []);
-
-  const handleViewModeChange = (mode: 'grid' | 'list') => {
-    setViewMode(mode);
-  };
-
-  const isLoading = countryLoading || banknotesLoading;
+  const isLoading = typeof propIsLoading === 'boolean' ? propIsLoading : (countryLoading || banknotesLoading);
 
   // Use provided userCollection if present (for presentational mode), otherwise use local fetched one.
   const displayUserCollection = isPresentational ? collection : localUserCollection;
 
+ 
+
+
   return (
     <div className="w-full px-2 sm:px-6 py-1">
 
-      <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
+      {/* <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
         <CountryFilterSection
           countryId={renderCountryId ?? countryId}
           filters={filters}
@@ -138,18 +139,18 @@ const CountryDetailMissingItems: React.FC<CountryDetailMissingItemsProps> = ({
           onViewModeChange={handleViewModeChange}
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
-        />
+        /> */}
 
         <BanknoteDisplay
-          groups={groupedItems}
+          groups={propGroups}
           showSultanGroups={filters.sort.includes('sultan')}
           viewMode={viewMode}
-          countryId={renderCountryId ?? countryId}
+          countryId={countryId}
           isLoading={isLoading}
           groupMode={groupMode}
           userCollection={displayUserCollection}
         />
-      </div>
+      {/* </div> */}
     </div>
   );
 };

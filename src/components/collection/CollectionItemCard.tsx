@@ -108,7 +108,11 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
 
   // Handle card click to navigate to collection item details
   const handleCardClick = () => {
-    if (item?.id) {
+    if (item?.isMissing) {
+      // For missing items, go to banknote details
+      navigate(`/banknote-details/${item.banknoteId || item.id}`);
+    } else if (item?.id) {
+      // For collection items, go to collection item details
       navigate(`/collection-item/${item.id}`);
     }
   };

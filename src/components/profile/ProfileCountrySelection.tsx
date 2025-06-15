@@ -8,6 +8,7 @@ import CountryCollectionTabs from '@/components/profile/CountryCollectionTabs';
 import { CountryHeader } from '../country/CountryHeader';
 import { fetchCountryById, fetchCountryByName } from '@/services/countryService'; // assuming you have this
 import { CountryHeaderCollection } from '../country/CountryHeaderCollection';
+import CountryDetailCollection from '@/pages/CountryDetailCollection';
 
 interface ProfileCountrySelectionProps {
   userId: string;
@@ -94,12 +95,11 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
         </div>
       </div>
 
-      <CountryCollectionTabs
-        userId={userId}
-        countryId={countryId}
-        countryName={countryName}
-        isOwner={isOwnProfile}
-      />
+      <CountryDetailCollection 
+          userId={userId} 
+          countryName={countryName}
+          profileView={true}
+        />
     </div>
   ) : (
     <CountrySelection 

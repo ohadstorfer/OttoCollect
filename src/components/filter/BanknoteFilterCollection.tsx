@@ -11,6 +11,7 @@ import {
 } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { BaseBanknoteFilterProfile } from "./BaseBanknoteFilterProfile";
 
 interface BanknoteFilterCollectionProps {
   countryId: string;
@@ -22,6 +23,8 @@ interface BanknoteFilterCollectionProps {
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
   onPreferencesLoaded?: () => void;
+  activeTab?: 'collection' | 'wishlist' | 'missing';
+  onTabChange?: (tab: 'collection' | 'wishlist' | 'missing') => void;
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -34,7 +37,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   onViewModeChange,
   groupMode = false,
   onGroupModeChange,
-  onPreferencesLoaded
+  onPreferencesLoaded,
+  activeTab,
+  onTabChange
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -112,14 +117,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         });
         
         // Add default sort options if they don't exist
-        if (!hasSultanOption) {
-          mappedSortOptions.push({
-            id: "sultan-default",
-            name: "Sultan",
-            fieldName: "sultan",
-            isRequired: false
-          });
-        }
         
         if (!hasFaceValueOption) {
           mappedSortOptions.push({
@@ -356,7 +353,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       "sticky top-16 inset-x-0",
       className
     )}>
-      <BaseBanknoteFilter
+      <BaseBanknoteFilterProfile
         categories={categories}
         types={types}
         sortOptions={sortOptions}
@@ -368,6 +365,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         onViewModeChange={handleViewModeChange}
         groupMode={groupMode}
         onGroupModeChange={handleGroupModeChange}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
       />
     </div>
   );
