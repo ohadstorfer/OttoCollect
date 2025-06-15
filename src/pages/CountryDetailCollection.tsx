@@ -15,6 +15,8 @@ import { fetchBanknotesByCountryId } from '@/services/banknoteService';
 import { FilterOption } from "@/components/filter/BaseBanknoteFilterProfile";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
+import { fetchUserWishlistByCountry } from '@/services/wishlistService';
+import BanknoteDetailCardWishList from '@/components/banknotes/BanknoteDetailCardWishList';
 
 interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
@@ -41,6 +43,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const [activeTab, setActiveTab] = useState<'collection' | 'missing' | 'wishlist'>('collection');
   const [userCollection, setUserCollection] = useState([]);
   const [allBanknotes, setAllBanknotes] = useState([]);
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   
   // Use either the prop or the URL param for country name
   const effectiveCountryName = countryName || (country ? decodeURIComponent(country) : "");
@@ -374,6 +378,84 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   );
   console.log("[MissingItems] Grouped missing items:", groupedMissingItems);
 
+  // Fetch wishlist items for the user and country
+  useEffect(() => {
+    async function loadWishlist() {
+      if (countryId && effectiveUserId && effectiveCountryName) {
+        setWishlistLoading(true);
+        const items = await fetchUserWishlistByCountry(effectiveUserId, effectiveCountryName);
+        setWishlistItems(items || []);
+        setWishlistLoading(false);
+      } else {
+        setWishlistItems([]);
+      }
+    }
+    loadWishlist();
+  }, [countryId, effectiveUserId, effectiveCountryName]);
+
+  // Map wishlist items to collection-like structure
+  const wishlistCollectionItems = useMemo(() => wishlistItems.map(item => ({
+    ...item.detailed_banknotes,
+    id: item.id, // wishlist item id
+    wishlistItemId: item.id,
+    banknote: item.detailed_banknotes,
+    isWishlist: true,
+  })), [wishlistItems]);
+
+  // Filtering logic (same as missing items)
+  const filteredWishlistCollectionItems = useMemo(() => {
+    // Create a map of category names to IDs
+    const categoryNameToId = (categoryDefs || []).reduce((acc, cat) => {
+      acc[cat.name] = cat.id;
+      return acc;
+    }, {} as Record<string, string>);
+
+    // Create a map of type names to IDs
+    const typeNameToId = (typeDefs || []).reduce((acc, type) => {
+      acc[type.name] = type.id;
+      return acc;
+    }, {} as Record<string, string>);
+
+    return wishlistCollectionItems.filter(item => {
+      // Search filter
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const matches =
+          (item.denomination && item.denomination.toLowerCase().includes(searchLower)) ||
+          (item.sultanName && item.sultanName.toLowerCase().includes(searchLower)) ||
+          (item.extendedPickNumber && item.extendedPickNumber.toLowerCase().includes(searchLower)) ||
+          (item.category && item.category.toLowerCase().includes(searchLower)) ||
+          (item.type && item.type.toLowerCase().includes(searchLower));
+        if (!matches) return false;
+      }
+      // Categories filter
+      if (filters.categories && filters.categories.length > 0 && Object.keys(categoryNameToId).length > 0) {
+        const itemCategoryId = categoryNameToId[item.category];
+        if (!itemCategoryId) return false;
+        if (!filters.categories.includes(itemCategoryId)) return false;
+      }
+      // Types filter
+      if (filters.types && filters.types.length > 0 && Object.keys(typeNameToId).length > 0) {
+        const itemTypeId = typeNameToId[item.type];
+        if (!itemTypeId) return false;
+        if (!filters.types.includes(itemTypeId)) return false;
+      }
+      return true;
+    });
+  }, [wishlistCollectionItems, filters, categoryDefs, typeDefs]);
+
+  // Sorting and grouping
+  const sortedWishlistItems = useBanknoteSorting({
+    banknotes: filteredWishlistCollectionItems,
+    currencies,
+    sortFields: filters.sort
+  });
+  const groupedWishlistItems = useBanknoteGroups(
+    sortedWishlistItems,
+    filters.sort,
+    categoryOrder
+  );
+
   // On mount, restore tab from sessionStorage if available
   useEffect(() => {
     const savedTab = sessionStorage.getItem('countryDetailActiveTab');
@@ -436,6 +518,33 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
             groupMode={groupMode}
             isOwner={isOwner}
           />
+        )}
+        {activeTab === 'wishlist' && (
+          <div className="mt-6">
+            {wishlistLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+              </div>
+            ) : groupedWishlistItems.length === 0 ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl font-medium mb-4">No wishlist items found</h3>
+                <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-start">
+                {groupedWishlistItems.flatMap(group =>
+                  group.items.map(item => (
+                    <BanknoteDetailCardWishList
+                      key={item.wishlistItemId || item.id}
+                      banknote={item.banknote}
+                      wishlistItemId={item.wishlistItemId}
+                      source="catalog"
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
