@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Table, 
@@ -15,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Banknote, DetailedBanknote } from '@/types';
-import { Search, Loader2, Plus, Edit, Check, X, Eye } from 'lucide-react';
+import { Search, Loader2, Plus, Edit, Check, X, Eye, Upload } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import BanknoteEditDialog from './BanknoteEditDialog';
 import BanknoteDetailDialog from './BanknoteDetailDialog';
@@ -23,6 +22,8 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AdminComponentProps } from '@/types/admin';
 import { useBanknoteSorting } from '@/hooks/use-banknote-sorting';
 import { Currency } from '@/types/banknote';
+import { importBanknoteData } from '@/scripts/importBanknoteData';
+import { useAuth } from '@/context/AuthContext';
 
 interface BanknotesManagementProps extends AdminComponentProps {}
 
@@ -57,6 +58,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   isCountryAdmin,
   disableCountrySelect
 }) => {
+  const { user } = useAuth();
   const [allBanknotes, setAllBanknotes] = useState<Banknote[]>([]);
   const [filteredBanknotes, setFilteredBanknotes] = useState<Banknote[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -69,8 +71,13 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   const [countries, setCountries] = useState<Country[]>([]);
   const [selectedCountryId, setSelectedCountryId] = useState<string>("");
   const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState<boolean>(false);
   
   const PAGE_SIZE = 10;
+
+  // Check if user is super admin
+  const isSuperAdmin = user?.role === 'Super Admin';
 
   // Use the sorting hook
   const sortedBanknotes = useBanknoteSorting({
@@ -221,6 +228,46 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
     }
   };
 
+  const handleCsvFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'text/csv') {
+      setCsvFile(file);
+    } else {
+      toast.error('Please select a valid CSV file');
+      setCsvFile(null);
+    }
+  };
+
+  const handleCsvUpload = async () => {
+    if (!csvFile) {
+      toast.error('Please select a CSV file first');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const csvText = await csvFile.text();
+      const count = await importBanknoteData(csvText);
+      
+      toast.success(`Successfully imported ${count} banknotes`);
+      setCsvFile(null);
+      
+      // Reset file input
+      const fileInput = document.getElementById('csv-upload') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
+      
+      // Refresh banknotes list
+      fetchBanknotes();
+    } catch (error) {
+      console.error('CSV upload error:', error);
+      toast.error('Failed to import CSV data. Please check the file format.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleCountryChange = (value: string) => {
     setSelectedCountryId(value);
     setCurrentPage(1); // Reset to first page when country changes
@@ -320,6 +367,35 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
             </div>
             
             <div className="flex gap-2">
+              {isSuperAdmin && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="csv-upload"
+                    type="file"
+                    accept=".csv"
+                    onChange={handleCsvFileChange}
+                    className="w-auto"
+                  />
+                  <Button 
+                    onClick={handleCsvUpload} 
+                    disabled={!csvFile || uploading}
+                    variant="outline"
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload CSV
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+              
               <Button onClick={fetchBanknotes} variant="outline" disabled={loading}>
                 {loading ? (
                   <>
