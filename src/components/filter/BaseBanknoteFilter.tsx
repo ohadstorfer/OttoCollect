@@ -307,7 +307,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
     {/* Desktop title */}
     <h3 className="text-xl font-semibold border-primary hidden sm:block">
-      Explore {countryName}'s Historical Banknote Catalogue
+      {countryName}'s Historical Banknote Catalogue
     </h3>
   </div>
 )}
