@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -51,15 +50,13 @@ const Profile: React.FC = () => {
 
   // Store and restore the selected country when navigating back to profile
   React.useEffect(() => {
-    // When the component mounts, try to restore the selected country
+    // When the component mounts, reset the country selection state
     if (profile?.id) {
-      const storedCountry = sessionStorage.getItem(`profile-selected-country-${profile.id}`);
-      const wasShowingDetail = sessionStorage.getItem(`profile-showing-detail-${profile.id}`) === 'true';
-      
-      if (storedCountry) {
-        setSelectedCountry(storedCountry);
-        setShowCountryDetail(wasShowingDetail);
-      }
+      setSelectedCountry(null);
+      setShowCountryDetail(false);
+      // Clear the stored country from session storage
+      sessionStorage.removeItem(`profile-selected-country-${profile.id}`);
+      sessionStorage.removeItem(`profile-showing-detail-${profile.id}`);
     }
   }, [profile?.id]);
   
@@ -143,7 +140,7 @@ const Profile: React.FC = () => {
       </section>
 
       {/* Directly render the country selection/collection view */}
-      <div>
+      <div className="mt-4">
         <ProfileCountrySelection
           userId={profile.id}
           isOwnProfile={isOwnProfile}

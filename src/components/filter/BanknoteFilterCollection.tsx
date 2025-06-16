@@ -15,6 +15,7 @@ import { BaseBanknoteFilterProfile } from "./BaseBanknoteFilterProfile";
 
 export interface BanknoteFilterCollectionProps {
   countryId: string;
+  countryName: string;
   onFilterChange: (filters: Partial<DynamicFilterState>) => void;
   currentFilters: DynamicFilterState;
   isLoading?: boolean;
@@ -26,11 +27,19 @@ export interface BanknoteFilterCollectionProps {
   activeTab?: 'collection' | 'wishlist' | 'missing';
   onTabChange?: (tab: 'collection' | 'wishlist' | 'missing') => void;
   isOwner?: boolean;
+  profileUser?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank?: string;
+  };
+  onBackToCountries?: () => void;
 }
 
 // Use React.memo to prevent unnecessary re-renders
 export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> = memo(({
   countryId,
+  countryName,
   onFilterChange,
   currentFilters,
   isLoading = false,
@@ -41,7 +50,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   onPreferencesLoaded,
   activeTab,
   onTabChange,
-  isOwner,
+  isOwner = false,
+  profileUser,
+  onBackToCountries
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -370,6 +381,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         activeTab={activeTab}
         onTabChange={onTabChange}
         isOwner={isOwner}
+        countryName={countryName}
+        profileUser={profileUser}
+        onBackToCountries={onBackToCountries}
       />
     </div>
   );

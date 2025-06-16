@@ -3,13 +3,16 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 import { 
   Search, 
   Filter, 
   LayoutGrid, 
   LayoutList, 
   Save,
-  Layers
+  Layers,
+  ArrowLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
@@ -52,6 +55,13 @@ export type BaseBanknoteFilterProps = {
   isOwner?: boolean;
   userId?: string;
   countryName?: string;
+  profileUser?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank?: string;
+  };
+  onBackToCountries?: () => void;
 };
 
 export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
@@ -72,9 +82,12 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   onTabChange: propOnTabChange,
   isOwner,
   userId,
-  countryName
+  countryName,
+  profileUser,
+  onBackToCountries
 }) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   
@@ -310,6 +323,48 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       className
     )}>
       <div className="w-full">
+        {/* Profile Header Row */}
+        {profileUser && (
+          <div className="flex items-center justify-center w-full mb-4 px-2 sm:px-4 text-sm sm:text-base">
+            <div className="flex items-center gap-1 sm:gap-2">
+              {onBackToCountries && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 sm:h-8 sm:w-8 mr-1 sm:mr-2"
+                  onClick={onBackToCountries}
+                >
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                </Button>
+              )}
+              {profileUser.avatarUrl ? (
+                <img 
+                  src={profileUser.avatarUrl} 
+                  alt={profileUser.username}
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
+                />
+              ) : (
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-muted flex items-center justify-center">
+                  <span className="text-sm font-medium">
+                    {profileUser.username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <span className="font-medium min-w-0 shrink">{profileUser.username}</span>
+              {!isMobile && profileUser.rank && (
+                <Badge variant="user" rank={profileUser.rank} showIcon className="shrink-0 ml-1 sm:ml-2" />
+              )}
+            </div>
+            
+            {countryName && activeTab && (
+              <div className="flex items-center min-w-0 shrink">
+                <span className="text-muted-foreground px-1 sm:px-3">/</span>
+                <span className="font-medium min-w-0 shrink">{countryName} {activeTab}</span>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-0 gap-2">
           <div className="flex flex-row justify-center sm:justify-start gap-2 sm:mr-6 bg-[#e7e1db] rounded-lg p-1">
             {tabList.map(tab => (

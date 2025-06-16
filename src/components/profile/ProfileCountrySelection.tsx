@@ -78,27 +78,13 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
 
   return showCountryDetail && countryId && countryName ? (
     <div>
-      <div className="max-w-5xl mx-auto">
-      <div className="flex flex-row items-center gap-3 mb-2 mt-2 max-w-5xl mx-auto">
-      <Button 
-          variant="ghost" 
-          onClick={onBackToCountries}
-        >
-          <ArrowLeft className="h-5 w-5 " />
-        </Button>
-
-        <CountryHeaderCollection 
-          countryName={countryName} 
-          returnPath={'returnPath'} 
-          hideBackButton={profileView}
-        />
-        </div>
-      </div>
+     
 
       <CountryDetailCollection 
           userId={userId} 
           countryName={countryName}
           profileView={true}
+          onBackToCountries={onBackToCountries}
         />
     </div>
   ) : (

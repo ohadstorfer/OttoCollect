@@ -22,12 +22,14 @@ interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
   countryName?: string; // Optional country name prop when not using URL params
   profileView?: boolean; // New prop to indicate if we're in profile view
+  onBackToCountries: () => void;
 }
 
 const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ 
   userId, 
   countryName,
-  profileView = false
+  profileView = false,
+  onBackToCountries
 }) => {
   const { country } = useParams();
   const navigate = useNavigate();
@@ -484,6 +486,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
         <CountryFilterSection
           countryId={countryId}
+          countryName={effectiveCountryName}
           filters={filters}
           onFilterChange={handleFilterChange}
           isLoading={isLoading}
@@ -495,6 +498,13 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           source="collection"
           onPreferencesLoaded={handlePreferencesLoaded}
           isOwner={isOwner}
+          profileUser={user ? {
+            id: user.id,
+            username: user.username,
+            avatarUrl: user.avatarUrl,
+            rank: user.rank
+          } : undefined}
+          onBackToCountries={onBackToCountries}
         />
 
         {/* Conditionally render content based on activeTab */}

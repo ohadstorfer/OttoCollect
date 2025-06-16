@@ -5,6 +5,7 @@ import { DynamicFilterState } from "@/types/filter";
 
 interface CountryFilterSectionProps {
   countryId: string;
+  countryName: string;
   filters: DynamicFilterState;
   onFilterChange: (newFilters: Partial<DynamicFilterState>) => void;
   isLoading: boolean;
@@ -18,11 +19,19 @@ interface CountryFilterSectionProps {
   activeTab?: 'collection' | 'wishlist' | 'missing';
   onTabChange?: (tab: 'collection' | 'wishlist' | 'missing') => void;
   isOwner?: boolean;
+  profileUser?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank?: string;
+  };
+  onBackToCountries?: () => void;
 }
 
 // Use React.memo to prevent unnecessary re-renders
 export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   countryId,
+  countryName,
   filters,
   onFilterChange,
   isLoading,
@@ -35,7 +44,9 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   onPreferencesLoaded,
   activeTab,
   onTabChange,
-  isOwner = false
+  isOwner = false,
+  profileUser,
+  onBackToCountries
 }) => {
   // Memoize handleFilterChange to prevent it from causing re-renders
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
@@ -47,6 +58,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
     return (
       <BanknoteFilterCollection
         countryId={countryId}
+        countryName={countryName}
         onFilterChange={handleFilterChange}
         currentFilters={filters}
         isLoading={isLoading}
@@ -57,6 +69,8 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
         activeTab={activeTab}
         onTabChange={onTabChange}
         isOwner={isOwner}
+        profileUser={profileUser}
+        onBackToCountries={onBackToCountries}
       />
     );
   }
