@@ -41,21 +41,43 @@ export async function importBanknoteData(csvData: string) {
       // Handle array fields - these need special parsing for JSON arrays
       if (["signature_pictures", "seal_pictures", "other_element_pictures"].includes(header) && value) {
         try {
-          // Remove outer quotes if they exist and parse as JSON
-          const cleanValue = value.replace(/^"(.*)"$/, '$1');
+          // Handle different formats:
+          // 1. Direct JSON array: ["item1","item2"]
+          // 2. CSV quoted JSON: "[""item1"",""item2""]" 
+          // 3. Pipe separated: item1|item2
+          
+          let cleanValue = value;
+          
+          // Remove outer quotes if they exist
+          if (cleanValue.startsWith('"') && cleanValue.endsWith('"')) {
+            cleanValue = cleanValue.slice(1, -1);
+          }
+          
+          // Replace double quotes with single quotes for JSON parsing
+          if (cleanValue.includes('""')) {
+            cleanValue = cleanValue.replace(/""/g, '"');
+          }
+          
+          console.log(`Parsing array field ${header}:`, { original: value, cleaned: cleanValue });
+          
+          // Try to parse as JSON
           const parsedArray = JSON.parse(cleanValue);
           
           // Ensure it's an array and filter out empty values
           if (Array.isArray(parsedArray)) {
             banknote[header] = parsedArray.filter(Boolean);
           } else {
-            // If not an array, split by pipe as fallback
-            banknote[header] = cleanValue.split("|").map(item => item.trim()).filter(Boolean);
+            // If it's not an array, wrap it in an array
+            banknote[header] = [parsedArray].filter(Boolean);
           }
         } catch (error) {
-          console.warn(`Failed to parse array field ${header} for row ${i}:`, error);
+          console.warn(`Failed to parse JSON array for ${header}, trying pipe-separated fallback:`, error);
           // Fallback to pipe-separated values
-          banknote[header] = value.split("|").map(item => item.trim()).filter(Boolean);
+          let cleanValue = value;
+          if (cleanValue.startsWith('"') && cleanValue.endsWith('"')) {
+            cleanValue = cleanValue.slice(1, -1);
+          }
+          banknote[header] = cleanValue.split("|").map(item => item.trim()).filter(Boolean);
         }
       } else if (value) {
         banknote[header] = value;
