@@ -70,7 +70,7 @@ const CountryManagement: React.FC = () => {
   const addCountry = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: countryData, error } = await supabase
         .from('countries')
         .insert([{ 
           name: countryForm.name, 
@@ -80,7 +80,30 @@ const CountryManagement: React.FC = () => {
       
       if (error) throw error;
       
-      toast({ title: "Success", description: "Country added successfully." });
+      const newCountry = countryData[0];
+
+      // Check if role already exists before creating
+      const { data: existingRole } = await supabase
+        .from('roles')
+        .select('id')
+        .eq('name', `${countryForm.name} Admin`)
+        .single();
+
+      if (!existingRole) {
+        const { error: roleError } = await supabase
+          .from('roles')
+          .insert([{
+            name: `${countryForm.name} Admin`,
+            is_country_admin: true
+          }]);
+
+        if (roleError) {
+          console.error('Error creating role:', roleError);
+          toast({ title: "Warning", description: "Country created but role creation failed.", variant: "destructive" });
+        }
+      }
+      
+      toast({ title: "Success", description: "Country and related records created successfully." });
       fetchCountries();
       setCountryForm({ name: '', description: '' });
       setIsDialogOpen(false);
@@ -119,27 +142,177 @@ const CountryManagement: React.FC = () => {
   };
 
   const deleteCountry = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this country? This will delete all related categories, types, and sort options.")) return;
+    console.log('Starting country deletion process for id:', id);
+    if (!confirm("Are you sure you want to delete this country? This will delete all related categories, types, and sort options.")) {
+      console.log('User cancelled deletion');
+      return;
+    }
     
     setIsLoading(true);
     try {
-      const { error } = await supabase
+      console.log('Attempting to delete country...');
+      
+      // First check if country exists
+      const { data: existingCountry, error: checkError } = await supabase
+        .from('countries')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      console.log('Country check result:', { existingCountry, checkError });
+      
+      if (!existingCountry) {
+        console.log('Country not found in database');
+        throw new Error('Country not found');
+      }
+
+      // Get current sort options for verification
+      const { data: currentSortOptions, error: sortOptionsCheckError } = await supabase
+        .from('banknote_sort_options')
+        .select('*')
+        .eq('country_id', id);
+      
+      console.log('Current sort options:', { currentSortOptions, sortOptionsCheckError });
+
+      // Get the authenticated user's role first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('Current user:', { user, authError });
+
+      // Delete in correct order to handle foreign key constraints
+      
+      // 1. Delete banknote type definitions
+      console.log('Deleting banknote type definitions...');
+      const { error: typeError } = await supabase
+        .from('banknote_type_definitions')
+        .delete()
+        .eq('country_id', id);
+      
+      if (typeError) {
+        console.error('Error deleting type definitions:', typeError);
+        throw typeError;
+      }
+
+      // 2. Delete banknote category definitions
+      console.log('Deleting banknote category definitions...');
+      const { error: categoryError } = await supabase
+        .from('banknote_category_definitions')
+        .delete()
+        .eq('country_id', id);
+      
+      if (categoryError) {
+        console.error('Error deleting category definitions:', categoryError);
+        throw categoryError;
+      }
+
+      // 3. Delete sort options
+      console.log('Deleting sort options...');
+      const { error: sortOptionsError } = await supabase
+        .from('banknote_sort_options')
+        .delete()
+        .eq('country_id', id);
+      
+      if (sortOptionsError) {
+        console.error('Error deleting sort options:', sortOptionsError);
+        throw sortOptionsError;
+      }
+
+      // 4. Delete seal pictures
+      console.log('Deleting seal pictures...');
+      const { error: sealError } = await supabase
+        .from('seal_pictures')
+        .delete()
+        .eq('country_id', id);
+      
+      if (sealError) {
+        console.error('Error deleting seal pictures:', sealError);
+        throw sealError;
+      }
+
+      // 5. Delete watermark pictures
+      console.log('Deleting watermark pictures...');
+      const { error: watermarkError } = await supabase
+        .from('watermark_pictures')
+        .delete()
+        .eq('country_id', id);
+      
+      if (watermarkError) {
+        console.error('Error deleting watermark pictures:', watermarkError);
+        throw watermarkError;
+      }
+
+      // 6. Delete user filter preferences
+      console.log('Deleting user filter preferences...');
+      const { error: preferencesError } = await supabase
+        .from('user_filter_preferences')
+        .delete()
+        .eq('country_id', id);
+      
+      if (preferencesError) {
+        console.error('Error deleting user preferences:', preferencesError);
+        throw preferencesError;
+      }
+
+      // Finally delete the country
+      console.log('Deleting country...');
+      const { error: deleteError } = await supabase
         .from('countries')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (deleteError) {
+        console.error('Delete operation error details:', {
+          message: deleteError.message,
+          code: deleteError.code,
+          details: deleteError.details,
+          hint: deleteError.hint
+        });
+        throw deleteError;
+      }
+
+      // Delete the country role
+      const country = countries.find(c => c.id === id);
+      if (country) {
+        console.log('Deleting country role...');
+        const { error: roleError } = await supabase
+          .from('roles')
+          .delete()
+          .eq('name', `${country.name} Admin`);
+        
+        if (roleError) {
+          console.error('Error deleting role:', roleError);
+          // Don't throw here as role might not exist
+        }
+      }
+
+      // Verify deletion
+      const { data: verifyCountry, error: verifyError } = await supabase
+        .from('countries')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
       
-      toast({ title: "Success", description: "Country deleted successfully." });
+      if (verifyCountry) {
+        console.warn('Country still exists after deletion!');
+        throw new Error('Delete operation did not remove the country. You may not have sufficient permissions.');
+      }
+      
+      toast({ title: "Success", description: "Country and all related records deleted successfully." });
+      console.log('Delete operation completed successfully, refreshing countries list...');
       fetchCountries();
       if (selectedCountryId === id) {
+        console.log('Resetting selected country ID');
         setSelectedCountryId(null);
       }
     } catch (error) {
-      console.error('Error deleting country:', error);
-      toast({ title: "Error", description: "Failed to delete country.", variant: "destructive" });
+      console.error('Error in delete process:', error);
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to delete country.", 
+        variant: "destructive" 
+      });
     } finally {
       setIsLoading(false);
+      console.log('Delete process completed');
     }
   };
 

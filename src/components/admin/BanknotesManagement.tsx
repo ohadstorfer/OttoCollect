@@ -369,17 +369,18 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
             <div className="flex gap-2">
               {isSuperAdmin && (
                 <div className="flex items-center gap-2">
-                  <Input
+                  <input
                     id="csv-upload"
                     type="file"
                     accept=".csv"
                     onChange={handleCsvFileChange}
-                    className="w-auto"
+                    className="hidden"
                   />
                   <Button 
-                    onClick={handleCsvUpload} 
-                    disabled={!csvFile || uploading}
+                    onClick={() => document.getElementById('csv-upload')?.click()}
+                    disabled={uploading}
                     variant="outline"
+                    className="relative"
                   >
                     {uploading ? (
                       <>
@@ -389,10 +390,19 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                     ) : (
                       <>
                         <Upload className="mr-2 h-4 w-4" />
-                        Upload CSV
+                        {csvFile ? csvFile.name : 'Select CSV'}
                       </>
                     )}
                   </Button>
+                  {csvFile && !uploading && (
+                    <Button 
+                      onClick={handleCsvUpload}
+                      variant="default"
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload
+                    </Button>
+                  )}
                 </div>
               )}
               
