@@ -84,18 +84,7 @@ const Catalog = () => {
         </div>
       </section>
 
-      <div className="max-w-md mx-auto mb-4">
-        <div className="relative">
-          <SearchIcon className="mb-2 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            id="search"
-            placeholder="Search by country name"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
+   
       
       {loading ? (
         <div className="flex justify-center py-12">
@@ -107,11 +96,12 @@ const Catalog = () => {
           <p className="text-muted-foreground">Try adjusting your search criteria.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6 items-start">
+        <div className="  w-[90%] sm:w-[92%] mx-auto py-5 "> 
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6  items-start">
           {filteredCountries.map((country) => (
             <Link to={`/catalog/${encodeURIComponent(country.name)}`} key={country.id}>
               <Card className="hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50">
-                <div className="aspect-[4/3] overflow-hidden relative">
+                <div className="aspect-[4/2] overflow-hidden relative">
                   {country.imageUrl ? (
                     <img
                       src={country.imageUrl}
@@ -133,6 +123,7 @@ const Catalog = () => {
               </Card>
             </Link>
           ))}
+        </div>
         </div>
       )}
     </div>

@@ -21,6 +21,10 @@ const Navbar = () => {
   const closeMenu = () => setIsOpen(false);
   
   const isActive = (path: string) => {
+    if (path === '/catalog') {
+      // Match both /catalog and /catalog/:country
+      return location.pathname === path || location.pathname.startsWith('/catalog/');
+    }
     return location.pathname === path;
   };
   
