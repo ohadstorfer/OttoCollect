@@ -38,13 +38,23 @@ export async function importBanknoteData(csvData: string) {
         return;
       }
       
-      // Handle array fields
+      // Handle array fields - these need special parsing for JSON arrays
       if (["signature_pictures", "seal_pictures", "other_element_pictures"].includes(header) && value) {
         try {
-          // Try to parse as JSON array first
-          banknote[header] = JSON.parse(value);
-        } catch {
-          // If JSON parsing fails, split by pipe
+          // Remove outer quotes if they exist and parse as JSON
+          const cleanValue = value.replace(/^"(.*)"$/, '$1');
+          const parsedArray = JSON.parse(cleanValue);
+          
+          // Ensure it's an array and filter out empty values
+          if (Array.isArray(parsedArray)) {
+            banknote[header] = parsedArray.filter(Boolean);
+          } else {
+            // If not an array, split by pipe as fallback
+            banknote[header] = cleanValue.split("|").map(item => item.trim()).filter(Boolean);
+          }
+        } catch (error) {
+          console.warn(`Failed to parse array field ${header} for row ${i}:`, error);
+          // Fallback to pipe-separated values
           banknote[header] = value.split("|").map(item => item.trim()).filter(Boolean);
         }
       } else if (value) {
