@@ -4,34 +4,72 @@ import { supabase } from "@/integrations/supabase/client";
 // This function can be used to import the CSV data into the Supabase database
 // It would typically be run once from an admin interface or script
 export async function importBanknoteData(csvData: string) {
-  const lines = csvData.trim().split("\n");
-  const headers = lines[0].split(",");
+  // Normalize line endings and trim whitespace
+  const normalizedCsvData = csvData.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+  const lines = normalizedCsvData.split("\n");
+  
+  if (lines.length === 0) {
+    throw new Error("CSV file is empty");
+  }
+  
+  // Parse and clean headers
+  const headers = parseCSVLine(lines[0]).map(header => header.trim());
+  console.log("Parsed headers:", headers);
   
   const banknotes = [];
   
   // Parse CSV rows starting from row 1 (skipping header)
   for (let i = 1; i < lines.length; i++) {
-    const values = parseCSVLine(lines[i]);
+    const line = lines[i].trim();
+    if (!line) continue; // Skip empty lines
+    
+    const values = parseCSVLine(line);
     if (values.length !== headers.length) {
-      console.error(`Row ${i} has incorrect number of values`);
+      console.error(`Row ${i} has incorrect number of values. Expected ${headers.length}, got ${values.length}`);
       continue;
     }
     
     const banknote: Record<string, any> = {};
     headers.forEach((header, index) => {
+      const value = values[index].trim();
+      
+      // Skip empty id values (let database generate them)
+      if (header === 'id' && !value) {
+        return;
+      }
+      
       // Handle array fields
-      if (["signature_pictures", "seal_pictures", "other_element_pictures"].includes(header) && values[index]) {
-        banknote[header] = values[index].split("|");
-      } else {
-        banknote[header] = values[index];
+      if (["signature_pictures", "seal_pictures", "other_element_pictures"].includes(header) && value) {
+        try {
+          // Try to parse as JSON array first
+          banknote[header] = JSON.parse(value);
+        } catch {
+          // If JSON parsing fails, split by pipe
+          banknote[header] = value.split("|").map(item => item.trim()).filter(Boolean);
+        }
+      } else if (value) {
+        banknote[header] = value;
       }
     });
     
-    // Set default values for required fields
-    banknote.is_approved = true;
-    banknote.is_pending = false;
+    // Set default values for required fields if not provided
+    if (!banknote.is_approved && banknote.is_approved !== false) {
+      banknote.is_approved = true;
+    }
+    if (!banknote.is_pending && banknote.is_pending !== false) {
+      banknote.is_pending = false;
+    }
     
-    banknotes.push(banknote);
+    // Only add banknote if it has required fields
+    if (banknote.country && banknote.extended_pick_number && banknote.face_value) {
+      banknotes.push(banknote);
+    }
+  }
+  
+  console.log(`Parsed ${banknotes.length} valid banknotes from CSV`);
+  
+  if (banknotes.length === 0) {
+    throw new Error("No valid banknotes found in CSV file");
   }
   
   // Insert data in batches
@@ -40,13 +78,15 @@ export async function importBanknoteData(csvData: string) {
   
   for (let i = 0; i < banknotes.length; i += batchSize) {
     const batch = banknotes.slice(i, i + batchSize);
-    // Using `from` with a type assertion to handle the TypeScript errors
+    console.log(`Inserting batch ${i / batchSize + 1} with ${batch.length} items`);
+    
     const { error } = await supabase
-      .from('detailed_banknotes' as any)
+      .from('detailed_banknotes')
       .insert(batch);
     
     if (error) {
-      console.error(`Error inserting batch ${i / batchSize}:`, error);
+      console.error(`Error inserting batch ${i / batchSize + 1}:`, error);
+      throw new Error(`Database insertion failed: ${error.message}`);
     } else {
       console.log(`Successfully inserted batch ${i / batchSize + 1}`);
       importedCount += batch.length;
