@@ -78,6 +78,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   return countryId ? (
     <BanknoteFilterCatalog
       countryId={countryId}
+      countryName={countryName}
       onFilterChange={handleFilterChange}
       currentFilters={filters}
       isLoading={isLoading}

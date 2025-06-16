@@ -1,16 +1,17 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useNavigate } from "react-router-dom";
 import { 
   Search, 
   Filter, 
   LayoutGrid, 
   LayoutList, 
   Save,
-  Layers
+  Layers,
+  ArrowLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
@@ -47,6 +48,7 @@ export type BaseBanknoteFilterProps = {
   onViewModeChange?: (mode: 'grid' | 'list') => void;
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
+  countryName?: string;
 };
 
 export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
@@ -62,9 +64,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   viewMode = 'grid',
   onViewModeChange,
   groupMode = false,
-  onGroupModeChange
+  onGroupModeChange,
+  countryName
 }) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   
@@ -284,9 +288,35 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       "w-full space-y-1.5 sm:space-y-0",
       className
     )}>
-      <div className="flex flex-col sm:flex-row gap-2">
-        <div className="flex gap-2 flex-1">
-          <div className="relative w-full sm:w-[300px]">
+      {/* New country header row */}
+      {countryName && (
+  <div className="flex items-center justify-center gap-2 mb-4 px-2 sm:px-4 text-sm sm:text-base">
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-6 w-6 sm:h-8 sm:w-8"
+      onClick={() => navigate('/catalog')}
+    >
+      <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+    </Button>
+
+    {/* Mobile title */}
+    <h3 className="text-xl font-semibold border-primary block sm:hidden">
+      {countryName} catalogue
+    </h3>
+
+    {/* Desktop title */}
+    <h3 className="text-xl font-semibold border-primary hidden sm:block">
+      Explore {countryName}'s Historical Banknote Catalogue
+    </h3>
+  </div>
+)}
+
+      {/* Content row */}
+      <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 sm:justify-center">
+        {/* Search bar and view/group buttons */}
+        <div className="flex w-full sm:w-auto gap-2">
+          <div className="relative flex-1 sm:w-[300px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search banknotes..."
@@ -295,7 +325,9 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
               className="pl-10"
             />
           </div>
-          <div className="flex gap-1">
+
+          {/* View and Group buttons */}
+          <div className="flex gap-2">
             {onViewModeChange && (
               <Button
                 variant="outline"
@@ -324,8 +356,9 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
             )}
           </div>
         </div>
-        
-        <div className="grid grid-cols-2 sm:flex gap-2">
+
+        {/* Filter and Sort buttons */}
+        <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
           <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
             <SheetTrigger asChild>
               <Button 

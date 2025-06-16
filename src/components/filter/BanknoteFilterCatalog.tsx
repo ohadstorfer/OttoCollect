@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 interface BanknoteFilterCatalogProps {
   countryId: string;
+  countryName: string;
   onFilterChange: (filters: Partial<DynamicFilterState>) => void;
   currentFilters: DynamicFilterState;
   isLoading?: boolean;
@@ -27,6 +28,7 @@ interface BanknoteFilterCatalogProps {
 // Use React.memo to prevent unnecessary re-renders
 export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(({
   countryId,
+  countryName,
   onFilterChange,
   currentFilters,
   isLoading = false,
@@ -352,6 +354,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         onViewModeChange={handleViewModeChange}
         groupMode={groupMode}
         onGroupModeChange={handleGroupModeChange}
+        countryName={countryName}
       />
     </div>
   );
