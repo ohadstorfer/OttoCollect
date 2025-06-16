@@ -128,7 +128,7 @@ const Profile: React.FC = () => {
   return ( 
     <div>
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-0 sm:py-6 relative overflow-hidden`}>
-      <div className="page-container max-w-5xl mx-auto py-5">
+      <div className="w-[90%] sm:w-[92%] mx-auto py-5">
      
         <ProfileHeader 
           profile={profile} 
@@ -149,6 +149,7 @@ const Profile: React.FC = () => {
           onCountrySelect={handleCountrySelect}
           onBackToCountries={handleBackToCountries}
           profileId={profile.id}
+          profile={profile}
         />
       </div>
     </div>

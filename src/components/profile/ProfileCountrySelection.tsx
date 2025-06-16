@@ -19,6 +19,12 @@ interface ProfileCountrySelectionProps {
   onCountrySelect: (countryId: string, countryName: string) => void; // update to send both
   onBackToCountries: () => void;
   profileView?: boolean;
+  profile?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank?: string;
+  };
 }
 
 // We'll keep a local state to store both the country ID and name when selected
@@ -31,6 +37,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   onCountrySelect,
   onBackToCountries,
   profileView = true,
+  profile
 }) => {
   // State for both country ID and countryName (after lookup, if necessary)
   const [countryId, setCountryId] = useState<string | null>(null);
@@ -85,6 +92,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
           countryName={countryName}
           profileView={true}
           onBackToCountries={onBackToCountries}
+          profileData={profile}
         />
     </div>
   ) : (

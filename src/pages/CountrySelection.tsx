@@ -91,14 +91,14 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
 
   return (
     <div>
-      {showHeader && (
+      {/* {showHeader && (
         <CountrySelectionHeader 
           title={customTitle}
           description={customDescription}
         />
-      )}
+      )} */}
 
-<div className="py-1 sm:py-10">
+<div className="  w-[90%] sm:w-[92%] mx-auto py-5 ">
        
 
         {isLoading ? (
@@ -111,7 +111,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
             <p className="text-muted-foreground mb-6">Please try again later.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 ">
             {filteredCountries.map((country: CountryData) => {
               const collectionCount = collectionCounts[country.name] || 0;
               return (

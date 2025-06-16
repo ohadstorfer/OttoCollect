@@ -23,13 +23,20 @@ interface CountryDetailCollectionProps {
   countryName?: string; // Optional country name prop when not using URL params
   profileView?: boolean; // New prop to indicate if we're in profile view
   onBackToCountries: () => void;
+  profileData?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank?: string;
+  };
 }
 
 const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({ 
   userId, 
   countryName,
   profileView = false,
-  onBackToCountries
+  onBackToCountries,
+  profileData
 }) => {
   const { country } = useParams();
   const navigate = useNavigate();
@@ -498,12 +505,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           source="collection"
           onPreferencesLoaded={handlePreferencesLoaded}
           isOwner={isOwner}
-          profileUser={user ? {
-            id: user.id,
-            username: user.username,
-            avatarUrl: user.avatarUrl,
-            rank: user.rank
-          } : undefined}
+          profileUser={profileData}
           onBackToCountries={onBackToCountries}
         />
 
