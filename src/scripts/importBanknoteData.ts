@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // This function can be used to import the CSV data into the Supabase database
@@ -41,43 +40,52 @@ export async function importBanknoteData(csvData: string) {
       // Handle array fields - these need special parsing for JSON arrays
       if (["signature_pictures", "seal_pictures", "other_element_pictures"].includes(header) && value) {
         try {
-          // Handle different formats:
-          // 1. Direct JSON array: ["item1","item2"]
-          // 2. CSV quoted JSON: "[""item1"",""item2""]" 
-          // 3. Pipe separated: item1|item2
+          let cleanValue = value.trim();
           
-          let cleanValue = value;
-          
-          // Remove outer quotes if they exist
-          if (cleanValue.startsWith('"') && cleanValue.endsWith('"')) {
+          // Remove any type of quotes from the beginning and end
+          while ((cleanValue.startsWith('"') || cleanValue.startsWith("'")) && 
+                 (cleanValue.endsWith('"') || cleanValue.endsWith("'"))) {
             cleanValue = cleanValue.slice(1, -1);
           }
+
+          // Replace double quotes with single quotes temporarily
+          cleanValue = cleanValue.replace(/""/g, '"');
           
-          // Replace double quotes with single quotes for JSON parsing
-          if (cleanValue.includes('""')) {
-            cleanValue = cleanValue.replace(/""/g, '"');
-          }
-          
-          console.log(`Parsing array field ${header}:`, { original: value, cleaned: cleanValue });
-          
-          // Try to parse as JSON
-          const parsedArray = JSON.parse(cleanValue);
-          
-          // Ensure it's an array and filter out empty values
-          if (Array.isArray(parsedArray)) {
-            banknote[header] = parsedArray.filter(Boolean);
-          } else {
-            // If it's not an array, wrap it in an array
-            banknote[header] = [parsedArray].filter(Boolean);
+          try {
+            // Try to parse as JSON first
+            const parsedArray = JSON.parse(cleanValue);
+            if (Array.isArray(parsedArray)) {
+              banknote[header] = parsedArray.filter(Boolean);
+            } else {
+              banknote[header] = [parsedArray].filter(Boolean);
+            }
+          } catch (jsonError) {
+            // If JSON parsing fails, try the bracket format
+            if (cleanValue.startsWith('[') && cleanValue.endsWith(']')) {
+              // Remove brackets
+              cleanValue = cleanValue.slice(1, -1);
+              
+              // Split by comma and clean up each item
+              const items = cleanValue.split(',').map(item => {
+                item = item.trim();
+                // Remove any remaining quotes around items
+                while ((item.startsWith('"') || item.startsWith("'")) && 
+                       (item.endsWith('"') || item.endsWith("'"))) {
+                  item = item.slice(1, -1);
+                }
+                return item;
+              });
+              
+              // Filter out empty values and create proper JSON array
+              banknote[header] = items.filter(Boolean);
+            } else {
+              // Fallback to pipe-separated values
+              banknote[header] = cleanValue.split("|").map(item => item.trim()).filter(Boolean);
+            }
           }
         } catch (error) {
-          console.warn(`Failed to parse JSON array for ${header}, trying pipe-separated fallback:`, error);
-          // Fallback to pipe-separated values
-          let cleanValue = value;
-          if (cleanValue.startsWith('"') && cleanValue.endsWith('"')) {
-            cleanValue = cleanValue.slice(1, -1);
-          }
-          banknote[header] = cleanValue.split("|").map(item => item.trim()).filter(Boolean);
+          console.warn(`Failed to parse array for ${header}, using empty array:`, error);
+          banknote[header] = [];
         }
       } else if (value) {
         banknote[header] = value;
