@@ -29,41 +29,46 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [collectionCounts, setCollectionCounts] = React.useState<Record<string, number>>({});
-  const [fetchingCounts, setFetchingCounts] = React.useState(false);
+  const effectiveUserId = userId || user?.id;
 
+  // Fetch countries
   const {
     data: countries = [],
-    isLoading,
-    error,
+    isLoading: isLoadingCountries,
+    error: countriesError,
   } = useQuery({
     queryKey: ['countries'],
     queryFn: fetchCountries,
   });
 
-  // Fetch collection counts for each country for userId if present
-  React.useEffect(() => {
-    // Only fetch if a userId is provided (profile or specified) and we have countries data
-    const effectiveUserId = userId || user?.id;
-    if (!effectiveUserId || !countries.length) {
-      setCollectionCounts({});
-      return;
-    }
-    setFetchingCounts(true);
-    fetchUserCollectionCountByCountry(effectiveUserId)
-      .then((counts) => setCollectionCounts(counts || {}))
-      .finally(() => setFetchingCounts(false));
-  }, [userId, user?.id, countries.length]);
+  // Fetch collection counts with React Query
+  const {
+    data: collectionCounts = {},
+    isLoading: isLoadingCounts,
+  } = useQuery({
+    queryKey: ['collectionCounts', effectiveUserId],
+    queryFn: () => fetchUserCollectionCountByCountry(effectiveUserId!),
+    enabled: !!effectiveUserId && countries.length > 0,
+  });
 
-  // Filter countries based on search term
+  // Memoize filtered countries with counts
   const filteredCountries = React.useMemo(() => {
     if (!countries) return [];
-    if (!searchTerm.trim()) return countries;
+    
+    // First filter by collection count > 0
+    const countriesWithCollections = countries.filter((country: CountryData) => {
+      const count = collectionCounts[country.name] || 0;
+      return count > 0;
+    });
+
+    // Then apply search filter if exists
+    if (!searchTerm.trim()) return countriesWithCollections;
+    
     const term = searchTerm.toLowerCase().trim();
-    return countries.filter((country: CountryData) => 
+    return countriesWithCollections.filter((country: CountryData) => 
       country.name.toLowerCase().includes(term)
     );
-  }, [countries, searchTerm]);
+  }, [countries, collectionCounts, searchTerm]);
 
   const handleCountrySelect = (country: string) => {
     if (onCountrySelect) {
@@ -89,6 +94,8 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
     );
   }
 
+  const isLoading = isLoadingCountries || isLoadingCounts;
+
   return (
     <div>
       {/* {showHeader && (
@@ -105,10 +112,17 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-ottoman-600" />
           </div>
-        ) : error ? (
+        ) : countriesError ? (
           <div className="text-center py-12">
             <h3 className="text-xl font-medium mb-4 text-red-500">Error loading countries</h3>
             <p className="text-muted-foreground mb-6">Please try again later.</p>
+          </div>
+        ) : filteredCountries.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-medium mb-4">No Collections Found</h3>
+            <p className="text-muted-foreground mb-6">
+              {searchTerm ? 'No countries match your search.' : 'Start collecting banknotes to see countries here.'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 ">
@@ -135,14 +149,9 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
                       <div className="p-4 text-white w-full">
                         <h3 className="text-xl font-bold">{country.name}</h3>
-                        {/* Show collection count if present */}
-                        {fetchingCounts ? (
-                          <span className="text-sm opacity-60">Loading…</span>
-                        ) : (
-                          collectionCounts && typeof collectionCount === 'number' && (
-                            <p className="text-sm opacity-80">{collectionCount} banknote{collectionCount === 1 ? '' : 's'}</p>
-                          )
-                        )}
+                        <p className="text-sm opacity-80">
+                          {collectionCount} banknote{collectionCount === 1 ? '' : 's'}
+                        </p>
                       </div>
                     </div>
                   </div>
