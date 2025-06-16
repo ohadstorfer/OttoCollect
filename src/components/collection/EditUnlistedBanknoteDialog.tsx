@@ -31,7 +31,10 @@ const formSchema = z.object({
   useGrading: z.boolean().default(false),
   condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const).nullable(),
   gradeBy: z.string().max(8, { message: "Maximum 8 characters allowed" }).optional(),
-  gradeNumber: z.coerce.number().min(1).max(70).optional(),
+  gradeNumber: z.union([
+    z.coerce.number().min(1).max(70),
+    z.literal('')
+  ]).optional(),
   gradeLetters: z.string().max(3, { message: "Maximum 3 characters allowed" }).optional(),
   publicNote: z.string().optional(),
   privateNote: z.string().optional(),
@@ -415,28 +418,24 @@ export default function EditUnlistedBanknoteDialog({
                       <FormField
                         control={form.control}
                         name="gradeNumber"
-                        render={({ field }) => (
+                        render={({ field: { onChange, ...field } }) => (
                           <FormItem>
                             <FormLabel>Grade</FormLabel>
                             <FormControl>
-                              <Select
-                                onValueChange={(value) => field.onChange(parseInt(value))}
-                                value={field.value?.toString()}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select grade" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {Array.from({ length: 70 }, (_, i) => i + 1).map((num) => (
-                                    <SelectItem key={num} value={num.toString()}>
-                                      {num}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <Input
+                                type="text"
+                                {...field}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (val === '' || (/^\d+$/.test(val) && parseInt(val) >= 1 && parseInt(val) <= 70)) {
+                                    onChange(val);
+                                  }
+                                }}
+                                className="w-full"
+                              />
                             </FormControl>
                             <FormDescription>
-                              Select the numeric grade (1-70)
+                              Enter a numeric grade between 1 and 70
                             </FormDescription>
                             <FormMessage />
                           </FormItem>

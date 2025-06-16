@@ -294,24 +294,39 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             </AspectRatio>
           )}
         </div>
+        
         <div className="p-3 bg-background border-t">
-          {item.banknote.sultanName && (
-            <p className="text-xs text-muted-foreground">
-              {item.banknote.authorityName || "Authority"}: {item.banknote.sultanName}
-            </p>
-          )}
-          {item.banknote.sealNames && (
-            <p className="text-xs text-muted-foreground">
-              Seals: {item.banknote.sealNames}
-            </p>
-          )}
-          {item?.isForSale && (
+            {item.banknote.sultanName && (
+              <p className="text-xs text-muted-foreground">
+                {item.banknote.authorityName || "Authority"}: {item.banknote.sultanName}
+              </p>
+            )}
+            {(item.banknote.signaturesFront || item.banknote.signaturesBack) && (
+              <p className="text-xs text-muted-foreground">
+                Signatures: {item.banknote.signaturesFront} {item.banknote.signaturesBack}
+              </p>
+            )}
+            {item.banknote.sealNames && (
+              <p className="text-xs text-muted-foreground">
+                Seals: {item.banknote.sealNames}
+              </p>
+            )}
+            {item.banknote.securityElement && (
+              <p className="text-xs text-muted-foreground">
+                {item.banknote.securityElement}
+              </p>
+            )}
+            {item?.isForSale && (
             <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
               For Sale: {formatPrice(item.salePrice)}
             </span>
           )}
-        </div>
+          </div>
+
       </Card>
+
+
+
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent onClick={e => e.stopPropagation()}>
           <AlertDialogHeader>
