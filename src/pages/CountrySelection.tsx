@@ -54,7 +54,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
   // Memoize filtered countries with counts
   const filteredCountries = React.useMemo(() => {
     if (!countries) return [];
-    
+
     // First filter by collection count > 0
     const countriesWithCollections = countries.filter((country: CountryData) => {
       const count = collectionCounts[country.name] || 0;
@@ -63,9 +63,9 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
 
     // Then apply search filter if exists
     if (!searchTerm.trim()) return countriesWithCollections;
-    
+
     const term = searchTerm.toLowerCase().trim();
-    return countriesWithCollections.filter((country: CountryData) => 
+    return countriesWithCollections.filter((country: CountryData) =>
       country.name.toLowerCase().includes(term)
     );
   }, [countries, collectionCounts, searchTerm]);
@@ -105,8 +105,8 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
         />
       )} */}
 
-<div className="  w-[90%] sm:w-[92%] mx-auto py-5 ">
-       
+      <div className="  w-[90%] sm:w-[92%] mx-auto py-5 ">
+
 
         {isLoading ? (
           <div className="flex justify-center py-12">
@@ -129,7 +129,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
             {filteredCountries.map((country: CountryData) => {
               const collectionCount = collectionCounts[country.name] || 0;
               return (
-                <Card 
+                <Card
                   key={country.id}
                   className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50 cursor-pointer"
                   onClick={() => handleCountrySelect(country.name)}
@@ -147,8 +147,8 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-                      <div className="p-4 text-white w-full">
-                        <h3 className="text-xl font-bold">{country.name}</h3>
+                      <div className="w-full p-4 text-white bg-gradient-to-t from-black/70 to-transparent">
+                        <h3 className="text-xl font-bold !text-gray-200">{country.name}</h3>
                         <p className="text-sm opacity-80">
                           {collectionCount} banknote{collectionCount === 1 ? '' : 's'}
                         </p>

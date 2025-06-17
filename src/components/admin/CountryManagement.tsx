@@ -361,6 +361,13 @@ const CountryManagement: React.FC = () => {
     setIsDialogOpen(true);
   };
 
+  const handleDeleteImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (confirm('Are you sure you want to remove this image?')) {
+      setCountryForm(prev => ({ ...prev, image_url: '' }));
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -443,7 +450,7 @@ const CountryManagement: React.FC = () => {
                 </TableCell>
                 <TableCell>
                   {isEditing === country.id ? (
-                    <div className="w-32 h-32">
+                    <div className="w-32 h-32 relative">
                       <SimpleCountryImageUpload
                         image={countryForm.image_url}
                         onImageUploaded={(url) => {
@@ -451,6 +458,17 @@ const CountryManagement: React.FC = () => {
                           setCountryForm({...countryForm, image_url: url});
                         }}
                       />
+                      {countryForm.image_url && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                          onClick={handleDeleteImage}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <div className="relative">

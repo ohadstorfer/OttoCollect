@@ -114,11 +114,13 @@ const Catalog = () => {
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-                    <div className="p-4 text-white w-full">
-                      <h3 className="text-xl font-bold">{country.name}</h3>
-                      <p className="text-sm opacity-80">{country.banknoteCount} banknotes</p>
+                      <div className="w-full p-4 text-white bg-gradient-to-t from-black/70 to-transparent">
+                        <h3 className="text-xl font-bold !text-gray-200">{country.name}</h3>
+                        <p className="text-sm opacity-80">
+                        {country.banknoteCount} banknote{country.banknoteCount === 1 ? '' : 's'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
                 </div>
               </Card>
             </Link>
