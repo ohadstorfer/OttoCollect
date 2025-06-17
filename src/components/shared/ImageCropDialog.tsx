@@ -25,10 +25,10 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
   
   const [crop, setCrop] = useState<Crop>({
     unit: '%',
-    width: 90,
-    height: 90,
-    x: 5,
-    y: 5
+    width: 100,
+    height: 100,
+    x: 0,
+    y: 0
   });
   const [rotation, setRotation] = useState(0);
   const [scale, setScale] = useState(1);
@@ -191,15 +191,32 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
         crop.height * scaleY,
         0,
         0,
-        crop.width,
-        crop.height
+        canvas.width,
+        canvas.height
       );
-      console.log('Cropped portion drawn to final canvas');
+
+      // Set canvas dimensions to match the original crop size
+      const originalWidth = crop.width;
+      const originalHeight = crop.height;
+      
+      // Create a new canvas for final sizing
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = originalWidth;
+      finalCanvas.height = originalHeight;
+      
+      // Draw the cropped image at original size
+      const finalCtx = finalCanvas.getContext('2d');
+      if (!finalCtx) {
+        throw new Error('Failed to get final canvas context');
+      }
+      
+      finalCtx.drawImage(canvas, 0, 0, originalWidth, originalHeight);
+      console.log('Final image dimensions:', { width: originalWidth, height: originalHeight });
 
       // Convert to blob
       const blob = await new Promise<Blob>((resolve, reject) => {
         try {
-          canvas.toBlob((blob) => {
+          finalCanvas.toBlob((blob) => {
             if (blob) {
               console.log('Successfully created blob');
               resolve(blob);

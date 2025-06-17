@@ -410,3 +410,42 @@ export async function deleteSortOption(
     throw error;
   }
 }
+
+// Function to upload country images to Supabase storage
+export const uploadCountryImage = async (file: File): Promise<string> => {
+  console.log('Starting country image upload process:', { fileName: file.name, fileSize: file.size });
+  
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+    const filePath = `countries/${fileName}`;
+    
+    console.log('Generated file path:', { fileName, filePath });
+    
+    console.log('Attempting to upload file to Supabase storage...');
+    const { data, error } = await supabase.storage
+      .from('banknote_images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+      
+    if (error) {
+      console.error('Supabase storage upload error:', error);
+      throw error;
+    }
+    
+    console.log('File uploaded successfully:', data);
+
+    console.log('Getting public URL for uploaded file...');
+    const { data: urlData } = supabase.storage
+      .from('banknote_images')
+      .getPublicUrl(data.path);
+      
+    console.log('Generated public URL:', urlData);
+    return urlData.publicUrl;
+  } catch (error) {
+    console.error('Error in uploadCountryImage:', error);
+    throw new Error('Failed to upload image');
+  }
+};
