@@ -99,7 +99,14 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
             </Button>
           </div>
 
-         
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/messaging')}
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Messages
+          </Button>
 
           <Button
             variant="ghost"
@@ -113,27 +120,10 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
           <div className="border-t pt-2 mt-4">
            
 
-             {/* Always visible buttons */}
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => handleNavigation('/messaging')}
-          >
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Messages
-          </Button>
+          
 
 
-          {isAdmin && (
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => handleNavigation('/admin')}
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                Admin Dashboard
-              </Button>
-            )}
+          
             
 
             <Button
@@ -145,6 +135,17 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </Button>
+
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => handleNavigation('/admin')}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Admin Dashboard
+              </Button>
+            )}
 
             <Button
               variant="ghost"
