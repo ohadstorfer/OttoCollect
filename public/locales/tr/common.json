@@ -1,0 +1,17 @@
+{
+  "nav": {
+    "catalog": "Katalog",
+    "myCollection": "Koleksiyonum",
+    "marketplace": "Pazar",
+    "forum": "Forum",
+    "login": "Giriş",
+    "messages": "Mesajlar"
+  },
+  "auth": {
+    "login": "Giriş",
+    "register": "Kayıt Ol",
+    "email": "E-posta",
+    "password": "Şifre",
+    "username": "Kullanıcı Adı"
+  }
+} 

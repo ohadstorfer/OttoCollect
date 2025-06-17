@@ -1,0 +1,17 @@
+{
+  "nav": {
+    "catalog": "الفهرس",
+    "myCollection": "مجموعتي",
+    "marketplace": "السوق",
+    "forum": "المنتدى",
+    "login": "تسجيل الدخول",
+    "messages": "الرسائل"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "تسجيل",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "username": "اسم المستخدم"
+  }
+} 

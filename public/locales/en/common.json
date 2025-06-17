@@ -1,0 +1,17 @@
+{
+  "nav": {
+    "catalog": "Catalogue",
+    "myCollection": "My Collection",
+    "marketplace": "Marketplace",
+    "forum": "Forum",
+    "login": "Login",
+    "messages": "Messages"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "username": "Username"
+  }
+} 

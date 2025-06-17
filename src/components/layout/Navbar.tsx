@@ -8,6 +8,9 @@ import { MessageButton } from "@/components/messages/MessageButton";
 import { useTheme } from "@/context/ThemeContext";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import ProfileSidebar from "@/components/layout/ProfileSidebar";
+import { LanguageSelector } from './LanguageSelector';
+import { useLanguage } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,6 +19,8 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { direction } = useLanguage();
+  const { t } = useTranslation();
 
   const closeMenu = () => setIsOpen(false);
   
@@ -37,10 +42,10 @@ const Navbar = () => {
 
   // Navigation links that appear in both desktop and mobile views
   const navLinks = [
-    { path: '/catalog', label: 'Catalogue' },
-    { path: `/profile/${user?.id}`, label: 'My Collection' },
-    { path: '/marketplace', label: 'Marketplace' },
-    { path: '/community/forum', label: 'Forum' },
+    { path: '/catalog', label: t('nav.catalog') },
+    { path: `/profile/${user?.id}`, label: t('nav.myCollection') },
+    { path: '/marketplace', label: t('nav.marketplace') },
+    { path: '/community/forum', label: t('nav.forum') },
     // ...(isAdmin ? [{ path: '/admin', label: 'Admin Dashboard' }] : []),
   ];
 
@@ -58,7 +63,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-1" style={{ gap: 'var(--space-1)' }}>
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -73,6 +78,10 @@ const Navbar = () => {
                       ? "text-ottoman-700 hover:bg-ottoman-50 hover:text-ottoman-900"
                       : "text-ottoman-200 hover:bg-ottoman-600/20 hover:text-ottoman-100"
                 )}
+                style={{ 
+                  paddingInlineStart: '1rem',
+                  paddingInlineEnd: '1rem'
+                }}
               >
                 {link.label}
               </Link>
@@ -80,7 +89,8 @@ const Navbar = () => {
           </div>
 
           {/* Right section (both desktop and mobile) */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" style={{ gap: '0.75rem' }}>
+            {/* <LanguageSelector /> */}
             <Button
               variant="ghost"
               size="icon"
@@ -120,8 +130,8 @@ const Navbar = () => {
             ) : (
               <Link to="/auth">
                 <Button className="bg-ottoman-600 hover:bg-ottoman-700 text-white flex items-center gap-2">
-                  <LogIn className="h-4 w-4" />
-                  Login
+                  <LogIn className={`h-4 w-4 ${direction === 'rtl' ? 'transform rotate-180' : ''}`} />
+                  {t('nav.login')}
                 </Button>
               </Link>
             )}
