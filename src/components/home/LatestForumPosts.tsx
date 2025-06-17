@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -85,7 +84,7 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
             }}
             onClick={() => handlePostClick(post.id)}
           >
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 h-full">
               {post.author?.avatarUrl ? (
                 <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-ottoman-700">
                   <img 
@@ -100,12 +99,12 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
                 </div>
               )}
               
-              <div className="flex-1">
-                <h3 className="font-serif font-semibold text-lg text-parchment-400 line-clamp-2">
+              <div className="flex-1 min-w-0 flex flex-col">
+                <h3 className="font-serif font-semibold text-lg text-parchment-400 line-clamp-2 mb-2">
                   {post.title}
                 </h3>
                 
-                <div className="flex items-center text-xs text-ottoman-300 mt-2 gap-3">
+                <div className="flex items-center text-xs text-ottoman-300 gap-3 mb-2">
                   <div className="flex items-center">
                     <Calendar className="h-3 w-3 mr-1" />
                     {safeFormatDate(post.createdAt)}
@@ -116,12 +115,12 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
                   </div>
                 </div>
                 
-                <p className="mt-3 text-sm text-ottoman-200 line-clamp-3">
+                <p className="text-sm text-ottoman-200 line-clamp-2 break-words overflow-hidden">
                   {post.content}
                 </p>
                 
                 {post.author && (
-                  <div className="mt-3 text-xs text-ottoman-400">
+                  <div className="mt-auto pt-2 text-xs text-ottoman-400">
                     By {post.author.username || 'Anonymous'}
                   </div>
                 )}
