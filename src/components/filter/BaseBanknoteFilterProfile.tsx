@@ -105,7 +105,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
   const tabList: { key: 'collection' | 'wishlist' | 'missing'; label: string }[] = [
     { key: 'collection', label: 'Collection' },
-    { key: 'wishlist', label: 'Wish List' },
+    { key: 'wishlist', label: 'Wishlist' },
     { key: 'missing', label: 'Missing' },
   ];
 
