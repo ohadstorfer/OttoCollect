@@ -134,7 +134,7 @@ const Forum = () => {
 
 
           <Tabs defaultValue="all" className="mb-10">
-            <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+            <div className="flex items-center justify-center gap-2 sm:gap-4">
               <TabsList className="shrink-0">
                 <TabsTrigger value="all">All Posts</TabsTrigger>
                 {user && (
@@ -142,35 +142,34 @@ const Forum = () => {
                 )}
               </TabsList>
 
-              {user && !isUserBlocked && (
-                <Button
-                  onClick={handleCreatePost}
-                  className="flex-shrink-0"
-                >
-                  <PenSquare className="mr-2 h-4 w-4" />
-                  Create Post
-                </Button>
-              )}
-
-              {user && isUserBlocked && (
-                <div className="text-red-600 text-sm">
-                  You have been blocked from creating posts
-                </div>
-              )}
-
-              <div className="relative w-full sm:w-64">
+              <div className="relative w-32 sm:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search forum posts..."
-                  className="pl-8"
+                  placeholder="Search..."
+                  className="pl-8 text-sm"
                   value={searchTerm}
                   onChange={handleSearch}
                 />
               </div>
 
+              {user && !isUserBlocked && (
+                <Button
+                  onClick={handleCreatePost}
+                  className="flex-shrink-0 px-2 sm:px-4"
+                  size="sm"
+                  variant="outline"
+                >
+                  <PenSquare className="h-4 w-4" />
+                  <span className="hidden sm:inline-block sm:ml-2">Post</span>
+                </Button>
+              )}
 
-
+              {user && isUserBlocked && (
+                <div className="text-red-600 text-xs sm:text-sm">
+                  Blocked
+                </div>
+              )}
             </div>
 
 
