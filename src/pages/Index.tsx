@@ -135,8 +135,8 @@ const Index = () => {
           >
             Explore, collect, and trade historical Ottoman Empire banknotes from across regions
             and eras. Join our <span className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'} font-medium animate-pulse-subtle`}>
-              community of passionate collectors
-            </span> and numismatic enthusiasts.
+              community of passionate collectors.
+            </span>
           </p>
 
           <div className="mt-10 flex flex-wrap justify-center gap-4">
