@@ -55,9 +55,14 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo and site name */}
           <Link to="/" className="flex items-center gap-2 group" onClick={closeMenu}>
-            <div>
+            <div className="flex items-center gap-2">
+              <img 
+                src="/favicon.PNG" 
+                alt="OttoCollect Logo" 
+                className="w-8 h-8 object-contain"
+              />
               <h1 className={`text-xl font-serif ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-100'} font-semibold tracking-tight`}>
-                <span className="text-gradient">Ottoman</span> Banknotes
+                <span className="text-gradient">OttoCollect</span> 
               </h1>
             </div>
           </Link>
