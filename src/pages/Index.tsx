@@ -101,7 +101,7 @@ const Index = () => {
 
         <div className="container mx-auto max-w-4xl flex flex-col items-center justify-center animate-fade-in">
           <div className="flex flex-col items-center">
-          <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight mb-[-2rem]`}>
+          <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight mb-[-1rem]`}>
               <span className="animate-shimmer inline-block">
                 OttoCollect
               </span>
