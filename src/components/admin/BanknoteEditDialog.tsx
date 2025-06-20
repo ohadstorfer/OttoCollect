@@ -12,23 +12,23 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Banknote } from '@/types';
+import { DetailedBanknote } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SimpleImageUpload from '@/components/collection/SimpleImageUpload';
 import { uploadBanknoteImage } from '@/services/banknoteService';
 import { fetchStampPictures } from '@/services/stampsService';
-import { StampPicture } from '@/types/stamps';
+import { StampPicture, StampType } from '@/types/stamps';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MultiSelect from '@/components/ui/multiselect';
 
 interface BanknoteEditDialogProps {
   open: boolean;
-  banknote: Banknote | null;
+  banknote: DetailedBanknote | null;
   isNew: boolean;
   onClose: () => void;
-  onUpdate: (banknote: Banknote) => void;
-  onCreate: (banknote: Banknote) => void;
+  onUpdate: (banknote: DetailedBanknote) => void;
+  onCreate: (banknote: DetailedBanknote) => void;
 }
 
 const BanknoteEditDialog = ({ 
@@ -55,7 +55,8 @@ const BanknoteEditDialog = ({
     historical_description: '',
     front_picture: '',
     back_picture: '',
-    signature_pictures: [],
+    signatures_front: [],
+    signatures_back: [],
     seal_pictures: [],
     watermark_picture: '',
     tughra_picture: '',
@@ -65,45 +66,69 @@ const BanknoteEditDialog = ({
   
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('basic');
-  const [signaturePictures, setSignaturePictures] = useState<StampPicture[]>([]);
+  const [signaturesFront, setSignaturesFront] = useState<StampPicture[]>([]);
+  const [signaturesBack, setSignaturesBack] = useState<StampPicture[]>([]);
   const [sealPictures, setSealPictures] = useState<StampPicture[]>([]);
   const [watermarkPictures, setWatermarkPictures] = useState<StampPicture[]>([]);
   const [tughraPictures, setTughraPictures] = useState<StampPicture[]>([]);
   const [isLoadingStamps, setIsLoadingStamps] = useState<boolean>(false);
   const [countryIdForStamps, setCountryIdForStamps] = useState<string | null>(null);
-  const [selectedSignatureIds, setSelectedSignatureIds] = useState<string[]>([]);
+  const [selectedSignaturesFrontIds, setSelectedSignaturesFrontIds] = useState<string[]>([]);
+  const [selectedSignaturesBackIds, setSelectedSignaturesBackIds] = useState<string[]>([]);
   const [selectedSealIds, setSelectedSealIds] = useState<string[]>([]);
   
   useEffect(() => {
+    const sigFront = formData.signatures_front || [];
+    const sigBack = formData.signatures_back || [];
+    const sealPics = formData.seal_pictures || [];
+
+    if (signaturesFront.length && sigFront.length) {
+      setSelectedSignaturesFrontIds(
+        signaturesFront.filter(p => sigFront.includes(p.name)).map(p => p.id)
+      );
+    }
+    if (signaturesBack.length && sigBack.length) {
+      setSelectedSignaturesBackIds(
+        signaturesBack.filter(p => sigBack.includes(p.name)).map(p => p.id)
+      );
+    }
+    if (sealPictures.length && sealPics.length) {
+      setSelectedSealIds(
+        sealPictures.filter(p => sealPics.includes(p.name)).map(p => p.id)
+      );
+    }
+  }, [signaturesFront, signaturesBack, sealPictures, formData.signatures_front, formData.signatures_back, formData.seal_pictures]);
+  
+  useEffect(() => {
     if (banknote && !isNew) {
-      // Convert from Banknote to the detailed banknote format for the form
       setFormData({
         extended_pick_number: banknote.catalogId,
         pick_number: banknote.catalogId.split('-')[0] || '',
         country: banknote.country,
         face_value: banknote.denomination,
         gregorian_year: banknote.year,
-        islamic_year: '',
-        sultan_name: '',
-        printer: '',
-        type: '',
-        category: '',
-        rarity: '',
+        islamic_year: banknote.islamicYear || '',
+        sultan_name: banknote.sultanName || '',
+        printer: banknote.printer || '',
+        type: banknote.type || '',
+        category: banknote.category || '',
+        rarity: banknote.rarity || '',
         banknote_description: banknote.description || '',
-        historical_description: '',
+        historical_description: banknote.historicalDescription || '',
         front_picture: banknote.imageUrls[0] || '',
         back_picture: banknote.imageUrls[1] || '',
-        signature_pictures: [],
-        seal_pictures: [],
-        watermark_picture: '',
+        signatures_front: banknote.signaturesFront?.split(', ') || [],
+        signatures_back: banknote.signaturesBack?.split(', ') || [],
+        seal_pictures: banknote.sealNames?.split(', ') || [],
+        watermark_picture: banknote.watermark || '',
         tughra_picture: '',
         is_approved: banknote.isApproved,
         is_pending: banknote.isPending
       });
-      
-      // If we have a detailed banknote, fetch the extra details
+
       fetchDetailedBanknoteInfo(banknote.id);
-      setSelectedSignatureIds([]);
+      setSelectedSignaturesFrontIds([]);
+      setSelectedSignaturesBackIds([]);
       setSelectedSealIds([]);
     }
   }, [banknote, isNew]);
@@ -118,21 +143,6 @@ const BanknoteEditDialog = ({
       });
     }
   }, [formData.country]);
-  
-  useEffect(() => {
-    const sigPics = formData.signature_pictures || [];
-    const sealPics = formData.seal_pictures || [];
-    if (signaturePictures.length && sigPics.length) {
-      setSelectedSignatureIds(
-        signaturePictures.filter(p => sigPics.includes(p.name)).map(p => p.id)
-      );
-    }
-    if (sealPictures.length && sealPics.length) {
-      setSelectedSealIds(
-        sealPictures.filter(p => sealPics.includes(p.name)).map(p => p.id)
-      );
-    }
-  }, [signaturePictures, sealPictures, formData.signature_pictures, formData.seal_pictures]);
   
   const fetchDetailedBanknoteInfo = async (banknoteId: string) => {
     try {
@@ -177,14 +187,16 @@ const BanknoteEditDialog = ({
   const fetchStampPicturesForCountry = async (countryId: string) => {
     setIsLoadingStamps(true);
     try {
-      const [signatures, seals, watermarks, tughras] = await Promise.all([
-        fetchStampPictures('signature', countryId),
-        fetchStampPictures('seal', countryId),
-        fetchStampPictures('watermark', countryId),
-        fetchStampPictures('tughra', countryId)
+      const [signaturesFront, signaturesBack, seals, watermarks, tughras] = await Promise.all([
+        fetchStampPictures('signatures_front' as StampType, countryId),
+        fetchStampPictures('signatures_back' as StampType, countryId),
+        fetchStampPictures('seal' as StampType, countryId),
+        fetchStampPictures('watermark' as StampType, countryId),
+        fetchStampPictures('tughra' as StampType, countryId)
       ]);
 
-      setSignaturePictures(signatures);
+      setSignaturesFront(signaturesFront);
+      setSignaturesBack(signaturesBack);
       setSealPictures(seals);
       setWatermarkPictures(watermarks);
       setTughraPictures(tughras);
@@ -227,12 +239,12 @@ const BanknoteEditDialog = ({
     }));
   };
   
-  const handleStampChange = (type: string, value: string) => {
+  const handleStampChange = (type: StampType, value: string) => {
     if (value === 'none') {
-      if (type === 'signature' || type === 'seal') {
+      if (type === 'signatures_front' || type === 'signatures_back' || type === 'seal') {
         setFormData(prev => ({
           ...prev,
-          [`${type}_pictures`]: []
+          [type]: []
         }));
       } else {
         setFormData(prev => ({
@@ -245,7 +257,8 @@ const BanknoteEditDialog = ({
 
     // Find the selected picture to get its name
     const pictures = {
-      signature: signaturePictures,
+      signatures_front: signaturesFront,
+      signatures_back: signaturesBack,
       seal: sealPictures,
       watermark: watermarkPictures,
       tughra: tughraPictures
@@ -254,10 +267,10 @@ const BanknoteEditDialog = ({
     const selectedPicture = pictures.find(p => p.id === value);
     if (!selectedPicture) return;
 
-    if (type === 'signature' || type === 'seal') {
+    if (type === 'signatures_front' || type === 'signatures_back' || type === 'seal') {
       setFormData(prev => ({
         ...prev,
-        [`${type}_pictures`]: [selectedPicture.name]
+        [type]: [selectedPicture.name]
       }));
     } else {
       setFormData(prev => ({
@@ -283,9 +296,10 @@ const BanknoteEditDialog = ({
         if (error) throw error;
         
         if (data) {
-          const newBanknote: Banknote = {
+          const newBanknote: DetailedBanknote = {
             id: data.id,
             catalogId: data.extended_pick_number,
+            extendedPickNumber: data.extended_pick_number,
             country: data.country,
             denomination: data.face_value,
             year: data.gregorian_year || '',
@@ -301,7 +315,13 @@ const BanknoteEditDialog = ({
             isPending: data.is_pending || false,
             createdAt: data.created_at || new Date().toISOString(),
             updatedAt: data.updated_at || new Date().toISOString(),
-            createdBy: ''
+            signaturesFront: data.signatures_front?.join(', ') || '',
+            signaturesBack: data.signatures_back?.join(', ') || '',
+            signaturesFrontUrls: data.signatures_front_urls || [],
+            signaturesBackUrls: data.signatures_back_urls || [],
+            sealPictureUrls: data.seal_picture_urls || [],
+            watermarkUrl: data.watermark_picture_url || '',
+            tughraUrl: data.tughra_picture_url || ''
           };
           
           onCreate(newBanknote);
@@ -326,7 +346,7 @@ const BanknoteEditDialog = ({
         if (fetchError) throw fetchError;
         
         if (updatedData) {
-          const updatedBanknote: Banknote = {
+          const updatedBanknote: DetailedBanknote = {
             ...banknote,
             catalogId: updatedData.extended_pick_number,
             country: updatedData.country,
@@ -557,16 +577,30 @@ const BanknoteEditDialog = ({
                 ) : (
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label>Signature</Label>
+                      <Label>Front Signatures</Label>
                       <MultiSelect
-                        options={signaturePictures.map((picture) => ({ value: picture.id, label: picture.name }))}
-                        selected={selectedSignatureIds}
+                        options={signaturesFront.map((picture) => ({ value: picture.id, label: picture.name }))}
+                        selected={selectedSignaturesFrontIds}
                         onChange={(selectedIds) => {
-                          setSelectedSignatureIds(selectedIds);
-                          const selectedNames = signaturePictures.filter(p => selectedIds.includes(p.id)).map(p => p.name);
-                          setFormData(prev => ({ ...prev, signature_pictures: selectedNames }));
+                          setSelectedSignaturesFrontIds(selectedIds);
+                          const selectedNames = signaturesFront.filter(p => selectedIds.includes(p.id)).map(p => p.name);
+                          setFormData(prev => ({ ...prev, signatures_front: selectedNames }));
                         }}
-                        placeholder="Select signatures"
+                        placeholder="Select front signatures"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Back Signatures</Label>
+                      <MultiSelect
+                        options={signaturesBack.map((picture) => ({ value: picture.id, label: picture.name }))}
+                        selected={selectedSignaturesBackIds}
+                        onChange={(selectedIds) => {
+                          setSelectedSignaturesBackIds(selectedIds);
+                          const selectedNames = signaturesBack.filter(p => selectedIds.includes(p.id)).map(p => p.name);
+                          setFormData(prev => ({ ...prev, signatures_back: selectedNames }));
+                        }}
+                        placeholder="Select back signatures"
                       />
                     </div>
 
@@ -583,7 +617,6 @@ const BanknoteEditDialog = ({
                         placeholder="Select seals"
                       />
                     </div>
-
 
                     <div className="space-y-2">
                       <Label>Watermark</Label>

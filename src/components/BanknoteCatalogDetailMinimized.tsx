@@ -93,25 +93,14 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
       <span className="text-base">{banknote.sealNames}</span>
     </div>
 )}
-      {banknote?.signaturesFront && (
-        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-          <span className="text-sm font-medium text-muted-foreground w-32">Front Signatures</span>
-          <span className="text-base">{banknote.signaturesFront}</span>
-        </div>
-      )}
-      {banknote?.signaturesBack && (
-        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-          <span className="text-sm font-medium text-muted-foreground w-32">Back Signatures</span>
-          <span className="text-base">{banknote.signaturesBack}</span>
-        </div>
-      )}
+
 
       {/* Display resolved signature picture URLs from enhanced view */}
-      {banknote?.signaturePictureUrls && banknote.signaturePictureUrls.length > 0 && (
+      {banknote?.signaturesFrontUrls && banknote.signaturesFrontUrls.length > 0 && (
         <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Signature Pictures</span>
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Front Signature</span>
           <div className="flex flex-wrap gap-2">
-            {banknote.signaturePictureUrls.map((url, index) => (
+            {banknote.signaturesFrontUrls.map((url, index) => (
               <img
                 key={index}
                 src={url}
@@ -123,6 +112,25 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
           </div>
         </div>
       )}
+
+      {/* Display resolved signature picture URLs from enhanced view */}
+      {banknote?.signaturesBackUrls && banknote.signaturesBackUrls.length > 0 && (
+        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Back Signature</span>
+          <div className="flex flex-wrap gap-2">
+            {banknote.signaturesBackUrls.map((url, index) => (
+              <img
+                key={index}
+                src={url}
+                alt={`Signature ${index + 1}`}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                onClick={() => onImageClick?.(url)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
 
       {/* Display resolved seal picture URLs from enhanced view */}
       {banknote?.sealPictureUrls && banknote.sealPictureUrls.length > 0 && (
