@@ -13,7 +13,7 @@ export interface SealPicture extends StampPicture {}
 export interface WatermarkPicture extends StampPicture {}
 export interface TughraPicture extends StampPicture {}
 
-export type StampType = 'signature' | 'seal' | 'watermark' | 'tughra';
+export type StampType = 'signatures_front' | 'signatures_back' | 'seal' | 'watermark' | 'tughra';
 
 export interface StampUploadData {
   name: string;

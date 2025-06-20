@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { StampPicture, StampUploadData, StampType } from '@/types/stamps';
 
 const TABLE_NAMES = {
-  signature: 'signature_pictures',
+  signatures_front: 'signatures_front',
+  signatures_back: 'signatures_back', 
   seal: 'seal_pictures', 
   watermark: 'watermark_pictures',
   tughra: 'tughra_pictures'

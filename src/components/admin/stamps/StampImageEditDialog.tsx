@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,23 @@ const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
       });
     }
   }, [editingStamp, isOpen]);
+
+  const getStampTypeDisplayName = (type: StampType): string => {
+    switch (type) {
+      case 'signatures_front':
+        return 'Front Signature';
+      case 'signatures_back':
+        return 'Back Signature';
+      case 'seal':
+        return 'Seal';
+      case 'watermark':
+        return 'Watermark';
+      case 'tughra':
+        return 'Tughra';
+      default:
+        return type.charAt(0).toUpperCase() + type.slice(1);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,7 +192,7 @@ const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
       <DialogContent className="max-w-md" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>
-            {editingStamp ? 'Edit' : 'Add'} {stampType.charAt(0).toUpperCase() + stampType.slice(1)} Image
+            {editingStamp ? 'Edit' : 'Add'} {getStampTypeDisplayName(stampType)} Image
           </DialogTitle>
         </DialogHeader>
         
