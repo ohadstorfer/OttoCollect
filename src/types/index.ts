@@ -1,3 +1,4 @@
+
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -81,46 +82,54 @@ export type BanknoteCondition =
   | 'Fair' 
   | 'Poor';
 
-export interface Banknote {
-  id: string;
-  catalogId: string;
-  country: string;
-  denomination: string;
-  year: string;
-  islamicYear?: string;
-  gregorianYear?: string;
-  series?: string;
-  description?: string;
-  obverseDescription?: string;
-  reverseDescription?: string;
-  imageUrls: string[];  // Change to string[] to fix TypeScript errors
-  isApproved: boolean;
-  isPending: boolean;
-  createdAt: string;
-  updatedAt: string;
-  createdBy?: string;
-  type?: string; // Adding type for compatibility
-  sultanName?: string; // Adding sultanName for compatibility
-  extendedPickNumber?: string; // Adding extended pick number for compatibility
-  category?: string; // Adding category for compatibility
+export interface BanknoteFilters {
+  search?: string;
+  country_id?: string;
+  categories?: string[];
+  types?: string[];
+  sort?: string[];
 }
 
-export interface DetailedBanknote extends Banknote {
+export interface CollectionItem {
+  id: string;
+  user_id: string;
+  banknote_id?: string;
+  is_unlisted_banknote: boolean;
+  unlisted_banknotes_id?: string;
+  condition?: BanknoteCondition;
+  purchase_price?: number;
+  purchase_date?: string;
+  sale_price?: number;
+  is_for_sale: boolean;
+  public_note?: string;
+  private_note?: string;
+  location?: string;
+  obverse_image?: string;
+  reverse_image?: string;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+  grade?: string;
+  grade_by?: string;
+  grade_condition_description?: string;
+}
+
+export interface DetailedBanknote {
   id: string;
   catalogId: string;
+  extendedPickNumber: string;
   country: string;
   denomination: string;
   year: string;
-  series?: string;
-  description?: string;
-  obverseDescription?: string;
-  reverseDescription?: string;
+  series: string;
+  description: string;
+  obverseDescription: string;
+  reverseDescription: string;
   imageUrls: string[];
   isApproved: boolean;
   isPending: boolean;
   createdAt: string;
   updatedAt: string;
-  createdBy?: string;
   pickNumber?: string;
   turkCatalogNumber?: string;
   sultanName?: string;
@@ -129,12 +138,6 @@ export interface DetailedBanknote extends Banknote {
   printer?: string;
   type?: string;
   category?: string;
-  securityFeatures?: string[];
-  watermark?: string;
-  signatures?: string[];
-  colors?: string[];
-  gradeCounts?: Record<BanknoteCondition, number>;
-  averagePrice?: number;
   islamicYear?: string;
   gregorianYear?: string;
   banknoteDescription?: string;
@@ -143,99 +146,67 @@ export interface DetailedBanknote extends Banknote {
   securityElement?: string;
   signaturesFront?: string;
   signaturesBack?: string;
-  extendedPickNumber?: string;
-  name?: string;
+  colors?: string;
+  watermark?: string;
   
-  // Add resolved stamp image URL fields from enhanced database view
-  signaturePictureUrls?: string[];
+  // New resolved URL fields from the enhanced view
+  signaturesFrontUrls?: string[];
+  signaturesBackUrls?: string[];
   sealPictureUrls?: string[];
-  watermarkUrl?: string | null;
-  tughraUrl?: string | null;
+  watermarkUrl?: string;
+  tughraUrl?: string;
   
   // New authority_name field
   authorityName?: string;
 }
 
-export type BanknoteDetailSource = 'catalog' | 'collection' | 'marketplace' | 'wishlist';
-
-export interface BanknoteFilters {
-  country_id?: string;
-  search?: string;
-  categories?: string[];
-  types?: string[];
-  sort?: string[];
-}
-
-export interface BanknoteFilterState {
-  search: string;
-  categories: string[];
-  types: string[];
-  sort: string[];
-  country_id?: string;
-}
-
-// Collection related interfaces
-export interface CollectionItem {
-  id: string;
-  userId: string;
-  banknoteId: string;
-  banknote: DetailedBanknote;
-  condition?: BanknoteCondition;
-  grade_by?: string;
-  grade?: string;
-  grade_condition_description?: string;
-  purchasePrice?: number;
-  purchaseDate?: string | Date;
-  location?: string;
-  obverseImage?: string;
-  reverseImage?: string;
-  personalImages?: string[];
-  publicNote?: string;
-  privateNote?: string;
-  isForSale: boolean;
-  salePrice?: number;
-  orderIndex?: number;
-  createdAt?: string;
-  updatedAt?: string;
-  is_unlisted_banknote: boolean;
-}
-
-// Marketplace related interfaces
-export interface MarketplaceItem {
-  id: string;
-  collectionItem: CollectionItem;
-  sellerId: string;
-  seller: User;
-  status: 'Available' | 'Reserved' | 'Sold';
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Define WishlistItem type for TS compatibility
 export interface WishlistItem {
   id: string;
-  userId: string;
-  banknoteId: string;
+  user_id: string;
+  banknote_id: string;
+  priority: 'Low' | 'Medium' | 'High';
   note?: string;
-  priority: string;
-  createdAt: string;
-  banknote?: DetailedBanknote;
+  created_at: string;
 }
 
-// Import and re-export types from other files
-export * from './message';
-export * from './forum';
-// Explicit re-exports from filter to avoid duplication
-export type { 
-  CategoryDefinition, 
-  TypeDefinition, 
-  UserFilterPreference,
-  FilterCategoryOption,
-  DynamicFilterState,
-  FilterableItem,
-  Country,
-  CountryData 
-} from './filter';
+export interface MarketplaceItem {
+  id: string;
+  seller_id: string;
+  collection_item_id: string;
+  banknote_id: string;
+  status: 'Available' | 'Sold' | 'Reserved';
+  created_at: string;
+  updated_at: string;
+}
 
-// Re-export from banknote
-export type { ImageUrls, Currency } from './banknote';
+export interface Country {
+  id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ForumPost {
+  id: string;
+  title: string;
+  content: string;
+  author_id: string;
+  image_urls?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ForumComment {
+  id: string;
+  post_id: string;
+  author_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  is_edited?: boolean;
+}
+
+// Re-export everything from banknote.ts
+export * from './banknote';

@@ -136,7 +136,8 @@ export async function fetchBanknotesByCountryId(
     console.log(`[fetchBanknotesByCountryId] Raw banknote data response for country "${country.name}":`, data);
     console.log(`[fetchBanknotesByCountryId] Sample banknote with resolved URLs:`, data?.[0] ? {
       id: data[0].id,
-      signature_picture_urls: data[0].signature_picture_urls,
+      signatures_front_urls: data[0].signatures_front_urls,
+      signatures_back_urls: data[0].signatures_back_urls,
       seal_picture_urls: data[0].seal_picture_urls,
       watermark_picture_url: data[0].watermark_picture_url
     } : 'No data');
@@ -188,7 +189,8 @@ export async function fetchBanknotesByCountryId(
     console.log(`[fetchBanknotesByCountryId] Mapped banknotes with resolved URLs:`, banknotes.length > 0 ? {
       firstBanknote: {
         id: banknotes[0].id,
-        signaturePictureUrls: banknotes[0].signaturePictureUrls,
+        signaturesFrontUrls: banknotes[0].signaturesFrontUrls,
+        signaturesBackUrls: banknotes[0].signaturesBackUrls,
         sealPictureUrls: banknotes[0].sealPictureUrls, 
         watermarkUrl: banknotes[0].watermarkUrl
       }
@@ -227,7 +229,8 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
     
     console.log(`Fetched banknote with resolved URLs:`, {
       id: data.id,
-      signature_picture_urls: data.signature_picture_urls,
+      signatures_front_urls: data.signatures_front_urls,
+      signatures_back_urls: data.signatures_back_urls,
       seal_picture_urls: data.seal_picture_urls,
       watermark_picture_url: data.watermark_picture_url
     });
@@ -258,7 +261,8 @@ export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote 
     
     console.log(`Fetched banknote detail with resolved URLs:`, {
       id: data.id,
-      signature_picture_urls: data.signature_picture_urls,
+      signatures_front_urls: data.signatures_front_urls,
+      signatures_back_urls: data.signatures_back_urls,
       seal_picture_urls: data.seal_picture_urls,
       watermark_picture_url: data.watermark_picture_url
     });
@@ -354,29 +358,32 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     historicalDescription: item.historical_description,
     serialNumbering: item.serial_numbering,
     securityElement: item.security_element,
-    signaturesFront: item.signatures_front || '',
-    signaturesBack: item.signatures_back || '',
+    signaturesFront: Array.isArray(item.signatures_front) ? item.signatures_front.join(', ') : (item.signatures_front || ''),
+    signaturesBack: Array.isArray(item.signatures_back) ? item.signatures_back.join(', ') : (item.signatures_back || ''),
     colors: item.colors,
     watermark: item.watermark_picture,
     
     // Add the new resolved URL fields from the enhanced view
-    signaturePictureUrls: item.signature_picture_urls || [],
+    signaturesFrontUrls: item.signatures_front_urls || [],
+    signaturesBackUrls: item.signatures_back_urls || [],
     sealPictureUrls: item.seal_picture_urls || [],
     watermarkUrl: item.watermark_picture_url || null,
     tughraUrl: item.tughra_picture_url || null,
     
-    // Map the new authority_name field
+    // Map the authority_name field
     authorityName: item.authority_name || null
   } as DetailedBanknote;
 
   console.log(`mapBanknoteFromDatabase - Mapped banknote ${item.id} with resolved URLs and authority name:`, {
     id: mapped.id,
-    signaturePictureUrls: mapped.signaturePictureUrls,
+    signaturesFrontUrls: mapped.signaturesFrontUrls,
+    signaturesBackUrls: mapped.signaturesBackUrls,
     sealPictureUrls: mapped.sealPictureUrls,
     watermarkUrl: mapped.watermarkUrl,
     authorityName: mapped.authorityName,
     rawData: {
-      signature_picture_urls: item.signature_picture_urls,
+      signatures_front_urls: item.signatures_front_urls,
+      signatures_back_urls: item.signatures_back_urls,
       seal_picture_urls: item.seal_picture_urls,
       watermark_picture_url: item.watermark_picture_url,
       authority_name: item.authority_name

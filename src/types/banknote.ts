@@ -43,8 +43,8 @@ export interface EnhancedBanknote {
   face_value: string;
   islamic_year?: string;
   gregorian_year?: string;
-  signatures_front?: string;
-  signatures_back?: string;
+  signatures_front?: string[];
+  signatures_back?: string[];
   signature_pictures?: string[];
   seal_names?: string;
   seal_pictures?: string[];
@@ -52,6 +52,7 @@ export interface EnhancedBanknote {
   other_element_pictures?: string[];
   front_picture?: string;
   back_picture?: string;
+  front_picture_watermarked?: string;
   sultan_name?: string;
   tughra_picture?: string;
   printer?: string;
@@ -69,7 +70,8 @@ export interface EnhancedBanknote {
   updated_at: string;
   
   // New resolved URL fields from the enhanced view
-  signature_picture_urls?: string[];
+  signatures_front_urls?: string[];
+  signatures_back_urls?: string[];
   seal_picture_urls?: string[];
   watermark_picture_url?: string;
   tughra_picture_url?: string;

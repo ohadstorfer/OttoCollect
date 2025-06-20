@@ -456,6 +456,7 @@ export type Database = {
           extended_pick_number: string
           face_value: string
           front_picture: string | null
+          front_picture_watermarked: string | null
           gregorian_year: string | null
           historical_description: string | null
           id: string
@@ -471,8 +472,8 @@ export type Database = {
           security_element: string | null
           serial_numbering: string | null
           signature_pictures: string[] | null
-          signatures_back: string | null
-          signatures_front: string | null
+          signatures_back: string[] | null
+          signatures_front: string[] | null
           sultan_name: string | null
           tughra_picture: string | null
           turk_catalog_number: string | null
@@ -490,6 +491,7 @@ export type Database = {
           extended_pick_number: string
           face_value: string
           front_picture?: string | null
+          front_picture_watermarked?: string | null
           gregorian_year?: string | null
           historical_description?: string | null
           id?: string
@@ -505,8 +507,8 @@ export type Database = {
           security_element?: string | null
           serial_numbering?: string | null
           signature_pictures?: string[] | null
-          signatures_back?: string | null
-          signatures_front?: string | null
+          signatures_back?: string[] | null
+          signatures_front?: string[] | null
           sultan_name?: string | null
           tughra_picture?: string | null
           turk_catalog_number?: string | null
@@ -524,6 +526,7 @@ export type Database = {
           extended_pick_number?: string
           face_value?: string
           front_picture?: string | null
+          front_picture_watermarked?: string | null
           gregorian_year?: string | null
           historical_description?: string | null
           id?: string
@@ -539,8 +542,8 @@ export type Database = {
           security_element?: string | null
           serial_numbering?: string | null
           signature_pictures?: string[] | null
-          signatures_back?: string | null
-          signatures_front?: string | null
+          signatures_back?: string[] | null
+          signatures_front?: string[] | null
           sultan_name?: string | null
           tughra_picture?: string | null
           turk_catalog_number?: string | null
@@ -941,7 +944,7 @@ export type Database = {
           },
         ]
       }
-      signature_pictures: {
+      signatures_back: {
         Row: {
           country_id: string
           created_at: string
@@ -966,15 +969,34 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "signature_pictures_country_id_fkey"
-            columns: ["country_id"]
-            isOneToOne: false
-            referencedRelation: "countries"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      signatures_front: {
+        Row: {
+          country_id: string
+          created_at: string
+          id: string
+          image_url: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       sort_fields: {
         Row: {
@@ -1333,6 +1355,7 @@ export type Database = {
           extended_pick_number: string | null
           face_value: string | null
           front_picture: string | null
+          front_picture_watermarked: string | null
           gregorian_year: string | null
           historical_description: string | null
           id: string | null
@@ -1348,10 +1371,11 @@ export type Database = {
           seal_pictures: string[] | null
           security_element: string | null
           serial_numbering: string | null
-          signature_picture_urls: string[] | null
           signature_pictures: string[] | null
-          signatures_back: string | null
-          signatures_front: string | null
+          signatures_back: string[] | null
+          signatures_back_urls: string[] | null
+          signatures_front: string[] | null
+          signatures_front_urls: string[] | null
           sultan_name: string | null
           tughra_picture: string | null
           tughra_picture_url: string | null
@@ -1360,84 +1384,6 @@ export type Database = {
           updated_at: string | null
           watermark_picture: string | null
           watermark_picture_url: string | null
-        }
-        Insert: {
-          authority_name?: never
-          back_picture?: string | null
-          banknote_description?: string | null
-          category?: string | null
-          colors?: string | null
-          country?: string | null
-          created_at?: string | null
-          extended_pick_number?: string | null
-          face_value?: string | null
-          front_picture?: string | null
-          gregorian_year?: string | null
-          historical_description?: string | null
-          id?: string | null
-          is_approved?: boolean | null
-          is_pending?: boolean | null
-          islamic_year?: string | null
-          other_element_pictures?: string[] | null
-          pick_number?: string | null
-          printer?: string | null
-          rarity?: string | null
-          seal_names?: string | null
-          seal_picture_urls?: never
-          seal_pictures?: string[] | null
-          security_element?: string | null
-          serial_numbering?: string | null
-          signature_picture_urls?: never
-          signature_pictures?: string[] | null
-          signatures_back?: string | null
-          signatures_front?: string | null
-          sultan_name?: string | null
-          tughra_picture?: string | null
-          tughra_picture_url?: never
-          turk_catalog_number?: string | null
-          type?: string | null
-          updated_at?: string | null
-          watermark_picture?: string | null
-          watermark_picture_url?: never
-        }
-        Update: {
-          authority_name?: never
-          back_picture?: string | null
-          banknote_description?: string | null
-          category?: string | null
-          colors?: string | null
-          country?: string | null
-          created_at?: string | null
-          extended_pick_number?: string | null
-          face_value?: string | null
-          front_picture?: string | null
-          gregorian_year?: string | null
-          historical_description?: string | null
-          id?: string | null
-          is_approved?: boolean | null
-          is_pending?: boolean | null
-          islamic_year?: string | null
-          other_element_pictures?: string[] | null
-          pick_number?: string | null
-          printer?: string | null
-          rarity?: string | null
-          seal_names?: string | null
-          seal_picture_urls?: never
-          seal_pictures?: string[] | null
-          security_element?: string | null
-          serial_numbering?: string | null
-          signature_picture_urls?: never
-          signature_pictures?: string[] | null
-          signatures_back?: string | null
-          signatures_front?: string | null
-          sultan_name?: string | null
-          tughra_picture?: string | null
-          tughra_picture_url?: never
-          turk_catalog_number?: string | null
-          type?: string | null
-          updated_at?: string | null
-          watermark_picture?: string | null
-          watermark_picture_url?: never
         }
         Relationships: []
       }
@@ -1453,6 +1399,7 @@ export type Database = {
           extended_pick_number: string | null
           face_value: string | null
           front_picture: string | null
+          front_picture_watermarked: string | null
           gregorian_year: string | null
           historical_description: string | null
           id: string | null
@@ -1470,8 +1417,8 @@ export type Database = {
           security_element: string | null
           serial_numbering: string | null
           signature_pictures: string[] | null
-          signatures_back: string | null
-          signatures_front: string | null
+          signatures_back: string[] | null
+          signatures_front: string[] | null
           suffix_num: number | null
           sultan_name: string | null
           trailing_text: string | null
@@ -1649,7 +1596,7 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: {
-        Args: { user_uuid: string }
+        Args: Record<PropertyKey, never> | { user_uuid: string }
         Returns: boolean
       }
       is_super_or_country_admin: {
