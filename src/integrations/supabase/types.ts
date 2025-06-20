@@ -295,12 +295,16 @@ export type Database = {
           is_unlisted_banknote: boolean
           location: string | null
           obverse_image: string | null
+          obverse_image_thumbnail: string | null
+          obverse_image_watermarked: string | null
           order_index: number
           private_note: string | null
           public_note: string | null
           purchase_date: string | null
           purchase_price: number | null
           reverse_image: string | null
+          reverse_image_thumbnail: string | null
+          reverse_image_watermarked: string | null
           sale_price: number | null
           unlisted_banknotes_id: string | null
           updated_at: string
@@ -318,12 +322,16 @@ export type Database = {
           is_unlisted_banknote?: boolean
           location?: string | null
           obverse_image?: string | null
+          obverse_image_thumbnail?: string | null
+          obverse_image_watermarked?: string | null
           order_index?: number
           private_note?: string | null
           public_note?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
           reverse_image?: string | null
+          reverse_image_thumbnail?: string | null
+          reverse_image_watermarked?: string | null
           sale_price?: number | null
           unlisted_banknotes_id?: string | null
           updated_at?: string
@@ -341,12 +349,16 @@ export type Database = {
           is_unlisted_banknote?: boolean
           location?: string | null
           obverse_image?: string | null
+          obverse_image_thumbnail?: string | null
+          obverse_image_watermarked?: string | null
           order_index?: number
           private_note?: string | null
           public_note?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
           reverse_image?: string | null
+          reverse_image_thumbnail?: string | null
+          reverse_image_watermarked?: string | null
           sale_price?: number | null
           unlisted_banknotes_id?: string | null
           updated_at?: string
@@ -365,13 +377,6 @@ export type Database = {
             columns: ["banknote_id"]
             isOneToOne: false
             referencedRelation: "enhanced_detailed_banknotes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "collection_items_banknote_id_fkey"
-            columns: ["banknote_id"]
-            isOneToOne: false
-            referencedRelation: "sorted_banknotes"
             referencedColumns: ["id"]
           },
           {
@@ -448,6 +453,8 @@ export type Database = {
       detailed_banknotes: {
         Row: {
           back_picture: string | null
+          back_picture_thumbnail: string | null
+          back_picture_watermarked: string | null
           banknote_description: string | null
           category: string | null
           colors: string | null
@@ -456,6 +463,7 @@ export type Database = {
           extended_pick_number: string
           face_value: string
           front_picture: string | null
+          front_picture_thumbnail: string | null
           front_picture_watermarked: string | null
           gregorian_year: string | null
           historical_description: string | null
@@ -483,6 +491,8 @@ export type Database = {
         }
         Insert: {
           back_picture?: string | null
+          back_picture_thumbnail?: string | null
+          back_picture_watermarked?: string | null
           banknote_description?: string | null
           category?: string | null
           colors?: string | null
@@ -491,6 +501,7 @@ export type Database = {
           extended_pick_number: string
           face_value: string
           front_picture?: string | null
+          front_picture_thumbnail?: string | null
           front_picture_watermarked?: string | null
           gregorian_year?: string | null
           historical_description?: string | null
@@ -518,6 +529,8 @@ export type Database = {
         }
         Update: {
           back_picture?: string | null
+          back_picture_thumbnail?: string | null
+          back_picture_watermarked?: string | null
           banknote_description?: string | null
           category?: string | null
           colors?: string | null
@@ -526,6 +539,7 @@ export type Database = {
           extended_pick_number?: string
           face_value?: string
           front_picture?: string | null
+          front_picture_thumbnail?: string | null
           front_picture_watermarked?: string | null
           gregorian_year?: string | null
           historical_description?: string | null
@@ -689,7 +703,11 @@ export type Database = {
           created_at: string
           id: string
           obverse_image: string | null
+          obverse_image_thumbnail: string | null
+          obverse_image_watermarked: string | null
           reverse_image: string | null
+          reverse_image_thumbnail: string | null
+          reverse_image_watermarked: string | null
           status: string
           updated_at: string
           user_id: string
@@ -699,7 +717,11 @@ export type Database = {
           created_at?: string
           id?: string
           obverse_image?: string | null
+          obverse_image_thumbnail?: string | null
+          obverse_image_watermarked?: string | null
           reverse_image?: string | null
+          reverse_image_thumbnail?: string | null
+          reverse_image_watermarked?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -709,7 +731,11 @@ export type Database = {
           created_at?: string
           id?: string
           obverse_image?: string | null
+          obverse_image_thumbnail?: string | null
+          obverse_image_watermarked?: string | null
           reverse_image?: string | null
+          reverse_image_thumbnail?: string | null
+          reverse_image_watermarked?: string | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -727,13 +753,6 @@ export type Database = {
             columns: ["banknote_id"]
             isOneToOne: false
             referencedRelation: "enhanced_detailed_banknotes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "image_suggestions_banknote_id_fkey"
-            columns: ["banknote_id"]
-            isOneToOne: false
-            referencedRelation: "sorted_banknotes"
             referencedColumns: ["id"]
           },
         ]
@@ -1332,13 +1351,6 @@ export type Database = {
             referencedRelation: "enhanced_detailed_banknotes"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "wishlist_items_banknote_id_fkey"
-            columns: ["banknote_id"]
-            isOneToOne: false
-            referencedRelation: "sorted_banknotes"
-            referencedColumns: ["id"]
-          },
         ]
       }
     }
@@ -1347,6 +1359,8 @@ export type Database = {
         Row: {
           authority_name: string | null
           back_picture: string | null
+          back_picture_thumbnail: string | null
+          back_picture_watermarked: string | null
           banknote_description: string | null
           category: string | null
           colors: string | null
@@ -1355,6 +1369,7 @@ export type Database = {
           extended_pick_number: string | null
           face_value: string | null
           front_picture: string | null
+          front_picture_thumbnail: string | null
           front_picture_watermarked: string | null
           gregorian_year: string | null
           historical_description: string | null
@@ -1384,49 +1399,6 @@ export type Database = {
           updated_at: string | null
           watermark_picture: string | null
           watermark_picture_url: string | null
-        }
-        Relationships: []
-      }
-      sorted_banknotes: {
-        Row: {
-          back_picture: string | null
-          banknote_description: string | null
-          base_num: number | null
-          category: string | null
-          colors: string | null
-          country: string | null
-          created_at: string | null
-          extended_pick_number: string | null
-          face_value: string | null
-          front_picture: string | null
-          front_picture_watermarked: string | null
-          gregorian_year: string | null
-          historical_description: string | null
-          id: string | null
-          is_approved: boolean | null
-          is_pending: boolean | null
-          islamic_year: string | null
-          letter_type: string | null
-          letter_value: string | null
-          other_element_pictures: string[] | null
-          pick_number: string | null
-          printer: string | null
-          rarity: string | null
-          seal_names: string | null
-          seal_pictures: string[] | null
-          security_element: string | null
-          serial_numbering: string | null
-          signature_pictures: string[] | null
-          signatures_back: string[] | null
-          signatures_front: string[] | null
-          suffix_num: number | null
-          sultan_name: string | null
-          trailing_text: string | null
-          tughra_picture: string | null
-          turk_catalog_number: string | null
-          type: string | null
-          updated_at: string | null
-          watermark_picture: string | null
         }
         Relationships: []
       }
@@ -1467,13 +1439,6 @@ export type Database = {
             columns: ["banknote_id"]
             isOneToOne: false
             referencedRelation: "enhanced_detailed_banknotes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "collection_items_banknote_id_fkey"
-            columns: ["banknote_id"]
-            isOneToOne: false
-            referencedRelation: "sorted_banknotes"
             referencedColumns: ["id"]
           },
           {
