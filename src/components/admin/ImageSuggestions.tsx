@@ -32,6 +32,10 @@ interface ImageSuggestion {
   banknote_country?: string;
   banknote_denomination?: string;
   user_name?: string;
+  obverse_image_watermarked?: string;
+  reverse_image_watermarked?: string;
+  obverse_image_thumbnail?: string;
+  reverse_image_thumbnail?: string;
 }
 
 interface ImageSuggestionsProps extends AdminComponentProps {}
@@ -432,7 +436,11 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
           user_name: userProfile?.username || 'Unknown',
           banknote_catalog_id: banknote?.extended_pick_number || '',
           banknote_country: banknote?.country || '',
-          banknote_denomination: banknote?.face_value || ''
+          banknote_denomination: banknote?.face_value || '',
+          obverse_image_watermarked: banknote?.front_picture_watermarked,
+          reverse_image_watermarked: banknote?.back_picture_watermarked,
+          obverse_image_thumbnail: banknote?.front_picture_thumbnail,
+          reverse_image_thumbnail: banknote?.back_picture_thumbnail
         } as ImageSuggestion; // Type assertion to ensure it matches ImageSuggestion
       });
       
@@ -461,6 +469,14 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       console.log('Approving image suggestion:', suggestion);
       console.log('Obverse image:', suggestion.obverse_image);
       console.log('Reverse image:', suggestion.reverse_image);
+      console.log('Watermarked images:', {
+        obverse: suggestion.obverse_image_watermarked,
+        reverse: suggestion.reverse_image_watermarked
+      });
+      console.log('Thumbnail images:', {
+        obverse: suggestion.obverse_image_thumbnail,
+        reverse: suggestion.reverse_image_thumbnail
+      });
       
       // First check if the banknote exists
       const { data: banknoteCheck, error: banknoteCheckError } = await supabase
@@ -483,7 +499,11 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       if (suggestion.obverse_image) {
         const { error: obverseError } = await supabase
           .from('detailed_banknotes')
-          .update({ front_picture: suggestion.obverse_image })
+          .update({
+            front_picture: suggestion.obverse_image,
+            front_picture_watermarked: suggestion.obverse_image_watermarked,
+            front_picture_thumbnail: suggestion.obverse_image_thumbnail
+          })
           .eq('id', suggestion.banknote_id);
         
         if (obverseError) {
@@ -491,7 +511,11 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
           toast.error(`Failed to update obverse image: ${obverseError.message}`);
           hasErrors = true;
         } else {
-          console.log('Successfully updated front_picture to:', suggestion.obverse_image);
+          console.log('Successfully updated front images:', {
+            front_picture: suggestion.obverse_image,
+            front_picture_watermarked: suggestion.obverse_image_watermarked,
+            front_picture_thumbnail: suggestion.obverse_image_thumbnail
+          });
         }
       }
       
@@ -499,7 +523,11 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       if (suggestion.reverse_image) {
         const { error: reverseError } = await supabase
           .from('detailed_banknotes')
-          .update({ back_picture: suggestion.reverse_image })
+          .update({
+            back_picture: suggestion.reverse_image,
+            back_picture_watermarked: suggestion.reverse_image_watermarked,
+            back_picture_thumbnail: suggestion.reverse_image_thumbnail
+          })
           .eq('id', suggestion.banknote_id);
         
         if (reverseError) {
@@ -507,7 +535,11 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
           toast.error(`Failed to update reverse image: ${reverseError.message}`);
           hasErrors = true;
         } else {
-          console.log('Successfully updated back_picture to:', suggestion.reverse_image);
+          console.log('Successfully updated back images:', {
+            back_picture: suggestion.reverse_image,
+            back_picture_watermarked: suggestion.reverse_image_watermarked,
+            back_picture_thumbnail: suggestion.reverse_image_thumbnail
+          });
         }
       }
 
@@ -541,7 +573,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       
       // Refresh the list
       fetchImageSuggestions();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Unexpected error in handleApprove:', error);
       toast.error(`Unexpected error: ${error.message || 'Unknown error'}`);
     } finally {

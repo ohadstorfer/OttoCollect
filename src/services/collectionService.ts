@@ -49,21 +49,31 @@ export function normalizeBanknoteData(data: any, source: 'detailed' | 'unlisted'
     return {
       id: data.id,
       catalogId: data.catalog_id || '',
+      extendedPickNumber: data.catalog_id || '',
       country: data.country || '',
       denomination: data.denomination || '',
       year: data.year || '',
+      series: '',
       description: data.description || '',
+      obverseDescription: '',
+      reverseDescription: '',
       imageUrls: [data.front_image, data.back_image].filter(Boolean),
       isApproved: false,
       isPending: true,
       createdAt: data.created_at || new Date().toISOString(),
       updatedAt: data.updated_at || new Date().toISOString(),
       // Add empty arrays for stamp URLs since unlisted banknotes don't have stamps
-      signaturePictureUrls: [],
+      signaturesFrontUrls: [],
+      signaturesBackUrls: [],
       sealPictureUrls: [],
       watermarkUrl: null,
       tughraUrl: null,
-      authorityName: null
+      authorityName: null,
+      // Add empty fields for watermarked and thumbnail images
+      frontPictureWatermarked: null,
+      backPictureWatermarked: null,
+      frontPictureThumbnail: null,
+      backPictureThumbnail: null
     } as DetailedBanknote;
   } else {
     // For detailed banknotes, the data is already normalized by mapBanknoteFromDatabase

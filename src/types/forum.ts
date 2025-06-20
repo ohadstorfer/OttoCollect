@@ -1,4 +1,3 @@
-
 export interface ForumPost {
   id: string;
   title: string;
@@ -80,6 +79,12 @@ export interface ImageSuggestion {
   type: 'obverse' | 'reverse';
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
+
+  // New watermarked and thumbnail image fields
+  obverse_image_watermarked?: string;
+  reverse_image_watermarked?: string;
+  obverse_image_thumbnail?: string;
+  reverse_image_thumbnail?: string;
 }
 
 // Helper function to normalize forum post data

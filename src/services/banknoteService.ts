@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters } from '@/types';
 
@@ -371,8 +370,14 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     tughraUrl: item.tughra_picture_url || null,
     
     // Map the authority_name field
-    authorityName: item.authority_name || null
-  } as DetailedBanknote;
+    authorityName: item.authority_name || null,
+
+    // Map the new watermarked and thumbnail image fields
+    frontPictureWatermarked: item.front_picture_watermarked || null,
+    backPictureWatermarked: item.back_picture_watermarked || null,
+    frontPictureThumbnail: item.front_picture_thumbnail || null,
+    backPictureThumbnail: item.back_picture_thumbnail || null
+  }
 
   console.log(`mapBanknoteFromDatabase - Mapped banknote ${item.id} with resolved URLs and authority name:`, {
     id: mapped.id,
@@ -381,12 +386,20 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     sealPictureUrls: mapped.sealPictureUrls,
     watermarkUrl: mapped.watermarkUrl,
     authorityName: mapped.authorityName,
+    frontPictureWatermarked: mapped.frontPictureWatermarked,
+    backPictureWatermarked: mapped.backPictureWatermarked,
+    frontPictureThumbnail: mapped.frontPictureThumbnail,
+    backPictureThumbnail: mapped.backPictureThumbnail,
     rawData: {
       signatures_front_urls: item.signatures_front_urls,
       signatures_back_urls: item.signatures_back_urls,
       seal_picture_urls: item.seal_picture_urls,
       watermark_picture_url: item.watermark_picture_url,
-      authority_name: item.authority_name
+      authority_name: item.authority_name,
+      front_picture_watermarked: item.front_picture_watermarked,
+      back_picture_watermarked: item.back_picture_watermarked,
+      front_picture_thumbnail: item.front_picture_thumbnail,
+      back_picture_thumbnail: item.back_picture_thumbnail
     }
   });
 

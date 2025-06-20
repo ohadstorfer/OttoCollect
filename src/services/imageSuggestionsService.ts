@@ -9,6 +9,10 @@ export async function submitImageSuggestion(data: {
   userId: string;
   obverseImage?: string | null;
   reverseImage?: string | null;
+  obverseImageWatermarked?: string | null;
+  reverseImageWatermarked?: string | null;
+  obverseImageThumbnail?: string | null;
+  reverseImageThumbnail?: string | null;
 }) {
   try {
     if (!data.obverseImage && !data.reverseImage) {
@@ -19,7 +23,11 @@ export async function submitImageSuggestion(data: {
       banknote_id: data.banknoteId,
       user_id: data.userId,
       obverse_image: data.obverseImage,
-      reverse_image: data.reverseImage
+      reverse_image: data.reverseImage,
+      obverse_image_watermarked: data.obverseImageWatermarked,
+      reverse_image_watermarked: data.reverseImageWatermarked,
+      obverse_image_thumbnail: data.obverseImageThumbnail,
+      reverse_image_thumbnail: data.reverseImageThumbnail
     });
 
     // Insert one row containing both obverse and reverse images
@@ -30,6 +38,10 @@ export async function submitImageSuggestion(data: {
         user_id: data.userId,
         obverse_image: data.obverseImage,
         reverse_image: data.reverseImage,
+        obverse_image_watermarked: data.obverseImageWatermarked,
+        reverse_image_watermarked: data.reverseImageWatermarked,
+        obverse_image_thumbnail: data.obverseImageThumbnail,
+        reverse_image_thumbnail: data.reverseImageThumbnail,
         status: 'pending'
       });
 

@@ -38,7 +38,7 @@ export async function importBanknoteData(csvData: string) {
       }
       
       // Handle array fields - these need special parsing for JSON arrays
-      if (["signature_pictures", "seal_pictures", "other_element_pictures"].includes(header) && value) {
+      if (["signature_pictures","signatures_front", "signatures_back", "seal_pictures", "other_element_pictures"].includes(header) && value) {
         try {
           let cleanValue = value.trim();
           

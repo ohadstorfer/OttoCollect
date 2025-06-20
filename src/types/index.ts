@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -112,6 +111,12 @@ export interface CollectionItem {
   grade?: string;
   grade_by?: string;
   grade_condition_description?: string;
+
+  // New watermarked and thumbnail image fields
+  obverse_image_watermarked?: string;
+  reverse_image_watermarked?: string;
+  obverse_image_thumbnail?: string;
+  reverse_image_thumbnail?: string;
 }
 
 export interface DetailedBanknote {
@@ -158,6 +163,12 @@ export interface DetailedBanknote {
   
   // New authority_name field
   authorityName?: string;
+
+  // New watermarked and thumbnail image fields
+  frontPictureWatermarked?: string;
+  backPictureWatermarked?: string;
+  frontPictureThumbnail?: string;
+  backPictureThumbnail?: string;
 }
 
 export interface WishlistItem {
