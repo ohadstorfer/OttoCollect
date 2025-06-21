@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import CategoriesManager from "./filter/CategoriesManager";
 import TypesManager from "./filter/TypesManager";
 import SortOptionsManager from "./filter/SortOptionsManager";
+import CurrenciesManager from "./filter/CurrenciesManager";
 
 interface Country {
   id: string;
@@ -87,7 +87,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
 
       {selectedCountryId && (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-6">
+          <TabsList className="grid grid-cols-4 mb-6">
             <TabsTrigger value="categories">
               Categories
             </TabsTrigger>
@@ -96,6 +96,9 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             </TabsTrigger>
             <TabsTrigger value="sort">
               Sort Options
+            </TabsTrigger>
+            <TabsTrigger value="currencies">
+              Currencies
             </TabsTrigger>
           </TabsList>
 
@@ -125,6 +128,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             </Card>
           </TabsContent>
           
+          
           <TabsContent value="sort">
             <Card>
               <CardHeader>
@@ -137,6 +141,21 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="currencies">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Currencies for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CurrenciesManager countryId={selectedCountryId} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          
         </Tabs>
       )}
     </div>
