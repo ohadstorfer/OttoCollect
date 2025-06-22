@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -67,43 +68,84 @@ export default function CollectionItem() {
   });
 
   // Determine if the current user is the owner of this item
-  const isOwner = user?.id === collectionItem?.userId;
+  const isOwner = user?.id === collectionItem?.user_id;
 
-  // Check for image suggestion status
+  // Comprehensive check for image suggestion status
   useEffect(() => {
-    const checkImageStatus = async () => {
-      if (!collectionItem?.banknote.id) return;
+    const checkImageSuggestionStatus = async () => {
+      if (!collectionItem?.banknote_id || !user?.id) {
+        console.log("Missing banknote_id or user_id for status check");
+        return;
+      }
 
       try {
-        // First check for any approved suggestions for this banknote
-        const { data: approvedData, error: approvedError } = await supabase
+        console.log("Checking image suggestion status for:", {
+          banknoteId: collectionItem.banknote_id,
+          userId: user.id,
+          isOwner
+        });
+
+        // Check for any existing image suggestions for this banknote by this user
+        const { data: userSuggestions, error: userError } = await supabase
           .from('image_suggestions')
-          .select('status')
-          .eq('banknote_id', collectionItem.banknote.id)
+          .select('status, created_at')
+          .eq('banknote_id', collectionItem.banknote_id)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (userError) {
+          console.error("Error checking user suggestions:", userError);
+          throw userError;
+        }
+
+        console.log("User suggestions found:", userSuggestions);
+
+        // If user has a suggestion, use that status
+        if (userSuggestions && userSuggestions.length > 0) {
+          const latestSuggestion = userSuggestions[0];
+          console.log("Latest user suggestion status:", latestSuggestion.status);
+          setSuggestionStatus(latestSuggestion.status as 'pending' | 'approved' | 'rejected');
+          setHasPendingSuggestion(latestSuggestion.status === 'pending');
+          return;
+        }
+
+        // If no user suggestion exists, check if there are any approved suggestions for this banknote from any user
+        const { data: approvedSuggestions, error: approvedError } = await supabase
+          .from('image_suggestions')
+          .select('status, user_id')
+          .eq('banknote_id', collectionItem.banknote_id)
           .eq('status', 'approved')
           .limit(1);
 
-        if (approvedError) throw approvedError;
-        
-        if (approvedData && approvedData.length > 0) {
+        if (approvedError) {
+          console.error("Error checking approved suggestions:", approvedError);
+          throw approvedError;
+        }
+
+        console.log("Approved suggestions found:", approvedSuggestions);
+
+        // If there are approved suggestions from any user, mark as approved
+        if (approvedSuggestions && approvedSuggestions.length > 0) {
+          console.log("Found approved suggestion from another user");
           setSuggestionStatus('approved');
           setHasPendingSuggestion(false);
-        } else if (isOwner && user?.id) {
-          // Only check other statuses for owner
-          const result = await hasExistingImageSuggestion(
-            collectionItem.banknote.id,
-            user.id
-          );
-          setHasPendingSuggestion(result.hasSuggestion && result.status === 'pending');
-          setSuggestionStatus(result.status);
+        } else {
+          // No suggestions exist at all
+          console.log("No suggestions found for this banknote");
+          setSuggestionStatus(null);
+          setHasPendingSuggestion(false);
         }
+
       } catch (error) {
-        console.error("Failed to check image status:", error);
+        console.error("Failed to check image suggestion status:", error);
+        setSuggestionStatus(null);
+        setHasPendingSuggestion(false);
       }
     };
 
-    checkImageStatus();
-  }, [collectionItem?.banknote.id, isOwner, user?.id]);
+    checkImageSuggestionStatus();
+  }, [collectionItem?.banknote_id, user?.id, isOwner]);
 
   const handleUpdateSuccess = async () => {
     setIsEditDialogOpen(false);
@@ -117,14 +159,26 @@ export default function CollectionItem() {
 
     setIsSubmittingImages(true);
     try {
-      await submitImageSuggestion({
-        banknoteId: collectionItem.banknote.id,
+      console.log("Submitting image suggestion with:", {
+        banknoteId: collectionItem.banknote_id,
         userId: user.id,
-        obverseImage: collectionItem.obverseImage,
-        reverseImage: collectionItem.reverseImage
+        obverseImage: collectionItem.obverse_image,
+        reverseImage: collectionItem.reverse_image
+      });
+
+      await submitImageSuggestion({
+        banknoteId: collectionItem.banknote_id,
+        userId: user.id,
+        obverseImage: collectionItem.obverse_image,
+        reverseImage: collectionItem.reverse_image,
+        obverseImageWatermarked: collectionItem.obverse_image_watermarked,
+        reverseImageWatermarked: collectionItem.reverse_image_watermarked,
+        obverseImageThumbnail: collectionItem.obverse_image_thumbnail,
+        reverseImageThumbnail: collectionItem.reverse_image_thumbnail
       });
 
       toast("Your images have been submitted for catalog consideration");
+      setSuggestionStatus('pending');
       setHasPendingSuggestion(true);
     } catch (error) {
       console.error("Error suggesting images:", error);
@@ -154,7 +208,7 @@ export default function CollectionItem() {
     }
   };
 
-  const hasCustomImages = Boolean(collectionItem?.obverseImage || collectionItem?.reverseImage);
+  const hasCustomImages = Boolean(collectionItem?.obverse_image || collectionItem?.reverse_image);
 
   const isUserSuperAdmin = user?.role === 'Super Admin';
   const isUserCountryAdmin = user?.role && user.role.toLowerCase().includes('admin') && !user.role.toLowerCase().includes('super');
@@ -165,13 +219,13 @@ export default function CollectionItem() {
 
   useEffect(() => {
     const fetchOwnerRole = async () => {
-      if (!collectionItem?.userId) return;
+      if (!collectionItem?.user_id) return;
       
       try {
         const { data, error } = await supabase
           .from('profiles')
           .select('role')
-          .eq('id', collectionItem.userId)
+          .eq('id', collectionItem.user_id)
           .single();
 
         if (error) throw error;
@@ -182,14 +236,14 @@ export default function CollectionItem() {
     };
 
     fetchOwnerRole();
-  }, [collectionItem?.userId]);
+  }, [collectionItem?.user_id]);
 
   const isOwnerSuperAdmin = itemOwnerRole === 'Super Admin';
   
   const canDeleteImages = !isOwnerSuperAdmin && (
     isUserSuperAdmin || 
     (isUserCountryAdmin && 
-     userAdminCountry === collectionItem?.banknote.country.toLowerCase())
+     userAdminCountry === collectionItem?.banknote?.country?.toLowerCase())
   );
 
   const handleDeleteImage = async () => {
@@ -255,7 +309,16 @@ export default function CollectionItem() {
     setSelectedImage(imageUrl);
   };
 
-  const displayImages = [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[];
+  const displayImages = [collectionItem.obverse_image, collectionItem.reverse_image].filter(Boolean) as string[];
+
+  // Debug logging for render
+  console.log("Rendering CollectionItem with:", {
+    suggestionStatus,
+    hasPendingSuggestion,
+    hasCustomImages,
+    isOwner,
+    displayImages: displayImages.length
+  });
 
   return (
     <div className="page-container">
@@ -272,23 +335,23 @@ export default function CollectionItem() {
               </Button>
 
               <h1 className="text-3xl font-bold leading-tight">
-                {collectionItem.banknote.denomination}
+                {collectionItem.banknote?.face_value || "Unknown Denomination"}
               </h1>
 
               <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
 
-              {collectionItem.banknote.extendedPickNumber && (
+              {collectionItem.banknote?.extended_pick_number && (
                 <p className="text-xl leading-tight">
-                  {collectionItem.banknote.extendedPickNumber}
+                  {collectionItem.banknote.extended_pick_number}
                 </p>
               )}
             </div>
           </div>
 
           <p className="text-xl text-muted-foreground">
-          {collectionItem.banknote.country}
-            {collectionItem.banknote.country && collectionItem.banknote.year && ", "}
-            {collectionItem.banknote.year}
+            {collectionItem.banknote?.country || "Unknown Country"}
+            {collectionItem.banknote?.country && collectionItem.banknote?.gregorian_year && ", "}
+            {collectionItem.banknote?.gregorian_year}
           </p>
         </div>
 
@@ -297,7 +360,8 @@ export default function CollectionItem() {
             <Card className={suggestionStatus === 'approved' ? 'border-2 border-gold-500 bg-gold-50/50' : ''}>
               <CardContent className="px-2 pt-2 pb-2">
                 <div className="flex flex-col space-y-3">
-                  {(suggestionStatus === 'approved' || (isOwner && hasCustomImages)) && (
+                  {/* Only show suggestion controls if user is owner and has custom images */}
+                  {isOwner && hasCustomImages && (
                     <div className="w-full rounded-md">
                       <div className="w-full flex justify-between items-center py-2 px-3">
                         {suggestionStatus === 'approved' ? (
@@ -322,19 +386,21 @@ export default function CollectionItem() {
                               Request rejected
                             </span>
                           </div>
+                        ) : suggestionStatus === 'pending' ? (
+                          <div className="w-full flex items-center justify-center gap-2 py-1.5">
+                            <span className="text-sm text-orange-600 font-medium">
+                              Image Suggestion Pending Review
+                            </span>
+                          </div>
                         ) : (
                           <Button
                             onClick={handleSuggestToCatalog}
                             variant="outline"
                             className="w-full flex items-center gap-2"
-                            disabled={isSubmittingImages || hasPendingSuggestion}
+                            disabled={isSubmittingImages}
                           >
                             <ImagePlus className="h-4 w-4" />
-                            {hasPendingSuggestion
-                              ? "Image Suggestion Pending"
-                              : isSubmittingImages
-                                ? "Submitting..."
-                                : "Suggest Images to Catalogue"}
+                            {isSubmittingImages ? "Submitting..." : "Suggest Images to Catalogue"}
                           </Button>
                         )}
                       </div>
