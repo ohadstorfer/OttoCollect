@@ -33,6 +33,11 @@ export async function processAndUploadImage(
     // Process the original image
     const originalImage = await createImageBitmap(file);
     
+    // Load the watermark image
+    const watermarkResponse = await fetch('/watermark.png');
+    const watermarkBlob = await watermarkResponse.blob();
+    const watermarkImage = await createImageBitmap(watermarkBlob);
+    
     // Create a canvas for the watermarked version
     const watermarkedCanvas = document.createElement('canvas');
     watermarkedCanvas.width = originalImage.width;
@@ -42,23 +47,28 @@ export async function processAndUploadImage(
     // Draw the original image
     watermarkedCtx.drawImage(originalImage, 0, 0);
     
-    // Add watermark
-    watermarkedCtx.font = '700 24px var(--font-serif)'; // Match text-xl font style
-    watermarkedCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    const watermarkText = 'OttoCollect';
+    // Set transparency for watermark (40% = 0.4)
+    watermarkedCtx.globalAlpha = 0.4;
+    
+    // Calculate watermark position (bottom right corner with some padding)
     const padding = 20;
-    const metrics = watermarkedCtx.measureText(watermarkText);
-    const watermarkX = padding;
-    const watermarkY = watermarkedCanvas.height - padding;
+    const watermarkWidth = Math.min(watermarkImage.width, originalImage.width * 0.2); // Max 20% of original width
+    const watermarkHeight = (watermarkImage.height / watermarkImage.width) * watermarkWidth; // Maintain aspect ratio
     
-    // Add shadow for better visibility
-    watermarkedCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    watermarkedCtx.shadowBlur = 4;
-    watermarkedCtx.shadowOffsetX = 2;
-    watermarkedCtx.shadowOffsetY = 2;
+    const watermarkX = originalImage.width - watermarkWidth - padding;
+    const watermarkY = originalImage.height - watermarkHeight - padding;
     
-    // Draw the watermark text
-    watermarkedCtx.fillText(watermarkText, watermarkX, watermarkY);
+    // Draw the watermark image
+    watermarkedCtx.drawImage(
+      watermarkImage, 
+      watermarkX, 
+      watermarkY, 
+      watermarkWidth, 
+      watermarkHeight
+    );
+    
+    // Reset alpha for any future drawing
+    watermarkedCtx.globalAlpha = 1.0;
     
     // Create thumbnail version (max 300px width/height while maintaining aspect ratio)
     const thumbnailCanvas = document.createElement('canvas');
