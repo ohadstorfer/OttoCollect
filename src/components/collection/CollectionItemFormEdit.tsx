@@ -67,6 +67,12 @@ const formSchema = z.object({
   salePrice: z.union([z.coerce.number().optional(), z.literal('')])
 });
 
+interface ImageVersions {
+  original: string;
+  watermarked: string;
+  thumbnail: string;
+}
+
 const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   item,
   collectionItem,
@@ -105,6 +111,21 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   const obverseInputRef = useRef<HTMLInputElement>(null);
   const reverseInputRef = useRef<HTMLInputElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const [obverseImageVersions, setObverseImageVersions] = useState<ImageVersions | null>(
+    currentItem ? {
+      original: currentItem.obverseImage || '',
+      watermarked: currentItem.obverseImageWatermarked || '',
+      thumbnail: currentItem.obverseImageThumbnail || ''
+    } : null
+  );
+  const [reverseImageVersions, setReverseImageVersions] = useState<ImageVersions | null>(
+    currentItem ? {
+      original: currentItem.reverseImage || '',
+      watermarked: currentItem.reverseImageWatermarked || '',
+      thumbnail: currentItem.reverseImageThumbnail || ''
+    } : null
+  );
 
   // Initialize form with existing values if editing
   const form = useForm<z.infer<typeof formSchema>>({
@@ -252,16 +273,16 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      let obverseImageUrl = currentItem?.obverseImage || null;
-      let reverseImageUrl = currentItem?.reverseImage || null;
+      let obverseImages = obverseImageVersions;
+      let reverseImages = reverseImageVersions;
 
       // Upload new images if provided
       if (obverseImageFile) {
-        obverseImageUrl = await uploadCollectionImage(obverseImageFile);
+        obverseImages = await uploadCollectionImage(obverseImageFile);
       }
 
       if (reverseImageFile) {
-        reverseImageUrl = await uploadCollectionImage(reverseImageFile);
+        reverseImages = await uploadCollectionImage(reverseImageFile);
       }
 
       // Handle grading vs condition
@@ -282,104 +303,43 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         grade_condition_description = null;
       }
 
-      // Convert form values to correct types
-      const collectionData = {
-        userId: user.id,
-        banknoteId: values.banknoteId,
+      const newItem = {
+        ...currentItem,
+        ...values,
         condition,
-        grade_by,
         grade,
+        grade_by,
         grade_condition_description,
-        purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
-        purchaseDate: values.purchaseDate ? format(values.purchaseDate, 'yyyy-MM-dd') : undefined,
-        location: values.location || undefined,
-        publicNote: values.publicNote || undefined,
-        privateNote: values.privateNote || undefined,
-        isForSale: values.isForSale,
-        salePrice: values.salePrice === '' ? undefined : Number(values.salePrice),
-        obverseImage: obverseImageUrl,
-        reverseImage: reverseImageUrl,
+        obverse_image: obverseImages?.original || null,
+        obverse_image_watermarked: obverseImages?.watermarked || null,
+        obverse_image_thumbnail: obverseImages?.thumbnail || null,
+        reverse_image: reverseImages?.original || null,
+        reverse_image_watermarked: reverseImages?.watermarked || null,
+        reverse_image_thumbnail: reverseImages?.thumbnail || null,
       };
 
-      let savedItem: CollectionItem | null = null;
-
       if (currentItem?.id) {
-        // Update existing item
-        const success = await updateCollectionItem(currentItem.id, {
-          condition,
-          grade_by,
-          grade,
-          grade_condition_description,
-          purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
-          purchaseDate: values.purchaseDate,
-          location: values.location,
-          publicNote: values.publicNote,
-          privateNote: values.privateNote,
-          isForSale: values.isForSale,
-          salePrice: values.salePrice === '' ? undefined : Number(values.salePrice),
-          obverseImage: obverseImageUrl,
-          reverseImage: reverseImageUrl,
-        });
-
-        if (success) {
-          // Create a simple version of the saved item for the return value
-          savedItem = {
-            ...currentItem,
-            ...collectionData,
-            id: currentItem.id,
-            banknote: currentItem.banknote
-          };
-
-          // If item is marked for sale, create marketplace item
-          if (values.isForSale) {
-            await createMarketplaceItem({
-              collectionItemId: currentItem.id,
-              sellerId: user.id,
-              banknoteId: currentItem.banknoteId
-            });
-          }
-
-          toast({
-            title: "Success",
-            description: "Collection item updated successfully.",
-          });
-        } else {
-          throw new Error("Failed to update collection item");
+        await updateCollectionItem(currentItem.id, newItem);
+        if (onUpdate) {
+          onUpdate(newItem);
         }
       } else {
-        // Add new item
-        savedItem = await addToCollection(collectionData);
-
-        if (savedItem) {
-          // If item is marked for sale, create marketplace item
-          if (values.isForSale) {
-            await createMarketplaceItem({
-              collectionItemId: savedItem.id,
-              sellerId: user.id,
-              banknoteId: savedItem.banknoteId
-            });
-          }
-
-          toast({
-            title: "Success",
-            description: "Banknote added to your collection.",
-          });
-        } else {
-          throw new Error("Failed to add to collection");
-        }
-      }
-
-      if (savedItem) {
-        if (onUpdate) {
-          onUpdate(savedItem);
-        }
+        const savedItem = await addToCollection(newItem);
         if (onSave) {
           await onSave(savedItem);
         }
       }
 
+      toast({
+        title: "Success",
+        description: `Collection item ${currentItem?.id ? 'updated' : 'added'} successfully.`,
+      });
+
+      if (onCancel) {
+        onCancel();
+      }
     } catch (error) {
-      console.error('Error saving collection item:', error);
+      console.error("Error saving collection item:", error);
       toast({
         title: "Error",
         description: "Failed to save collection item. Please try again.",

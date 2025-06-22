@@ -6,34 +6,23 @@ import { fetchCountryById } from "@/services/countryService";
 import { BanknoteCondition } from "@/types";
 import type { Database } from "@/integrations/supabase/types";
 import { mapBanknoteFromDatabase } from "@/services/banknoteService";
+import { processAndUploadImage } from './imageProcessingService';
 
 // Type definition for collection items table insert
 type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
 
-export async function uploadCollectionImage(file: File): Promise<string> {
+export async function uploadCollectionImage(file: File): Promise<{
+  original: string;
+  watermarked: string;
+  thumbnail: string;
+}> {
   try {
     const user = await supabase.auth.getUser();
     if (!user.data.user) throw new Error("User not authenticated");
 
     const userId = user.data.user.id;
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${uuidv4()}.${fileExt}`;
-    const filePath = `${userId}/${fileName}`;
-
-    const { error } = await supabase.storage
-      .from('banknote_images')
-      .upload(filePath, file);
-
-    if (error) {
-      console.error("Error uploading image:", error);
-      throw error;
-    }
-
-    const { data } = supabase.storage
-      .from('banknote_images')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
+    const processedImages = await processAndUploadImage(file, 'collection-items', userId);
+    return processedImages;
   } catch (error) {
     console.error("Error in uploadCollectionImage:", error);
     throw error;
@@ -563,13 +552,31 @@ export async function updateCollectionItem(
 
 export async function updateCollectionItemImages(
   collectionItemId: string,
-  obverseImage?: string,
-  reverseImage?: string
+  obverseImages?: {
+    original?: string;
+    watermarked?: string;
+    thumbnail?: string;
+  },
+  reverseImages?: {
+    original?: string;
+    watermarked?: string;
+    thumbnail?: string;
+  }
 ): Promise<boolean> {
   try {
     const updates: any = {};
-    if (obverseImage !== undefined) updates.obverse_image = obverseImage;
-    if (reverseImage !== undefined) updates.reverse_image = reverseImage;
+    
+    if (obverseImages) {
+      if (obverseImages.original !== undefined) updates.obverse_image = obverseImages.original;
+      if (obverseImages.watermarked !== undefined) updates.obverse_image_watermarked = obverseImages.watermarked;
+      if (obverseImages.thumbnail !== undefined) updates.obverse_image_thumbnail = obverseImages.thumbnail;
+    }
+    
+    if (reverseImages) {
+      if (reverseImages.original !== undefined) updates.reverse_image = reverseImages.original;
+      if (reverseImages.watermarked !== undefined) updates.reverse_image_watermarked = reverseImages.watermarked;
+      if (reverseImages.thumbnail !== undefined) updates.reverse_image_thumbnail = reverseImages.thumbnail;
+    }
     
     if (Object.keys(updates).length === 0) return true; // Nothing to update
     
