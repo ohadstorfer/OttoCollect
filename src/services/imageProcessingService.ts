@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 interface ProcessedImages {
@@ -42,23 +41,37 @@ export async function processAndUploadImage(
     // Draw the original image
     watermarkedCtx.drawImage(originalImage, 0, 0);
     
-    // Add watermark
-    watermarkedCtx.font = '700 24px var(--font-serif)'; // Match text-xl font style
-    watermarkedCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    const watermarkText = 'OttoCollect';
-    const padding = 20;
-    const metrics = watermarkedCtx.measureText(watermarkText);
-    const watermarkX = padding;
-    const watermarkY = watermarkedCanvas.height - padding;
+    // Load and draw watermark image
+    const watermarkImage = new Image();
+    watermarkImage.src = '/watermark.png';
+    await new Promise((resolve, reject) => {
+      watermarkImage.onload = resolve;
+      watermarkImage.onerror = reject;
+    });
+
+    // Calculate watermark dimensions (20% of the original image width)
+    const watermarkWidth = originalImage.width * 0.35;
+    const watermarkHeight = (watermarkWidth / watermarkImage.width) * watermarkImage.height;
+
+    // Position watermark at bottom right with padding
+    const padding = 40;
+    const watermarkX = originalImage.width - watermarkWidth - padding;
+    const watermarkY = originalImage.height - watermarkHeight - padding;
+
+    // Set transparency
+    watermarkedCtx.globalAlpha = 0.6; // 40% transparency (1 - 0.6)
     
-    // Add shadow for better visibility
-    watermarkedCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    watermarkedCtx.shadowBlur = 4;
-    watermarkedCtx.shadowOffsetX = 2;
-    watermarkedCtx.shadowOffsetY = 2;
-    
-    // Draw the watermark text
-    watermarkedCtx.fillText(watermarkText, watermarkX, watermarkY);
+    // Draw the watermark
+    watermarkedCtx.drawImage(
+      watermarkImage,
+      watermarkX,
+      watermarkY,
+      watermarkWidth,
+      watermarkHeight
+    );
+
+    // Reset transparency for future operations
+    watermarkedCtx.globalAlpha = 1;
     
     // Create thumbnail version (max 300px width/height while maintaining aspect ratio)
     const thumbnailCanvas = document.createElement('canvas');
