@@ -62,6 +62,7 @@ export async function processAndUploadImage(
     // Set transparency
     watermarkedCtx.globalAlpha = 0.6; // 40% transparency (1 - 0.6)
     
+    
     // Draw the watermark
     watermarkedCtx.drawImage(
       watermarkImage,
