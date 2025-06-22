@@ -41,6 +41,7 @@ export async function processAndUploadImage(
     // Draw the original image
     watermarkedCtx.drawImage(originalImage, 0, 0);
     
+    
     // Load and draw watermark image
     const watermarkImage = new Image();
     watermarkImage.src = '/watermark.png';
