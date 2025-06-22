@@ -115,15 +115,15 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   const [obverseImageVersions, setObverseImageVersions] = useState<ImageVersions | null>(
     currentItem ? {
       original: currentItem.obverseImage || '',
-      watermarked: currentItem.obverseImageWatermarked || '',
-      thumbnail: currentItem.obverseImageThumbnail || ''
+      watermarked: currentItem.obverse_image_watermarked || '',
+      thumbnail: currentItem.obverse_image_thumbnail || ''
     } : null
   );
   const [reverseImageVersions, setReverseImageVersions] = useState<ImageVersions | null>(
     currentItem ? {
       original: currentItem.reverseImage || '',
-      watermarked: currentItem.reverseImageWatermarked || '',
-      thumbnail: currentItem.reverseImageThumbnail || ''
+      watermarked: currentItem.reverse_image_watermarked || '',
+      thumbnail: currentItem.reverse_image_thumbnail || ''
     } : null
   );
 
@@ -303,13 +303,22 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         grade_condition_description = null;
       }
 
-      const newItem = {
-        ...currentItem,
-        ...values,
+      // Convert empty strings to null for numeric fields
+      const purchasePrice = values.purchasePrice === '' ? null : Number(values.purchasePrice);
+      const salePrice = values.salePrice === '' ? null : Number(values.salePrice);
+
+      const updateData = {
         condition,
         grade,
         grade_by,
         grade_condition_description,
+        purchase_price: purchasePrice,
+        purchase_date: values.purchaseDate ? values.purchaseDate.toISOString() : null,
+        location: values.location || null,
+        public_note: values.publicNote || null,
+        private_note: values.privateNote || null,
+        is_for_sale: values.isForSale,
+        sale_price: salePrice,
         obverse_image: obverseImages?.original || null,
         obverse_image_watermarked: obverseImages?.watermarked || null,
         obverse_image_thumbnail: obverseImages?.thumbnail || null,
@@ -319,12 +328,31 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       };
 
       if (currentItem?.id) {
-        await updateCollectionItem(currentItem.id, newItem);
+        await updateCollectionItem(currentItem.id, updateData);
         if (onUpdate) {
-          onUpdate(newItem);
+          // Create updated item for callback
+          const updatedItem = {
+            ...currentItem,
+            ...updateData,
+            // Map database fields back to frontend property names for compatibility
+            purchasePrice,
+            purchaseDate: values.purchaseDate ? values.purchaseDate.toISOString() : null,
+            publicNote: values.publicNote || null,
+            privateNote: values.privateNote || null,
+            isForSale: values.isForSale,
+            salePrice,
+            obverseImage: obverseImages?.original || null,
+            reverseImage: reverseImages?.original || null,
+          };
+          onUpdate(updatedItem);
         }
       } else {
-        const savedItem = await addToCollection(newItem);
+        const newItemData = {
+          user_id: user.id,
+          banknote_id: values.banknoteId,
+          ...updateData,
+        };
+        const savedItem = await addToCollection(newItemData);
         if (onSave) {
           await onSave(savedItem);
         }
@@ -375,8 +403,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   <span className="text-sm text-muted-foreground">Visible to everyone</span>
                 </div>
 
-
- {/* Condition/Grading Toggle Row */}
+                
                 <div className="flex items-center justify-between mb-0">
                   <div className="flex items-center gap-2">
                     <FormLabel>Condition</FormLabel>
@@ -541,9 +568,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 />
                 </div>
 
-
-
-
                 {/* Custom Images Section */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Custom Images</h3>
@@ -552,7 +576,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Obverse (Front) Image */}
+                    
                     <div>
                       <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
                       <div className="mt-2 flex items-center gap-4">
@@ -679,19 +703,14 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   </div>
                 </div>
 
-
-
-
-
                 <div className="w-full h-px bg-muted my-6" />
-
 
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-lg font-medium">Private Details</h3>
                   <span className="text-sm text-muted-foreground">Only visible to you</span>
                 </div>
 
-                {/* Purchase Date */}
+                
                 <FormField
                   control={form.control}
                   name="purchaseDate"
@@ -786,10 +805,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 />
               </div>
 
-
-
-
-
               {/* Private Note */}
               <FormField
                 control={form.control}
@@ -810,7 +825,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   </FormItem>
                 )}
               />
-
 
               <div className="w-full h-px bg-muted my-6" />
 
@@ -866,9 +880,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   )}
                 />
               )}
-
-
-
 
             </div>
 

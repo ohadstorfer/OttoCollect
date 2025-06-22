@@ -493,60 +493,27 @@ export async function removeFromCollection(collectionItemId: string): Promise<bo
   }
 }
 
-export async function updateCollectionItem(
-  collectionItemId: string, 
-  updates: Partial<Omit<CollectionItem, 'id' | 'userId' | 'banknoteId' | 'banknote' | 'createdAt' | 'updatedAt'>>
-): Promise<boolean> {
+export async function updateCollectionItem(itemId: string, updateData: any) {
   try {
-    // Convert from our frontend model to database model
-    const dbUpdates: Partial<TablesInsert<'collection_items'>> = {
-      // Explicitly define default properties so TypeScript doesn't complain
-      banknote_id: undefined,
-      condition: undefined,
-      user_id: undefined
-    };
+    console.log('Updating collection item:', itemId, updateData);
     
-    if (updates.condition) dbUpdates.condition = updates.condition;
-    if (updates.grade_by !== undefined) dbUpdates.grade_by = updates.grade_by;
-    if (updates.grade !== undefined) dbUpdates.grade = updates.grade;
-    if (updates.grade_condition_description !== undefined) dbUpdates.grade_condition_description = updates.grade_condition_description;
-    if (updates.salePrice !== undefined) dbUpdates.sale_price = updates.salePrice;
-    if (updates.isForSale !== undefined) dbUpdates.is_for_sale = updates.isForSale;
-    if (updates.publicNote !== undefined) dbUpdates.public_note = updates.publicNote;
-    if (updates.privateNote !== undefined) dbUpdates.private_note = updates.privateNote;
-    if (updates.purchasePrice !== undefined) dbUpdates.purchase_price = updates.purchasePrice;
-    if (updates.purchaseDate !== undefined) {
-      // Convert Date object to ISO string if it's a Date
-      dbUpdates.purchase_date = typeof updates.purchaseDate === 'string' 
-        ? updates.purchaseDate 
-        : updates.purchaseDate.toISOString();
-    }
-    if (updates.location !== undefined) dbUpdates.location = updates.location;
-    if (updates.obverseImage !== undefined) dbUpdates.obverse_image = updates.obverseImage;
-    if (updates.reverseImage !== undefined) dbUpdates.reverse_image = updates.reverseImage;
-    if (updates.orderIndex !== undefined) dbUpdates.order_index = updates.orderIndex;
-    
-    // Remove undefined fields
-    Object.keys(dbUpdates).forEach(key => {
-      if (dbUpdates[key as keyof typeof dbUpdates] === undefined) {
-        delete dbUpdates[key as keyof typeof dbUpdates];
-      }
-    });
-    
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('collection_items')
-      .update(dbUpdates)
-      .eq('id', collectionItemId);
-    
+      .update(updateData)
+      .eq('id', itemId)
+      .select()
+      .single();
+
     if (error) {
-      console.error("Error updating collection item:", error);
+      console.error('Error updating collection item:', error);
       throw error;
     }
-    
-    return true;
+
+    console.log('Collection item updated successfully:', data);
+    return data;
   } catch (error) {
-    console.error("Error in updateCollectionItem:", error);
-    return false;
+    console.error('Failed to update collection item:', error);
+    throw error;
   }
 }
 
