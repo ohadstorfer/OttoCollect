@@ -1,3 +1,4 @@
+
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -69,6 +70,48 @@ export interface User {
   is_forum_blocked?: boolean;
 }
 
+// Add missing Banknote interface
+export interface Banknote {
+  id: string;
+  country: string;
+  extendedPickNumber: string;
+  pickNumber?: string;
+  turkCatalogNumber?: string;
+  denomination: string;
+  year?: string;
+  series?: string;
+  sultanName?: string;
+  type?: string;
+  category?: string;
+  rarity?: string;
+  printer?: string;
+  imageUrls?: string[];
+  frontPicture?: string;
+  backPicture?: string;
+  signaturePictureUrls?: string[];
+  sealPictureUrls?: string[];
+  watermarkUrl?: string;
+  tughraUrl?: string;
+  authorityName?: string;
+  description?: string;
+  obverseDescription?: string;
+  reverseDescription?: string;
+  isApproved?: boolean;
+  isPending?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Add missing CountryData interface
+export interface CountryData {
+  id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 // Banknote related interfaces
 export type BanknoteCondition = 
   | 'UNC' 
@@ -117,6 +160,25 @@ export interface CollectionItem {
   reverse_image_watermarked?: string;
   obverse_image_thumbnail?: string;
   reverse_image_thumbnail?: string;
+
+  // Alias properties for compatibility with frontend code
+  userId: string;
+  banknoteId?: string;
+  purchasePrice?: number;
+  purchaseDate?: string;
+  salePrice?: number;
+  isForSale: boolean;
+  publicNote?: string;
+  privateNote?: string;
+  obverseImage?: string;
+  reverseImage?: string;
+  orderIndex: number;
+  createdAt: string;
+  updatedAt: string;
+
+  // The joined banknote data (populated by service layer)
+  banknote?: DetailedBanknote;
+  personalImages?: string[];
 }
 
 export interface DetailedBanknote {
@@ -160,6 +222,9 @@ export interface DetailedBanknote {
   sealPictureUrls?: string[];
   watermarkUrl?: string;
   tughraUrl?: string;
+  
+  // Legacy compatibility properties
+  signaturePictureUrls?: string[];
   
   // New authority_name field
   authorityName?: string;
