@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Image as ImageIcon, Crop } from 'lucide-react';
-import { uploadBanknoteImage } from '@/services/banknoteService';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
 
 interface SimpleImageUploadProps {
   image: string;
   side: 'front' | 'back';
-  onImageUploaded: (url: string) => void;
+  onImageUploaded: (file: File) => void;
 }
 
 const SimpleImageUpload: React.FC<SimpleImageUploadProps> = ({
@@ -22,12 +21,7 @@ const SimpleImageUpload: React.FC<SimpleImageUploadProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    try {
-      const url = await uploadBanknoteImage(file);
-      onImageUploaded(url);
-    } catch (error) {
-      console.error('Error uploading image:', error);
-    }
+    onImageUploaded(file);
   };
 
   const handleChange = (e: React.MouseEvent) => {
@@ -50,10 +44,7 @@ const SimpleImageUpload: React.FC<SimpleImageUploadProps> = ({
 
       // Create a file from the blob
       const file = new File([blob], `cropped_${side}.jpg`, { type: 'image/jpeg' });
-
-      // Upload the cropped image
-      const url = await uploadBanknoteImage(file);
-      onImageUploaded(url);
+      onImageUploaded(file);
     } catch (error) {
       console.error('Error saving cropped image:', error);
     }

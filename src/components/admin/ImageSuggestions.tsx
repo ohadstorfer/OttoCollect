@@ -17,6 +17,7 @@ import { AdminComponentProps } from '@/types/admin';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import BanknoteDetailDialog from './BanknoteDetailDialog';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
+import { processAndUploadImage } from '@/services/imageProcessingService';
 
 interface ImageSuggestion {
   id: string;
@@ -106,22 +107,25 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
       // Create a file from the blob
       const file = new File([blob], `cropped_${selectedImageToCrop.type}.jpg`, { type: 'image/jpeg' });
 
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('banknote_images')
-        .upload(`suggestions/${suggestion.id}/${selectedImageToCrop.type}_${Date.now()}.jpg`, file);
+      // Use imageProcessingService to process the image
+      const processedImages = await processAndUploadImage(
+        file,
+        'suggestions',
+        suggestion.user_id
+      );
 
-      if (error) throw error;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('banknote_images')
-        .getPublicUrl(data.path);
-
-      // Update suggestion with new image URL
+      // Update suggestion with new image URLs
       const updateData = selectedImageToCrop.type === 'obverse' 
-        ? { obverse_image: publicUrl }
-        : { reverse_image: publicUrl };
+        ? {
+            obverse_image: processedImages.original,
+            obverse_image_watermarked: processedImages.watermarked,
+            obverse_image_thumbnail: processedImages.thumbnail
+          }
+        : {
+            reverse_image: processedImages.original,
+            reverse_image_watermarked: processedImages.watermarked,
+            reverse_image_thumbnail: processedImages.thumbnail
+          };
 
       const { error: updateError } = await supabase
         .from('image_suggestions')
@@ -132,9 +136,13 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
 
       // Update local state
       if (selectedImageToCrop.type === 'obverse') {
-        suggestion.obverse_image = publicUrl;
+        suggestion.obverse_image = processedImages.original;
+        suggestion.obverse_image_watermarked = processedImages.watermarked;
+        suggestion.obverse_image_thumbnail = processedImages.thumbnail;
       } else {
-        suggestion.reverse_image = publicUrl;
+        suggestion.reverse_image = processedImages.original;
+        suggestion.reverse_image_watermarked = processedImages.watermarked;
+        suggestion.reverse_image_thumbnail = processedImages.thumbnail;
       }
 
       toast.success('Image updated successfully');
@@ -466,18 +474,6 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
     try {
       setLoading(true);
       
-      console.log('Approving image suggestion:', suggestion);
-      console.log('Obverse image:', suggestion.obverse_image);
-      console.log('Reverse image:', suggestion.reverse_image);
-      console.log('Watermarked images:', {
-        obverse: suggestion.obverse_image_watermarked,
-        reverse: suggestion.reverse_image_watermarked
-      });
-      console.log('Thumbnail images:', {
-        obverse: suggestion.obverse_image_thumbnail,
-        reverse: suggestion.reverse_image_thumbnail
-      });
-      
       // First check if the banknote exists
       const { data: banknoteCheck, error: banknoteCheckError } = await supabase
         .from('detailed_banknotes')
@@ -492,7 +488,6 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
         return;
       }
       
-      // Directly update the banknote images without using intermediate object
       let hasErrors = false;
       
       // Update obverse image if available
@@ -510,12 +505,6 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
           console.error('Error updating obverse image:', obverseError);
           toast.error(`Failed to update obverse image: ${obverseError.message}`);
           hasErrors = true;
-        } else {
-          console.log('Successfully updated front images:', {
-            front_picture: suggestion.obverse_image,
-            front_picture_watermarked: suggestion.obverse_image_watermarked,
-            front_picture_thumbnail: suggestion.obverse_image_thumbnail
-          });
         }
       }
       
@@ -534,31 +523,10 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
           console.error('Error updating reverse image:', reverseError);
           toast.error(`Failed to update reverse image: ${reverseError.message}`);
           hasErrors = true;
-        } else {
-          console.log('Successfully updated back images:', {
-            back_picture: suggestion.reverse_image,
-            back_picture_watermarked: suggestion.reverse_image_watermarked,
-            back_picture_thumbnail: suggestion.reverse_image_thumbnail
-          });
-        }
-      }
-
-      if (!hasErrors) {
-        // Fetch the updated banknote record to verify all changes
-        const { data: updatedBanknote, error: fetchError } = await supabase
-          .from('detailed_banknotes')
-          .select('*')
-          .eq('id', suggestion.banknote_id)
-          .single();
-        
-        if (fetchError) {
-          console.error('Error fetching updated banknote:', fetchError);
-        } else {
-          console.log('Updated banknote details:', updatedBanknote);
         }
       }
       
-      // Then update the suggestion status regardless of image update success
+      // Update the suggestion status
       const { error: suggestionError } = await supabase
         .from('image_suggestions')
         .update({ status: hasErrors ? 'pending' : 'approved' })

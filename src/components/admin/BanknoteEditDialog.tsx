@@ -21,6 +21,9 @@ import { fetchStampPictures } from '@/services/stampsService';
 import { StampPicture, StampType } from '@/types/stamps';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MultiSelect from '@/components/ui/multiselect';
+import { processAndUploadImage } from '@/services/imageProcessingService';
+import { useAuth } from '@/context/AuthContext';
+
 
 interface BanknoteEditDialogProps {
   open: boolean;
@@ -39,6 +42,7 @@ const BanknoteEditDialog = ({
   onUpdate,
   onCreate
 }: BanknoteEditDialogProps) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<any>({
     extended_pick_number: '',
     pick_number: '',
@@ -54,7 +58,11 @@ const BanknoteEditDialog = ({
     banknote_description: '',
     historical_description: '',
     front_picture: '',
+    front_picture_watermarked: '',
+    front_picture_thumbnail: '',
     back_picture: '',
+    back_picture_watermarked: '',
+    back_picture_thumbnail: '',
     signatures_front: [],
     signatures_back: [],
     seal_pictures: [],
@@ -225,18 +233,54 @@ const BanknoteEditDialog = ({
   };
 
   // New handlers for image uploads
-  const handleFrontImageUploaded = (url: string) => {
-    setFormData(prev => ({
-      ...prev,
-      front_picture: url
-    }));
+  const handleFrontImageUploaded = async (file: File) => {
+    if (!user) {
+      toast.error('User not authenticated');
+      return;
+    }
+
+    try {
+      const processedImages = await processAndUploadImage(
+        file,
+        'banknotes',
+        user.id
+      );
+      
+      setFormData(prev => ({
+        ...prev,
+        front_picture: processedImages.original,
+        front_picture_watermarked: processedImages.watermarked,
+        front_picture_thumbnail: processedImages.thumbnail
+      }));
+    } catch (error) {
+      console.error('Error processing front image:', error);
+      toast.error('Failed to process front image');
+    }
   };
 
-  const handleBackImageUploaded = (url: string) => {
-    setFormData(prev => ({
-      ...prev,
-      back_picture: url
-    }));
+  const handleBackImageUploaded = async (file: File) => {
+    if (!user) {
+      toast.error('User not authenticated');
+      return;
+    }
+
+    try {
+      const processedImages = await processAndUploadImage(
+        file,
+        'banknotes',
+        user.id
+      );
+      
+      setFormData(prev => ({
+        ...prev,
+        back_picture: processedImages.original,
+        back_picture_watermarked: processedImages.watermarked,
+        back_picture_thumbnail: processedImages.thumbnail
+      }));
+    } catch (error) {
+      console.error('Error processing back image:', error);
+      toast.error('Failed to process back image');
+    }
   };
   
   const handleStampChange = (type: StampType, value: string) => {
