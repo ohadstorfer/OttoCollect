@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -70,10 +69,10 @@ export default function CollectionItem() {
   // Determine if the current user is the owner of this item
   const isOwner = user?.id === collectionItem?.userId;
 
-  // Check for image suggestion status - only for the current user's suggestions
+  // Check for image suggestion status
   useEffect(() => {
     const checkImageStatus = async () => {
-      if (!collectionItem?.banknote?.id || !isOwner || !user?.id) {
+      if (!collectionItem?.banknote?.id || !user?.id) {
         setSuggestionStatus(null);
         setHasPendingSuggestion(false);
         return;
@@ -82,13 +81,13 @@ export default function CollectionItem() {
       try {
         console.log('Checking image suggestion status for banknote:', collectionItem.banknote.id);
         
-        // Only check for the current user's suggestions
-        const { data: userSuggestions, error } = await supabase
+        // Check if the collection item owner's suggestion was approved
+        const { data: ownerSuggestions, error } = await supabase
           .from('image_suggestions')
           .select('status')
           .eq('banknote_id', collectionItem.banknote.id)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .eq('user_id', collectionItem.userId)
+          .eq('status', 'approved')
           .limit(1);
 
         if (error) {
@@ -98,16 +97,37 @@ export default function CollectionItem() {
           return;
         }
 
-        if (userSuggestions && userSuggestions.length > 0) {
-          const status = userSuggestions[0].status as 'pending' | 'approved' | 'rejected';
-          console.log('Current suggestion status:', status);
-          setSuggestionStatus(status);
-          setHasPendingSuggestion(status === 'pending');
-        } else {
-          console.log('No suggestions found for this user');
-          setSuggestionStatus(null);
+        // If owner's suggestion was approved, show "Catalogue Image"
+        if (ownerSuggestions && ownerSuggestions.length > 0) {
+          setSuggestionStatus('approved');
           setHasPendingSuggestion(false);
+          return;
         }
+
+        // If current user is the owner, check their other statuses (pending/rejected)
+        if (isOwner) {
+          const { data: userSuggestions, error: userError } = await supabase
+            .from('image_suggestions')
+            .select('status')
+            .eq('banknote_id', collectionItem.banknote.id)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          if (userError) {
+            console.error('Error checking user suggestions:', userError);
+          } else if (userSuggestions && userSuggestions.length > 0) {
+            const status = userSuggestions[0].status as 'pending' | 'approved' | 'rejected';
+            console.log('Current user suggestion status:', status);
+            setSuggestionStatus(status);
+            setHasPendingSuggestion(status === 'pending');
+            return;
+          }
+        }
+
+        // No relevant suggestions found
+        setSuggestionStatus(null);
+        setHasPendingSuggestion(false);
       } catch (error) {
         console.error("Failed to check image status:", error);
         setSuggestionStatus(null);
@@ -116,7 +136,7 @@ export default function CollectionItem() {
     };
 
     checkImageStatus();
-  }, [collectionItem?.banknote?.id, isOwner, user?.id]);
+  }, [collectionItem?.banknote?.id, collectionItem?.userId, isOwner, user?.id]);
 
   const handleUpdateSuccess = async () => {
     setIsEditDialogOpen(false);
