@@ -72,83 +72,38 @@ export default function CollectionItem() {
   // Check for image suggestion status
   useEffect(() => {
     const checkImageStatus = async () => {
-      if (!collectionItem?.banknote?.id || !user?.id) {
-        console.log('Missing required data for status check:', { 
-          banknoteId: collectionItem?.banknote?.id, 
-          userId: user?.id 
-        });
-        setSuggestionStatus(null);
-        setHasPendingSuggestion(false);
-        return;
-      }
-
-      console.log('Checking image suggestion status for banknote:', collectionItem.banknote.id);
+      if (!collectionItem?.banknote.id) return;
 
       try {
-        // First check if there are any approved suggestions for this banknote (from anyone)
+        // First check for any approved suggestions for this banknote
         const { data: approvedData, error: approvedError } = await supabase
           .from('image_suggestions')
-          .select('id, status, user_id')
+          .select('status')
           .eq('banknote_id', collectionItem.banknote.id)
           .eq('status', 'approved')
           .limit(1);
 
-        if (approvedError) {
-          console.error('Error checking approved suggestions:', approvedError);
-          throw approvedError;
-        }
-
-        console.log('Approved suggestions found:', approvedData);
-
+        if (approvedError) throw approvedError;
+        
         if (approvedData && approvedData.length > 0) {
-          console.log('Setting status to approved');
           setSuggestionStatus('approved');
           setHasPendingSuggestion(false);
-          return;
-        }
-
-        // If no approved suggestions exist, check for user's own suggestions (if they are the owner)
-        if (isOwner) {
-          const { data: userSuggestions, error: userError } = await supabase
-            .from('image_suggestions')
-            .select('id, status')
-            .eq('banknote_id', collectionItem.banknote.id)
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(1);
-
-          if (userError) {
-            console.error('Error checking user suggestions:', userError);
-            throw userError;
-          }
-
-          console.log('User suggestions found:', userSuggestions);
-
-          if (userSuggestions && userSuggestions.length > 0) {
-            const userSuggestion = userSuggestions[0];
-            console.log('Setting status to:', userSuggestion.status);
-            setSuggestionStatus(userSuggestion.status as 'pending' | 'approved' | 'rejected');
-            setHasPendingSuggestion(userSuggestion.status === 'pending');
-          } else {
-            console.log('No user suggestions found, setting status to null');
-            setSuggestionStatus(null);
-            setHasPendingSuggestion(false);
-          }
-        } else {
-          // Not the owner and no approved suggestions
-          console.log('Not owner and no approved suggestions, setting status to null');
-          setSuggestionStatus(null);
-          setHasPendingSuggestion(false);
+        } else if (isOwner && user?.id) {
+          // Only check other statuses for owner
+          const result = await hasExistingImageSuggestion(
+            collectionItem.banknote.id,
+            user.id
+          );
+          setHasPendingSuggestion(result.hasSuggestion && result.status === 'pending');
+          setSuggestionStatus(result.status);
         }
       } catch (error) {
         console.error("Failed to check image status:", error);
-        setSuggestionStatus(null);
-        setHasPendingSuggestion(false);
       }
     };
 
     checkImageStatus();
-  }, [collectionItem?.banknote?.id, isOwner, user?.id]);
+  }, [collectionItem?.banknote.id, isOwner, user?.id]);
 
   const handleUpdateSuccess = async () => {
     setIsEditDialogOpen(false);
@@ -171,7 +126,6 @@ export default function CollectionItem() {
 
       toast("Your images have been submitted for catalog consideration");
       setHasPendingSuggestion(true);
-      setSuggestionStatus('pending');
     } catch (error) {
       console.error("Error suggesting images:", error);
       toast("Failed to submit images. Please try again later.");
@@ -303,11 +257,6 @@ export default function CollectionItem() {
 
   const displayImages = [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[];
 
-  console.log('Current suggestion status:', suggestionStatus);
-  console.log('Has pending suggestion:', hasPendingSuggestion);
-  console.log('Is owner:', isOwner);
-  console.log('Has custom images:', hasCustomImages);
-
   return (
     <div className="page-container">
       <div className="flex flex-col space-y-6">
@@ -348,7 +297,6 @@ export default function CollectionItem() {
             <Card className={suggestionStatus === 'approved' ? 'border-2 border-gold-500 bg-gold-50/50' : ''}>
               <CardContent className="px-2 pt-2 pb-2">
                 <div className="flex flex-col space-y-3">
-                  {/* Only show suggestion section if owner has custom images OR there's an approved suggestion */}
                   {(suggestionStatus === 'approved' || (isOwner && hasCustomImages)) && (
                     <div className="w-full rounded-md">
                       <div className="w-full flex justify-between items-center py-2 px-3">
@@ -374,12 +322,6 @@ export default function CollectionItem() {
                               Request rejected
                             </span>
                           </div>
-                        ) : suggestionStatus === 'pending' ? (
-                          <div className="w-full flex items-center justify-center gap-2">
-                            <span className="text-sm text-yellow-600 font-medium">
-                              Image Suggestion Pending Review
-                            </span>
-                          </div>
                         ) : (
                           <Button
                             onClick={handleSuggestToCatalog}
@@ -388,9 +330,11 @@ export default function CollectionItem() {
                             disabled={isSubmittingImages || hasPendingSuggestion}
                           >
                             <ImagePlus className="h-4 w-4" />
-                            {isSubmittingImages
-                              ? "Submitting..."
-                              : "Suggest Images to Catalogue"}
+                            {hasPendingSuggestion
+                              ? "Image Suggestion Pending"
+                              : isSubmittingImages
+                                ? "Submitting..."
+                                : "Suggest Images to Catalogue"}
                           </Button>
                         )}
                       </div>
