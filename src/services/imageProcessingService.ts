@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface ProcessedImages {
@@ -91,16 +92,16 @@ export async function processAndUploadImage(
       thumbnailCanvas.toBlob(blob => resolve(blob!), 'image/jpeg', 0.8)
     );
 
-    // Upload all versions to storage
+    // Upload all versions to storage using the correct bucket name
     const [originalUpload, watermarkedUpload, thumbnailUpload] = await Promise.all([
       supabase.storage
-        .from('banknote-images')
+        .from('banknote_images')
         .upload(originalPath, file, { upsert: true }),
       supabase.storage
-        .from('banknote-images')
+        .from('banknote_images')
         .upload(watermarkedPath, watermarkedBlob, { upsert: true }),
       supabase.storage
-        .from('banknote-images')
+        .from('banknote_images')
         .upload(thumbnailPath, thumbnailBlob, { upsert: true })
     ]);
 
@@ -111,15 +112,15 @@ export async function processAndUploadImage(
     // Get public URLs for all versions
     const {
       data: { publicUrl: originalUrl }
-    } = supabase.storage.from('banknote-images').getPublicUrl(originalPath);
+    } = supabase.storage.from('banknote_images').getPublicUrl(originalPath);
     
     const {
       data: { publicUrl: watermarkedUrl }
-    } = supabase.storage.from('banknote-images').getPublicUrl(watermarkedPath);
+    } = supabase.storage.from('banknote_images').getPublicUrl(watermarkedPath);
     
     const {
       data: { publicUrl: thumbnailUrl }
-    } = supabase.storage.from('banknote-images').getPublicUrl(thumbnailPath);
+    } = supabase.storage.from('banknote_images').getPublicUrl(thumbnailPath);
 
     return {
       original: originalUrl,
@@ -130,4 +131,4 @@ export async function processAndUploadImage(
     console.error('Error processing image:', error);
     throw error;
   }
-} 
+}

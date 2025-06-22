@@ -1087,6 +1087,8 @@ export type Database = {
       unlisted_banknotes: {
         Row: {
           back_picture: string | null
+          back_picture_thumbnail: string | null
+          back_picture_watermarked: string | null
           banknote_description: string | null
           category: string | null
           colors: string | null
@@ -1095,6 +1097,8 @@ export type Database = {
           extended_pick_number: string | null
           face_value: string
           front_picture: string | null
+          front_picture_thumbnail: string | null
+          front_picture_watermarked: string | null
           gregorian_year: string | null
           historical_description: string | null
           id: string
@@ -1123,6 +1127,8 @@ export type Database = {
         }
         Insert: {
           back_picture?: string | null
+          back_picture_thumbnail?: string | null
+          back_picture_watermarked?: string | null
           banknote_description?: string | null
           category?: string | null
           colors?: string | null
@@ -1131,6 +1137,8 @@ export type Database = {
           extended_pick_number?: string | null
           face_value: string
           front_picture?: string | null
+          front_picture_thumbnail?: string | null
+          front_picture_watermarked?: string | null
           gregorian_year?: string | null
           historical_description?: string | null
           id?: string
@@ -1159,6 +1167,8 @@ export type Database = {
         }
         Update: {
           back_picture?: string | null
+          back_picture_thumbnail?: string | null
+          back_picture_watermarked?: string | null
           banknote_description?: string | null
           category?: string | null
           colors?: string | null
@@ -1167,6 +1177,8 @@ export type Database = {
           extended_pick_number?: string | null
           face_value?: string
           front_picture?: string | null
+          front_picture_thumbnail?: string | null
+          front_picture_watermarked?: string | null
           gregorian_year?: string | null
           historical_description?: string | null
           id?: string
