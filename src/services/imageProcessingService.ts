@@ -41,16 +41,18 @@ export async function processAndUploadImage(
     // Draw the original image
     watermarkedCtx.drawImage(originalImage, 0, 0);
     
-    
     // Load and draw watermark image
     const watermarkImage = new Image();
-    watermarkImage.src = '/watermark.png';
+    watermarkImage.src = '/watermark.png';  // Simply use the path from public directory
     await new Promise((resolve, reject) => {
       watermarkImage.onload = resolve;
-      watermarkImage.onerror = reject;
+      watermarkImage.onerror = (e) => {
+        console.error('Failed to load watermark:', e);
+        reject(e);
+      };
     });
 
-    // Calculate watermark dimensions (20% of the original image width)
+    // Calculate watermark dimensions (35% of the original image width)
     const watermarkWidth = originalImage.width * 0.35;
     const watermarkHeight = (watermarkWidth / watermarkImage.width) * watermarkImage.height;
 
@@ -60,7 +62,7 @@ export async function processAndUploadImage(
     const watermarkY = originalImage.height - watermarkHeight - padding;
 
     // Set transparency
-    watermarkedCtx.globalAlpha = 0.6; // 40% transparency (1 - 0.6)
+    watermarkedCtx.globalAlpha = 0.6; // 40% transparency
     
     // Draw the watermark
     watermarkedCtx.drawImage(
@@ -71,7 +73,7 @@ export async function processAndUploadImage(
       watermarkHeight
     );
 
-    // Reset transparency for future operations
+    // Reset transparency
     watermarkedCtx.globalAlpha = 1;
     
     // Create thumbnail version (max 300px width/height while maintaining aspect ratio)
@@ -106,7 +108,7 @@ export async function processAndUploadImage(
       thumbnailCanvas.toBlob(blob => resolve(blob!), 'image/jpeg', 0.8)
     );
 
-    // Upload all versions to storage using the correct bucket name
+    // Upload all versions to storage
     const [originalUpload, watermarkedUpload, thumbnailUpload] = await Promise.all([
       supabase.storage
         .from('banknote_images')
