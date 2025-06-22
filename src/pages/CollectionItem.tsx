@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -69,41 +70,53 @@ export default function CollectionItem() {
   // Determine if the current user is the owner of this item
   const isOwner = user?.id === collectionItem?.userId;
 
-  // Check for image suggestion status
+  // Check for image suggestion status - only for the current user's suggestions
   useEffect(() => {
     const checkImageStatus = async () => {
-      if (!collectionItem?.banknote.id) return;
+      if (!collectionItem?.banknote?.id || !isOwner || !user?.id) {
+        setSuggestionStatus(null);
+        setHasPendingSuggestion(false);
+        return;
+      }
 
       try {
-        // First check for any approved suggestions for this banknote
-        const { data: approvedData, error: approvedError } = await supabase
+        console.log('Checking image suggestion status for banknote:', collectionItem.banknote.id);
+        
+        // Only check for the current user's suggestions
+        const { data: userSuggestions, error } = await supabase
           .from('image_suggestions')
           .select('status')
           .eq('banknote_id', collectionItem.banknote.id)
-          .eq('status', 'approved')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
           .limit(1);
 
-        if (approvedError) throw approvedError;
-        
-        if (approvedData && approvedData.length > 0) {
-          setSuggestionStatus('approved');
+        if (error) {
+          console.error('Error checking image suggestions:', error);
+          setSuggestionStatus(null);
           setHasPendingSuggestion(false);
-        } else if (isOwner && user?.id) {
-          // Only check other statuses for owner
-          const result = await hasExistingImageSuggestion(
-            collectionItem.banknote.id,
-            user.id
-          );
-          setHasPendingSuggestion(result.hasSuggestion && result.status === 'pending');
-          setSuggestionStatus(result.status);
+          return;
+        }
+
+        if (userSuggestions && userSuggestions.length > 0) {
+          const status = userSuggestions[0].status as 'pending' | 'approved' | 'rejected';
+          console.log('Current suggestion status:', status);
+          setSuggestionStatus(status);
+          setHasPendingSuggestion(status === 'pending');
+        } else {
+          console.log('No suggestions found for this user');
+          setSuggestionStatus(null);
+          setHasPendingSuggestion(false);
         }
       } catch (error) {
         console.error("Failed to check image status:", error);
+        setSuggestionStatus(null);
+        setHasPendingSuggestion(false);
       }
     };
 
     checkImageStatus();
-  }, [collectionItem?.banknote.id, isOwner, user?.id]);
+  }, [collectionItem?.banknote?.id, isOwner, user?.id]);
 
   const handleUpdateSuccess = async () => {
     setIsEditDialogOpen(false);
@@ -126,6 +139,7 @@ export default function CollectionItem() {
 
       toast("Your images have been submitted for catalog consideration");
       setHasPendingSuggestion(true);
+      setSuggestionStatus('pending');
     } catch (error) {
       console.error("Error suggesting images:", error);
       toast("Failed to submit images. Please try again later.");
@@ -189,7 +203,7 @@ export default function CollectionItem() {
   const canDeleteImages = !isOwnerSuperAdmin && (
     isUserSuperAdmin || 
     (isUserCountryAdmin && 
-     userAdminCountry === collectionItem?.banknote.country.toLowerCase())
+     userAdminCountry === collectionItem?.banknote?.country?.toLowerCase())
   );
 
   const handleDeleteImage = async () => {
@@ -272,12 +286,12 @@ export default function CollectionItem() {
               </Button>
 
               <h1 className="text-3xl font-bold leading-tight">
-                {collectionItem.banknote.denomination}
+                {collectionItem.banknote?.denomination}
               </h1>
 
               <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
 
-              {collectionItem.banknote.extendedPickNumber && (
+              {collectionItem.banknote?.extendedPickNumber && (
                 <p className="text-xl leading-tight">
                   {collectionItem.banknote.extendedPickNumber}
                 </p>
@@ -286,9 +300,9 @@ export default function CollectionItem() {
           </div>
 
           <p className="text-xl text-muted-foreground">
-          {collectionItem.banknote.country}
-            {collectionItem.banknote.country && collectionItem.banknote.year && ", "}
-            {collectionItem.banknote.year}
+          {collectionItem.banknote?.country}
+            {collectionItem.banknote?.country && collectionItem.banknote?.year && ", "}
+            {collectionItem.banknote?.year}
           </p>
         </div>
 
