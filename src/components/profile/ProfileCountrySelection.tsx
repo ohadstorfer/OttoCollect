@@ -96,7 +96,6 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
     }
   }, [selectedCountry, onCountrySelect]);
 
-
   // On mount (or when selectedCountry changes), resolve both countryId and countryName
   useEffect(() => {
     if (!selectedCountry) {
