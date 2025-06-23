@@ -52,7 +52,6 @@ export async function processAndUploadImage(
       };
     });
 
-    
     // Calculate watermark dimensions (35% of the original image width)
     const watermarkWidth = originalImage.width * 0.35;
     const watermarkHeight = (watermarkWidth / watermarkImage.width) * watermarkImage.height;
