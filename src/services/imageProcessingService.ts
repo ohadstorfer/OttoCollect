@@ -13,6 +13,7 @@ interface ProcessedImages {
  * @param userId The user's ID
  * @returns Object containing URLs for all image versions
  */
+
 export async function processAndUploadImage(
   file: File,
   path: string,
