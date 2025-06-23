@@ -14,6 +14,7 @@ interface ProcessedImages {
  * @returns Object containing URLs for all image versions
  */
 
+
 export async function processAndUploadImage(
   file: File,
   path: string,
