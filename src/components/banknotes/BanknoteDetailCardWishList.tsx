@@ -87,17 +87,24 @@ const BanknoteDetailCardWishList = ({
     console.log("banknote: " + banknote)
 
     if (!banknote) return '/placeholder.svg';
-    // if (!banknote.imageUrls) return '/placeholder.svg';
+    
+    // First try to use the thumbnail
+    if (banknote.frontPictureThumbnail) {
+      return banknote.frontPictureThumbnail;
+    }
+    
+    // Then try front_picture
+    if (banknote.front_picture) {
+      return banknote.front_picture;
+    }
+    
+    // Then try imageUrls
     if (Array.isArray(banknote.imageUrls)) {
       return banknote.imageUrls.length > 0 ? banknote.imageUrls[0] : '/placeholder.svg';
     }
     if (typeof banknote.imageUrls === 'string') {
       return banknote.imageUrls || '/placeholder.svg';
     }
-    if (banknote.front_picture) {
-      return banknote.front_picture;
-    }
-
 
     return '/placeholder.svg';
   };

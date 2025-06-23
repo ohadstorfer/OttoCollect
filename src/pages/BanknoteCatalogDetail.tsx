@@ -328,7 +328,11 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     setSelectedImage(imageUrl);
   };
 
-  const imageUrls = Array.isArray(banknote?.imageUrls) ? banknote.imageUrls : [];
+  // Replace imageUrls array with watermarked images
+  const imageUrls = [
+    banknote?.frontPictureWatermarked || banknote?.frontPicture,
+    banknote?.backPictureWatermarked || banknote?.backPicture
+  ].filter(Boolean);
 
   const detailGroups = [
     {

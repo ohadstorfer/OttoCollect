@@ -289,7 +289,14 @@ export default function CollectionItem() {
     setSelectedImage(imageUrl);
   };
 
-  const displayImages = [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[];
+  // Update to use original images for owner, watermarked for others
+  const displayImages = isOwner ? [
+    collectionItem.obverseImage,
+    collectionItem.reverseImage
+  ].filter(Boolean) : [
+    collectionItem.obverse_image_watermarked || collectionItem.obverseImage,
+    collectionItem.reverse_image_watermarked || collectionItem.reverseImage
+  ].filter(Boolean) as string[];
 
   return (
     <div className="page-container">
@@ -376,7 +383,7 @@ export default function CollectionItem() {
                   )}
 
                   {displayImages.length > 0 ? (
-                    displayImages.map((url, index) => (
+                    displayImages.map((url, index) => url && (  // Only map over and render if URL exists
                       <div
                         key={index}
                         className="w-full relative"
@@ -418,15 +425,14 @@ export default function CollectionItem() {
                           </div>
                         )}
                         <div
-                        className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => openImageViewer(url)}
-                      >
-                        <div className="w-full rounded-md overflow-hidden border">
-                          <img
-                            src={url}
-                            alt={`Banknote Image ${index + 1}`}
-                            className="w-full h-auto object-contain"
-                          />
+                          className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => openImageViewer(url)}
+                        >
+                          <div className="w-full rounded-md overflow-hidden border">
+                            <img
+                              src={url}
+                              className="w-full h-auto object-contain"
+                            />
                           </div>
                         </div>
                       </div>

@@ -84,6 +84,13 @@ const BanknoteDetailCardMissingItems = ({
 
   const getDisplayImage = (): string => {
     if (!banknote) return '/placeholder.svg';
+    
+    // First try to use the thumbnail
+    if (banknote.frontPictureThumbnail) {
+      return banknote.frontPictureThumbnail;
+    }
+    
+    // Then try imageUrls
     if (!banknote.imageUrls) return '/placeholder.svg';
     if (Array.isArray(banknote.imageUrls)) {
       return banknote.imageUrls.length > 0 ? banknote.imageUrls[0] : '/placeholder.svg';
