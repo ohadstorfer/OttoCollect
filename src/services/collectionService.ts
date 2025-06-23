@@ -70,86 +70,123 @@ export function normalizeBanknoteData(data: any, source: 'detailed' | 'unlisted'
   }
 }
 
-// --- Replace fetchUserCollection with backend SQL sort using view ---
+// --- Optimized fetchUserCollection with JOIN-based batch queries ---
 
 export async function fetchUserCollection(userId: string): Promise<CollectionItem[]> {
   try {
     console.log("[fetchUserCollection] Fetching items for user:", userId);
 
-    // First, fetch all collection items for the user
-    const { data: collectionData, error: collectionError } = await supabase
+    // Single optimized query to fetch collection items with detailed banknotes using JOIN
+    const { data: collectionWithDetailedBanknotes, error: detailedError } = await supabase
       .from('collection_items')
-      .select('*')
-      .eq('user_id', userId);
+      .select(`
+        *,
+        enhanced_detailed_banknotes!inner(*)
+      `)
+      .eq('user_id', userId)
+      .eq('is_unlisted_banknote', false);
 
-    if (collectionError || !collectionData) {
-      console.error("[fetchUserCollection] Error fetching collection items:", collectionError);
-      return [];
+    if (detailedError) {
+      console.error("[fetchUserCollection] Error fetching detailed banknotes:", detailedError);
     }
 
-    // Process each collection item
-    const enrichedItems = await Promise.all(collectionData.map(async (item) => {
-      let banknote;
+    // Single optimized query to fetch collection items with unlisted banknotes using JOIN
+    const { data: collectionWithUnlistedBanknotes, error: unlistedError } = await supabase
+      .from('collection_items')
+      .select(`
+        *,
+        unlisted_banknotes!inner(*)
+      `)
+      .eq('user_id', userId)
+      .eq('is_unlisted_banknote', true);
 
-      if (item.is_unlisted_banknote) {
-        // Fetch unlisted banknote data
-        const { data: unlistedData } = await supabase
-          .from('unlisted_banknotes')
-          .select('*')
-          .eq('id', item.unlisted_banknotes_id)
-          .single();
+    if (unlistedError) {
+      console.error("[fetchUserCollection] Error fetching unlisted banknotes:", unlistedError);
+    }
 
-        banknote = unlistedData ? normalizeBanknoteData(unlistedData, "unlisted") : undefined;
-      } else {
-        // Fetch detailed banknote data from enhanced view
-        const { data: detailedData } = await supabase
-          .from('enhanced_detailed_banknotes')
-          .select('*')
-          .eq('id', item.banknote_id)
-          .single();
+    const enrichedItems: CollectionItem[] = [];
 
-        banknote = detailedData ? normalizeBanknoteData(mapBanknoteFromDatabase(detailedData), "detailed") : undefined;
+    // Process detailed banknotes (already joined)
+    if (collectionWithDetailedBanknotes) {
+      for (const item of collectionWithDetailedBanknotes) {
+        const banknoteData = item.enhanced_detailed_banknotes;
+        if (banknoteData) {
+          const banknote = normalizeBanknoteData(mapBanknoteFromDatabase(banknoteData), "detailed");
+          
+          enrichedItems.push({
+            id: item.id,
+            userId: item.user_id,
+            banknoteId: item.banknote_id,
+            banknote_id: item.banknote_id,
+            user_id: item.user_id,
+            banknote,
+            condition: item.condition,
+            grade_by: item.grade_by,
+            grade: item.grade,
+            grade_condition_description: item.grade_condition_description,
+            salePrice: item.sale_price,
+            isForSale: item.is_for_sale,
+            publicNote: item.public_note,
+            privateNote: item.private_note,
+            purchasePrice: item.purchase_price,
+            purchaseDate: item.purchase_date,
+            location: item.location,
+            obverseImage: item.obverse_image,
+            reverseImage: item.reverse_image,
+            obverse_image_watermarked: item.obverse_image_watermarked,
+            reverse_image_watermarked: item.reverse_image_watermarked,
+            obverse_image_thumbnail: item.obverse_image_thumbnail,
+            reverse_image_thumbnail: item.reverse_image_thumbnail,
+            orderIndex: item.order_index,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at,
+            is_unlisted_banknote: item.is_unlisted_banknote,
+          } as CollectionItem);
+        }
       }
+    }
 
-      console.log(`[fetchUserCollection] Processed banknote for item ${item.id}:`, {
-        banknoteId: item.banknote_id,
-        hasSignatures: banknote?.signaturePictureUrls?.length,
-        hasSeals: banknote?.sealPictureUrls?.length,
-        hasWatermark: banknote?.watermarkUrl,
-        hasTughra: banknote?.tughraUrl
-      });
+    // Process unlisted banknotes (already joined)
+    if (collectionWithUnlistedBanknotes) {
+      for (const item of collectionWithUnlistedBanknotes) {
+        const unlistedData = item.unlisted_banknotes;
+        if (unlistedData) {
+          const banknote = normalizeBanknoteData(unlistedData, "unlisted");
+          
+          enrichedItems.push({
+            id: item.id,
+            userId: item.user_id,
+            banknoteId: item.banknote_id,
+            banknote_id: item.banknote_id,
+            user_id: item.user_id,
+            banknote,
+            condition: item.condition,
+            grade_by: item.grade_by,
+            grade: item.grade,
+            grade_condition_description: item.grade_condition_description,
+            salePrice: item.sale_price,
+            isForSale: item.is_for_sale,
+            publicNote: item.public_note,
+            privateNote: item.private_note,
+            purchasePrice: item.purchase_price,
+            purchaseDate: item.purchase_date,
+            location: item.location,
+            obverseImage: item.obverse_image,
+            reverseImage: item.reverse_image,
+            obverse_image_watermarked: item.obverse_image_watermarked,
+            reverse_image_watermarked: item.reverse_image_watermarked,
+            obverse_image_thumbnail: item.obverse_image_thumbnail,
+            reverse_image_thumbnail: item.reverse_image_thumbnail,
+            orderIndex: item.order_index,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at,
+            is_unlisted_banknote: item.is_unlisted_banknote,
+          } as CollectionItem);
+        }
+      }
+    }
 
-      return {
-        id: item.id,
-        userId: item.user_id,
-        banknoteId: item.banknote_id,
-        banknote_id: item.banknote_id,
-        user_id: item.user_id,
-        banknote,
-        condition: item.condition,
-        grade_by: item.grade_by,
-        grade: item.grade,
-        grade_condition_description: item.grade_condition_description,
-        salePrice: item.sale_price,
-        isForSale: item.is_for_sale,
-        publicNote: item.public_note,
-        privateNote: item.private_note,
-        purchasePrice: item.purchase_price,
-        purchaseDate: item.purchase_date,
-        location: item.location,
-        obverseImage: item.obverse_image,
-        reverseImage: item.reverse_image,
-        obverse_image_watermarked: item.obverse_image_watermarked,
-        reverse_image_watermarked: item.reverse_image_watermarked,
-        obverse_image_thumbnail: item.obverse_image_thumbnail,
-        reverse_image_thumbnail: item.reverse_image_thumbnail,
-        orderIndex: item.order_index,
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
-        is_unlisted_banknote: item.is_unlisted_banknote,
-      } as CollectionItem;
-    }));
-
+    console.log(`[fetchUserCollection] Successfully fetched ${enrichedItems.length} items with optimized JOIN queries`);
     return enrichedItems;
   } catch (error) {
     console.error("[fetchUserCollection] Unexpected error:", error);
@@ -162,7 +199,7 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
   return fetchUserCollection(userId);
 }
 
-// --- Update fetchUserCollectionByCountry: filter after enrichment ---
+// --- Update fetchUserCollectionByCountry: use optimized fetchUserCollection ---
 export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
   try {
     // Get the country name
@@ -176,17 +213,16 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
       return [];
     }
 
-    // Use faster fetchUserCollection (already optimized!)
+    // Use optimized fetchUserCollection
     const allCollectionItems = await fetchUserCollection(userId);
 
-    // Now filter based on the correct 'banknote.country' property
+    // Filter based on the correct 'banknote.country' property
     return allCollectionItems.filter(item => {
-      // Both detailed_banknotes and unlisted_banknotes have a country property
       const banknoteCountry = item.banknote?.country;
       return banknoteCountry === country.name;
     });
   } catch (error) {
-    console.error("[fetchUserCollectionByCountry] Error (FAST):", error);
+    console.error("[fetchUserCollectionByCountry] Error:", error);
     return [];
   }
 }
