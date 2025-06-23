@@ -37,26 +37,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   isOwner = false,
   viewMode = 'grid'
 }) => {
-  console.log("CollectionItemCard - isOwner:", isOwner, "for itemId:", item?.id);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
-
-  // Add detailed logging for debugging
-  console.log("CollectionItemCard - Rendering with item:", {
-    id: item?.id,
-    banknoteId: item?.banknoteId,
-    banknote: item?.banknote ? {
-      id: item.banknote.id,
-      name: item.banknote.name,
-      country: item.banknote.country || 'Missing country',
-      denomination: item.banknote.denomination || 'Missing denomination',
-      year: item.banknote.year || 'Missing year',
-      series: item.banknote.series || 'Missing series',
-      imageUrlsType: item.banknote.imageUrls ? (Array.isArray(item.banknote.imageUrls) ? 'array' : typeof item.banknote.imageUrls) : 'missing'
-    } : 'No banknote data'
-  });
 
   // Use thumbnail if available, otherwise fall back to original image
   const displayImage = item?.obverse_image_thumbnail || item?.obverseImage;
@@ -107,6 +91,16 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
 
   // Handle card click to navigate to collection item details
   const handleCardClick = () => {
+    // Store the current country context
+    if (item?.banknote?.country) {
+      const countryData = {
+        name: item.banknote.country,
+        // If we have the country ID, use it, otherwise it will be fetched when needed
+        id: item.banknote.countryId || null
+      };
+      sessionStorage.setItem('lastViewedCountry', JSON.stringify(countryData));
+    }
+    
     if (item?.isMissing) {
       // For missing items, go to banknote details
       navigate(`/banknote-details/${item.banknoteId || item.id}`);

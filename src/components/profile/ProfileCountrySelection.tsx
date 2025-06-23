@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useParams } from 'react-router-dom';
@@ -42,15 +42,66 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   // State for both country ID and countryName (after lookup, if necessary)
   const [countryId, setCountryId] = useState<string | null>(null);
   const [countryName, setCountryName] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const initialCheckDone = useRef(false);
+
+  // Check for last viewed country on mount
+  useEffect(() => {
+    if (initialCheckDone.current) return;
+    initialCheckDone.current = true;
+
+    const storedCountry = sessionStorage.getItem('lastViewedCountry');
+    if (!storedCountry || selectedCountry) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Try to parse as JSON first
+      const countryData = JSON.parse(storedCountry);
+      if (countryData && countryData.name) {
+        if (countryData.id) {
+          // If we have both id and name, use them directly
+          setCountryId(countryData.id);
+          setCountryName(countryData.name);
+          onCountrySelect(countryData.id, countryData.name);
+          setIsLoading(false);
+        } else {
+          // If we only have the name, fetch the ID
+          fetchCountryByName(countryData.name).then(data => {
+            if (data) {
+              setCountryId(data.id);
+              setCountryName(data.name);
+              onCountrySelect(data.id, data.name);
+            }
+            setIsLoading(false);
+          });
+        }
+      } else {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      // If JSON parsing fails, treat it as a plain country name (old format)
+      fetchCountryByName(storedCountry).then(data => {
+        if (data) {
+          setCountryId(data.id);
+          setCountryName(data.name);
+          onCountrySelect(data.id, data.name);
+        }
+        setIsLoading(false);
+      });
+    } finally {
+      // Clear the stored country after attempting to use it
+      sessionStorage.removeItem('lastViewedCountry');
+    }
+  }, [selectedCountry, onCountrySelect]);
 
   // On mount (or when selectedCountry changes), resolve both countryId and countryName
   useEffect(() => {
-    // If selectedCountry is null, reset both
     if (!selectedCountry) {
-      setCountryId(null);
-      setCountryName(null);
       return;
     }
+    
     // If it's already a UUID, we'll assume that
     const isUuid = /^[0-9a-fA-F-]{36}$/.test(selectedCountry);
 
@@ -61,7 +112,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
         if (countryData) setCountryName(countryData.name);
       });
     } else {
-      // Otherwise, look up by name to get the ID. Assumes a service exists.
+      // Otherwise, look up by name to get the ID
       fetchCountryByName(selectedCountry).then(countryData => {
         if (countryData) {
           setCountryId(countryData.id);
@@ -83,17 +134,23 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+      </div>
+    );
+  }
+
   return showCountryDetail && countryId && countryName ? (
     <div>
-     
-
       <CountryDetailCollection 
-          userId={userId} 
-          countryName={countryName}
-          profileView={true}
-          onBackToCountries={onBackToCountries}
-          profileData={profile}
-        />
+        userId={userId} 
+        countryName={countryName}
+        profileView={true}
+        onBackToCountries={onBackToCountries}
+        profileData={profile}
+      />
     </div>
   ) : (
     <CountrySelection 

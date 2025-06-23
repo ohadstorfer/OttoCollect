@@ -43,39 +43,13 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
-  const [filters, setFilters] = useState<DynamicFilterState>({
-    search: "",
-    categories: [],
-    types: [],
-    sort: ["extPick"],
-  });
-  const [activeTab, setActiveTab] = useState<'collection' | 'missing' | 'wishlist'>('collection');
-  const [userCollection, setUserCollection] = useState([]);
-  const [allBanknotes, setAllBanknotes] = useState([]);
-  const [wishlistItems, setWishlistItems] = useState([]);
-  const [wishlistLoading, setWishlistLoading] = useState(false);
   
-  // Use either the prop or the URL param for country name
+  // Define effectiveCountryName first
   const effectiveCountryName = countryName || (country ? decodeURIComponent(country) : "");
   
   // Determine if current user is owner of the collection
   const isOwner = !userId || (user && userId === user.id);
   const effectiveUserId = userId || user?.id;
-  
-  console.log("CountryDetailCollection - isOwner:", isOwner, "userId:", userId, "currentUser:", user?.id);
-  
-
-
-
-
-  useEffect(() => {
-    const handleScroll = () => {
-      sessionStorage.setItem('scrollY', window.scrollY.toString());
-    };
-  
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const {
     countryId,
@@ -88,6 +62,40 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     countryName: effectiveCountryName, 
     navigate 
   });
+  
+  // Then use countryId in handleProfileNavigation after it's defined
+  const handleProfileNavigation = useCallback(() => {
+    if (effectiveCountryName && countryId) {
+      // Store both country name and ID
+      const countryData = {
+        id: countryId,
+        name: effectiveCountryName
+      };
+      sessionStorage.setItem('lastViewedCountry', JSON.stringify(countryData));
+    }
+    navigate(`/profile/${userId || user?.id}`);
+  }, [effectiveCountryName, countryId, userId, user?.id, navigate]);
+  
+  const [filters, setFilters] = useState<DynamicFilterState>({
+    search: "",
+    categories: [],
+    types: [],
+    sort: ["extPick"],
+  });
+  const [activeTab, setActiveTab] = useState<'collection' | 'missing' | 'wishlist'>('collection');
+  const [userCollection, setUserCollection] = useState([]);
+  const [allBanknotes, setAllBanknotes] = useState([]);
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('scrollY', window.scrollY.toString());
+    };
+  
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Add hooks for categories and types
   const { categories: categoryDefs, loading: categoriesLoading } = useCountryCategoryDefs(effectiveCountryName);
@@ -115,8 +123,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     collectionItemId: item.id
   }));
 
-
-  
   const sortedCollectionItems = useBanknoteSorting({
     banknotes: collectionItemsForSorting,
     currencies,
@@ -204,10 +210,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     loadUserCollection();
   }, [countryId, effectiveUserId]);
 
-
-
-
-
   useEffect(() => {
     async function loadAllBanknotes() {
       if (countryId) {
@@ -220,9 +222,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     loadAllBanknotes();
   }, [countryId]);
 
-
-
-  
   const missingBanknotes = useMemo(() => {
     if (!allBanknotes || !userCollection) return [];
     const userCountryCollection = userCollection.filter(

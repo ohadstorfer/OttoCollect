@@ -41,7 +41,6 @@ export const useCollectionItemsFetching = ({
 
     // Skip the initial fetch if requested
     if (skipInitialFetch && lastFetchKey.current === "") {
-      console.log("useCollectionItemsFetching: Skipping initial fetch as requested");
       return;
     }
     
@@ -50,18 +49,15 @@ export const useCollectionItemsFetching = ({
     
     // Skip duplicate fetches with same parameters
     if (fetchKey === lastFetchKey.current) {
-      console.log("useCollectionItemsFetching: Skipping duplicate fetch with same parameters");
       return;
     }
     
     // Skip if already fetching
     if (isFetchingRef.current) {
-      console.log("useCollectionItemsFetching: Fetch already in progress, skipping");
       return;
     }
     
     const fetchCollectionItems = async () => {
-      console.log("useCollectionItemsFetching: Fetching collection items with filters", { countryId, effectiveUserId, filters });
       setLoading(true);
       isFetchingRef.current = true;
 
@@ -105,10 +101,6 @@ export const useCollectionItemsFetching = ({
               .in('id', filters.categories);
             
             categoryNames = (categoryData || []).map(cat => cat.name);
-            console.log("useCollectionItemsFetching: Converted category IDs to names:", { 
-              categoryIds: filters.categories, 
-              categoryNames 
-            });
           } catch (err) {
             console.error("useCollectionItemsFetching: Failed to fetch category names:", err);
           }
@@ -117,11 +109,8 @@ export const useCollectionItemsFetching = ({
         // Apply category filter
         if (categoryNames.length > 0) {
           filteredItems = filteredItems.filter(item => {
-            // The banknote itself carries the category
             const category = item.banknote?.category;
-            const matched = category && categoryNames.includes(category);
-            console.log(`useCollectionItemsFetching: Category filter - item: ${item.id}, banknote category: ${category}, matched: ${matched}`);
-            return matched;
+            return category && categoryNames.includes(category);
           });
         }
         
@@ -135,10 +124,6 @@ export const useCollectionItemsFetching = ({
               .in('id', filters.types);
             
             typeNames = (typeData || []).map(type => type.name);
-            console.log("useCollectionItemsFetching: Converted type IDs to names:", { 
-              typeIds: filters.types, 
-              typeNames 
-            });
           } catch (err) {
             console.error("useCollectionItemsFetching: Failed to fetch type names:", err);
           }
@@ -149,13 +134,8 @@ export const useCollectionItemsFetching = ({
           filteredItems = filteredItems.filter(item => {
             const type = item.banknote?.type;
             
-            // Log more detail to diagnose the issue
-            console.log(`useCollectionItemsFetching: Type filter details - item type: "${type}", available types:`, typeNames);
-            
             // Handle both singular and plural forms by normalizing the comparison
-            // "Issued note" should match "Issued notes"
-            const matched = type && typeNames.some(typeName => {
-              // Remove trailing 's' if exists for comparison
+            return type && typeNames.some(typeName => {
               const normalizedTypeName = typeName.endsWith('s') 
                 ? typeName.slice(0, -1) 
                 : typeName;
@@ -166,13 +146,8 @@ export const useCollectionItemsFetching = ({
               
               return normalizedTypeName.toLowerCase() === normalizedType.toLowerCase();
             });
-            
-            console.log(`useCollectionItemsFetching: Type filter - item: ${item.id}, banknote type: ${type}, matched: ${matched}`);
-            return matched;
           });
         }
-        
-        console.log("useCollectionItemsFetching: After filters applied, items:", filteredItems.length);
         
         // Only update state if component is still mounted
         setCollectionItems(filteredItems);
