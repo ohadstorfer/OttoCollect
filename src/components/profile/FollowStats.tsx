@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getInitials } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import UserProfileLink from '@/components/common/UserProfileLink';
-import { Users, UserPlus, UserMinus } from 'lucide-react';
+import { Users, UserPlus, UserMinus, User } from 'lucide-react';
 
 interface FollowStatsProps {
   profileId: string;
@@ -106,18 +106,18 @@ export function FollowStats({ profileId, isOwnProfile }: FollowStatsProps) {
         <Button
           onClick={handleFollowToggle}
           disabled={followMutation.isPending || unfollowMutation.isPending}
-          variant={stats.isFollowing ? "outline" : "default"}
+          variant={stats.isFollowing ? "default" : "outline"}
           size="sm"
           className="min-w-[100px]"
         >
           {stats.isFollowing ? (
             <>
-              <UserMinus className="h-4 w-4 mr-2" />
-              Unfollow
+              <User className="h-4 w-4 " />
+              following
             </>
           ) : (
             <>
-              <UserPlus className="h-4 w-4 mr-2" />
+              <UserPlus className="h-4 w-4 " />
               Follow
             </>
           )}

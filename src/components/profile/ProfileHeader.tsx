@@ -95,13 +95,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                 <Badge variant="user" rank={userRank} showIcon />
               </div>
 
-              {/* Desktop Follow Stats */}
-              <div className="mb-4">
-                <FollowStats 
-                  profileId={profile.id}
-                  isOwnProfile={!!isOwnProfile}
-                />
-              </div>
+             
 
               <div className="text-sm text-muted-foreground max-w-2xl">
                 {profile.about ? (
@@ -115,6 +109,16 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                   </p>
                 )}
               </div>
+
+               {/* Desktop Follow Stats */}
+               <div className="mb-4">
+                <FollowStats 
+                  profileId={profile.id}
+                  isOwnProfile={!!isOwnProfile}
+                />
+              </div>
+
+              
             </div>
 
             {isOwnProfile ? (
