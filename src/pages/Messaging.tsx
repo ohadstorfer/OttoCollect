@@ -62,17 +62,6 @@ export default function Messaging() {
         <p className="text-muted-foreground mb-4">
           Chat with other collectors, discuss banknotes, and arrange trades or purchases.
         </p>
-
-        {/* Daily activity warning for limited ranks */}
-        {user && isLimitedRank && hasReachedDailyLimit && (
-          <div className="mb-4 text-center">
-            <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 max-w-md mx-auto">
-              <p className="text-red-600 dark:text-red-400 text-sm">
-                You have reached your daily limit of 6 messages.
-              </p>
-            </div>
-          </div>
-        )}
         
         <MessageCenter 
           hasReachedDailyLimit={hasReachedDailyLimit}

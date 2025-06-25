@@ -8,17 +8,20 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, MessageCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { UserRank } from '@/types';
+import { checkUserDailyMessagingLimit } from '@/services/messageService';
 
 interface MessageCenterProps {
   hasReachedDailyLimit?: boolean;
   isLimitedRank?: boolean;
 }
 
-export function MessageCenter({ hasReachedDailyLimit = false, isLimitedRank = false }: MessageCenterProps) {
+export function MessageCenter({ hasReachedDailyLimit: initialHasReachedDailyLimit = false, isLimitedRank = false }: MessageCenterProps) {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   // Default: on desktop, show message panel if there's a selected convo; on mobile, show convo list on initial load
   const [showMessages, setShowMessages] = useState(!isMobile);
+  const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(initialHasReachedDailyLimit);
+  const [dailyCount, setDailyCount] = useState(0);
 
   const { 
     conversations, 
@@ -29,6 +32,23 @@ export function MessageCenter({ hasReachedDailyLimit = false, isLimitedRank = fa
     sendMessage,
     setActiveConversation
   } = useMessages(user?.id);
+
+  // Check daily limit when component mounts or user changes
+  useEffect(() => {
+    const checkDailyLimit = async () => {
+      if (!user || !isLimitedRank) return;
+      
+      try {
+        const { hasReachedLimit, dailyCount: count } = await checkUserDailyMessagingLimit(user.id);
+        setHasReachedDailyLimit(hasReachedLimit);
+        setDailyCount(count);
+      } catch (error) {
+        console.error('Error checking daily messaging limit:', error);
+      }
+    };
+
+    checkDailyLimit();
+  }, [user, isLimitedRank]);
 
   // Sync showMessages with isMobile and activeConversation
   // On mobile: show messages only if a conversation is selected, otherwise show the conversations list
@@ -47,6 +67,25 @@ export function MessageCenter({ hasReachedDailyLimit = false, isLimitedRank = fa
   const handleBackToList = () => {
     setActiveConversation(null);
     setShowMessages(false); // Explicitly show the conversation list again
+  };
+
+  // Enhanced send message handler that rechecks limits
+  const handleSendMessage = async (message: any) => {
+    try {
+      const success = await sendMessage(message);
+      
+      if (success && user && isLimitedRank) {
+        // Recheck daily limit after sending message
+        const { hasReachedLimit, dailyCount: count } = await checkUserDailyMessagingLimit(user.id);
+        setHasReachedDailyLimit(hasReachedLimit);
+        setDailyCount(count);
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      return false;
+    }
   };
 
   // Find active conversation recipient data
@@ -106,7 +145,7 @@ export function MessageCenter({ hasReachedDailyLimit = false, isLimitedRank = fa
               recipientId={activeConversation}
               recipientData={typedRecipientData}
               isLoading={isLoading}
-              onSendMessage={sendMessage}
+              onSendMessage={handleSendMessage}
               hasReachedDailyLimit={hasReachedDailyLimit}
               isLimitedRank={isLimitedRank}
             />

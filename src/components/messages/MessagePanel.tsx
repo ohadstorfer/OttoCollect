@@ -3,10 +3,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { Send } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Message, User } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 interface MessagePanelProps {
   messages?: Message[];
@@ -32,9 +33,12 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
   isLimitedRank = false
 }) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     if (messages && messages.length > 0) {
@@ -43,6 +47,15 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
       fetchMessages();
     }
   }, [messages, currentUserId, recipientId, onSendMessage]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [localMessages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const fetchMessages = async () => {
     if (!user || !recipientId) return;
@@ -78,41 +91,90 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     
     // Check if user has reached daily limit
     if (isLimitedRank && hasReachedDailyLimit) {
+      toast({
+        title: "Daily Limit Reached",
+        description: "You have reached your daily limit of 6 messages.",
+        variant: "destructive"
+      });
       return;
     }
     
     const userId = currentUserId || user?.id;
     if (!userId) return;
 
-    if (onSendMessage) {
-      await onSendMessage({
-        sender_id: userId,
-        receiver_id: recipientId || '',
-        content: newMessage.trim(),
-        isRead: false,
-        reference_item_id: referenceItemId,
-        created_at: new Date().toISOString()
-      });
-      setNewMessage('');
-    } else {
-      const messageData = {
-        sender_id: userId,
-        receiver_id: recipientId || '',
-        content: newMessage.trim(),
-        is_read: false,
-        reference_item_id: referenceItemId || null,
-      };
-
-      const { error } = await supabase
-        .from('messages')
-        .insert([messageData]);
-
-      if (error) {
-        console.error('Error sending message:', error);
+    setIsSending(true);
+    const messageContent = newMessage.trim();
+    setNewMessage(''); // Clear input immediately for better UX
+    
+    try {
+      if (onSendMessage) {
+        const success = await onSendMessage({
+          sender_id: userId,
+          receiver_id: recipientId || '',
+          content: messageContent,
+          isRead: false,
+          reference_item_id: referenceItemId,
+          created_at: new Date().toISOString()
+        });
+        
+        if (!success) {
+          // Restore message if failed
+          setNewMessage(messageContent);
+          toast({
+            title: "Failed to Send",
+            description: "Your message could not be sent. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          // Focus back to input for continued typing
+          setTimeout(() => inputRef.current?.focus(), 100);
+        }
       } else {
-        setNewMessage('');
-        fetchMessages();
+        const messageData = {
+          sender_id: userId,
+          receiver_id: recipientId || '',
+          content: messageContent,
+          is_read: false,
+          reference_item_id: referenceItemId || null,
+        };
+
+        const { error } = await supabase
+          .from('messages')
+          .insert([messageData]);
+
+        if (error) {
+          console.error('Error sending message:', error);
+          // Restore message if failed
+          setNewMessage(messageContent);
+          toast({
+            title: "Failed to Send",
+            description: "Your message could not be sent. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          fetchMessages();
+          // Focus back to input for continued typing
+          setTimeout(() => inputRef.current?.focus(), 100);
+        }
       }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Restore message if failed
+      setNewMessage(messageContent);
+      toast({
+        title: "Failed to Send",
+        description: "Your message could not be sent. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
@@ -156,7 +218,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
                 <div key={message.id} className="mb-4">
                   {(message.sender_id === effectiveUserId || message.senderId === effectiveUserId) ? (
                     <div className="flex justify-end">
-                      <div className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%]">
+                      <div className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%] break-words">
                         <div>{message.content}</div>
                         <div className="text-xs opacity-70 text-right mt-1">
                           {formatDate(message)}
@@ -165,7 +227,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
                     </div>
                   ) : (
                     <div className="flex justify-start">
-                      <div className="bg-muted p-3 rounded-lg max-w-[80%]">
+                      <div className="bg-muted p-3 rounded-lg max-w-[80%] break-words">
                         <div>{message.content}</div>
                         <div className="text-xs opacity-70 mt-1">
                           {formatDate(message)}
@@ -193,22 +255,25 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
 
             <div className="flex items-center space-x-2">
               <Input
+                ref={inputRef}
                 type="text"
                 placeholder="Enter your message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSendMessage();
-                  }
-                }}
+                onKeyDown={handleKeyPress}
                 disabled={isLimitedRank && hasReachedDailyLimit}
+                className="flex-1"
               />
               <Button 
                 onClick={handleSendMessage}
-                disabled={isLimitedRank && hasReachedDailyLimit}
+                disabled={(isLimitedRank && hasReachedDailyLimit) || isSending || !newMessage.trim()}
+                size="icon"
               >
-                <Send className="h-4 w-4 mr-2" />Send
+                {isSending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
