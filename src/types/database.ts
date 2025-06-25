@@ -1,3 +1,4 @@
+
 export interface Database {
   public: {
     Tables: {
@@ -49,6 +50,23 @@ export interface Database {
           updated_at?: string;
           blocked?: boolean;
           is_forum_blocked?: boolean;
+        };
+      };
+      followers: {
+        Row: {
+          follower_id: string;
+          following_id: string;
+          created_at: string;
+        };
+        Insert: {
+          follower_id: string;
+          following_id: string;
+          created_at?: string;
+        };
+        Update: {
+          follower_id?: string;
+          following_id?: string;
+          created_at?: string;
         };
       };
     };

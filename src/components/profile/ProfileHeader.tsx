@@ -1,3 +1,4 @@
+
 import React from "react";
 import { User, UserRank } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -9,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import { SendMessage } from "@/components/messages/SendMessage";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { FollowStats } from "./FollowStats";
 
 interface ProfileHeaderProps {
   profile: User;
@@ -38,9 +40,6 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
 
   return (
     <div>
-      {/* Mobile Edit Button - Show above card on mobile only */}
-     
-
       <Card className="overflow-hidden shadow-lg">
         <div className="p-2">
           {/* Mobile View */}
@@ -67,7 +66,13 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
               </div>
             </div>
 
-            
+            {/* Mobile Follow Stats */}
+            <div className="mt-4 pt-4 border-t">
+              <FollowStats 
+                profileId={profile.id}
+                isOwnProfile={!!isOwnProfile}
+              />
+            </div>
           </div>
 
           {/* Desktop View */}
@@ -88,6 +93,14 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                   {profile.username}
                 </h1>
                 <Badge variant="user" rank={userRank} showIcon />
+              </div>
+
+              {/* Desktop Follow Stats */}
+              <div className="mb-4">
+                <FollowStats 
+                  profileId={profile.id}
+                  isOwnProfile={!!isOwnProfile}
+                />
               </div>
 
               <div className="text-sm text-muted-foreground max-w-2xl">

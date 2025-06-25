@@ -570,6 +570,39 @@ export type Database = {
         }
         Relationships: []
       }
+      followers: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followers_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followers_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forum_comments: {
         Row: {
           author_id: string
@@ -1571,6 +1604,14 @@ export type Database = {
           username: string
         }
       }
+      get_followers_count: {
+        Args: { user_id: string }
+        Returns: number
+      }
+      get_following_count: {
+        Args: { user_id: string }
+        Returns: number
+      }
       get_user_daily_forum_activity_count: {
         Args: { user_id_param: string }
         Returns: number
@@ -1581,6 +1622,10 @@ export type Database = {
       }
       is_country_admin: {
         Args: { user_uuid: string; country_uuid: string }
+        Returns: boolean
+      }
+      is_following: {
+        Args: { follower_user_id: string; following_user_id: string }
         Returns: boolean
       }
       is_super_admin: {
