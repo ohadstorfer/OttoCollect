@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PenSquare, Search, ArrowLeft } from 'lucide-react';
 import ForumPostCard from '@/components/forum/ForumPostCard';
-import { fetchForumPosts } from '@/services/forumService';
+import { fetchForumPosts, checkUserDailyForumLimit } from '@/services/forumService';
 import { ForumPost } from '@/types/forum';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from "@/context/ThemeContext";
@@ -31,6 +31,11 @@ const Forum = () => {
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false);
+  const [dailyCount, setDailyCount] = useState(0);
+
+  // Check if user is in limited ranks
+  const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -70,6 +75,22 @@ const Forum = () => {
     checkUserBlockStatus();
   }, [user]);
 
+  useEffect(() => {
+    const checkDailyLimit = async () => {
+      if (!user || !isLimitedRank) return;
+      
+      try {
+        const { hasReachedLimit, dailyCount: count } = await checkUserDailyForumLimit(user.id);
+        setHasReachedDailyLimit(hasReachedLimit);
+        setDailyCount(count);
+      } catch (error) {
+        console.error('Error checking daily limit:', error);
+      }
+    };
+
+    checkDailyLimit();
+  }, [user, isLimitedRank]);
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
@@ -95,7 +116,6 @@ const Forum = () => {
 
   return (
     <div>
-
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden`}>
         <div className="absolute inset-0 -z-10">
           <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${theme === 'light'
@@ -124,15 +144,8 @@ const Forum = () => {
           </p>
       </section>
 
-
       <div className="page-container">
-
-
-
-
         <div className="max-w-4xl mx-auto">
-
-
           <Tabs defaultValue="all" className="mb-10">
             <div className="flex items-center justify-center gap-2 sm:gap-4">
               <TabsList className="shrink-0">
@@ -153,7 +166,7 @@ const Forum = () => {
                 />
               </div>
 
-              {user && !isUserBlocked && (
+              {user && !isUserBlocked && !hasReachedDailyLimit && (
                 <Button
                   onClick={handleCreatePost}
                   className="flex-shrink-0 px-2 sm:px-4"
@@ -170,10 +183,32 @@ const Forum = () => {
                   Blocked
                 </div>
               )}
+
+              {user && hasReachedDailyLimit && (
+                <div className="text-yellow-600 text-xs sm:text-sm">
+                  Daily Limit Reached
+                </div>
+              )}
             </div>
 
-
-
+            {/* Daily activity warning for limited ranks */}
+            {user && isLimitedRank && (
+              <div className="mt-4 text-center">
+                {hasReachedDailyLimit ? (
+                  <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 max-w-md mx-auto">
+                    <p className="text-red-600 dark:text-red-400 text-sm">
+                      You have reached your daily limit of 6 forum activities (posts + comments).
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded-md border border-yellow-200 dark:border-yellow-800 max-w-md mx-auto">
+                    <p className="text-yellow-600 dark:text-yellow-400 text-sm">
+                      Daily forum activity: {dailyCount}/6 (posts + comments)
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             <TabsContent value="all" className="mt-8">
               {loading ? (

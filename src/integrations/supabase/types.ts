@@ -1568,6 +1568,10 @@ export type Database = {
           username: string
         }
       }
+      get_user_daily_forum_activity_count: {
+        Args: { user_id_param: string }
+        Returns: number
+      }
       is_country_admin: {
         Args: { user_uuid: string; country_uuid: string }
         Returns: boolean
@@ -1589,6 +1593,10 @@ export type Database = {
           suffix_num: number
           trailing_text: string
         }[]
+      }
+      user_has_reached_daily_forum_limit: {
+        Args: { user_id_param: string }
+        Returns: boolean
       }
     }
     Enums: {

@@ -2,6 +2,43 @@ import { supabase } from '@/integrations/supabase/client';
 import { ForumPost, ForumComment } from '@/types/forum';
 
 /**
+ * Check if user has reached daily forum activity limit
+ */
+export const checkUserDailyForumLimit = async (userId: string): Promise<{ hasReachedLimit: boolean; dailyCount: number }> => {
+  try {
+    console.log("Checking user daily forum limit for user:", userId);
+    
+    // Call the database function to check if user has reached limit
+    const { data: limitData, error: limitError } = await supabase
+      .rpc('user_has_reached_daily_forum_limit', { user_id_param: userId });
+
+    if (limitError) {
+      console.error('Error checking daily forum limit:', limitError);
+      return { hasReachedLimit: false, dailyCount: 0 };
+    }
+
+    // Get the daily activity count
+    const { data: countData, error: countError } = await supabase
+      .rpc('get_user_daily_forum_activity_count', { user_id_param: userId });
+
+    if (countError) {
+      console.error('Error getting daily activity count:', countError);
+      return { hasReachedLimit: limitData || false, dailyCount: 0 };
+    }
+
+    console.log("Daily forum limit check result:", { hasReachedLimit: limitData, dailyCount: countData });
+    
+    return {
+      hasReachedLimit: limitData || false,
+      dailyCount: countData || 0
+    };
+  } catch (error) {
+    console.error('Error in checkUserDailyForumLimit:', error);
+    return { hasReachedLimit: false, dailyCount: 0 };
+  }
+};
+
+/**
  * Fetch all forum posts
  */
 export const fetchForumPosts = async (): Promise<ForumPost[]> => {
