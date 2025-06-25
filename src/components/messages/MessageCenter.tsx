@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import useMessages from '@/hooks/use-messages';
 import { useAuth } from '@/context/AuthContext';
@@ -8,7 +9,12 @@ import { ChevronLeft, MessageCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { UserRank } from '@/types';
 
-export function MessageCenter() {
+interface MessageCenterProps {
+  hasReachedDailyLimit?: boolean;
+  isLimitedRank?: boolean;
+}
+
+export function MessageCenter({ hasReachedDailyLimit = false, isLimitedRank = false }: MessageCenterProps) {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   // Default: on desktop, show message panel if there's a selected convo; on mobile, show convo list on initial load
@@ -101,6 +107,8 @@ export function MessageCenter() {
               recipientData={typedRecipientData}
               isLoading={isLoading}
               onSendMessage={sendMessage}
+              hasReachedDailyLimit={hasReachedDailyLimit}
+              isLimitedRank={isLimitedRank}
             />
           </div>
         )}

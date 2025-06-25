@@ -1,15 +1,37 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { MessageCenter } from "@/components/messages/MessageCenter";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { checkUserDailyMessagingLimit } from "@/services/messageService";
 
 export default function Messaging() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false);
+  const [dailyCount, setDailyCount] = useState(0);
+
+  // Check if user is in limited ranks
+  const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
+
+  useEffect(() => {
+    const checkDailyLimit = async () => {
+      if (!user || !isLimitedRank) return;
+      
+      try {
+        const { hasReachedLimit, dailyCount: count } = await checkUserDailyMessagingLimit(user.id);
+        setHasReachedDailyLimit(hasReachedLimit);
+        setDailyCount(count);
+      } catch (error) {
+        console.error('Error checking daily messaging limit:', error);
+      }
+    };
+
+    checkDailyLimit();
+  }, [user, isLimitedRank]);
 
   if (!user) {
     return (
@@ -40,8 +62,22 @@ export default function Messaging() {
         <p className="text-muted-foreground mb-4">
           Chat with other collectors, discuss banknotes, and arrange trades or purchases.
         </p>
+
+        {/* Daily activity warning for limited ranks */}
+        {user && isLimitedRank && hasReachedDailyLimit && (
+          <div className="mb-4 text-center">
+            <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 max-w-md mx-auto">
+              <p className="text-red-600 dark:text-red-400 text-sm">
+                You have reached your daily limit of 6 messages.
+              </p>
+            </div>
+          </div>
+        )}
         
-        <MessageCenter />
+        <MessageCenter 
+          hasReachedDailyLimit={hasReachedDailyLimit}
+          isLimitedRank={isLimitedRank}
+        />
       </div>
     </div>
   );

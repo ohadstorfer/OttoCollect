@@ -16,6 +16,8 @@ interface MessagePanelProps {
   isLoading?: boolean;
   onSendMessage?: (message: Omit<Message, 'id' | 'createdAt'>) => Promise<boolean>;
   referenceItemId?: string;
+  hasReachedDailyLimit?: boolean;
+  isLimitedRank?: boolean;
 }
 
 const MessagePanel: React.FC<MessagePanelProps> = ({ 
@@ -25,7 +27,9 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
   recipientData,
   isLoading = false,
   onSendMessage,
-  referenceItemId 
+  referenceItemId,
+  hasReachedDailyLimit = false,
+  isLimitedRank = false
 }) => {
   const { user } = useAuth();
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
@@ -71,6 +75,12 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
 
   const handleSendMessage = async () => {
     if ((!user && !currentUserId) || !newMessage.trim() || (!recipientId && !onSendMessage)) return;
+    
+    // Check if user has reached daily limit
+    if (isLimitedRank && hasReachedDailyLimit) {
+      return;
+    }
+    
     const userId = currentUserId || user?.id;
     if (!userId) return;
 
@@ -170,6 +180,17 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
           </div>
 
           <div className="p-4 border-t bg-card flex-shrink-0">
+            {/* Daily activity warning for limited ranks */}
+            {isLimitedRank && hasReachedDailyLimit && (
+              <div className="mb-4 text-center">
+                <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
+                  <p className="text-red-600 dark:text-red-400 text-sm">
+                    You have reached your daily limit of 6 messages.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center space-x-2">
               <Input
                 type="text"
@@ -181,8 +202,14 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
                     handleSendMessage();
                   }
                 }}
+                disabled={isLimitedRank && hasReachedDailyLimit}
               />
-              <Button onClick={handleSendMessage}><Send className="h-4 w-4 mr-2" />Send</Button>
+              <Button 
+                onClick={handleSendMessage}
+                disabled={isLimitedRank && hasReachedDailyLimit}
+              >
+                <Send className="h-4 w-4 mr-2" />Send
+              </Button>
             </div>
           </div>
         </>
@@ -192,5 +219,3 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
 };
 
 export default MessagePanel;
-
-// ... end of file
