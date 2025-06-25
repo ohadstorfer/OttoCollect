@@ -42,6 +42,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import { Textarea } from "@/components/ui/textarea";
 import { getGradeDescription } from '@/utils/grading';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
+import { useAuth } from "@/context/AuthContext";
 
 interface AddUnlistedBanknoteDialogProps {
   userId: string;
@@ -91,8 +92,10 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   userId, countryName, onCreated
 }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
 
   const [obverseImageFile, setObverseImageFile] = useState<File | null>(null);
   const [reverseImageFile, setReverseImageFile] = useState<File | null>(null);
@@ -911,7 +914,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                   <div className="w-full h-px bg-muted" />
                 </div>
 
-                {/* For Sale Switch */}
+                {/* For Sale Toggle */}
                 <FormField
                   control={form.control}
                   name="isForSale"
@@ -920,13 +923,17 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">For Sale</FormLabel>
                         <FormDescription>
-                          Mark this banknote as available for sale
+                          {isLimitedRank 
+                            ? "Your rank is not sufficient to list items for sale. Upgrade your rank to unlock this feature."
+                            : "Make this banknote available for sale in the marketplace"}
                         </FormDescription>
                       </div>
                       <FormControl>
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={isLimitedRank}
+                          aria-readonly={isLimitedRank}
                         />
                       </FormControl>
                     </FormItem>

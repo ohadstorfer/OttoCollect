@@ -454,6 +454,7 @@ export default function CollectionItemUnlisted() {
         onClose={() => setIsEditDialogOpen(false)}
         onUpdate={handleUpdateSuccess}
         collectionItem={collectionItem}
+        user={user}
       />
 
       {/* Delete Confirmation Dialog */}

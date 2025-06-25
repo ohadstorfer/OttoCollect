@@ -25,6 +25,7 @@ import { useCountryCategoryDefs } from '@/hooks/useCountryCategoryDefs';
 import { useCountryTypeDefs } from '@/hooks/useCountryTypeDefs';
 import { getGradeDescription } from '@/utils/grading';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
+import { useAuth } from '@/context/AuthContext';
 
 const formSchema = z.object({
   // CollectionItem fields
@@ -107,6 +108,7 @@ export default function EditUnlistedBanknoteDialog({
   collectionItem
 }: EditUnlistedBanknoteDialogProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [obverseImageFile, setObverseImageFile] = useState<File | null>(null);
   const [reverseImageFile, setReverseImageFile] = useState<File | null>(null);
@@ -126,6 +128,8 @@ export default function EditUnlistedBanknoteDialog({
   const { currencies, loading: loadingCurrencies } = useCountryCurrencies(collectionItem.banknote?.country || '');
   const { categories, loading: loadingCategories } = useCountryCategoryDefs(collectionItem.banknote?.country || '');
   const { types, loading: loadingTypes } = useCountryTypeDefs(collectionItem.banknote?.country || '');
+
+  const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -938,7 +942,7 @@ export default function EditUnlistedBanknoteDialog({
                   )}
                 />
 
-                {/* For Sale Toggle */}
+                {/* For Sale Switch */}
                 <FormField
                   control={form.control}
                   name="isForSale"
@@ -947,13 +951,17 @@ export default function EditUnlistedBanknoteDialog({
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">For Sale</FormLabel>
                         <FormDescription>
-                          Mark this banknote as available for sale
+                          {isLimitedRank 
+                            ? "Your rank is not sufficient to list items for sale. Upgrade your rank to unlock this feature."
+                            : "Make this banknote available for sale in the marketplace"}
                         </FormDescription>
                       </div>
                       <FormControl>
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={isLimitedRank}
+                          aria-readonly={isLimitedRank}
                         />
                       </FormControl>
                     </FormItem>

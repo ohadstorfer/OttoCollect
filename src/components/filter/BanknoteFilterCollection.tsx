@@ -55,7 +55,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   onBackToCountries
 }) => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user: authUser } = useAuth();
   const [categories, setCategories] = useState<FilterOption[]>([]);
   const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
@@ -154,9 +154,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         setSortOptions(mappedSortOptions);
         
         let userPreferences = null;
-        if (user) {
+        if (authUser) {
           try {
-            userPreferences = await fetchUserFilterPreferences(user.id, countryId);
+            userPreferences = await fetchUserFilterPreferences(authUser.id, countryId);
             console.log("BanknoteFilterCollection: User preferences loaded", userPreferences);
             
             // Set group mode if it's defined in preferences, but only during initial load
@@ -251,7 +251,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
 
     loadFilterOptionsAndPreferences();
     // groupMode is NOT included in the dependency array because it would cause infinite loops
-  }, [countryId, user, onFilterChange, toast, onGroupModeChange, onPreferencesLoaded]); // groupMode removed from dependencies
+  }, [countryId, authUser, onFilterChange, toast, onGroupModeChange, onPreferencesLoaded]); // groupMode removed from dependencies
 
   const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
@@ -275,7 +275,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     }
 
     // Save user preferences automatically with each change
-    if (user?.id) {
+    if (authUser?.id) {
       console.log("BanknoteFilterCollection: Auto-saving filter preferences");
       const sortOptionIds = newFilters.sort
         ? newFilters.sort
@@ -292,7 +292,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
             .filter(Boolean) as string[];
 
       saveUserFilterPreferences(
-        user.id,
+        authUser.id,
         countryId,
         newFilters.categories || currentFilters.categories || [],
         newFilters.types || currentFilters.types || [],
@@ -304,7 +304,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     }
     
     onFilterChange(newFilters);
-  }, [onFilterChange, sortOptions, user, countryId, currentFilters, groupMode]);
+  }, [onFilterChange, sortOptions, authUser, countryId, currentFilters, groupMode]);
   
   const handleViewModeChange = React.useCallback((mode: 'grid' | 'list') => {
     setViewMode(mode);
@@ -324,7 +324,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     if (mode === groupMode) return;
     
     // Save group mode preference if user is logged in
-    if (user?.id) {
+    if (authUser?.id) {
       console.log("BanknoteFilterCollection: Saving group mode preference:", mode);
       
       // Get current sort option IDs
@@ -337,7 +337,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       
       // Save all preferences including group mode
       saveUserFilterPreferences(
-        user.id,
+        authUser.id,
         countryId,
         currentFilters.categories || [],
         currentFilters.types || [],
@@ -358,7 +358,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     if (onGroupModeChange) {
       onGroupModeChange(mode);
     }
-  }, [onGroupModeChange, groupMode, user, countryId, currentFilters.categories, currentFilters.sort, currentFilters.types, sortOptions]);
+  }, [onGroupModeChange, groupMode, authUser, countryId, currentFilters.categories, currentFilters.sort, currentFilters.types, sortOptions]);
 
   return (
     <div className={cn(

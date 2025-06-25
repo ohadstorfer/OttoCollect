@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { addToCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -39,6 +40,7 @@ const BanknoteDetailCard = ({
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
 
   // Toast window state: track shown toast's ID to programmatically dismiss it
@@ -65,7 +67,13 @@ const BanknoteDetailCard = ({
     '| banknote id:', banknote?.id
   );
 
-  const handleCardClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.stopPropagation();
+      setShowAuthDialog(true);
+      return;
+    }
+    
     if (countryId) setNavigatingToDetail(banknote.id);
     if (source === 'catalog') {
       navigate(`/catalog-banknote/${banknote.id}`);
@@ -148,8 +156,12 @@ const BanknoteDetailCard = ({
     setShowOwnershipToast(false);
   };
 
-  const handleAddButtonClick = (e: React.MouseEvent) => {
+  const handleAddButtonClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
     createCollectionItem(e);
   };
 
@@ -334,6 +346,25 @@ const BanknoteDetailCard = ({
             </div>
           </div>
         </Card>
+
+        <AuthRequiredDialog 
+          open={showAuthDialog} 
+          onOpenChange={setShowAuthDialog}
+          title="Join Our Community"
+          description="Get full access to our extensive Ottoman banknote catalog and collection features."
+          features={[
+            {
+              icon: <Eye className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
+              title: "View Detailed Information",
+              description: "Access complete banknote details, high-resolution images, and historical data"
+            },
+            {
+              icon: <Plus className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
+              title: "Build Your Collection",
+              description: "Create and manage your personal banknote collection"
+            }
+          ]}
+        />
       </>
     );
   }
@@ -435,6 +466,25 @@ const BanknoteDetailCard = ({
           </div>
         </div>
       </Card>
+
+      <AuthRequiredDialog 
+        open={showAuthDialog} 
+        onOpenChange={setShowAuthDialog}
+        title="Join Our Community"
+        description="Get full access to our extensive Ottoman banknote catalog and collection features."
+        features={[
+          {
+            icon: <Eye className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
+            title: "View Detailed Information",
+            description: "Access complete banknote details, high-resolution images, and historical data"
+          },
+          {
+            icon: <Plus className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
+            title: "Build Your Collection",
+            description: "Create and manage your personal banknote collection"
+          }
+        ]}
+      />
     </>
   );
 };

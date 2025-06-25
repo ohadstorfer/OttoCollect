@@ -18,6 +18,7 @@ import { DynamicFilterState } from '@/types/filter';
 import { useDynamicFilter } from '@/hooks/use-dynamic-filter';
 import { updateCollectionItem } from '@/services/collectionService';
 import { Dialog, DialogContentWithScroll } from '@/components/ui/dialog';
+import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
 
 const Collection = () => {
   const { user } = useAuth();
@@ -33,6 +34,14 @@ const Collection = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [groupMode, setGroupMode] = useState(false);
   const [country, setCountry] = useState<CountryData | null>(null);
+  const [activeTab, setActiveTab] = useState<'collection' | 'wishlist' | 'missing'>('collection');
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [profileUser, setProfileUser] = useState<{
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank?: string;
+  } | null>(null);
   
   // Collection data for filtering
   const [collectionCategories, setCollectionCategories] = useState<
@@ -241,6 +250,18 @@ const Collection = () => {
     collectionTypes: collectionTypes
   });
 
+  const handlePreferencesLoaded = () => {
+    // Handle preferences loaded
+  };
+
+  const handleTabChange = (tab: 'collection' | 'wishlist' | 'missing') => {
+    setActiveTab(tab);
+  };
+
+  const handleBackToCountries = () => {
+    navigate('/collection');
+  };
+
   return (
     <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -281,17 +302,22 @@ const Collection = () => {
       )}
       
       <div className="bg-card border rounded-lg p-6 mb-6">
-        <CountryFilterSection
-          countryId={countryId || ""}
-          filters={currentFilters}
+        <BanknoteFilterCollection
+          countryId={countryId || ''}
+          countryName={country?.name || ''}
           onFilterChange={handleFilterChange}
-          isLoading={loading || filterLoading}
+          currentFilters={currentFilters}
+          isLoading={loading}
           onViewModeChange={handleViewModeChange}
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
-          source="collection"
-          collectionCategories={collectionCategories}
-          collectionTypes={collectionTypes}
+          onPreferencesLoaded={handlePreferencesLoaded}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          isOwner={isOwnProfile}
+          profileUser={profileUser}
+          onBackToCountries={handleBackToCountries}
+          user={user}
         />
         
         <div className="mt-6">

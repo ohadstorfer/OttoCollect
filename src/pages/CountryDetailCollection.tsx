@@ -17,6 +17,7 @@ import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
 import { fetchUserWishlistByCountry } from '@/services/wishlistService';
 import BanknoteDetailCardWishList from '@/components/banknotes/BanknoteDetailCardWishList';
+import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
 
 interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
@@ -490,22 +491,22 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 )}
 
       <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
-        <CountryFilterSection
+        <BanknoteFilterCollection
           countryId={countryId}
-          countryName={effectiveCountryName}
-          filters={filters}
+          countryName={country?.name || ''}
           onFilterChange={handleFilterChange}
+          currentFilters={filters}
           isLoading={isLoading}
           onViewModeChange={handleViewModeChange}
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
+          onPreferencesLoaded={handlePreferencesLoaded}
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          source="collection"
-          onPreferencesLoaded={handlePreferencesLoaded}
           isOwner={isOwner}
           profileUser={profileData}
           onBackToCountries={onBackToCountries}
+          user={user}
         />
 
         {/* Conditionally render content based on activeTab */}

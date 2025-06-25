@@ -1,12 +1,23 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarketplaceItem as MarketplaceItemType, UserRank } from "@/types";
-import { Eye, MessageCircle } from "lucide-react";
+import { Eye, MessageCircle, LogIn, ShoppingBag, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ContactSellerButton } from "@/components/marketplace/ContactSellerButton";
+import { useAuth } from "@/context/AuthContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 
 interface MarketplaceItemProps {
   item: MarketplaceItemType;
@@ -16,7 +27,9 @@ interface MarketplaceItemProps {
 const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   console.log('Rendering MarketplaceItem component with item:', item.id);
   const [isHovering, setIsHovering] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const { collectionItem, seller, status } = item;
   
@@ -36,8 +49,17 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const { banknote, condition, salePrice, publicNote } = collectionItem;
   
   const handleViewDetails = () => {
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
     console.log(`Navigating to marketplace item detail: ${item.id}`);
     navigate(`/marketplace/${item.id}`);
+  };
+  
+  const handleAuthNavigate = () => {
+    setShowAuthDialog(false);
+    navigate('/auth');
   };
   
   const getStatusBadge = () => {
@@ -67,88 +89,93 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   console.log('Display image:', displayImage);
   
   return (
-    <Card 
-      className={cn(
-        "ottoman-card overflow-hidden transition-all duration-300 animated-card", 
-        isHovering ? "shadow-lg shadow-ottoman-800/30" : "",
-        className
-      )}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-      onClick={handleViewDetails}
-    >
-      <div className="relative">
-        <div className = "w-full h-full object-cover">
-          <img
-            src={displayImage}
-            alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-            className={cn(
-              "w-full h-full object-cover transition-transform duration-500",
-              isHovering ? "scale-110" : "scale-100"
-            )}
-          />
-        </div>
-        
-        <div className="absolute top-0 left-0 bg-ottoman-600/90 text-white px-3 py-1 flex items-center font-semibold">
-          ${salePrice}
-        </div>
-        
-        <div className="absolute top-2 right-2">
-          {getStatusBadge()}
-        </div>
-      </div>
-      
-      <CardHeader className="pt-2.5 pb-0 px-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-lg font-serif font-semibold text-parchment-500">
-              {banknote.denomination}
-            </h3>
-            <p className="text-sm text-ottoman-300">
-              {banknote.country}, {banknote.year}
-            </p>
-          </div>
-          <div className="self-start">
-            {collectionItem.condition && !collectionItem.grade && (
-              <Badge variant="secondary">
-                {collectionItem.condition}
-              </Badge>
-            )}
-            {collectionItem.grade && (
-              <Badge variant="secondary">
-                {collectionItem.grade_by && `${collectionItem.grade_by} `}
-                {collectionItem.grade}
-               
-              </Badge>
-            )}
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="pt-0 pb-1 px-4">
-        {publicNote && (
-          <p className="text-sm text-ottoman-200 line-clamp-2 mb-2">
-            {publicNote}
-          </p>
+    <>
+      <Card 
+        className={cn(
+          "ottoman-card overflow-hidden transition-all duration-300 animated-card", 
+          isHovering ? "shadow-lg shadow-ottoman-800/30" : "",
+          className
         )}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        onClick={handleViewDetails}
+      >
+        <div className="relative">
+          <div className = "w-full h-full object-cover">
+            <img
+              src={displayImage}
+              alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
+              className={cn(
+                "w-full h-full object-cover transition-transform duration-500",
+                isHovering ? "scale-110" : "scale-100"
+              )}
+            />
+          </div>
+          
+          <div className="absolute top-0 left-0 bg-ottoman-600/90 text-white px-3 py-1 flex items-center font-semibold">
+            ${salePrice}
+          </div>
+          
+          <div className="absolute top-2 right-2">
+            {getStatusBadge()}
+          </div>
+        </div>
         
-        {seller && (
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-xs text-ottoman-400">Seller:</span>
-            <div className="flex items-center gap-1">
-              <span className="text-sm text-ottoman-200">{seller.username}</span>
-              <Badge variant="user" rank={sellerRank} className="ml-1" />
+        <CardHeader className="pt-2.5 pb-0 px-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-serif font-semibold text-parchment-500">
+                {banknote.denomination}
+              </h3>
+              <p className="text-sm text-ottoman-300">
+                {banknote.country}, {banknote.year}
+              </p>
+            </div>
+            <div className="self-start">
+              {collectionItem.condition && !collectionItem.grade && (
+                <Badge variant="secondary">
+                  {collectionItem.condition}
+                </Badge>
+              )}
+              {collectionItem.grade && (
+                <Badge variant="secondary">
+                  {collectionItem.grade_by && `${collectionItem.grade_by} `}
+                  {collectionItem.grade}
+                 
+                </Badge>
+              )}
             </div>
           </div>
-        )}
-      </CardContent>
-      
-      <CardFooter className="pt-2 pb-0 px-4 flex justify-between">
+        </CardHeader>
         
+        <CardContent className="pt-0 pb-1 px-4">
+          {publicNote && (
+            <p className="text-sm text-ottoman-200 line-clamp-2 mb-2">
+              {publicNote}
+            </p>
+          )}
+          
+          {seller && (
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-xs text-ottoman-400">Seller:</span>
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-ottoman-200">{seller.username}</span>
+                <Badge variant="user" rank={sellerRank} className="ml-1" />
+              </div>
+            </div>
+          )}
+        </CardContent>
+        
+        <CardFooter className="pt-2 pb-0 px-4 flex justify-between">
+          <ContactSellerButton item={item} />
+        </CardFooter>
+      </Card>
 
-        <ContactSellerButton item={item} />
-      </CardFooter>
-    </Card>
+      <AuthRequiredDialog 
+        open={showAuthDialog} 
+        onOpenChange={setShowAuthDialog}
+      />
+    </>
   );
 };
 

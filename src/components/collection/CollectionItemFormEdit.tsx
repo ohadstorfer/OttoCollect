@@ -83,7 +83,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   // Use collectionItem prop if provided, otherwise use item
   const currentItem = collectionItem || item;
 
-  const { user } = useAuth();
+  const { user: authUser } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -126,6 +126,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       thumbnail: currentItem.reverse_image_thumbnail || ''
     } : null
   );
+
+  const isLimitedRank = authUser ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(authUser.rank || '') : false;
 
   // Initialize form with existing values if editing
   const form = useForm<z.infer<typeof formSchema>>({
@@ -261,30 +263,17 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!user?.id) {
+    if (!authUser?.id) {
       toast({
         title: "Authentication Error",
-        description: "You must be logged in to save collection items.",
-        variant: "destructive",
+        description: "You must be logged in to perform this action.",
+        variant: "destructive"
       });
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      let obverseImages = obverseImageVersions;
-      let reverseImages = reverseImageVersions;
-
-      // Upload new images if provided
-      if (obverseImageFile) {
-        obverseImages = await uploadCollectionImage(obverseImageFile);
-      }
-
-      if (reverseImageFile) {
-        reverseImages = await uploadCollectionImage(reverseImageFile);
-      }
-
       // Handle grading vs condition
       let condition = undefined;
       let grade = undefined;
@@ -319,59 +308,33 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         private_note: values.privateNote || null,
         is_for_sale: values.isForSale,
         sale_price: salePrice,
-        obverse_image: obverseImages?.original || null,
-        obverse_image_watermarked: obverseImages?.watermarked || null,
-        obverse_image_thumbnail: obverseImages?.thumbnail || null,
-        reverse_image: reverseImages?.original || null,
-        reverse_image_watermarked: reverseImages?.watermarked || null,
-        reverse_image_thumbnail: reverseImages?.thumbnail || null,
       };
 
-      if (currentItem?.id) {
+      if (currentItem) {
+        // Update existing item
         await updateCollectionItem(currentItem.id, updateData);
-        if (onUpdate) {
-          // Create updated item for callback
-          const updatedItem = {
-            ...currentItem,
-            ...updateData,
-            // Map database fields back to frontend property names for compatibility
-            purchasePrice,
-            purchaseDate: values.purchaseDate ? values.purchaseDate.toISOString() : null,
-            publicNote: values.publicNote || null,
-            privateNote: values.privateNote || null,
-            isForSale: values.isForSale,
-            salePrice,
-            obverseImage: obverseImages?.original || null,
-            reverseImage: reverseImages?.original || null,
-          };
-          onUpdate(updatedItem);
-        }
+        if (onUpdate) onUpdate(currentItem);
       } else {
-        const newItemData = {
-          user_id: user.id,
-          banknote_id: values.banknoteId,
-          ...updateData,
-        };
-        const savedItem = await addToCollection(newItemData);
-        if (onSave) {
-          await onSave(savedItem);
-        }
+        // Create new item
+        const savedItem = await addToCollection({
+          userId: authUser.id,
+          banknoteId: values.banknoteId,
+        });
+        if (onSave) onSave(savedItem);
       }
 
       toast({
-        title: "Success",
-        description: `Collection item ${currentItem?.id ? 'updated' : 'added'} successfully.`,
+        title: `Item ${currentItem ? 'Updated' : 'Added'} Successfully`,
+        description: `The banknote has been ${currentItem ? 'updated' : 'added'} to your collection.`
       });
 
-      if (onCancel) {
-        onCancel();
-      }
-    } catch (error) {
-      console.error("Error saving collection item:", error);
+      if (onCancel) onCancel();
+    } catch (error: any) {
+      console.error('Error saving collection item:', error);
       toast({
         title: "Error",
-        description: "Failed to save collection item. Please try again.",
-        variant: "destructive",
+        description: error.message || "Failed to save collection item",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
@@ -837,13 +800,17 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">For Sale</FormLabel>
                       <FormDescription>
-                        Mark this banknote as available for sale
+                        {isLimitedRank 
+                          ? "Your rank is not sufficient to list items for sale. Upgrade your rank to unlock this feature."
+                          : "Make this banknote available for sale in the marketplace"}
                       </FormDescription>
                     </div>
                     <FormControl>
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        disabled={isLimitedRank}
+                        aria-readonly={isLimitedRank}
                       />
                     </FormControl>
                   </FormItem>
