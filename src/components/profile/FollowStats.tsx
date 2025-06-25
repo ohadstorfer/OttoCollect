@@ -1,49 +1,49 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { getFollowStats, followUser, unfollowUser, getFollowers, getFollowing, FollowStats as FollowStatsType, FollowerData } from '@/services/followService';
+import { getFollowStats, followUser, unfollowUser, getFollowers, getFollowing } from '@/services/followService';
 import { useAuth } from '@/context/AuthContext';
 import { getInitials } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import UserProfileLink from '@/components/common/UserProfileLink';
-import { Users, UserPlus, UserMinus, User } from 'lucide-react';
+import { Users, UserPlus, User, MessageCircle } from 'lucide-react';
+import { SendMessage } from '@/components/messages/SendMessage';
+import { useNavigate } from 'react-router-dom';
 
 interface FollowStatsProps {
   profileId: string;
   isOwnProfile: boolean;
+  username: string;
 }
 
-export function FollowStats({ profileId, isOwnProfile }: FollowStatsProps) {
+export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showFollowersDialog, setShowFollowersDialog] = useState(false);
   const [showFollowingDialog, setShowFollowingDialog] = useState(false);
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
 
-  // Fetch follow stats
   const { data: stats, isLoading } = useQuery({
     queryKey: ['followStats', profileId, user?.id],
     queryFn: () => getFollowStats(profileId, user?.id),
     enabled: !!profileId
   });
 
-  // Fetch followers list
   const { data: followers = [] } = useQuery({
     queryKey: ['followers', profileId],
     queryFn: () => getFollowers(profileId),
     enabled: showFollowersDialog && !!profileId
   });
 
-  // Fetch following list
   const { data: following = [] } = useQuery({
     queryKey: ['following', profileId],
     queryFn: () => getFollowing(profileId),
     enabled: showFollowingDialog && !!profileId
   });
 
-  // Follow mutation
   const followMutation = useMutation({
     mutationFn: followUser,
     onSuccess: () => {
@@ -51,7 +51,6 @@ export function FollowStats({ profileId, isOwnProfile }: FollowStatsProps) {
     }
   });
 
-  // Unfollow mutation
   const unfollowMutation = useMutation({
     mutationFn: unfollowUser,
     onSuccess: () => {
@@ -69,59 +68,87 @@ export function FollowStats({ profileId, isOwnProfile }: FollowStatsProps) {
     }
   };
 
+  const handleMessageClick = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    setShowMessageDialog(true);
+  };
+
   if (isLoading || !stats) {
     return (
-      <div className="flex items-center gap-6 animate-pulse">
-        <div className="h-6 w-20 bg-gray-200 rounded"></div>
-        <div className="h-6 w-20 bg-gray-200 rounded"></div>
-        <div className="h-8 w-20 bg-gray-200 rounded"></div>
+      <div className="flex flex-col items-center gap-4 animate-pulse">
+        <div className="flex gap-6">
+          <div className="h-6 w-20 bg-gray-200 rounded"></div>
+          <div className="h-6 w-20 bg-gray-200 rounded"></div>
+        </div>
+        <div className="flex gap-2">
+          <div className="h-8 w-24 bg-gray-200 rounded"></div>
+          <div className="h-8 w-24 bg-gray-200 rounded"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-6">
-      {/* Followers Count */}
-      <button
-        onClick={() => setShowFollowersDialog(true)}
-        className="flex flex-col items-center hover:opacity-70 transition-opacity"
-      >
-        <span className="font-bold text-lg">{stats.followersCount}</span>
-        <span className="text-sm text-muted-foreground">
-          {stats.followersCount === 1 ? 'Follower' : 'Followers'}
-        </span>
-      </button>
-
-      {/* Following Count */}
-      <button
-        onClick={() => setShowFollowingDialog(true)}
-        className="flex flex-col items-center hover:opacity-70 transition-opacity"
-      >
-        <span className="font-bold text-lg">{stats.followingCount}</span>
-        <span className="text-sm text-muted-foreground">Following</span>
-      </button>
-
-      {/* Follow/Unfollow Button */}
-      {!isOwnProfile && user && (
-        <Button
-          onClick={handleFollowToggle}
-          disabled={followMutation.isPending || unfollowMutation.isPending}
-          variant={stats.isFollowing ? "default" : "outline"}
-          size="sm"
-          className="min-w-[100px]"
+    <div className="flex flex-col items-center gap-4">
+      {/* Stats Row */}
+      <div className="flex gap-6">
+        {/* Followers Count */}
+        <button
+          onClick={() => setShowFollowersDialog(true)}
+          className="flex flex-col items-center hover:opacity-70 transition-opacity"
         >
-          {stats.isFollowing ? (
-            <>
-              <User className="h-4 w-4 " />
-              following
-            </>
-          ) : (
-            <>
-              <UserPlus className="h-4 w-4 " />
-              Follow
-            </>
-          )}
-        </Button>
+          <span className="font-bold text-lg">{stats.followersCount}</span>
+          <span className="text-sm text-muted-foreground">
+            {stats.followersCount === 1 ? 'Follower' : 'Followers'}
+          </span>
+        </button>
+
+        {/* Following Count */}
+        <button
+          onClick={() => setShowFollowingDialog(true)}
+          className="flex flex-col items-center hover:opacity-70 transition-opacity"
+        >
+          <span className="font-bold text-lg">{stats.followingCount}</span>
+          <span className="text-sm text-muted-foreground">Following</span>
+        </button>
+      </div>
+
+      {/* Action Buttons */}
+      {!isOwnProfile && user && (
+        <div className="flex gap-2">
+          <Button
+            onClick={handleFollowToggle}
+            disabled={followMutation.isPending || unfollowMutation.isPending}
+            variant={stats.isFollowing ? "default" : "outline"}
+            size="sm"
+            className="min-w-[100px]"
+          >
+            {stats.isFollowing ? (
+              <>
+                <User className="h-4 w-4 mr-2" />
+                Following
+              </>
+            ) : (
+              <>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Follow
+              </>
+            )}
+          </Button>
+
+          <Button
+            onClick={handleMessageClick}
+            className="min-w-[100px]"
+            variant="outline"
+            size="sm"
+          >
+            <MessageCircle className="h-4 w-4 mr-2" />
+            Message
+          </Button>
+        </div>
       )}
 
       {/* Followers Dialog */}
@@ -155,7 +182,7 @@ export function FollowStats({ profileId, isOwnProfile }: FollowStatsProps) {
                           className="font-medium hover:underline"
                         />
                         {follower.follower_profile?.rank && (
-                          <Badge variant="user" rank={follower.follower_profile.rank} size="sm" />
+                          <Badge variant="user" rank={follower.follower_profile.rank} className="text-xs" />
                         )}
                       </div>
                     </div>
@@ -198,7 +225,7 @@ export function FollowStats({ profileId, isOwnProfile }: FollowStatsProps) {
                           className="font-medium hover:underline"
                         />
                         {follow.following_profile?.rank && (
-                          <Badge variant="user" rank={follow.following_profile.rank} size="sm" />
+                          <Badge variant="user" rank={follow.following_profile.rank} className="text-xs" />
                         )}
                       </div>
                     </div>
@@ -209,6 +236,16 @@ export function FollowStats({ profileId, isOwnProfile }: FollowStatsProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Message Dialog */}
+      {!isOwnProfile && user && (
+        <SendMessage
+          receiverId={profileId}
+          receiverName={username}
+          isOpen={showMessageDialog}
+          onOpenChange={setShowMessageDialog}
+        />
+      )}
     </div>
   );
 }
