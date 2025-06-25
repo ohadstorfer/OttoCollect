@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
-import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2 } from "lucide-react";
+import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, Eye, EyeOff } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
@@ -53,6 +53,8 @@ export default function CollectionItem() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<'obverse' | 'reverse' | null>(null);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
+  const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
+  const [showVisibilityDialog, setShowVisibilityDialog] = useState(false);
   const [suggestionStatus, setSuggestionStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
 
   useEffect(() => {
@@ -257,6 +259,34 @@ export default function CollectionItem() {
     setHasPendingSuggestion(false);
   };
 
+  const handleToggleImageVisibility = async () => {
+    if (!collectionItem) return;
+    
+    const newHideImages = !collectionItem.hide_images;
+    setIsTogglingVisibility(true);
+    
+    try {
+      const { updateCollectionItem } = await import("@/services/collectionService");
+      await updateCollectionItem(collectionItem.id, {
+        hide_images: newHideImages
+      });
+      
+      toast(newHideImages ? "Images are now private" : "Images are now visible to all users");
+      
+      // Force refetch to update the UI
+      await refetch();
+    } catch (error) {
+      console.error("Error updating image visibility:", error);
+      toast("Failed to update image visibility");
+    } finally {
+      setIsTogglingVisibility(false);
+      setShowVisibilityDialog(false);
+    }
+  };
+
+  // Check if images should be hidden for non-owners
+  const shouldHideImages = !isOwner && collectionItem?.hide_images;
+
   if (isLoading) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
@@ -387,61 +417,119 @@ export default function CollectionItem() {
                     </div>
                   )}
 
-                  {displayImages.length > 0 ? (
-                    displayImages.map((url, index) => url && (  // Only map over and render if URL exists
-                      <div
-                        key={index}
-                        className="w-full relative"
-                      >
-                        {canDeleteImages && (
-                          <div className="absolute top-2 right-2 z-10">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
+                  {shouldHideImages ? (
+                    <div className="p-6 text-center bg-muted rounded-md">
+                      <p className="text-muted-foreground">Private images, only visible to the owner.</p>
+                    </div>
+                  ) : displayImages.length > 0 ? (
+                    <div className="relative">
+                      {isOwner && (
+                        <div className="absolute top-2 left-2 z-50">
+                          <AlertDialog open={showVisibilityDialog} onOpenChange={setShowVisibilityDialog}>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="bg-white hover:bg-white/90 text-xs flex items-center gap-1 shadow-sm border"
+                              >
+                                {Boolean(collectionItem?.hide_images) ? (
+                                  <>
+                                    <EyeOff className="h-3 w-3" />
+                                    <span>Private images, only visible to you</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="h-3 w-3" />
+                                    <span>Images visible to all users</span>
+                                  </>
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  {collectionItem?.hide_images 
+                                    ? "Make Images Public" 
+                                    : "Make Images Private"}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {collectionItem?.hide_images
+                                    ? "This will make your images visible to all users. Are you sure you want to continue?"
+                                    : "This will make your images private and only visible to you. Are you sure you want to continue?"}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel disabled={isTogglingVisibility}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={handleToggleImageVisibility}
+                                  disabled={isTogglingVisibility}
                                 >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Image</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete this image? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => {
-                                      setImageToDelete(index === 0 ? 'obverse' : 'reverse');
-                                      handleDeleteImage();
-                                    }}
-                                    className="bg-red-600 hover:bg-red-700"
-                                    disabled={isDeletingImage}
-                                  >
-                                    {isDeletingImage ? 'Deleting...' : 'Delete'}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        )}
+                                  {isTogglingVisibility 
+                                    ? "Updating..." 
+                                    : collectionItem?.hide_images
+                                      ? "Make Public"
+                                      : "Make Private"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      )}
+                      {displayImages.map((url, index) => (
                         <div
-                          className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => openImageViewer(url)}
+                          key={index}
+                          className="w-full relative"
                         >
-                          <div className="w-full rounded-md overflow-hidden border">
-                            <img
-                              src={url}
-                              className="w-full h-auto object-contain"
-                            />
+                          {canDeleteImages && (
+                            <div className="absolute top-2 right-2 z-10">
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this image? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => {
+                                        setImageToDelete(index === 0 ? 'obverse' : 'reverse');
+                                        handleDeleteImage();
+                                      }}
+                                      className="bg-red-600 hover:bg-red-700"
+                                      disabled={isDeletingImage}
+                                    >
+                                      {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          )}
+                          <div
+                            className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => openImageViewer(url)}
+                          >
+                            <div className="w-full rounded-md overflow-hidden border">
+                              <img
+                                src={url}
+                                className="w-full h-auto object-contain"
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      ))}
+                    </div>
                   ) : (
                     <div className="p-6 text-center bg-muted rounded-md">
                       <p className="text-muted-foreground">No images available</p>

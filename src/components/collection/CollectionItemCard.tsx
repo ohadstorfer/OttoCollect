@@ -45,6 +45,9 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   // Use thumbnail if available, otherwise fall back to original image
   const displayImage = item?.obverse_image_thumbnail || item?.obverseImage;
 
+  // Check if images should be hidden
+  const shouldHideImages = !isOwner && item?.hide_images;
+
   // Use BANKNOTE_CONDITIONS from constants
   const conditionColors: Partial<Record<BanknoteCondition, string>> = {
     'UNC': 'bg-green-100 text-green-800',
@@ -164,13 +167,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         onClick={handleCardClick}
       >
         <div className="w-24 flex-shrink-0 flex items-center justify-center">
-          {displayImage && displayImage !== '/placeholder.svg' ? (
-            <BanknoteImage
-              imageUrl={displayImage}
-              alt={getBanknoteTitle()}
-              className="object-contain w-full h-auto max-h-24"
-            />
-          ) : (
+          {shouldHideImages || !displayImage || displayImage === '/placeholder.svg' ? (
             <AspectRatio ratio={4 / 2}>
               <img
                 src="/placeholder.svg"
@@ -178,6 +175,12 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
                 className="w-full h-full object-cover"
               />
             </AspectRatio>
+          ) : (
+            <BanknoteImage
+              imageUrl={displayImage}
+              alt={getBanknoteTitle()}
+              className="object-contain w-full h-auto max-h-24"
+            />
           )}
         </div>
         <div className="flex-grow flex flex-col justify-between p-3">
@@ -271,13 +274,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
           </div>
         </div>
         <div className="relative w-full flex justify-center items-center bg-muted">
-          {displayImage && displayImage !== '/placeholder.svg' ? (
-            <BanknoteImage
-              imageUrl={displayImage}
-              alt={getBanknoteTitle()}
-              className="object-contain w-full h-auto max-h-60"
-            />
-          ) : (
+          {shouldHideImages || !displayImage || displayImage === '/placeholder.svg' ? (
             <AspectRatio ratio={4 / 2}>
               <img
                 src="/placeholder.svg"
@@ -285,6 +282,12 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
                 className="w-full h-full object-cover"
               />
             </AspectRatio>
+          ) : (
+            <BanknoteImage
+              imageUrl={displayImage}
+              alt={getBanknoteTitle()}
+              className="object-contain w-full h-auto max-h-60"
+            />
           )}
         </div>
         

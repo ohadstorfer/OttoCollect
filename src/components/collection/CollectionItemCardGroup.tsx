@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardStack } from "@/components/ui/card-stack";
@@ -20,12 +19,14 @@ export interface CollectionItemCardGroupProps {
     count: number;
   }) => void;
   className?: string;
+  isOwner?: boolean;
 }
 
 export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = ({
   group,
   onClick,
   className,
+  isOwner = false,
 }) => {
   const { baseNumber, items, count } = group;
 
@@ -40,57 +41,62 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
   };
 
   // Generate stack items with unique keys using item.id + index
-  const stackItems = items.slice(0, 4).map((item, index) => ({
-    // Create a unique key using both the item ID and the index
-    id: `${item.id}-stack-${index}`,
-    content: (
-      <Card className="w-full h-full shadow-md overflow-hidden">
-        <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
-          <div className="flex justify-between items-start">
-            <h4 className="font-bold">{item.banknote?.denomination || 'Unknown'}</h4>
-            <div className="pt-2 pr-1 flex items-center text-sm">
-              <span>{count}</span>
-              <LayoutList className="h-4 w-4 mr-1" />
+  const stackItems = items.slice(0, 4).map((item, index) => {
+    // Check if this specific item's images should be hidden
+    const shouldHideImages = !isOwner && item.hide_images;
+
+    return {
+      // Create a unique key using both the item ID and the index
+      id: `${item.id}-stack-${index}`,
+      content: (
+        <Card className="w-full h-full shadow-md overflow-hidden">
+          <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
+            <div className="flex justify-between items-start">
+              <h4 className="font-bold">{item.banknote?.denomination || 'Unknown'}</h4>
+              <div className="pt-2 pr-1 flex items-center text-sm">
+                <span>{count}</span>
+                <LayoutList className="h-4 w-4 mr-1" />
+              </div>
+            </div>
+
+            <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
+              {baseNumber && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  {baseNumber}
+                </Badge>
+              )}
+              {item.condition && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight ml-1">
+                  {item.condition}
+                </Badge>
+              )}
             </div>
           </div>
 
-          <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
-            {baseNumber && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                {baseNumber}
-              </Badge>
-            )}
-            {item.condition && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight ml-1">
-                {item.condition}
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        <CardContent className="p-0">
-          <div className="w-full">
-            {item.obverseImage?.[0] ? (
-              <AspectRatio ratio={4 / 2}>
-                <img
-                  src={item.obverseImage}
-                  alt={`Collection Item ${item.banknote?.extendedPickNumber || ''}`}
-                  className="w-full h-full object-cover"
-                />
-              </AspectRatio>
-            ) : (
-              <AspectRatio ratio={4 / 2}>
-                <img
-                  src={'/placeholder.svg'}
-                  className="w-full h-full object-cover"
-                />
-              </AspectRatio>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    ),
-  }));
+          <CardContent className="p-0">
+            <div className="w-full">
+              {shouldHideImages || !item.obverseImage || item.obverseImage === '/placeholder.svg' ? (
+                <AspectRatio ratio={4 / 2}>
+                  <img
+                    src={'/placeholder.svg'}
+                    className="w-full h-full object-cover"
+                  />
+                </AspectRatio>
+              ) : (
+                <AspectRatio ratio={4 / 2}>
+                  <img
+                    src={item.obverseImage}
+                    alt={`Collection Item ${item.banknote?.extendedPickNumber || ''}`}
+                    className="w-full h-full object-cover"
+                  />
+                </AspectRatio>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ),
+    };
+  });
 
   return (
     <div

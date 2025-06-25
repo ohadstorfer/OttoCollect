@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -175,10 +174,11 @@ export interface CollectionItem {
   orderIndex: number;
   createdAt: string;
   updatedAt: string;
-
+  hide_images: boolean;
   // The joined banknote data (populated by service layer)
   banknote?: DetailedBanknote;
   personalImages?: string[];
+
 }
 
 export interface DetailedBanknote {

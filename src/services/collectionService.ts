@@ -166,7 +166,8 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
             createdAt: item.created_at,
             updatedAt: item.updated_at,
             is_unlisted_banknote: item.is_unlisted_banknote,
-            unlisted_banknotes_id: item.unlisted_banknotes_id
+            unlisted_banknotes_id: item.unlisted_banknotes_id,
+            hide_images: item.hide_images || false
           } as CollectionItem);
         }
       }
@@ -259,7 +260,8 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
             createdAt: item.created_at,
             updatedAt: item.updated_at,
             is_unlisted_banknote: item.is_unlisted_banknote,
-            unlisted_banknotes_id: item.unlisted_banknotes_id
+            unlisted_banknotes_id: item.unlisted_banknotes_id,
+            hide_images: item.hide_images || false
           } as CollectionItem);
         }
       }
@@ -394,66 +396,33 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
   try {
     console.log('[fetchCollectionItem] Fetching collection item:', itemId);
 
-    // First, fetch the collection item
-    const { data: collectionData, error: collectionError } = await supabase
+    const { data: item, error } = await supabase
       .from('collection_items')
-      .select('*')
+      .select(`
+        *,
+        enhanced_detailed_banknotes(*),
+        unlisted_banknotes(*)
+      `)
       .eq('id', itemId)
       .single();
 
-    if (collectionError || !collectionData) {
-      console.error('[fetchCollectionItem] Error fetching collection item:', collectionError);
+    if (error) {
+      console.error('[fetchCollectionItem] Error:', error);
       return null;
     }
 
-    console.log('[fetchCollectionItem] Collection item data:', collectionData);
+    console.log('[fetchCollectionItem] Collection item data:', item);
 
     let banknote;
-
-    if (collectionData.is_unlisted_banknote) {
-      // Fetch unlisted banknote data
-      const { data: unlistedData, error: unlistedError } = await supabase
-        .from('unlisted_banknotes')
-        .select('*')
-        .eq('id', collectionData.unlisted_banknotes_id)
-        .single();
-
-      if (unlistedError) {
-        console.error('[fetchCollectionItem] Error fetching unlisted banknote:', unlistedError);
-        return null;
-      }
-
+    if (item.is_unlisted_banknote) {
+      const unlistedData = item.unlisted_banknotes;
       if (unlistedData) {
-        // Set default category if not provided
-        if (!unlistedData.category) {
-          unlistedData.category = 'Unlisted Banknotes';
-        }
         banknote = normalizeBanknoteData(unlistedData, "unlisted");
-      } else {
-        console.error('[fetchCollectionItem] No unlisted banknote data found for collection item:', itemId);
-        return null;
       }
     } else {
-      // Fetch detailed banknote data from enhanced view
-      const { data: detailedData, error: detailedError } = await supabase
-        .from('enhanced_detailed_banknotes')
-        .select('*')
-        .eq('id', collectionData.banknote_id)
-        .single();
-
-      if (detailedError) {
-        console.error('[fetchCollectionItem] Error fetching detailed banknote:', detailedError);
-        return null;
-      }
-
-      if (detailedData) {
-        banknote = normalizeBanknoteData(mapBanknoteFromDatabase(detailedData), "detailed");
-        console.log('[fetchCollectionItem] Resolved stamp URLs:', {
-          signaturePictureUrls: banknote.signaturePictureUrls,
-          sealPictureUrls: banknote.sealPictureUrls,
-          watermarkUrl: banknote.watermarkUrl,
-          tughraUrl: banknote.tughraUrl
-        });
+      const banknoteData = item.enhanced_detailed_banknotes;
+      if (banknoteData) {
+        banknote = await mapBanknoteFromDatabase(banknoteData);
       }
     }
 
@@ -462,53 +431,37 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
       return null;
     }
 
-    const collectionItem: CollectionItem = {
-      id: collectionData.id,
-      user_id: collectionData.user_id,
-      userId: collectionData.user_id,
-      banknoteId: collectionData.is_unlisted_banknote ? collectionData.unlisted_banknotes_id : collectionData.banknote_id || '',
-      banknote_id: collectionData.is_unlisted_banknote ? collectionData.unlisted_banknotes_id : collectionData.banknote_id || '',
+    return {
+      id: item.id,
+      userId: item.user_id,
+      banknoteId: item.is_unlisted_banknote ? item.unlisted_banknotes_id : item.banknote_id,
       banknote,
-      condition: collectionData.condition,
-      grade_by: collectionData.grade_by,
-      grade: collectionData.grade,
-      grade_condition_description: collectionData.grade_condition_description,
-      purchasePrice: collectionData.purchase_price,
-      purchaseDate: collectionData.purchase_date,
-      location: collectionData.location,
-      obverseImage: collectionData.obverse_image,
-      reverseImage: collectionData.reverse_image,
-      obverse_image_watermarked: collectionData.obverse_image_watermarked,
-      reverse_image_watermarked: collectionData.reverse_image_watermarked,
-      obverse_image_thumbnail: collectionData.obverse_image_thumbnail,
-      reverse_image_thumbnail: collectionData.reverse_image_thumbnail,
-      personalImages: [],
-      publicNote: collectionData.public_note,
-      privateNote: collectionData.private_note,
-      isForSale: collectionData.is_for_sale || false,
-      is_for_sale: collectionData.is_for_sale || false,
-      salePrice: collectionData.sale_price,
-      orderIndex: collectionData.order_index || 0,
-      order_index: collectionData.order_index || 0,
-      createdAt: collectionData.created_at,
-      created_at: collectionData.created_at,
-      updatedAt: collectionData.updated_at,
-      updated_at: collectionData.updated_at,
-      is_unlisted_banknote: collectionData.is_unlisted_banknote,
-      unlisted_banknotes_id: collectionData.unlisted_banknotes_id
-    };
-
-    console.log('[fetchCollectionItem] Final collection item with resolved URLs:', {
-      id: collectionItem.id,
-      banknoteSignatureUrls: collectionItem.banknote?.signaturePictureUrls,
-      banknoteSealUrls: collectionItem.banknote?.sealPictureUrls,
-      banknoteWatermarkUrl: collectionItem.banknote?.watermarkUrl,
-      banknoteTughraUrl: collectionItem.banknote?.tughraUrl
-    });
-
-    return collectionItem;
+      condition: item.condition,
+      grade_by: item.grade_by,
+      grade: item.grade,
+      grade_condition_description: item.grade_condition_description,
+      salePrice: item.sale_price,
+      isForSale: item.is_for_sale,
+      publicNote: item.public_note,
+      privateNote: item.private_note,
+      purchasePrice: item.purchase_price,
+      purchaseDate: item.purchase_date,
+      location: item.location,
+      obverseImage: item.obverse_image,
+      reverseImage: item.reverse_image,
+      obverse_image_watermarked: item.obverse_image_watermarked,
+      reverse_image_watermarked: item.reverse_image_watermarked,
+      obverse_image_thumbnail: item.obverse_image_thumbnail,
+      reverse_image_thumbnail: item.reverse_image_thumbnail,
+      orderIndex: item.order_index,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at,
+      is_unlisted_banknote: item.is_unlisted_banknote,
+      unlisted_banknotes_id: item.unlisted_banknotes_id,
+      hide_images: item.hide_images || false
+    } as CollectionItem;
   } catch (error) {
-    console.error('[fetchCollectionItem] Unexpected error:', error);
+    console.error('[fetchCollectionItem] Error:', error);
     return null;
   }
 }
@@ -1284,4 +1237,19 @@ export async function createMarketplaceItem(params: {
     console.error('Error creating marketplace item:', error);
     throw error;
   }
+}
+
+export interface UpdateCollectionItemData {
+  grade?: string | null;
+  gradeNumeric?: number | null;
+  gradeProvider?: string | null;
+  serialNumber?: string | null;
+  purchaseDate?: string | null;
+  purchasePrice?: number | null;
+  purchasePriceCurrency?: string | null;
+  seller?: string | null;
+  notes?: string | null;
+  obverseImage?: string | null;
+  reverseImage?: string | null;
+  hide_images?: boolean;
 }
