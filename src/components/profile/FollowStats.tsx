@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { getFollowStats, followUser, unfollowUser, getFollowers, getFollowing, FollowStats, FollowerData } from '@/services/followService';
+import { getFollowStats, followUser, unfollowUser, getFollowers, getFollowing, FollowStats as FollowStatsType, FollowerData } from '@/services/followService';
 import { useAuth } from '@/context/AuthContext';
 import { getInitials } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
