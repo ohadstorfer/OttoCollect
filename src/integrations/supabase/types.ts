@@ -290,6 +290,7 @@ export type Database = {
           grade: string | null
           grade_by: string | null
           grade_condition_description: string | null
+          hide_images: boolean
           id: string
           is_for_sale: boolean
           is_unlisted_banknote: boolean
@@ -317,6 +318,7 @@ export type Database = {
           grade?: string | null
           grade_by?: string | null
           grade_condition_description?: string | null
+          hide_images?: boolean
           id?: string
           is_for_sale?: boolean
           is_unlisted_banknote?: boolean
@@ -344,6 +346,7 @@ export type Database = {
           grade?: string | null
           grade_by?: string | null
           grade_condition_description?: string | null
+          hide_images?: boolean
           id?: string
           is_for_sale?: boolean
           is_unlisted_banknote?: boolean
