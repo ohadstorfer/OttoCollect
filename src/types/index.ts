@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -134,51 +133,33 @@ export interface BanknoteFilters {
 
 export interface CollectionItem {
   id: string;
-  user_id: string;
-  banknote_id?: string;
-  is_unlisted_banknote: boolean;
-  unlisted_banknotes_id?: string;
-  condition?: BanknoteCondition;
-  purchase_price?: number;
-  purchase_date?: string;
-  sale_price?: number;
-  is_for_sale: boolean;
-  public_note?: string;
-  private_note?: string;
-  location?: string;
-  obverse_image?: string;
-  reverse_image?: string;
-  order_index: number;
-  created_at: string;
-  updated_at: string;
-  grade?: string;
-  grade_by?: string;
-  grade_condition_description?: string;
-
-  // New watermarked and thumbnail image fields
-  obverse_image_watermarked?: string;
-  reverse_image_watermarked?: string;
-  obverse_image_thumbnail?: string;
-  reverse_image_thumbnail?: string;
-
-  // Alias properties for compatibility with frontend code
   userId: string;
   banknoteId?: string;
-  purchasePrice?: number;
-  purchaseDate?: string;
+  isUnlistedBanknote: boolean;
+  unlistedBanknotesId?: string;
   salePrice?: number;
   isForSale: boolean;
-  publicNote?: string;
-  privateNote?: string;
-  obverseImage?: string;
-  reverseImage?: string;
+  purchasePrice?: number;
+  purchaseDate?: string;
   orderIndex: number;
   createdAt: string;
   updatedAt: string;
-
-  // The joined banknote data (populated by service layer)
+  condition?: string;
+  publicNote?: string;
+  privateNote?: string;
+  location?: string;
+  obverseImage?: string;
+  reverseImage?: string;
+  grade?: string;
+  gradeBy?: string;
+  gradeConditionDescription?: string;
+  obverseImageWatermarked?: string;
+  reverseImageWatermarked?: string;
+  obverseImageThumbnail?: string;
+  reverseImageThumbnail?: string;
+  hideImages?: boolean;
   banknote?: DetailedBanknote;
-  personalImages?: string[];
+  unlistedBanknote?: UnlistedBanknote;
 }
 
 export interface DetailedBanknote {
