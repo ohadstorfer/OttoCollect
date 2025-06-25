@@ -66,7 +66,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
           </div>
 
           {/* Desktop View */}
-          <div className="hidden sm:flex items-center gap-8">
+          <div className="hidden sm:flex items-center gap-8 ">
             <Avatar className="h-20 w-20 border-4 border-background bg-background shadow-lg flex-shrink-0">
               {profile.avatarUrl ? (
                 <AvatarImage src={profile.avatarUrl} alt={profile.username} />
@@ -114,7 +114,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                 onClick={onEditProfileClick}
                 variant="outline"
                 size="icon"
-                className="h-8 w-8 flex-shrink-0"
+                className="h-8 w-8 flex-shrink-0 self-start mt-1"
               >
                 <Edit className="h-3 w-3" />
               </Button>
