@@ -59,7 +59,7 @@ export default function Messaging() {
       <h1 className="page-title">Messages</h1>
       
       <div className="flex flex-col mb-10">
-        <p className="text-muted-foreground mb-4">
+        <p className="text-muted-foreground mb-4 text-center">
           Chat with other collectors, discuss banknotes, and arrange trades or purchases.
         </p>
         
