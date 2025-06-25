@@ -47,11 +47,22 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
               <div className="text-center">
                 <h1 className="text-2xl font-serif mb-2">{profile.username}</h1>
                 <Badge variant="user" rank={userRank} showIcon />
-                {profile.about && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {profile.about}
-                  </p>
-                )}
+                <div className="text-sm text-muted-foreground mt-2">
+                  <span className="inline-flex items-center gap-2">
+                    {profile.about && <span>{profile.about}</span>}
+                    {/* Edit Profile Button */}
+                    {isOwnProfile && (
+                      <Button
+                        onClick={onEditProfileClick}
+                        variant="outline"
+                        size="icon"
+                        className="h-5 w-5 inline-flex items-center justify-center"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </span>
+                </div>
               </div>
 
               {/* Mobile Follow Stats */}
@@ -85,19 +96,23 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                 <Badge variant="user" rank={userRank} showIcon />
               </div>
 
-              <div className="text-sm text-muted-foreground max-w-2xl">
-                {profile.about ? (
-                  <p>{profile.about}</p>
-                ) : (
-                  <p className="italic">
-                    {isOwnProfile
-                      ? "You haven't added any information about yourself yet."
-                      : "This user hasn't added any information about themselves yet."
-                    }
-                  </p>
-                )}
+                            <div className="text-sm text-muted-foreground">
+                <span className="inline-flex items-center gap-2">
+                  {profile.about && <span>{profile.about}</span>}
+                  {/* Edit Profile Button */}
+                  {isOwnProfile && (
+                    <Button
+                      onClick={onEditProfileClick}
+                      variant="outline"
+                      size="icon"
+                      className="h-5 w-5 inline-flex items-center justify-center"
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  )}
+                </span>
               </div>
-            </div>
+            </div>           
 
             {/* Desktop Follow Stats */}
             <div className="flex-shrink-0">
@@ -108,34 +123,12 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
               />
             </div>
 
-            {/* Edit Profile Button */}
-            {isOwnProfile && (
-              <Button
-                onClick={onEditProfileClick}
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 flex-shrink-0 self-start mt-1"
-              >
-                <Edit className="h-3 w-3" />
-              </Button>
-            )}
+            
           </div>
         </div>
       </Card>
 
-      {/* Mobile Edit Button */}
-      <div className="sm:hidden flex justify-center mt-2">
-        {isOwnProfile && (
-          <Button
-            onClick={onEditProfileClick}
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-          >
-            <Edit className="h-3 w-3" />
-          </Button>
-        )}
-      </div>
+
     </div>
   );
 }

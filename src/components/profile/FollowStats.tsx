@@ -18,6 +18,32 @@ interface FollowStatsProps {
   username: string;
 }
 
+const UserProfileWrapper = ({ 
+  userId, 
+  username, 
+  onNavigate, 
+  children 
+}: { 
+  userId: string; 
+  username: string; 
+  onNavigate: () => void; 
+  children: React.ReactNode;
+}) => {
+  const navigate = useNavigate();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onNavigate();
+    navigate(`/profile/${username}`);
+  };
+
+  return (
+    <div onClick={handleClick} className="cursor-pointer">
+      {children}
+    </div>
+  );
+};
+
 export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -167,25 +193,26 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
               ) : (
                 followers.map((follower) => (
                   <div key={follower.follower_id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={follower.follower_profile?.avatar_url} />
-                        <AvatarFallback>
-                          {getInitials(follower.follower_profile?.username || 'U')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <UserProfileLink
-                          userId={follower.follower_id}
-                          username={follower.follower_profile?.username || 'Unknown'}
-                          showAvatar={false}
-                          className="font-medium hover:underline"
-                        />
-                        {follower.follower_profile?.rank && (
-                          <Badge variant="user" rank={follower.follower_profile.rank} className="text-xs" />
-                        )}
+                    <UserProfileWrapper
+                      userId={follower.follower_id}
+                      username={follower.follower_profile?.username || 'Unknown'}
+                      onNavigate={() => setShowFollowersDialog(false)}
+                    >
+                      <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={follower.follower_profile?.avatar_url} />
+                          <AvatarFallback>
+                            {getInitials(follower.follower_profile?.username || 'U')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{follower.follower_profile?.username || 'Unknown'}</div>
+                          {follower.follower_profile?.rank && (
+                            <Badge variant="user" rank={follower.follower_profile.rank} className="text-xs" />
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    </UserProfileWrapper>
                   </div>
                 ))
               )}
@@ -210,25 +237,26 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
               ) : (
                 following.map((follow) => (
                   <div key={follow.following_id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={follow.following_profile?.avatar_url} />
-                        <AvatarFallback>
-                          {getInitials(follow.following_profile?.username || 'U')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <UserProfileLink
-                          userId={follow.following_id}
-                          username={follow.following_profile?.username || 'Unknown'}
-                          showAvatar={false}
-                          className="font-medium hover:underline"
-                        />
-                        {follow.following_profile?.rank && (
-                          <Badge variant="user" rank={follow.following_profile.rank} className="text-xs" />
-                        )}
+                    <UserProfileWrapper
+                      userId={follow.following_id}
+                      username={follow.following_profile?.username || 'Unknown'}
+                      onNavigate={() => setShowFollowingDialog(false)}
+                    >
+                      <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={follow.following_profile?.avatar_url} />
+                          <AvatarFallback>
+                            {getInitials(follow.following_profile?.username || 'U')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{follow.following_profile?.username || 'Unknown'}</div>
+                          {follow.following_profile?.rank && (
+                            <Badge variant="user" rank={follow.following_profile.rank} className="text-xs" />
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    </UserProfileWrapper>
                   </div>
                 ))
               )}
