@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
-import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2 } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
@@ -189,23 +188,6 @@ export default function CollectionItem() {
     }
   };
 
-  const handleToggleImageVisibility = async () => {
-    if (!collectionItem) return;
-    
-    try {
-      const { updateCollectionItem } = await import("@/services/collectionService");
-      await updateCollectionItem(collectionItem.id, {
-        hideImages: !collectionItem.hideImages
-      });
-      
-      toast(collectionItem.hideImages ? "Images are now visible to all users" : "Images are now private");
-      await refetch();
-    } catch (error) {
-      console.error("Error updating image visibility:", error);
-      toast("Failed to update image visibility");
-    }
-  };
-
   const hasCustomImages = Boolean(collectionItem?.obverseImage || collectionItem?.reverseImage);
 
   const isUserSuperAdmin = user?.role === 'Super Admin';
@@ -316,9 +298,6 @@ export default function CollectionItem() {
     collectionItem.reverse_image_watermarked || collectionItem.reverseImage
   ].filter(Boolean) as string[];
 
-  // Check if images should be hidden for non-owners
-  const shouldHideImages = !isOwner && collectionItem?.hideImages;
-
   return (
     <div className="page-container">
       <div className="flex flex-col space-y-6">
@@ -408,89 +387,61 @@ export default function CollectionItem() {
                     </div>
                   )}
 
-                  {shouldHideImages ? (
-                    <div className="p-6 text-center bg-muted rounded-md">
-                      <p className="text-muted-foreground">Private images, only visible to the owner.</p>
-                    </div>
-                  ) : displayImages.length > 0 ? (
-                    <div className="relative">
-                      {isOwner && displayImages.length > 0 && (
-                        <div className="absolute top-2 left-2 z-10">
-                          <Button
-                            onClick={handleToggleImageVisibility}
-                            variant="ghost"
-                            size="sm"
-                            className="bg-white/80 hover:bg-white/90 text-xs flex items-center gap-1"
-                          >
-                            {collectionItem.hideImages ? (
-                              <>
-                                <EyeOff className="h-3 w-3" />
-                                Private images, only visible to you
-                              </>
-                            ) : (
-                              <>
-                                <Eye className="h-3 w-3" />
-                                Images visible to all users
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      )}
-                      {displayImages.map((url, index) => url && (  // Only map over and render if URL exists
-                        <div
-                          key={index}
-                          className="w-full relative mb-3 last:mb-0"
-                        >
-                          {canDeleteImages && (
-                            <div className="absolute top-2 right-2 z-10">
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
+                  {displayImages.length > 0 ? (
+                    displayImages.map((url, index) => url && (  // Only map over and render if URL exists
+                      <div
+                        key={index}
+                        className="w-full relative"
+                      >
+                        {canDeleteImages && (
+                          <div className="absolute top-2 right-2 z-10">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this image? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => {
+                                      setImageToDelete(index === 0 ? 'obverse' : 'reverse');
+                                      handleDeleteImage();
+                                    }}
+                                    className="bg-red-600 hover:bg-red-700"
+                                    disabled={isDeletingImage}
                                   >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Image</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete this image? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => {
-                                        setImageToDelete(index === 0 ? 'obverse' : 'reverse');
-                                        handleDeleteImage();
-                                      }}
-                                      className="bg-red-600 hover:bg-red-700"
-                                      disabled={isDeletingImage}
-                                    >
-                                      {isDeletingImage ? 'Deleting...' : 'Delete'}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          )}
-                          <div
-                            className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => openImageViewer(url)}
-                          >
-                            <div className="w-full rounded-md overflow-hidden border">
-                              <img
-                                src={url}
-                                className="w-full h-auto object-contain"
-                              />
-                            </div>
+                                    {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        )}
+                        <div
+                          className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => openImageViewer(url)}
+                        >
+                          <div className="w-full rounded-md overflow-hidden border">
+                            <img
+                              src={url}
+                              className="w-full h-auto object-contain"
+                            />
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))
                   ) : (
                     <div className="p-6 text-center bg-muted rounded-md">
                       <p className="text-muted-foreground">No images available</p>
