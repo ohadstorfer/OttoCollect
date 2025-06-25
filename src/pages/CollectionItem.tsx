@@ -305,32 +305,37 @@ export default function CollectionItem() {
           <div className="flex justify-between items-center">
             <div className="flex items-baseline  gap-2">
               <Button
-                variant="ghost"
                 onClick={() => navigate(-1)}
-                className="p-0 w-auto h-auto min-w-0 flex items-center justify-center"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10"
               >
                 <ArrowLeft className="h-5 w-5" /> {/* match h1 size */}
               </Button>
 
-              <h1 className="text-3xl font-bold leading-tight">
-                {collectionItem.banknote?.denomination}
-              </h1>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-3xl font-bold leading-tight">
+                    {collectionItem.banknote?.denomination}
+                  </h1>
 
-              <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
+                  <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
 
-              {collectionItem.banknote?.extendedPickNumber && (
-                <p className="text-xl leading-tight">
-                  {collectionItem.banknote.extendedPickNumber}
+                  {collectionItem.banknote?.extendedPickNumber && (
+                    <p className="text-xl leading-tight">
+                      {collectionItem.banknote.extendedPickNumber}
+                    </p>
+                  )}
+                </div>
+
+                <p className="text-xl text-muted-foreground">
+                  {collectionItem.banknote?.country}
+                  {collectionItem.banknote?.country && collectionItem.banknote?.year && ", "}
+                  {collectionItem.banknote?.year}
                 </p>
-              )}
+              </div>
             </div>
           </div>
-
-          <p className="text-xl text-muted-foreground">
-          {collectionItem.banknote?.country}
-            {collectionItem.banknote?.country && collectionItem.banknote?.year && ", "}
-            {collectionItem.banknote?.year}
-          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">

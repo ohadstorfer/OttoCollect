@@ -240,42 +240,46 @@ export default function CollectionItemUnlisted() {
   const displayImages = [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[];
 
   return (
-    <div className="page-container max-w-5xl mx-auto py-10">
+    <div className="page-container">
       <div className="flex flex-col space-y-6">
-        <div className="space-y-1">
+        <div className="space-y-1 page-container max-w-5xl mx-auto">
           <div className="flex justify-between items-center">
-            <div className="flex items-baseline  gap-2">
+            <div className="flex items-baseline gap-2">
               <Button
                 variant="ghost"
                 onClick={() => navigate(-1)}
-                className="p-0 w-auto h-auto min-w-0 flex items-center justify-center"
+                className="h-10 w-10"
               >
                 <ArrowLeft className="h-5 w-5" /> {/* match h1 size */}
               </Button>
 
-              <h1 className="text-3xl font-bold leading-tight">
-                {collectionItem.banknote.denomination}
-              </h1>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-3xl font-bold leading-tight">
+                    {collectionItem.banknote.denomination}
+                  </h1>
 
-              <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
+                  <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
 
-              {collectionItem.banknote.extendedPickNumber && (
-                <p className="text-xl leading-tight">
-                  {collectionItem.banknote.extendedPickNumber}
+                  {collectionItem.banknote.extendedPickNumber && (
+                    <p className="text-xl leading-tight">
+                      {collectionItem.banknote.extendedPickNumber}
+                    </p>
+                  )}
+                </div>
+
+                <p className="text-xl text-muted-foreground">
+                  {collectionItem.banknote.country}
+                  {collectionItem.banknote.country && collectionItem.banknote.year && ", "}
+                  {collectionItem.banknote.year}
                 </p>
-              )}
+              </div>
             </div>
           </div>
-
-          <p className="text-xl text-muted-foreground">
-            {collectionItem.banknote.country}
-            {collectionItem.banknote.country && collectionItem.banknote.year && ", "}
-            {collectionItem.banknote.year}
-          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-3 space-y-4">
             <Card>
               <CardContent className="px-2 pt-2 pb-2">
                 <div className="flex flex-col space-y-3">
@@ -363,7 +367,9 @@ export default function CollectionItemUnlisted() {
             </Card>
           </div>
 
-          <div className="lg:col-span-3">
+
+
+          <div className="lg:col-span-2">
             <Card className="border-t-4 border-t-primary shadow-md">
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
@@ -407,25 +413,7 @@ export default function CollectionItemUnlisted() {
               </CardContent>
             </Card>
             
-            {/* Banknote Details */}
-            <Card className="border-t-4 border-t-primary shadow-md">
-              <CardHeader className="border-b bg-muted/20">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-xl m-0">
-                    Banknote Details
-                  </CardTitle>
-                </div>
-                <CardDescription>
-                  Detailed information about this banknote
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                <BanknoteCatalogDetailMinimized 
-                  banknote={collectionItem.banknote} 
-                  onImageClick={(url) => setSelectedImage(url)} 
-                />
-              </CardContent>
-            </Card>
+
           </div>
         </div>
 
