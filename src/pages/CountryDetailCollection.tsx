@@ -493,7 +493,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
         <BanknoteFilterCollection
           countryId={countryId}
-          countryName={country?.name || ''}
+          countryName={effectiveCountryName}
           onFilterChange={handleFilterChange}
           currentFilters={filters}
           isLoading={isLoading}
@@ -506,7 +506,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           isOwner={isOwner}
           profileUser={profileData}
           onBackToCountries={onBackToCountries}
-          user={user}
         />
 
         {/* Conditionally render content based on activeTab */}

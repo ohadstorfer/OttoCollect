@@ -103,11 +103,18 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const activeTab = (typeof propActiveTab === 'string' ? propActiveTab : internalActiveTab) as 'collection' | 'wishlist' | 'missing';
   const onTabChange = propOnTabChange || setInternalActiveTab;
 
-  const tabList: { key: 'collection' | 'wishlist' | 'missing'; label: string }[] = [
-    { key: 'collection', label: 'Collection' },
-    { key: 'wishlist', label: 'Wishlist' },
-    { key: 'missing', label: 'Missing' },
+  const tabList = [
+    { key: 'collection' as const, label: 'Collection' },
+    { key: 'wishlist' as const, label: 'Wishlist' },
+    ...(isOwner ? [{ key: 'missing' as const, label: 'Missing' }] : [])
   ];
+
+  // If the active tab is 'missing' but isOwner is false, default to 'collection'
+  useEffect(() => {
+    if (!isOwner && activeTab === 'missing') {
+      onTabChange('collection');
+    }
+  }, [isOwner, activeTab, onTabChange]);
 
   console.log("BaseBanknoteFilter: Render with props", { 
     categories: categories.length, 
@@ -356,7 +363,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
               )}
             </div>
             
-            {countryName && activeTab && (
+            {countryName && (
               <div className="flex items-center min-w-0 shrink">
                 <span className="text-muted-foreground px-1 sm:px-3">/</span>
                 <span className="font-medium min-w-0 shrink">{countryName} {activeTab}</span>
@@ -372,6 +379,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 key={tab.key}
                 className={cn(
                   'px-6 py-1 rounded-md transition-colors outline-none',
+                  'flex-1',
                   activeTab === tab.key
                     ? 'bg-white text-black font-semibold'
                     : 'bg-transparent text-[#857e77] font-medium hover:bg-[#e7e1db]',
@@ -384,197 +392,192 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 {tab.label}
               </button>
             ))}
-           
           </div>
           <div className="ml-auto">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex gap-2 items-center">
-                <div className="relative flex-1 sm:w-[300px]">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Search"
-                    value={search}
-                    onChange={handleSearchChange}
-                    className="pl-10"
-                  />
-                </div>
-
-                {/* AddUnlistedBanknoteDialog button for owners */}
-                {isOwner && (
-                  <AddUnlistedBanknoteDialog
-                    userId={userId || ''}
-                    countryName={countryName || ''}
-                    onCreated={onAddUnlistedBanknote}
-                  />
-                )}
-
-                {onViewModeChange && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={toggleViewMode}
-                    aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
-                  >
-                    {viewMode === 'grid' ? (
-                      <LayoutList className="h-4 w-4" />
-                    ) : (
-                      <LayoutGrid className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-                
-                {onGroupModeChange && (
-                  <Button
-                    variant={groupMode ? "default" : "outline"}
-                    size="icon"
-                    onClick={toggleGroupMode}
-                    aria-label={`Toggle group mode ${groupMode ? 'off' : 'on'}`}
-                    title="Group similar banknotes"
-                  >
-                    <Layers className="h-4 w-4" />
-                  </Button>
-                )}
+            <div className="flex gap-2 items-center">
+              <div className="relative flex-1 w-full max-w-sm">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search"
+                  value={search}
+                  onChange={handleSearchChange}
+                  className="pl-10"
+                />
               </div>
 
-              <div className="flex gap-2">
-                <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
-                  <SheetTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="flex-1 sm:flex-initial flex items-center justify-center gap-2"
-                      disabled={isLoading}
-                    >
-                      <Filter className="h-4 w-4" />
-                      <span>Filter</span>
-                      {isLoading && <span className="animate-spin">⊚</span>}
-                    </Button>
-                  </SheetTrigger>
-                  
-                  <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
-                    <SheetHeader>
-                      <SheetTitle>Categories & Types</SheetTitle>
-                    </SheetHeader>
-                    <div className="space-y-6 py-4 overflow-y-auto">
-                      <div>
-                        <h4 className="font-medium mb-3">Categories</h4>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="all-categories"
-                              checked={allCategoriesSelected}
-                              onCheckedChange={(checked) => handleCategoryChange("all", !!checked)}
-                            />
-                            <label htmlFor="all-categories" className="text-sm">All Categories</label>
-                          </div>
-                          {categories.map(category => (
-                            <div key={category.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`category-${category.id}`}
-                                checked={selectedCategories.includes(category.id)}
-                                onCheckedChange={(checked) => handleCategoryChange(category.id, !!checked)}
-                              />
-                              <label htmlFor={`category-${category.id}`} className="text-sm flex justify-between w-full">
-                                <span>{withHighlight(category.name, search)}</span>
-                                {category.count !== undefined && (
-                                  <span className="text-muted-foreground">({category.count})</span>
-                                )}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="font-medium mb-3">Types</h4>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="all-types"
-                              checked={allTypesSelected}
-                              onCheckedChange={(checked) => handleTypeChange("all", !!checked)}
-                            />
-                            <label htmlFor="all-types" className="text-sm">All Types</label>
-                          </div>
-                          {types.map(type => (
-                            <div key={type.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`type-${type.id}`}
-                                checked={selectedTypes.includes(type.id)}
-                                onCheckedChange={(checked) => handleTypeChange(type.id, !!checked)}
-                              />
-                              <label htmlFor={`type-${type.id}`} className="text-sm flex justify-between w-full">
-                                <span>{withHighlight(type.name, search)}</span>
-                                {type.count !== undefined && (
-                                  <span className="text-muted-foreground">({type.count})</span>
-                                )}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <SheetClose asChild>
-                        <Button 
-                          className="w-full"
-                          onClick={() => setIsCategorySheetOpen(false)}
-                        >
-                          Close
-                        </Button>
-                      </SheetClose>
-                    </div>
-                  </SheetContent>
-                </Sheet>
+              {/* AddUnlistedBanknoteDialog button for owners */}
+              {isOwner && (
+                <AddUnlistedBanknoteDialog
+                  userId={userId || ''}
+                  countryName={countryName || ''}
+                  onCreated={onAddUnlistedBanknote}
+                />
+              )}
 
-                <Sheet open={isSortSheetOpen} onOpenChange={setIsSortSheetOpen}>
-                  <SheetTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="flex-1 sm:flex-initial flex items-center justify-center gap-2"
-                      disabled={isLoading}
-                    >
-                      <Filter className="h-4 w-4" />
-                      <span>Sort</span>
-                      {isLoading && <span className="animate-spin">⊚</span>}
-                    </Button>
-                  </SheetTrigger>
-                  
-                  <SheetContent side={isMobile ? "bottom" : "right"} className="w-full sm:max-w-md">
-                    <SheetHeader>
-                      <SheetTitle>Sort Options</SheetTitle>
-                    </SheetHeader>
-                    <div className="py-4 space-y-2">
-                      {sortOptions.map(option => {
-                        const isFieldChecked = selectedSort.includes(option.fieldName || "");
-                        return (
-                          <div key={option.id} className="flex items-center space-x-2">
+              {onViewModeChange && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={toggleViewMode}
+                  aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+                >
+                  {viewMode === 'grid' ? (
+                    <LayoutList className="h-4 w-4" />
+                  ) : (
+                    <LayoutGrid className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+              
+              {onGroupModeChange && (
+                <Button
+                  variant={groupMode ? "default" : "outline"}
+                  size="icon"
+                  onClick={toggleGroupMode}
+                  aria-label={`Toggle group mode ${groupMode ? 'off' : 'on'}`}
+                  title="Group similar banknotes"
+                >
+                  <Layers className="h-4 w-4" />
+                </Button>
+              )}
+
+              <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
+                <SheetTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center justify-center gap-2 whitespace-nowrap"
+                    disabled={isLoading}
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span>Filter</span>
+                    {isLoading && <span className="animate-spin">⊚</span>}
+                  </Button>
+                </SheetTrigger>
+                
+                <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
+                  <SheetHeader>
+                    <SheetTitle>Categories & Types</SheetTitle>
+                  </SheetHeader>
+                  <div className="space-y-6 py-4 overflow-y-auto">
+                    <div>
+                      <h4 className="font-medium mb-3">Categories</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="all-categories"
+                            checked={allCategoriesSelected}
+                            onCheckedChange={(checked) => handleCategoryChange("all", !!checked)}
+                          />
+                          <label htmlFor="all-categories" className="text-sm">All Categories</label>
+                        </div>
+                        {categories.map(category => (
+                          <div key={category.id} className="flex items-center space-x-2">
                             <Checkbox
-                              id={`sort-${option.id}`}
-                              checked={isFieldChecked}
-                              disabled={option.isRequired}
-                              onCheckedChange={(checked) => handleSortChange(option.id, !!checked)}
+                              id={`category-${category.id}`}
+                              checked={selectedCategories.includes(category.id)}
+                              onCheckedChange={(checked) => handleCategoryChange(category.id, !!checked)}
                             />
-                            <label 
-                              htmlFor={`sort-${option.id}`} 
-                              className={cn(
-                                "text-sm",
-                                option.isRequired && "opacity-50"
+                            <label htmlFor={`category-${category.id}`} className="text-sm flex justify-between w-full">
+                              <span>{withHighlight(category.name, search)}</span>
+                              {category.count !== undefined && (
+                                <span className="text-muted-foreground">({category.count})</span>
                               )}
-                            >
-                              {option.name} {option.isRequired && "(Always)"}
                             </label>
                           </div>
-                        );
-                      })}
-                      <SheetClose asChild className="mt-4">
-                        <Button 
-                          className="w-full mt-4"
-                          onClick={() => setIsSortSheetOpen(false)}
-                        >
-                          Close
-                        </Button>
-                      </SheetClose>
+                        ))}
+                      </div>
                     </div>
-                  </SheetContent>
-                </Sheet>
-              </div>
+                    <div>
+                      <h4 className="font-medium mb-3">Types</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="all-types"
+                            checked={allTypesSelected}
+                            onCheckedChange={(checked) => handleTypeChange("all", !!checked)}
+                          />
+                          <label htmlFor="all-types" className="text-sm">All Types</label>
+                        </div>
+                        {types.map(type => (
+                          <div key={type.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`type-${type.id}`}
+                              checked={selectedTypes.includes(type.id)}
+                              onCheckedChange={(checked) => handleTypeChange(type.id, !!checked)}
+                            />
+                            <label htmlFor={`type-${type.id}`} className="text-sm flex justify-between w-full">
+                              <span>{withHighlight(type.name, search)}</span>
+                              {type.count !== undefined && (
+                                <span className="text-muted-foreground">({type.count})</span>
+                              )}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <SheetClose asChild>
+                      <Button 
+                        className="w-full"
+                        onClick={() => setIsCategorySheetOpen(false)}
+                      >
+                        Close
+                      </Button>
+                    </SheetClose>
+                  </div>
+                </SheetContent>
+              </Sheet>
+
+              <Sheet open={isSortSheetOpen} onOpenChange={setIsSortSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center justify-center gap-2 whitespace-nowrap"
+                    disabled={isLoading}
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span>Sort</span>
+                    {isLoading && <span className="animate-spin">⊚</span>}
+                  </Button>
+                </SheetTrigger>
+                
+                <SheetContent side={isMobile ? "bottom" : "right"} className="w-full sm:max-w-md">
+                  <SheetHeader>
+                    <SheetTitle>Sort Options</SheetTitle>
+                  </SheetHeader>
+                  <div className="py-4 space-y-2">
+                    {sortOptions.map(option => {
+                      const isFieldChecked = selectedSort.includes(option.fieldName || "");
+                      return (
+                        <div key={option.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`sort-${option.id}`}
+                            checked={isFieldChecked}
+                            disabled={option.isRequired}
+                            onCheckedChange={(checked) => handleSortChange(option.id, !!checked)}
+                          />
+                          <label 
+                            htmlFor={`sort-${option.id}`} 
+                            className={cn(
+                              "text-sm",
+                              option.isRequired && "opacity-50"
+                            )}
+                          >
+                            {option.name} {option.isRequired && "(Always)"}
+                          </label>
+                        </div>
+                      );
+                    })}
+                    <SheetClose asChild className="mt-4">
+                      <Button 
+                        className="w-full mt-4"
+                        onClick={() => setIsSortSheetOpen(false)}
+                      >
+                        Close
+                      </Button>
+                    </SheetClose>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
