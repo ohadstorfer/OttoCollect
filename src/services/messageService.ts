@@ -136,12 +136,12 @@ export function subscribeToMessages(userId: string, onNewMessage: () => void): (
   };
 }
 
-// New function to check user's daily messaging limit
+// Updated function to check user's daily messaging limit using the new database functions
 export async function checkUserDailyMessagingLimit(userId: string): Promise<{ hasReachedLimit: boolean; dailyCount: number }> {
   try {
-    // Use the same forum function since messages also count as forum activity
+    // Use the new message-specific database functions
     const { data: limitData, error: limitError } = await supabase
-      .rpc('user_has_reached_daily_forum_limit', { user_id_param: userId });
+      .rpc('user_has_reached_daily_message_limit', { user_id_param: userId });
 
     if (limitError) {
       console.error("Error checking daily messaging limit:", limitError);
@@ -149,7 +149,7 @@ export async function checkUserDailyMessagingLimit(userId: string): Promise<{ ha
     }
 
     const { data: countData, error: countError } = await supabase
-      .rpc('get_user_daily_forum_activity_count', { user_id_param: userId });
+      .rpc('get_user_daily_message_count', { user_id_param: userId });
 
     if (countError) {
       console.error("Error getting daily messaging count:", countError);

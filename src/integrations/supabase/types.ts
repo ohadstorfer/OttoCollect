@@ -1572,6 +1572,10 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: number
       }
+      get_user_daily_message_count: {
+        Args: { user_id_param: string }
+        Returns: number
+      }
       is_country_admin: {
         Args: { user_uuid: string; country_uuid: string }
         Returns: boolean
@@ -1595,6 +1599,10 @@ export type Database = {
         }[]
       }
       user_has_reached_daily_forum_limit: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
+      user_has_reached_daily_message_limit: {
         Args: { user_id_param: string }
         Returns: boolean
       }
