@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,7 +7,7 @@ import { toast } from "sonner";
 import { ForumPost as ForumPostType, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
-import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment } from "@/services/forumService";
+import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment, checkUserDailyForumLimit } from "@/services/forumService";
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumCommentComponent from "@/components/forum/ForumComment";
@@ -40,12 +39,17 @@ const ForumPostPage = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState('');
+  const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false);
+  const [dailyCount, setDailyCount] = useState(0);
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [showProfileActionDialog, setShowProfileActionDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isBlockingUser, setIsBlockingUser] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+
+  // Check if user is in limited ranks
+  const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
 
   useEffect(() => {
     if (postId) {
@@ -74,6 +78,22 @@ const ForumPostPage = () => {
     checkUserBlockStatus();
   }, [user]);
 
+  useEffect(() => {
+    const checkDailyLimit = async () => {
+      if (!user || !isLimitedRank) return;
+      
+      try {
+        const { hasReachedLimit, dailyCount: count } = await checkUserDailyForumLimit(user.id);
+        setHasReachedDailyLimit(hasReachedLimit);
+        setDailyCount(count);
+      } catch (error) {
+        console.error('Error checking daily limit:', error);
+      }
+    };
+
+    checkDailyLimit();
+  }, [user, isLimitedRank]);
+
   const loadPost = async (postId: string) => {
     setIsLoading(true);
     try {
@@ -92,6 +112,15 @@ const ForumPostPage = () => {
   const handleAddComment = async () => {
     if (!user || !post || commentContent.trim() === '') return;
 
+    // Check limit before submitting comment
+    if (isLimitedRank) {
+      const { hasReachedLimit } = await checkUserDailyForumLimit(user.id);
+      if (hasReachedLimit) {
+        toast.error("You have reached your daily limit of 6 forum activities (posts + comments).");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const newComment = await addForumComment(post.id, commentContent);
@@ -100,6 +129,14 @@ const ForumPostPage = () => {
         onAddComment(newComment);
         setCommentContent('');
         toast.success("Your comment has been added successfully.");
+
+        // Update daily count after successful comment
+        if (isLimitedRank) {
+          setDailyCount(prev => prev + 1);
+          if (dailyCount + 1 >= 6) {
+            setHasReachedDailyLimit(true);
+          }
+        }
       } else {
         toast.error("Failed to add comment. Please try again.");
       }
@@ -391,30 +428,44 @@ const ForumPostPage = () => {
                 </p>
               </div>
             ) : (
-            <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border ">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatarUrl} />
-                <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                  {getInitials(user.username)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 space-y-2">
-                <Textarea
-                  value={commentContent}
-                  onChange={(e) => setCommentContent(e.target.value)}
-                  placeholder="Add your comment..."
-                  className="resize-none min-h-[100px]"
-                />
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleAddComment}
-                    disabled={isSubmitting || commentContent.trim() === ''}
-                  >
-                    {isSubmitting ? 'Posting...' : 'Post Comment'}
-                  </Button>
+              <>
+                {/* Daily activity warning for limited ranks */}
+                {isLimitedRank && hasReachedDailyLimit && (
+                  <div className="mb-4">
+                      <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
+                        <p className="text-red-600 dark:text-red-400 text-sm">
+                          You have reached your daily limit of 6 forum activities (posts + comments).
+                        </p>
+                      </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatarUrl} />
+                    <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                      {getInitials(user.username)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-2">
+                    <Textarea
+                      value={commentContent}
+                      onChange={(e) => setCommentContent(e.target.value)}
+                      placeholder="Add your comment..."
+                      className="resize-none min-h-[100px]"
+                      disabled={hasReachedDailyLimit}
+                    />
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={handleAddComment}
+                        disabled={isSubmitting || commentContent.trim() === '' || hasReachedDailyLimit}
+                      >
+                        {isSubmitting ? 'Posting...' : 'Post Comment'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </>
             )
           ) : (
             <div className="bg-parchment-10/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">

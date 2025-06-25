@@ -192,21 +192,15 @@ const Forum = () => {
             </div>
 
             {/* Daily activity warning for limited ranks */}
-            {user && isLimitedRank && (
+            {user && isLimitedRank && hasReachedDailyLimit &&(
               <div className="mt-4 text-center">
-                {hasReachedDailyLimit ? (
+                
                   <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 max-w-md mx-auto">
                     <p className="text-red-600 dark:text-red-400 text-sm">
                       You have reached your daily limit of 6 forum activities (posts + comments).
                     </p>
                   </div>
-                ) : (
-                  <div className="bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded-md border border-yellow-200 dark:border-yellow-800 max-w-md mx-auto">
-                    <p className="text-yellow-600 dark:text-yellow-400 text-sm">
-                      Daily forum activity: {dailyCount}/6 (posts + comments)
-                    </p>
-                  </div>
-                )}
+                 
               </div>
             )}
 
