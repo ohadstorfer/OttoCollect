@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { FollowStats } from "./FollowStats";
+import { useTheme } from "@/context/ThemeContext";
 
 interface ProfileHeaderProps {
   profile: User;
@@ -19,6 +20,7 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }: ProfileHeaderProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const isOwnProfile = user && profile && user.id === profile.id;
   const userRank = (profile?.rank || "Newbie");
@@ -29,12 +31,12 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
 
   return (
     <div>
-      <Card className="overflow-hidden shadow-lg">
+            <Card className={`overflow-hidden shadow-lg ${theme === 'dark' ? 'bg-dark-800' : 'bg-white'}`}>
         <div className="p-6">
           {/* Mobile View */}
           <div className="sm:hidden">
             <div className="flex flex-col items-center gap-4">
-              <Avatar className="h-20 w-20 border-4 border-background bg-background shadow-lg">
+              <Avatar className={`h-20 w-20 border-4 ${theme === 'dark' ? 'border-dark-700 bg-dark-700' : 'border-background bg-background'} shadow-lg`}>
                 {profile.avatarUrl ? (
                   <AvatarImage src={profile.avatarUrl} alt={profile.username} />
                 ) : (
@@ -45,16 +47,16 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
               </Avatar>
 
               <div className="text-center">
-                <h1 className="text-2xl font-serif mb-2">{profile.username}</h1>
+                <h1 className={`text-2xl font-serif mb-2 ${theme === 'dark' ? '!text-white' : ''}`}>{profile.username}</h1>
                 <Badge variant="user" rank={userRank} showIcon />
-                <div className="text-sm text-muted-foreground mt-2">
+                <div className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>
                   <span className="inline-flex items-center gap-2">
                     {profile.about && <span>{profile.about}</span>}
                     {/* Edit Profile Button */}
                     {isOwnProfile && (
                       <Button
                         onClick={onEditProfileClick}
-                        variant="outline"
+                        variant={theme === 'dark' ? "secondary" : "outline"}
                         size="icon"
                         className="h-5 w-5 inline-flex items-center justify-center"
                       >
@@ -77,8 +79,8 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
           </div>
 
           {/* Desktop View */}
-          <div className="hidden sm:flex items-center gap-8 ">
-            <Avatar className="h-20 w-20 border-4 border-background bg-background shadow-lg flex-shrink-0">
+          <div className="hidden sm:flex items-center gap-8">
+            <Avatar className={`h-20 w-20 border-4 ${theme === 'dark' ? 'border-dark-700 bg-dark-700' : 'border-background bg-background'} shadow-lg flex-shrink-0`}>
               {profile.avatarUrl ? (
                 <AvatarImage src={profile.avatarUrl} alt={profile.username} />
               ) : (
@@ -90,20 +92,20 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
 
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-serif font-semibold">
+                <h1 className={`text-2xl font-serif font-semibold ${theme === 'dark' ? '!text-white' : ''}`}>
                   {profile.username}
                 </h1>
                 <Badge variant="user" rank={userRank} showIcon />
               </div>
 
-                            <div className="text-sm text-muted-foreground">
+              <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>
                 <span className="inline-flex items-center gap-2">
                   {profile.about && <span>{profile.about}</span>}
                   {/* Edit Profile Button */}
                   {isOwnProfile && (
                     <Button
                       onClick={onEditProfileClick}
-                      variant="outline"
+                      variant={theme === 'dark' ? "secondary" : "outline"}
                       size="icon"
                       className="h-5 w-5 inline-flex items-center justify-center"
                     >

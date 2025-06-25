@@ -127,7 +127,7 @@ const Profile: React.FC = () => {
 
   return ( 
     <div>
-      <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-0 sm:py-6 relative overflow-hidden`}>
+      <section className={`${theme === 'light' ? 'bg-ottoman-100/50' : 'bg-dark-600'} py-0 sm:py-6 relative overflow-hidden`}>
       <div className="w-[90%] sm:w-[92%] mx-auto py-5">
      
         <ProfileHeader 

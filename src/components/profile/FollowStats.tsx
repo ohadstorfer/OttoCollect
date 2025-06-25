@@ -11,6 +11,7 @@ import UserProfileLink from '@/components/common/UserProfileLink';
 import { Users, UserPlus, User, MessageCircle } from 'lucide-react';
 import { SendMessage } from '@/components/messages/SendMessage';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from "@/context/ThemeContext";
 
 interface FollowStatsProps {
   profileId: string;
@@ -47,6 +48,7 @@ const UserProfileWrapper = ({
 export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const queryClient = useQueryClient();
   const [showFollowersDialog, setShowFollowersDialog] = useState(false);
   const [showFollowingDialog, setShowFollowingDialog] = useState(false);
@@ -126,8 +128,8 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
           onClick={() => setShowFollowersDialog(true)}
           className="flex flex-col items-center hover:opacity-70 transition-opacity"
         >
-          <span className="font-bold text-lg">{stats.followersCount}</span>
-          <span className="text-sm text-muted-foreground">
+          <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}>{stats.followersCount}</span>
+          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>
             {stats.followersCount === 1 ? 'Follower' : 'Followers'}
           </span>
         </button>
@@ -137,8 +139,8 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
           onClick={() => setShowFollowingDialog(true)}
           className="flex flex-col items-center hover:opacity-70 transition-opacity"
         >
-          <span className="font-bold text-lg">{stats.followingCount}</span>
-          <span className="text-sm text-muted-foreground">Following</span>
+          <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}>{stats.followingCount}</span>
+          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>Following</span>
         </button>
       </div>
 
