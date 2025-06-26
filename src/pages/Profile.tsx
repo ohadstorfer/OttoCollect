@@ -154,7 +154,7 @@ const Profile: React.FC = () => {
             profile={profile}
           />
         ) : (
-          <div className="flex justify-center w-full">
+          <div className="flex justify-center w-full mb-4">
             <Card className="p-8 text-center bg-card w-[90%] sm:w-[600px]">
               <h3 className="text-2xl font-semibold mb-4">Authentication Required</h3>
               <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
