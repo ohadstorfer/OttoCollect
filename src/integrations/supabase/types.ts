@@ -868,6 +868,53 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          reference_data: Json | null
+          reference_id: string | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          reference_data?: Json | null
+          reference_id?: string | null
+          title: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          reference_data?: Json | null
+          reference_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           about: string | null
@@ -1582,6 +1629,10 @@ export type Database = {
           suffix_text: string
         }[]
       }
+      generate_collection_activity_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_current_user: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1612,6 +1663,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: number
       }
+      get_unread_notifications_count: {
+        Args: { user_id_param: string }
+        Returns: number
+      }
       get_user_daily_forum_activity_count: {
         Args: { user_id_param: string }
         Returns: number
@@ -1635,6 +1690,10 @@ export type Database = {
       is_super_or_country_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      mark_notifications_as_read: {
+        Args: { user_id_param: string; notification_ids?: string[] }
+        Returns: undefined
       }
       parse_extended_pick_number: {
         Args: { pick_number: string }
