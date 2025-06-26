@@ -55,20 +55,20 @@ export function NotificationPanel({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="flex items-center gap-2">
+        <DialogHeader className="flex flex-row items-center justify-between mt-2">
+          <div className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Notifications
-          </DialogTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-sm"
-            onClick={() => onMarkAsRead()}
-          >
-            <CheckCheck className="h-4 w-4 mr-1" />
-            Mark all as read
-          </Button>
+            <h2 className="text-lg font-semibold">Notifications</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-sm ml-2"
+              onClick={() => onMarkAsRead()}
+            >
+              <CheckCheck className="h-4 w-4 mr-1" />
+              Mark all as read
+            </Button>
+          </div>
         </DialogHeader>
 
         <ScrollArea className="h-[400px] pr-4">
@@ -84,24 +84,21 @@ export function NotificationPanel({
                 return (
                   <div
                     key={notification.id}
-                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      notification.is_read
+                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${notification.is_read
                         ? 'bg-background hover:bg-accent/50'
                         : 'bg-accent/30 hover:bg-accent/40'
-                    }`}
+                      }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="flex-shrink-0">
-                      <div className={`h-8 w-8 rounded-full bg-background flex items-center justify-center ${
-                        notification.is_read ? 'text-muted-foreground' : 'text-primary'
-                      }`}>
+                      <div className={`h-8 w-8 rounded-full bg-background flex items-center justify-center ${notification.is_read ? 'text-muted-foreground' : 'text-primary'
+                        }`}>
                         <IconComponent className="h-4 w-4" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium ${
-                        notification.is_read ? 'text-muted-foreground' : 'text-foreground'
-                      }`}>
+                      <p className={`text-sm font-medium ${notification.is_read ? 'text-muted-foreground' : 'text-foreground'
+                        }`}>
                         {notification.title}
                       </p>
                       <p className="text-sm text-muted-foreground line-clamp-2">
