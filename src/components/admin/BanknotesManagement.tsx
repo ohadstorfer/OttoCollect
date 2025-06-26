@@ -262,9 +262,27 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
     setUploading(true);
     try {
       const csvText = await csvFile.text();
-      const count = await importBanknoteData(csvText);
+      const result = await importBanknoteData(csvText);
       
-      toast.success(`Successfully imported ${count} banknotes`);
+      // Show success toast with import stats
+      toast.success(
+        `Import completed:\n` +
+        `✓ ${result.importedCount} banknotes imported\n` +
+        `⚠ ${result.skippedCount} duplicates skipped\n` +
+        `${result.errors.length > 0 ? `⚠ ${result.errors.length} errors` : ''}`
+      );
+
+      // If there are errors, show them in a separate toast
+      if (result.errors.length > 0) {
+        toast.warning(
+          'Import completed with warnings. Check the console for details.',
+          {
+            duration: 5000,
+          }
+        );
+        console.log('Import errors:', result.errors);
+      }
+      
       setCsvFile(null);
       
       // Reset file input

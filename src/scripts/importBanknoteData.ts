@@ -1,8 +1,50 @@
 import { supabase } from "@/integrations/supabase/client";
 
+interface BanknoteImportResult {
+  importedCount: number;
+  skippedCount: number;
+  errors: string[];
+}
+
+// Helper function to check for existing banknotes in a batch
+async function checkExistingBanknotes(banknotes: Record<string, any>[]) {
+  const compositeKeys = banknotes.map(b => ({
+    country: b.country,
+    extended_pick_number: b.extended_pick_number
+  }));
+
+  // Create an OR condition for each composite key
+  const orConditions = compositeKeys.map(key => 
+    `(country.ilike.${key.country} and extended_pick_number.ilike.${key.extended_pick_number})`
+  ).join(',');
+
+  const { data, error } = await supabase
+    .from('detailed_banknotes')
+    .select('country, extended_pick_number')
+    .or(orConditions);
+
+  if (error) {
+    throw new Error(`Failed to check existing banknotes: ${error.message}`);
+  }
+
+  // Create a Set of composite keys for efficient lookup
+  const existingKeys = new Set(
+    data?.map(b => `${b.country.toLowerCase()}:${b.extended_pick_number.toLowerCase()}`)
+  );
+
+  return existingKeys;
+}
+
 // This function can be used to import the CSV data into the Supabase database
 // It would typically be run once from an admin interface or script
-export async function importBanknoteData(csvData: string) {
+export async function importBanknoteData(csvData: string): Promise<BanknoteImportResult> {
+  // Initialize result object
+  const result: BanknoteImportResult = {
+    importedCount: 0,
+    skippedCount: 0,
+    errors: []
+  };
+
   // Normalize line endings and trim whitespace
   const normalizedCsvData = csvData.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   const lines = normalizedCsvData.split("\n");
@@ -24,7 +66,7 @@ export async function importBanknoteData(csvData: string) {
     
     const values = parseCSVLine(line);
     if (values.length !== headers.length) {
-      console.error(`Row ${i} has incorrect number of values. Expected ${headers.length}, got ${values.length}`);
+      result.errors.push(`Row ${i} has incorrect number of values. Expected ${headers.length}, got ${values.length}`);
       continue;
     }
     
@@ -103,6 +145,8 @@ export async function importBanknoteData(csvData: string) {
     // Only add banknote if it has required fields
     if (banknote.country && banknote.extended_pick_number && banknote.face_value) {
       banknotes.push(banknote);
+    } else {
+      result.errors.push(`Row ${i} missing required fields (country, extended_pick_number, or face_value)`);
     }
   }
   
@@ -112,29 +156,50 @@ export async function importBanknoteData(csvData: string) {
     throw new Error("No valid banknotes found in CSV file");
   }
   
-  // Insert data in batches
+  // Process data in batches
   const batchSize = 50;
-  let importedCount = 0;
   
   for (let i = 0; i < banknotes.length; i += batchSize) {
     const batch = banknotes.slice(i, i + batchSize);
-    console.log(`Inserting batch ${i / batchSize + 1} with ${batch.length} items`);
+    console.log(`Processing batch ${i / batchSize + 1} with ${batch.length} items`);
     
-    const { error } = await supabase
-      .from('detailed_banknotes')
-      .insert(batch);
-    
-    if (error) {
-      console.error(`Error inserting batch ${i / batchSize + 1}:`, error);
-      throw new Error(`Database insertion failed: ${error.message}`);
-    } else {
-      console.log(`Successfully inserted batch ${i / batchSize + 1}`);
-      importedCount += batch.length;
+    try {
+      // Check for existing banknotes in this batch
+      const existingKeys = await checkExistingBanknotes(batch);
+      
+      // Filter out banknotes that already exist
+      const newBanknotes = batch.filter(banknote => {
+        const compositeKey = `${banknote.country.toLowerCase()}:${banknote.extended_pick_number.toLowerCase()}`;
+        const exists = existingKeys.has(compositeKey);
+        
+        if (exists) {
+          result.skippedCount++;
+          result.errors.push(`Skipped duplicate banknote: ${banknote.country} - ${banknote.extended_pick_number}`);
+          return false;
+        }
+        return true;
+      });
+      
+      if (newBanknotes.length > 0) {
+        const { error } = await supabase
+          .from('detailed_banknotes')
+          .insert(newBanknotes);
+        
+        if (error) {
+          throw error;
+        }
+        
+        result.importedCount += newBanknotes.length;
+        console.log(`Successfully inserted ${newBanknotes.length} new banknotes from batch ${i / batchSize + 1}`);
+      }
+    } catch (error) {
+      console.error(`Error processing batch ${i / batchSize + 1}:`, error);
+      result.errors.push(`Batch ${i / batchSize + 1} error: ${error.message}`);
     }
   }
   
-  console.log(`Import complete, processed ${importedCount} banknotes`);
-  return importedCount;
+  console.log(`Import complete. Imported: ${result.importedCount}, Skipped: ${result.skippedCount}, Errors: ${result.errors.length}`);
+  return result;
 }
 
 // Helper function to correctly parse CSV lines that might contain commas within quotes
