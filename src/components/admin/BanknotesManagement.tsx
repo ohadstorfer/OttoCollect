@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Banknote, DetailedBanknote } from '@/types';
-import { Search, Loader2, Plus, Edit, Check, X, Eye, Upload } from 'lucide-react';
+import { Search, Loader2, Plus, Edit, Check, X, Eye, Upload, Trash2 } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import BanknoteEditDialog from './BanknoteEditDialog';
 import BanknoteDetailDialog from './BanknoteDetailDialog';
@@ -24,6 +24,16 @@ import { useBanknoteSorting } from '@/hooks/use-banknote-sorting';
 import { Currency } from '@/types/banknote';
 import { importBanknoteData } from '@/scripts/importBanknoteData';
 import { useAuth } from '@/context/AuthContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface BanknotesManagementProps extends AdminComponentProps {}
 
@@ -73,6 +83,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
+  const [banknoteToDelete, setBanknoteToDelete] = useState<Banknote | null>(null);
   
   const PAGE_SIZE = 10;
 
@@ -141,7 +152,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
       const filtered = allBanknotes.filter(banknote => {
         const searchLower = searchQuery.toLowerCase();
         return (
-          banknote.catalogId?.toLowerCase().includes(searchLower) ||
+          banknote.extendedPickNumber?.toLowerCase().includes(searchLower) ||
           banknote.country?.toLowerCase().includes(searchLower) ||
           banknote.denomination?.toLowerCase().includes(searchLower) ||
           banknote.year?.toLowerCase().includes(searchLower) ||
@@ -201,6 +212,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
       const transformedData = data.map(item => ({
         id: item.id,
         catalogId: item.extended_pick_number,
+        extendedPickNumber: item.extended_pick_number,
         country: item.country,
         denomination: item.face_value,
         year: item.gregorian_year || '',
@@ -216,8 +228,11 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
         isPending: item.is_pending || false,
         createdAt: item.created_at || '',
         updatedAt: item.updated_at || '',
-        createdBy: ''
-      }));
+        createdBy: '',
+        type: item.type || '',
+        sultanName: item.sultan_name || '',
+        category: item.category || ''
+      })) as unknown as Banknote[];
 
       setAllBanknotes(transformedData);
     } catch (error) {
@@ -326,6 +341,27 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
 
   const handleViewBanknote = (banknote: Banknote) => {
     setSelectedBanknoteId(banknote.id);
+  };
+
+  const handleDeleteBanknote = async (banknote: Banknote) => {
+    try {
+      const { error } = await supabase
+        .from('detailed_banknotes')
+        .delete()
+        .eq('id', banknote.id);
+
+      if (error) throw error;
+
+      setAllBanknotes(prevBanknotes => 
+        prevBanknotes.filter(b => b.id !== banknote.id)
+      );
+
+      toast.success('Banknote deleted successfully');
+      setBanknoteToDelete(null);
+    } catch (error) {
+      console.error('Error deleting banknote:', error);
+      toast.error('Failed to delete banknote');
+    }
   };
 
   return (
@@ -443,7 +479,6 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                       <TableHead>Country</TableHead>
                       <TableHead>Denomination</TableHead>
                       <TableHead>Year</TableHead>
-                      <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -461,23 +496,10 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                               <Eye className="h-4 w-4" /> View
                             </Button>
                           </TableCell>
-                          <TableCell className="font-medium">{banknote.catalogId}</TableCell>
+                          <TableCell className="font-medium">{banknote.extendedPickNumber}</TableCell>
                           <TableCell>{banknote.country}</TableCell>
                           <TableCell>{banknote.denomination}</TableCell>
                           <TableCell>{banknote.year}</TableCell>
-                          <TableCell>
-                            {banknote.isApproved ? (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                <Check className="mr-1 h-3 w-3" />
-                                Approved
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                <X className="mr-1 h-3 w-3" />
-                                Unapproved
-                              </span>
-                            )}
-                          </TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
                               <Button
@@ -489,14 +511,10 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                               </Button>
                               <Button
                                 size="sm"
-                                variant={banknote.isApproved ? "destructive" : "default"}
-                                onClick={() => handleToggleApproval(banknote)}
+                                variant="destructive"
+                                onClick={() => setBanknoteToDelete(banknote)}
                               >
-                                {banknote.isApproved ? (
-                                  <X className="h-4 w-4" />
-                                ) : (
-                                  <Check className="h-4 w-4" />
-                                )}
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
@@ -504,7 +522,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-10">
+                        <TableCell colSpan={6} className="text-center py-10">
                           No banknotes found
                         </TableCell>
                       </TableRow>
@@ -528,7 +546,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
           {isEditDialogOpen && (
             <BanknoteEditDialog
               open={isEditDialogOpen}
-              banknote={selectedBanknote}
+              banknote={selectedBanknote as unknown as DetailedBanknote}
               isNew={isNewBanknote}
               onClose={() => setIsEditDialogOpen(false)}
               onUpdate={handleBanknoteUpdated}
@@ -544,6 +562,31 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
               )}
             </DialogContent>
           </Dialog>
+
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog 
+            open={banknoteToDelete !== null} 
+            onOpenChange={() => setBanknoteToDelete(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete the banknote with catalog ID: {banknoteToDelete?.extendedPickNumber}. 
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={() => banknoteToDelete && handleDeleteBanknote(banknoteToDelete)}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       )}
     </div>

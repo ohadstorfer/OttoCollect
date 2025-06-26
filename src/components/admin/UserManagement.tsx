@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Role } from '@/types';
 import { Search, Loader2 } from 'lucide-react';
 import { blockUserByEmail, deleteUserById } from '@/services/profileService';
+import UserProfileDialog from './UserProfileDialog';
 
 interface UserManagementProps {
   isSuperAdmin: boolean;
@@ -28,6 +29,8 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
   const [showForumBlockDialog, setShowForumBlockDialog] = useState(false);
   const [userToForumBlock, setUserToForumBlock] = useState<User | null>(null);
   const [forumBlockingUserId, setForumBlockingUserId] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -295,7 +298,18 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
           <TableBody>
             {filteredUsers.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.username}</TableCell>
+                <TableCell className="font-medium">
+                  <Button
+                    variant="outline"
+                    className=" h-auto font-medium"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setIsProfileDialogOpen(true);
+                    }}
+                  >
+                    {user.username}
+                  </Button>
+                </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <Badge variant="secondary">
@@ -409,6 +423,12 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
           </div>
         </div>
       )}
+      {/* User Profile Dialog */}
+      <UserProfileDialog
+        user={selectedUser}
+        open={isProfileDialogOpen}
+        onOpenChange={setIsProfileDialogOpen}
+      />
     </div>
   );
 };

@@ -68,6 +68,10 @@ const BanknoteEditDialog = ({
     seal_pictures: [],
     watermark_picture: '',
     tughra_picture: '',
+    turk_catalog_number: '',
+    security_element: '',
+    colors: '',
+    serial_numbering: '',
     is_approved: true,
     is_pending: false
   });
@@ -130,6 +134,10 @@ const BanknoteEditDialog = ({
         seal_pictures: banknote.sealNames?.split(', ') || [],
         watermark_picture: banknote.watermark || '',
         tughra_picture: '',
+        turk_catalog_number: banknote.turkCatalogNumber || '',
+        security_element: banknote.securityElement || '',
+        colors: banknote.colors || '',
+        serial_numbering: banknote.serialNumbering || '',
         is_approved: banknote.isApproved,
         is_pending: banknote.isPending
       });
@@ -438,7 +446,7 @@ const BanknoteEditDialog = ({
             <TabsContent value="basic" className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="extended_pick_number">Catalog ID</Label>
+                  <Label htmlFor="extended_pick_number">extended_pick_number</Label>
                   <Input
                     id="extended_pick_number"
                     name="extended_pick_number"
@@ -449,7 +457,7 @@ const BanknoteEditDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="pick_number">Pick Number</Label>
+                  <Label htmlFor="pick_number">pick_number</Label>
                   <Input
                     id="pick_number"
                     name="pick_number"
@@ -460,7 +468,7 @@ const BanknoteEditDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
+                  <Label htmlFor="country">country</Label>
                   <Input
                     id="country"
                     name="country"
@@ -471,7 +479,7 @@ const BanknoteEditDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="face_value">Denomination</Label>
+                  <Label htmlFor="face_value">face_value</Label>
                   <Input
                     id="face_value"
                     name="face_value"
@@ -482,7 +490,7 @@ const BanknoteEditDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="gregorian_year">Gregorian Year</Label>
+                  <Label htmlFor="gregorian_year">gregorian_year</Label>
                   <Input
                     id="gregorian_year"
                     name="gregorian_year"
@@ -492,7 +500,7 @@ const BanknoteEditDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="islamic_year">Islamic Year</Label>
+                  <Label htmlFor="islamic_year">islamic_year</Label>
                   <Input
                     id="islamic_year"
                     name="islamic_year"
@@ -500,16 +508,57 @@ const BanknoteEditDialog = ({
                     onChange={handleChange}
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="turk_catalog_number">turk_catalog_number</Label>
+                  <Input
+                    id="turk_catalog_number"
+                    name="turk_catalog_number"
+                    value={formData.turk_catalog_number}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="colors">colors</Label>
+                  <Input
+                    id="colors"
+                    name="colors"
+                    value={formData.colors}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="banknote_description">Description</Label>
+                <Label htmlFor="banknote_description">banknote_description</Label>
                 <Textarea
                   id="banknote_description"
                   name="banknote_description"
                   value={formData.banknote_description || ''}
                   onChange={handleChange}
                   rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="security_element">security_element</Label>
+                <Textarea
+                  id="security_element"
+                  name="security_element"
+                  value={formData.security_element || ''}
+                  onChange={handleChange}
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="serial_numbering">serial_numbering</Label>
+                <Input
+                  id="serial_numbering"
+                  name="serial_numbering"
+                  value={formData.serial_numbering}
+                  onChange={handleChange}
                 />
               </div>
               
@@ -522,14 +571,14 @@ const BanknoteEditDialog = ({
                   onChange={handleCheckboxChange}
                   className="h-4 w-4 rounded border-gray-300"
                 />
-                <Label htmlFor="is_approved">Approved</Label>
+                <Label htmlFor="is_approved">is_approved</Label>
               </div>
             </TabsContent>
             
             <TabsContent value="details" className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="sultan_name">Sultan Name</Label>
+                  <Label htmlFor="sultan_name">sultan_name</Label>
                   <Input
                     id="sultan_name"
                     name="sultan_name"
@@ -539,7 +588,7 @@ const BanknoteEditDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="printer">Printer</Label>
+                  <Label htmlFor="printer">printer</Label>
                   <Input
                     id="printer"
                     name="printer"
@@ -549,7 +598,7 @@ const BanknoteEditDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
+                  <Label htmlFor="type">type</Label>
                   <Input
                     id="type"
                     name="type"
@@ -559,7 +608,7 @@ const BanknoteEditDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">category</Label>
                   <Input
                     id="category"
                     name="category"
@@ -569,7 +618,7 @@ const BanknoteEditDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="rarity">Rarity</Label>
+                  <Label htmlFor="rarity">rarity</Label>
                   <Input
                     id="rarity"
                     name="rarity"
@@ -580,7 +629,7 @@ const BanknoteEditDialog = ({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="historical_description">Historical Description</Label>
+                <Label htmlFor="historical_description">historical_description</Label>
                 <Textarea
                   id="historical_description"
                   name="historical_description"
