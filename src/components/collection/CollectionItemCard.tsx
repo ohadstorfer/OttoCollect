@@ -6,6 +6,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { removeFromCollection } from '@/services/collectionService';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,18 +36,22 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   onEdit,
   onUpdate,
   isOwner = false,
-  viewMode = 'grid'
+  viewMode = 'grid',
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
   // Use thumbnail if available, otherwise fall back to original image
   const displayImage = item?.obverse_image_thumbnail || item?.obverseImage;
 
-  // Check if images should be hidden
-  const shouldHideImages = !isOwner && item?.hide_images;
+  // Super Admins can always see images, others follow normal rules
+  const canViewImages = user?.role === 'Super Admin' || isOwner || !item?.hide_images;
+
+  // Determine if we should show placeholder
+  const showPlaceholder = !canViewImages || !displayImage || displayImage === '/placeholder.svg';
 
   // Use BANKNOTE_CONDITIONS from constants
   const conditionColors: Partial<Record<BanknoteCondition, string>> = {
@@ -99,12 +104,12 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       const countryData = {
         name: item.banknote.country,
         // If we have the country ID, use it, otherwise it will be fetched when needed
-        id: item.banknote.countryId || null
+        id: (item.banknote as any).countryId || null
       };
       sessionStorage.setItem('lastViewedCountry', JSON.stringify(countryData));
     }
     
-    if (item?.isMissing) {
+    if ((item as any).isMissing) {
       // For missing items, go to banknote details
       navigate(`/banknote-details/${item.banknoteId || item.id}`);
     } else if (item?.id) {
@@ -167,7 +172,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         onClick={handleCardClick}
       >
         <div className="w-24 flex-shrink-0 flex items-center justify-center">
-          {shouldHideImages || !displayImage || displayImage === '/placeholder.svg' ? (
+          {showPlaceholder ? (
             <AspectRatio ratio={4 / 2}>
               <img
                 src="/placeholder.svg"
@@ -176,11 +181,13 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
               />
             </AspectRatio>
           ) : (
-            <BanknoteImage
-              imageUrl={displayImage}
-              alt={getBanknoteTitle()}
-              className="object-contain w-full h-auto max-h-24"
-            />
+            <div className="relative w-full">
+              <BanknoteImage
+                imageUrl={displayImage}
+                alt={getBanknoteTitle()}
+                className="object-contain w-full h-auto max-h-24"
+              />
+            </div>
           )}
         </div>
         <div className="flex-grow flex flex-col justify-between p-3">
@@ -274,7 +281,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
           </div>
         </div>
         <div className="relative w-full flex justify-center items-center bg-muted">
-          {shouldHideImages || !displayImage || displayImage === '/placeholder.svg' ? (
+          {showPlaceholder ? (
             <AspectRatio ratio={4 / 2}>
               <img
                 src="/placeholder.svg"
@@ -283,11 +290,13 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
               />
             </AspectRatio>
           ) : (
-            <BanknoteImage
-              imageUrl={displayImage}
-              alt={getBanknoteTitle()}
-              className="object-contain w-full h-auto max-h-60"
-            />
+            <div className="relative w-full">
+              <BanknoteImage
+                imageUrl={displayImage}
+                alt={getBanknoteTitle()}
+                className="object-contain w-full h-auto max-h-60"
+              />
+            </div>
           )}
         </div>
         

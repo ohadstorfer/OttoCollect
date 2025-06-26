@@ -285,7 +285,10 @@ export default function CollectionItem() {
   };
 
   // Check if images should be hidden for non-owners
-  const shouldHideImages = !isOwner && collectionItem?.hide_images;
+  const shouldHideImages = !isOwner && collectionItem?.hide_images && user?.role !== 'Super Admin';
+
+  // Check if showing private images as admin
+  const isShowingPrivateAsAdmin = !isOwner && collectionItem?.hide_images && user?.role === 'Super Admin';
 
   if (isLoading) {
     return (
@@ -423,56 +426,62 @@ export default function CollectionItem() {
                     </div>
                   ) : displayImages.length > 0 ? (
                     <div className="relative">
-                      {isOwner && (
+                      {(isOwner || isShowingPrivateAsAdmin) && (
                         <div className="absolute top-2 left-2 z-50">
-                          <AlertDialog open={showVisibilityDialog} onOpenChange={setShowVisibilityDialog}>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="bg-white hover:bg-white/90 text-xs flex items-center gap-1 shadow-sm border"
-                              >
-                                {Boolean(collectionItem?.hide_images) ? (
-                                  <>
-                                    <EyeOff className="h-3 w-3" />
-                                    <span>Private images, only visible to you</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Eye className="h-3 w-3" />
-                                    <span>Images visible to all users</span>
-                                  </>
-                                )}
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  {collectionItem?.hide_images 
-                                    ? "Make Images Public" 
-                                    : "Make Images Private"}
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  {collectionItem?.hide_images
-                                    ? "This will make your images visible to all users. Are you sure you want to continue?"
-                                    : "This will make your images private and only visible to you. Are you sure you want to continue?"}
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel disabled={isTogglingVisibility}>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={handleToggleImageVisibility}
-                                  disabled={isTogglingVisibility}
+                          {isShowingPrivateAsAdmin ? (
+                            <div className="bg-white/90 rounded-sm px-2 py-1 shadow-sm border">
+                              <p className="text-xs text-muted-foreground">Private images, visible to admins</p>
+                            </div>
+                          ) : (
+                            <AlertDialog open={showVisibilityDialog} onOpenChange={setShowVisibilityDialog}>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="bg-white hover:bg-white/90 text-xs flex items-center gap-1 shadow-sm border"
                                 >
-                                  {isTogglingVisibility 
-                                    ? "Updating..." 
-                                    : collectionItem?.hide_images
-                                      ? "Make Public"
-                                      : "Make Private"}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                                  {Boolean(collectionItem?.hide_images) ? (
+                                    <>
+                                      <EyeOff className="h-3 w-3" />
+                                      <span>Private images, only visible to you</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Eye className="h-3 w-3" />
+                                      <span>Images visible to all users</span>
+                                    </>
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    {collectionItem?.hide_images 
+                                      ? "Make Images Public" 
+                                      : "Make Images Private"}
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {collectionItem?.hide_images
+                                      ? "This will make your images visible to all users. Are you sure you want to continue?"
+                                      : "This will make your images private and only visible to you. Are you sure you want to continue?"}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel disabled={isTogglingVisibility}>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={handleToggleImageVisibility}
+                                    disabled={isTogglingVisibility}
+                                  >
+                                    {isTogglingVisibility 
+                                      ? "Updating..." 
+                                      : collectionItem?.hide_images
+                                        ? "Make Public"
+                                        : "Make Private"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </div>
                       )}
                       {displayImages.map((url, index) => (

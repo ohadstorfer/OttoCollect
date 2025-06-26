@@ -6,6 +6,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { removeFromCollection } from '@/services/collectionService';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,11 +37,11 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
   onEdit,
   onUpdate,
   isOwner = false,
-  viewMode = 'grid'
+  viewMode = 'grid',
 }) => {
-  console.log("CollectionItemCard - isOwner:", isOwner, "for itemId:", item?.id);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
@@ -58,11 +59,14 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
     } : 'No banknote data'
   });
 
-  // Use custom images if available, otherwise fall back to banknote images
-  const displayImage = item?.obverseImage;
+  // Use thumbnail if available, otherwise fall back to original image
+  const displayImage = item?.obverse_image_thumbnail || item?.obverseImage;
 
-  // Check if images should be hidden
-  const shouldHideImages = !isOwner && item?.hide_images;
+  // Super Admins can always see images, others follow normal rules
+  const canViewImages = user?.role === 'Super Admin' || isOwner || !item?.hide_images;
+
+  // Determine if we should show placeholder
+  const showPlaceholder = !canViewImages || !displayImage || displayImage === '/placeholder.svg';
 
   // Use BANKNOTE_CONDITIONS from constants
   const conditionColors: Partial<Record<BanknoteCondition, string>> = {
@@ -169,7 +173,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
         onClick={handleCardClick}
       >
         <div className="w-24 flex-shrink-0 flex items-center justify-center">
-          {shouldHideImages || !displayImage || displayImage === '/placeholder.svg' ? (
+          {showPlaceholder ? (
             <AspectRatio ratio={4 / 2}>
               <img
                 src="/placeholder.svg"
@@ -178,11 +182,13 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
               />
             </AspectRatio>
           ) : (
-            <BanknoteImage
-              imageUrl={displayImage}
-              alt={getBanknoteTitle()}
-              className="object-contain w-full h-auto max-h-24"
-            />
+            <div className="relative w-full">
+              <BanknoteImage
+                imageUrl={displayImage}
+                alt={getBanknoteTitle()}
+                className="object-contain w-full h-auto max-h-24"
+              />
+            </div>
           )}
         </div>
         <div className="flex-grow flex flex-col justify-between p-3">
@@ -256,7 +262,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
           </div>
         </div>
         <div className="relative w-full flex justify-center items-center bg-muted">
-          {shouldHideImages || !displayImage || displayImage === '/placeholder.svg' ? (
+          {showPlaceholder ? (
             <AspectRatio ratio={4 / 2}>
               <img
                 src="/placeholder.svg"
@@ -265,18 +271,20 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
               />
             </AspectRatio>
           ) : (
-            <BanknoteImage
-              imageUrl={displayImage}
-              alt={getBanknoteTitle()}
-              className="object-contain w-full h-auto max-h-60"
-            />
+            <div className="relative w-full">
+              <BanknoteImage
+                imageUrl={displayImage}
+                alt={getBanknoteTitle()}
+                className="object-contain w-full h-auto max-h-60"
+              />
+            </div>
           )}
         </div>
         <div className="p-3 bg-background border-t">
 
-          {item.banknote.name && (
+          {(item.banknote as any).name && (
             <p className="text-sm text-muted-foreground">
-              {item.banknote.name}
+              {(item.banknote as any).name}
             </p>
           )}
 

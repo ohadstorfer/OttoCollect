@@ -274,6 +274,17 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
     setIsSubmitting(true);
     try {
+      // Process and upload images if changed
+      let obverseProcessedImages = null;
+      let reverseProcessedImages = null;
+
+      if (obverseImageFile) {
+        obverseProcessedImages = await processAndUploadImage(obverseImageFile, 'collection-items', authUser.id);
+      }
+      if (reverseImageFile) {
+        reverseProcessedImages = await processAndUploadImage(reverseImageFile, 'collection-items', authUser.id);
+      }
+
       // Handle grading vs condition
       let condition = undefined;
       let grade = undefined;
@@ -313,6 +324,16 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       if (currentItem) {
         // Update existing item
         await updateCollectionItem(currentItem.id, updateData);
+        
+        // Update images if they were changed
+        if (obverseProcessedImages || reverseProcessedImages) {
+          await updateCollectionItemImages(
+            currentItem.id,
+            obverseProcessedImages,
+            reverseProcessedImages
+          );
+        }
+
         if (onUpdate) onUpdate(currentItem);
       } else {
         // Create new item
@@ -320,6 +341,16 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
           userId: authUser.id,
           banknoteId: values.banknoteId,
         });
+
+        // Update images if they were uploaded
+        if (savedItem && (obverseProcessedImages || reverseProcessedImages)) {
+          await updateCollectionItemImages(
+            savedItem.id,
+            obverseProcessedImages,
+            reverseProcessedImages
+          );
+        }
+
         if (onSave) onSave(savedItem);
       }
 

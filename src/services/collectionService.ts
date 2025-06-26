@@ -8,6 +8,8 @@ import type { Database } from "@/integrations/supabase/types";
 import { mapBanknoteFromDatabase } from "@/services/banknoteService";
 import { processAndUploadImage } from './imageProcessingService';
 
+export { processAndUploadImage } from './imageProcessingService';
+
 // Type definition for collection items table insert
 type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
 

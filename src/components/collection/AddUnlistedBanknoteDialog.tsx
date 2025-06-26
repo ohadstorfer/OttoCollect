@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { BookmarkPlus, CalendarIcon, Upload, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem } from "@/services/collectionService";
+import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from "@/services/collectionService";
 import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
@@ -189,14 +189,14 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     setIsSubmitting(true);
     try {
       // Upload images if provided
-      let obverseImageUrl = null;
-      let reverseImageUrl = null;
+      let obverseProcessedImages = null;
+      let reverseProcessedImages = null;
 
       if (obverseImageFile) {
-        obverseImageUrl = await uploadCollectionImage(obverseImageFile);
+        obverseProcessedImages = await processAndUploadImage(obverseImageFile, 'collection-items', userId);
       }
       if (reverseImageFile) {
-        reverseImageUrl = await uploadCollectionImage(reverseImageFile);
+        reverseProcessedImages = await processAndUploadImage(reverseImageFile, 'collection-items', userId);
       }
 
       // Build the update data
@@ -246,11 +246,20 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         purchase_date: values.purchaseDate ? format(values.purchaseDate, 'yyyy-MM-dd') : undefined,
         is_for_sale: values.isForSale,
         sale_price: values.salePrice === '' ? undefined : Number(values.salePrice),
-        obverse_image: obverseImageUrl,
-        reverse_image: reverseImageUrl,
+        obverse_image: obverseProcessedImages?.original,
+        reverse_image: reverseProcessedImages?.original,
       });
 
       if (result) {
+        // Update the collection item with watermarked and thumbnail images
+        if (obverseProcessedImages || reverseProcessedImages) {
+          await updateCollectionItemImages(
+            result.id,
+            obverseProcessedImages,
+            reverseProcessedImages
+          );
+        }
+
         // If item is marked for sale, create marketplace item
         if (values.isForSale) {
           await createMarketplaceItem({
@@ -265,12 +274,12 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
           description: "Banknote added successfully",
         });
 
-      if (onCreated) onCreated();
-      form.reset();
-      setObverseImageFile(null);
-      setReverseImageFile(null);
-      setObverseImagePreview(null);
-      setReverseImagePreview(null);
+        if (onCreated) onCreated();
+        form.reset();
+        setObverseImageFile(null);
+        setReverseImageFile(null);
+        setObverseImagePreview(null);
+        setReverseImagePreview(null);
         setOpen(false);
       } else {
         throw new Error("Failed to add banknote");

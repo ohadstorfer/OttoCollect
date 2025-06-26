@@ -11,7 +11,7 @@ import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollectionItem } from '@/types';
-import { updateUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem } from '@/services/collectionService';
+import { updateUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Upload, CalendarIcon } from 'lucide-react';
@@ -137,7 +137,7 @@ export default function EditUnlistedBanknoteDialog({
       useGrading: !!collectionItem.grade,
       faceValueInt: collectionItem.banknote?.denomination?.split(' ')[0] || '',
       faceValueCurrency: currencies.find(c => c.name === collectionItem.banknote?.denomination?.split(' ')[1])?.id || '',
-      name: collectionItem.banknote?.name || '',
+      name: (collectionItem.banknote as any)?.name || '',
       categoryId: categories.find(c => c.name === collectionItem.banknote?.category)?.id || '',
       typeId: types.find(t => t.name === collectionItem.banknote?.type)?.id || '',
       gregorian_year: collectionItem.banknote?.year || '',
@@ -229,14 +229,14 @@ export default function EditUnlistedBanknoteDialog({
     setIsSubmitting(true);
     try {
       // Upload images if changed
-      let obverseImageUrl = collectionItem.obverseImage;
-      let reverseImageUrl = collectionItem.reverseImage;
+      let obverseProcessedImages = null;
+      let reverseProcessedImages = null;
 
       if (obverseImageFile) {
-        obverseImageUrl = await uploadCollectionImage(obverseImageFile);
+        obverseProcessedImages = await processAndUploadImage(obverseImageFile, 'collection-items', collectionItem.userId);
       }
       if (reverseImageFile) {
-        reverseImageUrl = await uploadCollectionImage(reverseImageFile);
+        reverseProcessedImages = await processAndUploadImage(reverseImageFile, 'collection-items', collectionItem.userId);
       }
 
       // Build the update data
@@ -284,9 +284,18 @@ export default function EditUnlistedBanknoteDialog({
         purchase_date: values.purchaseDate ? format(values.purchaseDate, 'yyyy-MM-dd') : undefined,
         is_for_sale: values.isForSale,
         sale_price: values.salePrice === '' ? undefined : Number(values.salePrice),
-        obverse_image: obverseImageUrl,
-        reverse_image: reverseImageUrl,
+        obverse_image: obverseProcessedImages?.original,
+        reverse_image: reverseProcessedImages?.original,
       });
+
+      // Update the collection item with watermarked and thumbnail images
+      if (obverseProcessedImages || reverseProcessedImages) {
+        await updateCollectionItemImages(
+          collectionItem.id,
+          obverseProcessedImages,
+          reverseProcessedImages
+        );
+      }
 
       // If item is marked for sale, create marketplace item
       if (values.isForSale) {
