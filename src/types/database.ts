@@ -1,3 +1,4 @@
+
 export interface Database {
   public: {
     Tables: {
@@ -68,44 +69,6 @@ export interface Database {
           created_at?: string;
         };
       };
-      notifications: {
-        Row: {
-          id: string;
-          user_id: string;
-          type: 'message' | 'forum_post' | 'collection_activity' | 'follow';
-          title: string;
-          content: string;
-          reference_id?: string;
-          reference_data?: any;
-          is_read: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          type: 'message' | 'forum_post' | 'collection_activity' | 'follow';
-          title: string;
-          content: string;
-          reference_id?: string;
-          reference_data?: any;
-          is_read?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          type?: 'message' | 'forum_post' | 'collection_activity' | 'follow';
-          title?: string;
-          content?: string;
-          reference_id?: string;
-          reference_data?: any;
-          is_read?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
     };
   };
-}
+} 
