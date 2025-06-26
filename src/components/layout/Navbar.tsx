@@ -11,6 +11,7 @@ import ProfileSidebar from "@/components/layout/ProfileSidebar";
 import { LanguageSelector } from './LanguageSelector';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTranslation } from 'react-i18next';
+import { NotificationBell } from '@/components/layout/NotificationBell';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -96,6 +97,7 @@ const Navbar = () => {
           {/* Right section (both desktop and mobile) */}
           <div className="flex items-center gap-3" style={{ gap: '0.75rem' }}>
             {/* <LanguageSelector /> */}
+            {user && <NotificationBell />}
             <Button
               variant="ghost"
               size="icon"
