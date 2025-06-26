@@ -50,11 +50,10 @@ export const notificationService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true, updated_at: new Date().toISOString() })
-      .eq('user_id', user.id)
-      .in('id', notificationIds);
+    const { error } = await supabase.rpc('mark_notifications_as_read', {
+      user_id_param: user.id,
+      notification_ids: notificationIds
+    });
 
     if (error) throw error;
   },
@@ -64,11 +63,10 @@ export const notificationService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true, updated_at: new Date().toISOString() })
-      .eq('user_id', user.id)
-      .eq('is_read', false);
+    const { error } = await supabase.rpc('mark_notifications_as_read', {
+      user_id_param: user.id,
+      notification_ids: null
+    });
 
     if (error) throw error;
   },

@@ -51,7 +51,7 @@ export function NotificationBell() {
 
   const handleMarkAsRead = async (notificationIds?: string[]) => {
     try {
-      if (notificationIds) {
+      if (notificationIds && notificationIds.length > 0) {
         await notificationService.markAsRead(notificationIds);
         setNotifications(prev =>
           prev.map(n => notificationIds.includes(n.id) ? { ...n, is_read: true } : n)
