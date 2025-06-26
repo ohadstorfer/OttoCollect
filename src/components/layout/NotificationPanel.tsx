@@ -84,9 +84,9 @@ export function NotificationPanel({
                 return (
                   <div
                     key={notification.id}
-                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${notification.is_read
-                        ? 'bg-background hover:bg-accent/50'
-                        : 'bg-accent/30 hover:bg-accent/40'
+                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors border ${notification.is_read
+                        ? 'bg-background hover:bg-accent/50 border-muted'
+                        : 'bg-accent/30 hover:bg-accent/40 border-accent'
                       }`}
                     onClick={() => handleNotificationClick(notification)}
                   >

@@ -98,18 +98,6 @@ const Navbar = () => {
           <div className="flex items-center gap-3" style={{ gap: '0.75rem' }}>
             {/* <LanguageSelector /> */}
             {user && <NotificationBell />}
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`rounded-full ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}
-              onClick={toggleTheme}
-            >
-              {theme === 'dark' ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </Button>
 
             {user ? (
               <Sheet open={profileSidebarOpen} onOpenChange={setProfileSidebarOpen}>

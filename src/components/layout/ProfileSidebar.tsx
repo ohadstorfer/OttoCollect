@@ -2,8 +2,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, Settings, Home, BookOpen, ShoppingBag, Users, MessageSquare, Heart, Shield } from 'lucide-react';
+import { User, LogOut, Settings, Home, BookOpen, ShoppingBag, Users, MessageSquare, Heart, Shield, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +17,7 @@ interface ProfileSidebarProps {
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const isAdmin = user?.role === 'Super Admin' || user?.role?.includes('Admin');
 
   const handleSignOut = async () => {
@@ -126,15 +128,6 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
           
             
 
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              // for now we don't have a settings page
-              // onClick={() => handleNavigation('/settings')}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
 
             {isAdmin && (
               <Button
@@ -146,6 +139,19 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
                 Admin Dashboard
               </Button>
             )}
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={toggleTheme}
+            >
+              {theme === 'dark' ? (
+                <Sun className="mr-2 h-4 w-4" />
+              ) : (
+                <Moon className="mr-2 h-4 w-4" />
+              )}
+              {theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            </Button>
 
             <Button
               variant="ghost"
