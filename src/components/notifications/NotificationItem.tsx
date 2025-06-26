@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Notification } from '@/types/notification';
 import { getInitials } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Users, User } from 'lucide-react';
+import { MessageSquare, Users, User, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface NotificationItemProps {

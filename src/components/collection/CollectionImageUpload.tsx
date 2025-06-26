@@ -59,7 +59,10 @@ export default function CollectionImageUpload({
 
     setIsUploading(true);
     try {
-      const imageUrl = await uploadCollectionImage(file);
+      const imageResponse = await uploadCollectionImage(file);
+      
+      // Handle the response - it might be a string or an object with URLs
+      const imageUrl = typeof imageResponse === 'string' ? imageResponse : imageResponse.original;
 
       if (type === 'obverse') {
         onObverseImageChange?.(imageUrl);

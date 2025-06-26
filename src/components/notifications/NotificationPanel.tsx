@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { NotificationItem } from './NotificationItem';
 import { useNotifications } from '@/hooks/use-notifications';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Bell } from 'lucide-react';
 
 interface NotificationPanelProps {
   userId?: string;

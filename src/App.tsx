@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -87,7 +88,7 @@ function App() {
                     <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
                     <Route path="/profile/:username" element={<Profile />} />
                     <Route path="/collection" element={<CountrySelection />} />
-                    <Route path="/collectionNew/:country" element={<CountryDetailCollection />} />
+                    <Route path="/collectionNew/:country" element={<CountryDetailCollection onBackToCountries={() => window.history.back()} />} />
                     <Route path="/collection/:countryId" element={<Collection />} />
                     <Route path="/collection-item/:id" element={<CollectionItem />} />
                     <Route path="/collection-item-unlisted/:id" element={<CollectionItemUnlisted />} />
