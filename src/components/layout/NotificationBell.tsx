@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,9 @@ export function NotificationBell() {
         setUnreadCount(count);
       } catch (error) {
         console.error('Error fetching notifications:', error);
+        // If notifications table doesn't exist, silently fail
+        setNotifications([]);
+        setUnreadCount(0);
       }
     };
 
@@ -52,13 +56,14 @@ export function NotificationBell() {
         setNotifications(prev =>
           prev.map(n => notificationIds.includes(n.id) ? { ...n, is_read: true } : n)
         );
+        setUnreadCount(prev => Math.max(0, prev - notificationIds.length));
       } else {
         await notificationService.markAllAsRead();
         setNotifications(prev =>
           prev.map(n => ({ ...n, is_read: true }))
         );
+        setUnreadCount(0);
       }
-      setUnreadCount(0);
     } catch (error) {
       console.error('Error marking notifications as read:', error);
     }
@@ -93,4 +98,4 @@ export function NotificationBell() {
       />
     </div>
   );
-} 
+}

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Notification {
@@ -16,9 +17,13 @@ export interface Notification {
 export const notificationService = {
   // Get all notifications for the current user
   async getNotifications() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -27,25 +32,43 @@ export const notificationService = {
 
   // Get unread notifications count
   async getUnreadCount() {
-    const { data, error } = await supabase
-      .rpc('get_unread_notifications_count');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return 0;
+
+    const { count, error } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_read', false);
 
     if (error) throw error;
-    return data as number;
+    return count || 0;
   },
 
   // Mark specific notifications as read
   async markAsRead(notificationIds: string[]) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { error } = await supabase
-      .rpc('mark_notifications_as_read', { notification_ids: notificationIds });
+      .from('notifications')
+      .update({ is_read: true, updated_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+      .in('id', notificationIds);
 
     if (error) throw error;
   },
 
   // Mark all notifications as read
   async markAllAsRead() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { error } = await supabase
-      .rpc('mark_notifications_as_read', { notification_ids: null });
+      .from('notifications')
+      .update({ is_read: true, updated_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+      .eq('is_read', false);
 
     if (error) throw error;
   },
@@ -73,15 +96,15 @@ export const notificationService = {
   getNotificationLink(notification: Notification): string {
     switch (notification.type) {
       case 'message':
-        return `/messages`;
+        return `/messaging`;
       case 'follow':
         return `/profile/${notification.reference_data?.follower_username}`;
       case 'collection_activity':
         return `/profile/${notification.reference_data?.active_username}`;
       case 'forum_post':
-        return `/forum/post/${notification.reference_id}`;
+        return `/community/forum/post/${notification.reference_id}`;
       default:
         return '/';
     }
   }
-}; 
+};
