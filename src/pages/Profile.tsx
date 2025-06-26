@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ProfileEditForm } from '@/components/profile/ProfileEditForm';
 import ProfileCountrySelection from '@/components/profile/ProfileCountrySelection';
 import { useTheme } from "@/context/ThemeContext";
+import { Card } from '@/components/ui/card';
 
 const Profile: React.FC = () => {
   const { username: routeUsername } = useParams<{ username?: string }>();
@@ -141,16 +142,38 @@ const Profile: React.FC = () => {
 
       {/* Directly render the country selection/collection view */}
       <div className="mt-4">
-        <ProfileCountrySelection
-          userId={profile.id}
-          isOwnProfile={isOwnProfile}
-          selectedCountry={selectedCountry}
-          showCountryDetail={showCountryDetail}
-          onCountrySelect={handleCountrySelect}
-          onBackToCountries={handleBackToCountries}
-          profileId={profile.id}
-          profile={profile}
-        />
+        {authUser ? (
+          <ProfileCountrySelection
+            userId={profile.id}
+            isOwnProfile={isOwnProfile}
+            selectedCountry={selectedCountry}
+            showCountryDetail={showCountryDetail}
+            onCountrySelect={handleCountrySelect}
+            onBackToCountries={handleBackToCountries}
+            profileId={profile.id}
+            profile={profile}
+          />
+        ) : (
+          <div className="flex justify-center w-full">
+            <Card className="p-8 text-center bg-card w-[90%] sm:w-[600px]">
+              <h3 className="text-2xl font-semibold mb-4">Authentication Required</h3>
+              <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+                To view this collector's profile and their banknote collection, please log in to your account. 
+                If you don't have an account yet, join our community to explore collections and connect with fellow collectors.
+              </p>
+              <div className="flex justify-center">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  onClick={() => navigate('/auth?mode=login')}
+                  className="font-semibold"
+                >
+                  Log In
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

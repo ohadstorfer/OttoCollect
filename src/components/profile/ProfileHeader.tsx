@@ -37,11 +37,21 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
           <div className="sm:hidden">
             <div className="flex flex-col items-center gap-4">
               <Avatar className={`h-20 w-20 border-4 ${theme === 'dark' ? 'border-dark-700 bg-dark-700' : 'border-background bg-background'} shadow-lg`}>
-                {profile.avatarUrl ? (
-                  <AvatarImage src={profile.avatarUrl} alt={profile.username} />
+                {profile?.avatarUrl && !['/placeholder.svg', '/placeholder-brown.svg'].includes(profile.avatarUrl) ? (
+                  <AvatarImage 
+                    src={profile.avatarUrl} 
+                    alt={profile.username}
+                    onError={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      img.style.display = 'none';
+                    }}
+                  />
                 ) : (
-                  <AvatarFallback className="bg-ottoman-700 text-parchment-100 text-lg">
-                    {profile?.username ? getInitials(profile.username) : "U"}
+                  <AvatarFallback 
+                    className="bg-gradient-to-br from-ottoman-600 to-ottoman-800 text-parchment-100 text-xl font-semibold uppercase"
+                    delayMs={0}
+                  >
+                    {profile?.username?.charAt(0) || "?"}
                   </AvatarFallback>
                 )}
               </Avatar>
@@ -81,11 +91,17 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
           {/* Desktop View */}
           <div className="hidden sm:flex items-center gap-8">
             <Avatar className={`h-20 w-20 border-4 ${theme === 'dark' ? 'border-dark-700 bg-dark-700' : 'border-background bg-background'} shadow-lg flex-shrink-0`}>
-              {profile.avatarUrl ? (
-                <AvatarImage src={profile.avatarUrl} alt={profile.username} />
+              {profile?.avatarUrl && !['/placeholder.svg', '/placeholder-brown.svg'].includes(profile.avatarUrl) ? (
+                <AvatarImage 
+                  src={profile.avatarUrl} 
+                  alt={profile.username}
+                />
               ) : (
-                <AvatarFallback className="bg-ottoman-700 text-parchment-100 text-lg">
-                  {profile?.username ? getInitials(profile.username) : "U"}
+                <AvatarFallback 
+                  className="bg-gradient-to-br from-ottoman-600 to-ottoman-800 text-parchment-100 text-xl font-semibold uppercase"
+                  delayMs={0}
+                >
+                  {profile?.username?.charAt(0) || "?"}
                 </AvatarFallback>
               )}
             </Avatar>
