@@ -55,7 +55,7 @@ export function NotificationPanel({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader className="flex flex-row items-center justify-between mt-2">
+        <DialogHeader className="flex flex-row items-center justify-between border-b border-muted mt-2 pb-2">
           <div className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
             <h2 className="text-lg font-semibold">Notifications</h2>
