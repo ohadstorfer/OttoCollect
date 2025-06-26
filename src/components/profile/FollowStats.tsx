@@ -183,7 +183,7 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
       <Dialog open={showFollowersDialog} onOpenChange={setShowFollowersDialog}>
         <DialogContent className="max-w-md max-h-[600px] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 mt-2">
               <Users className="h-5 w-5" />
               Followers
             </DialogTitle>
@@ -227,7 +227,7 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
       <Dialog open={showFollowingDialog} onOpenChange={setShowFollowingDialog}>
         <DialogContent className="max-w-md max-h-[600px] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 mt-2">
               <Users className="h-5 w-5" />
               Following
             </DialogTitle>
