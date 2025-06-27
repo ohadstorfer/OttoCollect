@@ -3,12 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { Bell, Check, CheckCheck, MessageCircle, UserPlus, BookOpen, MessageSquare } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Notification, notificationService } from '@/services/notificationService';
 import { Separator } from '@/components/ui/separator';
@@ -18,6 +16,7 @@ interface NotificationPanelProps {
   onOpenChange: (open: boolean) => void;
   notifications: Notification[];
   onMarkAsRead: (notificationIds?: string[]) => void;
+  trigger?: React.ReactNode;
 }
 
 export function NotificationPanel({
@@ -25,6 +24,7 @@ export function NotificationPanel({
   onOpenChange,
   notifications,
   onMarkAsRead,
+  trigger
 }: NotificationPanelProps) {
   const navigate = useNavigate();
   const wasOpenRef = useRef(false);
@@ -112,19 +112,38 @@ export function NotificationPanel({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader className="flex flex-row items-center justify-between border-b border-muted mt-2 pb-2">
+    <DropdownMenu open={open} onOpenChange={onOpenChange}>
+      <DropdownMenuTrigger asChild>
+        {trigger}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent 
+        align="end" 
+        className="w-[380px] p-4 mt-2"
+        sideOffset={8}
+      >
+        <div className="flex items-center justify-between border-b border-muted pb-2 mb-3">
           <div className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
             <h2 className="text-lg font-semibold">Notifications</h2>
-
           </div>
-        </DialogHeader>
+          {unreadNotifications.length > 0 && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onMarkAsRead();
+              }}
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+            >
+              <CheckCheck className="h-4 w-4" />
+              Mark all as read
+            </button>
+          )}
+        </div>
 
-        <ScrollArea className="h-[400px] pr-4">
+        <ScrollArea className="h-[400px]">
           {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+            <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
               <Bell className="h-8 w-8 mb-2 opacity-50" />
               <p>No notifications yet</p>
             </div>
@@ -166,7 +185,7 @@ export function NotificationPanel({
             </div>
           )}
         </ScrollArea>
-      </DialogContent>
-    </Dialog>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

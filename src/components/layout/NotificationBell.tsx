@@ -1,68 +1,67 @@
-
 import React, { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { NotificationPanel } from '@/components/layout/NotificationPanel';
+import { Notification, notificationService } from '@/services/notificationService';
 import { useAuth } from '@/context/AuthContext';
-import { notificationService, Notification } from '@/services/notificationService';
-import { NotificationPanel } from './NotificationPanel';
+import { useTheme } from '@/context/ThemeContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
+
 
 export function NotificationBell() {
-  const { user } = useAuth();
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showPanel, setShowPanel] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const { theme } = useTheme();
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   useEffect(() => {
-    if (!user) return;
-
-    // Initial fetch of notifications and unread count
-    const fetchData = async () => {
+    const loadNotifications = async () => {
+      if (!user) return;
       try {
         const [notifs, count] = await Promise.all([
           notificationService.getNotifications(),
           notificationService.getUnreadCount()
         ]);
         setNotifications(notifs);
-        setUnreadCount(count);
       } catch (error) {
         console.error('Error fetching notifications:', error);
-        // If notifications table doesn't exist, silently fail
         setNotifications([]);
-        setUnreadCount(0);
       }
     };
 
-    fetchData();
+    loadNotifications();
 
-    // Subscribe to new notifications
-    const subscription = notificationService.subscribeToNotifications(
-      user.id,
-      (newNotification) => {
-        setNotifications(prev => [newNotification, ...prev]);
-        setUnreadCount(prev => prev + 1);
-      }
-    );
+    // Subscribe to real-time notifications
+    if (user) {
+      const subscription = notificationService.subscribeToNotifications(
+        user.id,
+        (newNotification) => {
+          setNotifications(prev => [newNotification, ...prev]);
+        }
+      );
 
-    return () => {
-      subscription.unsubscribe();
-    };
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
   }, [user]);
 
   const handleMarkAsRead = async (notificationIds?: string[]) => {
+    if (!user) return;
+    
     try {
       if (notificationIds && notificationIds.length > 0) {
         await notificationService.markAsRead(notificationIds);
         setNotifications(prev =>
           prev.map(n => notificationIds.includes(n.id) ? { ...n, is_read: true } : n)
         );
-        setUnreadCount(prev => Math.max(0, prev - notificationIds.length));
       } else {
         await notificationService.markAllAsRead();
         setNotifications(prev =>
           prev.map(n => ({ ...n, is_read: true }))
         );
-        setUnreadCount(0);
       }
     } catch (error) {
       console.error('Error marking notifications as read:', error);
@@ -71,31 +70,32 @@ export function NotificationBell() {
 
   if (!user) return null;
 
-  return (
-    <div className="relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="relative"
-        onClick={() => setShowPanel(true)}
+  const trigger = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="relative"
+      aria-label="Open notifications"
+    >
+      <Bell className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />
+      {unreadCount > 0 && (
+        <Badge
+        variant="destructive"
+        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
       >
-        <Bell className="h-5 w-5" />
-        {unreadCount > 0 && (
-          <Badge
-            variant="destructive"
-            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-          >
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </Badge>
-        )}
-      </Button>
+        {unreadCount > 99 ? '99+' : unreadCount}
+      </Badge>
+      )}
+    </Button>
+  );
 
-      <NotificationPanel
-        open={showPanel}
-        onOpenChange={setShowPanel}
-        notifications={notifications}
-        onMarkAsRead={handleMarkAsRead}
-      />
-    </div>
+  return (
+    <NotificationPanel
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      notifications={notifications}
+      onMarkAsRead={handleMarkAsRead}
+      trigger={trigger}
+    />
   );
 }
