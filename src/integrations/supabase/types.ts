@@ -823,6 +823,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "marketplace_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "detailed_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_detailed_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "marketplace_items_collection_item_id_fkey"
             columns: ["collection_item_id"]
             isOneToOne: false
