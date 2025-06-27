@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { Bell, Check, CheckCheck, MessageCircle, UserPlus, BookOpen, MessageSquare } from 'lucide-react';
@@ -12,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Notification, notificationService } from '@/services/notificationService';
+import { Separator } from '@/components/ui/separator';
 
 interface NotificationPanelProps {
   open: boolean;
@@ -27,11 +27,25 @@ export function NotificationPanel({
   onMarkAsRead,
 }: NotificationPanelProps) {
   const navigate = useNavigate();
+  const wasOpenRef = useRef(false);
+
+  // Mark notifications as read only when panel is explicitly closed after being opened
+  useEffect(() => {
+    if (open) {
+      wasOpenRef.current = true;
+    } else if (wasOpenRef.current) {
+      // Only mark as read if the panel was previously open
+      const unreadIds = notifications
+        .filter(n => !n.is_read)
+        .map(n => n.id);
+      if (unreadIds.length > 0) {
+        onMarkAsRead(unreadIds);
+      }
+      wasOpenRef.current = false;
+    }
+  }, [open, notifications, onMarkAsRead]);
 
   const handleNotificationClick = (notification: Notification) => {
-    if (!notification.is_read) {
-      onMarkAsRead([notification.id]);
-    }
     const link = notificationService.getNotificationLink(notification);
     navigate(link);
     onOpenChange(false);
@@ -52,6 +66,51 @@ export function NotificationPanel({
     }
   };
 
+  // Group notifications by read status
+  const unreadNotifications = notifications.filter(n => !n.is_read);
+  const readNotifications = notifications.filter(n => n.is_read);
+
+  const NotificationItem = ({ notification }: { notification: Notification }) => {
+    const IconComponent = getNotificationIcon(notification.type);
+    return (
+      <div
+        key={notification.id}
+        className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all hover:scale-[1.02] border ${
+          notification.is_read
+            ? 'bg-background hover:bg-accent/50 border-muted'
+            : 'bg-accent/30 hover:bg-accent/40 border-accent shadow-sm'
+        }`}
+        onClick={() => handleNotificationClick(notification)}
+      >
+        <div className="flex-shrink-0">
+          <div className={`h-8 w-8 rounded-full bg-background flex items-center justify-center ${
+            notification.is_read ? 'text-muted-foreground' : 'text-primary'
+          }`}>
+            <IconComponent className="h-4 w-4" />
+          </div>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-medium ${
+            notification.is_read ? 'text-muted-foreground' : 'text-foreground'
+          }`}>
+            {notification.title}
+          </p>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {notification.content}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+          </p>
+        </div>
+        {!notification.is_read && (
+          <div className="flex-shrink-0">
+            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -59,15 +118,7 @@ export function NotificationPanel({
           <div className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
             <h2 className="text-lg font-semibold">Notifications</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-sm ml-2"
-              onClick={() => onMarkAsRead()}
-            >
-              <CheckCheck className="h-4 w-4 mr-1" />
-              Mark all as read
-            </Button>
+
           </div>
         </DialogHeader>
 
@@ -79,43 +130,39 @@ export function NotificationPanel({
             </div>
           ) : (
             <div className="space-y-4">
-              {notifications.map((notification) => {
-                const IconComponent = getNotificationIcon(notification.type);
-                return (
-                  <div
-                    key={notification.id}
-                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors border ${notification.is_read
-                        ? 'bg-background hover:bg-accent/50 border-muted'
-                        : 'bg-accent/30 hover:bg-accent/40 border-accent'
-                      }`}
-                    onClick={() => handleNotificationClick(notification)}
-                  >
-                    <div className="flex-shrink-0">
-                      <div className={`h-8 w-8 rounded-full bg-background flex items-center justify-center ${notification.is_read ? 'text-muted-foreground' : 'text-primary'
-                        }`}>
-                        <IconComponent className="h-4 w-4" />
-                      </div>
+              {/* Unread notifications section */}
+              {unreadNotifications.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="text-sm font-medium text-primary">New</h3>
+                    <div className="h-5 px-2 rounded-full bg-primary/10 text-primary text-xs font-medium flex items-center">
+                      {unreadNotifications.length}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium ${notification.is_read ? 'text-muted-foreground' : 'text-foreground'
-                        }`}>
-                        {notification.title}
-                      </p>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {notification.content}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                    {!notification.is_read && (
-                      <div className="flex-shrink-0">
-                        <div className="h-2 w-2 rounded-full bg-primary" />
-                      </div>
-                    )}
                   </div>
-                );
-              })}
+                  <div className="space-y-2">
+                    {unreadNotifications.map((notification) => (
+                      <NotificationItem key={notification.id} notification={notification} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Separator between unread and read notifications */}
+              {unreadNotifications.length > 0 && readNotifications.length > 0 && (
+                <Separator className="my-4" />
+              )}
+
+              {/* Read notifications section */}
+              {readNotifications.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Earlier</h3>
+                  <div className="space-y-2">
+                    {readNotifications.map((notification) => (
+                      <NotificationItem key={notification.id} notification={notification} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </ScrollArea>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -54,54 +53,59 @@ export function MessageList({
   return (
     <ScrollArea className="h-full">
       <div className="p-1">
-        {conversations.map(conversation => (
-          <div 
-            key={conversation.otherUserId}
-            className={`w-full flex items-start gap-3 p-3 rounded-md hover:bg-accent/20 transition-colors text-left mb-1
-              ${activeConversationId === conversation.otherUserId ? 'bg-accent/30' : conversation.unreadCount > 0 ? 'bg-muted/50' : ''}
-            `}
-          >
-            <Link 
-              to={`/profile/${conversation.otherUserId}`}
-              onClick={(e) => e.stopPropagation()}
-              className="flex-shrink-0"
+        {conversations.map(conversation => {
+          // Hide unread count if this is the active conversation
+          const showUnreadCount = conversation.unreadCount > 0 && conversation.otherUserId !== activeConversationId;
+          
+          return (
+            <div 
+              key={conversation.otherUserId}
+              className={`w-full flex items-start gap-3 p-3 rounded-md hover:bg-accent/20 transition-colors text-left mb-1
+                ${activeConversationId === conversation.otherUserId ? 'bg-accent/30' : showUnreadCount ? 'bg-muted/50' : ''}
+              `}
             >
-              <Avatar className="h-10 w-10 border bg-card hover:ring-2 hover:ring-ottoman-500 transition-all">
-                <AvatarImage src={conversation.otherUser.avatarUrl || ''} />
-                <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                  {conversation.otherUser.username ? getInitials(conversation.otherUser.username) : '??'}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
-            
-            <button
-              onClick={() => onSelectConversation(conversation.otherUserId)}
-              className="flex-1 text-left"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-medium truncate">
-                  {conversation.otherUser.username}
-                </span>
-                <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                  {formatDistanceToNow(new Date(conversation.lastMessage.createdAt), { addSuffix: true })}
-                </span>
-              </div>
+              <Link 
+                to={`/profile/${conversation.otherUserId}`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex-shrink-0"
+              >
+                <Avatar className="h-10 w-10 border bg-card hover:ring-2 hover:ring-ottoman-500 transition-all">
+                  <AvatarImage src={conversation.otherUser.avatarUrl || ''} />
+                  <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                    {conversation.otherUser.username ? getInitials(conversation.otherUser.username) : '??'}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
               
-              <div className="flex items-center justify-between mt-1">
-                <p className="text-sm text-muted-foreground truncate max-w-[180px]">
-                  {conversation.lastMessage.senderId === conversation.otherUserId ? '' : 'You: '}
-                  {conversation.lastMessage.content}
-                </p>
+              <button
+                onClick={() => onSelectConversation(conversation.otherUserId)}
+                className="flex-1 text-left"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium truncate">
+                    {conversation.otherUser.username}
+                  </span>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                    {formatDistanceToNow(new Date(conversation.lastMessage.createdAt), { addSuffix: true })}
+                  </span>
+                </div>
                 
-                {conversation.unreadCount > 0 && (
-                  <Badge variant="default" className="ml-2 bg-ottoman-500">
-                    {conversation.unreadCount}
-                  </Badge>
-                )}
-              </div>
-            </button>
-          </div>
-        ))}
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-sm text-muted-foreground truncate max-w-[180px]">
+                    {conversation.lastMessage.senderId === conversation.otherUserId ? '' : 'You: '}
+                    {conversation.lastMessage.content}
+                  </p>
+                  
+                  {showUnreadCount && (
+                    <Badge variant="default" className="ml-2 bg-ottoman-500">
+                      {conversation.unreadCount}
+                    </Badge>
+                  )}
+                </div>
+              </button>
+            </div>
+          );
+        })}
       </div>
     </ScrollArea>
   );
