@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -102,6 +103,7 @@ function App() {
                     <Route path="/community/forum/:id" element={<ForumPost />} />
                     <Route path="/community/forum/new" element={<CreateForumPost />} />
                     <Route path="/messaging" element={<Messaging />} />
+                    <Route path="/messaging/:userId" element={<Messaging />} />
                     <Route path="/members" element={<Members />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/admin" element={<Admin />} />

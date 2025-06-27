@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import useMessages from '@/hooks/use-messages';
 import { useAuth } from '@/context/AuthContext';
 import { MessageList } from './MessageList';
@@ -13,10 +14,16 @@ import { checkUserDailyMessagingLimit } from '@/services/messageService';
 interface MessageCenterProps {
   hasReachedDailyLimit?: boolean;
   isLimitedRank?: boolean;
+  initialUserId?: string;
 }
 
-export function MessageCenter({ hasReachedDailyLimit: initialHasReachedDailyLimit = false, isLimitedRank = false }: MessageCenterProps) {
+export function MessageCenter({ 
+  hasReachedDailyLimit: initialHasReachedDailyLimit = false, 
+  isLimitedRank = false,
+  initialUserId 
+}: MessageCenterProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   // Default: on desktop, show message panel if there's a selected convo; on mobile, show convo list on initial load
   const [showMessages, setShowMessages] = useState(!isMobile);
@@ -50,6 +57,24 @@ export function MessageCenter({ hasReachedDailyLimit: initialHasReachedDailyLimi
     checkDailyLimit();
   }, [user, isLimitedRank]);
 
+  // Handle initial user ID from URL parameter
+  useEffect(() => {
+    if (initialUserId && conversations.length > 0 && !activeConversation) {
+      // Check if we have a conversation with this user
+      const existingConversation = conversations.find(c => c.otherUserId === initialUserId);
+      if (existingConversation) {
+        loadMessages(initialUserId);
+      } else {
+        // If no existing conversation, we still want to open the chat panel
+        // The user might want to start a new conversation
+        setActiveConversation(initialUserId);
+        if (isMobile) {
+          setShowMessages(true);
+        }
+      }
+    }
+  }, [initialUserId, conversations, activeConversation, loadMessages, setActiveConversation, isMobile]);
+
   // Sync showMessages with isMobile and activeConversation
   // On mobile: show messages only if a conversation is selected, otherwise show the conversations list
   useEffect(() => {
@@ -61,12 +86,16 @@ export function MessageCenter({ hasReachedDailyLimit: initialHasReachedDailyLimi
   // Handle conversation selection
   const handleSelectConversation = (userId: string) => {
     loadMessages(userId);
+    // Update URL without causing a page reload
+    navigate(`/messaging/${userId}`, { replace: true });
   };
 
   // Handle back button for mobile
   const handleBackToList = () => {
     setActiveConversation(null);
     setShowMessages(false); // Explicitly show the conversation list again
+    // Navigate back to messaging root
+    navigate('/messaging', { replace: true });
   };
 
   // Enhanced send message handler that rechecks limits

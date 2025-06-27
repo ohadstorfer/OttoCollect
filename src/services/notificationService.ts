@@ -94,7 +94,9 @@ export const notificationService = {
   getNotificationLink(notification: Notification): string {
     switch (notification.type) {
       case 'message':
-        return `/messaging`;
+        // For message notifications, navigate directly to the conversation with the sender
+        const senderId = notification.reference_data?.sender_id;
+        return senderId ? `/messaging/${senderId}` : '/messaging';
       case 'follow':
         return `/profile/${notification.reference_data?.follower_username}`;
       case 'collection_activity':

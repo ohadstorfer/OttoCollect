@@ -1,16 +1,17 @@
 
 import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { MessageCenter } from "@/components/messages/MessageCenter";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { checkUserDailyMessagingLimit } from "@/services/messageService";
 
 export default function Messaging() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { userId } = useParams<{ userId: string }>();
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
 
@@ -66,6 +67,7 @@ export default function Messaging() {
         <MessageCenter 
           hasReachedDailyLimit={hasReachedDailyLimit}
           isLimitedRank={isLimitedRank}
+          initialUserId={userId}
         />
       </div>
     </div>
