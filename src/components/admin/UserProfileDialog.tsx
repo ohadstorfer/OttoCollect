@@ -21,18 +21,17 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   open,
   onOpenChange
 }) => {
+  // Move all hooks to the top, before any conditional logic
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
+  const { theme } = useTheme();
   const [selectedCountry, setSelectedCountry] = React.useState<string | null>(null);
   const [showCountryDetail, setShowCountryDetail] = React.useState(false);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
-  const { theme } = useTheme();
 
-  if (!user) return null;
-
-  // Determine if this is the user's own profile by comparing IDs
+  // Move useMemo before any conditional returns
   const isOwnProfile = React.useMemo(() => {
-    if (!authUser) return false;
+    if (!user || !authUser) return false;
     return authUser.id === user.id;
   }, [authUser, user]);
 
@@ -51,6 +50,9 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
     onOpenChange(false);
   };
 
+  // Early return after all hooks are defined
+  if (!user) return null;
+
   // Render profile edit form if editing and is owner
   if (isEditingProfile && isOwnProfile) {
     return (
@@ -68,7 +70,8 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full sm:w-[80vw] sm:max-w-[80vw] max-h-[90vh] overflow-y-auto">
+
         <div>
           <section className={`${theme === 'light' ? 'bg-ottoman-100/50' : 'bg-dark-600'} py-0 sm:py-6 relative overflow-hidden`}>
             <div className="w-[90%] sm:w-[92%] mx-auto py-5">

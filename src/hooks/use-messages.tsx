@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Message, Conversation } from '@/types';
@@ -24,6 +23,52 @@ const useMessages = (currentUserId?: string): UseMessagesReturn => {
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Subscribe to new messages
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const subscription = supabase
+      .channel('messages')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `receiver_id=eq.${currentUserId}`,
+      }, async (payload) => {
+        const newMessage = payload.new as any;
+        
+        // Format the message
+        const formattedMessage: Message = {
+          id: newMessage.id,
+          sender_id: newMessage.sender_id,
+          receiver_id: newMessage.receiver_id,
+          content: newMessage.content,
+          created_at: newMessage.created_at,
+          isRead: newMessage.is_read,
+          reference_item_id: newMessage.reference_item_id,
+          senderId: newMessage.sender_id,
+          receiverId: newMessage.receiver_id,
+          createdAt: newMessage.created_at
+        };
+
+        // Update messages if we're in the conversation
+        if (activeConversation === newMessage.sender_id) {
+          setCurrentMessages(prev => [...prev, formattedMessage]);
+        }
+
+        // Update all messages
+        setMessages(prev => [formattedMessage, ...prev]);
+
+        // Update conversations
+        await buildConversations([formattedMessage, ...messages]);
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [currentUserId, activeConversation, messages]);
 
   // Fetch all messages for the current user
   const fetchAllMessages = useCallback(async () => {
@@ -53,8 +98,6 @@ const useMessages = (currentUserId?: string): UseMessagesReturn => {
         created_at: msg.created_at,
         isRead: msg.is_read,
         reference_item_id: msg.reference_item_id,
-        
-        // Add alias properties for compatibility
         senderId: msg.sender_id,
         receiverId: msg.receiver_id,
         createdAt: msg.created_at
@@ -174,8 +217,6 @@ const useMessages = (currentUserId?: string): UseMessagesReturn => {
         created_at: msg.created_at,
         isRead: msg.is_read,
         reference_item_id: msg.reference_item_id,
-        
-        // Add alias properties
         senderId: msg.sender_id,
         receiverId: msg.receiver_id,
         createdAt: msg.created_at
@@ -201,8 +242,21 @@ const useMessages = (currentUserId?: string): UseMessagesReturn => {
     }
   }, [currentUserId]);
 
-  // Send a message
+  // Send a message with optimistic updates
   const sendMessage = async (message: Omit<Message, 'id' | 'createdAt'>) => {
+    // Create a temporary message for optimistic update
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: Message = {
+      id: tempId,
+      ...message,
+      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      isRead: false
+    };
+
+    // Optimistically update UI
+    setCurrentMessages(prev => [...prev, optimisticMessage]);
+    
     try {
       const { data, error } = await supabase
         .from('messages')
@@ -218,11 +272,13 @@ const useMessages = (currentUserId?: string): UseMessagesReturn => {
         .select('*');
 
       if (error) {
+        // Revert optimistic update on error
+        setCurrentMessages(prev => prev.filter(msg => msg.id !== tempId));
         console.error('Error sending message:', error);
         return false;
       }
 
-      // Update messages state with properly formatted message
+      // Replace temporary message with real one
       const newMessage: Message = {
         id: data[0].id,
         sender_id: data[0].sender_id,
@@ -231,26 +287,28 @@ const useMessages = (currentUserId?: string): UseMessagesReturn => {
         created_at: data[0].created_at,
         isRead: data[0].is_read,
         reference_item_id: data[0].reference_item_id,
-        
-        // Add alias properties
         senderId: data[0].sender_id,
         receiverId: data[0].receiver_id,
         createdAt: data[0].created_at
       };
       
-      // Update current messages if we're in the relevant conversation
-      if (activeConversation === message.receiver_id) {
-        setCurrentMessages(prevMessages => [...prevMessages, newMessage]);
-      }
+      setCurrentMessages(prev => 
+        prev.map(msg => msg.id === tempId ? newMessage : msg)
+      );
+      
+      // Update all messages and conversations
+      setMessages(prev => [newMessage, ...prev]);
+      await buildConversations([newMessage, ...messages]);
       
       return true;
     } catch (err) {
+      // Revert optimistic update on error
+      setCurrentMessages(prev => prev.filter(msg => msg.id !== tempId));
       console.error('Unexpected error sending message:', err);
       return false;
     }
   };
 
-  // Mark a message as read
   const markAsRead = async (messageId: string) => {
     try {
       const { error } = await supabase
@@ -264,12 +322,17 @@ const useMessages = (currentUserId?: string): UseMessagesReturn => {
       }
 
       // Update local state
-      setMessages(prevMessages =>
-        prevMessages.map(msg =>
+      setMessages(prev => 
+        prev.map(msg => 
           msg.id === messageId ? { ...msg, isRead: true } : msg
         )
       );
-      
+      setCurrentMessages(prev => 
+        prev.map(msg => 
+          msg.id === messageId ? { ...msg, isRead: true } : msg
+        )
+      );
+
       return true;
     } catch (err) {
       console.error('Unexpected error marking message as read:', err);
@@ -277,39 +340,17 @@ const useMessages = (currentUserId?: string): UseMessagesReturn => {
     }
   };
 
-  // Initial load of messages
+  // Initial load
   useEffect(() => {
+    const loadAllMessages = async () => {
+      const messagesData = await fetchAllMessages();
+      await buildConversations(messagesData);
+    };
+
     if (currentUserId) {
-      const loadAllMessages = async () => {
-        const messagesData = await fetchAllMessages();
-        await buildConversations(messagesData);
-      };
-      
       loadAllMessages();
     }
   }, [currentUserId, fetchAllMessages, buildConversations]);
-
-  // Set up subscription for new messages
-  useEffect(() => {
-    if (!currentUserId) return;
-    
-    const messageSubscription = supabase
-      .channel('public:messages')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, async () => {
-        const messagesData = await fetchAllMessages();
-        await buildConversations(messagesData);
-        
-        // Update current conversation if active
-        if (activeConversation) {
-          loadMessages(activeConversation);
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(messageSubscription);
-    };
-  }, [currentUserId, fetchAllMessages, buildConversations, activeConversation, loadMessages]);
 
   return {
     messages,
@@ -317,12 +358,12 @@ const useMessages = (currentUserId?: string): UseMessagesReturn => {
     currentMessages,
     activeConversation,
     loading,
-    isLoading: loading, // Alias for compatibility
+    isLoading: loading,
     error,
     sendMessage,
     markAsRead,
     loadMessages,
-    setActiveConversation
+    setActiveConversation,
   };
 };
 

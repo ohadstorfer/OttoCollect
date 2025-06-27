@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { Send, Loader2 } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Message, User } from '@/types';
@@ -36,7 +35,6 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
   const { toast } = useToast();
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -102,7 +100,6 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     const userId = currentUserId || user?.id;
     if (!userId) return;
 
-    setIsSending(true);
     const messageContent = newMessage.trim();
     setNewMessage(''); // Clear input immediately for better UX
     
@@ -166,8 +163,6 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
         description: "Your message could not be sent. Please try again.",
         variant: "destructive"
       });
-    } finally {
-      setIsSending(false);
     }
   };
 
@@ -193,9 +188,22 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-        <p className="mt-2 text-sm text-muted-foreground">Loading messages...</p>
+      <div className="flex flex-col h-full">
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="space-y-4 animate-pulse">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
+                <div className={`${i % 2 === 0 ? 'bg-primary/20' : 'bg-muted'} p-3 rounded-lg w-2/3 h-16`} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="p-4 border-t">
+          <div className="flex items-center space-x-2">
+            <div className="flex-1 h-10 bg-muted rounded-md animate-pulse" />
+            <div className="w-10 h-10 bg-muted rounded-md animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -215,7 +223,12 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
               </div>
             ) : (
               displayMessages.map((message) => (
-                <div key={message.id} className="mb-4">
+                <div 
+                  key={message.id} 
+                  className={`mb-4 transition-opacity duration-200 ${
+                    message.id.toString().startsWith('temp-') ? 'opacity-70' : 'opacity-100'
+                  }`}
+                >
                   {(message.sender_id === effectiveUserId || message.senderId === effectiveUserId) ? (
                     <div className="flex justify-end">
                       <div className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%] break-words">
@@ -241,41 +254,35 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 border-t bg-card flex-shrink-0">
-            {/* Daily activity warning for limited ranks */}
-            {isLimitedRank && hasReachedDailyLimit && (
-              <div className="mb-4 text-center">
-                <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
-                  <p className="text-red-600 dark:text-red-400 text-sm">
-                    You have reached your daily limit of 6 messages.
-                  </p>
-                </div>
+          {/* Daily activity warning for limited ranks */}
+          {isLimitedRank && hasReachedDailyLimit && (
+            <div className="mb-4 text-center">
+              <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
+                <p className="text-red-600 dark:text-red-400 text-sm">
+                  You have reached your daily limit of 6 messages.
+                </p>
               </div>
-            )}
-
-            <div className="flex items-center space-x-2">
-              <Input
-                ref={inputRef}
-                type="text"
-                placeholder="Enter your message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyPress}
-                disabled={isLimitedRank && hasReachedDailyLimit}
-                className="flex-1"
-              />
-              <Button 
-                onClick={handleSendMessage}
-                disabled={(isLimitedRank && hasReachedDailyLimit) || isSending || !newMessage.trim()}
-                size="icon"
-              >
-                {isSending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
             </div>
+          )}
+
+          <div className="flex items-center space-x-2 p-4 border-t">
+            <Input
+              ref={inputRef}
+              type="text"
+              placeholder="Enter your message..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyPress}
+              disabled={isLimitedRank && hasReachedDailyLimit}
+              className="flex-1"
+            />
+            <Button 
+              onClick={handleSendMessage}
+              disabled={(isLimitedRank && hasReachedDailyLimit) || !newMessage.trim()}
+              size="icon"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
         </>
       )}
