@@ -135,15 +135,7 @@ const Forum = () => {
         </div>
 
         <div className="container mx-auto px-4 relative z-10 flex items-center justify-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBack}
-            className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'}`}
-            aria-label="Go back"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+          
           <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
             Forum
           </h1>
