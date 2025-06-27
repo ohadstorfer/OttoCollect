@@ -10,6 +10,7 @@ import { ForumPost } from '@/types/forum';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from "@/context/ThemeContext";
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from "@/lib/utils";
 
 interface Author {
   id: string;
@@ -42,8 +43,17 @@ const Forum = () => {
       setLoading(true);
       try {
         const fetchedPosts = await fetchForumPosts();
-        setPosts(fetchedPosts);
-        setFilteredPosts(fetchedPosts);
+        // Ensure all posts have the required rank property
+        const postsWithAuthorRank = fetchedPosts.map(post => ({
+          ...post,
+          author: {
+            ...post.author,
+            rank: post.author.rank || 'Unknown' // Provide a default rank if missing
+          }
+        })) as ForumPostWithAuthor[];
+        
+        setPosts(postsWithAuthorRank);
+        setFilteredPosts(postsWithAuthorRank);
       } catch (error) {
         console.error('Error fetching forum posts:', error);
       } finally {
@@ -145,7 +155,7 @@ const Forum = () => {
       </section>
 
       <div className="page-container">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="all" className="mb-10">
             <div className="flex items-center justify-center gap-2 sm:gap-4">
               <TabsList className="shrink-0">
@@ -210,12 +220,16 @@ const Forum = () => {
               ) : (
                 <>
                   {filteredPosts.length > 0 ? (
-                    <div className="w-full md:max-w-lg mx-auto px-4">
-                      <div className="grid grid-cols-1 md:grid-cols-1 gap-4 items-start">
-                        {filteredPosts.map((post) => {
-                          console.log(`Post ${post.id} comment count: ${post.commentCount}`);
-                          return <ForumPostCard key={post.id} post={post} />;
-                        })}
+                    <div className="px-4">
+                      <div className="columns-1 md:columns-2 lg:columns-3 gap-4 md:gap-6 [column-fill:_balance] w-full">
+                        {filteredPosts.map((post) => (
+                          <div 
+                            key={post.id} 
+                            className="break-inside-avoid mb-4 md:mb-6 transform transition-all duration-300 hover:scale-[1.02]"
+                          >
+                            <ForumPostCard post={post} />
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ) : (
@@ -239,15 +253,19 @@ const Forum = () => {
                 ) : (
                   <>
                     {filteredPosts.filter(post => post.authorId === user.id).length > 0 ? (
-                      <div className="w-full md:max-w-lg mx-auto px-4">
-                      <div className="grid grid-cols-1 md:grid-cols-1 gap-4 items-start">
-                        {filteredPosts
-                          .filter(post => post.authorId === user.id)
-                          .map((post) => {
-                            console.log(`User post ${post.id} comment count: ${post.commentCount}`);
-                            return <ForumPostCard key={post.id} post={post} />;
-                          })}
-                      </div>
+                      <div className="px-4">
+                        <div className="columns-1 md:columns-2 lg:columns-3 gap-4 md:gap-6 [column-fill:_balance] w-full">
+                          {filteredPosts
+                            .filter(post => post.authorId === user.id)
+                            .map((post) => (
+                              <div 
+                                key={post.id} 
+                                className="break-inside-avoid mb-4 md:mb-6 transform transition-all duration-300 hover:scale-[1.02]"
+                              >
+                                <ForumPostCard post={post} />
+                              </div>
+                            ))}
+                        </div>
                       </div>
                     ) : (
                       <div className="text-center py-10">
