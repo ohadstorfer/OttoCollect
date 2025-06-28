@@ -27,6 +27,7 @@ import NotFound from "@/pages/NotFound";
 import Admin from "@/pages/Admin";
 import Community from "@/pages/Community";
 import Settings from "@/pages/Settings";
+import DeleteProcessedImages from "@/pages/DeleteProcessedImages";
 import { PageBackground } from "./components/ui/page-background";
 import { useTheme } from "./context/ThemeContext";
 import { useAuth } from "./context/AuthContext";
@@ -107,6 +108,7 @@ function App() {
                     <Route path="/members" element={<Members />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/admin" element={<Admin />} />
+                    <Route path="/delete-processed-images" element={<DeleteProcessedImages />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
