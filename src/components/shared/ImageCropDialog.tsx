@@ -106,138 +106,160 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
   };
 
   const handleSave = async () => {
-    console.log('handleSave called, checking conditions');
     if (!imgRef.current || !crop) {
-      console.log('Missing required refs or crop:', { imgRef: !!imgRef.current, crop });
       return;
     }
 
     try {
       setLoading(true);
-      console.log('Starting image processing');
+      const image = imgRef.current;
 
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        console.error('Failed to get canvas context');
-        return;
-      }
+      // Calculate the size of the crop area in actual pixels
+      const scaleX = image.naturalWidth / image.width;
+      const scaleY = image.naturalHeight / image.height;
 
-      // Create a temporary image to handle rotation
-      console.log('Creating temporary image for rotation');
-      const tempImage = new Image();
-      tempImage.crossOrigin = 'anonymous';
-      tempImage.src = imageUrl.includes('?') 
-        ? `${imageUrl}&_=${Date.now()}` 
-        : `${imageUrl}?_=${Date.now()}`;
-      
-      await new Promise((resolve, reject) => {
-        tempImage.onload = () => {
-          console.log('Temporary image loaded successfully');
-          resolve(null);
-        };
-        tempImage.onerror = (error) => {
-          console.error('Error loading temporary image:', error);
-          reject(error);
-        };
+      // Create a canvas for the cropped area
+      const cropCanvas = document.createElement('canvas');
+      const cropCtx = cropCanvas.getContext('2d', {
+        willReadFrequently: false
       });
 
-      // Calculate the bounding box of the rotated image
-      const radians = (rotation * Math.PI) / 180;
-      console.log('Applying rotation:', { degrees: rotation, radians });
-      
-      // Set canvas size to fit the cropped area
-      canvas.width = crop.width;
-      canvas.height = crop.height;
-      console.log('Canvas size set to:', { width: crop.width, height: crop.height });
-
-      // Clear the canvas
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Calculate scaling factors
-      const scaleX = tempImage.naturalWidth / imgRef.current.width;
-      const scaleY = tempImage.naturalHeight / imgRef.current.height;
-      console.log('Scaling factors calculated:', { scaleX, scaleY });
-
-      // Create a temporary canvas for rotation
-      const rotationCanvas = document.createElement('canvas');
-      const rotationCtx = rotationCanvas.getContext('2d');
-      if (!rotationCtx) {
-        console.error('Failed to get rotation canvas context');
-        return;
+      if (!cropCtx) {
+        throw new Error('No 2d context');
       }
 
-      // Set the rotation canvas size
-      rotationCanvas.width = tempImage.naturalWidth;
-      rotationCanvas.height = tempImage.naturalHeight;
-      console.log('Rotation canvas size set to:', { width: rotationCanvas.width, height: rotationCanvas.height });
+      // Set the canvas size to match the crop dimensions
+      const pixelCrop = {
+        x: crop.x * scaleX,
+        y: crop.y * scaleY,
+        width: crop.width * scaleX,
+        height: crop.height * scaleY
+      };
 
-      // Apply rotation
-      rotationCtx.translate(rotationCanvas.width / 2, rotationCanvas.height / 2);
-      rotationCtx.rotate(radians);
-      rotationCtx.translate(-rotationCanvas.width / 2, -rotationCanvas.height / 2);
+      // If there's rotation, we need a larger canvas to prevent clipping
+      if (rotation !== 0) {
+        // Calculate the bounding box of the rotated crop area
+        const rotatedSize = Math.ceil(Math.sqrt(
+          Math.pow(pixelCrop.width, 2) + Math.pow(pixelCrop.height, 2)
+        ));
+        
+        cropCanvas.width = rotatedSize;
+        cropCanvas.height = rotatedSize;
 
-      // Draw the full image rotated
-      rotationCtx.drawImage(tempImage, 0, 0);
-      console.log('Image drawn with rotation');
-
-      // Draw the cropped portion
-      ctx.drawImage(
-        rotationCanvas,
-        crop.x * scaleX,
-        crop.y * scaleY,
-        crop.width * scaleX,
-        crop.height * scaleY,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-
-      // Set canvas dimensions to match the original crop size
-      const originalWidth = crop.width;
-      const originalHeight = crop.height;
-      
-      // Create a new canvas for final sizing
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = originalWidth;
-      finalCanvas.height = originalHeight;
-      
-      // Draw the cropped image at original size
-      const finalCtx = finalCanvas.getContext('2d');
-      if (!finalCtx) {
-        throw new Error('Failed to get final canvas context');
+        // Move to center of canvas
+        cropCtx.translate(rotatedSize / 2, rotatedSize / 2);
+        
+        // Rotate around center
+        cropCtx.rotate((rotation * Math.PI) / 180);
+        
+        // Move back so the crop area is centered
+        cropCtx.translate(-pixelCrop.width / 2, -pixelCrop.height / 2);
+      } else {
+        // No rotation, just use crop dimensions
+        cropCanvas.width = pixelCrop.width;
+        cropCanvas.height = pixelCrop.height;
       }
-      
-      finalCtx.drawImage(canvas, 0, 0, originalWidth, originalHeight);
-      console.log('Final image dimensions:', { width: originalWidth, height: originalHeight });
 
-      // Convert to blob
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        try {
-          finalCanvas.toBlob((blob) => {
-            if (blob) {
-              console.log('Successfully created blob');
-              resolve(blob);
-            }
-            else {
-              console.error('Failed to create blob - blob is null');
-              reject(new Error('Failed to create blob'));
-            }
-          }, 'image/jpeg', 0.95);
-        } catch (error) {
-          console.error('Error in toBlob:', error);
-          reject(error);
+      // Enable high quality image scaling
+      cropCtx.imageSmoothingEnabled = true;
+      cropCtx.imageSmoothingQuality = 'high';
+
+      // Draw the image
+      if (rotation !== 0) {
+        // For rotated images, draw the cropped portion
+        cropCtx.drawImage(
+          image,
+          pixelCrop.x,
+          pixelCrop.y,
+          pixelCrop.width,
+          pixelCrop.height,
+          0,
+          0,
+          pixelCrop.width,
+          pixelCrop.height
+        );
+      } else {
+        // For non-rotated images, draw directly
+        cropCtx.drawImage(
+          image,
+          pixelCrop.x,
+          pixelCrop.y,
+          pixelCrop.width,
+          pixelCrop.height,
+          0,
+          0,
+          pixelCrop.width,
+          pixelCrop.height
+        );
+      }
+
+      // If we have rotation, we need to crop out the actual area from our rotated canvas
+      if (rotation !== 0) {
+        // Create final canvas for the actual crop size
+        const finalCanvas = document.createElement('canvas');
+        const finalCtx = finalCanvas.getContext('2d');
+        
+        if (!finalCtx) {
+          throw new Error('No 2d context');
         }
-      });
 
-      // Create URL for preview
-      const croppedImageUrl = URL.createObjectURL(blob);
-      console.log('Created object URL for cropped image');
-      
-      await onSave(croppedImageUrl);
-      console.log('Save completed successfully');
+        finalCanvas.width = pixelCrop.width;
+        finalCanvas.height = pixelCrop.height;
+
+        // Calculate where to draw from the rotated canvas
+        const startX = (cropCanvas.width - pixelCrop.width) / 2;
+        const startY = (cropCanvas.height - pixelCrop.height) / 2;
+
+        // Draw the cropped and rotated portion
+        finalCtx.drawImage(
+          cropCanvas,
+          startX,
+          startY,
+          pixelCrop.width,
+          pixelCrop.height,
+          0,
+          0,
+          pixelCrop.width,
+          pixelCrop.height
+        );
+
+        // Convert to blob with maximum quality
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          finalCanvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Canvas to Blob conversion failed'));
+              }
+            },
+            'image/jpeg',
+            1.0
+          );
+        });
+
+        const croppedImageUrl = URL.createObjectURL(blob);
+        await onSave(croppedImageUrl);
+      } else {
+        // No rotation, convert directly to blob
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          cropCanvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Canvas to Blob conversion failed'));
+              }
+            },
+            'image/jpeg',
+            1.0
+          );
+        });
+
+        const croppedImageUrl = URL.createObjectURL(blob);
+        await onSave(croppedImageUrl);
+      }
+
       onClose();
     } catch (error) {
       console.error('Error in handleSave:', error);
