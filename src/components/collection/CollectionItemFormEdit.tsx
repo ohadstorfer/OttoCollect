@@ -35,7 +35,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem } from '@/services/collectionService';
+import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
 
 // Define props for CollectionItemForm

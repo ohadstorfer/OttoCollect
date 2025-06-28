@@ -13,8 +13,6 @@ interface ProcessedImages {
  * @param userId The user's ID
  * @returns Object containing URLs for all image versions
  */
-
-
 export async function processAndUploadImage(
   file: File,
   path: string,
@@ -32,20 +30,32 @@ export async function processAndUploadImage(
     const thumbnailPath = `${path}/thumbnail/${baseFileName}.${fileExt}`;
 
     // Process the original image
-    const originalImage = await createImageBitmap(file);
+    const originalImage = await createImageBitmap(file, {
+      imageOrientation: 'from-image', // Preserve EXIF orientation
+      premultiplyAlpha: 'premultiply', // Better quality for transparent images
+      colorSpaceConversion: 'default'
+    });
     
-    // Create a canvas for the watermarked version
+    // Create a canvas for the watermarked version with high DPI support
     const watermarkedCanvas = document.createElement('canvas');
+    const scale = window.devicePixelRatio || 1; // Support high DPI displays
     watermarkedCanvas.width = originalImage.width;
     watermarkedCanvas.height = originalImage.height;
-    const watermarkedCtx = watermarkedCanvas.getContext('2d')!;
+    const watermarkedCtx = watermarkedCanvas.getContext('2d', {
+      alpha: true,
+      willReadFrequently: false
+    })!;
+
+    // Enable high-quality image scaling
+    watermarkedCtx.imageSmoothingEnabled = true;
+    watermarkedCtx.imageSmoothingQuality = 'high';
     
-    // Draw the original image
+    // Draw the original image at full quality
     watermarkedCtx.drawImage(originalImage, 0, 0);
     
     // Load and draw watermark image
     const watermarkImage = new Image();
-    watermarkImage.src = '/watermark.png';  // Simply use the path from public directory
+    watermarkImage.src = '/watermark.png';
     await new Promise((resolve, reject) => {
       watermarkImage.onload = resolve;
       watermarkImage.onerror = (e) => {
@@ -64,9 +74,9 @@ export async function processAndUploadImage(
     const watermarkY = originalImage.height - watermarkHeight - padding;
 
     // Set transparency
-    watermarkedCtx.globalAlpha = 0.6; // 40% transparency
+    watermarkedCtx.globalAlpha = 0.6;
     
-    // Draw the watermark
+    // Draw the watermark with high quality
     watermarkedCtx.drawImage(
       watermarkImage,
       watermarkX,
@@ -96,18 +106,54 @@ export async function processAndUploadImage(
       }
     }
     
-    thumbnailCanvas.width = thumbnailWidth;
-    thumbnailCanvas.height = thumbnailHeight;
-    const thumbnailCtx = thumbnailCanvas.getContext('2d')!;
-    thumbnailCtx.drawImage(originalImage, 0, 0, thumbnailWidth, thumbnailHeight);
+    // Set thumbnail canvas with high DPI support
+    const thumbnailScale = window.devicePixelRatio || 1;
+    thumbnailCanvas.width = thumbnailWidth * thumbnailScale;
+    thumbnailCanvas.height = thumbnailHeight * thumbnailScale;
+    thumbnailCanvas.style.width = `${thumbnailWidth}px`;
+    thumbnailCanvas.style.height = `${thumbnailHeight}px`;
+    
+    const thumbnailCtx = thumbnailCanvas.getContext('2d', {
+      alpha: true,
+      willReadFrequently: false
+    })!;
 
-    // Convert canvases to blobs
+    // Enable high-quality image scaling for thumbnail
+    thumbnailCtx.scale(thumbnailScale, thumbnailScale);
+    thumbnailCtx.imageSmoothingEnabled = true;
+    thumbnailCtx.imageSmoothingQuality = 'high';
+
+    // Use a stepped downscaling approach for better quality
+    let currentWidth = originalImage.width;
+    let currentHeight = originalImage.height;
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d')!;
+    tempCtx.imageSmoothingEnabled = true;
+    tempCtx.imageSmoothingQuality = 'high';
+
+    // Step down the image in increments for better quality
+    while (currentWidth > thumbnailWidth * 2 || currentHeight > thumbnailHeight * 2) {
+      currentWidth = Math.max(currentWidth / 2, thumbnailWidth);
+      currentHeight = Math.max(currentHeight / 2, thumbnailHeight);
+      
+      tempCanvas.width = currentWidth;
+      tempCanvas.height = currentHeight;
+      tempCtx.drawImage(originalImage, 0, 0, currentWidth, currentHeight);
+    }
+
+    // Final draw at target size
+    thumbnailCtx.drawImage(
+      currentWidth === thumbnailWidth ? tempCanvas : originalImage,
+      0, 0, thumbnailWidth, thumbnailHeight
+    );
+
+    // Convert canvases to blobs with high quality
     const watermarkedBlob = await new Promise<Blob>((resolve) => 
-      watermarkedCanvas.toBlob(blob => resolve(blob!), 'image/jpeg', 0.9)
+      watermarkedCanvas.toBlob(blob => resolve(blob!), 'image/jpeg', 1.0) // Maximum quality for watermarked
     );
     
     const thumbnailBlob = await new Promise<Blob>((resolve) => 
-      thumbnailCanvas.toBlob(blob => resolve(blob!), 'image/jpeg', 0.8)
+      thumbnailCanvas.toBlob(blob => resolve(blob!), 'image/jpeg', 0.95) // High quality for thumbnail
     );
 
     // Upload all versions to storage
