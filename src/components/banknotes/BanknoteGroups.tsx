@@ -127,28 +127,28 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   }
 
   return (
-    <div ref={containerRef} className="space-y-8">
+    <div ref={containerRef} className="space-y-8 w-full">
       {groups.map((group, groupIndex) => (
-        <div key={`group-${groupIndex}`} className="space-y-4">
-          <div className="sticky top-[200px] sm:top-[150px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-auto md:mx-0 px-6 md:px-0">
+        <div key={`group-${groupIndex}`} className="space-y-4 w-full">
+          <div className="sticky top-[200px] sm:top-[150px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:mx-0 px-6 md:px-0">
             <h2 className="text-xl font-bold">{group.category}</h2>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 w-full">
             {showSultanGroups ? (
               // Sultan groups display
               group.sultanGroups && group.sultanGroups.length > 0 ? (
                 group.sultanGroups.map((sultanGroup, sultanIndex) => (
-                  <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4">
-                    <div className="sticky top-[245px] sm:top-[195px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-auto md:mx-0 px-6 md:px-0">
+                  <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4 w-full">
+                    <div className="sticky top-[245px] sm:top-[195px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-full md:mx-0 px-6 md:px-0">
                       <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
                         {sultanGroup.sultan}
                       </h3>
                     </div>
                     <div className={cn(
                       viewMode === 'grid'
-                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 items-start"
-                        : "flex flex-col space-y-2",
+                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 grid-flow-row auto-rows-auto"
+                        : "flex flex-col space-y-2 w-full",
                       "px-2 sm:px-0"
                     )}>
                       {groupMode ? (
@@ -164,33 +164,40 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                           return mixedItems.map((item, index) => {
                             if (item.type === 'single') {
                               return (
-                                <BanknoteDetailCard
-                                  key={`single-${sultanGroup.sultan}-${item.banknote.id || index}`}
-                                  banknote={item.banknote}
-                                  source="catalog"
-                                  viewMode={viewMode}
-                                  countryId={countryId}
-                                  fromGroup={false}
-                                  userCollection={userCollection}
-                                />
+                                <div key={`single-${sultanGroup.sultan}-${item.banknote.id || index}`} className={cn(
+                                  viewMode === 'grid' ? "self-start" : "w-full"
+                                )}>
+                                  <BanknoteDetailCard
+                                    banknote={item.banknote}
+                                    source="catalog"
+                                    viewMode={viewMode}
+                                    countryId={countryId}
+                                    fromGroup={false}
+                                    userCollection={userCollection}
+                                  />
+                                </div>
                               );
                             } else {
                               return (
-                                <BanknoteCardGroup
-                                  key={`group-${sultanGroup.sultan}-${item.group.baseNumber}`}
-                                  group={item.group}
-                                  onClick={handleGroupClick}
-                                />
+                                <div key={`group-${sultanGroup.sultan}-${item.group.baseNumber}`} className={cn(
+                                  viewMode === 'grid' ? "self-start" : "w-full"
+                                )}>
+                                  <BanknoteCardGroup
+                                    group={item.group}
+                                    onClick={handleGroupClick}
+                                    viewMode={viewMode}
+                                  />
+                                </div>
                               );
                             }
                           });
                         })()
                       ) : (
-                        sultanGroup.items.map((banknote, index) => {
-                          console.log("[BanknoteGroups] Passing sultanGroup banknote to BanknoteDetailCard: id:", banknote.id, "userCollection length:", userCollection?.length);
-                          return (
+                        sultanGroup.items.map((banknote, index) => (
+                          <div key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`} className={cn(
+                            viewMode === 'grid' ? "self-start" : "w-full"
+                          )}>
                             <BanknoteDetailCard
-                              key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`}
                               banknote={banknote}
                               source="catalog"
                               viewMode={viewMode}
@@ -198,22 +205,22 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                               fromGroup={false}
                               userCollection={userCollection}
                             />
-                          );
-                        })
+                          </div>
+                        ))
                       )}
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-4">
+                <div className="text-center py-4 w-full">
                   <p className="text-muted-foreground">No sultan groups found</p>
                 </div>
               )
             ) : (
               <div className={cn(
                 viewMode === 'grid'
-                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 items-start"
-                  : "flex flex-col space-y-2",
+                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 grid-flow-row auto-rows-auto"
+                  : "flex flex-col space-y-2 w-full",
                 "px-2 sm:px-0"
               )}>
                 {groupMode ? (
@@ -227,33 +234,40 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                     return mixedItems.map((item, index) => {
                       if (item.type === 'single') {
                         return (
-                          <BanknoteDetailCard
-                            key={`single-${group.category}-${item.banknote.id || index}`}
-                            banknote={item.banknote}
-                            source="catalog"
-                            viewMode={viewMode}
-                            countryId={countryId}
-                            fromGroup={false}
-                            userCollection={userCollection}
-                          />
+                          <div key={`single-${group.category}-${item.banknote.id || index}`} className={cn(
+                            viewMode === 'grid' ? "self-start" : "w-full"
+                          )}>
+                            <BanknoteDetailCard
+                              banknote={item.banknote}
+                              source="catalog"
+                              viewMode={viewMode}
+                              countryId={countryId}
+                              fromGroup={false}
+                              userCollection={userCollection}
+                            />
+                          </div>
                         );
                       } else {
                         return (
-                          <BanknoteCardGroup
-                            key={`group-${group.category}-${item.group.baseNumber}`}
-                            group={item.group}
-                            onClick={handleGroupClick}
-                          />
+                          <div key={`group-${group.category}-${item.group.baseNumber}`} className={cn(
+                            viewMode === 'grid' ? "self-start" : "w-full"
+                          )}>
+                            <BanknoteCardGroup
+                              group={item.group}
+                              onClick={handleGroupClick}
+                              viewMode={viewMode}
+                            />
+                          </div>
                         );
                       }
                     });
                   })()
                 ) : (
-                  group.items.map((banknote, index) => {
-                    console.log("[BanknoteGroups] Passing plain group banknote to BanknoteDetailCard: id:", banknote.id, "userCollection length:", userCollection?.length);
-                    return (
+                  group.items.map((banknote, index) => (
+                    <div key={`banknote-${group.category}-${index}`} className={cn(
+                      viewMode === 'grid' ? "self-start" : "w-full"
+                    )}>
                       <BanknoteDetailCard
-                        key={`banknote-${group.category}-${index}`}
                         banknote={banknote}
                         source="catalog"
                         viewMode={viewMode}
@@ -261,8 +275,8 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                         fromGroup={false}
                         userCollection={userCollection}
                       />
-                    );
-                  })
+                    </div>
+                  ))
                 )}
               </div>
             )}

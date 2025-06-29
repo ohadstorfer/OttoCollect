@@ -148,10 +148,10 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
 
         // Move to center of canvas
         cropCtx.translate(rotatedSize / 2, rotatedSize / 2);
-        
+
         // Rotate around center
         cropCtx.rotate((rotation * Math.PI) / 180);
-        
+
         // Move back so the crop area is centered
         cropCtx.translate(-pixelCrop.width / 2, -pixelCrop.height / 2);
       } else {
@@ -186,20 +186,20 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
           pixelCrop.y,
           pixelCrop.width,
           pixelCrop.height,
-          0,
-          0,
+        0,
+        0,
           pixelCrop.width,
           pixelCrop.height
-        );
+      );
       }
 
       // If we have rotation, we need to crop out the actual area from our rotated canvas
       if (rotation !== 0) {
         // Create final canvas for the actual crop size
-        const finalCanvas = document.createElement('canvas');
+      const finalCanvas = document.createElement('canvas');
         const finalCtx = finalCanvas.getContext('2d');
-        
-        if (!finalCtx) {
+      
+      if (!finalCtx) {
           throw new Error('No 2d context');
         }
 
@@ -224,11 +224,11 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
         );
 
         // Convert to blob with maximum quality
-        const blob = await new Promise<Blob>((resolve, reject) => {
+      const blob = await new Promise<Blob>((resolve, reject) => {
           finalCanvas.toBlob(
             (blob) => {
-              if (blob) {
-                resolve(blob);
+            if (blob) {
+              resolve(blob);
               } else {
                 reject(new Error('Canvas to Blob conversion failed'));
               }
@@ -256,10 +256,10 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
           );
         });
 
-        const croppedImageUrl = URL.createObjectURL(blob);
+      const croppedImageUrl = URL.createObjectURL(blob);
         await onSave(croppedImageUrl);
       }
-
+      
       onClose();
     } catch (error) {
       console.error('Error in handleSave:', error);

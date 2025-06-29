@@ -276,6 +276,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                                   <CollectionItemCardGroup
                                     group={item.group}
                                     onClick={handleGroupClick}
+                                    viewMode={viewMode}
                                   />
                                 </div>
                               );
@@ -353,6 +354,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                             <CollectionItemCardGroup
                               group={item.group}
                               onClick={handleGroupClick}
+                              viewMode={viewMode}
                             />
                           </div>
                         );
