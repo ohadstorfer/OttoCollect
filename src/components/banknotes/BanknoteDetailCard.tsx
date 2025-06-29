@@ -267,7 +267,7 @@ const BanknoteDetailCard = ({
             {/* Image container - showing both front and back */}
             <div className="flex-shrink-0 flex items-center space-x-1">
               {/* Front image */}
-              <div className="w-[68px] h-[58px] overflow-hidden rounded bg-muted">
+              <div className=" h-[58px] overflow-hidden rounded bg-muted">
                 {displayImage && displayImage !== '/placeholder.svg' ? (
                   <img
                     src={displayImage}
@@ -286,7 +286,7 @@ const BanknoteDetailCard = ({
               </div>
               
               {/* Back image */}
-              <div className="w-[68px] h-[58px] overflow-hidden rounded bg-muted">
+              <div className=" h-[58px] overflow-hidden rounded bg-muted">
                 {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
                   <img
                     src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
