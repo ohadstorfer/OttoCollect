@@ -1,7 +1,7 @@
-
 import React from "react";
 import { CollectionItem } from "@/types";
 import { CollectionItemsGroups } from "@/components/collection/CollectionItemsGroups";
+import { cn } from "@/lib/utils";
 
 interface CollectionItemsDisplayProps {
   groups: {
@@ -35,7 +35,10 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
   };
 
   return (
-    <div className="mt-6">
+    <div className={cn(
+      "mt-6 w-full",
+      viewMode === 'list' && "px-0"
+    )}>
       {isLoading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>

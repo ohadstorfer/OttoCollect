@@ -21,6 +21,7 @@ import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 import { formatPrice } from '@/utils/formatters';
 import { Badge } from '../ui/badge';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { cn } from '@/lib/utils';
 
 // Define conditional props for the component
 export interface CollectionItemCardProps {
@@ -168,64 +169,106 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   if (viewMode === 'list') {
     return (
       <Card
-        className="flex flex-row overflow-hidden cursor-pointer hover:shadow-md transition-all"
+        className={cn(
+          "overflow-hidden transition-all duration-300 cursor-pointer bg-card w-full",
+          "hover:shadow-md flex flex-row"
+        )}
         onClick={handleCardClick}
       >
-        <div className="w-24 flex-shrink-0 flex items-center justify-center">
-          {showPlaceholder ? (
-            <AspectRatio ratio={4 / 2}>
-              <img
-                src="/placeholder.svg"
-                alt="Placeholder"
-                className="w-full h-full object-cover"
-              />
-            </AspectRatio>
-          ) : (
-            <div className="relative w-full">
-            <BanknoteImage
-              imageUrl={displayImage}
-              alt={getBanknoteTitle()}
-              className="object-contain w-full h-auto max-h-24"
-            />
+        <div className="flex items-center p-1 ml-1 w-full">
+          {/* Image container - showing both front and back */}
+          <div className="flex-shrink-0 flex items-center space-x-1">
+            {/* Front image */}
+            <div className="h-[58px] overflow-hidden rounded bg-muted">
+              {!showPlaceholder ? (
+                <BanknoteImage
+                  imageUrl={displayImage}
+                  alt={getBanknoteTitle()}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <img
+                    src="/placeholder.svg"
+                    alt="Placeholder"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <div className="flex-grow flex flex-col justify-between p-3">
-          <div>
-            <h3 className="font-medium truncate">{getBanknoteTitle()}</h3>
-            <p className="text-sm text-muted-foreground truncate">
-              {item?.banknote?.country || "Unknown Country"} · {item?.banknote?.series || "Unknown Series"}
-            </p>
-            <div className="flex gap-2 mt-1">
-              {item?.condition && !item?.grade && (
-                <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
-                  {item.condition}
-                </span>
-              )}
-              {item?.grade && (
-                <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-800">
-                  {item.grade_by && `${item.grade_by} `}{item.grade}
-                </span>
-              )}
-              {item?.isForSale && (
-                <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
-                  For Sale: {formatPrice(item.salePrice)}
-                </span>
+
+            {/* Back image */}
+            <div className="h-[58px]  overflow-hidden rounded bg-muted">
+              {!showPlaceholder && item?.reverseImage ? (
+                <BanknoteImage
+                  imageUrl={item.reverseImage}
+                  alt={`${getBanknoteTitle()} - Back`}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <img
+                    src="/placeholder.svg"
+                    alt="Placeholder"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               )}
             </div>
           </div>
-          {isOwner && (
-            <div className="flex justify-end gap-1 mt-2" onClick={e => e.stopPropagation()}>
-              <Button variant="outline" size="sm" onClick={handleEditClick}>
-                <Pencil className="h-3.5 w-3.5" />
-                <span className="sr-only">Edit</span>
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDeleteClick}>
-                <Trash2 className="h-3.5 w-3.5" />
-                <span className="sr-only">Delete</span>
-              </Button>
+
+          <div className="flex-1 ml-4 flex flex-col justify-center">
+            <div className="flex justify-between items-start w-full">
+              <div>
+                <div className="font-small text-sm">
+                  {item?.banknote?.denomination || "Unknown Denomination"}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {item?.banknote?.year || "Unknown Year"}
+                </div>
+              </div>
+              {isOwner && (
+                <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                  <Button variant="outline" size="sm" onClick={handleEditClick}>
+                    <Pencil className="h-3.5 w-3.5" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleDeleteClick}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+
+            <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm mb-1">
+              {item?.banknote?.extendedPickNumber && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  {item.banknote.extendedPickNumber}
+                </Badge>
+              )}
+              {item?.banknote?.turkCatalogNumber && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  {item.banknote.turkCatalogNumber}
+                </Badge>
+              )}
+              {item?.condition && !item?.grade && (
+                <Badge variant="secondary" className={`text-[10px] px-1.5 py-0.5 h-auto leading-tight ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'} shrink-0`}>
+                  {item.condition}
+                </Badge>
+              )}
+              {item?.grade && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-emerald-100 text-emerald-800 border border-gray-300 shrink-0">
+                  {item.grade_by && `${item.grade_by} `}{item.grade}
+                </Badge>
+              )}
+              {item?.isForSale && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-blue-100 text-blue-800 border border-gray-300 shrink-0">
+                  For Sale: {formatPrice(item.salePrice)}
+                </Badge>
+              )}
+            </div>
+          </div>
         </div>
       </Card>
     );

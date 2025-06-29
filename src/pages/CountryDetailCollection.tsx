@@ -18,6 +18,7 @@ import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
 import { fetchUserWishlistByCountry } from '@/services/wishlistService';
 import BanknoteDetailCardWishList from '@/components/banknotes/BanknoteDetailCardWishList';
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
+import { cn } from "@/lib/utils";
 
 interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
@@ -490,7 +491,10 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   />
 )}
 
-      <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
+      <div className={cn(
+        "bg-card border rounded-lg p-1 sm:p-6 mb-6",
+        viewMode === 'list' ? "w-full" : "sm:w-[95%] w-auto"
+      )}>
         <BanknoteFilterCollection
           countryId={countryId}
           countryName={effectiveCountryName}
