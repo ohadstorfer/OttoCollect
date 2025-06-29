@@ -274,12 +274,12 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
           description: "Banknote added successfully",
         });
 
-        if (onCreated) onCreated();
-        form.reset();
-        setObverseImageFile(null);
-        setReverseImageFile(null);
-        setObverseImagePreview(null);
-        setReverseImagePreview(null);
+      if (onCreated) onCreated();
+      form.reset();
+      setObverseImageFile(null);
+      setReverseImageFile(null);
+      setObverseImagePreview(null);
+      setReverseImagePreview(null);
         setOpen(false);
       } else {
         throw new Error("Failed to add banknote");

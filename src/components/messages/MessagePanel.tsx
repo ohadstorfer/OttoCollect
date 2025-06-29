@@ -254,35 +254,35 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Daily activity warning for limited ranks */}
-          {isLimitedRank && hasReachedDailyLimit && (
-            <div className="mb-4 text-center">
-              <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
-                <p className="text-red-600 dark:text-red-400 text-sm">
-                  You have reached your daily limit of 6 messages.
-                </p>
+            {/* Daily activity warning for limited ranks */}
+            {isLimitedRank && hasReachedDailyLimit && (
+              <div className="mb-4 text-center">
+                <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
+                  <p className="text-red-600 dark:text-red-400 text-sm">
+                    You have reached your daily limit of 6 messages.
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           <div className="flex items-center space-x-2 p-4 border-t">
-            <Input
-              ref={inputRef}
-              type="text"
-              placeholder="Enter your message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={handleKeyPress}
-              disabled={isLimitedRank && hasReachedDailyLimit}
-              className="flex-1"
-            />
-            <Button 
-              onClick={handleSendMessage}
+              <Input
+                ref={inputRef}
+                type="text"
+                placeholder="Enter your message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+                disabled={isLimitedRank && hasReachedDailyLimit}
+                className="flex-1"
+              />
+              <Button 
+                onClick={handleSendMessage}
               disabled={(isLimitedRank && hasReachedDailyLimit) || !newMessage.trim()}
-              size="icon"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+                size="icon"
+              >
+                  <Send className="h-4 w-4" />
+              </Button>
           </div>
         </>
       )}

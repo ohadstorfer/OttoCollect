@@ -183,11 +183,11 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
             </AspectRatio>
           ) : (
             <div className="relative w-full">
-              <BanknoteImage
-                imageUrl={displayImage}
-                alt={getBanknoteTitle()}
-                className="object-contain w-full h-auto max-h-24"
-              />
+            <BanknoteImage
+              imageUrl={displayImage}
+              alt={getBanknoteTitle()}
+              className="object-contain w-full h-auto max-h-24"
+            />
             </div>
           )}
         </div>
@@ -272,11 +272,11 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
             </AspectRatio>
           ) : (
             <div className="relative w-full">
-              <BanknoteImage
-                imageUrl={displayImage}
-                alt={getBanknoteTitle()}
-                className="object-contain w-full h-auto max-h-60"
-              />
+            <BanknoteImage
+              imageUrl={displayImage}
+              alt={getBanknoteTitle()}
+              className="object-contain w-full h-auto max-h-60"
+            />
             </div>
           )}
         </div>

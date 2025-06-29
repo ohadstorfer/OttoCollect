@@ -263,108 +263,111 @@ const BanknoteDetailCard = ({
           onMouseLeave={() => setIsHovering(false)}
           onClick={handleCardClick}
         >
-          <div className="flex items-center p-2">
-            <div className="w-16 flex-shrink-0 flex items-center justify-center overflow-hidden rounded">
-              {displayImage && displayImage !== '/placeholder.svg' ? (
-                <img
-                  src={displayImage}
-                  alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-                  className="object-contain w-full h-auto max-h-16"
-                />
-              ) : (
-                <AspectRatio ratio={4 / 2}>
+          <div className="flex items-center p-1 ml-1">
+            {/* Image container - showing both front and back */}
+            <div className="flex-shrink-0 flex items-center space-x-1">
+              {/* Front image */}
+              <div className="w-[68px] h-[58px] overflow-hidden rounded bg-muted">
+                {displayImage && displayImage !== '/placeholder.svg' ? (
                   <img
-                    src="/placeholder.svg"
-                    alt="Placeholder"
-                    className="w-full h-full object-cover"
+                    src={displayImage}
+                    alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Front`}
+                    className="w-full h-full object-contain"
                   />
-                </AspectRatio>
-              )}
-            </div>
-            <div className="flex-1 ml-4">
-              <div className="flex justify-between items-start">
-                <h4 className="font-bold">{banknote.denomination}</h4>
-                {shouldShowCheck ? (
-                  <>
-                    {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (list view) | banknote id:', banknote.id)}
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className={checkButtonClass}
-                      aria-label="You already own this banknote"
-                      onClick={handleOwnershipCheckButton}
-                      tabIndex={0}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                  </>
                 ) : (
-                  <>
-                    {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (list view) | banknote id:', banknote.id)}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={handleAddButtonClick}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img
+                      src="/placeholder.svg"
+                      alt="Placeholder"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 )}
               </div>
-              <div className="gap-1.5 flex flex-wrap items-center text-sm mt-1">
+              
+              {/* Back image */}
+              <div className="w-[68px] h-[58px] overflow-hidden rounded bg-muted">
+                {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
+                  <img
+                    src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
+                    alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Back`}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img
+                      src="/placeholder.svg"
+                      alt="Placeholder"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1 ml-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-small text-sm">
+                    {banknote.denomination}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {banknote.year}
+                  </div>
+                </div>
+                {source === 'catalog' && (
+                  <div>
+                    {shouldShowCheck ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={checkButtonClass}
+                        onClick={handleOwnershipCheckButton}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={handleAddButtonClick}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm mb-1">
                 {banknote.extendedPickNumber && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.extendedPickNumber}
                   </Badge>
                 )}
                 {banknote.turkCatalogNumber && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.turkCatalogNumber}
                   </Badge>
                 )}
                 {banknote.year && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.year}
                   </Badge>
                 )}
                 {banknote.rarity && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800">
+                  <Badge
+                    variant="secondary"
+                    className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
+                  >
                     {banknote.rarity}
                   </Badge>
                 )}
               </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {banknote.sultanName && <span>Sultan: {banknote.sultanName}</span>}
-                {banknote.sealNames && <span className="ml-2">Seals: {banknote.sealNames}</span>}
-              </div>
-              {(banknote.signaturesFront || banknote.signaturesBack) && (
-                <p className="text-xs text-muted-foreground">
-                  Signatures: {banknote.signaturesFront} {banknote.signaturesBack}
-                </p>
-              )}
             </div>
           </div>
         </Card>
-
-        <AuthRequiredDialog 
-          open={showAuthDialog} 
-          onOpenChange={setShowAuthDialog}
-          title="Join Our Community"
-          description="Get full access to our extensive Ottoman banknote catalog and collection features."
-          features={[
-            {
-              icon: <Eye className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
-              title: "View Detailed Information",
-              description: "Access complete banknote details, high-resolution images, and historical data"
-            },
-            {
-              icon: <Plus className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
-              title: "Build Your Collection",
-              description: "Create and manage your personal banknote collection"
-            }
-          ]}
-        />
       </>
     );
   }
