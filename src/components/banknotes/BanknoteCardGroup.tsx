@@ -23,24 +23,27 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
 }) => {
   const { baseNumber, items, count } = group;
 
-  // Use the first banknote for display information
-  const firstBanknote = items[0];
-  const imageUrl = firstBanknote.imageUrls?.[0] || '';
-  const denomination = firstBanknote.denomination || '';
+  // Find the first banknote with a valid image
+  const displayBanknote = items.find(banknote => 
+    banknote.imageUrls?.[0] && banknote.imageUrls[0] !== '/placeholder.svg'
+  ) || items[0];
+
+  const imageUrl = displayBanknote.imageUrls?.[0] || '';
+  const denomination = displayBanknote.denomination || '';
 
   const handleClick = () => {
     if (onClick) onClick(group);
   };
 
   if (viewMode === 'grid') {
-    // Generate stack items
+    // Generate stack items using the first valid image for all cards
     const stackItems = items.slice(0, 4).map((banknote, index) => ({
       id: banknote.id || `stack-item-${index}`,
       content: (
         <Card className="w-full h-full shadow-md overflow-hidden">
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
-              <h4 className="font-bold">{banknote.denomination}</h4>
+              <h4 className="font-bold">{denomination}</h4>
               <div className="pt-2 pr-1 flex items-center text-sm">
                 <span>{count}</span>
                 <LayoutList className="h-4 w-4 mr-1" />
@@ -58,11 +61,11 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
 
           <CardContent className="p-0">
             <div className="w-full">
-              {banknote.imageUrls?.[0] ? (
+              {imageUrl ? (
                 <AspectRatio ratio={4 / 2}>
                   <img
-                    src={banknote.imageUrls[0]}
-                    alt={`Banknote ${banknote.extendedPickNumber}`}
+                    src={imageUrl}
+                    alt={`Banknote ${displayBanknote.extendedPickNumber}`}
                     className="w-full h-full object-cover"
                   />
                 </AspectRatio>
@@ -127,7 +130,7 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
               {imageUrl ? (
                 <img
                   src={imageUrl}
-                  alt={`Banknote ${firstBanknote.extendedPickNumber}`}
+                  alt={`Banknote ${displayBanknote.extendedPickNumber}`}
                   className="w-full h-full object-contain"
                 />
               ) : (
@@ -156,7 +159,7 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
               </div>
             </div>
             <div className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-              {firstBanknote.year}
+              {displayBanknote.year}
             </div>
           </div>
         </div>

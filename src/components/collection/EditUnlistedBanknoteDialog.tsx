@@ -939,12 +939,56 @@ export default function EditUnlistedBanknoteDialog({
                   name="location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Storage Location</FormLabel>
+                      <FormLabel>Item Status</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <div className="space-y-4">
+                          <Select
+                            onValueChange={(value) => {
+                              if (value !== 'Other') {
+                                field.onChange(value);
+                              } else {
+                                field.onChange('');
+                              }
+                            }}
+                            value={[
+                              'In my collection',
+                              'At Grading',
+                              'At the Auction house',
+                              'In Transit',
+                              'To be collected',
+                              'Other'
+                            ].includes(field.value || '') ? field.value : 'Other'}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="In my collection">In my collection</SelectItem>
+                              <SelectItem value="At Grading">At Grading</SelectItem>
+                              <SelectItem value="At the Auction house">At the Auction house</SelectItem>
+                              <SelectItem value="In Transit">In Transit</SelectItem>
+                              <SelectItem value="To be collected">To be collected</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {([
+                            'In my collection',
+                            'At Grading',
+                            'At the Auction house',
+                            'In Transit',
+                            'To be collected',
+                            'Other'
+                          ].includes(field.value || '') ? field.value : 'Other') === 'Other' && (
+                            <Input
+                              {...field}
+                              placeholder="Enter custom status"
+                              className="mt-2"
+                            />
+                          )}
+                        </div>
                       </FormControl>
                       <FormDescription>
-                        Where is this banknote stored?
+                        Where is this banknote currently located?
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

@@ -46,10 +46,10 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
   };
 
   if (viewMode === 'grid') {
-    // Generate stack items with unique keys using item.id + index
+    // Generate stack items using the first valid image for all cards
     const stackItems = items.slice(0, 4).map((item, index) => {
       // Check if this specific item's images should be hidden
-      const shouldHideImages = !isOwner && item.hide_images;
+      const shouldHideImages = !isOwner && displayItem.hide_images;
 
       return {
         // Create a unique key using both the item ID and the index
@@ -58,7 +58,7 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
           <Card className="w-full h-full shadow-md overflow-hidden">
             <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
               <div className="flex justify-between items-start">
-                <h4 className="font-bold">{item.banknote?.denomination || 'Unknown'}</h4>
+                <h4 className="font-bold">{denomination}</h4>
                 <div className="pt-2 pr-1 flex items-center text-sm">
                   <span>{count}</span>
                   <LayoutList className="h-4 w-4 mr-1" />
@@ -71,9 +71,9 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
                     {baseNumber}
                   </Badge>
                 )}
-                {item.condition && (
+                {displayItem.condition && (
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight ml-1">
-                    {item.condition}
+                    {displayItem.condition}
                   </Badge>
                 )}
               </div>
@@ -81,7 +81,7 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
 
             <CardContent className="p-0">
               <div className="w-full">
-                {shouldHideImages || !item.obverseImage || item.obverseImage === '/placeholder.svg' ? (
+                {shouldHideImages || !imageUrl || imageUrl === '/placeholder.svg' ? (
                   <AspectRatio ratio={4 / 2}>
                     <img
                       src={'/placeholder.svg'}
@@ -91,8 +91,8 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
                 ) : (
                   <AspectRatio ratio={4 / 2}>
                     <img
-                      src={item.obverseImage}
-                      alt={`Collection Item ${item.banknote?.extendedPickNumber || ''}`}
+                      src={imageUrl}
+                      alt={`Collection Item ${displayItem.banknote?.extendedPickNumber || ''}`}
                       className="w-full h-full object-cover"
                     />
                   </AspectRatio>

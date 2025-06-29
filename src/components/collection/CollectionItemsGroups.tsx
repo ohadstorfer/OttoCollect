@@ -372,25 +372,25 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                         <div key={`single-${group.category}-${item.id || index}`} className={cn(
                           viewMode === 'grid' ? "self-start" : "w-full"
                         )}>
-                          <CollectionCardUnlisted
-                            item={item}
-                            onEdit={() => {}} // We'll implement this later
-                            onUpdate={onUpdate}
-                            viewMode={viewMode}
-                            isOwner={isOwner}
-                          />
+                        <CollectionCardUnlisted
+                          item={item}
+                          onEdit={() => {}} // We'll implement this later
+                          onUpdate={onUpdate}
+                          viewMode={viewMode}
+                          isOwner={isOwner}
+                        />
                         </div>
                       ) : (
                         <div key={`single-${group.category}-${item.id || index}`} className={cn(
                           viewMode === 'grid' ? "self-start" : "w-full"
                         )}>
-                          <CollectionItemCard
-                            item={item}
-                            onEdit={() => {}} // We'll implement this later
-                            onUpdate={onUpdate}
-                            viewMode={viewMode}
-                            isOwner={isOwner}
-                          />
+                      <CollectionItemCard
+                        item={item}
+                        onEdit={() => {}} // We'll implement this later
+                        onUpdate={onUpdate}
+                        viewMode={viewMode}
+                        isOwner={isOwner}
+                      />
                         </div>
                       )}
                     </div>
