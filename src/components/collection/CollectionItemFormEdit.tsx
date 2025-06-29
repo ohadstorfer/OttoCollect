@@ -141,7 +141,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       gradeLetters: currentItem?.grade ? currentItem.grade.split(' ')[1] : '',
       purchasePrice: currentItem?.purchasePrice || '',
       purchaseDate: currentItem?.purchaseDate ? new Date(currentItem.purchaseDate) : undefined,
-      location: currentItem?.location || '',
+      location: currentItem?.location || 'In my collection',
       publicNote: currentItem?.publicNote || '',
       privateNote: currentItem?.privateNote || '',
       isForSale: currentItem?.isForSale || false,
@@ -803,14 +803,14 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                                 field.onChange('');
                               }
                             }}
-                            value={[
+                            value={field.value === '' || ![
                               'In my collection',
                               'At Grading',
                               'At the Auction house',
                               'In Transit',
                               'To be collected',
                               'Other'
-                            ].includes(field.value || '') ? field.value : 'Other'}
+                            ].includes(field.value) ? 'Other' : field.value || 'In my collection'}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select status" />
@@ -824,24 +824,24 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                               <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                           </Select>
-                          {([
+                          {(field.value === '' || ![
                             'In my collection',
                             'At Grading',
                             'At the Auction house',
                             'In Transit',
                             'To be collected',
                             'Other'
-                          ].includes(field.value || '') ? field.value : 'Other') === 'Other' && (
-                              <Input
-                                {...field}
-                                placeholder="Enter custom status"
-                                className="mt-2"
-                              />
-                            )}
+                          ].includes(field.value)) && (
+                            <Input
+                              {...field}
+                              placeholder="Enter custom status"
+                              className="mt-2"
+                            />
+                          )}
                         </div>
                       </FormControl>
                       <FormDescription>
-                        Where is this banknote currently located?
+                        For example: In my collection, At grading
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

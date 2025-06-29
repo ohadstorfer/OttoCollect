@@ -121,6 +121,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       isForSale: false,
       purchasePrice: '',
       salePrice: '',
+      location: 'In my collection'
     }
   });
 
@@ -918,14 +919,14 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                                 field.onChange('');
                               }
                             }}
-                            value={[
+                            value={field.value === '' || ![
                               'In my collection',
                               'At Grading',
                               'At the Auction house',
                               'In Transit',
                               'To be collected',
                               'Other'
-                            ].includes(field.value || '') ? field.value : 'Other'}
+                            ].includes(field.value) ? 'Other' : field.value || 'In my collection'}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select status" />
@@ -939,14 +940,14 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                               <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                           </Select>
-                          {([
+                          {(field.value === '' || ![
                             'In my collection',
                             'At Grading',
                             'At the Auction house',
                             'In Transit',
                             'To be collected',
                             'Other'
-                          ].includes(field.value || '') ? field.value : 'Other') === 'Other' && (
+                          ].includes(field.value)) && (
                             <Input
                               {...field}
                               placeholder="Enter custom status"
@@ -956,7 +957,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                         </div>
                       </FormControl>
                       <FormDescription>
-                        Where is this banknote currently located?
+                        For example: In my collection, At grading
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

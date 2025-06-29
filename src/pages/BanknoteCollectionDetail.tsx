@@ -295,16 +295,11 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               )}
               {collectionItem.location && (
                 <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                  <span className="text-sm font-medium text-muted-foreground w-32">Storage Location</span>
+                  <span className="text-sm font-medium text-muted-foreground w-32">Item Status</span>
                   <span className="text-base">{collectionItem.location}</span>
                 </div>
               )}
-              {collectionItem.purchasePrice && (
-                <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                  <span className="text-sm font-medium text-muted-foreground w-32">Purchase Price</span>
-                  <span className="text-base">${collectionItem.purchasePrice}</span>
-                </div>
-              )}
+             
               {collectionItem.purchaseDate && (
                 <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                   <span className="text-sm font-medium text-muted-foreground w-32">Purchase Date</span>

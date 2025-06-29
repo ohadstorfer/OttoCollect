@@ -153,7 +153,7 @@ export default function EditUnlistedBanknoteDialog({
       privateNote: collectionItem.privateNote || '',
       purchasePrice: collectionItem.purchasePrice || '',
       purchaseDate: collectionItem.purchaseDate ? new Date(collectionItem.purchaseDate) : undefined,
-      location: collectionItem.location || '',
+      location: collectionItem.location || 'In my collection',
       isForSale: collectionItem.isForSale || false,
       salePrice: collectionItem.salePrice || '',
     }
@@ -950,14 +950,14 @@ export default function EditUnlistedBanknoteDialog({
                                 field.onChange('');
                               }
                             }}
-                            value={[
+                            value={field.value === '' || ![
                               'In my collection',
                               'At Grading',
                               'At the Auction house',
                               'In Transit',
                               'To be collected',
                               'Other'
-                            ].includes(field.value || '') ? field.value : 'Other'}
+                            ].includes(field.value) ? 'Other' : field.value || 'In my collection'}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select status" />
@@ -971,14 +971,14 @@ export default function EditUnlistedBanknoteDialog({
                               <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                           </Select>
-                          {([
+                          {(field.value === '' || ![
                             'In my collection',
                             'At Grading',
                             'At the Auction house',
                             'In Transit',
                             'To be collected',
                             'Other'
-                          ].includes(field.value || '') ? field.value : 'Other') === 'Other' && (
+                          ].includes(field.value)) && (
                             <Input
                               {...field}
                               placeholder="Enter custom status"
@@ -988,7 +988,7 @@ export default function EditUnlistedBanknoteDialog({
                         </div>
                       </FormControl>
                       <FormDescription>
-                        Where is this banknote currently located?
+                        For example: In my collection, At grading
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
