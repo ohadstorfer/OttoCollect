@@ -259,13 +259,13 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                                       isOwner={isOwner}
                                     />
                                   ) : (
-                                    <CollectionItemCard
-                                      item={item.collectionItem}
+                                  <CollectionItemCard
+                                    item={item.collectionItem}
                                       onEdit={() => {}}
-                                      onUpdate={onUpdate}
-                                      viewMode={viewMode}
-                                      isOwner={isOwner}
-                                    />
+                                    onUpdate={onUpdate}
+                                    viewMode={viewMode}
+                                    isOwner={isOwner}
+                                  />
                                   )}
                                 </div>
                               );
@@ -342,13 +342,13 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                                 isOwner={isOwner}
                               />
                             ) : (
-                              <CollectionItemCard
-                                item={item.collectionItem}
+                            <CollectionItemCard
+                              item={item.collectionItem}
                                 onEdit={() => {}}
-                                onUpdate={onUpdate}
-                                viewMode={viewMode}
-                                isOwner={isOwner}
-                              />
+                              onUpdate={onUpdate}
+                              viewMode={viewMode}
+                              isOwner={isOwner}
+                            />
                             )}
                           </div>
                         );
@@ -387,13 +387,13 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                           isOwner={isOwner}
                         />
                       ) : (
-                        <CollectionItemCard
-                          item={item}
+                      <CollectionItemCard
+                        item={item}
                           onEdit={() => {}}
-                          onUpdate={onUpdate}
-                          viewMode={viewMode}
-                          isOwner={isOwner}
-                        />
+                        onUpdate={onUpdate}
+                        viewMode={viewMode}
+                        isOwner={isOwner}
+                      />
                       )}
                     </div>
                   ))

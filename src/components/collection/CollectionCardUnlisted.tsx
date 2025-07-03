@@ -180,38 +180,38 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
           {/* Image container - showing both front and back */}
           <div className="flex-shrink-0 flex items-center space-x-1">
             {/* Front image */}
-            <div className="h-[58px] max-w-[100px] flex-shrink-0 overflow-hidden rounded aspect-auto">
+            <div className="h-[58px] w-[90px] flex-shrink-0 overflow-hidden rounded">
               {!showPlaceholder ? (
                 <BanknoteImage
                   imageUrl={displayImage}
                   alt={getBanknoteTitle()}
-                  className="h-full w-auto object-contain"
+                  className="h-full w-full object-contain"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <img
                     src="/placeholder.svg"
                     alt="Placeholder"
-                    className="h-full w-auto object-contain"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               )}
             </div>
 
             {/* Back image */}
-            <div className="h-[58px] max-w-[100px] flex-shrink-0 overflow-hidden rounded aspect-auto">
+            <div className="h-[58px] w-[90px] flex-shrink-0 overflow-hidden rounded">
               {!showPlaceholder && item?.reverseImage ? (
                 <BanknoteImage
                   imageUrl={item.reverseImage}
                   alt={`${getBanknoteTitle()} - Back`}
-                  className="h-full w-auto object-contain"
+                  className="h-full w-full object-contain"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <img
                     src="/placeholder.svg"
                     alt="Placeholder"
-                    className="h-full w-auto object-contain"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               )}
@@ -233,14 +233,12 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
                 )}
               </div>
               {isOwner && (
-                <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                  <Button variant="outline" size="sm" onClick={handleEditClick}>
+                <div className="flex gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={handleEditClick}>
                     <Pencil className="h-3.5 w-3.5" />
-                    <span className="sr-only">Edit</span>
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleDeleteClick}>
+                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={handleDeleteClick}>
                     <Trash2 className="h-3.5 w-3.5" />
-                    <span className="sr-only">Delete</span>
                   </Button>
                 </div>
               )}

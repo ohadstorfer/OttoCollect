@@ -268,38 +268,38 @@ const BanknoteDetailCard = ({
             {/* Image container - showing both front and back */}
             <div className="flex-shrink-0 flex items-center space-x-1">
               {/* Front image */}
-              <div className="h-[58px] max-w-[100px] flex-shrink-0 overflow-hidden rounded aspect-auto">
+              <div className="h-[58px] w-[90px] flex-shrink-0 overflow-hidden rounded">
                 {displayImage && displayImage !== '/placeholder.svg' ? (
                   <img
                     src={displayImage}
                     alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Front`}
-                    className="h-full w-auto object-contain"
+                    className="w-full h-full object-contain"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <img
                       src="/placeholder.svg"
                       alt="Placeholder"
-                      className="h-full w-auto object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                 )}
               </div>
               
               {/* Back image */}
-              <div className="h-[58px] max-w-[100px] flex-shrink-0 overflow-hidden rounded aspect-auto">
+              <div className="h-[58px] w-[90px] flex-shrink-0 overflow-hidden rounded">
                 {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
                   <img
                     src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
                     alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Back`}
-                    className="h-full w-auto object-contain"
+                    className="w-full h-full object-contain"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <img
                       src="/placeholder.svg"
                       alt="Placeholder"
-                      className="h-full w-auto object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                 )}
@@ -322,19 +322,19 @@ const BanknoteDetailCard = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={cn(checkButtonClass, "flex-shrink-0")}
+                        className={cn(checkButtonClass, "flex-shrink-0 h-7 w-7")}
                         onClick={handleOwnershipCheckButton}
                       >
-                        <Check className="h-4 w-4" />
+                        <Check className="h-3.5 w-3.5" />
                       </Button>
                     ) : (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 flex-shrink-0"
+                        className="h-7 w-7 flex-shrink-0"
                         onClick={handleAddButtonClick}
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-3.5 w-3.5" />
                       </Button>
                     )}
                   </div>
