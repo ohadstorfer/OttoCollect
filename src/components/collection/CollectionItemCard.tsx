@@ -241,7 +241,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
               )}
             </div>
 
-            <div className="gap-0.5 sm:gap-1.5 flex flex-wrap items-center text-sm mb-1 overflow-hidden">
+            <div className="p-0.5 gap-0.5 sm:gap-1.5 flex flex-wrap items-center text-sm mb-1 overflow-hidden">
               {item?.banknote?.extendedPickNumber && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {item.banknote.extendedPickNumber}
@@ -264,7 +264,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
               )}
               {item?.isForSale && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-blue-100 text-blue-800 border border-gray-300 shrink-0">
-                  For Sale: {formatPrice(item.salePrice)}
+                  {formatPrice(item.salePrice)}
                 </Badge>
               )}
             </div>
