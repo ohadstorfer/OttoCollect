@@ -557,4 +557,5 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   );
 };
 
+
 export default CountryDetailCollection;
