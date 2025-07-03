@@ -223,7 +223,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
 
           <div className="space-y-6 w-full">
             {showSultanGroups ? (
-              // Sultan groups display (either regular or with nested grouping)
+              // Sultan groups display
               group.sultanGroups && group.sultanGroups.length > 0 ? (
                 group.sultanGroups.map((sultanGroup, sultanIndex) => (
                   <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4 w-full">
@@ -234,9 +234,8 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                     </div>
                     <div className={cn(
                       viewMode === 'grid'
-                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 grid-flow-row auto-rows-auto"
-                        : "flex flex-col space-y-2 w-full",
-                      "px-2 sm:px-0"
+                        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 grid-flow-row auto-rows-auto px-2 sm:px-0"
+                        : "flex flex-col space-y-2 w-full !px-0",
                     )}>
                       {groupMode ? (
                         // Combined mode: sultan groups + collection item groups
@@ -246,33 +245,37 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                           return mixedItems.map((item, index) => {
                             if (item.type === 'single' && item.collectionItem) {
                               return (
-                                <div key={`single-${sultanGroup.sultan}-${item.collectionItem.id || index}`} className={cn(
-                                  viewMode === 'grid' ? "self-start" : "w-full"
-                                )}>
+                                <div key={`single-${sultanGroup.sultan}-${item.collectionItem.id || index}`} 
+                                  className={cn(
+                                    viewMode === 'grid' ? "self-start" : "w-full !px-0"
+                                  )}
+                                >
                                   {item.collectionItem.is_unlisted_banknote ? (
                                     <CollectionCardUnlisted
                                       item={item.collectionItem}
-                                      onEdit={() => {}} // We'll implement this later
+                                      onEdit={() => {}}
                                       onUpdate={onUpdate}
                                       viewMode={viewMode}
                                       isOwner={isOwner}
                                     />
                                   ) : (
-                                  <CollectionItemCard
-                                    item={item.collectionItem}
-                                    onEdit={() => {}} // We'll implement this later
-                                    onUpdate={onUpdate}
-                                    viewMode={viewMode}
-                                    isOwner={isOwner}
-                                  />
+                                    <CollectionItemCard
+                                      item={item.collectionItem}
+                                      onEdit={() => {}}
+                                      onUpdate={onUpdate}
+                                      viewMode={viewMode}
+                                      isOwner={isOwner}
+                                    />
                                   )}
                                 </div>
                               );
                             } else if (item.type === 'group' && item.group) {
                               return (
-                                <div key={`group-${sultanGroup.sultan}-${item.group.baseNumber}`} className={cn(
-                                  viewMode === 'grid' ? "self-start" : "w-full"
-                                )}>
+                                <div key={`group-${sultanGroup.sultan}-${item.group.baseNumber}`} 
+                                  className={cn(
+                                    viewMode === 'grid' ? "self-start" : "w-full !px-0"
+                                  )}
+                                >
                                   <CollectionItemCardGroup
                                     group={item.group}
                                     onClick={handleGroupClick}
@@ -287,12 +290,14 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                       ) : (
                         // Regular sultan display without collection item grouping
                         sultanGroup.items.map((item, index) => (
-                          <div key={`item-${group.category}-${sultanGroup.sultan}-${index}`} className={cn(
-                            viewMode === 'grid' ? "self-start" : "w-full"
-                          )}>
+                          <div key={`item-${group.category}-${sultanGroup.sultan}-${index}`} 
+                            className={cn(
+                              viewMode === 'grid' ? "self-start" : "w-full !px-0"
+                            )}
+                          >
                             <CollectionItemCard
                               item={item}
-                              onEdit={() => {}} // We'll implement this later
+                              onEdit={() => {}}
                               onUpdate={onUpdate}
                               viewMode={viewMode}
                               isOwner={isOwner}
@@ -312,45 +317,48 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
               // Normal or grouped display (no sultan grouping)
               <div className={cn(
                 viewMode === 'grid'
-                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 grid-flow-row auto-rows-auto"
-                  : "flex flex-col space-y-2 w-full",
-                "px-2 sm:px-0"
+                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 grid-flow-row auto-rows-auto px-2 sm:px-0"
+                  : "flex flex-col space-y-2 w-full !px-0",
               )}>
                 {groupMode ? (
-                  // Group mode display using the getCollectionItemGroups function
+                  // Group mode display
                   (() => {
                     const mixedItems = getCollectionItemGroups(group.items);
                     
                     return mixedItems.map((item, index) => {
                       if (item.type === 'single' && item.collectionItem) {
                         return (
-                          <div key={`single-${group.category}-${item.collectionItem.id || index}`} className={cn(
-                            viewMode === 'grid' ? "self-start" : "w-full"
-                          )}>
+                          <div key={`single-${group.category}-${item.collectionItem.id || index}`} 
+                            className={cn(
+                              viewMode === 'grid' ? "self-start" : "w-full !px-0"
+                            )}
+                          >
                             {item.collectionItem.is_unlisted_banknote ? (
                               <CollectionCardUnlisted
                                 item={item.collectionItem}
-                                onEdit={() => {}} // We'll implement this later
+                                onEdit={() => {}}
                                 onUpdate={onUpdate}
                                 viewMode={viewMode}
                                 isOwner={isOwner}
                               />
                             ) : (
-                            <CollectionItemCard
-                              item={item.collectionItem}
-                              onEdit={() => {}} // We'll implement this later
-                              onUpdate={onUpdate}
-                              viewMode={viewMode}
-                              isOwner={isOwner}
-                            />
+                              <CollectionItemCard
+                                item={item.collectionItem}
+                                onEdit={() => {}}
+                                onUpdate={onUpdate}
+                                viewMode={viewMode}
+                                isOwner={isOwner}
+                              />
                             )}
                           </div>
                         );
                       } else if (item.type === 'group' && item.group) {
                         return (
-                          <div key={`group-${group.category}-${item.group.baseNumber}`} className={cn(
-                            viewMode === 'grid' ? "self-start" : "w-full"
-                          )}>
+                          <div key={`group-${group.category}-${item.group.baseNumber}`} 
+                            className={cn(
+                              viewMode === 'grid' ? "self-start" : "w-full !px-0"
+                            )}
+                          >
                             <CollectionItemCardGroup
                               group={item.group}
                               onClick={handleGroupClick}
@@ -365,33 +373,27 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                 ) : (
                   // Normal display
                   group.items.map((item, index) => (
-                    <div key={`item-${group.category}-${index}`} className={cn(
-                      viewMode === 'grid' ? "self-start" : "w-full"
-                    )}>
+                    <div key={`item-${group.category}-${index}`} 
+                      className={cn(
+                        viewMode === 'grid' ? "self-start" : "w-full !px-0"
+                      )}
+                    >
                       {item.is_unlisted_banknote ? (
-                        <div key={`single-${group.category}-${item.id || index}`} className={cn(
-                          viewMode === 'grid' ? "self-start" : "w-full"
-                        )}>
                         <CollectionCardUnlisted
                           item={item}
-                          onEdit={() => {}} // We'll implement this later
+                          onEdit={() => {}}
                           onUpdate={onUpdate}
                           viewMode={viewMode}
                           isOwner={isOwner}
                         />
-                        </div>
                       ) : (
-                        <div key={`single-${group.category}-${item.id || index}`} className={cn(
-                          viewMode === 'grid' ? "self-start" : "w-full"
-                        )}>
-                      <CollectionItemCard
-                        item={item}
-                        onEdit={() => {}} // We'll implement this later
-                        onUpdate={onUpdate}
-                        viewMode={viewMode}
-                        isOwner={isOwner}
-                      />
-                        </div>
+                        <CollectionItemCard
+                          item={item}
+                          onEdit={() => {}}
+                          onUpdate={onUpdate}
+                          viewMode={viewMode}
+                          isOwner={isOwner}
+                        />
                       )}
                     </div>
                   ))

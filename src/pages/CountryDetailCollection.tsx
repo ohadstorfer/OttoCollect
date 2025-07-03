@@ -482,8 +482,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 
   return (
     <div className={cn(
-      "bg-card border rounded-lg p-1 w-[90%] sm:w-[92%] mx-auto",
-      viewMode === 'list' && "!w-full"
+      "bg-card border rounded-lg p-1 sm:p-6 mb-6",
+       "w-[90%] sm:w-[92%] mx-auto"
     )}>
       
       <BanknoteFilterCollection
