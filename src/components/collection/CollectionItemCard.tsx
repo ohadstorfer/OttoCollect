@@ -171,15 +171,15 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       <Card
         className={cn(
           "overflow-hidden transition-all duration-300 cursor-pointer bg-card w-full",
-          "hover:shadow-md flex flex-row"
+          "hover:shadow-md flex flex-row max-w-full"
         )}
         onClick={handleCardClick}
       >
-        <div className="flex items-center p-1 ml-1 w-full">
+        <div className="flex items-center p-1 ml-1 w-full overflow-hidden">
           {/* Image container - showing both front and back */}
           <div className="flex-shrink-0 flex items-center space-x-1">
             {/* Front image */}
-            <div className="h-[58px] overflow-hidden rounded bg-muted">
+            <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded bg-muted">
               {!showPlaceholder ? (
                 <BanknoteImage
                   imageUrl={displayImage}
@@ -198,7 +198,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             </div>
 
             {/* Back image */}
-            <div className="h-[58px]  overflow-hidden rounded bg-muted">
+            <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded bg-muted">
               {!showPlaceholder && item?.reverseImage ? (
                 <BanknoteImage
                   imageUrl={item.reverseImage}
@@ -217,18 +217,18 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             </div>
           </div>
 
-          <div className="flex-1 ml-4 flex flex-col justify-center">
+          <div className="flex-1 ml-4 flex flex-col justify-center min-w-0 overflow-hidden">
             <div className="flex justify-between items-start w-full">
-              <div>
-                <div className="font-small text-sm">
+              <div className="min-w-0 flex-1 pr-2 overflow-hidden">
+                <div className="font-small text-sm truncate">
                   {item?.banknote?.denomination || "Unknown Denomination"}
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground truncate">
                   {item?.banknote?.year || "Unknown Year"}
                 </div>
               </div>
               {isOwner && (
-                <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                <div className="flex gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
                   <Button variant="outline" size="sm" onClick={handleEditClick}>
                     <Pencil className="h-3.5 w-3.5" />
                     <span className="sr-only">Edit</span>
@@ -241,7 +241,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
               )}
             </div>
 
-            <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm mb-1">
+            <div className="gap-0.5 sm:gap-1.5 flex flex-wrap items-center text-sm mb-1 overflow-hidden">
               {item?.banknote?.extendedPickNumber && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {item.banknote.extendedPickNumber}

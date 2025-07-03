@@ -256,18 +256,19 @@ const BanknoteDetailCard = ({
         {renderOwnershipToast()}
         <Card
           className={cn(
-            "overflow-hidden transition-all duration-300 cursor-pointer bg-card",
+            "overflow-hidden transition-all duration-300 cursor-pointer bg-card w-full",
+            "hover:shadow-md flex flex-row max-w-full",
             isHovering ? "shadow-lg" : ""
           )}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
           onClick={handleCardClick}
         >
-          <div className="flex items-center p-1 ml-1">
+          <div className="flex items-center p-1 ml-1 w-full overflow-hidden">
             {/* Image container - showing both front and back */}
             <div className="flex-shrink-0 flex items-center space-x-1">
               {/* Front image */}
-              <div className=" h-[58px] overflow-hidden rounded bg-muted">
+              <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded bg-muted">
                 {displayImage && displayImage !== '/placeholder.svg' ? (
                   <img
                     src={displayImage}
@@ -286,7 +287,7 @@ const BanknoteDetailCard = ({
               </div>
               
               {/* Back image */}
-              <div className=" h-[58px] overflow-hidden rounded bg-muted">
+              <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded bg-muted">
                 {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
                   <img
                     src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
@@ -305,23 +306,23 @@ const BanknoteDetailCard = ({
               </div>
             </div>
 
-            <div className="flex-1 ml-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="font-small text-sm">
+            <div className="flex-1 ml-4 min-w-0 overflow-hidden">
+              <div className="flex justify-between items-start w-full">
+                <div className="min-w-0 flex-1 pr-2">
+                  <div className="font-small text-sm truncate">
                     {banknote.denomination}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground truncate">
                     {banknote.year}
                   </div>
                 </div>
                 {source === 'catalog' && (
-                  <div>
+                  <div className="flex-shrink-0">
                     {shouldShowCheck ? (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={checkButtonClass}
+                        className={cn(checkButtonClass, "flex-shrink-0")}
                         onClick={handleOwnershipCheckButton}
                       >
                         <Check className="h-4 w-4" />
@@ -330,7 +331,7 @@ const BanknoteDetailCard = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 shrink-0"
+                        className="h-8 w-8 flex-shrink-0"
                         onClick={handleAddButtonClick}
                       >
                         <Plus className="h-4 w-4" />
@@ -340,7 +341,7 @@ const BanknoteDetailCard = ({
                 )}
               </div>
 
-              <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm mb-1">
+              <div className="gap-0.5 sm:gap-1.5 flex flex-wrap items-center text-sm mb-1 overflow-hidden">
                 {banknote.extendedPickNumber && (
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.extendedPickNumber}
@@ -387,7 +388,6 @@ const BanknoteDetailCard = ({
               <h4 className="font-bold">{banknote.denomination}</h4>
               {shouldShowCheck ? (
                 <>
-                  {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (grid view) | banknote id:', banknote.id)}
                   <Button
                     variant="secondary"
                     size="icon"
@@ -401,7 +401,6 @@ const BanknoteDetailCard = ({
                 </>
               ) : (
                 <>
-                  {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (grid view) | banknote id:', banknote.id)}
                   <Button
                     variant="ghost"
                     size="icon"

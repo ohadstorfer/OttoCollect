@@ -148,7 +148,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                     <div className={cn(
                       viewMode === 'grid'
                         ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 grid-flow-row auto-rows-auto"
-                        : "flex flex-col space-y-2 w-full",
+                        : "flex flex-col space-y-2 w-full overflow-hidden",
                       "px-2 sm:px-0"
                     )}>
                       {groupMode ? (
@@ -220,7 +220,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
               <div className={cn(
                 viewMode === 'grid'
                   ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 grid-flow-row auto-rows-auto"
-                  : "flex flex-col space-y-2 w-full",
+                  : "flex flex-col space-y-2 w-full overflow-hidden",
                 "px-2 sm:px-0"
               )}>
                 {groupMode ? (
