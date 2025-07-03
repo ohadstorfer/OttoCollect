@@ -268,7 +268,7 @@ const BanknoteDetailCard = ({
             {/* Image container - showing both front and back */}
             <div className="flex-shrink-0 flex items-center space-x-1">
               {/* Front image */}
-              <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded ">
+              <div className="h-[58px] w-[80px] flex-shrink-0 overflow-hidden rounded ">
                 {displayImage && displayImage !== '/placeholder.svg' ? (
                   <img
                     src={displayImage}
@@ -287,7 +287,7 @@ const BanknoteDetailCard = ({
               </div>
               
               {/* Back image */}
-              <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded ">
+              <div className="h-[58px] w-[80px] flex-shrink-0 overflow-hidden rounded ">
                 {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
                   <img
                     src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
@@ -350,11 +350,6 @@ const BanknoteDetailCard = ({
                 {banknote.turkCatalogNumber && (
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.turkCatalogNumber}
-                  </Badge>
-                )}
-                {banknote.year && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                    {banknote.year}
                   </Badge>
                 )}
                 {banknote.rarity && (

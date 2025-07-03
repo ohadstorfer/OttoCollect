@@ -180,7 +180,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
           {/* Image container - showing both front and back */}
           <div className="flex-shrink-0 flex items-center space-x-1">
             {/* Front image */}
-            <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded ">
+            <div className="h-[58px] w-[80px] flex-shrink-0 overflow-hidden rounded ">
               {!showPlaceholder ? (
                 <BanknoteImage
                   imageUrl={displayImage}
@@ -199,7 +199,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
             </div>
 
             {/* Back image */}
-            <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded bg-muted">
+            <div className="h-[58px] w-[80px] flex-shrink-0 overflow-hidden rounded bg-muted">
               {!showPlaceholder && item?.reverseImage ? (
                 <BanknoteImage
                   imageUrl={item.reverseImage}
