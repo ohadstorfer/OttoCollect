@@ -52,7 +52,7 @@ const Navbar = () => {
 
   return (
     <nav className={`${theme === 'light' ? 'bg-white border-ottoman-200' : 'bg-dark-600 border-ottoman-900/50'} border-b sticky top-0 z-50 shadow-md animate-fade-in`}>
-      <div className="container mx-auto px-4 py-3">
+      <div className="container mx-auto px-4 py-0">
         <div className="flex items-center justify-between">
           {/* Logo and site name */}
           <Link to="/" className="flex items-center gap-2 group" onClick={closeMenu}>
@@ -60,7 +60,7 @@ const Navbar = () => {
               <img 
                 src="/favicon.PNG" 
                 alt="OttoCollect Logo" 
-                className="w-8 h-8 object-contain"
+                className="w-14 h-14 object-contain"
               />
               <h1 className={`text-xl font-serif ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-100'} font-semibold tracking-tight`}>
                 <span className="text-gradient">OttoCollect</span> 
