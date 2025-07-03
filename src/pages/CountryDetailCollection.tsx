@@ -481,88 +481,78 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   };
 
   return (
-    <div className="w-full px-2 sm:px-6 py-1">
+    <div className={cn(
+      "bg-card border rounded-lg p-1 w-[90%] sm:w-[92%] mx-auto",
+      viewMode === 'list' && "!w-full"
+    )}>
+      
+      <BanknoteFilterCollection
+        countryId={countryId}
+        countryName={effectiveCountryName}
+        onFilterChange={handleFilterChange}
+        currentFilters={filters}
+        isLoading={isLoading}
+        onViewModeChange={handleViewModeChange}
+        groupMode={groupMode}
+        onGroupModeChange={handleGroupModeChange}
+        onPreferencesLoaded={handlePreferencesLoaded}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        isOwner={isOwner}
+        profileUser={profileData}
+        onBackToCountries={onBackToCountries}
+      />
 
-      {!profileView && (
-  <CountryHeader 
-    countryName={effectiveCountryName} 
-    returnPath={returnPath} 
-    hideBackButton={profileView} 
-  />
-)}
-
-      <div className={cn(
-        "bg-card border rounded-lg p-1 sm:p-6 mb-6",
-        viewMode === 'list' ? "w-full" : "sm:w-[95%] w-auto"
-      )}>
-        <BanknoteFilterCollection
+      {/* Conditionally render content based on activeTab */}
+      {activeTab === 'collection' && (
+        <CollectionItemsDisplay
+          groups={groupedCollectionItems}
+          showSultanGroups={filters.sort.includes('sultan')}
+          viewMode={viewMode}
           countryId={countryId}
-          countryName={effectiveCountryName}
-          onFilterChange={handleFilterChange}
-          currentFilters={filters}
           isLoading={isLoading}
-          onViewModeChange={handleViewModeChange}
           groupMode={groupMode}
-          onGroupModeChange={handleGroupModeChange}
-          onPreferencesLoaded={handlePreferencesLoaded}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
           isOwner={isOwner}
-          profileUser={profileData}
-          onBackToCountries={onBackToCountries}
         />
-
-        {/* Conditionally render content based on activeTab */}
-        {activeTab === 'collection' && (
-          <CollectionItemsDisplay
-            groups={groupedCollectionItems}
-            showSultanGroups={filters.sort.includes('sultan')}
-            viewMode={viewMode}
-            countryId={countryId}
-            isLoading={isLoading}
-            groupMode={groupMode}
-            isOwner={isOwner}
-          />
-        )}
-        {activeTab === 'missing' && (
-          <CollectionItemsDisplay
-            groups={groupedMissingItems}
-            showSultanGroups={filters.sort.includes('sultan')}
-            viewMode={viewMode}
-            countryId={countryId}
-            isLoading={isLoading}
-            groupMode={groupMode}
-            isOwner={isOwner}
-          />
-        )}
-        {activeTab === 'wishlist' && (
-          <div className="mt-6">
-            {wishlistLoading ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
-              </div>
-            ) : groupedWishlistItems.length === 0 ? (
-              <div className="text-center py-8">
-                <h3 className="text-xl font-medium mb-4">No wishlist items found</h3>
-                <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-start">
-                {groupedWishlistItems.flatMap(group =>
-                  group.items.map(item => (
-                    <BanknoteDetailCardWishList
-                      key={item.wishlistItemId || item.id}
-                      banknote={item.banknote}
-                      wishlistItemId={item.wishlistItemId}
-                      source="catalog"
-                    />
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      )}
+      {activeTab === 'missing' && (
+        <CollectionItemsDisplay
+          groups={groupedMissingItems}
+          showSultanGroups={filters.sort.includes('sultan')}
+          viewMode={viewMode}
+          countryId={countryId}
+          isLoading={isLoading}
+          groupMode={groupMode}
+          isOwner={isOwner}
+        />
+      )}
+      {activeTab === 'wishlist' && (
+        <div className="mt-6">
+          {wishlistLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+            </div>
+          ) : groupedWishlistItems.length === 0 ? (
+            <div className="text-center py-8">
+              <h3 className="text-xl font-medium mb-4">No wishlist items found</h3>
+              <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-start">
+              {groupedWishlistItems.flatMap(group =>
+                group.items.map(item => (
+                  <BanknoteDetailCardWishList
+                    key={item.wishlistItemId || item.id}
+                    banknote={item.banknote}
+                    wishlistItemId={item.wishlistItemId}
+                    source="catalog"
+                  />
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

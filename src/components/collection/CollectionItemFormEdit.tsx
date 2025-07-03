@@ -403,7 +403,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   <span className="text-sm text-muted-foreground">Visible to everyone</span>
                 </div>
 
-
+                
                 <div className="flex items-center justify-between mb-0">
                   <div className="flex items-center gap-2">
                     <FormLabel>Condition</FormLabel>
@@ -545,27 +545,27 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 )}
 
 
-                <div className="mt-7 mb-7 ">
-                  {/* Public Note */}
-                  <FormField
-                    control={form.control}
-                    name="publicNote"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Public Note</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Add a note visible to other collectors"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          This note will be visible to other users.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+<div className="mt-7 mb-7 ">
+                {/* Public Note */}
+                <FormField
+                  control={form.control}
+                  name="publicNote"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Public Note</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Add a note visible to other collectors"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        This note will be visible to other users.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 </div>
 
                 {/* Custom Images Section */}
@@ -576,7 +576,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+                    
                     <div>
                       <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
                       <div className="mt-2 flex items-center gap-4">
@@ -710,7 +710,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   <span className="text-sm text-muted-foreground">Only visible to you</span>
                 </div>
 
-
+                
                 <FormField
                   control={form.control}
                   name="purchaseDate"
@@ -881,7 +881,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">For Sale</FormLabel>
                       <FormDescription>
-                        {isLimitedRank
+                        {isLimitedRank 
                           ? "Your rank is not sufficient to list items for sale. Upgrade your rank to unlock this feature."
                           : "Make this banknote available for sale in the marketplace"}
                       </FormDescription>
@@ -953,8 +953,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
         {/* Image Preview Dialog - Moved outside Form */}
         {selectedImage && (
-          <Dialog
-            open={!!selectedImage}
+          <Dialog 
+            open={!!selectedImage} 
             onOpenChange={(open) => {
               console.log('Image preview dialog onOpenChange:', { open });
               if (!open) setSelectedImage(null);

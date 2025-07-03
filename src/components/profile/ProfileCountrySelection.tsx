@@ -143,7 +143,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   }
 
   return showCountryDetail && countryId && countryName ? (
-    <div>
+    <div >
       <CountryDetailCollection 
         userId={userId} 
         countryName={countryName}
