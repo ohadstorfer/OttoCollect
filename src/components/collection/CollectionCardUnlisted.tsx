@@ -180,38 +180,38 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
           {/* Image container - showing both front and back */}
           <div className="flex-shrink-0 flex items-center space-x-1">
             {/* Front image */}
-            <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded ">
+            <div className="h-[58px] max-w-[100px] flex-shrink-0 overflow-hidden rounded aspect-auto">
               {!showPlaceholder ? (
                 <BanknoteImage
                   imageUrl={displayImage}
                   alt={getBanknoteTitle()}
-                  className="h-full w-full object-contain"
+                  className="h-full w-auto object-contain"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <img
                     src="/placeholder.svg"
                     alt="Placeholder"
-                    className="w-full h-full object-cover"
+                    className="h-full w-auto object-contain"
                   />
                 </div>
               )}
             </div>
 
             {/* Back image */}
-            <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded bg-muted">
+            <div className="h-[58px] max-w-[100px] flex-shrink-0 overflow-hidden rounded aspect-auto">
               {!showPlaceholder && item?.reverseImage ? (
                 <BanknoteImage
                   imageUrl={item.reverseImage}
                   alt={`${getBanknoteTitle()} - Back`}
-                  className="h-full w-full object-contain"
+                  className="h-full w-auto object-contain"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <img
                     src="/placeholder.svg"
                     alt="Placeholder"
-                    className="w-full h-full object-cover"
+                    className="h-full w-auto object-contain"
                   />
                 </div>
               )}

@@ -268,38 +268,38 @@ const BanknoteDetailCard = ({
             {/* Image container - showing both front and back */}
             <div className="flex-shrink-0 flex items-center space-x-1">
               {/* Front image */}
-              <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded ">
+              <div className="h-[58px] max-w-[100px] flex-shrink-0 overflow-hidden rounded aspect-auto">
                 {displayImage && displayImage !== '/placeholder.svg' ? (
                   <img
                     src={displayImage}
                     alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Front`}
-                    className="w-full h-full object-contain"
+                    className="h-full w-auto object-contain"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <img
                       src="/placeholder.svg"
                       alt="Placeholder"
-                      className="w-full h-full object-cover"
+                      className="h-full w-auto object-contain"
                     />
                   </div>
                 )}
               </div>
               
               {/* Back image */}
-              <div className="h-[58px] w-[58px] flex-shrink-0 overflow-hidden rounded ">
+              <div className="h-[58px] max-w-[100px] flex-shrink-0 overflow-hidden rounded aspect-auto">
                 {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
                   <img
                     src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
                     alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Back`}
-                    className="w-full h-full object-contain"
+                    className="h-full w-auto object-contain"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <img
                       src="/placeholder.svg"
                       alt="Placeholder"
-                      className="w-full h-full object-cover"
+                      className="h-full w-auto object-contain"
                     />
                   </div>
                 )}
