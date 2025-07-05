@@ -116,7 +116,7 @@ const Index = () => {
 
           <h3 className={`mb-1 text-2xl sm:text-2xl lg:text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight line-clamp-2`}>
             <span>
-            Discover the Legacy of Ottoman empire and it’s successor countries Banknotes
+            Discover the Legacy of Ottoman empire and it's successor countries Banknotes
             </span>
           </h3>
 
@@ -161,7 +161,7 @@ const Index = () => {
               <span>Comprehensive Platform for Collectors</span>
             </h2>
             <p className={`mt-4 text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}>
-              Everything you need to manage, showcase, and grow your Ottoman and it’s successor countries banknotes collection
+              Everything you need to manage, showcase, and grow your Ottoman and it's successor countries banknotes collection
             </p>
           </div>
 
@@ -180,7 +180,7 @@ const Index = () => {
               </div>
               <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Catalogues</span></h3>
               <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Browse comprehensive
-catalogue of ottoman and it’s
+catalogue of ottoman and it's
 successor countries banknotes</p>
             </div>
 
@@ -246,7 +246,7 @@ world.</p>
                 <span>Community Discussions</span>
               </h2>
               <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl`}>
-                Join the conversation with fellow Ottoman and it’s successor countries banknotes collectors
+                Join the conversation with fellow Ottoman and it's successor countries banknotes collectors
               </p>
             </div>
             <div className="mt-4 md:mt-0 reveal fade-left">
@@ -291,7 +291,83 @@ world.</p>
         </div>
       </section>
 
-      <section className="py-20 relative overflow-hidden">
+      <section className="py-20">
+        <div className="container mx-auto px-4 reveal fade-bottom">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className={`text-3xl md:text-4xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-3`}>
+                <span>Supported Countries and Regions</span>
+              </h2>
+              <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}>
+                Explore banknotes from the Ottoman Empire and its successor states
+              </p>
+            </div>
+
+            <div className={`${theme === 'light' ? 'border-ottoman-400 text-ottoman-800 ' : 'border-ottoman-700 text-ottoman-100'} rounded-xl shadow-lg overflow-hidden`}>
+              {/* Ottoman Empire Header */}
+              <div className={`${theme === 'light' ? 'bg-ottoman-600' : 'bg-ottoman-800'} p-6 flex items-center justify-center`}>
+                <div className={`text-white text-2xl md:text-3xl font-serif font-bold text-center`}>
+                  Ottoman Empire
+                </div>
+              </div>
+
+              <div className="p-6">
+                {/* Middle East and North Africa */}
+                <div className="mb-8">
+                  <div className="flex items-center gap-3 mb-4">
+                    <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
+                      <span>Middle East and North Africa</span>
+                    </h3>
+                    <div className={`h-px flex-1 ${theme === 'light' ? 'bg-ottoman-200' : 'bg-ottoman-800'}`}></div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+                    {['Turkey', 'Egypt', 'Iraq', 'Israel', 'Jordan', 'Libya', 'Kuwait', 'Lebanon', 'Palestine', 'Saudi Arabia', 'Syria'].map((country) => (
+                      <div
+                        key={country}
+                        className={`group p-3 rounded-lg border transition-all cursor-pointer
+                        ${theme === 'light' 
+                          ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
+                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
+                      >
+                        <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
+                          {country}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Balkans */}
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
+                      <span>Balkans</span>
+                    </h3>
+                    <div className={`h-px flex-1 ${theme === 'light' ? 'bg-ottoman-200' : 'bg-ottoman-800'}`}></div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+                    {['Albania', 'Bosnia & Herzegovina', 'Bulgaria', 'Kosovo', 'Macedonia', 'Montenegro', 'Serbia'].map((country) => (
+                      <div
+                        key={country}
+                        className={`group p-3 rounded-lg border transition-all cursor-pointer
+                        ${theme === 'light' 
+                          ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
+                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
+                      >
+                        <div className={`text-center font-medium  ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
+                          {country}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={`py-20 relative overflow-hidden ${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-700'}  border-t`}>
         <div className="absolute inset-0 -z-10">
           <div
             className={`absolute inset-y-0 left-1/2 -z-10 ml-16 w-[200%] origin-bottom-right skew-x-[-30deg] ${skewedBgColor} shadow-xl ring-1 ring-inset`}
@@ -299,7 +375,7 @@ world.</p>
           />
         </div>
 
-        <div className="container mx-auto px-4 text-center reveal fade-bottom">
+        <div className="container mx-auto px-4 text-center reveal fade-bottom ">
           <h2 className={`text-3xl md:text-4xl lg:text-5xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-6`}>
                           <span>Join Our Community Today</span>
           </h2>
@@ -324,31 +400,6 @@ world.</p>
                 </Button>
               </Link>
             )}
-          </div>
-        </div>
-      </section>
-
-      <section className={`py-12 ${theme === 'light' ? 'bg-ottoman-100 border-ottoman-300' : 'bg-ottoman-800 border-none'} border-t`}>
-        <div className="container mx-auto px-4 reveal fade-bottom">
-          <div className="max-w-4xl mx-auto">
-            <h3 className={`text-2xl font-serif font-semibold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-6`}>
-              <span>Search Our Catalogue</span>
-            </h3>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search by country, denomination, year, or catalogue ID..."
-                className={`w-full px-4 py-4 pr-12 rounded-lg ${theme === 'light'
-                    ? 'bg-white border-ottoman-300 text-ottoman-800 focus:border-ottoman-500'
-                    : 'bg-dark-500 border-ottoman-700 text-ottoman-100 focus:border-ottoman-500'
-                  } border focus:outline-none`}
-              />
-              <Button
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-ottoman-600 hover:bg-ottoman-700 rounded-md p-2"
-              >
-                <Search className="h-5 w-5 text-white" />
-              </Button>
-            </div>
           </div>
         </div>
       </section>
