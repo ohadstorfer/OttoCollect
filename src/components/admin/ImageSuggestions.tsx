@@ -161,7 +161,7 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
         
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium mb-2">Current Images</h3>
+            <h3 className="text-lg font-medium mb-2"><span>Current Images</span></h3>
             <div className="grid grid-cols-2 gap-2">
               <div className="relative">
                 <div 
@@ -203,7 +203,7 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
           </div>
 
           <div>
-            <h3 className="text-lg font-medium mb-2">Suggested Images</h3>
+            <h3 className="text-lg font-medium mb-2"><span>Suggested Images</span></h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="relative">
                 <div 

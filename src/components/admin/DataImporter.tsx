@@ -42,7 +42,7 @@ const DataImporter = () => {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Import Banknote Data</h2>
+      <h2 className="text-xl font-bold"><span>Import Banknote Data</span></h2>
       <Textarea
         placeholder="Paste CSV data here..."
         value={csvData}

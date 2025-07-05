@@ -380,7 +380,7 @@ const BanknoteDetailCard = ({
         <div className="relative">
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
-              <h4 className="font-bold">{banknote.denomination}</h4>
+              <h4 className="font-bold"><span>{banknote.denomination}</span></h4>
               {shouldShowCheck ? (
                 <>
                   <Button

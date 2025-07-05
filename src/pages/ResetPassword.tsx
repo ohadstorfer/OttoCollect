@@ -92,7 +92,7 @@ const ResetPassword: React.FC = () => {
     return (
       <div className="flex items-center min-h-screen justify-center">
         <Card className="ottoman-card shadow-lg p-8">
-          <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500">Invalid or expired link</h3>
+          <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500"><span>Invalid or expired link</span></h3>
           <p className="text-ottoman-200 text-sm mb-2">The password reset link is invalid or has expired.</p>
           <Button onClick={() => navigate("/auth")}>Back to Login</Button>
         </Card>
@@ -105,7 +105,7 @@ const ResetPassword: React.FC = () => {
       <Card className="ottoman-card shadow-lg w-full">
         <div className="space-y-6 px-6 py-6">
           <div className="text-center">
-            <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500">Set New Password</h3>
+            <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500"><span>Set New Password</span></h3>
             <p className="text-ottoman-200 text-sm">Enter your new password below.</p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">

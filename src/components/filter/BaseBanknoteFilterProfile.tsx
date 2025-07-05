@@ -452,7 +452,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   
                   <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
                     <SheetHeader>
-                      <SheetTitle>Categories & Types</SheetTitle>
+                      <SheetTitle> <span> Categories & Types </span></SheetTitle>
                     </SheetHeader>
                     <div className="space-y-6 py-4 overflow-y-auto">
                       <div>
@@ -538,7 +538,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   
                   <SheetContent side={isMobile ? "bottom" : "right"} className="w-full sm:max-w-md">
                     <SheetHeader>
-                      <SheetTitle>Sort Options</SheetTitle>
+                      <SheetTitle> <span> Sort Options </span> </SheetTitle>
                     </SheetHeader>
                     <div className="py-4 space-y-2">
                       {sortOptions.map(option => {

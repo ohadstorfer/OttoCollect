@@ -66,7 +66,7 @@ const CollectionItemDetailCard = ({ banknote, collectionItem }: CollectionItemCa
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="text-lg font-medium">{banknote.denomination}</h3>
+            <h3 className="text-lg font-medium"><span>{banknote.denomination}</span></h3>
             <p className="text-sm text-muted-foreground">
               {banknote.country} {banknote.year}
             </p>

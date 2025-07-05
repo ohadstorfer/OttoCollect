@@ -87,7 +87,7 @@ const MarketplaceItemDetailUnlisted = () => {
       <div className="container py-8">
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle> <span> Error </span> </AlertTitle>
           <AlertDescription>
             {error || "Item not found or no longer available"}
           </AlertDescription>
@@ -193,11 +193,11 @@ const MarketplaceItemDetailUnlisted = () => {
           <Card className="mb-6">
             <CardContent className="p-6">
               <h2 className="text-2xl font-serif font-bold text-parchment-500 mb-2">
-                {banknote.denomination}
+                <span> {banknote.denomination} </span>
               </h2>
 
               <h2 className="text-2xl font-serif font-bold text-parchment-500 mb-2">
-                Unlisted Banknote
+                <span> Unlisted Banknote </span>
               </h2>
 
               <div className="flex items-center gap-2 mb-4">
@@ -248,7 +248,7 @@ const MarketplaceItemDetailUnlisted = () => {
             <CardHeader className="border-b bg-muted/20">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl m-0">
-                  Banknote Details
+                  <span> Banknote Details </span>
                 </CardTitle>
               </div>
               <CardDescription>

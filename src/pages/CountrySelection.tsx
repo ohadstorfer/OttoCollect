@@ -84,7 +84,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4">Authentication Required</h2>
+          <h2 className="text-2xl font-serif mb-4"><span>Authentication Required</span></h2>
           <p className="mb-6 text-muted-foreground">
             Please sign in to view your collection.
           </p>
@@ -119,7 +119,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
           </div>
         ) : filteredCountries.length === 0 ? (
           <div className="text-center py-12">
-            <h3 className="text-xl font-medium mb-4">No Collections Found</h3>
+            <h3 className="text-xl font-medium mb-4"><span>No Collections Found</span></h3>
             <p className="text-muted-foreground mb-6">
               {searchTerm ? 'No countries match your search.' : 'Start collecting banknotes to see countries here.'}
             </p>
@@ -148,7 +148,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
                       <div className="w-full p-4 text-white bg-gradient-to-t from-black/70 to-transparent">
-                        <h3 className="text-xl font-bold !text-gray-200">{country.name}</h3>
+                        <h3 className="text-xl font-bold !text-gray-200"><span>{country.name}</span></h3>
                         <p className="text-sm opacity-80">
                           {collectionCount} banknote{collectionCount === 1 ? '' : 's'}
                         </p>

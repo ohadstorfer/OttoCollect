@@ -308,7 +308,7 @@ export default function CollectionItem() {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4">Error Loading Collection Item</h2>
+          <h2 className="text-2xl font-serif mb-4"> <span> Error Loading Collection Item </span> </h2>
           <p className="mb-6 text-muted-foreground">
             We couldn't load the collection item details. Please try again later.
           </p>
@@ -349,7 +349,7 @@ export default function CollectionItem() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <h1 className="text-3xl font-bold leading-tight">
-                    {collectionItem.banknote?.denomination}
+                    <span> {collectionItem.banknote?.denomination} </span>
                   </h1>
 
                   <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
@@ -554,7 +554,7 @@ export default function CollectionItem() {
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-xl m-0">
-                    {isOwner ? "My Collection Copy" : "Collection Copy"}
+                    <span> {isOwner ? "My Collection Copy" : "Collection Copy"} </span>
                   </CardTitle>
                   {isOwner && (
                     <div className="flex items-center gap-1">

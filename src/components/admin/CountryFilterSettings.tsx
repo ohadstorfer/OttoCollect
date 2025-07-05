@@ -106,7 +106,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Categories for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}
+                  <span>Categories for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -119,7 +119,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Types for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}
+                  <span>Types for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -133,7 +133,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Sort Options for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}
+                  <span>Sort Options for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -146,7 +146,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Currencies for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}
+                  <span>Currencies for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>

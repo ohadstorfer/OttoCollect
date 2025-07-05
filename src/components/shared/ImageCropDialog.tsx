@@ -281,7 +281,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
     >
       <DialogContent className="sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle> <span> {title} </span> </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">

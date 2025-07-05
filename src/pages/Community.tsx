@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
@@ -48,11 +47,11 @@ export default function Community() {
   if (!user) {
     return (
       <div className="page-container">
-        <h1 className="page-title">Community</h1>
+        <h1 className="page-title"><span>Community</span></h1>
         
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4">Join the Community</h2>
+            <h2 className="text-2xl font-serif mb-4"><span>Join the Community</span></h2>
             <p className="mb-6 text-muted-foreground">
               Please sign in to access community features including messaging, forums, and more.
             </p>
@@ -68,7 +67,7 @@ export default function Community() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Community</h1>
+      <h1 className="page-title"><span>Community</span></h1>
       
       <div className="flex flex-col mb-10">
         <p className="text-muted-foreground mb-6">

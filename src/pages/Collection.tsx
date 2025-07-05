@@ -279,11 +279,11 @@ const Collection = () => {
               </Button>
             </div>
             <h1 className="text-3xl font-bold">
-              {country.name} Collection
+              <span>{country.name} Collection</span>
             </h1>
           </div>
         ) : (
-          <h1 className="text-3xl font-bold mb-4 md:mb-0">My Collection</h1>
+          <h1 className="text-3xl font-bold mb-4 md:mb-0"><span>My Collection</span></h1>
         )}
         
         <Button onClick={handleAddItem} className="flex items-center gap-2">
@@ -327,7 +327,7 @@ const Collection = () => {
             </div>
           ) : error ? (
             <div className="text-center py-8">
-              <h3 className="text-xl font-medium mb-4 text-red-500">{error}</h3>
+              <h3 className="text-xl font-medium mb-4 text-red-500"><span>{error}</span></h3>
               <Button onClick={() => loadUserCollection()}>Retry</Button>
             </div>
           ) : filteredItems.length === 0 ? (
@@ -358,7 +358,7 @@ const Collection = () => {
               {groupedItems.map((group, groupIndex) => (
                 <div key={`group-${groupIndex}`} className="space-y-4">
                   <div className="sticky top-[100px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
-                    <h2 className="text-xl font-bold">{group.category}</h2>
+                    <h2 className="text-xl font-bold"><span>{group.category}</span></h2>
                   </div>
                   
                   {group.sultanGroups ? (

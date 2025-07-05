@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,7 @@ export default function CreateForumPost() {
     return (
       <div className="container py-8">
         <div className="ottoman-card p-8 text-center max-w-xl mx-auto">
-          <h2 className="text-2xl font-serif mb-4">Authentication Required</h2>
+          <h2 className="text-2xl font-serif mb-4"><span>Authentication Required</span></h2>
           <p className="mb-6 text-muted-foreground">
             You must be signed in to create forum posts.
           </p>

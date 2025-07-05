@@ -371,14 +371,14 @@ const CountryManagement: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Country Management</CardTitle>
+        <CardTitle><span>Country Management</span></CardTitle>
         <CardDescription>
           Manage the countries in the banknote catalog.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Countries</h2>
+          <h2 className="text-xl font-bold"><span>Countries</span></h2>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleAddButtonClick} variant="primary">
@@ -387,7 +387,7 @@ const CountryManagement: React.FC = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Country</DialogTitle>
+                <DialogTitle><span>Add New Country</span></DialogTitle>
                 <DialogDescription>
                   Add a new country to the system.
                 </DialogDescription>
@@ -545,7 +545,7 @@ const CountryManagement: React.FC = () => {
         <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
           <DialogContent className="max-w-3xl max-h-[80%] overflow-auto">
             <DialogHeader>
-              <DialogTitle>{previewImage?.name}</DialogTitle>
+              <DialogTitle><span>{previewImage?.name}</span></DialogTitle>
             </DialogHeader>
             <div className="w-full ">
               {previewImage && (

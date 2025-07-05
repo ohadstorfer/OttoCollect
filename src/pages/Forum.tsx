@@ -137,7 +137,7 @@ const Forum = () => {
         <div className="container mx-auto px-4 relative z-10 flex items-center justify-center">
           
           <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
-            Forum
+            <span>Forum</span>
           </h1>
           
         </div>

@@ -61,7 +61,7 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
   if (!adminCountry) {
     return (
       <div className="page-container p-8">
-        <h2 className="text-xl">Unable to load country data for admin dashboard</h2>
+        <h2 className="text-xl"><span>Unable to load country data for admin dashboard</span></h2>
         <p className="text-muted-foreground mt-2">Please contact support if this issue persists.</p>
       </div>
     );
@@ -71,7 +71,7 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
 
   return (
     <div className="page-container">
-      <h1 className="page-title">{displayName} Admin Dashboard</h1>
+      <h1 className="page-title"><span>{displayName} Admin Dashboard</span></h1>
       
       <div className="max-w-6xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -85,7 +85,7 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
           <TabsContent value="banknotes">
             <Card>
               <CardHeader>
-                <CardTitle>Banknotes Management</CardTitle>
+                <CardTitle><span>Banknotes Management</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <BanknotesManagement 
@@ -101,7 +101,7 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
           <TabsContent value="images">
             <Card>
               <CardHeader>
-                <CardTitle>Image Suggestions</CardTitle>
+                <CardTitle><span>Image Suggestions</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageSuggestions 
@@ -117,7 +117,7 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
           <TabsContent value="stamps">
             <Card>
               <CardHeader>
-                <CardTitle>Stamps Management</CardTitle>
+                <CardTitle><span>Stamps Management</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampsManagement 
@@ -133,7 +133,7 @@ const CountryAdminDashboard = ({ countryId, countryName }: CountryAdminDashboard
           <TabsContent value="filters">
             <Card>
               <CardHeader>
-                <CardTitle>Country Filter Settings</CardTitle>
+                <CardTitle><span>Country Filter Settings</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <CountryFilterSettings 

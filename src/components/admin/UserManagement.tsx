@@ -366,7 +366,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       {showRemoveDialog && userToRemove && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h2 className="text-lg font-bold mb-2">Block user</h2>
+            <h2 className="text-lg font-bold mb-2"><span>Block user</span></h2>
             <p className="mb-4">Are you sure that you want to block this user from the website and prevent them from opening another account with this email address in the future?</p>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowRemoveDialog(false)} disabled={removingUserId === userToRemove.id}>Cancel</Button>
@@ -380,7 +380,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       {showUnblockDialog && userToUnblock && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h2 className="text-lg font-bold mb-2">Unblock user</h2>
+            <h2 className="text-lg font-bold mb-2"><span>Unblock user</span></h2>
             <p className="mb-4">Are you sure you want to unblock this user? They will be able to log in and access the website again.</p>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowUnblockDialog(false)} disabled={unblockingUserId === userToUnblock.id}>Cancel</Button>

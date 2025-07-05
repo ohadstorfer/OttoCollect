@@ -142,7 +142,7 @@ export default function Members() {
           </div>
         ) : filteredMembers.length === 0 ? (
           <div className="text-center py-8">
-            <h3 className="text-xl font-medium mb-4">No members found</h3>
+            <h3 className="text-xl font-medium mb-4"><span>No members found</span></h3>
             <p className="text-muted-foreground">Try adjusting your search criteria</p>
           </div>
         ) : (
@@ -167,7 +167,7 @@ export default function Members() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-lg">{member.username}</h3>
+                      <h3 className="font-medium text-lg"><span>{member.username}</span></h3>
                       <div className="flex items-center gap-2 mb-1">
                       <Badge variant="user" rank={member.rank} showIcon />
                       </div>

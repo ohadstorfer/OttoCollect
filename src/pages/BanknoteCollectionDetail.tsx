@@ -67,7 +67,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
       {/* Banknote Details Section */}
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-medium mb-4">Public Details</h3>
+          <h3 className="text-lg font-medium mb-4"> <span> Public Details </span> </h3>
           <div className="space-y-2">
             {collectionItem.banknote?.extendedPickNumber && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
@@ -283,7 +283,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         {isOwner && (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-lg font-medium">Private Details</h3>
+              <h3 className="text-lg font-medium"> <span> Private Details </span> </h3>
               <span className="text-sm text-muted-foreground">Only visible to you</span>
             </div>
             <div className="space-y-2">

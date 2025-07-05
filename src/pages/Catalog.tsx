@@ -76,7 +76,7 @@ const Catalog = () => {
         
         <div className="container mx-auto px-4 relative z-10">
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-center dark:text-parchment-500 text-ottoman-900 fade-bottom">
-          Ottoman Banknote Catalogue 
+          <span>Ottoman Banknote Catalogue</span>
           </h1>
           <p className="mt-4 text-center dark:text-ottoman-300 text-ottoman-700 max-w-2xl mx-auto fade-bottom">
           Explore these notable Ottoman Empire banknotes from our extensive catalogue
@@ -92,7 +92,7 @@ const Catalog = () => {
         </div>
       ) : filteredCountries.length === 0 ? (
         <div className="text-center py-8">
-          <h3 className="text-xl font-medium mb-4 dark:text-white text-ottoman-900">No countries found</h3>
+          <h3 className="text-xl font-medium mb-4 dark:text-white text-ottoman-900"><span>No countries found</span></h3>
           <p className="text-muted-foreground">Try adjusting your search criteria.</p>
         </div>
       ) : (
@@ -115,7 +115,7 @@ const Catalog = () => {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
                       <div className="w-full p-4 text-white bg-gradient-to-t from-black/70 to-transparent">
-                        <h3 className="text-xl font-bold !text-gray-200">{country.name}</h3>
+                        <h3 className="text-xl font-bold !text-gray-200"><span>{country.name}</span></h3>
                         <p className="text-sm opacity-80">
                         {country.banknoteCount} banknote{country.banknoteCount === 1 ? '' : 's'}
                         </p>

@@ -217,7 +217,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel,
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-lg font-medium">Marketplace</h3>
+        <h3 className="text-lg font-medium"><span>Marketplace</span></h3>
         <div className="flex items-center space-x-2">
           <Switch
             id="isForSale"

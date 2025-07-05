@@ -291,7 +291,7 @@ const BanknoteDetailCardWishList = ({
         <div className="relative">
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
-              <h4 className="font-bold">{banknote.face_value}</h4>
+              <h4 className="font-bold"><span>{banknote.face_value}</span></h4>
               {/* Wishlist: Trash icon instead of Add/Check */}
               {wishlistItemId ? (
                 <Button

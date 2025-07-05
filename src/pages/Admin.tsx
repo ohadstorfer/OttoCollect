@@ -106,11 +106,11 @@ const Admin = () => {
   if (!user) {
     return (
       <div className="page-container">
-        <h1 className="page-title">Admin</h1>
+        <h1 className="page-title"><span>Admin</span></h1>
         
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4">Access Restricted</h2>
+            <h2 className="text-2xl font-serif mb-4"><span>Access Restricted</span></h2>
             <p className="mb-6 text-muted-foreground">
               You must be logged in to access this area.
             </p>
@@ -129,11 +129,11 @@ const Admin = () => {
     console.log("User has no admin privileges:", user);
     return (
       <div className="page-container">
-        <h1 className="page-title">Admin</h1>
+        <h1 className="page-title"><span>Admin</span></h1>
         
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4">Access Restricted</h2>
+            <h2 className="text-2xl font-serif mb-4"><span>Access Restricted</span></h2>
             <p className="mb-6 text-muted-foreground">
               This area is restricted to administrators only.
             </p>
@@ -152,7 +152,7 @@ const Admin = () => {
   // Full admin dashboard for super admins
   return (
     <div className="page-container">
-      <h1 className="page-title">Admin Dashboard</h1>
+      <h1 className="page-title"><span>Admin Dashboard</span></h1>
       
       <div className="max-w-6xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>

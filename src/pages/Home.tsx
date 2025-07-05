@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ const Home: React.FC = () => {
                   <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"></path>
                 </svg>
               </div>
-              <h2 className="text-xl font-medium mb-2">Catalog</h2>
+              <h2 className="text-xl font-medium mb-2"><span>Catalog</span></h2>
               <p className="text-muted-foreground mb-6">
                 Browse a comprehensive catalog of Ottoman banknotes
               </p>
@@ -47,7 +46,7 @@ const Home: React.FC = () => {
                   <line x1="12" y1="17" x2="12" y2="21"></line>
                 </svg>
               </div>
-              <h2 className="text-xl font-medium mb-2">My Collection</h2>
+              <h2 className="text-xl font-medium mb-2"><span>My Collection</span></h2>
               <p className="text-muted-foreground mb-6">
                 Manage and organize your personal collection
               </p>
@@ -69,7 +68,7 @@ const Home: React.FC = () => {
                   <line x1="8" y1="12" x2="16" y2="12"></line>
                 </svg>
               </div>
-              <h2 className="text-xl font-medium mb-2">Profile</h2>
+              <h2 className="text-xl font-medium mb-2"><span>Profile</span></h2>
               <p className="text-muted-foreground mb-6">
                 View and edit your profile information
               </p>

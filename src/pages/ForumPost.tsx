@@ -281,7 +281,7 @@ const ForumPostPage = () => {
     return (
       <div className="page-container">
         <div className="text-center py-20">
-          <h2 className="text-2xl font-semibold mb-2">Post not found</h2>
+          <h2 className="text-2xl font-semibold mb-2"><span>Post not found</span></h2>
           <p className="text-muted-foreground">The post you're looking for doesn't exist or has been removed.</p>
         </div>
       </div>
@@ -407,7 +407,7 @@ const ForumPostPage = () => {
                 </div>
                 <span className="text-sm text-muted-foreground">{formattedDate}</span>
               </div>
-              <h6 className="font-semibold text-2xl animate-fade-in">{post.title}</h6>
+              <h6 className="font-semibold text-2xl animate-fade-in"><span>{post.title}</span></h6>
               <div className="whitespace-pre-line mb-4">{post.content}</div>
 
               {post.imageUrls && post.imageUrls.length > 0 && (
@@ -418,7 +418,7 @@ const ForumPostPage = () => {
         </div>
 
         <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <h2 className="text-xl font-semibold mb-4">Comments • {post.commentCount || 0}</h2>
+          <h2 className="text-xl font-semibold mb-4"><span>Comments • {post.commentCount || 0}</span></h2>
 
           {user ? (
             isUserBlocked ? (

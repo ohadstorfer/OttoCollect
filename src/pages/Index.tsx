@@ -115,7 +115,9 @@ const Index = () => {
           </div>
 
           <h3 className={`mb-1 text-2xl sm:text-2xl lg:text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight line-clamp-2`}>
+            <span>
             Discover the Legacy of Ottoman Banknotes
+            </span>
           </h3>
 
           <p
@@ -156,7 +158,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16 reveal fade-bottom">
             <h2 className={`text-3xl md:text-4xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'}`}>
-              Comprehensive Platform for Collectors
+              <span>Comprehensive Platform for Collectors</span>
             </h2>
             <p className={`mt-4 text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}>
               Everything you need to manage, showcase, and grow your Ottoman banknote collection
@@ -176,7 +178,7 @@ const Index = () => {
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <Database className="h-6 w-6 text-white" />
               </div>
-              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>Catalogue Management</h3>
+              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Catalogue Management</span></h3>
               <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Browse comprehensive catalogue of Ottoman banknotes organized by country and era</p>
             </div>
 
@@ -192,7 +194,7 @@ const Index = () => {
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
-              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>Collection Tools</h3>
+              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Collection Tools</span></h3>
               <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Track your collection, wishlist, and display missing items with detailed information</p>
             </div>
 
@@ -208,7 +210,7 @@ const Index = () => {
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <DollarSign className="h-6 w-6 text-white" />
               </div>
-              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>Marketplace</h3>
+              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Marketplace</span></h3>
               <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Buy and sell banknotes within the community through our integrated marketplace</p>
             </div>
 
@@ -224,7 +226,7 @@ const Index = () => {
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <Users className="h-6 w-6 text-white" />
               </div>
-              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>Community</h3>
+              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Community</span></h3>
               <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Connect with fellow collectors through forums, blogs, and private messaging</p>
             </div>
           </div>
@@ -236,7 +238,7 @@ const Index = () => {
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
             <div className="reveal fade-right">
               <h2 className={`text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-3`}>
-                Community Discussions
+                <span>Community Discussions</span>
               </h2>
               <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl`}>
                 Join the conversation with fellow Ottoman banknote enthusiasts
@@ -262,7 +264,7 @@ const Index = () => {
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
             <div className="reveal fade-right">
               <h2 className={`text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-3`}>
-                Marketplace Highlights
+                <span>Marketplace Highlights</span>
               </h2>
               <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl`}>
                 Currently available items from our collector community
@@ -294,7 +296,7 @@ const Index = () => {
 
         <div className="container mx-auto px-4 text-center reveal fade-bottom">
           <h2 className={`text-3xl md:text-4xl lg:text-5xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-6`}>
-            Join Our Community Today
+                          <span>Join Our Community Today</span>
           </h2>
           <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'} max-w-2xl mx-auto mb-10`}>
             Connect with fellow collectors, track your collection, and explore the rich history of Ottoman banknotes
@@ -325,7 +327,7 @@ const Index = () => {
         <div className="container mx-auto px-4 reveal fade-bottom">
           <div className="max-w-4xl mx-auto">
             <h3 className={`text-2xl font-serif font-semibold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-6`}>
-              Search Our Catalogue
+              <span>Search Our Catalogue</span>
             </h3>
             <div className="relative">
               <input

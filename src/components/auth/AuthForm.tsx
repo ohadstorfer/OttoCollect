@@ -322,7 +322,7 @@ const AuthForm = () => {
             <div className="space-y-6">
               <div className="text-center">
                 <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500">
-                  Welcome Back
+                  <span>Welcome Back</span>
                 </h3>
                 <p className="text-ottoman-200 text-sm">
                   Log in to access your Ottoman banknote collection
@@ -440,7 +440,7 @@ const AuthForm = () => {
             <div className="space-y-6">
               <div className="text-center">
                 <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500">
-                  Create Account
+                  <span>Create Account</span>
                 </h3>
                 <p className="text-ottoman-200 text-sm">
                   Join the Ottoman banknote collector community

@@ -67,7 +67,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
   if (error) {
     return (
       <div className="text-center py-8">
-        <h3 className="text-xl font-medium mb-4 text-red-500">Error loading collection</h3>
+        <h3 className="text-xl font-medium mb-4 text-red-500"><span>Error loading collection</span></h3>
         <p className="text-muted-foreground mb-6">{error}</p>
         <Button onClick={() => onRetry()}>Try Again</Button>
       </div>
@@ -77,7 +77,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
   if (collectionItems.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <h3 className="text-xl font-medium mb-4">No Items in Collection</h3>
+        <h3 className="text-xl font-medium mb-4"><span>No Items in Collection</span></h3>
         <p className="text-muted-foreground mb-6">
           {isOwnProfile 
             ? "You haven't added any banknotes to your collection yet." 
@@ -128,7 +128,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
           </div>
         ) : (
           <div className="text-center py-8">
-            <h3 className="text-xl font-medium mb-4">No Matching Items</h3>
+            <h3 className="text-xl font-medium mb-4"><span>No Matching Items</span></h3>
             <p className="text-muted-foreground mb-6">
               No items match your current filter criteria.
             </p>

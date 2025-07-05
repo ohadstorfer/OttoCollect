@@ -64,7 +64,7 @@ const ChangePassword: React.FC = () => {
       <Card className="ottoman-card shadow-lg mt-8">
         <div className="space-y-6 px-6 py-4">
           <div className="text-center">
-            <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500">Change Password</h3>
+            <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500"><span>Change Password</span></h3>
             <p className="text-ottoman-200 text-sm">
               Enter your current password and choose a new one.
             </p>

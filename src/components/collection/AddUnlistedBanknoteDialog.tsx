@@ -320,7 +320,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                 {/* Section: Public Details */}
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-7">
-                    <h3 className="text-lg font-medium">Public Details</h3>
+                    <h3 className="text-lg font-medium"><span>Public Details</span></h3>
                     <span className="text-sm text-muted-foreground">Visible to everyone</span>
                   </div>
                   {/* Condition/Grading Toggle Row */}
@@ -596,7 +596,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
 
                 {/* Custom Images */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Custom Images</h3>
+                  <h3 className="text-lg font-medium"><span>Custom Images</span></h3>
                   <p className="text-muted-foreground text-sm">
                     Upload your own images of the banknote (optional)
                   </p>
@@ -801,7 +801,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
 
                 {/* Private Section */}
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-medium">Private Details</h3>
+                  <h3 className="text-lg font-medium"><span>Private Details</span></h3>
                   <span className="text-sm text-muted-foreground">Only visible to you</span>
                 </div>
 

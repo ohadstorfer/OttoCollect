@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Dialog,
@@ -45,7 +44,7 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
       <DialogContent className="max-w-5xl w-[90vw] max-h-[85vh] overflow-y-auto">
       <DialogHeader className="sticky top-0 z-10 bg-background flex flex-row items-center justify-between border-b">
           <div className="flex flex-col">
-            <DialogTitle>Banknote Group: {groupBaseNumber}</DialogTitle>
+            <DialogTitle><span>Banknote Group: {groupBaseNumber}</span></DialogTitle>
             {displaySultan && (
               <div className="text-sm text-muted-foreground mt-1">
                 Sultan: {displaySultan}

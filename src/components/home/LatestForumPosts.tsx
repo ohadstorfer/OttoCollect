@@ -101,7 +101,7 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
               
               <div className="flex-1 min-w-0 flex flex-col">
                 <h3 className="font-serif font-semibold text-lg text-parchment-400 line-clamp-2 mb-2">
-                  {post.title}
+                  <span>{post.title}</span>
                 </h3>
                 
                 <div className="flex items-center text-xs text-ottoman-300 gap-3 mb-2">

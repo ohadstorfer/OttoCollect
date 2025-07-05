@@ -103,7 +103,7 @@ const Profile: React.FC = () => {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4">Profile Not Found</h2>
+          <h2 className="text-2xl font-serif mb-4"><span>Profile Not Found</span></h2>
           <p className="mb-6 text-muted-foreground">
             The profile you are looking for does not exist.
           </p>
@@ -156,7 +156,7 @@ const Profile: React.FC = () => {
         ) : (
           <div className="flex justify-center w-full mb-4">
             <Card className="p-8 text-center bg-card w-[90%] sm:w-[600px]">
-              <h3 className="text-2xl font-semibold mb-4">Authentication Required</h3>
+              <h3 className="text-2xl font-semibold mb-4"><span>Authentication Required</span></h3>
               <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
                 To view this collector's profile and their banknote collection, please log in to your account. 
                 If you don't have an account yet, join our community to explore collections and connect with fellow collectors.

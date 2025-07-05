@@ -282,7 +282,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         <div className="relative">
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
-              <h4 className="font-bold">{item.banknote.denomination}</h4>
+              <h4 className="font-bold"><span>{item.banknote.denomination}</span></h4>
               {item?.condition && !item?.grade && (
                 <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
                   {item.condition}

@@ -42,26 +42,26 @@ const TestImageTransform: React.FC = () => {
 
   const ImageDisplay = ({ images, title }: { images: ImagePreview | null; title: string }) => (
     <div className="image-section">
-      <h2>{title}</h2>
+      <h2><span>{title}</span></h2>
       <div className="image-grid">
         {images ? (
           <>
             <div className="image-container">
-              <h3>Original</h3>
+              <h3><span>Original</span></h3>
               <img 
                 src={images.original} 
                 alt="Original" 
               />
             </div>
             <div className="image-container">
-              <h3>Watermarked</h3>
+              <h3><span>Watermarked</span></h3>
               <img 
                 src={images.watermarked} 
                 alt="Watermarked" 
               />
             </div>
             <div className="image-container">
-              <h3>Thumbnail</h3>
+              <h3><span>Thumbnail</span></h3>
               <img 
                 src={images.thumbnail} 
                 alt="Thumbnail" 
@@ -77,7 +77,7 @@ const TestImageTransform: React.FC = () => {
 
   return (
     <div className="container">
-      <h1>Image Processing Test</h1>
+      <h1><span>Image Processing Test</span></h1>
       
       <div className="upload-section">
         <div className="upload-buttons">

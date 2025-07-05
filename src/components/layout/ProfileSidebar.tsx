@@ -51,7 +51,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <SheetTitle className="text-left">{user.username}</SheetTitle>
+              <SheetTitle className="text-left"> <span> {user.username} </span> </SheetTitle>
               <div className="flex items-center gap-2">
                 <Badge variant="user" rank={user.rank}>
                   {user.rank}

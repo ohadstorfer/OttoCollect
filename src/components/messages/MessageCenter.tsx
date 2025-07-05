@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import useMessages from '@/hooks/use-messages';
@@ -133,7 +132,7 @@ export function MessageCenter({
       <div className="flex items-center justify-between p-4 border-b bg-muted/30">
         <h2 className="text-2xl font-serif font-medium text-parchment-500 flex items-center">
           <MessageCircle className="mr-2" size={24} />
-          Messages
+          <span>Messages</span>
         </h2>
       </div>
       

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -79,7 +78,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
           <TabsContent value="signatures-front" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Front Signature Pictures</CardTitle>
+                <CardTitle><span>Front Signature Pictures</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampPicturesManager
@@ -94,7 +93,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
           <TabsContent value="signatures-back" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Back Signature Pictures</CardTitle>
+                <CardTitle><span>Back Signature Pictures</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampPicturesManager
@@ -109,7 +108,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
           <TabsContent value="seals" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Seal Pictures</CardTitle>
+                <CardTitle><span>Seal Pictures</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampPicturesManager
@@ -124,7 +123,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
           <TabsContent value="watermarks" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Watermark Pictures</CardTitle>
+                <CardTitle><span>Watermark Pictures</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampPicturesManager
@@ -139,7 +138,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
           <TabsContent value="tughras" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Tughra Pictures</CardTitle>
+                <CardTitle><span>Tughra Pictures</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampPicturesManager

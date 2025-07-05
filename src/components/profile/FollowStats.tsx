@@ -185,7 +185,7 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 mt-2">
               <Users className="h-5 w-5" />
-              Followers
+              <span>Followers</span>
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-1">
@@ -229,7 +229,7 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 mt-2">
               <Users className="h-5 w-5" />
-              Following
+              <span>Following</span>
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-1">

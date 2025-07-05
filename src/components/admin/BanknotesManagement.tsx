@@ -588,7 +588,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
           >
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogTitle><span>Are you sure?</span></AlertDialogTitle>
                 <AlertDialogDescription>
                   This will permanently delete the banknote with ext.Pick: {banknoteToDelete?.extendedPickNumber}. 
                   This action cannot be undone.

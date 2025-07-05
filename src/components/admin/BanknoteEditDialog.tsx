@@ -432,7 +432,7 @@ const BanknoteEditDialog = ({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isNew ? 'Create New Banknote' : 'Edit Banknote'}</DialogTitle>
+          <DialogTitle><span>{isNew ? 'Create New Banknote' : 'Edit Banknote'}</span></DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -662,7 +662,7 @@ const BanknoteEditDialog = ({
               </div>
 
               <div className="space-y-6 pt-6 border-t">
-                <h3 className="text-lg font-medium">Stamp Pictures</h3>
+                <h3 className="text-lg font-medium"><span>Stamp Pictures</span></h3>
                 {isLoadingStamps ? (
                   <div className="flex items-center justify-center py-4">
                     <Loader2 className="h-6 w-6 animate-spin" />

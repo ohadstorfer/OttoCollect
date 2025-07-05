@@ -249,7 +249,7 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium">Currencies</h3>
+        <h3 className="text-lg font-medium"><span>Currencies</span></h3>
         <Button onClick={openAddDialog} className="flex items-center space-x-1">
           <Plus className="h-4 w-4" />
           <span>Add Currency</span>
@@ -334,7 +334,7 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Currency</DialogTitle>
+            <DialogTitle><span>Add Currency</span></DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -368,7 +368,7 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Currency</DialogTitle>
+            <DialogTitle><span>Edit Currency</span></DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -392,7 +392,7 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Currency</AlertDialogTitle>
+            <AlertDialogTitle><span>Delete Currency</span></AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete the currency "{selectedCurrency?.name}"? This cannot be undone.
             </AlertDialogDescription>

@@ -120,7 +120,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
               {/* Item Title */}
               <div className="flex justify-between">
                 <h3 className="font-serif font-semibold text-lg text-parchment-400">
-                  {item.collectionItem.banknote.denomination} ({item.collectionItem.banknote.year})
+                  <span>{item.collectionItem.banknote.denomination} ({item.collectionItem.banknote.year})</span>
                 </h3>
                 <span className="text-ottoman-100 font-semibold bg-ottoman-600/50 px-2 py-0.5 rounded text-sm">
                   ${item.collectionItem.salePrice}
@@ -199,7 +199,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
                   {/* Item Title */}
                   <div className="flex justify-between">
                     <h3 className="font-serif font-semibold text-lg text-parchment-400">
-                      {item.collectionItem.banknote.denomination} ({item.collectionItem.banknote.year})
+                      <span>{item.collectionItem.banknote.denomination} ({item.collectionItem.banknote.year})</span>
                     </h3>
                     <span className="text-ottoman-100 font-semibold bg-ottoman-600/50 px-2 py-0.5 rounded text-sm">
                       ${item.collectionItem.salePrice}

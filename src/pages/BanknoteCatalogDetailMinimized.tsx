@@ -59,7 +59,7 @@ const BanknoteCatalogDetailMinimized: React.FC = () => {
     return (
       <Card>
         <CardContent className="text-center py-6">
-          <h2 className="text-lg font-semibold mb-2">Error loading banknote details</h2>
+          <h2 className="text-lg font-semibold mb-2"> <span> Error loading banknote details </span> </h2>
           <p className="text-muted-foreground">Please try again later.</p>
         </CardContent>
       </Card>

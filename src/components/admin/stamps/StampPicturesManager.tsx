@@ -202,7 +202,7 @@ const StampPicturesManager: React.FC<StampPicturesManagerProps> = ({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Image</AlertDialogTitle>
+            <AlertDialogTitle><span>Delete Image</span></AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete "{pictureToDelete?.name}"? This action cannot be undone.
             </AlertDialogDescription>

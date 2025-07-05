@@ -13,7 +13,7 @@ export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
   return (
     <div className="ottoman-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-medium">About</h3>
+        <h3 className="text-xl font-medium"><span>About</span></h3>
         {onEditClick && (
           <Button variant="outline" size="sm" onClick={onEditClick}>
             <Edit className="h-4 w-4 mr-2" />
@@ -39,7 +39,7 @@ export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
         {profile.country && (
           <div className="pt-4 border-t">
             <div className="flex">
-              <h4 className="font-medium w-32">Country:</h4>
+              <h4 className="font-medium w-32"><span>Country:</span></h4>
               <p>{profile.country}</p>
             </div>
           </div>
@@ -47,7 +47,7 @@ export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
         
         <div className="pt-4 border-t">
           <div className="flex">
-            <h4 className="font-medium w-32">Member since:</h4>
+            <h4 className="font-medium w-32"><span>Member since:</span></h4>
             <p>{new Date(profile.createdAt).toLocaleDateString()}</p>
           </div>
         </div>

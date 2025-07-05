@@ -58,7 +58,7 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
         <Card className="w-full h-full shadow-md overflow-hidden">
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
-                <h4 className="font-bold">{denomination}</h4>
+                <h4 className="font-bold"><span>{denomination}</span></h4>
               <div className="pt-2 pr-1 flex items-center text-sm">
                 <span>{count}</span>
                 <LayoutList className="h-4 w-4 mr-1" />

@@ -124,7 +124,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="ottoman-card p-6">
-        <h3 className="text-xl font-medium mb-4">Edit Profile</h3>
+        <h3 className="text-xl font-medium mb-4"><span>Edit Profile</span></h3>
         
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex flex-col items-center space-y-3">

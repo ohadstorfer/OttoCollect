@@ -103,7 +103,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     if (wishlistError) {
       return (
         <div className="text-center py-8">
-          <h3 className="text-xl font-medium mb-4 text-red-500">Error loading wishlist</h3>
+          <h3 className="text-xl font-medium mb-4 text-red-500"><span>Error loading wishlist</span></h3>
           <p className="text-muted-foreground mb-6">Failed to load wishlist data.</p>
         </div>
       );
@@ -115,7 +115,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     if (!validWishlist.length) {
       return (
         <Card className="p-8 text-center">
-          <h3 className="text-xl font-medium mb-4">No Wishlist Items</h3>
+          <h3 className="text-xl font-medium mb-4"><span>No Wishlist Items</span></h3>
           <p className="text-muted-foreground mb-6">
             {isOwner 
               ? "You haven't added any banknotes from this country to your wishlist yet." 
@@ -132,7 +132,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 
     return (
       <div className="page-container max-w-5xl mx-auto">
-        <h3 className="text-xl font-medium mb-4">Wishlist Items ({validWishlist.length})</h3>
+        <h3 className="text-xl font-medium mb-4"><span>Wishlist Items ({validWishlist.length})</span></h3>
         <div className={`grid ${viewMode === 'grid' 
           ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
           : 'grid-cols-1'} gap-4`}>
@@ -190,7 +190,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 
       <TabsContent value="missing">
         {/* Pass missingBanknotes and userCollection to CountryDetailMissingItems */}
-        <h3 className="text-xl font-medium  page-container max-w-5xl mx-auto ">Missing Banknotes ({missingBanknotes.length})</h3>
+        <h3 className="text-xl font-medium  page-container max-w-5xl mx-auto "><span>Missing Banknotes ({missingBanknotes.length})</span></h3>
         <CountryDetailMissingItems
           missingBanknotes={missingBanknotes}
           userCollection={userCollection || []}

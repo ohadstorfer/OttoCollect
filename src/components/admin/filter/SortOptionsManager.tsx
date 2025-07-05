@@ -280,7 +280,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium">Sort Options</h3>
+        <h3 className="text-lg font-medium"><span>Sort Options</span></h3>
         <Button onClick={openAddDialog} className="flex items-center space-x-1">
           <Plus className="h-4 w-4" />
           <span>Add Sort Option</span>
@@ -376,7 +376,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Sort Option</DialogTitle>
+            <DialogTitle><span>Add Sort Option</span></DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -444,7 +444,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Sort Option</DialogTitle>
+            <DialogTitle><span>Edit Sort Option</span></DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -503,7 +503,7 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Sort Option</AlertDialogTitle>
+            <AlertDialogTitle><span>Delete Sort Option</span></AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete the sort option "{selectedSortOption?.name}"? This cannot be undone.
             </AlertDialogDescription>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DetailedBanknote } from '@/types';
@@ -57,7 +56,7 @@ const Banknote = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-          <h2 className="text-xl font-semibold text-red-800 mb-2">Error</h2>
+          <h2 className="text-xl font-semibold text-red-800 mb-2"><span>Error</span></h2>
           <p className="text-red-700">{fetchError || "Something went wrong"}</p>
           <button
             onClick={() => navigate(-1)}

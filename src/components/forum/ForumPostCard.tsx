@@ -42,7 +42,7 @@ const ForumPostCard = ({ post }: ForumPostCardProps) => {
 
       <CardHeader className="p-4 pb-2">
         <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-ottoman-600 transition-colors">
-          {post.title}
+          <span>{post.title}</span>
         </h3>
       </CardHeader>
 

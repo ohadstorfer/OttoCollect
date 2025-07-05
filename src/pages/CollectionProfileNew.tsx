@@ -137,7 +137,7 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
 
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-6">{title}</h1>
+      <h1 className="text-3xl font-bold mb-6"> <span> {title} </span> </h1>
 
       {!userId && (
         <Alert variant="default" className="mb-6">
@@ -174,12 +174,12 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
               </div>
             ) : !userId ? (
               <div className="text-center py-8">
-                <h3 className="text-xl font-medium mb-4">You need to sign in to view your collection</h3>
+                <h3 className="text-xl font-medium mb-4"> <span> You need to sign in to view your collection </span> </h3>
                 <Button onClick={signIn}>Sign In</Button>
               </div>
             ) : filteredCollection.length === 0 ? (
               <div className="text-center py-8">
-                <h3 className="text-xl font-medium mb-4">Your collection is empty</h3>
+                <h3 className="text-xl font-medium mb-4"> <span> Your collection is empty </span> </h3>
                 <p className="text-muted-foreground mb-6">Start adding banknotes to your collection by browsing the catalog.</p>
                 <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
               </div>
@@ -215,12 +215,12 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
               </div>
             ) : !userId ? (
               <div className="text-center py-8">
-                <h3 className="text-xl font-medium mb-4">You need to sign in to view your wishlist</h3>
+                <h3 className="text-xl font-medium mb-4"> <span> You need to sign in to view your wishlist </span> </h3>
                 <Button onClick={signIn}>Sign In</Button>
               </div>
             ) : filteredWishlist.length === 0 ? (
               <div className="text-center py-8">
-                <h3 className="text-xl font-medium mb-4">Your wishlist is empty</h3>
+                <h3 className="text-xl font-medium mb-4"> <span> Your wishlist is empty </span> </h3>
                 <p className="text-muted-foreground mb-6">Add banknotes to your wishlist while browsing the catalog.</p>
                 <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
               </div>
@@ -238,7 +238,7 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
                     <CardHeader className="p-4">
                       <div className="flex justify-between">
                         <div>
-                          <h3 className="font-semibold">{item.banknote.denomination}</h3>
+                          <h3 className="font-semibold"> <span> {item.banknote.denomination} </span> </h3>
                           <p className="text-sm text-muted-foreground">{item.banknote.country}, {item.banknote.year}</p>
                         </div>
                         <div className={`px-2 py-1 text-xs rounded-full ${
@@ -287,12 +287,12 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
               </div>
             ) : !userId ? (
               <div className="text-center py-8">
-                <h3 className="text-xl font-medium mb-4">You need to sign in to view missing banknotes</h3>
+                <h3 className="text-xl font-medium mb-4"> <span> You need to sign in to view missing banknotes </span> </h3>
                 <Button onClick={signIn}>Sign In</Button>
               </div>
             ) : filteredMissing.length === 0 ? (
               <div className="text-center py-8">
-                <h3 className="text-xl font-medium mb-4">You have all available banknotes in your collection!</h3>
+                <h3 className="text-xl font-medium mb-4"> <span> You have all available banknotes in your collection! </span> </h3>
                 <p className="text-muted-foreground mb-6">Congratulations! You've collected everything in our catalog.</p>
                 <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
               </div>
@@ -312,11 +312,11 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
         
         <TabsContent value="stats">
           <div className="bg-card border rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Collection Statistics</h2>
+            <h2 className="text-xl font-bold mb-4"> <span> Collection Statistics </span> </h2>
             
             {!userId ? (
               <div className="text-center py-8">
-                <h3 className="text-xl font-medium mb-4">Sign in to view your statistics</h3>
+                <h3 className="text-xl font-medium mb-4"> <span> Sign in to view your statistics </span> </h3>
                 <Button onClick={signIn}>Sign In</Button>
               </div>
             ) : loading ? (
@@ -326,19 +326,19 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-muted p-4 rounded-lg">
-                  <h3 className="font-medium">Collection Size</h3>
+                  <h3 className="font-medium"> <span> Collection Size </span> </h3>
                   <p className="text-2xl font-bold">{collectionItems.length}</p>
                 </div>
                 
                 <div className="bg-muted p-4 rounded-lg">
-                  <h3 className="font-medium">Countries</h3>
+                  <h3 className="font-medium"> <span> Countries </span> </h3>
                   <p className="text-2xl font-bold">
                     {new Set(collectionItems.map(item => item.banknote.country)).size}
                   </p>
                 </div>
                 
                 <div className="bg-muted p-4 rounded-lg">
-                  <h3 className="font-medium">Total Value</h3>
+                  <h3 className="font-medium"> <span> Total Value </span> </h3>
                   <p className="text-2xl font-bold">
                     ${collectionItems.reduce((sum, item) => sum + (item.purchasePrice || 0), 0).toFixed(2)}
                   </p>

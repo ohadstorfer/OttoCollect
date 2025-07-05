@@ -273,7 +273,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4">Error Loading Banknote</h2>
+          <h2 className="text-2xl font-serif mb-4"><span>Error Loading Banknote</span></h2>
           <p className="mb-6 text-muted-foreground">
             We couldn't load the banknote details. Please try again later.
           </p>
@@ -288,10 +288,10 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   if (user?.role !== 'Super Admin' && user?.role !== 'Admin' && banknote?.isPending) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
-        <h1 className="page-title">Banknote Details</h1>
+        <h1 className="page-title"> <span> Banknote Details </span> </h1>
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4">Pending Approval</h2>
+            <h2 className="text-2xl font-serif mb-4"><span>Pending Approval</span></h2>
             <p className="mb-6 text-muted-foreground">
               This banknote is pending administrator approval.
             </p>
@@ -305,11 +305,11 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   if (!user) {
     return (
       <div className="page-container">
-        <h1 className="page-title">Banknote Details</h1>
+        <h1 className="page-title"> <span> Banknote Details </span> </h1>
 
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4">Join the Community</h2>
+            <h2 className="text-2xl font-serif mb-4"><span>Join the Community</span></h2>
             <p className="mb-6 text-muted-foreground">
               Please sign in to view the details of this banknote.
             </p>
@@ -382,7 +382,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
         <div className="space-y-1 page-container max-w-5xl mx-auto">
           <div className="flex items-baseline  gap-4">
             <h1 className="text-3xl font-bold flex items-center gap-2">
-              {banknote.denomination}
+              <span> {banknote.denomination} </span>
             </h1>
             {banknote.extendedPickNumber && (
               <p className="text-xl leading-tight">
@@ -409,7 +409,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
                   <Image className="h-5 w-5 mr-2" />
-                  Banknote Images
+                  <span> Banknote Images </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-2 pt-2 pb-2">
@@ -480,7 +480,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-xl m-0">
-                    Banknote Details
+                    <span> Banknote Details </span>
                   </CardTitle>
                 </div>
                 <CardDescription>

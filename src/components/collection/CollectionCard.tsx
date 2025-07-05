@@ -94,9 +94,9 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="text-lg font-serif font-semibold text-parchment-500">
-              {banknote.denomination}
-            </h3>
+            <h3 className="text-lg font-serif font-semibold text-parchment-500"><span>
+              {banknote.denomination}</span>
+              </h3>
             <p className="text-sm text-ottoman-300">
               {banknote.country}, {banknote.year}
             </p>

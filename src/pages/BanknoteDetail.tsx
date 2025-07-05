@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -87,7 +86,7 @@ const BanknoteDetail: React.FC = () => {
         </Button>
         <Card>
           <CardContent className="text-center">
-            <h2 className="text-2xl font-semibold mb-4">Banknote not found</h2>
+            <h2 className="text-2xl font-semibold mb-4"><span>Banknote not found</span></h2>
             <p className="text-muted-foreground">The requested banknote could not be found.</p>
           </CardContent>
         </Card>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -192,7 +191,7 @@ const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
       <DialogContent className="max-w-md" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>
-            {editingStamp ? 'Edit' : 'Add'} {getStampTypeDisplayName(stampType)} Image
+            <span>{editingStamp ? 'Edit' : 'Add'} {getStampTypeDisplayName(stampType)} Image</span>
           </DialogTitle>
         </DialogHeader>
         

@@ -65,7 +65,7 @@ export const AuthRequiredDialog = ({
                   {feature.icon}
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium text-ottoman-900 dark:text-ottoman-100">{feature.title}</h4>
+                  <h4 className="font-medium text-ottoman-900 dark:text-ottoman-100"><span>{feature.title}</span></h4>
                   <p className="text-sm text-ottoman-600 dark:text-ottoman-300">{feature.description}</p>
                 </div>
               </div>

@@ -28,7 +28,7 @@ export const CountryHeaderCollection: React.FC<CountryHeaderProps> = ({
           <ArrowLeft className="h-5 w-5" />
         </Button>
       )}
-      <h1 className="text-2xl font-bold">{countryName} collection</h1>
+      <h1 className="text-2xl font-bold"><span>{countryName} collection</span></h1>
     </div>
   );
 };

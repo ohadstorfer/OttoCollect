@@ -57,7 +57,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
               </Avatar>
 
               <div className="text-center">
-                <h1 className={`text-2xl font-serif mb-2 ${theme === 'dark' ? '!text-white' : ''}`}>{profile.username}</h1>
+                <h1 className={`text-2xl font-serif mb-2 ${theme === 'dark' ? '!text-white' : ''}`}><span>{profile.username}</span></h1>
                 <Badge variant="user" rank={userRank} showIcon />
                 <div className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>
                   <span className="inline-flex items-center gap-2">
@@ -109,7 +109,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className={`text-2xl font-serif font-semibold ${theme === 'dark' ? '!text-white' : ''}`}>
-                  {profile.username}
+                  <span>{profile.username}</span>
                 </h1>
                 <Badge variant="user" rank={userRank} showIcon />
               </div>

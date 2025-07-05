@@ -242,7 +242,7 @@ const Marketplace = () => {
     return (
       <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
         <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
-          No Items Found
+          <span>No Items Found</span>
         </h3>
         <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
           {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search)
@@ -319,7 +319,7 @@ const Marketplace = () => {
 
         <div className="container mx-auto px-4 relative z-10">
           <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
-            Marketplace
+            <span>Marketplace</span>
           </h1>
           <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
             Browse and purchase Ottoman banknotes from fellow collectors

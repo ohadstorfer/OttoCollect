@@ -37,7 +37,7 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
         </div>
       ) : groups.length === 0 ? (
         <div className="text-center py-8">
-          <h3 className="text-xl font-medium mb-4">No banknotes found</h3>
+          <h3 className="text-xl font-medium mb-4"><span>No banknotes found</span></h3>
           <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
         </div>
       ) : (

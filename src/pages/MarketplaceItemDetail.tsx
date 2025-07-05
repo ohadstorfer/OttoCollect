@@ -193,7 +193,7 @@ const MarketplaceItemDetail = () => {
           <Card className="mb-6">
             <CardContent className="p-6">
               <h2 className="text-2xl font-serif font-bold text-parchment-500 mb-2">
-                {banknote.denomination}
+                <span> {banknote.denomination} </span>
               </h2>
 
               <div className="flex items-center gap-2 mb-4">
@@ -244,7 +244,7 @@ const MarketplaceItemDetail = () => {
             <CardHeader className="border-b bg-muted/20">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl m-0">
-                  Banknote Details
+                  <span> Banknote Details </span>
                 </CardTitle>
               </div>
               <CardDescription>

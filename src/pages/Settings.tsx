@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -91,7 +90,7 @@ const Settings: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-medium">Dark Mode</h3>
+                        <h3 className="font-medium"><span>Dark Mode</span></h3>
                         <p className="text-sm text-muted-foreground">Toggle between light and dark theme</p>
                       </div>
                       <Switch 
@@ -102,7 +101,7 @@ const Settings: React.FC = () => {
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-medium">Compact View</h3>
+                        <h3 className="font-medium"><span>Compact View</span></h3>
                         <p className="text-sm text-muted-foreground">Show more items in a condensed format</p>
                       </div>
                       <Switch />

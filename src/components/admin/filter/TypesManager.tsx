@@ -285,7 +285,7 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium">Banknote Types</h3>
+        <h3 className="text-lg font-medium"><span>Banknote Types</span></h3>
         <Button onClick={openAddDialog} className="flex items-center space-x-1">
           <Plus className="h-4 w-4" />
           <span>Add Type</span>
@@ -372,7 +372,7 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Type</DialogTitle>
+            <DialogTitle><span>Add Type</span></DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -415,7 +415,7 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Type</DialogTitle>
+            <DialogTitle><span>Edit Type</span></DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -448,7 +448,7 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Type</AlertDialogTitle>
+            <AlertDialogTitle><span>Delete Type</span></AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete the type "{selectedType?.name}"? This cannot be undone.
             </AlertDialogDescription>

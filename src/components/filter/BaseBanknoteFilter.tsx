@@ -302,12 +302,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
     {/* Mobile title */}
     <h3 className="text-xl font-semibold border-primary block sm:hidden">
-      {countryName} catalogue
+      <span>{countryName} catalogue</span>
     </h3>
 
     {/* Desktop title */}
     <h3 className="text-xl font-semibold border-primary hidden sm:block">
-      {countryName}'s Historical Banknote Catalogue
+      <span>{countryName}'s Historical Banknote Catalogue</span>
     </h3>
   </div>
 )}
@@ -374,11 +374,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
             
             <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
               <SheetHeader>
-                <SheetTitle>Categories & Types</SheetTitle>
+                <SheetTitle><span>Categories & Types</span></SheetTitle>
               </SheetHeader>
               <div className="space-y-6 py-4 overflow-y-auto">
                 <div>
-                  <h4 className="font-medium mb-3">Categories</h4>
+                  <h4 className="font-medium mb-3"><span>Categories</span></h4>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -406,7 +406,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-medium mb-3">Types</h4>
+                  <h4 className="font-medium mb-3"><span>Types</span></h4>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -460,7 +460,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
             
             <SheetContent side={isMobile ? "bottom" : "right"} className="w-full sm:max-w-md">
               <SheetHeader>
-                <SheetTitle>Sort Options</SheetTitle>
+                <SheetTitle> <span> Sort Options </span> </SheetTitle>
               </SheetHeader>
               <div className="py-4 space-y-2">
                 {sortOptions.map(option => {

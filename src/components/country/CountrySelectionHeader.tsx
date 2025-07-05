@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -27,7 +26,7 @@ const CountrySelectionHeader: React.FC<CountrySelectionHeaderProps> = ({
         <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${
           theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'
         } fade-bottom`}>
-          {title}
+          <span>{title}</span>
         </h1>
         <p className={`mt-4 text-center ${
           theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'
