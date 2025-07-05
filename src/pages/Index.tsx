@@ -320,17 +320,18 @@ world.</p>
                     </h3>
                     <div className={`h-px flex-1 ${theme === 'light' ? 'bg-ottoman-200' : 'bg-ottoman-800'}`}></div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+                  <div className="grid auto-rows-fr grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
                     {['Turkey', 'Egypt', 'Iraq', 'Israel', 'Jordan', 'Libya', 'Kuwait', 'Lebanon', 'Palestine', 'Saudi Arabia', 'Syria'].map((country) => (
                       <div
-                        key={country}
+                        key={typeof country === 'string' ? country : country.name}
                         className={`group p-3 rounded-lg border transition-all cursor-pointer
                         ${theme === 'light' 
                           ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
-                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
+                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}
+                        ${typeof country === 'object' && country.wide ? 'sm:col-span-2' : ''}`}
                       >
                         <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
-                          {country}
+                          {typeof country === 'string' ? country : country.name}
                         </div>
                       </div>
                     ))}
@@ -345,17 +346,18 @@ world.</p>
                     </h3>
                     <div className={`h-px flex-1 ${theme === 'light' ? 'bg-ottoman-200' : 'bg-ottoman-800'}`}></div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
-                    {['Albania', 'Bosnia & Herzegovina', 'Bulgaria', 'Kosovo', 'Macedonia', 'Montenegro', 'Serbia'].map((country) => (
+                  <div className="grid auto-rows-fr grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+                    {['Albania', { name: 'Bosnia & Herzegovina', wide: true }, 'Bulgaria', 'Kosovo', 'Macedonia', 'Montenegro', 'Serbia'].map((country) => (
                       <div
-                        key={country}
+                        key={typeof country === 'string' ? country : country.name}
                         className={`group p-3 rounded-lg border transition-all cursor-pointer
                         ${theme === 'light' 
                           ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
-                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
+                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}
+                        ${typeof country === 'object' && country.wide ? 'sm:col-span-2' : ''}`}
                       >
-                        <div className={`text-center font-medium  ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
-                          {country}
+                        <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
+                          {typeof country === 'string' ? country : country.name}
                         </div>
                       </div>
                     ))}
