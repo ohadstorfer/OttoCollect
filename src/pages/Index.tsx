@@ -116,7 +116,7 @@ const Index = () => {
 
           <h3 className={`mb-1 text-2xl sm:text-2xl lg:text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight line-clamp-2`}>
             <span>
-            Discover the Legacy of Ottoman Banknotes
+            Discover the Legacy of Ottoman empire and it’s successor countries Banknotes
             </span>
           </h3>
 
@@ -124,7 +124,7 @@ const Index = () => {
             className={`text-lg ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-100'
               } w-[90vw] max-w-2xl`}
           >
-            Explore, collect, and trade historical Ottoman Empire banknotes from across regions
+            Explore, collect, and trade historical banknotes from across regions
             and eras. Join our <span className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'} font-medium animate-pulse-subtle`}>
               community of passionate collectors.
             </span>
@@ -161,7 +161,7 @@ const Index = () => {
               <span>Comprehensive Platform for Collectors</span>
             </h2>
             <p className={`mt-4 text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}>
-              Everything you need to manage, showcase, and grow your Ottoman banknote collection
+              Everything you need to manage, showcase, and grow your Ottoman and it’s successor countries banknotes collection
             </p>
           </div>
 
@@ -178,8 +178,10 @@ const Index = () => {
               <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
                 <Database className="h-6 w-6 text-white" />
               </div>
-              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Catalogue Management</span></h3>
-              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Browse comprehensive catalogue of Ottoman banknotes organized by country and era</p>
+              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Catalogues</span></h3>
+              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Browse comprehensive
+catalogue of ottoman and it’s
+successor countries banknotes</p>
             </div>
 
             <div
@@ -227,7 +229,10 @@ const Index = () => {
                 <Users className="h-6 w-6 text-white" />
               </div>
               <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Community</span></h3>
-              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Connect with fellow collectors through forums, blogs, and private messaging</p>
+              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>View other personal collection.
+Connect interact and follow
+other collectors from around the
+world.</p>
             </div>
           </div>
         </div>
@@ -241,7 +246,7 @@ const Index = () => {
                 <span>Community Discussions</span>
               </h2>
               <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl`}>
-                Join the conversation with fellow Ottoman banknote enthusiasts
+                Join the conversation with fellow Ottoman and it’s successor countries banknotes collectors
               </p>
             </div>
             <div className="mt-4 md:mt-0 reveal fade-left">
