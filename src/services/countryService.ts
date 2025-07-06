@@ -5,8 +5,8 @@ export async function fetchCountries(): Promise<CountryData[]> {
   try {
     const { data, error } = await supabase
       .from('countries')
-      .select('id, name, description, image_url')
-      .order('name', { ascending: true });
+      .select('id, name, description, image_url, display_order')
+      .order('display_order', { ascending: true });
 
     if (error) {
       console.error("Error fetching countries:", error);
