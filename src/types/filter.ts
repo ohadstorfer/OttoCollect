@@ -1,4 +1,3 @@
-
 export interface Country {
   id: string;
   name: string;
@@ -14,6 +13,7 @@ export interface CountryData {
   description?: string;
   imageUrl?: string | null;
   banknoteCount?: number;
+  display_order: number;
   created_at?: string;
   updated_at?: string;
 }

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CountryData } from "@/types";
 
@@ -7,7 +6,7 @@ export async function fetchCountriesForCatalog(): Promise<CountryData[]> {
     const { data, error } = await supabase
       .from('countries')
       .select('id, name, description, image_url, display_order')
-      .order('display_order', { ascending: true });
+      .order('display_order');
     
     if (error) {
       console.error("Error fetching countries for catalog:", error);
@@ -36,7 +35,8 @@ export async function fetchCountriesForCatalog(): Promise<CountryData[]> {
       name: country.name,
       description: country.description || '',
       imageUrl: country.image_url || null,
-      banknoteCount: countMap[country.name] || 0
+      banknoteCount: countMap[country.name] || 0,
+      display_order: country.display_order
     }));
   } catch (error) {
     console.error('Error in fetchCountriesForCatalog:', error);

@@ -6,7 +6,8 @@ export async function fetchCountries(): Promise<CountryData[]> {
     const { data, error } = await supabase
       .from('countries')
       .select('id, name, description, image_url, display_order')
-      .order('display_order', { ascending: true });
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: true }); // secondary sort for stability
 
     if (error) {
       console.error("Error fetching countries:", error);
@@ -18,7 +19,8 @@ export async function fetchCountries(): Promise<CountryData[]> {
       id: country.id,
       name: country.name,
       description: country.description || '',
-      imageUrl: country.image_url || null
+      imageUrl: country.image_url || null,
+      display_order: country.display_order
     }));
   } catch (error) {
     console.error("Error in fetchCountries:", error);
