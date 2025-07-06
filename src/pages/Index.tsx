@@ -296,10 +296,11 @@ world.</p>
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className={`text-3xl md:text-4xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-3`}>
-                <span>Supported Countries and Regions</span>
+                <span>Our full list of banknotes catalogues and collections that will be supported</span>
               </h2>
               <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}>
-                Explore banknotes from the Ottoman Empire and its successor states
+              Ottoman Empire's successor countries from 1840 to the present days
+
               </p>
             </div>
 
