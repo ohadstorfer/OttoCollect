@@ -23,11 +23,8 @@ const Catalog = () => {
       setLoading(true);
       try {
         const data = await fetchCountriesForCatalog();
-        // Sort countries alphabetically
-        const countriesArray = data.sort((a, b) => 
-          a.name.localeCompare(b.name)
-        );
-        setCountries(countriesArray);
+        // Remove alphabetical sorting - keep database order by display_order
+        setCountries(data);
       } catch (error) {
         console.error("Error loading countries:", error);
         toast({
