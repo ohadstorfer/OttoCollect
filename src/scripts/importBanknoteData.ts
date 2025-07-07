@@ -20,19 +20,22 @@ async function checkExistingBanknotes(banknotes: Record<string, any>[]) {
 
   const { data, error } = await supabase
     .from('detailed_banknotes')
-    .select('country, extended_pick_number')
+    .select('*')  // Select all fields to compare
     .or(orConditions);
 
   if (error) {
     throw new Error(`Failed to check existing banknotes: ${error.message}`);
   }
 
-  // Create a Set of composite keys for efficient lookup
-  const existingKeys = new Set(
-    data?.map(b => `${b.country.toLowerCase()}:${b.extended_pick_number.toLowerCase()}`)
+  // Create a Map of composite keys to full banknote data for comparison
+  const existingBanknotes = new Map(
+    data?.map(b => [
+      `${b.country.toLowerCase()}:${b.extended_pick_number.toLowerCase()}`,
+      b
+    ])
   );
 
-  return existingKeys;
+  return existingBanknotes;
 }
 
 // This function can be used to import the CSV data into the Supabase database
@@ -165,40 +168,85 @@ export async function importBanknoteData(csvData: string): Promise<BanknoteImpor
     
     try {
       // Check for existing banknotes in this batch
-      const existingKeys = await checkExistingBanknotes(batch);
+      const existingBanknotes = await checkExistingBanknotes(batch);
       
-      // Filter out banknotes that already exist
-      const newBanknotes = batch.filter(banknote => {
+      const newBanknotes = [];
+      const updateBanknotes = [];
+      
+      for (const banknote of batch) {
         const compositeKey = `${banknote.country.toLowerCase()}:${banknote.extended_pick_number.toLowerCase()}`;
-        const exists = existingKeys.has(compositeKey);
+        const existingBanknote = existingBanknotes.get(compositeKey);
         
-        if (exists) {
-          result.skippedCount++;
-          result.errors.push(`Skipped duplicate banknote: ${banknote.country} - ${banknote.extended_pick_number}`);
-          return false;
+        if (!existingBanknote) {
+          // New banknote, add to insert list
+          newBanknotes.push(banknote);
+          continue;
         }
-        return true;
-      });
+
+        // Compare all fields except id, created_at, and updated_at
+        const hasChanges = Object.entries(banknote).some(([key, value]) => {
+          if (['id', 'created_at', 'updated_at'].includes(key)) return false;
+          
+          // Handle array fields
+          if (Array.isArray(value)) {
+            const existingValue = existingBanknote[key] || [];
+            if (value.length !== existingValue.length) return true;
+            return value.some((v, i) => v !== existingValue[i]);
+          }
+          
+          return value !== existingBanknote[key];
+        });
+
+        if (hasChanges) {
+          // Add to update list if there are changes
+          updateBanknotes.push({
+            id: existingBanknote.id,
+            ...banknote
+          });
+        } else {
+          result.skippedCount++;
+          result.errors.push(`Skipped identical banknote: ${banknote.country} - ${banknote.extended_pick_number}`);
+        }
+      }
       
+      // Insert new banknotes
       if (newBanknotes.length > 0) {
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from('detailed_banknotes')
           .insert(newBanknotes);
         
-        if (error) {
-          throw error;
+        if (insertError) {
+          throw insertError;
         }
         
         result.importedCount += newBanknotes.length;
         console.log(`Successfully inserted ${newBanknotes.length} new banknotes from batch ${i / batchSize + 1}`);
+      }
+
+      // Update changed banknotes
+      if (updateBanknotes.length > 0) {
+        for (const banknote of updateBanknotes) {
+          const { error: updateError } = await supabase
+            .from('detailed_banknotes')
+            .update(banknote)
+            .eq('id', banknote.id);
+          
+          if (updateError) {
+            result.errors.push(`Failed to update banknote ${banknote.country} - ${banknote.extended_pick_number}: ${updateError.message}`);
+            continue;
+          }
+          
+          result.importedCount++;
+          console.log(`Successfully updated banknote: ${banknote.country} - ${banknote.extended_pick_number}`);
+        }
       }
     } catch (error) {
       console.error(`Error processing batch ${i / batchSize + 1}:`, error);
       result.errors.push(`Batch ${i / batchSize + 1} error: ${error.message}`);
     }
   }
-  
-  console.log(`Import complete. Imported: ${result.importedCount}, Skipped: ${result.skippedCount}, Errors: ${result.errors.length}`);
+
+  console.log(`Import complete. Imported/Updated: ${result.importedCount}, Skipped: ${result.skippedCount}, Errors: ${result.errors.length}`);
   return result;
 }
 
