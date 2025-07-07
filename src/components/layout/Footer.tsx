@@ -2,13 +2,16 @@ import { Link } from "react-router-dom";
 import { Facebook, Github, Twitter } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import { useLocation } from "react-router-dom";
 
 export const Footer = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   return (
-    <footer className={`${theme === 'light' ? 'bg-ottoman-950' : 'bg-dark-950'} animate-fade-in `}>
+    <footer className={`${theme === 'light' ? 'bg-ottoman-950' : 'bg-dark-950'} animate-fade-in ${!isHomePage ? 'mt-20' : ''}`}>
       <div className="container mx-auto px-4 py-5">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Brand Column - full width on mobile */}

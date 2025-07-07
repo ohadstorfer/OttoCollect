@@ -35,14 +35,16 @@ import {
   Image,
   HeartPulse,
   HeartIcon,
-  LogIn
+  LogIn,
+  Heart
 } from "lucide-react";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { fetchUserCollection } from "@/services/collectionService";
-import { addToWishlist, fetchWishlistItem } from "@/services/wishlistService";
+import { addToWishlist, deleteWishlistItem, fetchWishlistItem } from "@/services/wishlistService";
 // Removed invalid imports from wishlistService
 import { useToast } from "@/hooks/use-toast";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
+import { cn } from "@/lib/utils";
 
 interface LabelValuePairProps {
   label: string;
@@ -251,6 +253,59 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
         description: "Failed to add banknote to wish list.",
         variant: "destructive",
         duration: 3500,
+      });
+    }
+  };
+
+  // Add wishlist button styles
+  const wishlistButtonClass = cn(
+    "h-8 w-8 shrink-0",
+    (wishlistItem || hasJustBeenWishlisted)
+      ? "bg-red-100 text-red-600 hover:bg-red-200 border-red-300" 
+      : "bg-background hover:bg-muted",
+    "transition-all duration-200"
+  );
+
+  // Handle wishlist button click
+  const handleWishlistClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+
+    try {
+      if (wishlistItem?.id) {
+        // Remove from wishlist
+        const success = await deleteWishlistItem(wishlistItem.id);
+        if (success) {
+          queryClient.invalidateQueries({ queryKey: ["wishlistStatus", user.id, banknote?.id] });
+          toast({
+            title: "Removed from wishlist",
+            description: "The banknote has been removed from your wishlist.",
+            duration: 2000,
+          });
+        }
+      } else {
+        // Add to wishlist
+        if (!user.id || !banknote?.id) return;
+        const success = await addToWishlist(user.id, banknote.id);
+        if (success) {
+          setHasJustBeenWishlisted(true);
+          queryClient.invalidateQueries({ queryKey: ["wishlistStatus", user.id, banknote?.id] });
+          toast({
+            title: "Added to wishlist",
+            description: "The banknote has been added to your wishlist.",
+            duration: 2000,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update wishlist. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -482,6 +537,39 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                   <CardTitle className="text-xl m-0">
                     <span> Banknote Details </span>
                   </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={wishlistButtonClass}
+                      onClick={handleWishlistClick}
+                      title={wishlistItem ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      <Heart className={cn("h-4 w-4", (wishlistItem || hasJustBeenWishlisted) ? "fill-current" : "")} />
+                    </Button>
+                    {shouldShowCheckButton ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={checkButtonClass}
+                        aria-label="You already own this banknote"
+                        onClick={handleOwnershipCheckButton}
+                        tabIndex={0}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={handleAddToCollection}
+                        disabled={adding}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <CardDescription>
                   Detailed information about this banknote

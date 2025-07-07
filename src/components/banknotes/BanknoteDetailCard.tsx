@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Check, Eye } from "lucide-react";
+import { Plus, Check, Eye, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ import { addToCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
+import { addToWishlist, deleteWishlistItem, fetchWishlistItem } from "@/services/wishlistService";
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -50,6 +51,8 @@ const BanknoteDetailCard = ({
   // Track if this banknote was just added for optimistic UI update
   const [hasJustBeenAdded, setHasJustBeenAdded] = useState(false);
   const [showOwnershipToast, setShowOwnershipToast] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
 
   // --- Debug logs: input props ---
   console.log('[BanknoteDetailCard] banknote:', banknote);
@@ -66,6 +69,21 @@ const BanknoteDetailCard = ({
     '| ownsThisBanknote:', ownsThisBanknote,
     '| banknote id:', banknote?.id
   );
+
+  // Check if banknote is in wishlist on component mount
+  useEffect(() => {
+    const checkWishlist = async () => {
+      if (!user?.id || !banknote.id) return;
+      try {
+        const item = await fetchWishlistItem(user.id, banknote.id);
+        setIsInWishlist(!!item);
+        setWishlistItemId(item?.id || null);
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    };
+    checkWishlist();
+  }, [user?.id, banknote.id]);
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (!user) {
@@ -175,12 +193,67 @@ const BanknoteDetailCard = ({
     });
   };
 
+  const handleWishlistClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+
+    try {
+      if (isInWishlist && wishlistItemId) {
+        // Remove from wishlist
+        const success = await deleteWishlistItem(wishlistItemId);
+        if (success) {
+          setIsInWishlist(false);
+          setWishlistItemId(null);
+          toast({
+            title: "Removed from wishlist",
+            description: "The banknote has been removed from your wishlist.",
+            duration: 2000,
+          });
+        }
+      } else {
+        // Add to wishlist
+        const success = await addToWishlist(user.id, banknote.id);
+        if (success) {
+          setIsInWishlist(true);
+          // Fetch the new wishlist item to get its ID
+          const newItem = await fetchWishlistItem(user.id, banknote.id);
+          setWishlistItemId(newItem?.id || null);
+          toast({
+            title: "Added to wishlist",
+            description: "The banknote has been added to your wishlist.",
+            duration: 2000,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update wishlist. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // stylings for the modern dark green check button
   const checkButtonClass = cn(
     "h-8 w-8 shrink-0",
     "rounded-full border border-green-900 bg-gradient-to-br from-green-900 via-green-800 to-green-950",
     "text-green-200 hover:bg-green-900 hover:shadow-lg transition-all duration-200",
     "shadow-lg"
+  );
+
+  // Add wishlist button styles
+  const wishlistButtonClass = cn(
+    "h-8 w-8 shrink-0",
+    "rounded-full",
+    isInWishlist 
+      ? "bg-red-100 text-red-600 hover:bg-red-200 border-red-300" 
+      : "bg-background hover:bg-muted",
+    "transition-all duration-200"
   );
 
   // --- Use hasJustBeenAdded for immediate UI feedback ---
@@ -317,7 +390,16 @@ const BanknoteDetailCard = ({
                   </div>
                 </div>
                 {source === 'catalog' && (
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(wishlistButtonClass, "h-7 w-7")}
+                      onClick={handleWishlistClick}
+                      title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      <Heart className={cn("h-3.5 w-3.5", isInWishlist ? "fill-current" : "")} />
+                    </Button>
                     {shouldShowCheck ? (
                       <Button
                         variant="ghost"
@@ -381,8 +463,17 @@ const BanknoteDetailCard = ({
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
               <h4 className="font-bold"><span>{banknote.denomination}</span></h4>
-              {shouldShowCheck ? (
-                <>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={wishlistButtonClass}
+                  onClick={handleWishlistClick}
+                  title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                >
+                  <Heart className={cn("h-4 w-4", isInWishlist ? "fill-current" : "")} />
+                </Button>
+                {shouldShowCheck ? (
                   <Button
                     variant="secondary"
                     size="icon"
@@ -393,9 +484,7 @@ const BanknoteDetailCard = ({
                   >
                     <Check className="h-4 w-4" />
                   </Button>
-                </>
-              ) : (
-                <>
+                ) : (
                   <Button
                     variant="ghost"
                     size="icon"
@@ -404,8 +493,8 @@ const BanknoteDetailCard = ({
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
-                </>
-              )}
+                )}
+              </div>
             </div>
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
               {banknote.extendedPickNumber && (
