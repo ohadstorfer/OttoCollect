@@ -70,7 +70,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               onClick={() => handleNavigation('/catalog')}
             >
               <BookOpen className="mr-2 h-4 w-4" />
-              Catalog
+              Catalogues
             </Button>
 
             <Button
