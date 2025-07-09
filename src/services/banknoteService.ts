@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters, UserRank } from '@/types';
 
@@ -422,15 +421,7 @@ export interface BanknoteCollectorsResponse {
 
 export async function getBanknoteCollectors(banknoteId: string): Promise<BanknoteCollectorsResponse> {
   try {
-    // First get the total count
-    const { count, error: countError } = await supabase
-      .from('collection_items')
-      .select('*', { count: 'exact', head: true })
-      .eq('banknote_id', banknoteId);
-
-    if (countError) throw countError;
-
-    // Get user IDs from collection_items
+    // Get user IDs from collection_items for this banknote
     const { data: collectionData, error: collectionError } = await supabase
       .from('collection_items')
       .select('user_id')
@@ -441,11 +432,11 @@ export async function getBanknoteCollectors(banknoteId: string): Promise<Banknot
     if (!collectionData || collectionData.length === 0) {
       return {
         collectors: [],
-        total_count: count || 0
+        total_count: 0
       };
     }
 
-    // Get unique user IDs
+    // Get unique user IDs (in case a user has multiple copies of the same banknote)
     const userIds = [...new Set(collectionData.map(item => item.user_id))];
 
     // Fetch profiles for these users
@@ -458,7 +449,7 @@ export async function getBanknoteCollectors(banknoteId: string): Promise<Banknot
 
     return {
       collectors: profilesData || [],
-      total_count: count || 0
+      total_count: userIds.length // Count of unique users, not collection items
     };
   } catch (error) {
     console.error('Error fetching banknote collectors:', error);
