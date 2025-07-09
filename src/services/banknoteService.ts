@@ -434,7 +434,7 @@ export async function getBanknoteCollectors(banknoteId: string): Promise<Banknot
       .from('collection_items')
       .select(`
         user_id,
-        profiles:user_id (
+        profiles!collection_items_user_id_fkey (
           id,
           username,
           avatar_url,
