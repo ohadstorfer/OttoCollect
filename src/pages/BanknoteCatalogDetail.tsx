@@ -49,7 +49,6 @@ import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDeta
 import { cn } from "@/lib/utils";
 import { getInitials } from "@/lib/utils";
 import UserProfileLink from "@/components/common/UserProfileLink";
-import RankBadge from "@/components/common/RankBadge";
 
 interface LabelValuePairProps {
   label: string;
@@ -657,7 +656,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         <div>
                           <div className="font-medium">{collector.username || 'Unknown'}</div>
                           {collector.rank && (
-                            <RankBadge rank={collector.rank} size="sm" />
+                            <Badge variant="user" rank={collector.rank} showIcon />
                           )}
                         </div>
                       </div>

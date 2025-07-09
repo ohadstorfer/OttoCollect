@@ -22,7 +22,6 @@ import { getBanknoteCollectors } from "@/services/banknoteService";
 import { useQuery } from "@tanstack/react-query";
 import { getInitials } from "@/lib/utils";
 import UserProfileLink from "@/components/common/UserProfileLink";
-import RankBadge from "@/components/common/RankBadge";
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -625,7 +624,7 @@ const BanknoteDetailCard = ({
                         <div>
                           <div className="font-medium">{collector.username || 'Unknown'}</div>
                           {collector.rank && (
-                            <RankBadge rank={collector.rank} size="sm" />
+                            <Badge variant="user" rank={collector.rank} showIcon />
                           )}
                         </div>
                       </div>
