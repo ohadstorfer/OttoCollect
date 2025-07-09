@@ -308,7 +308,7 @@ world.</p>
               {/* Ottoman Empire Header */}
               <div className={`${theme === 'light' ? 'bg-ottoman-600' : 'bg-ottoman-800'} p-6 flex items-center justify-center`}>
                 <div className={`text-white text-2xl md:text-3xl font-serif font-bold text-center`}>
-                  Ottoman Empire
+                  <span>Ottoman Empire</span>
                 </div>
               </div>
 

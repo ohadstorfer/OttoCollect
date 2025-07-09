@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchBanknoteDetail } from "@/services/banknoteService";
+import { fetchBanknoteDetail, getBanknoteCollectors } from "@/services/banknoteService";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Calendar,
   BookOpen,
@@ -36,15 +37,19 @@ import {
   HeartPulse,
   HeartIcon,
   LogIn,
-  Heart
+  Heart,
+  Layers,
+  BookCopy
 } from "lucide-react";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { fetchUserCollection } from "@/services/collectionService";
 import { addToWishlist, deleteWishlistItem, fetchWishlistItem } from "@/services/wishlistService";
-// Removed invalid imports from wishlistService
 import { useToast } from "@/hooks/use-toast";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
 import { cn } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
+import UserProfileLink from "@/components/common/UserProfileLink";
+import RankBadge from "@/components/common/RankBadge";
 
 interface LabelValuePairProps {
   label: string;
@@ -73,11 +78,12 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 
 export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDetailProps = {}) {
   const { id: paramsId } = useParams<{ id: string }>();
-  const id = propsId || paramsId; // Use the prop id if provided, otherwise use the URL param
-
+  const id = propsId || paramsId;
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showCollectorsDialog, setShowCollectorsDialog] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   // State for ownership toast for Check button
   const [showOwnershipToast, setShowOwnershipToast] = useState(false);
@@ -310,6 +316,13 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     }
   };
 
+  // Modify: Query for collectors - remove dialog dependency
+  const { data: collectorsData, isLoading: collectorsLoading } = useQuery({
+    queryKey: ['banknoteCollectors', id],
+    queryFn: () => getBanknoteCollectors(id || ''),
+    enabled: !!id // Remove dialog dependency
+  });
+
   if (banknoteLoading) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
@@ -385,8 +398,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
 
   // Replace imageUrls array with watermarked images
   const imageUrls = [
-    banknote?.frontPictureWatermarked || banknote?.frontPicture,
-    banknote?.backPictureWatermarked || banknote?.backPicture
+    banknote?.frontPictureWatermarked || banknote?.frontPictureThumbnail,
+    banknote?.backPictureWatermarked || banknote?.backPictureThumbnail
   ].filter(Boolean);
 
   const detailGroups = [
@@ -538,6 +551,18 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                     <span> Banknote Details </span>
                   </CardTitle>
                   <div className="flex gap-2">
+                  <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 flex items-center gap-0" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowCollectorsDialog(true);
+                      }}
+                      title={`On ${collectorsData?.total_count || 0} Collections`}
+                    >
+                        <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-3.5 w-3.5" /></span>
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -597,6 +622,53 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
           </div>
         </div>
       </div>
+
+      {/* Add Collectors Dialog */}
+      <Dialog open={showCollectorsDialog} onOpenChange={setShowCollectorsDialog}>
+        <DialogContent className="max-w-md max-h-[600px] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 mt-2">
+              <Layers className="h-5 w-5" />
+              <span>Collectors ({collectorsData?.total_count || 0})</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto px-1">
+            <div className="space-y-3">
+              {collectorsLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : collectorsData?.collectors.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No collectors yet</p>
+              ) : (
+                collectorsData?.collectors.map((collector) => (
+                  <div key={collector.id} className="flex items-center justify-between">
+                    <UserProfileLink
+                      userId={collector.id}
+                      username={collector.username || 'Unknown'}
+                    >
+                      <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={collector.avatar_url} />
+                          <AvatarFallback>
+                            {getInitials(collector.username || 'U')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{collector.username || 'Unknown'}</div>
+                          {collector.rank && (
+                            <RankBadge rank={collector.rank} size="sm" />
+                          )}
+                        </div>
+                      </div>
+                    </UserProfileLink>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

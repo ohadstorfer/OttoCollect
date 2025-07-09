@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Check, Eye, Heart } from "lucide-react";
+import { Plus, Check, Eye, Heart, BookCopy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { DetailedBanknote, CollectionItem } from "@/types";
+import { DetailedBanknote, CollectionItem, UserRank } from "@/types";
 import { cn } from "@/lib/utils";
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
-import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import CollectionItemForm from '../collection/CollectionItemForm';
 import { toast } from '@/hooks/use-toast';
 import { ToastAction } from "@/components/ui/toast";
@@ -17,6 +18,11 @@ import { useAuth } from "@/context/AuthContext";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 import { addToWishlist, deleteWishlistItem, fetchWishlistItem } from "@/services/wishlistService";
+import { getBanknoteCollectors } from "@/services/banknoteService";
+import { useQuery } from "@tanstack/react-query";
+import { getInitials } from "@/lib/utils";
+import UserProfileLink from "@/components/common/UserProfileLink";
+import RankBadge from "@/components/common/RankBadge";
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -53,6 +59,14 @@ const BanknoteDetailCard = ({
   const [showOwnershipToast, setShowOwnershipToast] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
+  const [showCollectorsDialog, setShowCollectorsDialog] = useState(false);
+
+  // Add collectors query
+  const { data: collectorsData, isLoading: collectorsLoading } = useQuery({
+    queryKey: ['banknoteCollectors', banknote.id],
+    queryFn: () => getBanknoteCollectors(banknote.id),
+    enabled: !!banknote.id
+  });
 
   // --- Debug logs: input props ---
   console.log('[BanknoteDetailCard] banknote:', banknote);
@@ -91,7 +105,7 @@ const BanknoteDetailCard = ({
       setShowAuthDialog(true);
       return;
     }
-    
+
     if (countryId) setNavigatingToDetail(banknote.id);
     if (source === 'catalog') {
       navigate(`/catalog-banknote/${banknote.id}`);
@@ -102,12 +116,12 @@ const BanknoteDetailCard = ({
 
   const getDisplayImage = (): string => {
     if (!banknote) return '/placeholder.svg';
-    
+
     // First try to use the thumbnail
     if (banknote.frontPictureThumbnail) {
       return banknote.frontPictureThumbnail;
     }
-    
+
     // Fallback to original images
     if (!banknote.imageUrls) return '/placeholder.svg';
     if (Array.isArray(banknote.imageUrls)) {
@@ -250,8 +264,8 @@ const BanknoteDetailCard = ({
   const wishlistButtonClass = cn(
     "h-8 w-8 shrink-0",
     "rounded-full",
-    isInWishlist 
-      ? "bg-red-100 text-red-600 hover:bg-red-200 border-red-300" 
+    isInWishlist
+      ? "bg-red-100 text-red-600 hover:bg-red-200 border-red-300"
       : "bg-background hover:bg-muted",
     "transition-all duration-200"
   );
@@ -358,7 +372,7 @@ const BanknoteDetailCard = ({
                   </div>
                 )}
               </div>
-              
+
               {/* Back image */}
               <div className="h-[58px] w-[90px] flex-shrink-0 overflow-hidden rounded">
                 {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
@@ -419,6 +433,18 @@ const BanknoteDetailCard = ({
                         <Plus className="h-3.5 w-3.5" />
                       </Button>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 flex items-center gap-0" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowCollectorsDialog(true);
+                      }}
+                      title={`On ${collectorsData?.total_count || 0} Collections`}
+                    >
+                        <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-3.5 w-3.5" /></span>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -464,6 +490,18 @@ const BanknoteDetailCard = ({
             <div className="flex justify-between items-start">
               <h4 className="font-bold"><span>{banknote.denomination}</span></h4>
               <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 flex items-center px-1.5"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowCollectorsDialog(true);
+                  }}
+                  title={`On ${collectorsData?.total_count || 0} Collections`}
+                >
+                  <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-4 w-4" /></span>
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -553,8 +591,55 @@ const BanknoteDetailCard = ({
         </div>
       </Card>
 
-      <AuthRequiredDialog 
-        open={showAuthDialog} 
+      {/* Add Collectors Dialog */}
+      <Dialog open={showCollectorsDialog} onOpenChange={setShowCollectorsDialog}>
+        <DialogContent className="max-w-md max-h-[600px] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 mt-2">
+              <BookCopy className="h-5 w-5" />
+              <span>Collectors ({collectorsData?.total_count || 0})</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto px-1">
+            <div className="space-y-3">
+              {collectorsLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : collectorsData?.collectors.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No collectors yet</p>
+              ) : (
+                collectorsData?.collectors.map((collector) => (
+                  <div key={collector.id} className="flex items-center justify-between">
+                    <UserProfileLink
+                      userId={collector.id}
+                      username={collector.username || 'Unknown'}
+                    >
+                      <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={collector.avatar_url} />
+                          <AvatarFallback>
+                            {getInitials(collector.username || 'U')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{collector.username || 'Unknown'}</div>
+                          {collector.rank && (
+                            <RankBadge rank={collector.rank} size="sm" />
+                          )}
+                        </div>
+                      </div>
+                    </UserProfileLink>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AuthRequiredDialog
+        open={showAuthDialog}
         onOpenChange={setShowAuthDialog}
         title="Join Our Community"
         description="Get full access to our extensive Ottoman banknote catalog and collection features."

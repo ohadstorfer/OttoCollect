@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { DetailedBanknote, BanknoteFilters } from '@/types';
+import { DetailedBanknote, BanknoteFilters, UserRank } from '@/types';
 
 export async function fetchBanknotes(filters?: BanknoteFilters): Promise<DetailedBanknote[]> {
   try {
@@ -404,4 +404,62 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
   });
 
   return mapped;
+}
+
+export interface BanknoteCollectorProfile {
+  id: string;
+  username: string;
+  avatar_url?: string;
+  rank?: UserRank;
+  created_at: string;
+}
+
+export interface BanknoteCollectorsResponse {
+  collectors: BanknoteCollectorProfile[];
+  total_count: number;
+}
+
+export async function getBanknoteCollectors(banknoteId: string): Promise<BanknoteCollectorsResponse> {
+  try {
+    // First get the total count
+    const { count, error: countError } = await supabase
+      .from('collection_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('banknote_id', banknoteId);
+
+    if (countError) throw countError;
+
+    // Then get the collectors with their profiles
+    const { data, error } = await supabase
+      .from('collection_items')
+      .select(`
+        user_id,
+        profiles:user_id (
+          id,
+          username,
+          avatar_url,
+          rank,
+          created_at
+        )
+      `)
+      .eq('banknote_id', banknoteId);
+
+    if (error) throw error;
+
+    // Transform the data to match our interface
+    const collectors = data
+      .map(item => item.profiles as BanknoteCollectorProfile)
+      .filter(Boolean); // Remove any null values
+
+    return {
+      collectors,
+      total_count: count || 0
+    };
+  } catch (error) {
+    console.error('Error fetching banknote collectors:', error);
+    return {
+      collectors: [],
+      total_count: 0
+    };
+  }
 }
