@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters, UserRank } from '@/types';
 
@@ -429,30 +430,34 @@ export async function getBanknoteCollectors(banknoteId: string): Promise<Banknot
 
     if (countError) throw countError;
 
-    // Then get the collectors with their profiles
-    const { data, error } = await supabase
+    // Get user IDs from collection_items
+    const { data: collectionData, error: collectionError } = await supabase
       .from('collection_items')
-      .select(`
-        user_id,
-        profiles!collection_items_user_id_fkey (
-          id,
-          username,
-          avatar_url,
-          rank,
-          created_at
-        )
-      `)
+      .select('user_id')
       .eq('banknote_id', banknoteId);
 
-    if (error) throw error;
+    if (collectionError) throw collectionError;
 
-    // Transform the data to match our interface
-    const collectors = data
-      .map(item => item.profiles as BanknoteCollectorProfile)
-      .filter(Boolean); // Remove any null values
+    if (!collectionData || collectionData.length === 0) {
+      return {
+        collectors: [],
+        total_count: count || 0
+      };
+    }
+
+    // Get unique user IDs
+    const userIds = [...new Set(collectionData.map(item => item.user_id))];
+
+    // Fetch profiles for these users
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank, created_at')
+      .in('id', userIds);
+
+    if (profilesError) throw profilesError;
 
     return {
-      collectors,
+      collectors: profilesData || [],
       total_count: count || 0
     };
   } catch (error) {
