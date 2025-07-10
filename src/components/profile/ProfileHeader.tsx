@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { User } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -12,7 +13,7 @@ import { FollowStats } from "./FollowStats";
 import { useTheme } from "@/context/ThemeContext";
 import { BadgeDisplay, BadgeInfo } from "@/components/badges/BadgeDisplay";
 import { BadgesDialog } from "@/components/badges/BadgesDialog";
-import { getHighestBadge, getUserBadgeCategories } from "@/services/badgeService";
+import { getHighestBadge, getUserBadgeCategories, BadgeCategory } from "@/services/badgeService";
 
 interface ProfileHeaderProps {
   profile: User;
@@ -20,13 +21,12 @@ interface ProfileHeaderProps {
   onEditProfileClick?: () => void;
 }
 
-
 export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }: ProfileHeaderProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [highestBadge, setHighestBadge] = useState<BadgeInfo | null>(null);
-  const [badgeCategories, setBadgeCategories] = useState([]);
+  const [badgeCategories, setBadgeCategories] = useState<BadgeCategory[]>([]);
   const [showBadgesDialog, setShowBadgesDialog] = useState(false);
 
   useEffect(() => {

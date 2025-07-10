@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { BadgeInfo } from '@/components/badges/BadgeDisplay';
 
@@ -27,7 +28,15 @@ export async function getUserBadges(userId: string): Promise<BadgeInfo[]> {
 
     if (error) throw error;
 
-    return data.map(item => item.badges as BadgeInfo);
+    return data?.map(item => ({
+      id: item.badges.id,
+      name: item.badges.name,
+      stage: item.badges.stage as 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond',
+      icon_url: item.badges.icon_url,
+      category: item.badges.category,
+      description: item.badges.description,
+      threshold_value: item.badges.threshold_value
+    })) || [];
   } catch (error) {
     console.error('Error fetching user badges:', error);
     return [];
@@ -70,7 +79,15 @@ export async function getUserBadgeCategories(userId: string): Promise<BadgeCateg
       // Add badge to category if user has earned it
       const userHasBadge = userBadges.some(ub => ub.id === badge.id);
       if (userHasBadge) {
-        acc[badge.category].badges.push(badge);
+        acc[badge.category].badges.push({
+          id: badge.id,
+          name: badge.name,
+          stage: badge.stage as 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond',
+          icon_url: badge.icon_url,
+          category: badge.category,
+          description: badge.description,
+          threshold_value: badge.threshold_value
+        });
       }
       
       // Update next threshold if this is the next badge to earn
@@ -109,9 +126,26 @@ export async function getHighestBadge(userId: string): Promise<BadgeInfo | null>
 
     // Find the highest stage badge
     const stageOrder = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];
-    return data.reduce((highest: BadgeInfo | null, current: BadgeInfo) => {
-      if (!highest) return current;
-      return stageOrder.indexOf(current.stage) > stageOrder.indexOf(highest.stage) ? current : highest;
+    return data.reduce((highest: BadgeInfo | null, current: any) => {
+      if (!highest) return {
+        id: current.id,
+        name: current.name,
+        stage: current.stage as 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond',
+        icon_url: current.icon_url,
+        category: current.category,
+        threshold_value: current.threshold_value
+      };
+      
+      const currentBadge = {
+        id: current.id,
+        name: current.name,
+        stage: current.stage as 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond',
+        icon_url: current.icon_url,
+        category: current.category,
+        threshold_value: current.threshold_value
+      };
+      
+      return stageOrder.indexOf(current.stage) > stageOrder.indexOf(highest.stage) ? currentBadge : highest;
     }, null);
   } catch (error) {
     console.error('Error fetching highest badge:', error);

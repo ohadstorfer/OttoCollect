@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -129,7 +130,7 @@ export function NotificationPanel({
                 badge={{
                   id: badgeData.badge_id,
                   name: badgeData.badge_name,
-                  stage: badgeData.stage,
+                  stage: badgeData.stage as 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond',
                   icon_url: `/badges/${badgeData.stage}.png`,
                   category: ''
                 }}

@@ -1,15 +1,10 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { BadgeDisplay, BadgeInfo } from './BadgeDisplay';
-
-interface BadgeCategory {
-  name: string;
-  badges: BadgeInfo[];
-  currentValue: number;
-  nextThreshold?: number;
-}
+import { BadgeCategory } from '@/services/badgeService';
 
 interface BadgesDialogProps {
   open: boolean;

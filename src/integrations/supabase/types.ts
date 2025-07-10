@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       badges: {
         Row: {
+          category: string | null
           created_at: string
           criteria: string
           description: string
@@ -23,8 +24,11 @@ export type Database = {
           id: string
           is_automatic_award: boolean
           name: string
+          stage: string | null
+          threshold_value: number | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           criteria: string
           description: string
@@ -32,8 +36,11 @@ export type Database = {
           id?: string
           is_automatic_award?: boolean
           name: string
+          stage?: string | null
+          threshold_value?: number | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           criteria?: string
           description?: string
@@ -41,6 +48,8 @@ export type Database = {
           id?: string
           is_automatic_award?: boolean
           name?: string
+          stage?: string | null
+          threshold_value?: number | null
         }
         Relationships: []
       }
@@ -1689,6 +1698,13 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: number
       }
+      get_user_badge_stats: {
+        Args: { user_id_param: string }
+        Returns: {
+          category: string
+          current_value: number
+        }[]
+      }
       get_user_daily_forum_activity_count: {
         Args: { user_id_param: string }
         Returns: number
@@ -1696,6 +1712,17 @@ export type Database = {
       get_user_daily_message_count: {
         Args: { user_id_param: string }
         Returns: number
+      }
+      get_user_highest_badges: {
+        Args: { user_id_param: string }
+        Returns: {
+          id: string
+          name: string
+          stage: string
+          category: string
+          icon_url: string
+          threshold_value: number
+        }[]
       }
       is_country_admin: {
         Args: { user_uuid: string; country_uuid: string }
