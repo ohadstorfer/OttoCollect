@@ -245,7 +245,7 @@ export async function importBanknoteData(csvData: string): Promise<BanknoteImpor
       result.errors.push(`Batch ${i / batchSize + 1} error: ${error.message}`);
     }
   }
-
+  
   console.log(`Import complete. Imported/Updated: ${result.importedCount}, Skipped: ${result.skippedCount}, Errors: ${result.errors.length}`);
   return result;
 }

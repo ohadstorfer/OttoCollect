@@ -12,6 +12,9 @@ import { Users, UserPlus, User, MessageCircle } from 'lucide-react';
 import { SendMessage } from '@/components/messages/SendMessage';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from "@/context/ThemeContext";
+import BadgesDialog from '../badges/BadgesDialog';
+import BadgeDisplay, { BadgeInfo } from '../badges/BadgeDisplay';
+import { getHighestBadge, getUserBadgeCategories, checkAndAwardBadges, BadgeCategory } from '@/services/badgeService';
 
 interface FollowStatsProps {
   profileId: string;
@@ -53,6 +56,23 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
   const [showFollowersDialog, setShowFollowersDialog] = useState(false);
   const [showFollowingDialog, setShowFollowingDialog] = useState(false);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [showBadgesDialog, setShowBadgesDialog] = useState(false);
+
+  // Use React Query for badge data
+  const { data: highestBadge, isLoading: badgeLoading } = useQuery({
+    queryKey: ['highest-badge', profileId],
+    queryFn: () => getHighestBadge(profileId),
+    enabled: !!profileId
+  });
+
+  const { data: badgeCategories = [] } = useQuery({
+    queryKey: ['badge-categories', profileId],
+    queryFn: async () => {
+      await checkAndAwardBadges(profileId);
+      return getUserBadgeCategories(profileId);
+    },
+    enabled: !!profileId && showBadgesDialog // Only fetch when dialog is open
+  });
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['followStats', profileId, user?.id],
@@ -133,6 +153,7 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
             {stats.followersCount === 1 ? 'Follower' : 'Followers'}
           </span>
         </button>
+        
 
         {/* Following Count */}
         <button
@@ -141,6 +162,23 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
         >
           <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}>{stats.followingCount}</span>
           <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>Following</span>
+        </button>
+
+        {/* Badges Count */}
+        <button
+          onClick={() => setShowBadgesDialog(true)}
+          className="flex flex-col items-center hover:opacity-70 transition-opacity"
+        >
+          <div className="flex items-center justify-center h-[28px]">
+            {badgeLoading ? (
+              <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-ottoman-600 animate-spin" />
+            ) : highestBadge ? (
+              <BadgeDisplay badge={highestBadge} size="sm" className="scale-90 transform-gpu" />
+            ) : (
+              <span className="text-lg text-muted-foreground">0</span>
+            )}
+          </div>
+          <span className={`text-sm mt-[1px] ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>Badges</span>
         </button>
       </div>
 
@@ -276,6 +314,16 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
           onOpenChange={setShowMessageDialog}
         />
       )}
+
+
+      {/* Badges Dialog */}
+      <BadgesDialog
+        open={showBadgesDialog}
+        onOpenChange={setShowBadgesDialog}
+        userBadges={highestBadge ? [highestBadge] : []}
+        badgeCategories={badgeCategories}
+      />
+      
     </div>
   );
 }

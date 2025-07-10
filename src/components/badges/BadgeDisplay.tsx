@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Badge } from "@/components/ui/badge";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 
 export interface BadgeInfo {
@@ -22,30 +22,38 @@ interface BadgeDisplayProps {
 }
 
 const stageColors = {
-  bronze: 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200',
-  silver: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
-  gold: 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200',
-  platinum: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200',
-  diamond: 'bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200'
+  bronze: '#CD7F32',  // Bronze color
+  silver: '#C0C0C0',  // Silver color
+  gold: '#FFD700',    // Gold color
+  platinum: '#E5E4E2', // Platinum color
+  diamond: '#B9F2FF'   // Diamond color
 };
 
 const sizesConfig = {
   sm: {
-    badge: 'h-6 px-2',
-    icon: 'w-4 h-4',
-    text: 'text-xs'
+    container: 'h-8 w-8',
+    icon: 'h-5 w-5'
   },
   md: {
-    badge: 'h-8 px-3',
-    icon: 'w-5 h-5',
-    text: 'text-sm'
+    container: 'h-10 w-10',
+    icon: 'h-6 w-6'
   },
   lg: {
-    badge: 'h-10 px-4',
-    icon: 'w-6 h-6',
-    text: 'text-base'
+    container: 'h-12 w-12',
+    icon: 'h-7 w-7'
   }
 };
+
+const BadgeIcon = ({ color, className }: { color: string; className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 -960 960 960" 
+    className={className}
+    fill={color}
+  >
+    <path d="m387-412 35-114-92-74h114l36-112 36 112h114l-93 74 35 114-92-71-93 71ZM240-40v-309q-38-42-59-96t-21-115q0-134 93-227t227-93q134 0 227 93t93 227q0 61-21 115t-59 96v309l-240-80-240 80Zm240-280q100 0 170-70t70-170q0-100-70-170t-170-70q-100 0-170 70t-70 170q0 100 70 170t170 70ZM320-159l160-41 160 41v-124q-35 20-75.5 31.5T480-240q-44 0-84.5-11.5T320-283v124Zm160-62Z"/>
+  </svg>
+);
 
 export const BadgeDisplay = ({ 
   badge, 
@@ -56,38 +64,43 @@ export const BadgeDisplay = ({
 }: BadgeDisplayProps) => {
   const sizeConfig = sizesConfig[size];
   
-  console.log('BadgeDisplay - Rendering badge:', badge);
-  
   return (
-    <Badge
-      variant="outline"
-      className={cn(
-        'flex items-center gap-2 cursor-pointer transition-colors duration-200',
-        stageColors[badge.stage],
-        sizeConfig.badge,
-        className
-      )}
-      onClick={onClick}
-    >
-      {/* Use a generic badge icon since the uploaded paths might not exist */}
-      <div className={cn('rounded-full flex items-center justify-center', sizeConfig.icon, stageColors[badge.stage])}>
-        <span className="text-xs font-bold">
-          {badge.stage === 'bronze' && '🥉'}
-          {badge.stage === 'silver' && '🥈'}
-          {badge.stage === 'gold' && '🥇'}
-          {badge.stage === 'platinum' && '💎'}
-          {badge.stage === 'diamond' && '💠'}
-        </span>
-      </div>
-      <span className={cn('font-medium', sizeConfig.text)}>
-        {badge.name}
-        {showStage && (
-          <span className="ml-1 opacity-75">
-            ({badge.stage})
-          </span>
-        )}
-      </span>
-    </Badge>
+    <HoverCard>
+      <HoverCardTrigger asChild>
+        <button
+          className={cn(
+            'rounded-full border-2 flex items-center justify-center transition-all duration-200',
+            stageColors[badge.stage],
+            sizeConfig.container,
+            className
+          )}
+          onClick={onClick}
+        >
+          <BadgeIcon 
+            color={stageColors[badge.stage]} 
+            className={cn('transition-transform duration-200', sizeConfig.icon)} 
+          />
+        </button>
+      </HoverCardTrigger>
+      <HoverCardContent className="w-64 p-3">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <BadgeIcon color={stageColors[badge.stage]} className="h-6 w-6" />
+            <h4 className="font-semibold">{badge.name}</h4>
+          </div>
+          {badge.description && (
+            <p className="text-sm text-muted-foreground">
+              {badge.description}
+            </p>
+          )}
+          {showStage && (
+            <p className="text-xs text-muted-foreground capitalize">
+              {badge.stage} Level
+            </p>
+          )}
+        </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 };
 

@@ -501,113 +501,113 @@ const CountryManagement: React.FC = () => {
                           className={`${selectedCountryId === country.id ? "bg-muted/50" : ""} ${snapshot.isDragging ? "bg-muted" : ""} cursor-move`}
                         >
                           <TableCell>{country.display_order + 1}</TableCell>
-                          <TableCell>
-                            {isEditing === country.id ? (
-                              <Input
-                                value={countryForm.name}
-                                onChange={(e) => setCountryForm({...countryForm, name: e.target.value})}
-                                className="w-full"
-                              />
-                            ) : (
-                              <div className="font-medium">
-                                {country.name}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {isEditing === country.id ? (
-                              <div className="w-32 h-32 relative">
-                                <SimpleCountryImageUpload
-                                  image={countryForm.image_url}
-                                  onImageUploaded={(url) => {
-                                    console.log('New image URL received:', url);
-                                    setCountryForm({...countryForm, image_url: url});
-                                  }}
-                                />
-                                {countryForm.image_url && (
-                                  <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="sm"
-                                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                                    onClick={handleDeleteImage}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="relative">
-                                {country.image_url ? (
-                                  <div 
-                                    className="w-32 h-32 rounded-md overflow-hidden bg-muted cursor-pointer transition-transform hover:scale-105"
-                                    onClick={() => setPreviewImage({ url: country.image_url!, name: country.name })}
-                                  >
-                                    <img 
-                                      src={country.image_url} 
-                                      alt={country.name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                ) : (
-                                  <div className="w-32 h-32 rounded-md bg-muted flex items-center justify-center">
-                                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {isEditing === country.id ? (
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="primary"
-                                  onClick={() => updateCountry(country.id)}
-                                  disabled={isLoading || !countryForm.name}
-                                >
-                                  <Save className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setIsEditing(null)}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleEditCountry(country)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => deleteCountry(country.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            )}
-                          </TableCell>
-                        </TableRow>
+                <TableCell>
+                  {isEditing === country.id ? (
+                    <Input
+                      value={countryForm.name}
+                      onChange={(e) => setCountryForm({...countryForm, name: e.target.value})}
+                      className="w-full"
+                    />
+                  ) : (
+                    <div className="font-medium">
+                      {country.name}
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {isEditing === country.id ? (
+                    <div className="w-32 h-32 relative">
+                      <SimpleCountryImageUpload
+                        image={countryForm.image_url}
+                        onImageUploaded={(url) => {
+                          console.log('New image URL received:', url);
+                          setCountryForm({...countryForm, image_url: url});
+                        }}
+                      />
+                      {countryForm.image_url && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                          onClick={handleDeleteImage}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      {country.image_url ? (
+                        <div 
+                          className="w-32 h-32 rounded-md overflow-hidden bg-muted cursor-pointer transition-transform hover:scale-105"
+                          onClick={() => setPreviewImage({ url: country.image_url!, name: country.name })}
+                        >
+                          <img 
+                            src={country.image_url} 
+                            alt={country.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-32 h-32 rounded-md bg-muted flex items-center justify-center">
+                          <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  {isEditing === country.id ? (
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => updateCountry(country.id)}
+                        disabled={isLoading || !countryForm.name}
+                      >
+                        <Save className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setIsEditing(null)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditCountry(country)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteCountry(country.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+              </TableRow>
                       )}
                     </Draggable>
-                  ))}
+            ))}
                   {provided.placeholder}
-                  {countries.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={3} className="h-24 text-center">
-                        No countries found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
+            {countries.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={3} className="h-24 text-center">
+                  No countries found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
               )}
             </Droppable>
           </DragDropContext>

@@ -9,7 +9,7 @@ export const Footer = () => {
   const { user } = useAuth();
   const location = useLocation();
   const isHomePage = location.pathname === "/";
-
+  
   return (
     <footer className={`${theme === 'light' ? 'bg-ottoman-950' : 'bg-dark-950'} animate-fade-in ${!isHomePage ? 'mt-20' : ''}`}>
       <div className="container mx-auto px-4 py-5">
@@ -76,14 +76,14 @@ export const Footer = () => {
                   Contact Us
                 </Link>
                 <Link to="/privacy" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  Privacy Policy
-                </Link>
+              Privacy Policy
+            </Link>
                 <Link to="/terms" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  Terms of Service
-                </Link>
+              Terms of Service
+            </Link>
                 <Link to="/about" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
                   About Us
-                </Link>
+            </Link>
               </nav>
             </div>
           </div>
@@ -122,8 +122,8 @@ export const Footer = () => {
               <Github size={20} />
             </a>
           </div>
+          </div>
         </div>
-      </div>
     </footer>
   );
 };

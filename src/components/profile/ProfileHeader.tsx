@@ -1,9 +1,8 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { User } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { getInitials } from "@/lib/utils";
 import { Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -11,9 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { FollowStats } from "./FollowStats";
 import { useTheme } from "@/context/ThemeContext";
-import { BadgeDisplay, BadgeInfo } from "@/components/badges/BadgeDisplay";
-import { BadgesDialog } from "@/components/badges/BadgesDialog";
-import { getHighestBadge, getUserBadgeCategories, BadgeCategory, checkAndAwardBadges } from "@/services/badgeService";
 
 interface ProfileHeaderProps {
   profile: User;
@@ -25,63 +21,12 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const [highestBadge, setHighestBadge] = useState<BadgeInfo | null>(null);
-  const [badgeCategories, setBadgeCategories] = useState<BadgeCategory[]>([]);
-  const [showBadgesDialog, setShowBadgesDialog] = useState(false);
-  const [badgeLoading, setBadgeLoading] = useState(true);
-
-  useEffect(() => {
-    console.log('ProfileHeader - useEffect triggered with profile:', profile);
-    if (profile?.id) {
-      console.log('ProfileHeader - Loading badges for profile ID:', profile.id);
-      loadBadges();
-    } else {
-      console.log('ProfileHeader - No profile ID available');
-      setBadgeLoading(false);
-    }
-  }, [profile?.id]);
-
-  const loadBadges = async () => {
-    try {
-      console.log('ProfileHeader - loadBadges starting for profile ID:', profile.id);
-      setBadgeLoading(true);
-      
-      // First check and award any earned badges
-      console.log('ProfileHeader - Checking for new badges...');
-      await checkAndAwardBadges(profile.id);
-      
-      console.log('ProfileHeader - Fetching highest badge...');
-      const badge = await getHighestBadge(profile.id);
-      console.log('ProfileHeader - Highest badge result:', badge);
-      setHighestBadge(badge);
-      
-      console.log('ProfileHeader - Fetching badge categories...');
-      const categories = await getUserBadgeCategories(profile.id);
-      console.log('ProfileHeader - Badge categories result:', categories);
-      setBadgeCategories(categories);
-      
-      console.log('ProfileHeader - Badge loading completed');
-    } catch (error) {
-      console.error('ProfileHeader - Error loading badges:', error);
-    } finally {
-      setBadgeLoading(false);
-    }
-  };
-
   const isOwnProfile = user && profile && user.id === profile.id;
   const userRank = (profile?.rank || "Newbie");
 
   const handleEditClick = () => {
     navigate('/settings');
   };
-
-  console.log('ProfileHeader - Current state:', {
-    profile: profile?.id,
-    highestBadge,
-    badgeCategories: badgeCategories.length,
-    badgeLoading,
-    showBadgesDialog
-  });
 
   return (
     <div>
@@ -131,22 +76,13 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                 </div>
               </div>
 
-              {/* Mobile Follow Stats and Badge */}
+              {/* Mobile Follow Stats */}
               <div className="w-full flex flex-col items-center gap-2">
                 <FollowStats 
                   profileId={profile.id}
                   isOwnProfile={!!isOwnProfile}
                   username={profile.username}
                 />
-                {badgeLoading ? (
-                  <div className="text-sm text-muted-foreground">Loading badges...</div>
-                ) : highestBadge ? (
-                  <div onClick={() => setShowBadgesDialog(true)} className="cursor-pointer">
-                    <BadgeDisplay badge={highestBadge} size="sm" />
-                  </div>
-                ) : (
-                  <div className="text-xs text-muted-foreground">No badges yet</div>
-                )}
               </div>
             </div>
           </div>
@@ -195,34 +131,17 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
               </div>
             </div>           
 
-            {/* Desktop Follow Stats and Badge */}
-            <div className="flex-shrink-0 flex items-center gap-4">
+            {/* Desktop Follow Stats */}
+            <div className="flex-shrink-0">
               <FollowStats 
                 profileId={profile.id}
                 isOwnProfile={!!isOwnProfile}
                 username={profile.username}
               />
-              {badgeLoading ? (
-                <div className="text-sm text-muted-foreground">Loading...</div>
-              ) : highestBadge ? (
-                <div onClick={() => setShowBadgesDialog(true)} className="cursor-pointer">
-                  <BadgeDisplay badge={highestBadge} size="md" />
-                </div>
-              ) : (
-                <div className="text-xs text-muted-foreground">No badges</div>
-              )}
             </div>
           </div>
         </div>
       </Card>
-
-      {/* Badges Dialog */}
-      <BadgesDialog
-        open={showBadgesDialog}
-        onOpenChange={setShowBadgesDialog}
-        userBadges={highestBadge ? [highestBadge] : []}
-        badgeCategories={badgeCategories}
-      />
     </div>
   );
 }
