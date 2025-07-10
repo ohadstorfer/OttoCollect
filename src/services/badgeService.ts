@@ -193,4 +193,4 @@ export async function getHighestBadge(userId: string): Promise<BadgeInfo | null>
     console.error('getHighestBadge - Error fetching highest badge:', error);
     return null;
   }
-} 
+}
