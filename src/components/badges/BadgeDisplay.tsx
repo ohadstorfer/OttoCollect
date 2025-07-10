@@ -22,11 +22,11 @@ interface BadgeDisplayProps {
 }
 
 const stageColors = {
-  bronze: '#CD7F32',  // Bronze color
-  silver: '#C0C0C0',  // Silver color
-  gold: '#FFD700',    // Gold color
-  platinum: '#E5E4E2', // Platinum color
-  diamond: '#B9F2FF'   // Diamond color
+  bronze: '#D4A76A',   // Light brown color
+  silver: '#CD7F32',   // Bronze color
+  gold: '#ADD8E6',     // Light blue color
+  platinum: '#C0C0C0', // Silver color
+  diamond: '#FFD700'   // Gold color
 };
 
 const sizesConfig = {
