@@ -435,14 +435,14 @@ const BanknoteDetailCard = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 flex items-center gap-0" 
+                      className="hidden sm:flex h-7 items-center gap-0" 
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowCollectorsDialog(true);
                       }}
                       title={`On ${collectorsData?.total_count || 0} Collections`}
                     >
-                        <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-3.5 w-3.5" /></span>
+                      <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-3.5 w-3.5" /></span>
                     </Button>
                   </div>
                 )}
@@ -488,11 +488,11 @@ const BanknoteDetailCard = ({
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
               <h4 className="font-bold"><span>{banknote.denomination}</span></h4>
-              <div className="flex gap-2">
+              <div className="flex gap-0.1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 flex items-center px-1.5"
+                  className="hidden sm:flex h-8 items-center px-1.5"
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowCollectorsDialog(true);

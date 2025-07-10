@@ -549,7 +549,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                   <CardTitle className="text-xl m-0">
                     <span> Banknote Details </span>
                   </CardTitle>
-                  <div className="flex gap-2">
+                  <div className="flex gap-0">
                   <Button
                       variant="ghost"
                       size="icon"
