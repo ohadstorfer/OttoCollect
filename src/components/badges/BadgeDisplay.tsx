@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,8 @@ export const BadgeDisplay = ({
 }: BadgeDisplayProps) => {
   const sizeConfig = sizesConfig[size];
   
+  console.log('BadgeDisplay - Rendering badge:', badge);
+  
   return (
     <Badge
       variant="outline"
@@ -66,11 +69,16 @@ export const BadgeDisplay = ({
       )}
       onClick={onClick}
     >
-      <img 
-        src={badge.icon_url} 
-        alt={badge.name}
-        className={cn('object-contain', sizeConfig.icon)}
-      />
+      {/* Use a generic badge icon since the uploaded paths might not exist */}
+      <div className={cn('rounded-full flex items-center justify-center', sizeConfig.icon, stageColors[badge.stage])}>
+        <span className="text-xs font-bold">
+          {badge.stage === 'bronze' && '🥉'}
+          {badge.stage === 'silver' && '🥈'}
+          {badge.stage === 'gold' && '🥇'}
+          {badge.stage === 'platinum' && '💎'}
+          {badge.stage === 'diamond' && '💠'}
+        </span>
+      </div>
       <span className={cn('font-medium', sizeConfig.text)}>
         {badge.name}
         {showStage && (
@@ -83,4 +91,4 @@ export const BadgeDisplay = ({
   );
 };
 
-export default BadgeDisplay; 
+export default BadgeDisplay;

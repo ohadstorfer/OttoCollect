@@ -28,19 +28,40 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
   const [highestBadge, setHighestBadge] = useState<BadgeInfo | null>(null);
   const [badgeCategories, setBadgeCategories] = useState<BadgeCategory[]>([]);
   const [showBadgesDialog, setShowBadgesDialog] = useState(false);
+  const [badgeLoading, setBadgeLoading] = useState(true);
 
   useEffect(() => {
+    console.log('ProfileHeader - useEffect triggered with profile:', profile);
     if (profile?.id) {
+      console.log('ProfileHeader - Loading badges for profile ID:', profile.id);
       loadBadges();
+    } else {
+      console.log('ProfileHeader - No profile ID available');
+      setBadgeLoading(false);
     }
   }, [profile?.id]);
 
   const loadBadges = async () => {
-    const badge = await getHighestBadge(profile.id);
-    setHighestBadge(badge);
-    
-    const categories = await getUserBadgeCategories(profile.id);
-    setBadgeCategories(categories);
+    try {
+      console.log('ProfileHeader - loadBadges starting for profile ID:', profile.id);
+      setBadgeLoading(true);
+      
+      console.log('ProfileHeader - Fetching highest badge...');
+      const badge = await getHighestBadge(profile.id);
+      console.log('ProfileHeader - Highest badge result:', badge);
+      setHighestBadge(badge);
+      
+      console.log('ProfileHeader - Fetching badge categories...');
+      const categories = await getUserBadgeCategories(profile.id);
+      console.log('ProfileHeader - Badge categories result:', categories);
+      setBadgeCategories(categories);
+      
+      console.log('ProfileHeader - Badge loading completed');
+    } catch (error) {
+      console.error('ProfileHeader - Error loading badges:', error);
+    } finally {
+      setBadgeLoading(false);
+    }
   };
 
   const isOwnProfile = user && profile && user.id === profile.id;
@@ -49,6 +70,14 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
   const handleEditClick = () => {
     navigate('/settings');
   };
+
+  console.log('ProfileHeader - Current state:', {
+    profile: profile?.id,
+    highestBadge,
+    badgeCategories: badgeCategories.length,
+    badgeLoading,
+    showBadgesDialog
+  });
 
   return (
     <div>
@@ -105,10 +134,14 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                   isOwnProfile={!!isOwnProfile}
                   username={profile.username}
                 />
-                {highestBadge && (
+                {badgeLoading ? (
+                  <div className="text-sm text-muted-foreground">Loading badges...</div>
+                ) : highestBadge ? (
                   <div onClick={() => setShowBadgesDialog(true)} className="cursor-pointer">
                     <BadgeDisplay badge={highestBadge} size="sm" />
                   </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground">No badges yet</div>
                 )}
               </div>
             </div>
@@ -165,10 +198,14 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                 isOwnProfile={!!isOwnProfile}
                 username={profile.username}
               />
-              {highestBadge && (
+              {badgeLoading ? (
+                <div className="text-sm text-muted-foreground">Loading...</div>
+              ) : highestBadge ? (
                 <div onClick={() => setShowBadgesDialog(true)} className="cursor-pointer">
                   <BadgeDisplay badge={highestBadge} size="md" />
                 </div>
+              ) : (
+                <div className="text-xs text-muted-foreground">No badges</div>
               )}
             </div>
           </div>
