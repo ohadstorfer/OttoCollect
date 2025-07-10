@@ -1676,6 +1676,14 @@ export type Database = {
           suffix_text: string
         }[]
       }
+      generate_badge_description: {
+        Args: {
+          category_name: string
+          stage_name: string
+          threshold_val: number
+        }
+        Returns: string
+      }
       generate_collection_activity_notifications: {
         Args: Record<PropertyKey, never>
         Returns: undefined
