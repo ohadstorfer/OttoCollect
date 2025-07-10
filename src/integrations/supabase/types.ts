@@ -1727,6 +1727,10 @@ export type Database = {
           trailing_text: string
         }[]
       }
+      recalculate_all_user_points_and_ranks: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       user_has_reached_daily_forum_limit: {
         Args: { user_id_param: string }
         Returns: boolean
