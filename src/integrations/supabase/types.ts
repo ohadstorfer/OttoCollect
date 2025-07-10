@@ -1578,6 +1578,22 @@ export type Database = {
       }
     }
     Functions: {
+      award_historical_badges: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          username: string
+          badges_awarded: number
+          details: string
+        }[]
+      }
+      award_historical_badges_for_user: {
+        Args: { target_user_id: string }
+        Returns: {
+          badges_awarded: number
+          details: string
+        }[]
+      }
       award_points_and_update_rank: {
         Args: { user_id_param: string; points_to_add: number }
         Returns: undefined
