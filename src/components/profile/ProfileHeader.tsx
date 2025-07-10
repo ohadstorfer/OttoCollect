@@ -13,7 +13,7 @@ import { FollowStats } from "./FollowStats";
 import { useTheme } from "@/context/ThemeContext";
 import { BadgeDisplay, BadgeInfo } from "@/components/badges/BadgeDisplay";
 import { BadgesDialog } from "@/components/badges/BadgesDialog";
-import { getHighestBadge, getUserBadgeCategories, BadgeCategory } from "@/services/badgeService";
+import { getHighestBadge, getUserBadgeCategories, BadgeCategory, checkAndAwardBadges } from "@/services/badgeService";
 
 interface ProfileHeaderProps {
   profile: User;
@@ -45,6 +45,10 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
     try {
       console.log('ProfileHeader - loadBadges starting for profile ID:', profile.id);
       setBadgeLoading(true);
+      
+      // First check and award any earned badges
+      console.log('ProfileHeader - Checking for new badges...');
+      await checkAndAwardBadges(profile.id);
       
       console.log('ProfileHeader - Fetching highest badge...');
       const badge = await getHighestBadge(profile.id);

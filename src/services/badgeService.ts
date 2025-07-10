@@ -9,6 +9,23 @@ export interface BadgeCategory {
   nextThreshold?: number;
 }
 
+interface BadgeResponse {
+  badges: {
+    id: string;
+    name: string;
+    description: string;
+    category: string;
+    stage: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+    threshold_value: number;
+    icon_url: string;
+  };
+}
+
+interface UserStats {
+  category: string;
+  current_value: number;
+}
+
 export async function getUserBadges(userId: string): Promise<BadgeInfo[]> {
   try {
     console.log('getUserBadges - Starting fetch for userId:', userId);
@@ -35,15 +52,17 @@ export async function getUserBadges(userId: string): Promise<BadgeInfo[]> {
       throw error;
     }
 
-    const badges = data?.map(item => ({
-      id: item.badges.id,
-      name: item.badges.name,
-      stage: item.badges.stage as 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond',
-      icon_url: item.badges.icon_url,
-      category: item.badges.category,
-      description: item.badges.description,
-      threshold_value: item.badges.threshold_value
-    })) || [];
+    if (!data) return [];
+
+    const badges = data.map(item => ({
+      id: (item.badges as any).id,
+      name: (item.badges as any).name,
+      stage: (item.badges as any).stage as 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond',
+      icon_url: (item.badges as any).icon_url,
+      category: (item.badges as any).category,
+      description: (item.badges as any).description,
+      threshold_value: (item.badges as any).threshold_value
+    }));
 
     console.log('getUserBadges - Processed badges:', badges);
     return badges;
@@ -74,6 +93,8 @@ export async function getUserBadgeCategories(userId: string): Promise<BadgeCateg
       throw error;
     }
 
+    if (!allBadges) return [];
+
     // Get user's stats for different categories
     const { data: userStats, error: statsError } = await supabase
       .rpc('get_user_badge_stats', { user_id_param: userId });
@@ -85,10 +106,12 @@ export async function getUserBadgeCategories(userId: string): Promise<BadgeCateg
       throw statsError;
     }
 
+    if (!userStats) return [];
+
     // Group badges by category and calculate progress
-    const categories = allBadges.reduce((acc: { [key: string]: BadgeCategory }, badge) => {
+    const categories = allBadges.reduce<Record<string, BadgeCategory>>((acc, badge) => {
       if (!acc[badge.category]) {
-        const categoryStats = userStats.find((stat: any) => stat.category === badge.category);
+        const categoryStats = (userStats as UserStats[]).find(stat => stat.category === badge.category);
         const currentValue = categoryStats?.current_value || 0;
         
         console.log(`getUserBadgeCategories - Category ${badge.category} stats:`, { currentValue, categoryStats });
@@ -192,5 +215,24 @@ export async function getHighestBadge(userId: string): Promise<BadgeInfo | null>
   } catch (error) {
     console.error('getHighestBadge - Error fetching highest badge:', error);
     return null;
+  }
+}
+
+export async function checkAndAwardBadges(userId: string): Promise<void> {
+  try {
+    console.log('checkAndAwardBadges - Starting for userId:', userId);
+    
+    const { error } = await supabase
+      .rpc('award_historical_badges_for_user', { user_id_to_check: userId });
+
+    if (error) {
+      console.error('checkAndAwardBadges - Error:', error);
+      throw error;
+    }
+
+    console.log('checkAndAwardBadges - Successfully checked and awarded badges');
+  } catch (error) {
+    console.error('checkAndAwardBadges - Failed:', error);
+    throw error;
   }
 }
