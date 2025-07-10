@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { Bell, Check, CheckCheck, MessageCircle, UserPlus, BookOpen, MessageSquare } from 'lucide-react';
+import { Bell, Check, CheckCheck, MessageCircle, UserPlus, BookOpen, MessageSquare, Trophy } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +10,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Notification, notificationService } from '@/services/notificationService';
 import { Separator } from '@/components/ui/separator';
+import { BadgeDisplay } from '@/components/badges/BadgeDisplay';
 
 interface NotificationPanelProps {
   open: boolean;
@@ -61,6 +62,8 @@ export function NotificationPanel({
         return BookOpen;
       case 'forum_post':
         return MessageSquare;
+      case 'badge_awarded':
+        return Trophy;
       default:
         return Bell;
     }
@@ -72,39 +75,79 @@ export function NotificationPanel({
 
   const NotificationItem = ({ notification }: { notification: Notification }) => {
     const IconComponent = getNotificationIcon(notification.type);
+    const isBadgeNotification = notification.type === 'badge_awarded';
+    const badgeData = isBadgeNotification ? notification.reference_data : null;
+
     return (
       <div
         key={notification.id}
         className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all hover:scale-[1.02] border ${
           notification.is_read
             ? 'bg-background hover:bg-accent/50 border-muted'
-            : 'bg-accent/30 hover:bg-accent/40 border-accent shadow-sm'
+            : isBadgeNotification
+              ? 'bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700 shadow-md'
+              : 'bg-accent/30 hover:bg-accent/40 border-accent shadow-sm'
         }`}
         onClick={() => handleNotificationClick(notification)}
       >
         <div className="flex-shrink-0">
-          <div className={`h-8 w-8 rounded-full bg-background flex items-center justify-center ${
-            notification.is_read ? 'text-muted-foreground' : 'text-primary'
-          }`}>
-            <IconComponent className="h-4 w-4" />
-          </div>
+          {isBadgeNotification ? (
+            <div className="h-8 w-8 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center text-yellow-700 dark:text-yellow-300">
+              <Trophy className="h-4 w-4" />
+            </div>
+          ) : (
+            <div className={`h-8 w-8 rounded-full bg-background flex items-center justify-center ${
+              notification.is_read ? 'text-muted-foreground' : 'text-primary'
+            }`}>
+              <IconComponent className="h-4 w-4" />
+            </div>
+          )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium ${
-            notification.is_read ? 'text-muted-foreground' : 'text-foreground'
-          }`}>
-            {notification.title}
-          </p>
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {notification.content}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className={`text-sm font-medium ${
+              notification.is_read 
+                ? 'text-muted-foreground' 
+                : isBadgeNotification 
+                  ? 'text-yellow-800 dark:text-yellow-200'
+                  : 'text-foreground'
+            }`}>
+              {notification.title}
+            </p>
+            {isBadgeNotification && badgeData && (
+              <div className="animate-bounce">
+                🎉
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {notification.content}
+            </p>
+            {isBadgeNotification && badgeData && (
+              <BadgeDisplay
+                badge={{
+                  id: badgeData.badge_id,
+                  name: badgeData.badge_name,
+                  stage: badgeData.stage,
+                  icon_url: `/badges/${badgeData.stage}.png`,
+                  category: ''
+                }}
+                size="sm"
+              />
+            )}
+          </div>
           <p className="text-xs text-muted-foreground mt-1">
             {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
           </p>
         </div>
         {!notification.is_read && (
           <div className="flex-shrink-0">
-            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <div className={`h-2 w-2 rounded-full ${
+              isBadgeNotification 
+                ? 'bg-yellow-500 dark:bg-yellow-400' 
+                : 'bg-primary'
+            } animate-pulse`} />
           </div>
         )}
       </div>

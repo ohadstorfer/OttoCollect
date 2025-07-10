@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { User } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,9 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { FollowStats } from "./FollowStats";
 import { useTheme } from "@/context/ThemeContext";
+import { BadgeDisplay, BadgeInfo } from "@/components/badges/BadgeDisplay";
+import { BadgesDialog } from "@/components/badges/BadgesDialog";
+import { getHighestBadge, getUserBadgeCategories } from "@/services/badgeService";
 
 interface ProfileHeaderProps {
   profile: User;
@@ -21,6 +24,23 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const [highestBadge, setHighestBadge] = useState<BadgeInfo | null>(null);
+  const [badgeCategories, setBadgeCategories] = useState([]);
+  const [showBadgesDialog, setShowBadgesDialog] = useState(false);
+
+  useEffect(() => {
+    if (profile?.id) {
+      loadBadges();
+    }
+  }, [profile?.id]);
+
+  const loadBadges = async () => {
+    const badge = await getHighestBadge(profile.id);
+    setHighestBadge(badge);
+    
+    const categories = await getUserBadgeCategories(profile.id);
+    setBadgeCategories(categories);
+  };
 
   const isOwnProfile = user && profile && user.id === profile.id;
   const userRank = (profile?.rank || "Newbie");
@@ -31,7 +51,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
 
   return (
     <div>
-            <Card className={`overflow-hidden shadow-lg ${theme === 'dark' ? 'bg-dark-800' : 'bg-white'}`}>
+      <Card className={`overflow-hidden shadow-lg ${theme === 'dark' ? 'bg-dark-800' : 'bg-white'}`}>
         <div className="p-6">
           {/* Mobile View */}
           <div className="sm:hidden">
@@ -77,13 +97,18 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                 </div>
               </div>
 
-              {/* Mobile Follow Stats */}
-              <div className="w-full">
+              {/* Mobile Follow Stats and Badge */}
+              <div className="w-full flex flex-col items-center gap-2">
                 <FollowStats 
                   profileId={profile.id}
                   isOwnProfile={!!isOwnProfile}
                   username={profile.username}
                 />
+                {highestBadge && (
+                  <div onClick={() => setShowBadgesDialog(true)} className="cursor-pointer">
+                    <BadgeDisplay badge={highestBadge} size="sm" />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -132,21 +157,30 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
               </div>
             </div>           
 
-            {/* Desktop Follow Stats */}
-            <div className="flex-shrink-0">
+            {/* Desktop Follow Stats and Badge */}
+            <div className="flex-shrink-0 flex items-center gap-4">
               <FollowStats 
                 profileId={profile.id}
                 isOwnProfile={!!isOwnProfile}
                 username={profile.username}
               />
+              {highestBadge && (
+                <div onClick={() => setShowBadgesDialog(true)} className="cursor-pointer">
+                  <BadgeDisplay badge={highestBadge} size="md" />
+                </div>
+              )}
             </div>
-
-            
           </div>
         </div>
       </Card>
 
-
+      {/* Badges Dialog */}
+      <BadgesDialog
+        open={showBadgesDialog}
+        onOpenChange={setShowBadgesDialog}
+        userBadges={highestBadge ? [highestBadge] : []}
+        badgeCategories={badgeCategories}
+      />
     </div>
   );
 }
