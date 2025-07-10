@@ -35,15 +35,15 @@ export async function awardPoints(userId: string, points: number, action?: strin
 export function calculateRank(points: number, role: string): UserRank {
   let baseRank: string;
   
-  if (points <= 1) {
+  if (points <= 19) {
     baseRank = 'Newbie Collector';
-  } else if (points <= 5) {
+  } else if (points <= 79) {
     baseRank = 'Beginner Collector';
-  } else if (points <= 50) {
+  } else if (points <= 399) {
     baseRank = 'Mid Collector';
-  } else if (points <= 150) {
+  } else if (points <= 999) {
     baseRank = 'Known Collector';
-  } else if (points <= 300) {
+  } else if (points <= 1999) {
     baseRank = 'Advance Collector';
   } else {
     baseRank = 'Master Collector';
@@ -64,11 +64,11 @@ export function calculateRank(points: number, role: string): UserRank {
 // Get points needed for next rank
 export function getPointsForNextRank(currentPoints: number): { nextRank: string; pointsNeeded: number } | null {
   const thresholds = [
-    { points: 2, rank: 'Beginner Collector' },
-    { points: 6, rank: 'Mid Collector' },
-    { points: 51, rank: 'Known Collector' },
-    { points: 151, rank: 'Advance Collector' },
-    { points: 301, rank: 'Master Collector' },
+    { points: 20, rank: 'Beginner Collector' },
+    { points: 80, rank: 'Mid Collector' },
+    { points: 400, rank: 'Known Collector' },
+    { points: 1000, rank: 'Advance Collector' },
+    { points: 2000, rank: 'Master Collector' },
   ];
 
   for (const threshold of thresholds) {
