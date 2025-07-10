@@ -20,6 +20,7 @@ interface ProfileHeaderProps {
   onEditProfileClick?: () => void;
 }
 
+
 export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }: ProfileHeaderProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
