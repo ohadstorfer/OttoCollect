@@ -1,247 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { Shield, Users, Book, Image, Globe, Settings, Stamp } from 'lucide-react';
-import UserManagement from '@/components/admin/UserManagement';
-import BanknotesManagement from '@/components/admin/BanknotesManagement';
-import ImageSuggestions from '@/components/admin/ImageSuggestions';
+import React, { useState } from 'react';
+import { Award, Book, Users, Settings } from 'lucide-react';
 import CountryManagement from '@/components/admin/CountryManagement';
-import CountryFilterSettings from '@/components/admin/CountryFilterSettings';
-import CountryAdminDashboard from '@/components/admin/CountryAdminDashboard';
-import StampsManagement from '@/components/admin/StampsManagement';
+import BadgeAwardManager from '@/components/admin/BadgeAwardManager';
 
-const Admin = () => {
-  const { user } = useAuth();
-  const [isCountryAdmin, setIsCountryAdmin] = useState<boolean>(false);
-  const [countryAdminName, setCountryAdminName] = useState<string>("");
-  const [countryId, setCountryId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<string>('users');
-  const [loading, setLoading] = useState<boolean>(true);
-  
-  useEffect(() => {
-    if (user) {
-      checkAdminStatus();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
+const Admin: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('country-management');
 
-  const checkAdminStatus = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      console.log("Checking admin status for user:", user.id, "Role ID:", user.role_id);
-      
-      if (user.role_id) {
-        // First get the role details including is_country_admin flag
-        const { data: roleData, error: roleError } = await supabase
-          .from('roles')
-          .select('name, is_country_admin')
-          .eq('id', user.role_id)
-          .single();
-          
-        if (roleError) {
-          console.error("Error fetching role:", roleError);
-          setLoading(false);
-          return;
-        }
-        
-        if (!roleData) {
-          console.error("No role data found");
-          setLoading(false);
-          return;
-        }
-        
-        console.log('Role data:', roleData);
-        
-        const isAdmin = roleData.is_country_admin === true;
-        console.log('Is country admin flag from database:', isAdmin);
-        setIsCountryAdmin(isAdmin);
-        
-        // If they are a country admin, extract country name from role name and get country ID
-        if (isAdmin) {
-          const countryName = roleData.name.replace(' Admin', '');
-          setCountryAdminName(countryName);
-          
-          // Get country ID for the country name
-          const { data: countryData, error: countryError } = await supabase
-            .from('countries')
-            .select('id')
-            .eq('name', countryName)
-            .single();
-            
-          if (countryError) {
-            console.error("Error fetching country:", countryError);
-          } else if (countryData) {
-            console.log("Country data:", countryData);
-            setCountryId(countryData.id);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-    } finally {
-      setLoading(false);
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'country-management':
+        return <CountryManagement />;
+      case 'badge-awards':
+        return <BadgeAwardManager />;
+      default:
+        return <CountryManagement />;
     }
   };
 
-  if (loading) {
-    return (
-      <div className="page-container">
-        <div className="max-w-2xl mx-auto text-center p-8">
-          <p>Loading admin dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Check if user has admin access
-  if (!user) {
-    return (
-      <div className="page-container">
-        <h1 className="page-title"><span>Admin</span></h1>
-        
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4"><span>Access Restricted</span></h2>
-            <p className="mb-6 text-muted-foreground">
-              You must be logged in to access this area.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  // Check if the user has any admin privileges
-  const isSuperAdmin = user.role === 'Super Admin';
-  
-  console.log("Admin checks - isSuperAdmin:", isSuperAdmin, "isCountryAdmin:", isCountryAdmin);
-  
-  if (!isSuperAdmin && !isCountryAdmin) {
-    console.log("User has no admin privileges:", user);
-    return (
-      <div className="page-container">
-        <h1 className="page-title"><span>Admin</span></h1>
-        
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4"><span>Access Restricted</span></h2>
-            <p className="mb-6 text-muted-foreground">
-              This area is restricted to administrators only.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // If user is a country admin, show the country-specific dashboard
-  if (isCountryAdmin && !isSuperAdmin && countryId) {
-    console.log("Showing country admin dashboard for:", countryAdminName, "ID:", countryId);
-    return <CountryAdminDashboard countryId={countryId} countryName={countryAdminName} />;
-  }
-
-  // Full admin dashboard for super admins
   return (
-    <div className="page-container">
-      <h1 className="page-title"><span>Admin Dashboard</span></h1>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-semibold text-gray-900">Admin Dashboard</h1>
+        </div>
+      </header>
       
-      <div className="max-w-6xl mx-auto">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6 w-full">
-            <TabsTrigger value="users">
-              <Users className="mr-2 h-4 w-4" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="banknotes">
-              <Book className="mr-2 h-4 w-4" />
-              Banknotes
-            </TabsTrigger>
-            <TabsTrigger value="suggestions">
-              <Image className="mr-2 h-4 w-4" />
-              Image Suggestions
-            </TabsTrigger>
-            <TabsTrigger value="stamps">
-              <Stamp className="mr-2 h-4 w-4" />
-              Stamps
-            </TabsTrigger>
-            <TabsTrigger value="countries">
-              <Globe className="mr-2 h-4 w-4" />
-              Countries
-            </TabsTrigger>
-            <TabsTrigger value="filter-settings">
-              <Settings className="mr-2 h-4 w-4" />
-              Filters
-            </TabsTrigger>
-          </TabsList>
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-64 bg-white shadow-md h-screen sticky top-0">
+          <nav className="mt-5 px-2">
+            <div className="space-y-1">
+              <button
+                onClick={() => setActiveTab('country-management')}
+                className={`group flex items-center px-2 py-2 text-base font-medium rounded-md w-full text-left ${
+                  activeTab === 'country-management'
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <Book className="mr-4 h-6 w-6" />
+                Country Management
+              </button>
+              <button
+                onClick={() => setActiveTab('badge-awards')}
+                className={`group flex items-center px-2 py-2 text-base font-medium rounded-md w-full text-left ${
+                  activeTab === 'badge-awards'
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <Award className="mr-4 h-6 w-6" />
+                Badge Awards
+              </button>
+            </div>
+          </nav>
+        </div>
 
-          <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-serif">User Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <UserManagement isSuperAdmin={isSuperAdmin} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="banknotes">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-serif">Banknotes Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BanknotesManagement />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="suggestions">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-serif">Image Suggestions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ImageSuggestions />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="stamps">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-serif">Stamps</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <StampsManagement />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="countries">
-            <CountryManagement />
-          </TabsContent>
-
-          <TabsContent value="filter-settings">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-serif">Country Filter Settings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CountryFilterSettings />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        {/* Main content */}
+        <div className="flex-1 overflow-auto">
+          <div className="py-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+              {renderContent()}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
