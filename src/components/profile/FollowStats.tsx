@@ -128,10 +128,15 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
     return (
       <div className="flex flex-col items-center gap-4 animate-pulse">
         <div className="flex gap-6">
+          {/* Followers Skeleton */}
           <div className="h-6 w-20 bg-gray-200 rounded"></div>
+          {/* Following Skeleton */}
+          <div className="h-6 w-20 bg-gray-200 rounded"></div>
+          {/* Badges Skeleton */}
           <div className="h-6 w-20 bg-gray-200 rounded"></div>
         </div>
         <div className="flex gap-2">
+          <div className="h-8 w-24 bg-gray-200 rounded"></div>
           <div className="h-8 w-24 bg-gray-200 rounded"></div>
           <div className="h-8 w-24 bg-gray-200 rounded"></div>
         </div>
@@ -173,7 +178,12 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
             {badgeLoading ? (
               <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-ottoman-600 animate-spin" />
             ) : highestBadge ? (
-              <BadgeDisplay badge={highestBadge} size="sm" className="scale-90 transform-gpu" />
+              <BadgeDisplay 
+                badge={highestBadge} 
+                size="sm" 
+                className="scale-90 transform-gpu" 
+                disableHover={true} 
+              />
             ) : (
               <span className="text-lg text-muted-foreground">0</span>
             )}

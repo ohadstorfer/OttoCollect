@@ -64,6 +64,11 @@ export const BadgeDisplay = ({
 }: BadgeDisplayProps) => {
   const sizeConfig = sizesConfig[size];
   
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
@@ -75,6 +80,8 @@ export const BadgeDisplay = ({
             className
           )}
           onClick={onClick}
+          onTouchStart={handleTouchStart}
+          style={{ touchAction: 'none' }}
         >
           <BadgeIcon 
             color={stageColors[badge.stage]} 
@@ -86,7 +93,7 @@ export const BadgeDisplay = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <BadgeIcon color={stageColors[badge.stage]} className="h-6 w-6" />
-            <h4 className="font-semibold">{badge.name}</h4>
+            <h4 className="font-semibold"><span>{badge.name}</span></h4>
           </div>
           {badge.description && (
             <p className="text-sm text-muted-foreground">

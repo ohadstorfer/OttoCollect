@@ -25,7 +25,7 @@ export const BadgesDialog = ({
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Achievements
+            <span>Achievements</span>
           </DialogTitle>
         </DialogHeader>
         
@@ -39,7 +39,7 @@ export const BadgesDialog = ({
               return (
                 <Card key={category.name} className="p-4 space-y-3">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-medium">{category.name}</h3>
+                    <h3 className="text-sm font-medium"><span>{category.name}</span></h3>
                     <span className="text-xs text-muted-foreground">
                       {category.currentValue} / {category.nextThreshold || 'Max'}
                     </span>
@@ -53,6 +53,7 @@ export const BadgesDialog = ({
                         key={badge.id}
                         badge={badge}
                         size="sm"
+                        showStage={true}
                       />
                     ))}
                   </div>
