@@ -223,7 +223,7 @@ export async function checkAndAwardBadges(userId: string): Promise<void> {
     console.log('checkAndAwardBadges - Starting for userId:', userId);
     
     const { error } = await supabase
-      .rpc('award_historical_badges_for_user', { target_user_id: userId });
+      .rpc('check_and_award_badges_for_user', { user_id_to_check: userId });
 
     if (error) {
       console.error('checkAndAwardBadges - Error:', error);

@@ -1639,6 +1639,10 @@ export type Database = {
           updated_at: string
         }[]
       }
+      check_and_award_badges_for_user: {
+        Args: { user_id_to_check: string }
+        Returns: undefined
+      }
       collection_items_sorted_by_country: {
         Args: { user_id_param: string; country_id: string }
         Returns: {
@@ -1661,6 +1665,10 @@ export type Database = {
           obverse_image: string
           reverse_image: string
         }[]
+      }
+      create_badge_notifications: {
+        Args: { target_user_id: string; new_badge_ids: string[] }
+        Returns: undefined
       }
       extract_numeric_value: {
         Args: { face_value: string }

@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'message' | 'forum_post' | 'collection_activity' | 'follow' | 'badge_awarded';
+  type: 'message' | 'forum_post' | 'collection_activity' | 'follow' | 'badge_earned' | 'badge_achievement';
   title: string;
   content: string;
   reference_id: string | null;
@@ -103,8 +103,9 @@ export const notificationService = {
         return `/profile/${notification.reference_data?.active_username}`;
       case 'forum_post':
         return `/community/forum/post/${notification.reference_id}`;
-      case 'badge_awarded':
-        return `/profile/${notification.reference_data?.username || ''}`;
+      case 'badge_earned':
+      case 'badge_achievement':
+        return `/profile/${notification.reference_data?.recipient_username}`;
       default:
         return '/';
     }
