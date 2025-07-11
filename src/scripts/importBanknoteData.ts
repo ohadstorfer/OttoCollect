@@ -13,15 +13,17 @@ async function checkExistingBanknotes(banknotes: Record<string, any>[]) {
     extended_pick_number: b.extended_pick_number
   }));
 
-  // Create an OR condition for each composite key
-  const orConditions = compositeKeys.map(key => 
-    `(country.ilike.${key.country} and extended_pick_number.ilike.${key.extended_pick_number})`
-  ).join(',');
+  // Create a filter for each banknote
+  const filters = compositeKeys.map(key => ({
+    country: key.country,
+    extended_pick_number: key.extended_pick_number
+  }));
 
   const { data, error } = await supabase
     .from('detailed_banknotes')
-    .select('*')  // Select all fields to compare
-    .or(orConditions);
+    .select('*')
+    .in('country', compositeKeys.map(k => k.country))
+    .in('extended_pick_number', compositeKeys.map(k => k.extended_pick_number));
 
   if (error) {
     throw new Error(`Failed to check existing banknotes: ${error.message}`);
