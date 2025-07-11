@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export interface BadgeInfo {
   id: string;
   name: string;
-  stage: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+  stage: 'Stage 1' | 'Stage 2' | 'Stage 3' | 'Stage 4' | 'Stage 5';
   icon_url: string;
   category: string;
   description?: string;
@@ -22,11 +22,11 @@ interface BadgeDisplayProps {
 }
 
 const stageColors = {
-  bronze: '#D4A76A',   // Light brown color
-  silver: '#CD7F32',   // Bronze color
-  gold: '#ADD8E6',     // Light blue color
-  platinum: '#C0C0C0', // Silver color
-  diamond: '#FFD700'   // Gold color
+  'Stage 1': '#D4A76A',   // Light brown color
+  'Stage 2': '#CD7F32',   // Bronze color
+  'Stage 3': '#ADD8E6',   // Light blue color
+  'Stage 4': '#C0C0C0',   // Silver color
+  'Stage 5': '#FFD700'    // Gold color
 };
 
 const sizesConfig = {
@@ -102,7 +102,7 @@ export const BadgeDisplay = ({
           )}
           {showStage && (
             <p className="text-xs text-muted-foreground capitalize">
-              {badge.stage} Level
+              {badge.stage}
             </p>
           )}
         </div>

@@ -15,7 +15,7 @@ interface BadgeResponse {
     name: string;
     description: string;
     category: string;
-    stage: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+    stage: 'Stage 1' | 'Stage 2' | 'Stage 3' | 'Stage 4' | 'Stage 5';
     threshold_value: number;
     icon_url: string;
   };
@@ -57,7 +57,7 @@ export async function getUserBadges(userId: string): Promise<BadgeInfo[]> {
     const badges = data.map(item => ({
       id: (item.badges as any).id,
       name: (item.badges as any).name,
-      stage: (item.badges as any).stage as 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond',
+      stage: (item.badges as any).stage as 'Stage 1' | 'Stage 2' | 'Stage 3' | 'Stage 4' | 'Stage 5',
       icon_url: (item.badges as any).icon_url,
       category: (item.badges as any).category,
       description: (item.badges as any).description,
@@ -132,7 +132,7 @@ export async function getUserBadgeCategories(userId: string): Promise<BadgeCateg
         acc[badge.category].badges.push({
           id: badge.id,
           name: badge.name,
-          stage: badge.stage as 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond',
+          stage: badge.stage as 'Stage 1' | 'Stage 2' | 'Stage 3' | 'Stage 4' | 'Stage 5',
           icon_url: badge.icon_url,
           category: badge.category,
           description: badge.description,
@@ -187,12 +187,12 @@ export async function getHighestBadge(userId: string): Promise<BadgeInfo | null>
     }
 
     // Find the highest stage badge
-    const stageOrder = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];
+    const stageOrder = ['Stage 1', 'Stage 2', 'Stage 3', 'Stage 4', 'Stage 5'];
     const highestBadge = data.reduce((highest: BadgeInfo | null, current: any) => {
       const currentBadge = {
         id: current.id,
         name: current.name,
-        stage: current.stage as 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond',
+        stage: current.stage as 'Stage 1' | 'Stage 2' | 'Stage 3' | 'Stage 4' | 'Stage 5',
         icon_url: current.icon_url,
         category: current.category,
         threshold_value: current.threshold_value
