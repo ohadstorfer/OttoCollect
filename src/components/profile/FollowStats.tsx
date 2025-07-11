@@ -182,13 +182,12 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
                 badge={highestBadge} 
                 size="sm" 
                 className="scale-90 transform-gpu" 
-                disableHover={true} 
               />
             ) : (
-              <span className="text-lg text-muted-foreground">0</span>
+              <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}> 0 </span>
             )}
           </div>
-          <span className={`text-sm mt-[1px] ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>Badges</span>
+          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`} > Badges </span>
         </button>
       </div>
 
