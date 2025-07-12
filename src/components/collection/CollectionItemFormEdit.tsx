@@ -26,19 +26,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Upload, Send } from 'lucide-react';
+import { CalendarIcon, Upload } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { getGradeDescription } from '@/utils/grading';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import SuggestImageDialog from './SuggestImageDialog';
 
 import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
-import { hasExistingImageSuggestion } from '@/services/imageSuggestionsService';
 
 // Define props for CollectionItemForm
 export interface CollectionItemFormProps {
@@ -114,14 +112,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   const reverseInputRef = useRef<HTMLInputElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // New state for image suggestion
-  const [suggestImageDialogOpen, setSuggestImageDialogOpen] = useState(false);
-  const [existingSuggestion, setExistingSuggestion] = useState<{
-    hasSuggestion: boolean;
-    status: 'pending' | 'approved' | 'rejected' | null;
-    suggestionId: string | null;
-  }>({ hasSuggestion: false, status: null, suggestionId: null });
-
   const [obverseImageVersions, setObverseImageVersions] = useState<ImageVersions | null>(
     currentItem ? {
       original: currentItem.obverseImage || '',
@@ -158,22 +148,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       salePrice: currentItem?.salePrice || ''
     }
   });
-
-  // Check for existing image suggestion when banknote changes
-  useEffect(() => {
-    const checkExistingSuggestion = async () => {
-      if (selectedBanknote?.id && authUser?.id) {
-        try {
-          const suggestion = await hasExistingImageSuggestion(selectedBanknote.id, authUser.id);
-          setExistingSuggestion(suggestion);
-        } catch (error) {
-          console.error('Error checking existing suggestion:', error);
-        }
-      }
-    };
-
-    checkExistingSuggestion();
-  }, [selectedBanknote?.id, authUser?.id]);
 
   // Search for banknotes as user types
   useEffect(() => {
@@ -286,10 +260,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
     console.log('openImageViewer called with:', imageUrl);
     setSelectedImage(imageUrl);
     console.log('selectedImage state set to:', imageUrl);
-  };
-
-  const handleSuggestImage = () => {
-    setSuggestImageDialogOpen(true);
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -464,6 +434,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   </div>
                 </div>
 
+
+
                 {/* Condition or Grading Fields */}
                 {!form.watch("useGrading") ? (
                   <FormField
@@ -598,31 +570,10 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
                 {/* Custom Images Section */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-medium">Custom Images</h3>
-                      <p className="text-muted-foreground text-sm">
-                        Upload your own images of the banknote (optional)
-                      </p>
-                    </div>
-                    
-                    {/* Suggest Image Button */}
-                    {selectedBanknote && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleSuggestImage}
-                        className="flex items-center gap-2"
-                      >
-                        <Send className="h-4 w-4" />
-                        {existingSuggestion.hasSuggestion 
-                          ? `Update Suggestion (${existingSuggestion.status})`
-                          : 'Suggest to Catalog'
-                        }
-                      </Button>
-                    )}
-                  </div>
+                  <h3 className="text-lg font-medium">Custom Images</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Upload your own images of the banknote (optional)
+                  </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
@@ -1036,19 +987,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
               await handleCroppedImage(url);
             }}
             title={`Edit ${selectedImageToCrop.type === 'obverse' ? 'Front' : 'Back'} Image`}
-          />
-        )}
-
-        {/* Suggest Image Dialog */}
-        {selectedBanknote && (
-          <SuggestImageDialog
-            open={suggestImageDialogOpen}
-            onClose={() => setSuggestImageDialogOpen(false)}
-            banknoteId={selectedBanknote.id}
-            banknoteName={`${selectedBanknote.country} ${selectedBanknote.extendedPickNumber}`}
-            existingSuggestionId={existingSuggestion.suggestionId}
-            currentObverseImage={obverseImagePreview}
-            currentReverseImage={reverseImagePreview}
           />
         )}
       </CardContent>

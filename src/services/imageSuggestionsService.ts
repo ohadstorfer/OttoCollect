@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -59,60 +58,16 @@ export async function submitImageSuggestion(data: {
 }
 
 /**
- * Update an existing image suggestion
- */
-export async function updateImageSuggestion(data: {
-  suggestionId: string;
-  obverseImage?: string | null;
-  reverseImage?: string | null;
-  obverseImageWatermarked?: string | null;
-  reverseImageWatermarked?: string | null;
-  obverseImageThumbnail?: string | null;
-  reverseImageThumbnail?: string | null;
-}) {
-  try {
-    if (!data.obverseImage && !data.reverseImage) {
-      throw new Error("At least one image is required");
-    }
-
-    const { error } = await supabase
-      .from('image_suggestions')
-      .update({
-        obverse_image: data.obverseImage,
-        reverse_image: data.reverseImage,
-        obverse_image_watermarked: data.obverseImageWatermarked,
-        reverse_image_watermarked: data.reverseImageWatermarked,
-        obverse_image_thumbnail: data.obverseImageThumbnail,
-        reverse_image_thumbnail: data.reverseImageThumbnail,
-        status: 'pending',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', data.suggestionId);
-
-    if (error) {
-      console.error("Error updating image suggestion:", error);
-      throw new Error(`Failed to update image suggestion: ${error.message}`);
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Error updating image suggestion:", error);
-    throw error;
-  }
-}
-
-/**
  * Check if user has already submitted an image suggestion for this banknote
  */
 export async function hasExistingImageSuggestion(banknoteId: string, userId: string): Promise<{ 
   hasSuggestion: boolean; 
   status: 'pending' | 'approved' | 'rejected' | null;
-  suggestionId: string | null;
 }> {
   try {
     const { data, error } = await supabase
       .from('image_suggestions')
-      .select('id, status')
+      .select('status')
       .eq('banknote_id', banknoteId)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -125,15 +80,13 @@ export async function hasExistingImageSuggestion(banknoteId: string, userId: str
 
     return {
       hasSuggestion: data && data.length > 0,
-      status: data?.[0]?.status || null,
-      suggestionId: data?.[0]?.id || null
+      status: data?.[0]?.status || null
     };
   } catch (error) {
     console.error("Error checking existing image suggestions:", error);
     return {
       hasSuggestion: false,
-      status: null,
-      suggestionId: null
+      status: null
     };
   }
 }
