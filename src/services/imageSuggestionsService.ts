@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -7,41 +8,24 @@ import { toast } from "sonner";
 export async function submitImageSuggestion(data: {
   banknoteId: string;
   userId: string;
-  obverseImage?: string | null;
-  reverseImage?: string | null;
-  obverseImageWatermarked?: string | null;
-  reverseImageWatermarked?: string | null;
-  obverseImageThumbnail?: string | null;
-  reverseImageThumbnail?: string | null;
+  imageUrl: string;
+  type: 'obverse' | 'reverse';
 }) {
   try {
-    if (!data.obverseImage && !data.reverseImage) {
-      throw new Error("At least one image is required");
-    }
-
     console.log('Submitting image suggestion with data:', {
       banknote_id: data.banknoteId,
       user_id: data.userId,
-      obverse_image: data.obverseImage,
-      reverse_image: data.reverseImage,
-      obverse_image_watermarked: data.obverseImageWatermarked,
-      reverse_image_watermarked: data.reverseImageWatermarked,
-      obverse_image_thumbnail: data.obverseImageThumbnail,
-      reverse_image_thumbnail: data.reverseImageThumbnail
+      image_url: data.imageUrl,
+      type: data.type
     });
 
-    // Insert one row containing both obverse and reverse images
     const { error } = await supabase
       .from('image_suggestions')
       .insert({
         banknote_id: data.banknoteId,
         user_id: data.userId,
-        obverse_image: data.obverseImage,
-        reverse_image: data.reverseImage,
-        obverse_image_watermarked: data.obverseImageWatermarked,
-        reverse_image_watermarked: data.reverseImageWatermarked,
-        obverse_image_thumbnail: data.obverseImageThumbnail,
-        reverse_image_thumbnail: data.reverseImageThumbnail,
+        image_url: data.imageUrl,
+        type: data.type,
         status: 'pending'
       });
 
@@ -58,9 +42,9 @@ export async function submitImageSuggestion(data: {
 }
 
 /**
- * Check if user has already submitted an image suggestion for this banknote
+ * Check if user has already submitted an image suggestion for this banknote and type
  */
-export async function hasExistingImageSuggestion(banknoteId: string, userId: string): Promise<{ 
+export async function hasExistingImageSuggestion(banknoteId: string, userId: string, type: 'obverse' | 'reverse'): Promise<{ 
   hasSuggestion: boolean; 
   status: 'pending' | 'approved' | 'rejected' | null;
 }> {
@@ -70,6 +54,7 @@ export async function hasExistingImageSuggestion(banknoteId: string, userId: str
       .select('status')
       .eq('banknote_id', banknoteId)
       .eq('user_id', userId)
+      .eq('type', type)
       .order('created_at', { ascending: false })
       .limit(1);
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Table, 
@@ -11,20 +12,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Loader2, Check, X, Image as ImageIcon, Eye, Crop } from 'lucide-react';
+import { Search, Loader2, Check, X, Image as ImageIcon, Eye } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import { AdminComponentProps } from '@/types/admin';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import BanknoteDetailDialog from './BanknoteDetailDialog';
-import ImageCropDialog from '@/components/shared/ImageCropDialog';
-import { processAndUploadImage } from '@/services/imageProcessingService';
 
 interface ImageSuggestion {
   id: string;
   banknote_id: string;
   user_id: string;
-  obverse_image: string | null;
-  reverse_image: string | null;
+  image_url: string;
+  type: 'obverse' | 'reverse';
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
   updated_at: string;
@@ -33,310 +32,9 @@ interface ImageSuggestion {
   banknote_country?: string;
   banknote_denomination?: string;
   user_name?: string;
-  obverse_image_watermarked?: string;
-  reverse_image_watermarked?: string;
-  obverse_image_thumbnail?: string;
-  reverse_image_thumbnail?: string;
 }
 
 interface ImageSuggestionsProps extends AdminComponentProps {}
-
-interface ComparisonDialogProps {
-  suggestion: ImageSuggestion;
-  currentImages: {
-    front: string | null;
-    back: string | null;
-  };
-  onApprove: () => Promise<void>;
-  onReject: () => Promise<void>;
-  onClose: () => void;
-  loading: boolean;
-}
-
-const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
-  suggestion,
-  currentImages,
-  onApprove,
-  onReject,
-  onClose,
-  loading
-}) => {
-  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
-  const [cropDialogOpen, setCropDialogOpen] = useState(false);
-  const [selectedImageToCrop, setSelectedImageToCrop] = useState<{
-    url: string;
-    type: 'obverse' | 'reverse';
-  } | null>(null);
-
-  const renderStatus = () => {
-    switch (suggestion.status) {
-      case 'approved':
-        return (
-          <div className="flex items-center gap-2 text-green-600">
-            <Check className="h-5 w-5" />
-            <span className="font-medium">Approved</span>
-          </div>
-        );
-      case 'rejected':
-        return (
-          <div className="flex items-center gap-2 text-red-600">
-            <X className="h-5 w-5" />
-            <span className="font-medium">Rejected</span>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const handleCropClick = (imageUrl: string | null, type: 'obverse' | 'reverse') => {
-    if (imageUrl) {
-      setSelectedImageToCrop({ url: imageUrl, type });
-      setCropDialogOpen(true);
-    }
-  };
-
-  const handleSaveCroppedImage = async (croppedImageUrl: string) => {
-    if (!selectedImageToCrop) return;
-
-    try {
-      // Convert data URL to Blob
-      const response = await fetch(croppedImageUrl);
-      const blob = await response.blob();
-
-      // Create a file from the blob
-      const file = new File([blob], `cropped_${selectedImageToCrop.type}.jpg`, { type: 'image/jpeg' });
-
-      // Use imageProcessingService to process the image
-      const processedImages = await processAndUploadImage(
-        file,
-        'suggestions',
-        suggestion.user_id
-      );
-
-      // Update suggestion with new image URLs
-      const updateData = selectedImageToCrop.type === 'obverse' 
-        ? {
-            obverse_image: processedImages.original,
-            obverse_image_watermarked: processedImages.watermarked,
-            obverse_image_thumbnail: processedImages.thumbnail
-          }
-        : {
-            reverse_image: processedImages.original,
-            reverse_image_watermarked: processedImages.watermarked,
-            reverse_image_thumbnail: processedImages.thumbnail
-          };
-
-      const { error: updateError } = await supabase
-        .from('image_suggestions')
-        .update(updateData)
-        .eq('id', suggestion.id);
-
-      if (updateError) throw updateError;
-
-      // Update local state
-      if (selectedImageToCrop.type === 'obverse') {
-        suggestion.obverse_image = processedImages.original;
-        suggestion.obverse_image_watermarked = processedImages.watermarked;
-        suggestion.obverse_image_thumbnail = processedImages.thumbnail;
-      } else {
-        suggestion.reverse_image = processedImages.original;
-        suggestion.reverse_image_watermarked = processedImages.watermarked;
-        suggestion.reverse_image_thumbnail = processedImages.thumbnail;
-      }
-
-      toast.success('Image updated successfully');
-    } catch (error) {
-      console.error('Error saving cropped image:', error);
-      toast.error('Failed to save cropped image');
-    }
-  };
-
-  return (
-    <>
-      <DialogContent className="sm:max-w-[99vw] md:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Compare Images</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-medium mb-2"><span>Current Images</span></h3>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="relative">
-                <div 
-                  className="bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => currentImages.front && setEnlargedImage(currentImages.front)}
-                >
-                  {currentImages.front ? (
-                    <img 
-                      src={currentImages.front} 
-                      alt="Current front"
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="relative">
-                <div 
-                  className="bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => currentImages.back && setEnlargedImage(currentImages.back)}
-                >
-                  {currentImages.back ? (
-                    <img 
-                      src={currentImages.back} 
-                      alt="Current back"
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-medium mb-2"><span>Suggested Images</span></h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="relative">
-                <div 
-                  className="bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => suggestion.obverse_image && setEnlargedImage(suggestion.obverse_image)}
-                >
-                  {suggestion.obverse_image ? (
-                    <img 
-                      src={suggestion.obverse_image} 
-                      alt="Suggested front"
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-                {suggestion.status === 'pending' && suggestion.obverse_image && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                    onClick={() => handleCropClick(suggestion.obverse_image, 'obverse')}
-                  >
-                    <Crop className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              <div className="relative">
-                <div 
-                  className="bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => suggestion.reverse_image && setEnlargedImage(suggestion.reverse_image)}
-                >
-                  {suggestion.reverse_image ? (
-                    <img 
-                      src={suggestion.reverse_image} 
-                      alt="Suggested back"
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-                {suggestion.status === 'pending' && suggestion.reverse_image && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                    onClick={() => handleCropClick(suggestion.reverse_image, 'reverse')}
-                  >
-                    <Crop className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center">
-            {suggestion.status !== 'pending' && (
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">Status:</span>
-                {renderStatus()}
-              </div>
-            )}
-            
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                onClick={onClose}
-                disabled={loading}
-              >
-                Close
-              </Button>
-              
-              {suggestion.status === 'pending' && (
-                <>
-                  <Button
-                    variant="destructive"
-                    onClick={onReject}
-                    disabled={loading}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Reject
-                  </Button>
-                  <Button
-                    variant="default"
-                    onClick={onApprove}
-                    disabled={loading}
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    Approve
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-
-      {/* Enlarged Image Dialog */}
-      <Dialog open={enlargedImage !== null} onOpenChange={() => setEnlargedImage(null)}>
-        <DialogContent className="w-full sm:max-w-none sm:w-[90vw] p-2">
-          {enlargedImage && (
-            <div className="relative w-full flex items-center justify-center">
-              <img 
-                src={enlargedImage} 
-                alt="Enlarged banknote image" 
-                className="w-full object-contain max-h-[80vh]"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Image Crop Dialog */}
-      {selectedImageToCrop && (
-        <ImageCropDialog
-          imageUrl={selectedImageToCrop.url}
-          open={cropDialogOpen}
-          onClose={() => {
-            setCropDialogOpen(false);
-            setSelectedImageToCrop(null);
-          }}
-          onSave={handleSaveCroppedImage}
-          title={`Edit ${selectedImageToCrop.type === 'obverse' ? 'Front' : 'Back'} Image`}
-        />
-      )}
-    </>
-  );
-};
 
 const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
   countryId,
@@ -353,12 +51,6 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
   // New state variables for image and banknote dialogs
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedBanknoteId, setSelectedBanknoteId] = useState<string | null>(null);
-  const [showCompareDialog, setShowCompareDialog] = useState(false);
-  const [selectedSuggestion, setSelectedSuggestion] = useState<ImageSuggestion | null>(null);
-  const [currentImages, setCurrentImages] = useState<{ front: string | null; back: string | null }>({
-    front: null,
-    back: null
-  });
   
   const PAGE_SIZE = 10;
   
@@ -444,12 +136,8 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
           user_name: userProfile?.username || 'Unknown',
           banknote_catalog_id: banknote?.extended_pick_number || '',
           banknote_country: banknote?.country || '',
-          banknote_denomination: banknote?.face_value || '',
-          obverse_image_watermarked: banknote?.front_picture_watermarked,
-          reverse_image_watermarked: banknote?.back_picture_watermarked,
-          obverse_image_thumbnail: banknote?.front_picture_thumbnail,
-          reverse_image_thumbnail: banknote?.back_picture_thumbnail
-        } as ImageSuggestion; // Type assertion to ensure it matches ImageSuggestion
+          banknote_denomination: banknote?.face_value || ''
+        } as ImageSuggestion;
       });
       
       // If country filter is applied, filter locally
@@ -488,54 +176,33 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
         return;
       }
       
-      let hasErrors = false;
+      // Update the banknote with the new image
+      const updateField = suggestion.type === 'obverse' ? 'front_picture' : 'back_picture';
+      const { error: updateError } = await supabase
+        .from('detailed_banknotes')
+        .update({
+          [updateField]: suggestion.image_url,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', suggestion.banknote_id);
       
-      // Update obverse image if available
-      if (suggestion.obverse_image) {
-        const { error: obverseError } = await supabase
-          .from('detailed_banknotes')
-          .update({
-            front_picture: suggestion.obverse_image,
-            front_picture_watermarked: suggestion.obverse_image_watermarked,
-            front_picture_thumbnail: suggestion.obverse_image_thumbnail
-          })
-          .eq('id', suggestion.banknote_id);
-        
-        if (obverseError) {
-          console.error('Error updating obverse image:', obverseError);
-          toast.error(`Failed to update obverse image: ${obverseError.message}`);
-          hasErrors = true;
-        }
-      }
-      
-      // Update reverse image if available
-      if (suggestion.reverse_image) {
-        const { error: reverseError } = await supabase
-          .from('detailed_banknotes')
-          .update({
-            back_picture: suggestion.reverse_image,
-            back_picture_watermarked: suggestion.reverse_image_watermarked,
-            back_picture_thumbnail: suggestion.reverse_image_thumbnail
-          })
-          .eq('id', suggestion.banknote_id);
-        
-        if (reverseError) {
-          console.error('Error updating reverse image:', reverseError);
-          toast.error(`Failed to update reverse image: ${reverseError.message}`);
-          hasErrors = true;
-        }
+      if (updateError) {
+        console.error('Error updating banknote:', updateError);
+        toast.error(`Failed to update banknote: ${updateError.message}`);
+        setLoading(false);
+        return;
       }
       
       // Update the suggestion status
       const { error: suggestionError } = await supabase
         .from('image_suggestions')
-        .update({ status: hasErrors ? 'pending' : 'approved' })
+        .update({ status: 'approved' })
         .eq('id', suggestion.id);
       
       if (suggestionError) {
         console.error('Error updating suggestion status:', suggestionError);
         toast.error(`Failed to update suggestion status: ${suggestionError.message}`);
-      } else if (!hasErrors) {
+      } else {
         toast.success('Image suggestion approved successfully');
       }
       
@@ -581,34 +248,6 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
     setSelectedBanknoteId(banknoteId);
   };
 
-  // Add this function to fetch current banknote images
-  const fetchCurrentImages = async (banknoteId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('detailed_banknotes')
-        .select('front_picture, back_picture')
-        .eq('id', banknoteId)
-        .single();
-
-      if (error) throw error;
-
-      return {
-        front: data?.front_picture || null,
-        back: data?.back_picture || null
-      };
-    } catch (error) {
-      console.error('Error fetching current images:', error);
-      return { front: null, back: null };
-    }
-  };
-
-  const openCompareDialog = async (suggestion: ImageSuggestion) => {
-    setSelectedSuggestion(suggestion);
-    const images = await fetchCurrentImages(suggestion.banknote_id);
-    setCurrentImages(images);
-    setShowCompareDialog(true);
-  };
-
   return (
     <div>
       {loading && suggestions.length === 0 ? (
@@ -621,7 +260,8 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Compare</TableHead>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Banknote</TableHead>
                   <TableHead>Ext. Pick</TableHead>
                   <TableHead>Country</TableHead>
@@ -639,12 +279,13 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => openCompareDialog(suggestion)}
+                          onClick={() => openImageDialog(suggestion.image_url)}
                           className="flex items-center gap-1"
                         >
-                          <Eye className="h-4 w-4" /> Compare
+                          <ImageIcon className="h-4 w-4" /> View
                         </Button>
                       </TableCell>
+                      <TableCell className="capitalize">{suggestion.type}</TableCell>
                       <TableCell>
                         <Button 
                           variant="outline" 
@@ -700,7 +341,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-10">
+                    <TableCell colSpan={9} className="text-center py-10">
                       No image suggestions found
                     </TableCell>
                   </TableRow>
@@ -741,26 +382,6 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             <BanknoteDetailDialog id={selectedBanknoteId} />
           )}
         </DialogContent>
-      </Dialog>
-
-      {/* Compare Dialog */}
-      <Dialog open={showCompareDialog} onOpenChange={(open) => !open && setShowCompareDialog(false)}>
-        {selectedSuggestion && (
-          <ComparisonDialog
-            suggestion={selectedSuggestion}
-            currentImages={currentImages}
-            onApprove={async () => {
-              await handleApprove(selectedSuggestion);
-              setShowCompareDialog(false);
-            }}
-            onReject={async () => {
-              await handleReject(selectedSuggestion);
-              setShowCompareDialog(false);
-            }}
-            onClose={() => setShowCompareDialog(false)}
-            loading={loading}
-          />
-        )}
       </Dialog>
     </div>
   );

@@ -32,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getGradeDescription } from '@/utils/grading';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import SuggestImageDialog from './SuggestImageDialog';
 
 import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -434,8 +435,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   </div>
                 </div>
 
-
-
                 {/* Condition or Grading Fields */}
                 {!form.watch("useGrading") ? (
                   <FormField
@@ -544,8 +543,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   </div>
                 )}
 
-
-<div className="mt-7 mb-7 ">
+                <div className="mt-7 mb-7 ">
                 {/* Public Note */}
                 <FormField
                   control={form.control}
