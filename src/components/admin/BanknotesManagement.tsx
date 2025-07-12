@@ -96,12 +96,53 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   // Check if user is super admin
   const isSuperAdmin = user?.role === 'Super Admin';
 
-  // Use the sorting hook
-  const sortedBanknotes = useBanknoteSorting({
-    banknotes: filteredBanknotes,
-    currencies,
-    sortFields: ['extPick']
-  });
+  // Custom sorting for search results - prioritize extendedPickNumber matches
+  const getSortedBanknotes = () => {
+    if (!searchQuery.trim()) {
+      // No search query - use normal sorting
+      return useBanknoteSorting({
+        banknotes: filteredBanknotes,
+        currencies,
+        sortFields: ['extPick']
+      });
+    } else {
+      // Search query exists - apply custom prioritization
+      const searchLower = searchQuery.toLowerCase();
+      
+      // Separate banknotes into priority groups
+      const extPickMatches = [];
+      const otherMatches = [];
+      
+      filteredBanknotes.forEach(banknote => {
+        const extPick = banknote.extendedPickNumber?.toLowerCase() || '';
+        
+        // Check if extendedPickNumber contains the search query
+        if (extPick.includes(searchLower)) {
+          extPickMatches.push(banknote);
+        } else {
+          otherMatches.push(banknote);
+        }
+      });
+      
+      // Sort extendedPickNumber matches by natural/numeric order
+      extPickMatches.sort((a, b) => {
+        const numA = extractPickNumericValue(a.extendedPickNumber || '');
+        const numB = extractPickNumericValue(b.extendedPickNumber || '');
+        
+        if (numA !== numB) {
+          return numA - numB;
+        }
+        
+        // If numeric parts are equal, sort alphabetically by full extended pick number
+        return (a.extendedPickNumber || '').localeCompare(b.extendedPickNumber || '');
+      });
+      
+      // Combine results with priority order: extPick matches first, then other matches
+      return [...extPickMatches, ...otherMatches];
+    }
+  };
+
+  const sortedBanknotes = getSortedBanknotes();
 
   // Calculate pagination
   const totalPages = Math.ceil(sortedBanknotes.length / PAGE_SIZE);
@@ -152,52 +193,28 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   }, [selectedCountryId]);
 
   useEffect(() => {
-    // Filter banknotes based on search query with prioritization
+    // Filter banknotes based on search query
     if (!searchQuery.trim()) {
       setFilteredBanknotes(allBanknotes);
     } else {
       const searchLower = searchQuery.toLowerCase();
       
-      // Separate banknotes into priority groups
-      const extPickMatches = [];
-      const otherMatches = [];
-      
-      allBanknotes.forEach(banknote => {
+      const filtered = allBanknotes.filter(banknote => {
         const extPick = banknote.extendedPickNumber?.toLowerCase() || '';
         
         // Check if extendedPickNumber contains the search query
         if (extPick.includes(searchLower)) {
-          extPickMatches.push(banknote);
-        } else {
-          // Check other fields for matches
-          const matchesOtherFields = (
-            banknote.country?.toLowerCase().includes(searchLower) ||
-            banknote.denomination?.toLowerCase().includes(searchLower) ||
-            banknote.year?.toLowerCase().includes(searchLower) ||
-            banknote.description?.toLowerCase().includes(searchLower)
-          );
-          
-          if (matchesOtherFields) {
-            otherMatches.push(banknote);
-          }
-        }
-      });
-      
-      // Sort extendedPickNumber matches by natural/numeric order
-      extPickMatches.sort((a, b) => {
-        const numA = extractPickNumericValue(a.extendedPickNumber || '');
-        const numB = extractPickNumericValue(b.extendedPickNumber || '');
-        
-        if (numA !== numB) {
-          return numA - numB;
+          return true;
         }
         
-        // If numeric parts are equal, sort alphabetically by full extended pick number
-        return (a.extendedPickNumber || '').localeCompare(b.extendedPickNumber || '');
+        // Check other fields for matches
+        return (
+          banknote.country?.toLowerCase().includes(searchLower) ||
+          banknote.denomination?.toLowerCase().includes(searchLower) ||
+          banknote.year?.toLowerCase().includes(searchLower) ||
+          banknote.description?.toLowerCase().includes(searchLower)
+        );
       });
-      
-      // Combine results with priority order: extPick matches first, then other matches
-      const filtered = [...extPickMatches, ...otherMatches];
       
       setFilteredBanknotes(filtered);
     }
