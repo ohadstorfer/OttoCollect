@@ -474,68 +474,15 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
     try {
       setLoading(true);
       
-      // First check if the banknote exists
-      const { data: banknoteCheck, error: banknoteCheckError } = await supabase
-        .from('detailed_banknotes')
-        .select('id')
-        .eq('id', suggestion.banknote_id)
-        .single();
-        
-      if (banknoteCheckError || !banknoteCheck) {
-        console.error('Banknote not found:', banknoteCheckError);
-        toast.error(`Banknote not found: ${banknoteCheckError?.message || 'Unknown error'}`);
-        setLoading(false);
-        return;
-      }
+      // Use the new approval function
+      const { error } = await supabase.rpc('approve_image_suggestion_v2', {
+        p_suggestion_id: suggestion.id
+      });
       
-      let hasErrors = false;
-      
-      // Update obverse image if available
-      if (suggestion.obverse_image) {
-        const { error: obverseError } = await supabase
-          .from('detailed_banknotes')
-          .update({
-            front_picture: suggestion.obverse_image,
-            front_picture_watermarked: suggestion.obverse_image_watermarked,
-            front_picture_thumbnail: suggestion.obverse_image_thumbnail
-          })
-          .eq('id', suggestion.banknote_id);
-        
-        if (obverseError) {
-          console.error('Error updating obverse image:', obverseError);
-          toast.error(`Failed to update obverse image: ${obverseError.message}`);
-          hasErrors = true;
-        }
-      }
-      
-      // Update reverse image if available
-      if (suggestion.reverse_image) {
-        const { error: reverseError } = await supabase
-          .from('detailed_banknotes')
-          .update({
-            back_picture: suggestion.reverse_image,
-            back_picture_watermarked: suggestion.reverse_image_watermarked,
-            back_picture_thumbnail: suggestion.reverse_image_thumbnail
-          })
-          .eq('id', suggestion.banknote_id);
-        
-        if (reverseError) {
-          console.error('Error updating reverse image:', reverseError);
-          toast.error(`Failed to update reverse image: ${reverseError.message}`);
-          hasErrors = true;
-        }
-      }
-      
-      // Update the suggestion status
-      const { error: suggestionError } = await supabase
-        .from('image_suggestions')
-        .update({ status: hasErrors ? 'pending' : 'approved' })
-        .eq('id', suggestion.id);
-      
-      if (suggestionError) {
-        console.error('Error updating suggestion status:', suggestionError);
-        toast.error(`Failed to update suggestion status: ${suggestionError.message}`);
-      } else if (!hasErrors) {
+      if (error) {
+        console.error('Error approving image suggestion:', error);
+        toast.error(`Failed to approve image suggestion: ${error.message}`);
+      } else {
         toast.success('Image suggestion approved successfully');
       }
       
