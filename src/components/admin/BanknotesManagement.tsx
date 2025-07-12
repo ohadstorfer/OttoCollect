@@ -96,15 +96,18 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   // Check if user is super admin
   const isSuperAdmin = user?.role === 'Super Admin';
 
+  // Always call the sorting hook, but apply custom logic afterward
+  const defaultSortedBanknotes = useBanknoteSorting({
+    banknotes: filteredBanknotes,
+    currencies,
+    sortFields: ['extPick']
+  });
+
   // Custom sorting for search results - prioritize extendedPickNumber matches
   const getSortedBanknotes = () => {
     if (!searchQuery.trim()) {
       // No search query - use normal sorting
-      return useBanknoteSorting({
-        banknotes: filteredBanknotes,
-        currencies,
-        sortFields: ['extPick']
-      });
+      return defaultSortedBanknotes;
     } else {
       // Search query exists - apply custom prioritization
       const searchLower = searchQuery.toLowerCase();
