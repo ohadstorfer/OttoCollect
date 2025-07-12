@@ -122,6 +122,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
         const { data: countriesData, error } = await supabase
           .from('countries')
           .select('id, name')
+          .order('display_order', { ascending: true })
           .order('name');
         
         if (!error && countriesData) {
