@@ -138,6 +138,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
     loadCountries();
   }, [initialCountryId, isCountryAdmin, selectedCountryId]);
 
+  
   useEffect(() => {
     if (selectedCountryId) {
       fetchBanknotes();
