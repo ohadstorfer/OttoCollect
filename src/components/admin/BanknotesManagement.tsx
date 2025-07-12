@@ -146,20 +146,48 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   }, [selectedCountryId]);
 
   useEffect(() => {
-    // Filter banknotes based on search query
+    // Filter banknotes based on search query with prioritization
     if (!searchQuery.trim()) {
       setFilteredBanknotes(allBanknotes);
     } else {
-      const filtered = allBanknotes.filter(banknote => {
-        const searchLower = searchQuery.toLowerCase();
-        return (
-          banknote.extendedPickNumber?.toLowerCase().includes(searchLower) ||
+      const searchLower = searchQuery.toLowerCase();
+      
+      // Separate banknotes into priority groups
+      const exactExtPickMatches = [];
+      const partialExtPickMatches = [];
+      const otherMatches = [];
+      
+      allBanknotes.forEach(banknote => {
+        const extPick = banknote.extendedPickNumber?.toLowerCase() || '';
+        const matchesSearch = (
+          extPick.includes(searchLower) ||
           banknote.country?.toLowerCase().includes(searchLower) ||
           banknote.denomination?.toLowerCase().includes(searchLower) ||
           banknote.year?.toLowerCase().includes(searchLower) ||
           banknote.description?.toLowerCase().includes(searchLower)
         );
+        
+        if (matchesSearch) {
+          if (extPick === searchLower) {
+            // Exact match with extended pick number
+            exactExtPickMatches.push(banknote);
+          } else if (extPick.includes(searchLower)) {
+            // Partial match with extended pick number
+            partialExtPickMatches.push(banknote);
+          } else {
+            // Matches other fields
+            otherMatches.push(banknote);
+          }
+        }
       });
+      
+      // Combine results with priority order
+      const filtered = [
+        ...exactExtPickMatches,
+        ...partialExtPickMatches,
+        ...otherMatches
+      ];
+      
       setFilteredBanknotes(filtered);
     }
     
