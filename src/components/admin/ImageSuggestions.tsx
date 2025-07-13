@@ -474,6 +474,20 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
     try {
       setLoading(true);
       
+      // Validate that the suggestion has at least one image
+      if (!suggestion.obverse_image && !suggestion.reverse_image) {
+        toast.error('Cannot approve suggestion: No images provided');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Approving suggestion:', {
+        id: suggestion.id,
+        banknote_id: suggestion.banknote_id,
+        hasObverse: !!suggestion.obverse_image,
+        hasReverse: !!suggestion.reverse_image
+      });
+      
       // First check if the banknote exists
       const { data: banknoteCheck, error: banknoteCheckError } = await supabase
         .from('detailed_banknotes')
@@ -488,54 +502,98 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
         return;
       }
       
-      let hasErrors = false;
+      // Helper function to convert URL to File
+      const urlToFile = async (url: string, filename: string): Promise<File> => {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new File([blob], filename, { type: blob.type });
+      };
       
-      // Update obverse image if available
+      // Process images to create watermarked and thumbnail versions
+      let obverseProcessedImages = null;
+      let reverseProcessedImages = null;
+      
+      // Show processing message
+      toast.info('Processing images, please wait...');
+      
       if (suggestion.obverse_image) {
-        const { error: obverseError } = await supabase
-          .from('detailed_banknotes')
-          .update({
-            front_picture: suggestion.obverse_image,
-            front_picture_watermarked: suggestion.obverse_image_watermarked,
-            front_picture_thumbnail: suggestion.obverse_image_thumbnail
-          })
-          .eq('id', suggestion.banknote_id);
-        
-        if (obverseError) {
-          console.error('Error updating obverse image:', obverseError);
-          toast.error(`Failed to update obverse image: ${obverseError.message}`);
-          hasErrors = true;
+        try {
+          console.log('Processing obverse image...');
+          const obverseFile = await urlToFile(suggestion.obverse_image, 'obverse.jpg');
+          obverseProcessedImages = await processAndUploadImage(obverseFile, 'banknotes', suggestion.user_id);
+          console.log('Processed obverse image:', obverseProcessedImages);
+        } catch (error) {
+          console.error('Error processing obverse image:', error);
+          toast.error('Failed to process obverse image');
+          setLoading(false);
+          return;
         }
       }
       
-      // Update reverse image if available
       if (suggestion.reverse_image) {
-        const { error: reverseError } = await supabase
-          .from('detailed_banknotes')
-          .update({
-            back_picture: suggestion.reverse_image,
-            back_picture_watermarked: suggestion.reverse_image_watermarked,
-            back_picture_thumbnail: suggestion.reverse_image_thumbnail
-          })
-          .eq('id', suggestion.banknote_id);
-        
-        if (reverseError) {
-          console.error('Error updating reverse image:', reverseError);
-          toast.error(`Failed to update reverse image: ${reverseError.message}`);
-          hasErrors = true;
+        try {
+          console.log('Processing reverse image...');
+          const reverseFile = await urlToFile(suggestion.reverse_image, 'reverse.jpg');
+          reverseProcessedImages = await processAndUploadImage(reverseFile, 'banknotes', suggestion.user_id);
+          console.log('Processed reverse image:', reverseProcessedImages);
+        } catch (error) {
+          console.error('Error processing reverse image:', error);
+          toast.error('Failed to process reverse image');
+          setLoading(false);
+          return;
         }
       }
       
-      // Update the suggestion status
+      // Ensure at least one image was processed successfully
+      if (!obverseProcessedImages && !reverseProcessedImages) {
+        toast.error('No images were processed successfully');
+        setLoading(false);
+        return;
+      }
+      
+      // Prepare the update data object
+      const updateData: any = {};
+      
+      // Add obverse image data if available
+      if (obverseProcessedImages) {
+        updateData.front_picture = obverseProcessedImages.original;
+        updateData.front_picture_watermarked = obverseProcessedImages.watermarked;
+        updateData.front_picture_thumbnail = obverseProcessedImages.thumbnail;
+      }
+      
+      // Add reverse image data if available
+      if (reverseProcessedImages) {
+        updateData.back_picture = reverseProcessedImages.original;
+        updateData.back_picture_watermarked = reverseProcessedImages.watermarked;
+        updateData.back_picture_thumbnail = reverseProcessedImages.thumbnail;
+      }
+      
+      // Update the banknote with the suggested images
+      const { error: updateError } = await supabase
+        .from('detailed_banknotes')
+        .update(updateData)
+        .eq('id', suggestion.banknote_id);
+      
+      if (updateError) {
+        console.error('Error updating banknote images:', updateError);
+        toast.error(`Failed to update banknote images: ${updateError.message}`);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Successfully updated banknote images:', updateData);
+      
+      // Update the suggestion status to approved
       const { error: suggestionError } = await supabase
         .from('image_suggestions')
-        .update({ status: hasErrors ? 'pending' : 'approved' })
+        .update({ status: 'approved' })
         .eq('id', suggestion.id);
       
       if (suggestionError) {
         console.error('Error updating suggestion status:', suggestionError);
         toast.error(`Failed to update suggestion status: ${suggestionError.message}`);
-      } else if (!hasErrors) {
+      } else {
+        console.log('Successfully approved suggestion:', suggestion.id);
         toast.success('Image suggestion approved successfully');
       }
       
@@ -543,7 +601,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       fetchImageSuggestions();
     } catch (error) {
       console.error('Unexpected error in handleApprove:', error);
-      toast.error(`Unexpected error: ${error.message || 'Unknown error'}`);
+      toast.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -751,6 +809,9 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
             currentImages={currentImages}
             onApprove={async () => {
               await handleApprove(selectedSuggestion);
+              // Refresh current images after approval
+              const updatedImages = await fetchCurrentImages(selectedSuggestion.banknote_id);
+              setCurrentImages(updatedImages);
               setShowCompareDialog(false);
             }}
             onReject={async () => {
