@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,7 +37,6 @@ import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
-import { submitImageSuggestion } from '@/services/imageSuggestionsService';
 
 // Define props for CollectionItemForm
 export interface CollectionItemFormProps {
@@ -151,12 +149,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
     }
   });
 
-  // Add new state for tracking image changes and suggestions
-  const [obverseImageChanged, setObverseImageChanged] = useState(false);
-  const [reverseImageChanged, setReverseImageChanged] = useState(false);
-  const [obverseSuggestionStatus, setObverseSuggestionStatus] = useState<'idle' | 'suggesting' | 'success' | 'error'>('idle');
-  const [reverseSuggestionStatus, setReverseSuggestionStatus] = useState<'idle' | 'suggesting' | 'success' | 'error'>('idle');
-
   // Search for banknotes as user types
   useEffect(() => {
     const delaySearch = setTimeout(async () => {
@@ -199,8 +191,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       setObverseImageFile(file);
       const fileUrl = URL.createObjectURL(file);
       setObverseImagePreview(fileUrl);
-      setObverseImageChanged(true); // Track that image was changed
-      setObverseSuggestionStatus('idle'); // Reset suggestion status
     }
   };
 
@@ -211,94 +201,65 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       setReverseImageFile(file);
       const fileUrl = URL.createObjectURL(file);
       setReverseImagePreview(fileUrl);
-      setReverseImageChanged(true); // Track that image was changed
-      setReverseSuggestionStatus('idle'); // Reset suggestion status
     }
   };
 
-  // Handle suggesting image to catalog
-  const handleSuggestImage = async (type: 'obverse' | 'reverse') => {
-    if (!authUser?.id || !selectedBanknote?.id) return;
-    
-    const imageFile = type === 'obverse' ? obverseImageFile : reverseImageFile;
-    if (!imageFile) return;
-
-    const setStatus = type === 'obverse' ? setObverseSuggestionStatus : setReverseSuggestionStatus;
-    
-    setStatus('suggesting');
-    
-    try {
-      // Process and upload the image first
-      const processedImages = await processAndUploadImage(imageFile, 'suggestions', authUser.id);
-      
-      // Submit the suggestion with proper data
-      await submitImageSuggestion({
-        banknoteId: selectedBanknote.id,
-        userId: authUser.id,
-        imageUrl: processedImages.original,
-        type: type
-      });
-
-      setStatus('success');
-      toast({
-        title: "Image Suggested Successfully",
-        description: `Your ${type} image has been submitted for review.`,
-      });
-    } catch (error) {
-      console.error('Error suggesting image:', error);
-      setStatus('error');
-      toast({
-        title: "Error",
-        description: "Failed to suggest image. Please try again.",
-        variant: "destructive",
-      });
+  const handleCropClick = (imageUrl: string | null, type: 'obverse' | 'reverse') => {
+    console.log('handleCropClick called with:', { imageUrl, type });
+    if (imageUrl) {
+      console.log('Setting selectedImageToCrop and opening crop dialog');
+      setSelectedImageToCrop({ url: imageUrl, type });
+      setCropDialogOpen(true);
+      console.log('Current state after setting:', { cropDialogOpen: true, selectedImageToCrop: { url: imageUrl, type } });
+    } else {
+      console.log('No imageUrl provided to handleCropClick');
     }
   };
 
-  // Handle opening image viewer
-  const openImageViewer = (imageUrl: string) => {
-    setSelectedImage(imageUrl);
-  };
-
-  // Handle crop button click
-  const handleCropClick = (imageUrl: string, type: 'obverse' | 'reverse') => {
-    setSelectedImageToCrop({ url: imageUrl, type });
-    setCropDialogOpen(true);
-  };
-
-  // Handle cropped image
   const handleCroppedImage = async (croppedImageUrl: string) => {
-    if (!selectedImageToCrop) return;
-
+    console.log('handleCroppedImage called with:', croppedImageUrl);
     try {
-      // Convert the cropped image URL to a File object
+      console.log('Converting data URL to Blob');
       const response = await fetch(croppedImageUrl);
       const blob = await response.blob();
-      const file = new File([blob], `cropped-${selectedImageToCrop.type}.jpg`, { type: 'image/jpeg' });
+      console.log('Blob created successfully');
 
-      // Update the appropriate image state
-      if (selectedImageToCrop.type === 'obverse') {
+      console.log('Creating File from blob');
+      const file = new File([blob], `cropped_${selectedImageToCrop?.type}.jpg`, { type: 'image/jpeg' });
+      console.log('File created successfully');
+
+      if (selectedImageToCrop?.type === 'obverse') {
+        console.log('Updating obverse image');
         setObverseImageFile(file);
-        setObverseImagePreview(croppedImageUrl);
-        setObverseImageChanged(true);
-        setObverseSuggestionStatus('idle');
+        setObverseImagePreview(URL.createObjectURL(file));
       } else {
+        console.log('Updating reverse image');
         setReverseImageFile(file);
-        setReverseImagePreview(croppedImageUrl);
-        setReverseImageChanged(true);
-        setReverseSuggestionStatus('idle');
+        setReverseImagePreview(URL.createObjectURL(file));
       }
-
-      setCropDialogOpen(false);
-      setSelectedImageToCrop(null);
     } catch (error) {
-      console.error('Error processing cropped image:', error);
+      console.error('Error in handleCroppedImage:', error);
       toast({
         title: "Error",
-        description: "Failed to process cropped image.",
+        description: "Failed to save cropped image",
         variant: "destructive",
       });
+    } finally {
+      console.log('Cleaning up crop dialog state');
+      setCropDialogOpen(false);
+      setSelectedImageToCrop(null);
     }
+  };
+
+  const handleImageClick = (imageUrl: string, alt: string) => {
+    setPreviewImage({ url: imageUrl, alt });
+    setImagePreviewDialogOpen(true);
+  };
+
+  const openImageViewer = (imageUrl: string) => {
+    console.log('openImageViewer called with:', imageUrl);
+    setSelectedImage(imageUrl);
+    console.log('selectedImage state set to:', imageUrl);
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -473,6 +434,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   </div>
                 </div>
 
+
+
                 {/* Condition or Grading Fields */}
                 {!form.watch("useGrading") ? (
                   <FormField
@@ -581,7 +544,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   </div>
                 )}
 
-                <div className="mt-7 mb-7 ">
+
+<div className="mt-7 mb-7 ">
                 {/* Public Note */}
                 <FormField
                   control={form.control}
@@ -672,34 +636,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                           )}
                         </div>
                       </div>
-                      
-                      {/* Suggest to Catalog Button for Obverse */}
-                      {obverseImageChanged && selectedBanknote && (
-                        <div className="mt-3 p-3 bg-muted/50 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">
-                              Suggest this image to improve the catalog
-                            </span>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleSuggestImage('obverse')}
-                              disabled={obverseSuggestionStatus === 'suggesting'}
-                            >
-                              {obverseSuggestionStatus === 'suggesting' && 'Suggesting...'}
-                              {obverseSuggestionStatus === 'success' && '✓ Suggested'}
-                              {obverseSuggestionStatus === 'error' && 'Try Again'}
-                              {obverseSuggestionStatus === 'idle' && 'Suggest to Catalog'}
-                            </Button>
-                          </div>
-                          {obverseSuggestionStatus === 'success' && (
-                            <p className="text-xs text-green-600 mt-1">
-                              Your suggestion has been submitted for review
-                            </p>
-                          )}
-                        </div>
-                      )}
                     </div>
 
                     {/* Reverse Image */}
@@ -762,34 +698,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                           )}
                         </div>
                       </div>
-                      
-                      {/* Suggest to Catalog Button for Reverse */}
-                      {reverseImageChanged && selectedBanknote && (
-                        <div className="mt-3 p-3 bg-muted/50 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">
-                              Suggest this image to improve the catalog
-                            </span>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleSuggestImage('reverse')}
-                              disabled={reverseSuggestionStatus === 'suggesting'}
-                            >
-                              {reverseSuggestionStatus === 'suggesting' && 'Suggesting...'}
-                              {reverseSuggestionStatus === 'success' && '✓ Suggested'}
-                              {reverseSuggestionStatus === 'error' && 'Try Again'}
-                              {reverseSuggestionStatus === 'idle' && 'Suggest to Catalog'}
-                            </Button>
-                          </div>
-                          {reverseSuggestionStatus === 'success' && (
-                            <p className="text-xs text-green-600 mt-1">
-                              Your suggestion has been submitted for review
-                            </p>
-                          )}
-                        </div>
-                      )}
                     </div>
 
                   </div>

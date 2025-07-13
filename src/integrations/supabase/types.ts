@@ -1578,10 +1578,6 @@ export type Database = {
       }
     }
     Functions: {
-      approve_image_suggestion_v2: {
-        Args: { p_suggestion_id: string }
-        Returns: undefined
-      }
       award_historical_badges: {
         Args: Record<PropertyKey, never>
         Returns: {
