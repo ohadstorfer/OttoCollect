@@ -1,91 +1,85 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { MessageSquare, Calendar, User } from 'lucide-react';
 import { format } from 'date-fns';
-import { ForumPost } from '@/types';
-import UserProfileLink from '@/components/common/UserProfileLink';
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { getInitials } from '@/lib/utils';
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { UserProfileLink } from "@/components/user/UserProfileLink";
+import { ImageGallery } from "@/components/shared/ImageGallery";
+import { ForumPostWithAuthor } from '@/types';
 
 interface ForumPostCardProps {
-  post: ForumPost;
+  post: ForumPostWithAuthor;
+  showFullContent?: boolean;
 }
 
-const ForumPostCard = ({ post }: ForumPostCardProps) => {
+const ForumPostCard = ({ post, showFullContent = false }: ForumPostCardProps) => {
   const navigate = useNavigate();
   
-  // Truncate the content if it's too long
-  const truncatedContent = post.content.length > 150 
-    ? `${post.content.substring(0, 150)}...` 
-    : post.content;
-
-  const handlePostClick = () => {
-    navigate(`/community/forum/${post.id}`);
+  const handleViewPost = () => {
+    navigate(`/forum/post/${post.id}`);
   };
 
   return (
-    <Card 
-      className="hover:shadow-md transition-all duration-200 cursor-pointer border bg-card overflow-hidden group h-full flex flex-col"
-      onClick={handlePostClick}
-    >
-      {/* Image Section - Only show if there are images */}
-      {post.imageUrls && post.imageUrls.length > 0 && (
-        <div className="relative aspect-video w-full overflow-hidden">
-          <img 
-            src={post.imageUrls[0]} 
-            alt="Post" 
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        </div>
-      )}
-
-      <CardHeader className="p-4 pb-2">
-        <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-ottoman-600 transition-colors">
-          <span>{post.title}</span>
-        </h3>
-      </CardHeader>
-
-      <CardContent className="p-4 pt-0 flex-1">
-        <p className="text-muted-foreground text-sm line-clamp-3">
-          {truncatedContent}
-        </p>
-      </CardContent>
-
-      <CardFooter className="p-4 pt-2 border-t bg-muted/50 mt-auto">
-        <div className="flex flex-wrap items-center justify-between gap-2 w-full">
-          {/* Author and Date */}
-          <div className="flex items-center gap-2 min-w-0">
-            {post.author ? (
+    <Card className="mb-4">
+      <CardContent className="pt-6">
+        <div className="flex items-start space-x-4">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={post.profiles?.avatar_url} />
+            <AvatarFallback>
+              {post.profiles?.username?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-2 mb-2">
               <UserProfileLink
-                userId={post.author.id}
-                username={post.author.username}
-                avatarUrl={post.author.avatarUrl}
-                size="sm"
+                userId={post.author_id}
+                username={post.profiles?.username || 'Unknown'}
+                avatarUrl={post.profiles?.avatar_url}
+                rank={post.profiles?.rank}
               />
-            ) : (
-              <div className="flex items-center gap-2 min-w-0">
-                <Avatar className="h-6 w-6 flex-shrink-0">
-                  <AvatarFallback>{getInitials('Anonymous')}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm text-muted-foreground truncate">Anonymous</span>
-              </div>
-            )}
-          </div>
-
-          {/* Date and Comments */}
-          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink-0">
-            <div className="flex items-center">
-              <Calendar className="h-3 w-3 mr-1" />
-              {format(new Date(post.createdAt), 'PP')}
             </div>
-            <div className="flex items-center">
-              <MessageSquare className="h-3 w-3 mr-1" />
-              {post.commentCount || 0}
+            
+            <div className="space-y-3">
+              {/* Post Images */}
+              {post.image_urls && post.image_urls.length > 0 && (
+                <div className="space-y-2">
+                  <ImageGallery images={post.image_urls} />
+                </div>
+              )}
+              
+              <h3 className="text-lg font-semibold">{post.title}</h3>
+              
+              <div className="prose prose-sm max-w-none">
+                {showFullContent ? (
+                  <p>{post.content}</p>
+                ) : (
+                  <p className="line-clamp-3">{post.content}</p>
+                )}
+              </div>
+              
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{format(new Date(post.created_at), 'PPp')}</span>
+                <div className="flex items-center space-x-4">
+                  <span>{post.forum_comments?.length || 0} comments</span>
+                  {!showFullContent && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleViewPost}
+                      className="text-primary hover:text-primary/80"
+                    >
+                      View Post →
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </CardFooter>
+      </CardContent>
     </Card>
   );
 };

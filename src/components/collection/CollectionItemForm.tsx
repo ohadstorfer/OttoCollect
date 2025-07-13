@@ -170,18 +170,18 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel,
           <div>
             <Label>Obverse (Front)</Label>
             <CollectionImageUpload
-              image={formData.obverseImage}
+              currentImage={formData.obverseImage}
               side="obverse"
-              onImageUploaded={(url) => handleChange("obverseImage", url)}
+              onImageUploaded={(versions) => handleChange("obverseImage", versions.original)}
               disabled={isSubmitting}
             />
           </div>
           <div>
             <Label>Reverse (Back)</Label>
             <CollectionImageUpload
-              image={formData.reverseImage}
+              currentImage={formData.reverseImage}
               side="reverse"
-              onImageUploaded={(url) => handleChange("reverseImage", url)}
+              onImageUploaded={(versions) => handleChange("reverseImage", versions.original)}
               disabled={isSubmitting}
             />
           </div>
