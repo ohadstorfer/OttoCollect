@@ -33,7 +33,6 @@ import { useToast } from '@/hooks/use-toast';
 import { getGradeDescription } from '@/utils/grading';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import SuggestImageDialog from './SuggestImageDialog';
 
 import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
