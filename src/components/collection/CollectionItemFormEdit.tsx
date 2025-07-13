@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -218,7 +219,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
   // Handle suggesting image to catalog
   const handleSuggestImage = async (type: 'obverse' | 'reverse') => {
-    if (!user?.id || !selectedBanknote?.id) return;
+    if (!authUser?.id || !selectedBanknote?.id) return;
     
     const imageFile = type === 'obverse' ? obverseImageFile : reverseImageFile;
     if (!imageFile) return;
@@ -229,12 +230,12 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
     
     try {
       // Process and upload the image first
-      const processedImages = await processAndUploadImage(imageFile, 'suggestions', user.id);
+      const processedImages = await processAndUploadImage(imageFile, 'suggestions', authUser.id);
       
-      // Submit the suggestion
+      // Submit the suggestion with proper data
       await submitImageSuggestion({
         banknoteId: selectedBanknote.id,
-        userId: user.id,
+        userId: authUser.id,
         imageUrl: processedImages.original,
         type: type
       });
@@ -250,6 +251,52 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       toast({
         title: "Error",
         description: "Failed to suggest image. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle opening image viewer
+  const openImageViewer = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
+
+  // Handle crop button click
+  const handleCropClick = (imageUrl: string, type: 'obverse' | 'reverse') => {
+    setSelectedImageToCrop({ url: imageUrl, type });
+    setCropDialogOpen(true);
+  };
+
+  // Handle cropped image
+  const handleCroppedImage = async (croppedImageUrl: string) => {
+    if (!selectedImageToCrop) return;
+
+    try {
+      // Convert the cropped image URL to a File object
+      const response = await fetch(croppedImageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `cropped-${selectedImageToCrop.type}.jpg`, { type: 'image/jpeg' });
+
+      // Update the appropriate image state
+      if (selectedImageToCrop.type === 'obverse') {
+        setObverseImageFile(file);
+        setObverseImagePreview(croppedImageUrl);
+        setObverseImageChanged(true);
+        setObverseSuggestionStatus('idle');
+      } else {
+        setReverseImageFile(file);
+        setReverseImagePreview(croppedImageUrl);
+        setReverseImageChanged(true);
+        setReverseSuggestionStatus('idle');
+      }
+
+      setCropDialogOpen(false);
+      setSelectedImageToCrop(null);
+    } catch (error) {
+      console.error('Error processing cropped image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process cropped image.",
         variant: "destructive",
       });
     }
