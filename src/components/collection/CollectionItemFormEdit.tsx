@@ -43,7 +43,7 @@ export interface CollectionItemFormProps {
   item?: CollectionItem | null;
   collectionItem?: CollectionItem | null;  // Adding this to match usage in components
   onSave?: (item: CollectionItem) => Promise<void>;
-  onUpdate?: (item: CollectionItem) => void;  // Adding this to match usage in components
+  onUpdate?: (item: CollectionItem, hasImageChanged?: boolean) => void;  // Updated to include hasImageChanged
   onCancel?: () => void;
 }
 
@@ -111,6 +111,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   const obverseInputRef = useRef<HTMLInputElement>(null);
   const reverseInputRef = useRef<HTMLInputElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [hasImageChanged, setHasImageChanged] = useState(false);
 
   const [obverseImageVersions, setObverseImageVersions] = useState<ImageVersions | null>(
     currentItem ? {
@@ -191,6 +192,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       setObverseImageFile(file);
       const fileUrl = URL.createObjectURL(file);
       setObverseImagePreview(fileUrl);
+      setHasImageChanged(true);
     }
   };
 
@@ -201,6 +203,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       setReverseImageFile(file);
       const fileUrl = URL.createObjectURL(file);
       setReverseImagePreview(fileUrl);
+      setHasImageChanged(true);
     }
   };
 
@@ -232,10 +235,12 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         console.log('Updating obverse image');
         setObverseImageFile(file);
         setObverseImagePreview(URL.createObjectURL(file));
+        setHasImageChanged(true);
       } else {
         console.log('Updating reverse image');
         setReverseImageFile(file);
         setReverseImagePreview(URL.createObjectURL(file));
+        setHasImageChanged(true);
       }
     } catch (error) {
       console.error('Error in handleCroppedImage:', error);
@@ -334,7 +339,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
           );
         }
 
-        if (onUpdate) onUpdate(currentItem);
+        if (onUpdate) onUpdate(currentItem, hasImageChanged);
       } else {
         // Create new item
         const savedItem = await addToCollection({

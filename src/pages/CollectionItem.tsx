@@ -15,7 +15,7 @@ import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
 import CollectionItemFormEdit from "@/components/collection/CollectionItemFormEdit";
-import { submitImageSuggestion, hasExistingImageSuggestion } from "@/services/imageSuggestionsService";
+import { submitImageSuggestion, hasExistingImageSuggestion, deleteExistingImageSuggestions } from "@/services/imageSuggestionsService";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
@@ -56,6 +56,7 @@ export default function CollectionItem() {
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
   const [showVisibilityDialog, setShowVisibilityDialog] = useState(false);
   const [suggestionStatus, setSuggestionStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
+  const [imageChangedAfterApproval, setImageChangedAfterApproval] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -140,9 +141,26 @@ export default function CollectionItem() {
     checkImageStatus();
   }, [collectionItem?.banknote?.id, collectionItem?.userId, isOwner, user?.id]);
 
-  const handleUpdateSuccess = async () => {
+  const handleUpdateSuccess = async (updatedItem?: CollectionItemType, hasImageChanged?: boolean) => {
     setIsEditDialogOpen(false);
     toast("Collection item updated successfully");
+    
+    // If images were changed, delete existing suggestions and reset suggestion status
+    if (hasImageChanged && collectionItem?.banknote?.id && user?.id) {
+      try {
+        await deleteExistingImageSuggestions(collectionItem.banknote.id, user.id);
+        console.log("Existing image suggestions deleted successfully");
+      } catch (error) {
+        console.error("Failed to delete existing image suggestions:", error);
+        // Don't show error to user as this is a background cleanup operation
+      }
+      
+      // Reset suggestion status regardless of deletion success
+      setSuggestionStatus(null);
+      setHasPendingSuggestion(false);
+      setImageChangedAfterApproval(suggestionStatus === 'approved');
+    }
+    
     // Refetch the data to get the latest updates
     await refetch();
   };
@@ -152,6 +170,14 @@ export default function CollectionItem() {
 
     setIsSubmittingImages(true);
     try {
+      // Delete any existing suggestions first (safety measure)
+      try {
+        await deleteExistingImageSuggestions(collectionItem.banknote.id, user.id);
+      } catch (error) {
+        console.error("Failed to delete existing suggestions before submitting new one:", error);
+        // Continue with submission even if deletion fails
+      }
+
       await submitImageSuggestion({
         banknoteId: collectionItem.banknote.id,
         userId: user.id,
@@ -162,6 +188,7 @@ export default function CollectionItem() {
       toast("Your images have been submitted for catalog consideration");
       setHasPendingSuggestion(true);
       setSuggestionStatus('pending');
+      setImageChangedAfterApproval(false); // Reset the flag
     } catch (error) {
       console.error("Error suggesting images:", error);
       toast("Failed to submit images. Please try again later.");
@@ -376,7 +403,7 @@ export default function CollectionItem() {
             <Card className={suggestionStatus === 'approved' ? 'border-2 border-gold-500 bg-gold-50/50' : ''}>
               <CardContent className="px-2 pt-2 pb-2">
                 <div className="flex flex-col space-y-3">
-                  {(suggestionStatus === 'approved' || (isOwner && hasCustomImages)) && (
+                  {(isOwner && hasCustomImages) && (
                     <div className="w-full rounded-md">
                       <div className="w-full flex justify-between items-center py-2 px-3">
                         {suggestionStatus === 'approved' ? (
@@ -417,6 +444,14 @@ export default function CollectionItem() {
                           </Button>
                         )}
                       </div>
+                      {/* Show message when user can re-suggest after image change */}
+                      {suggestionStatus === null && (
+                        <div className="text-sm text-muted-foreground text-center px-3 py-1">
+                          {imageChangedAfterApproval 
+                            ? "You have updated your images. You can suggest them to the catalogue again."
+                            : "You can suggest your images to be added to the catalogue"}
+                        </div>
+                      )}
                     </div>
                   )}
 

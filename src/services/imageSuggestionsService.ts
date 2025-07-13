@@ -90,3 +90,30 @@ export async function hasExistingImageSuggestion(banknoteId: string, userId: str
     };
   }
 }
+
+/**
+ * Delete existing image suggestions for a specific banknote and user
+ */
+export async function deleteExistingImageSuggestions(banknoteId: string, userId: string): Promise<boolean> {
+  try {
+    console.log(`Deleting existing image suggestions for banknote ${banknoteId} and user ${userId}`);
+    
+    const { data, error } = await supabase
+      .from('image_suggestions')
+      .delete()
+      .eq('banknote_id', banknoteId)
+      .eq('user_id', userId)
+      .select(); // Return deleted rows for logging
+
+    if (error) {
+      console.error("Error deleting existing image suggestions:", error);
+      throw new Error(`Failed to delete existing suggestions: ${error.message}`);
+    }
+
+    console.log(`Successfully deleted ${data?.length || 0} existing image suggestions`);
+    return true;
+  } catch (error) {
+    console.error("Error deleting existing image suggestions:", error);
+    throw error;
+  }
+}
