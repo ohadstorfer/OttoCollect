@@ -58,6 +58,8 @@ const formSchema = z.object({
     z.literal('')
   ]).optional(),
   gradeLetters: z.string().max(3, { message: "Maximum 3 characters allowed" }).optional(),
+  type: z.string().optional(),
+  prefix: z.string().optional(),
   purchasePrice: z.union([z.coerce.number().optional(), z.literal('')]),
   purchaseDate: z.date().optional(),
   location: z.string().optional(),
@@ -140,6 +142,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       gradeBy: currentItem?.grade_by || '',
       gradeNumber: currentItem?.grade ? parseInt(currentItem.grade.split(' ')[0]) : undefined,
       gradeLetters: currentItem?.grade ? currentItem.grade.split(' ')[1] : '',
+      type: (currentItem as any)?.type || '',
+      prefix: (currentItem as any)?.prefix || '',
       purchasePrice: currentItem?.purchasePrice || '',
       purchaseDate: currentItem?.purchaseDate ? new Date(currentItem.purchaseDate) : undefined,
       location: currentItem?.location || 'In my collection',
@@ -317,6 +321,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         grade,
         grade_by,
         grade_condition_description,
+        type: values.type || null,
+        prefix: values.prefix || null,
         purchase_price: purchasePrice,
         purchase_date: values.purchaseDate ? values.purchaseDate.toISOString() : null,
         location: values.location || null,
@@ -549,6 +555,41 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   </div>
                 )}
 
+                {/* Type Field */}
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Enter banknote type"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Prefix Field */}
+                <FormField
+                  control={form.control}
+                  name="prefix"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prefix</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Enter banknote prefix"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
 <div className="mt-7 mb-7 ">
                 {/* Public Note */}
