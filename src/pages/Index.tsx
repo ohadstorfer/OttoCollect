@@ -12,15 +12,23 @@ import { fetchMarketplaceItems } from "@/services/marketplaceService";
 import { ForumPost } from '@/types/forum';
 import { MarketplaceItem } from '@/types';
 import { useTheme } from "@/context/ThemeContext";
+import { fetchCountries } from "@/services/countryService";
+import { CountryData } from "@/types/filter";
+import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 const Index = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { toast } = useToast();
   const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItem[]>([]);
   const [forumPosts, setForumPosts] = useState<ForumPost[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [loadingMarketplace, setLoadingMarketplace] = useState(false);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [countries, setCountries] = useState<CountryData[]>([]);
+  const [showAdminDialog, setShowAdminDialog] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
   const animatedWords = ["Rare", "Historic", "Valuable", "Unique", "Exquisite"];
   const navigate = useNavigate();
 
@@ -48,6 +56,20 @@ const Index = () => {
     loadForumPosts();
   }, []);
 
+  // Load countries for checking existence
+  useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        const countriesData = await fetchCountries();
+        setCountries(countriesData);
+      } catch (error) {
+        console.error("Failed to fetch countries:", error);
+      }
+    };
+
+    loadCountries();
+  }, []);
+
   useEffect(() => {
     const loadMarketplaceItems = async () => {
       setLoadingMarketplace(true);
@@ -63,6 +85,21 @@ const Index = () => {
 
     loadMarketplaceItems();
   }, []);
+
+  // Handler functions for country navigation
+  const handleOttomanEmpireClick = () => {
+    navigate('/catalog/Ottoman Empire');
+  };
+
+  const handleCountryClick = (countryName: string) => {
+    const country = countries.find(c => c.name === countryName);
+    if (country) {
+      navigate(`/catalog/${encodeURIComponent(countryName)}`);
+    } else {
+      setSelectedCountry(countryName);
+      setShowAdminDialog(true);
+    }
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -306,7 +343,10 @@ world.</p>
 
             <div className={`${theme === 'light' ? 'border-ottoman-400 text-ottoman-800 ' : 'border-ottoman-700 text-ottoman-100'} rounded-xl shadow-lg overflow-hidden`}>
               {/* Ottoman Empire Header */}
-              <div className={`${theme === 'light' ? 'bg-ottoman-600' : 'bg-ottoman-800'} p-6 flex items-center justify-center`}>
+              <div 
+                className={`${theme === 'light' ? 'bg-ottoman-600' : 'bg-ottoman-800'} p-6 flex items-center justify-center cursor-pointer hover:${theme === 'light' ? 'bg-ottoman-700' : 'bg-ottoman-900'} transition-colors`}
+                onClick={handleOttomanEmpireClick}
+              >
                 <div className={`text-white text-2xl md:text-3xl font-serif font-bold text-center`}>
                   <span>Ottoman Empire</span>
                 </div>
@@ -324,15 +364,15 @@ world.</p>
                   <div className="grid auto-rows-fr grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
                     {['Turkey', 'Egypt', 'Iraq', 'Israel', 'Jordan', 'Libya', 'Kuwait', 'Lebanon', 'Palestine', 'Saudi Arabia', 'Syria'].map((country) => (
                       <div
-                        key={typeof country === 'string' ? country : country.name}
+                        key={country}
                         className={`group p-3 rounded-lg border transition-all cursor-pointer
                         ${theme === 'light' 
                           ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
-                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}
-                        ${typeof country === 'object' && country.wide ? 'sm:col-span-2' : ''}`}
+                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
+                        onClick={() => handleCountryClick(country)}
                       >
                         <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
-                          {typeof country === 'string' ? country : country.name}
+                          {country}
                         </div>
                       </div>
                     ))}
@@ -347,23 +387,37 @@ world.</p>
                     </h3>
                     <div className={`h-px flex-1 ${theme === 'light' ? 'bg-ottoman-200' : 'bg-ottoman-800'}`}></div>
                   </div>
-                  <div className="grid auto-rows-fr grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
-                    {['Albania', { name: 'Bosnia & Herzegovina', wide: true }, 'Bulgaria', 'Kosovo', 'Macedonia', 'Montenegro', 'Serbia'].map((country) => (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+                    {['Albania', 'Bulgaria', 'Kosovo', 'Macedonia', 'Montenegro', 'Serbia'].map((country) => (
                       <div
-                        key={typeof country === 'string' ? country : country.name}
+                        key={country}
                         className={`group p-3 rounded-lg border transition-all cursor-pointer
                         ${theme === 'light' 
                           ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
-                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}
-                        ${typeof country === 'object' && country.wide ? 'sm:col-span-2' : ''}`}
+                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
+                        onClick={() => handleCountryClick(country)}
                       >
                         <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
-                          {typeof country === 'string' ? country : country.name}
+                          {country}
                         </div>
                       </div>
                     ))}
+                    {/* Bosnia & Herzegovina with special styling to prevent stretching */}
+                    <div
+                      className={`group p-1 rounded-lg border transition-all cursor-pointer sm:col-span-2
+                      ${theme === 'light' 
+                        ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
+                        : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
+                      onClick={() => handleCountryClick('Bosnia & Herzegovina')}
+                    >
+                      <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'} py-2`}>
+                        Bosnia & Herzegovina
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                
               </div>
             </div>
           </div>
@@ -406,6 +460,37 @@ world.</p>
           </div>
         </div>
       </section>
+
+      {/* Admin Dialog */}
+      <AlertDialog open={showAdminDialog} onOpenChange={setShowAdminDialog}>
+        <AlertDialogContent className="sm:max-w-[425px]">
+          <AlertDialogHeader>
+          <AlertDialogTitle><span>Administrator Needed</span></AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                We are seeking an Administrator for <strong>{selectedCountry}</strong> banknotes.
+              </p>
+              <p>
+                If you are a collector or an expert in this area, we'd love to hear from you.
+              </p>
+              <p>
+                Please contact us at:{" "}
+                <a 
+                  href="mailto:info@ottocollect.com" 
+                  className="text-ottoman-600 hover:text-ottoman-700 font-medium"
+                >
+                  info@ottocollect.com
+                </a>
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowAdminDialog(false)}>
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
