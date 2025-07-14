@@ -201,7 +201,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                 <span className="text-base">{collectionItem.banknote.sealNames}</span>
               </div>
             )}
-          {collectionItem.banknote?.signaturesFront && (
+          {/* {collectionItem.banknote?.signaturesFront && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">Front Signatures</span>
               <span className="text-base">{collectionItem.banknote.signaturesFront}</span>
@@ -213,25 +213,43 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               <span className="text-sm font-medium text-muted-foreground w-32">Back Signatures</span>
               <span className="text-base">{collectionItem.banknote.signaturesBack}</span>
             </div>
-          )}
+          )} */}
 
-          {/* Display resolved signature picture URLs from enhanced view */}
-          {collectionItem.banknote?.signaturePictureUrls && collectionItem.banknote.signaturePictureUrls.length > 0 && (
-            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Signature Pictures</span>
-              <div className="flex flex-wrap gap-2">
-                {collectionItem.banknote.signaturePictureUrls.map((url, index) => (
-                  <img
-                    key={index}
-                    src={url}
-                    alt={`Signature ${index + 1}`}
-                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                    onClick={() => openImageViewer(url)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+         {/* Display resolved signature picture URLs from enhanced view */}
+      {collectionItem.banknote?.signaturesFrontUrls && collectionItem.banknote.signaturesFrontUrls.length > 0 && (
+        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Front Signature</span>
+          <div className="flex flex-wrap gap-2">
+            {collectionItem.banknote.signaturesFrontUrls.map((url, index) => (
+              <img
+                key={index}
+                src={url}
+                alt={`Signature ${index + 1}`}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                onClick={() => onImageClick?.(url)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Display resolved signature picture URLs from enhanced view */}
+      {collectionItem.banknote?.signaturesBackUrls && collectionItem.banknote.signaturesBackUrls.length > 0 && (
+        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Back Signature</span>
+          <div className="flex flex-wrap gap-2">
+            {collectionItem.banknote.signaturesBackUrls.map((url, index) => (
+              <img
+                key={index}
+                src={url}
+                alt={`Signature ${index + 1}`}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                onClick={() => onImageClick?.(url)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
           {/* Display resolved seal picture URLs from enhanced view */}
           {collectionItem.banknote?.sealPictureUrls && collectionItem.banknote.sealPictureUrls.length > 0 && (
