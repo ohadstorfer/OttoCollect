@@ -403,17 +403,25 @@ export default function CollectionItem() {
             <Card className={suggestionStatus === 'approved' ? 'border-2 border-gold-500 bg-gold-50/50' : ''}>
               <CardContent className="px-2 pt-2 pb-2">
                 <div className="flex flex-col space-y-3">
-                  {(isOwner && hasCustomImages) && (
+                  {/* Show "Catalogue Image" status to everyone when approved */}
+                  {(suggestionStatus === 'approved' && hasCustomImages) && (
                     <div className="w-full rounded-md">
                       <div className="w-full flex justify-between items-center py-2 px-3">
-                        {suggestionStatus === 'approved' ? (
-                          <div className="w-full flex items-center justify-center gap-2 py-1.5">
-                            <Star className="h-5 w-5 fill-gold-500 text-gold-500" />
-                            <span className="font-medium text-gold-600">
-                              Catalogue Image
-                            </span>
-                          </div>
-                        ) : suggestionStatus === 'rejected' ? (
+                        <div className="w-full flex items-center justify-center gap-2 py-1.5">
+                          <Star className="h-5 w-5 fill-gold-500 text-gold-500" />
+                          <span className="font-medium text-gold-600">
+                            Catalogue Image
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Show owner-only controls for non-approved suggestions */}
+                  {(isOwner && hasCustomImages && suggestionStatus !== 'approved') && (
+                    <div className="w-full rounded-md">
+                      <div className="w-full flex justify-between items-center py-2 px-3">
+                        {suggestionStatus === 'rejected' ? (
                           <div className="w-full flex items-center gap-2">
                             <Button
                               onClick={handleSuggestToCatalog}

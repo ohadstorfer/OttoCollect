@@ -369,6 +369,12 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     watermarkUrl: item.watermark_picture_url || null,
     tughraUrl: item.tughra_picture_url || null,
     
+    // Legacy compatibility property - combine front and back signature URLs
+    signaturePictureUrls: [
+      ...(item.signatures_front_urls || []),
+      ...(item.signatures_back_urls || [])
+    ],
+    
     // Map the authority_name field
     authorityName: item.authority_name || null,
 
@@ -383,6 +389,7 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     id: mapped.id,
     signaturesFrontUrls: mapped.signaturesFrontUrls,
     signaturesBackUrls: mapped.signaturesBackUrls,
+    signaturePictureUrls: mapped.signaturePictureUrls,
     sealPictureUrls: mapped.sealPictureUrls,
     watermarkUrl: mapped.watermarkUrl,
     authorityName: mapped.authorityName,
