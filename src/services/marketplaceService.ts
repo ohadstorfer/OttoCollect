@@ -91,7 +91,7 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           console.log(`Fetching seller info for user ${item.seller_id}`);
           const { data: sellerData, error: sellerError } = await supabase
             .from('profiles')
-            .select('id, username, rank, avatar_url')
+            .select('id, username, rank, role, avatar_url')
             .eq('id', item.seller_id)
             .single();
           

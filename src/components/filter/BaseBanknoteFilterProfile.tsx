@@ -60,6 +60,7 @@ export type BaseBanknoteFilterProps = {
     username: string;
     avatarUrl?: string;
     rank?: string;
+    role?: string;
   };
   onBackToCountries?: () => void;
 };
@@ -352,7 +353,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
               )}
               <span className="font-medium min-w-0 shrink">{profileUser.username}</span>
               {!isMobile && profileUser.rank && (
-                <Badge variant="user" rank={profileUser.rank} showIcon className="shrink-0 ml-1 sm:ml-2" />
+                <Badge variant="user" rank={profileUser.rank} role={profileUser.role} showIcon className="shrink-0 ml-1 sm:ml-2" />
               )}
             </div>
             

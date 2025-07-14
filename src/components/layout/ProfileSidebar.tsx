@@ -53,9 +53,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
             <div className="flex flex-col">
               <SheetTitle className="text-left"> <span> {user.username} </span> </SheetTitle>
               <div className="flex items-center gap-2">
-                <Badge variant="user" rank={user.rank}>
-                  {user.rank}
-                </Badge>
+                <Badge variant="user" rank={user.rank} role={user.role} showIcon />
               </div>
             </div>
           </div>

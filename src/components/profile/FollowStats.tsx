@@ -184,10 +184,10 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
                 className="scale-90 transform-gpu" 
               />
             ) : (
-              <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}> 0 </span>
+              <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}>-</span>
             )}
           </div>
-          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`} > Badges </span>
+          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>Badges</span>
         </button>
       </div>
 
@@ -257,7 +257,7 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
                         <div>
                           <div className="font-medium">{follower.follower_profile?.username || 'Unknown'}</div>
                           {follower.follower_profile?.rank && (
-                            <Badge variant="user" rank={follower.follower_profile.rank} className="text-xs" />
+                            <Badge variant="user" rank={follower.follower_profile.rank} role={follower.follower_profile.role} className="text-xs" />
                           )}
                         </div>
                       </div>
@@ -301,7 +301,7 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
                         <div>
                           <div className="font-medium">{follow.following_profile?.username || 'Unknown'}</div>
                           {follow.following_profile?.rank && (
-                            <Badge variant="user" rank={follow.following_profile.rank} className="text-xs" />
+                            <Badge variant="user" rank={follow.following_profile.rank} role={follow.following_profile.role} className="text-xs" />
                           )}
                         </div>
                       </div>

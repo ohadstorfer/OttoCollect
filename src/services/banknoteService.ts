@@ -418,6 +418,7 @@ export interface BanknoteCollectorProfile {
   username: string;
   avatar_url?: string;
   rank?: UserRank;
+  role?: string;
   created_at: string;
 }
 
@@ -449,7 +450,7 @@ export async function getBanknoteCollectors(banknoteId: string): Promise<Banknot
     // Fetch profiles for these users
     const { data: profilesData, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank, created_at')
+      .select('id, username, avatar_url, rank, role, created_at')
       .in('id', userIds);
 
     if (profilesError) throw profilesError;

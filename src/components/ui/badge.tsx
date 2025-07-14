@@ -37,6 +37,7 @@ export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {
   rank?: string;
+  role?: string;
   showIcon?: boolean;
 }
 
@@ -56,6 +57,7 @@ function Badge({
   className,
   variant,
   rank,
+  role,
   showIcon = true,
   ...props
 }: BadgeProps) {
@@ -78,18 +80,41 @@ function Badge({
     return null;
   };
 
-  const getDisplayRank = (userRank: string) => {
-    // if (userRank.includes('Super Admin')) {
-    //   // Replace "Super Admin" with "Admin" and keep the collector rank
-    //   return userRank.replace('Super Admin ', 'Admin ');
-    // }
+  const getDisplayRank = (userRank: string, userRole?: string) => {
+    if (!userRole) {
+      return userRank;
+    }
+
+    // If the user is Super Admin, add "- Admin" to the rank
+    if (userRole === "Super Admin") {
+      return (
+        <span>
+  {userRank}
+  <span className="inline">- </span>
+  <span className="inline-block break-words">Admin</span>
+</span>
+      );
+    }
+    
+    // If the user is a country admin (not Super Admin but contains "Admin"), add the role
+    if (userRole.includes("Admin") && userRole !== "Super Admin") {
+      return (
+        <span>
+        {userRank}
+        <span className="inline">- </span>
+        <span className="inline-block break-words">{userRole}</span>
+      </span>
+      );
+    }
+    
+    // For regular users, just show the rank
     return userRank;
   };
   
   return (
     <div className={cn(badgeVariants({ variant: badgeVariant }), className)} {...props}>
       {renderIcon()}
-      {props.children || (rank ? getDisplayRank(rank) : '')}
+      {props.children || (rank ? getDisplayRank(rank, role) : '')}
     </div>
   )
 }

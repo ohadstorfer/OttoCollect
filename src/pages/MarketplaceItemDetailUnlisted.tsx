@@ -167,7 +167,7 @@ const MarketplaceItemDetailUnlisted = () => {
                       to={`/profile/${seller.id}`}
                       className="text-ottoman-500 hover:text-ottoman-600"
                     >
-                      {seller.username} <Badge variant="user" rank={sellerRank as UserRank} />
+                      {seller.username} <Badge variant="user" rank={sellerRank as UserRank} role={seller.role} />
                     </Link>
                   </div>
 

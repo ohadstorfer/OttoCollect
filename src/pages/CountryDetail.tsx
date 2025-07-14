@@ -102,7 +102,7 @@ const CountryDetail = () => {
   console.log("[CountryDetail] groupMode:", groupMode, "userCollection length:", userCollection.length);
 
   return (
-    <div className="w-full px-2 sm:px-6 py-8">
+    <div className="w-full px-2 sm:px-6 py-8 -mb-10">
 
 
       <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">

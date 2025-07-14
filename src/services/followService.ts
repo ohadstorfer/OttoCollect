@@ -11,12 +11,14 @@ export interface FollowerData {
     username: string;
     avatar_url?: string;
     rank?: string;
+    role?: string;
   };
   following_profile?: {
     id: string;
     username: string;
     avatar_url?: string;
     rank?: string;
+    role?: string;
   };
 }
 
@@ -131,7 +133,8 @@ export async function getFollowers(userId: string): Promise<FollowerData[]> {
           id,
           username,
           avatar_url,
-          rank
+          rank,
+          role
         )
       `)
       .eq('following_id', userId)
@@ -158,7 +161,8 @@ export async function getFollowing(userId: string): Promise<FollowerData[]> {
           id,
           username,
           avatar_url,
-          rank
+          rank,
+          role
         )
       `)
       .eq('follower_id', userId)

@@ -169,7 +169,7 @@ export default function Members() {
                     <div className="flex-1">
                       <h3 className="font-medium text-lg"><span>{member.username}</span></h3>
                       <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="user" rank={member.rank} showIcon />
+                      <Badge variant="user" rank={member.rank} role={member.role} showIcon />
                       </div>
                       {member.country && (
                         <p className="text-sm text-muted-foreground mt-1">{member.country}</p>

@@ -672,7 +672,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                           <div>
                             <div className="font-medium">{collector.username || 'Unknown'}</div>
                             {collector.rank && (
-                              <Badge variant="user" rank={collector.rank} showIcon />
+                              <Badge variant="user" rank={collector.rank} role={collector.role} showIcon />
                             )}
                           </div>
                         </div>

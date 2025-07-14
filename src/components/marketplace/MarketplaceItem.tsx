@@ -160,7 +160,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
               <span className="text-xs text-ottoman-400">Seller:</span>
               <div className="flex items-center gap-1">
                 <span className="text-sm text-ottoman-200">{seller.username}</span>
-                <Badge variant="user" rank={sellerRank} className="ml-1" />
+                <Badge variant="user" rank={sellerRank} role={seller.role} className="ml-1" />
               </div>
             </div>
           )}

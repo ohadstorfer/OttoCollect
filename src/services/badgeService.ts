@@ -171,8 +171,25 @@ export async function getHighestBadge(userId: string): Promise<BadgeInfo | null>
   try {
     console.log('getHighestBadge - Starting for userId:', userId);
     
-    const { data, error } = await supabase
-      .rpc('get_user_highest_badges', { user_id_param: userId });
+    // Add retry logic
+    let retries = 3;
+    let data;
+    let error;
+    
+    while (retries > 0) {
+      const result = await supabase
+        .rpc('get_user_highest_badges', { user_id_param: userId });
+      
+      data = result.data;
+      error = result.error;
+      
+      if (!error && data) break;
+      
+      retries--;
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+      }
+    }
 
     console.log('getHighestBadge - RPC response:', { data, error });
 
@@ -195,7 +212,8 @@ export async function getHighestBadge(userId: string): Promise<BadgeInfo | null>
         stage: current.stage as 'Stage 1' | 'Stage 2' | 'Stage 3' | 'Stage 4' | 'Stage 5',
         icon_url: current.icon_url,
         category: current.category,
-        threshold_value: current.threshold_value
+        threshold_value: current.threshold_value,
+        description: current.description // Ensure description is included
       };
       
       if (!highest) return currentBadge;
