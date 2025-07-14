@@ -138,7 +138,7 @@ const Index = () => {
 
         <div className="container mx-auto max-w-4xl flex flex-col items-center justify-center animate-fade-in">
           <div className="flex flex-col items-center">
-          <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight mb-[-1rem]`}>
+            <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight mb-[-1rem]`}>
               <span className="animate-shimmer inline-block">
                 OttoCollect
               </span>
@@ -148,12 +148,12 @@ const Index = () => {
               alt="OttoCollect Logo"
               className="w-[200px] h-[200px] object-contain animate-floating "
             />
-            
+
           </div>
 
           <h3 className={`mb-1 text-2xl sm:text-2xl lg:text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight line-clamp-2`}>
             <span>
-            Discover the Legacy of Ottoman empire and it's successor countries Banknotes
+              Discover the Legacy of Ottoman empire and it's successor countries Banknotes
             </span>
           </h3>
 
@@ -217,8 +217,8 @@ const Index = () => {
               </div>
               <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Catalogues</span></h3>
               <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Browse comprehensive
-catalogue of ottoman and it's
-successor countries banknotes</p>
+                catalogue of ottoman and it's
+                successor countries banknotes</p>
             </div>
 
             <div
@@ -267,9 +267,9 @@ successor countries banknotes</p>
               </div>
               <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Community</span></h3>
               <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>View other personal collection.
-Connect interact and follow
-other collectors from around the
-world.</p>
+                Connect interact and follow
+                other collectors from around the
+                world.</p>
             </div>
           </div>
         </div>
@@ -336,14 +336,14 @@ world.</p>
                 <span>Our full list of banknotes catalogues and collections that will be supported</span>
               </h2>
               <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}>
-              Ottoman Empire's successor countries from 1840 to the present days
+                Ottoman Empire's successor countries from 1840 to the present days
 
               </p>
             </div>
 
             <div className={`${theme === 'light' ? 'border-ottoman-400 text-ottoman-800 ' : 'border-ottoman-700 text-ottoman-100'} rounded-xl shadow-lg overflow-hidden`}>
               {/* Ottoman Empire Header */}
-              <div 
+              <div
                 className={`${theme === 'light' ? 'bg-ottoman-600' : 'bg-ottoman-800'} p-6 flex items-center justify-center cursor-pointer hover:${theme === 'light' ? 'bg-ottoman-700' : 'bg-ottoman-900'} transition-colors`}
                 onClick={handleOttomanEmpireClick}
               >
@@ -366,9 +366,9 @@ world.</p>
                       <div
                         key={country}
                         className={`group p-3 rounded-lg border transition-all cursor-pointer
-                        ${theme === 'light' 
-                          ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
-                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
+                        ${theme === 'light'
+                            ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300'
+                            : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
                         onClick={() => handleCountryClick(country)}
                       >
                         <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
@@ -387,37 +387,42 @@ world.</p>
                     </h3>
                     <div className={`h-px flex-1 ${theme === 'light' ? 'bg-ottoman-200' : 'bg-ottoman-800'}`}></div>
                   </div>
+
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
-                    {['Albania', 'Bulgaria', 'Kosovo', 'Macedonia', 'Montenegro', 'Serbia'].map((country) => (
+                    {[
+                      'Albania',
+                      'Bosnia & Herzegovina',
+                      'Bulgaria',
+                      'Kosovo',
+                      'Macedonia',
+                      'Montenegro',
+                      'Serbia',
+                    ].map((country) => (
                       <div
-                        key={country}
-                        className={`group p-3 rounded-lg border transition-all cursor-pointer
-                        ${theme === 'light' 
-                          ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
-                          : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
-                        onClick={() => handleCountryClick(country)}
-                      >
-                        <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
-                          {country}
-                        </div>
+  key={country}
+  className={`group rounded-lg border transition-all cursor-pointer flex items-center justify-center
+  ${country === 'Bosnia & Herzegovina'
+    ? 'p-0 sm:p-1 sm:col-span-2 min-w-0'
+    : 'p-3'}
+  ${theme === 'light' 
+    ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
+    : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
+  onClick={() => handleCountryClick(country)}
+>
+                       <div
+  className={`text-center font-medium truncate w-full
+    ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}
+    ${country === 'Bosnia & Herzegovina' ? 'text-sm sm:text-base leading-none px-0 py-0' : ''}`}
+>
+  {country}
+</div>
                       </div>
                     ))}
-                    {/* Bosnia & Herzegovina with special styling to prevent stretching */}
-                    <div
-                      className={`group p-1 rounded-lg border transition-all cursor-pointer sm:col-span-2
-                      ${theme === 'light' 
-                        ? 'bg-ottoman-50 hover:bg-ottoman-100 border-ottoman-200 hover:border-ottoman-300' 
-                        : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
-                      onClick={() => handleCountryClick('Bosnia & Herzegovina')}
-                    >
-                      <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'} py-2`}>
-                        Bosnia & Herzegovina
-                      </div>
-                    </div>
                   </div>
                 </div>
 
-                
+
+
               </div>
             </div>
           </div>
@@ -434,7 +439,7 @@ world.</p>
 
         <div className="container mx-auto px-4 text-center reveal fade-bottom ">
           <h2 className={`text-3xl md:text-4xl lg:text-5xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-6`}>
-                          <span>Join Our Community Today</span>
+            <span>Join Our Community Today</span>
           </h2>
           <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'} max-w-2xl mx-auto mb-10`}>
             Connect with fellow collectors, track your collection, and explore the rich history of Ottoman banknotes
@@ -465,7 +470,7 @@ world.</p>
       <AlertDialog open={showAdminDialog} onOpenChange={setShowAdminDialog}>
         <AlertDialogContent className="sm:max-w-[425px]">
           <AlertDialogHeader>
-          <AlertDialogTitle><span>Administrator Needed</span></AlertDialogTitle>
+            <AlertDialogTitle><span>Administrator Needed</span></AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
               <p>
                 We are seeking an Administrator for <strong>{selectedCountry}</strong> banknotes.
@@ -475,8 +480,8 @@ world.</p>
               </p>
               <p>
                 Please contact us at:{" "}
-                <a 
-                  href="mailto:info@ottocollect.com" 
+                <a
+                  href="mailto:info@ottocollect.com"
                   className="text-ottoman-600 hover:text-ottoman-700 font-medium"
                 >
                   info@ottocollect.com
