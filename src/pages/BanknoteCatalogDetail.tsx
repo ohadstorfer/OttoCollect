@@ -266,7 +266,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const wishlistButtonClass = cn(
     "h-8 w-8 shrink-0",
     (wishlistItem || hasJustBeenWishlisted)
-      ? "bg-red-100 text-red-600 hover:bg-red-200 border-red-300" 
+      ? "bg-red-100 text-red-600 hover:bg-red-200 border-red-300"
       : "bg-background hover:bg-muted",
     "transition-all duration-200"
   );
@@ -443,231 +443,247 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   ];
 
   return (
-    <div className="page-container  mx-auto ">
+    <div className="page-container ">
       {renderOwnershipToast()}
-      <div className="flex flex-col ">
-        <div className="space-y-1 page-container max-w-5xl mx-auto">
-          <div className="flex items-baseline  gap-4">
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <span> {banknote.denomination} </span>
-            </h1>
-            {banknote.extendedPickNumber && (
-              <p className="text-xl leading-tight">
-                {banknote.extendedPickNumber}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-xl text-muted-foreground">{banknote.country}, {banknote.year}</p>
-            {!propsId && (
-              <div className="flex items-center space-x-2">
+      <div className="flex flex-col space-y-6">
+        <div className="space-y-1 page-container max-w-5xl">
+          <div className="flex justify-between items-center">
+            <div className="flex items-baseline  gap-2">
+              <Button
+                onClick={() => navigate(-1)}
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10"
+              >
+                <ArrowLeft className="h-5 w-5" /> {/* match h1 size */}
+              </Button>
 
-                <Button variant="ghost" onClick={() => navigate(-1)}>
-                  Back
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div className="lg:col-span-3 space-y-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Image className="h-5 w-5 mr-2" />
-                  <span> Banknote Images </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-2 pt-2 pb-2">
-                <div className="flex flex-col space-y-3">
-                  {imageUrls.length > 0 ? (
-                    imageUrls.slice(0, 4).map((url, index) => (
-                      <div
-                        key={index}
-                        className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => openImageViewer(url)}
-                      >
-                        <div className="w-full rounded-md overflow-hidden border">
-                          <img
-                            src={url}
-                            alt={`Banknote Image ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 p-6 text-center bg-muted rounded-md">
-                      <p className="text-muted-foreground">No images available</p>
-                    </div>
-                  )}
-
-                  {imageUrls.length > 4 && (
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
-                          <span className="text-lg font-medium">+{imageUrls.length - 4} more</span>
-                        </div>
-                      </SheetTrigger>
-                      <SheetContent className="w-[90%] sm:max-w-lg">
-                        <SheetHeader>
-                          <SheetTitle>All Banknote Images</SheetTitle>
-                          <SheetDescription>
-                            {banknote.country}, {banknote.denomination}, {banknote.year}
-                          </SheetDescription>
-                        </SheetHeader>
-                        <div className="grid grid-cols-2 gap-4 mt-8">
-                          {imageUrls.map((url, index) => (
-                            <div
-                              key={index}
-                              className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => openImageViewer(url)}
-                            >
-                              <div className="absolute inset-0 rounded-md overflow-hidden border">
-                                <img
-                                  src={url}
-                                  alt={`Banknote Image ${index + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </SheetContent>
-                    </Sheet>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-3xl font-bold flex items-center gap-2">
+                    <span> {banknote.denomination} </span>
+                  </h1>
+                  <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
+                  {banknote.extendedPickNumber && (
+                    <p className="text-xl leading-tight">
+                      {banknote.extendedPickNumber}
+                    </p>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+
+
+              
+              <p className="text-xl text-muted-foreground">
+                {banknote?.country}
+                {banknote?.country && banknote?.year && ", "}
+                {banknote?.year}
+              </p>
+
+              </div>
+            </div>
+
+            </div>
           </div>
 
-          <div className="lg:col-span-2">
-            <Card className="border-t-4 border-t-primary shadow-md">
-              <CardHeader className="border-b bg-muted/20">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-xl m-0">
-                    <span> Banknote Details </span>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-3 space-y-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center">
+                    <Image className="h-5 w-5 mr-2" />
+                    <span> Banknote Images </span>
                   </CardTitle>
-                  <div className="flex gap-0">
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 flex items-center gap-0" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowCollectorsDialog(true);
-                      }}
-                      title={`On ${collectorsData?.total_count || 0} Collections`}
-                    >
-                        <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-3.5 w-3.5" /></span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={wishlistButtonClass}
-                      onClick={handleWishlistClick}
-                      title={wishlistItem ? "Remove from wishlist" : "Add to wishlist"}
-                    >
-                      <Heart className={cn("h-4 w-4", (wishlistItem || hasJustBeenWishlisted) ? "fill-current" : "")} />
-                    </Button>
-                    {shouldShowCheckButton ? (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={checkButtonClass}
-                        aria-label="You already own this banknote"
-                        onClick={handleOwnershipCheckButton}
-                        tabIndex={0}
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
+                </CardHeader>
+                <CardContent className="px-2 pt-2 pb-2">
+                  <div className="flex flex-col space-y-3">
+                    {imageUrls.length > 0 ? (
+                      imageUrls.slice(0, 4).map((url, index) => (
+                        <div
+                          key={index}
+                          className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => openImageViewer(url)}
+                        >
+                          <div className="w-full rounded-md overflow-hidden border">
+                            <img
+                              src={url}
+                              alt={`Banknote Image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </div>
+                      ))
                     ) : (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 shrink-0"
-                        onClick={handleAddToCollection}
-                        disabled={adding}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
+                      <div className="col-span-2 p-6 text-center bg-muted rounded-md">
+                        <p className="text-muted-foreground">No images available</p>
+                      </div>
+                    )}
+
+                    {imageUrls.length > 4 && (
+                      <Sheet>
+                        <SheetTrigger asChild>
+                          <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
+                            <span className="text-lg font-medium">+{imageUrls.length - 4} more</span>
+                          </div>
+                        </SheetTrigger>
+                        <SheetContent className="w-[90%] sm:max-w-lg">
+                          <SheetHeader>
+                            <SheetTitle>All Banknote Images</SheetTitle>
+                            <SheetDescription>
+                              {banknote.country}, {banknote.denomination}, {banknote.year}
+                            </SheetDescription>
+                          </SheetHeader>
+                          <div className="grid grid-cols-2 gap-4 mt-8">
+                            {imageUrls.map((url, index) => (
+                              <div
+                                key={index}
+                                className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => openImageViewer(url)}
+                              >
+                                <div className="absolute inset-0 rounded-md overflow-hidden border">
+                                  <img
+                                    src={url}
+                                    alt={`Banknote Image ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </SheetContent>
+                      </Sheet>
                     )}
                   </div>
-                </div>
-                <CardDescription>
-                  Detailed information about this banknote
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                <BanknoteCatalogDetailMinimized 
-                  banknote={banknote} 
-                  onImageClick={openImageViewer} 
-                />
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
-            {selectedImage && (
-              <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-                <DialogContent className="sm:max-w-[800px] p-1">
-                  <img
-                    src={selectedImage}
-                    alt="Banknote detail"
-                    className="w-full h-auto rounded"
-                  />
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Add Collectors Dialog */}
-      <Dialog open={showCollectorsDialog} onOpenChange={setShowCollectorsDialog}>
-        <DialogContent className="max-w-md max-h-[600px] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 mt-2">
-              <Layers className="h-5 w-5" />
-              <span>Collectors ({collectorsData?.total_count || 0})</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-y-auto px-1">
-            <div className="space-y-3">
-              {collectorsLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : collectorsData?.collectors.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No collectors yet</p>
-              ) : (
-                collectorsData?.collectors.map((collector) => (
-                  <div key={collector.id} className="flex items-center justify-between">
-                    <UserProfileLink
-                      userId={collector.id}
-                      username={collector.username || 'Unknown'}
-                    >
-                      <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={collector.avatar_url} />
-                          <AvatarFallback>
-                            {getInitials(collector.username || 'U')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{collector.username || 'Unknown'}</div>
-                          {collector.rank && (
-                            <Badge variant="user" rank={collector.rank} showIcon />
-                          )}
-                        </div>
-                      </div>
-                    </UserProfileLink>
+            <div className="lg:col-span-2">
+              <Card className="border-t-4 border-t-primary shadow-md">
+                <CardHeader className="border-b bg-muted/20">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-xl m-0">
+                      <span> Banknote Details </span>
+                    </CardTitle>
+                    <div className="flex gap-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 flex items-center gap-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowCollectorsDialog(true);
+                        }}
+                        title={`On ${collectorsData?.total_count || 0} Collections`}
+                      >
+                        <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-3.5 w-3.5" /></span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={wishlistButtonClass}
+                        onClick={handleWishlistClick}
+                        title={wishlistItem ? "Remove from wishlist" : "Add to wishlist"}
+                      >
+                        <Heart className={cn("h-4 w-4", (wishlistItem || hasJustBeenWishlisted) ? "fill-current" : "")} />
+                      </Button>
+                      {shouldShowCheckButton ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={checkButtonClass}
+                          aria-label="You already own this banknote"
+                          onClick={handleOwnershipCheckButton}
+                          tabIndex={0}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 shrink-0"
+                          onClick={handleAddToCollection}
+                          disabled={adding}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                ))
+                  <CardDescription>
+                    Detailed information about this banknote
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <BanknoteCatalogDetailMinimized
+                    banknote={banknote}
+                    onImageClick={openImageViewer}
+                  />
+                </CardContent>
+              </Card>
+
+              {selectedImage && (
+                <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+                  <DialogContent className="sm:max-w-[800px] p-1">
+                    <img
+                      src={selectedImage}
+                      alt="Banknote detail"
+                      className="w-full h-auto rounded"
+                    />
+                  </DialogContent>
+                </Dialog>
               )}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+        </div>
+
+        {/* Add Collectors Dialog */}
+        <Dialog open={showCollectorsDialog} onOpenChange={setShowCollectorsDialog}>
+          <DialogContent className="max-w-md max-h-[600px] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 mt-2">
+                <Layers className="h-5 w-5" />
+                <span>Collectors ({collectorsData?.total_count || 0})</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto px-1">
+              <div className="space-y-3">
+                {collectorsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : collectorsData?.collectors.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No collectors yet</p>
+                ) : (
+                  collectorsData?.collectors.map((collector) => (
+                    <div key={collector.id} className="flex items-center justify-between">
+                      <UserProfileLink
+                        userId={collector.id}
+                        username={collector.username || 'Unknown'}
+                      >
+                        <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={collector.avatar_url} />
+                            <AvatarFallback>
+                              {getInitials(collector.username || 'U')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{collector.username || 'Unknown'}</div>
+                            {collector.rank && (
+                              <Badge variant="user" rank={collector.rank} showIcon />
+                            )}
+                          </div>
+                        </div>
+                      </UserProfileLink>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+      );
 }
