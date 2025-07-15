@@ -373,12 +373,11 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
               <button
                 key={tab.key}
                 className={cn(
-                  'px-2 md:px-4 lg:px-6 py-1 rounded-md transition-colors outline-none',
+                  'px-6 sm:px-2 md:px-3 lg:px-4 py-1 rounded-md transition-colors outline-none',
                   activeTab === tab.key
                     ? 'bg-white text-black font-semibold'
                     : 'bg-transparent text-[#857e77] font-medium hover:bg-[#e7e1db]',
-                  'focus-visible:ring-2 focus-visible:ring-ottoman-400',
-                  'text-xs md:text-sm lg:text-base'
+                  'focus-visible:ring-2 focus-visible:ring-ottoman-400'
                 )}
                 onClick={() => onTabChange(tab.key)}
                 type="button"
@@ -391,7 +390,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
           <div className="ml-auto">
             <div className="flex flex-col sm:flex-row gap-1 lg:gap-2">
               <div className="flex gap-1 lg:gap-2 items-center">
-                <div className="relative flex-1 sm:w-[180px] md:w-[220px] lg:w-[300px]">
+                <div className="relative flex-1 ">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     placeholder="Search"
@@ -448,7 +447,6 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                     >
                       <Filter className="h-4 w-4 hidden lg:block" />
                       <span>Filter</span>
-                      {isLoading && <span className="animate-spin">⊚</span>}
                     </Button>
                   </SheetTrigger>
                   
@@ -534,7 +532,6 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                     >
                       <ArrowUpDown className="h-4 w-4 hidden lg:block" />
                       <span>Sort</span>
-                      {isLoading && <span className="animate-spin">⊚</span>}
                     </Button>
                   </SheetTrigger>
                   

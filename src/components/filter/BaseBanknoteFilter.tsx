@@ -11,7 +11,8 @@ import {
   LayoutList, 
   Save,
   Layers,
-  ArrowLeft
+  ArrowLeft,
+  ArrowUpDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
@@ -368,7 +369,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
               >
                 <Filter className="h-4 w-4" />
                 <span>Filter</span>
-                {isLoading && <span className="animate-spin">⊚</span>}
               </Button>
             </SheetTrigger>
             
@@ -452,9 +452,8 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 className="w-full sm:w-auto flex items-center justify-center gap-2"
                 disabled={isLoading}
               >
-                <Filter className="h-4 w-4" />
+                <ArrowUpDown className="h-4 w-4" />
                 <span>Sort</span>
-                {isLoading && <span className="animate-spin">⊚</span>}
               </Button>
             </SheetTrigger>
             
