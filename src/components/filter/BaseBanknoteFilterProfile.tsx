@@ -368,17 +368,18 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
         )}
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-0 gap-2">
-          <div className="flex flex-row justify-center sm:justify-start gap-1 lg:gap-2 sm:mr-3 lg:mr-6 bg-[#e7e1db] rounded-lg p-1">
+          <div className="flex flex-row justify-center sm:justify-start gap-0.5 md:gap-1 lg:gap-2 sm:mr-2 md:mr-3 lg:mr-6 bg-[#e7e1db] rounded-lg p-1">
             {tabList.map(tab => (
               <button
                 key={tab.key}
                 className={cn(
-                  'px-2 md:px-4 lg:px-6 py-1 rounded-md transition-colors outline-none',
+                  'px-1.5 sm:px-2 md:px-4 lg:px-6 py-1 rounded-md transition-colors outline-none',
                   activeTab === tab.key
                     ? 'bg-white text-black font-semibold'
                     : 'bg-transparent text-[#857e77] font-medium hover:bg-[#e7e1db]',
                   'focus-visible:ring-2 focus-visible:ring-ottoman-400',
-                  'text-xs md:text-sm lg:text-base'
+                  'text-xs md:text-sm lg:text-base',
+                  'whitespace-nowrap'
                 )}
                 onClick={() => onTabChange(tab.key)}
                 type="button"
@@ -391,7 +392,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
           <div className="ml-auto">
             <div className="flex flex-col sm:flex-row gap-1 lg:gap-2">
               <div className="flex gap-1 lg:gap-2 items-center">
-                <div className="relative flex-1 sm:w-[180px] md:w-[220px] lg:w-[300px]">
+                <div className="relative flex-1 sm:w-[140px] md:w-[180px] lg:w-[300px]">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     placeholder="Search"
