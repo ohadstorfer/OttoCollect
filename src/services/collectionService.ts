@@ -153,6 +153,7 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
             grade_condition_description: item.grade_condition_description,
             salePrice: item.sale_price,
             isForSale: item.is_for_sale,
+            is_for_sale: item.is_for_sale,
             publicNote: item.public_note,
             privateNote: item.private_note,
             purchasePrice: item.purchase_price,
@@ -165,11 +166,16 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
             obverse_image_thumbnail: item.obverse_image_thumbnail,
             reverse_image_thumbnail: item.reverse_image_thumbnail,
             orderIndex: item.order_index,
+            order_index: item.order_index,
             createdAt: item.created_at,
+            created_at: item.created_at,
             updatedAt: item.updated_at,
+            updated_at: item.updated_at,
             is_unlisted_banknote: item.is_unlisted_banknote,
             unlisted_banknotes_id: item.unlisted_banknotes_id,
-            hide_images: item.hide_images || false
+            hide_images: item.hide_images || false,
+            type: item.type,
+            prefix: item.prefix
           } as CollectionItem);
         }
       }
@@ -460,7 +466,9 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
       updatedAt: item.updated_at,
       is_unlisted_banknote: item.is_unlisted_banknote,
       unlisted_banknotes_id: item.unlisted_banknotes_id,
-      hide_images: item.hide_images || false
+      hide_images: item.hide_images || false , 
+      type: item.type,
+      prefix: item.prefix
     } as CollectionItem;
   } catch (error) {
     console.error('[fetchCollectionItem] Error:', error);
@@ -553,6 +561,9 @@ export async function addToCollection(
       updatedAt: insertedItem.updated_at,
       updated_at: insertedItem.updated_at,
       is_unlisted_banknote: insertedItem.is_unlisted_banknote,
+      hide_images: insertedItem.hide_images || false,
+      type: insertedItem.type,
+      prefix: insertedItem.prefix
     };
 
     return collectionItem;
@@ -1121,23 +1132,22 @@ export async function updateUnlistedBanknoteWithCollectionItem(
     type?: string;
     category?: string;
     rarity?: string;
-    banknote_description?: string;
-    historical_description?: string;
-    obverse_image?: string;
-    reverse_image?: string;
+    name?: string;
     condition?: string;
     grade_by?: string;
     grade?: string;
     grade_condition_description?: string;
     public_note?: string;
     private_note?: string;
+    location?: string;
     purchase_price?: number;
     purchase_date?: string;
-    location?: string;
     is_for_sale?: boolean;
     sale_price?: number;
-    name?: string;
+    obverse_image?: string;
+    reverse_image?: string;
     seal_names?: string;
+    prefix?: string;
   }
 ): Promise<CollectionItem> {
   try {
@@ -1170,11 +1180,8 @@ export async function updateUnlistedBanknoteWithCollectionItem(
         islamic_year: params.islamic_year,
         sultan_name: params.sultan_name,
         printer: params.printer,
-        type: params.type,
         category: params.category || 'Unlisted Banknotes',
         rarity: params.rarity,
-        banknote_description: params.banknote_description,
-        historical_description: params.historical_description,
         name: params.name,
         seal_names: params.seal_names,
       })
@@ -1202,6 +1209,8 @@ export async function updateUnlistedBanknoteWithCollectionItem(
         sale_price: params.sale_price,
         obverse_image: params.obverse_image,
         reverse_image: params.reverse_image,
+        type: params.type,
+        prefix: params.prefix
       })
       .eq('id', collectionItemId);
 

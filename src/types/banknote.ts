@@ -79,3 +79,68 @@ export interface EnhancedBanknote {
   // New authority_name field
   authority_name?: string;
 }
+
+export interface DetailedBanknote {
+  id: string;
+  country: string;
+  denomination: string;
+  pickNumber?: string;
+  extendedPickNumber?: string;
+  turkCatalogNumber?: string;
+  category?: string;
+  type?: string;
+  sultanName?: string;
+  authorityName?: string;
+  gregorianYear?: string;
+  islamicYear?: string;
+  description?: string;
+  historicalDescription?: string;
+  securityElement?: string;
+  sealNames?: string;
+  signaturesFront?: string;
+  signaturesBack?: string;
+  signaturesFrontUrls: string[];
+  signaturesBackUrls: string[];
+  sealPictureUrls: string[];
+  watermarkUrl?: string;
+  tughraUrl?: string;
+  serialNumbering?: string;
+  rarity?: string;
+  name?: string;
+}
+
+export interface CollectionItem {
+  id: string;
+  userId: string;
+  banknoteId: string;
+  banknote: DetailedBanknote;
+  condition?: BanknoteCondition | null;
+  grade_by?: string | null;
+  grade?: string | null;
+  grade_condition_description?: string | null;
+  salePrice?: number | null;
+  isForSale?: boolean;
+  is_for_sale?: boolean;
+  publicNote?: string | null;
+  privateNote?: string | null;
+  purchasePrice?: number | null;
+  purchaseDate?: string | null;
+  location?: string | null;
+  obverseImage?: string | null;
+  reverseImage?: string | null;
+  obverse_image_watermarked?: string | null;
+  reverse_image_watermarked?: string | null;
+  obverse_image_thumbnail?: string | null;
+  reverse_image_thumbnail?: string | null;
+  orderIndex?: number;
+  order_index?: number;
+  createdAt?: string;
+  created_at?: string;
+  updatedAt?: string;
+  updated_at?: string;
+  is_unlisted_banknote?: boolean;
+  unlisted_banknotes_id?: string;
+  hide_images?: boolean;
+  type?: string | null;
+  prefix?: string | null;
+}

@@ -56,6 +56,8 @@ const formSchema = z.object({
   sultan_name: z.string().optional(),
   printer: z.string().optional(),
   rarity: z.string().optional(),
+  type: z.string().optional(),
+  prefix: z.string().optional(),
 
   // images
   front_image_file: z.any().optional(),
@@ -99,6 +101,7 @@ interface UnlistedBanknoteUpdateParams {
   obverse_image?: string;
   reverse_image?: string;
   seal_names?: string;
+  prefix?: string;
 }
 
 export default function EditUnlistedBanknoteDialog({
@@ -156,6 +159,8 @@ export default function EditUnlistedBanknoteDialog({
       location: collectionItem.location || 'In my collection',
       isForSale: collectionItem.isForSale || false,
       salePrice: collectionItem.salePrice || '',
+      type: (collectionItem as any).type || '',
+      prefix: (collectionItem as any).prefix || '',
     }
   });
 
@@ -269,7 +274,6 @@ export default function EditUnlistedBanknoteDialog({
         islamic_year: values.islamic_year,
         sultan_name: values.sultan_name,
         printer: values.printer,
-        type: types.find(t => t.id === values.typeId)?.name,
         category: categories.find(c => c.id === values.categoryId)?.name,
         rarity: values.rarity,
         name: values.name,
@@ -286,7 +290,9 @@ export default function EditUnlistedBanknoteDialog({
         sale_price: values.salePrice === '' ? undefined : Number(values.salePrice),
         obverse_image: obverseProcessedImages?.original,
         reverse_image: reverseProcessedImages?.original,
-      });
+        type: values.type,
+        prefix: values.prefix
+      } as UnlistedBanknoteUpdateParams);
 
       // Update the collection item with watermarked and thumbnail images
       if (obverseProcessedImages || reverseProcessedImages) {
@@ -589,6 +595,19 @@ export default function EditUnlistedBanknoteDialog({
                                 ))}
                               </SelectContent>
                             </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="prefix"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Prefix</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter prefix" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

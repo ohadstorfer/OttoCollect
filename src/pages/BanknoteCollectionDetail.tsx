@@ -113,7 +113,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                 <span className="text-base">{collectionItem.banknote.sultanName}</span>
               </div>
             )}
-            {collectionItem.banknote?.type && (
+            {!collectionItem.type && collectionItem.banknote?.type && ( 
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">Type</span>
                 <span className="text-base">{collectionItem.banknote.type}</span>
@@ -170,6 +170,18 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         <div className="w-full h-px bg-muted my-6" />
 
         <div className="space-y-2">
+          {collectionItem.type && (
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Type</span>
+              <span className="text-base">{collectionItem.type}</span>
+            </div>
+          )}
+          {collectionItem.prefix && (
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Prefix</span>
+              <span className="text-base">{collectionItem.prefix}</span>
+            </div>
+          )}
           {collectionItem.banknote?.islamicYear && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">Islamic Year</span>
@@ -226,7 +238,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                 src={url}
                 alt={`Signature ${index + 1}`}
                 className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => onImageClick?.(url)}
+                onClick={() => openImageViewer(url)}
               />
             ))}
           </div>
@@ -244,7 +256,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                 src={url}
                 alt={`Signature ${index + 1}`}
                 className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => onImageClick?.(url)}
+                onClick={() => openImageViewer(url)}
               />
             ))}
           </div>

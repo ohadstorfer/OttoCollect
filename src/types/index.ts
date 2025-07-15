@@ -178,7 +178,8 @@ export interface CollectionItem {
   // The joined banknote data (populated by service layer)
   banknote?: DetailedBanknote;
   personalImages?: string[];
-
+  type?: string;
+  prefix?: string;
 }
 
 export interface DetailedBanknote {
