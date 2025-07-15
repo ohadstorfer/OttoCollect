@@ -12,7 +12,8 @@ import {
   LayoutList, 
   Save,
   Layers,
-  ArrowLeft
+  ArrowLeft,
+  ArrowUpDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
@@ -367,17 +368,17 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
         )}
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-0 gap-2">
-          <div className="flex flex-row justify-center sm:justify-start gap-2 sm:mr-6 bg-[#e7e1db] rounded-lg p-1">
+          <div className="flex flex-row justify-center sm:justify-start gap-1 lg:gap-2 sm:mr-3 lg:mr-6 bg-[#e7e1db] rounded-lg p-1">
             {tabList.map(tab => (
               <button
                 key={tab.key}
                 className={cn(
-                  'px-6 py-1 rounded-md transition-colors outline-none',
+                  'px-2 md:px-4 lg:px-6 py-1 rounded-md transition-colors outline-none',
                   activeTab === tab.key
                     ? 'bg-white text-black font-semibold'
                     : 'bg-transparent text-[#857e77] font-medium hover:bg-[#e7e1db]',
                   'focus-visible:ring-2 focus-visible:ring-ottoman-400',
-                  'text-sm sm:text-base'
+                  'text-xs md:text-sm lg:text-base'
                 )}
                 onClick={() => onTabChange(tab.key)}
                 type="button"
@@ -388,9 +389,9 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
            
           </div>
           <div className="ml-auto">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex gap-2 items-center">
-                <div className="relative flex-1 sm:w-[300px]">
+            <div className="flex flex-col sm:flex-row gap-1 lg:gap-2">
+              <div className="flex gap-1 lg:gap-2 items-center">
+                <div className="relative flex-1 sm:w-[180px] md:w-[220px] lg:w-[300px]">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     placeholder="Search"
@@ -437,15 +438,15 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 )}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-1 lg:gap-2">
                 <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
                   <SheetTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="flex-1 sm:flex-initial flex items-center justify-center gap-2"
+                      className="flex-1 sm:flex-initial flex items-center justify-center gap-1 lg:gap-2"
                       disabled={isLoading}
                     >
-                      <Filter className="h-4 w-4" />
+                      <Filter className="h-4 w-4 hidden lg:block" />
                       <span>Filter</span>
                       {isLoading && <span className="animate-spin">⊚</span>}
                     </Button>
@@ -528,10 +529,10 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   <SheetTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="flex-1 sm:flex-initial flex items-center justify-center gap-2"
+                      className="flex-1 sm:flex-initial flex items-center justify-center gap-1 lg:gap-2"
                       disabled={isLoading}
                     >
-                      <Filter className="h-4 w-4" />
+                      <ArrowUpDown className="h-4 w-4 hidden lg:block" />
                       <span>Sort</span>
                       {isLoading && <span className="animate-spin">⊚</span>}
                     </Button>
