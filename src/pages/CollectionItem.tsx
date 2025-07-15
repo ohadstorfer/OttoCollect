@@ -453,11 +453,9 @@ export default function CollectionItem() {
                         )}
                       </div>
                       {/* Show message when user can re-suggest after image change */}
-                      {suggestionStatus === null && (
+                      {  imageChangedAfterApproval&& (
                         <div className="text-sm text-muted-foreground text-center px-3 py-1">
-                          {imageChangedAfterApproval 
-                            ? "You have updated your images. You can suggest them to the catalogue again."
-                            : "You can suggest your images to be added to the catalogue"}
+                          You have updated your images. You can suggest them to the catalogue again.
                         </div>
                       )}
                     </div>
