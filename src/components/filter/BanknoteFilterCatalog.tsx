@@ -52,29 +52,16 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
   const isFetchingFilter = useRef(false);
   const lastCountryId = useRef("");
 
-  console.log("BanknoteFilterCatalog: Rendering with", { 
-    countryId, 
-    currentFilters,
-    isLoading, 
-    loading,
-    categories: categories.length,
-    types: types.length,
-    sortOptions: sortOptions.length,
-    groupMode
-  });
-
   useEffect(() => {
     // Skip if no countryId or if we're already fetching
     if (!countryId || isFetchingFilter.current) return;
     
     // Skip if we already loaded options for this country
     if (lastCountryId.current === countryId && initialLoadComplete.current) {
-      console.log("BanknoteFilterCatalog: Already loaded options for this country, skipping");
       return;
     }
     
     const loadFilterOptionsAndPreferences = async () => {
-      console.log("BanknoteFilterCatalog: Loading filter options for country:", countryId);
       setLoading(true);
       isFetchingFilter.current = true;
       
@@ -115,8 +102,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           };
         });
         
-    
-        
         if (!hasFaceValueOption) {
           mappedSortOptions.push({
             id: "facevalue-default",
@@ -143,20 +128,15 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         if (user) {
           try {
             userPreferences = await fetchUserFilterPreferences(user.id, countryId);
-            console.log("BanknoteFilterCatalog: User preferences loaded", userPreferences);
             
             // Set group mode if it's defined in preferences, but only during initial load
-            // and only notify the parent if the value is different from current groupMode
             if (userPreferences && 
                 typeof userPreferences.group_mode === 'boolean' && 
                 onGroupModeChange && 
                 userPreferences.group_mode !== groupMode && 
                 !initialLoadComplete.current) {
               
-              // Set a flag to ignore the next group mode change to prevent infinite loops
               ignoreNextGroupModeChange.current = true;
-              
-              // Call the parent's onGroupModeChange
               onGroupModeChange(userPreferences.group_mode);
             }
           } catch (err) {
@@ -169,7 +149,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           .filter(opt => opt.is_required)
           .map(opt => opt.field_name || '');
           
-        // Make sure extPick is always included as a fallback sort 
         if (!requiredSortFields.includes('extPick')) {
           requiredSortFields.push('extPick');
         }
@@ -182,7 +161,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
             })
             .filter(Boolean) as string[];
           
-          // Ensure extPick is always included in the sort, after user choices
           const finalSortFields = Array.from(
             new Set([...sortFieldNames, ...requiredSortFields])
           );
@@ -193,14 +171,12 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
             sort: finalSortFields,
           });
         } else if (!initialLoadComplete.current) {
-          // Set default filters if no user preferences are found
           const defaultCategoryIds = mappedCategories.map(cat => cat.id);
           const defaultTypeIds = mappedTypes
             .filter(type => type.name.toLowerCase().includes('issued'))
             .map(t => t.id);
             
-          // For new users, default to sorting by extPick only since it comes pre-sorted from the DB
-          const defaultSort = ['extPick']; // Remove faceValue from default sort
+          const defaultSort = ['extPick'];
           
           onFilterChange({
             categories: defaultCategoryIds,
@@ -213,24 +189,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         initialLoadComplete.current = true;
         lastCountryId.current = countryId;
         
-        console.log("BanknoteFilterCatalog: Filter options and preferences loaded successfully");
-        console.log("BanknoteFilterCatalog: Final filters applied:", {
-          categories: userPreferences?.selected_categories || mappedCategories.map(cat => cat.id),
-          types: userPreferences?.selected_types || mappedTypes.filter(type => type.name.toLowerCase().includes('issued')).map(t => t.id),
-          sort: userPreferences ? 
-            Array.from(new Set([
-              ...userPreferences.selected_sort_options.map(sortId => {
-                const option = sortOptionsData.find(opt => opt.id === sortId);
-                return option ? option.field_name : null;
-              }).filter(Boolean) as string[],
-              ...requiredSortFields
-            ])) : 
-            ['extPick']
-        });
-        
         // Call onPreferencesLoaded callback when everything is ready
         if (onPreferencesLoaded) {
-          console.log("BanknoteFilterCatalog: Calling onPreferencesLoaded");
           onPreferencesLoaded();
         }
       } catch (error) {
@@ -243,7 +203,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         
         // Even on error, call onPreferencesLoaded to prevent hanging
         if (onPreferencesLoaded) {
-          console.log("BanknoteFilterCatalog: Calling onPreferencesLoaded after error");
           onPreferencesLoaded();
         }
       } finally {
@@ -279,7 +238,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
 
     // Save user preferences automatically with each change
     if (user?.id) {
-      console.log("BanknoteFilterCatalog: Auto-saving filter preferences");
       const sortOptionIds = newFilters.sort
         ? newFilters.sort
             .map(fieldName => {

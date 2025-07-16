@@ -51,70 +51,38 @@ export async function fetchBanknotesByCountryId(
 ): Promise<DetailedBanknote[]> {
   try {
     if (!countryId) {
-      console.error('[fetchBanknotesByCountryId] No country ID provided to fetchBanknotesByCountryId');
+      console.error('[fetchBanknotesByCountryId] No country ID provided');
       return [];
     }
     
-    console.log(`[fetchBanknotesByCountryId] Called with countryId:`, countryId, "filters:", filters);
+    // Get country name and filter data in parallel
+    const [countryResult, categoryData, typeData] = await Promise.all([
+      supabase.from('countries').select('name').eq('id', countryId).single(),
+      filters?.categories?.length ? 
+        supabase.from('banknote_category_definitions').select('name').in('id', filters.categories) : 
+        Promise.resolve({ data: [] }),
+      filters?.types?.length ? 
+        supabase.from('banknote_type_definitions').select('name').in('id', filters.types) : 
+        Promise.resolve({ data: [] })
+    ]);
     
-    // First, get the country name using the country ID
-    const { data: country, error: countryError } = await supabase
-      .from('countries')
-      .select('name')
-      .eq('id', countryId)
-      .single();
-    
-    if (countryError || !country) {
-      console.error('[fetchBanknotesByCountryId] Error fetching country name:', countryError, 'Result:', country);
+    if (countryResult.error || !countryResult.data) {
+      console.error('[fetchBanknotesByCountryId] Error fetching country:', countryResult.error);
       return [];
     }
     
-    console.log(`[fetchBanknotesByCountryId] Found country name:`, country.name, 'for ID:', countryId);
+    const countryName = countryResult.data.name;
+    const categoryNames = categoryData.data?.map(cat => cat.name) || [];
+    const typeNames = typeData.data?.map(type => type.name) || [];
     
-    // Get category names from category IDs
-    let categoryNames: string[] = [];
-    if (filters?.categories && filters.categories.length > 0) {
-      try {
-        const { data: categoryData } = await supabase
-          .from('banknote_category_definitions')
-          .select('name')
-          .in('id', filters.categories);
-        
-        if (categoryData && categoryData.length > 0) {
-          categoryNames = categoryData.map(cat => cat.name);
-          console.log('[fetchBanknotesByCountryId] Filtering by categories:', categoryNames);
-        }
-      } catch (err) {
-        console.error('[fetchBanknotesByCountryId] Error fetching category names:', err);
-      }
-    }
-    
-    // Get type names from type IDs
-    let typeNames: string[] = [];
-    if (filters?.types && filters.types.length > 0) {
-      try {
-        const { data: typeData } = await supabase
-          .from('banknote_type_definitions')
-          .select('name')
-          .in('id', filters.types);
-        
-        if (typeData && typeData.length > 0) {
-          typeNames = typeData.map(type => type.name);
-          console.log('[fetchBanknotesByCountryId] Filtering by types:', typeNames);
-        }
-      } catch (err) {
-        console.error('[fetchBanknotesByCountryId] Error fetching type names:', err);
-      }
-    }
-    
-    // Build the query with the country filter - using the enhanced_detailed_banknotes view
+    // Build the main query
     let query = supabase
       .from('enhanced_detailed_banknotes')
       .select('*')
-      .eq('country', country.name);
+      .eq('country', countryName);
     
     // Apply search filter if provided
-    if (filters?.search && filters.search.trim() !== '') {
+    if (filters?.search?.trim()) {
       const searchTerm = filters.search.toLowerCase();
       query = query.or(
         `extended_pick_number.ilike.%${searchTerm}%,` +
@@ -124,30 +92,19 @@ export async function fetchBanknotesByCountryId(
       );
     }
     
-    // Execute the query to get all banknotes for this country
+    // Execute the query
     const { data, error } = await query;
     
     if (error) {
-      console.error('[fetchBanknotesByCountryId] Error fetching banknotes by country:', error);
+      console.error('[fetchBanknotesByCountryId] Error fetching banknotes:', error);
       return [];
     }
 
-    console.log(`[fetchBanknotesByCountryId] Raw banknote data response for country "${country.name}":`, data);
-    console.log(`[fetchBanknotesByCountryId] Sample banknote with resolved URLs:`, data?.[0] ? {
-      id: data[0].id,
-      signatures_front_urls: data[0].signatures_front_urls,
-      signatures_back_urls: data[0].signatures_back_urls,
-      seal_picture_urls: data[0].seal_picture_urls,
-      watermark_picture_url: data[0].watermark_picture_url
-    } : 'No data');
-
-    // Filter by category and type on the server side
-    let filteredData = [...(data || [])];
+    // Apply filters efficiently
+    let filteredData = data || [];
     
-    // Apply category filters if any
     if (categoryNames.length > 0) {
       const lowerCaseCategories = categoryNames.map(cat => cat.toLowerCase());
-      
       filteredData = filteredData.filter(banknote => {
         const itemCategory = (banknote.category || "").toLowerCase();
         return lowerCaseCategories.some(categoryName => 
@@ -158,44 +115,24 @@ export async function fetchBanknotesByCountryId(
       });
     }
     
-    // Apply type filters if any
     if (typeNames.length > 0) {
       const lowerCaseTypes = typeNames.map(type => type.toLowerCase());
-      
       filteredData = filteredData.filter(banknote => {
         const itemType = (banknote.type || "").toLowerCase();
         return lowerCaseTypes.some(typeName => {
           const normalizedTypeName = typeName.toLowerCase();
-          // Direct match
           if (itemType === normalizedTypeName) return true;
-          
-          // Special case for "Issued notes" which might be stored as "Issued note"
           if ((normalizedTypeName === "issued notes" && itemType === "issued note") ||
               (normalizedTypeName === "issued note" && itemType === "issued notes")) {
             return true;
           }
-          
-          // Partial match (more flexible)
           return itemType.includes(normalizedTypeName) || normalizedTypeName.includes(itemType);
         });
       });
     }
-    
-    console.log(`[fetchBanknotesByCountryId] Final filtered banknote count:`, filteredData.length);
 
     // Map database fields to client-side model
-    const banknotes = filteredData.map(mapBanknoteFromDatabase);
-    console.log(`[fetchBanknotesByCountryId] Mapped banknotes with resolved URLs:`, banknotes.length > 0 ? {
-      firstBanknote: {
-        id: banknotes[0].id,
-        signaturesFrontUrls: banknotes[0].signaturesFrontUrls,
-        signaturesBackUrls: banknotes[0].signaturesBackUrls,
-        sealPictureUrls: banknotes[0].sealPictureUrls, 
-        watermarkUrl: banknotes[0].watermarkUrl
-      }
-    } : 'No banknotes to map');
-    
-    return banknotes;
+    return filteredData.map(mapBanknoteFromDatabase);
   } catch (error) {
     console.error('[fetchBanknotesByCountryId] Unexpected error:', error);
     return [];
@@ -437,32 +374,6 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     frontPictureThumbnail: front_picture_thumbnail || null,
     backPictureThumbnail: back_picture_thumbnail || null
   };
-
-  // Log the mapping result for debugging
-  console.log(`mapBanknoteFromDatabase - Mapped banknote ${id} with resolved URLs and authority name:`, {
-    id: mapped.id,
-    signaturesFrontUrls: mapped.signaturesFrontUrls,
-    signaturesBackUrls: mapped.signaturesBackUrls,
-    signaturePictureUrls: mapped.signaturePictureUrls,
-    sealPictureUrls: mapped.sealPictureUrls,
-    watermarkUrl: mapped.watermarkUrl,
-    authorityName: mapped.authorityName,
-    frontPictureWatermarked: mapped.frontPictureWatermarked,
-    backPictureWatermarked: mapped.backPictureWatermarked,
-    frontPictureThumbnail: mapped.frontPictureThumbnail,
-    backPictureThumbnail: mapped.backPictureThumbnail,
-    rawData: {
-      signatures_front_urls: signatures_front_urls,
-      signatures_back_urls: signatures_back_urls,
-      seal_picture_urls: seal_picture_urls,
-      watermark_picture_url: watermark_picture_url,
-      authority_name: authority_name,
-      front_picture_watermarked: front_picture_watermarked,
-      back_picture_watermarked: back_picture_watermarked,
-      front_picture_thumbnail: front_picture_thumbnail,
-      back_picture_thumbnail: back_picture_thumbnail
-    }
-  });
 
   return mapped;
 }

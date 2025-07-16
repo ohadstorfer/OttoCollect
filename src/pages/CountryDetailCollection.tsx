@@ -482,7 +482,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 
   return (
     <div className={cn(
-      "bg-card border rounded-lg p-1 sm:p-6 mb-6",
+      "bg-card border rounded-lg p-1 sm:p-6 -mb-11",
        "w-[96%] sm:w-[92%] mx-auto"
     )}>
       

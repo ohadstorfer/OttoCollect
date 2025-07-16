@@ -143,3 +143,37 @@ export async function fetchWishlistItem(userId: string, banknoteId: string) {
     throw error;
   }
 }
+
+/**
+ * Fetches wishlist status for multiple banknotes in a single query
+ * Returns a Map of banknoteId -> wishlistItem for efficient lookup
+ */
+export async function fetchWishlistStatusForBanknotes(userId: string, banknoteIds: string[]): Promise<Map<string, any>> {
+  try {
+    if (!userId || !banknoteIds.length) {
+      return new Map();
+    }
+
+    const { data, error } = await supabase
+      .from('wishlist_items')
+      .select('*')
+      .eq('user_id', userId)
+      .in('banknote_id', banknoteIds);
+
+    if (error) {
+      console.error('[fetchWishlistStatusForBanknotes] Error fetching wishlist status:', error);
+      return new Map();
+    }
+
+    // Create a Map for efficient lookup
+    const wishlistMap = new Map();
+    (data || []).forEach(item => {
+      wishlistMap.set(item.banknote_id, item);
+    });
+
+    return wishlistMap;
+  } catch (error) {
+    console.error('[fetchWishlistStatusForBanknotes] Exception:', error);
+    return new Map();
+  }
+}

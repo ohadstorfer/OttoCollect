@@ -28,7 +28,6 @@ export const useBanknoteFetching = ({
   useEffect(() => {
     // Skip empty countryId or empty filters (preferences not loaded yet)
     if (!countryId || !filters.categories?.length) {
-      console.log("UseBanknoteFetching: Skipping fetch - countryId:", countryId, "categories length:", filters.categories?.length);
       return;
     }
     
@@ -37,18 +36,15 @@ export const useBanknoteFetching = ({
     
     // Skip duplicate fetches with same parameters
     if (fetchKey === lastFetchKey.current) {
-      console.log("UseBanknoteFetching: Skipping duplicate fetch with same parameters");
       return;
     }
     
     // Skip if already fetching
     if (isFetchingRef.current) {
-      console.log("UseBanknoteFetching: Fetch already in progress, skipping");
       return;
     }
     
     const fetchBanknotesData = async () => {
-      console.log("CountryDetail: Fetching banknotes with filters", { countryId, filters });
       setLoading(true);
       isFetchingRef.current = true;
 
@@ -61,7 +57,6 @@ export const useBanknoteFetching = ({
         };
 
         const data = await fetchBanknotesByCountryId(countryId, filterParams);
-        console.log("CountryDetail: Banknotes loaded:", data.length);
         
         // Only update state if component is still mounted
         setBanknotes(data);
@@ -81,8 +76,6 @@ export const useBanknoteFetching = ({
     };
 
     fetchBanknotesData();
-    // Note: groupMode is NOT included in the dependency array because changing groupMode
-    // should not trigger a refetch of banknotes - it only affects how they are displayed
   }, [countryId, filters, toast]);
 
   return { banknotes, loading };

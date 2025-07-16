@@ -11,6 +11,7 @@ import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { CollectionItem, fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -87,18 +88,15 @@ const CountryDetail = () => {
     categoryOrder
   );
 
+  // Extract banknote IDs for wishlist context
+  const banknoteIds = banknotes.map(banknote => banknote.id);
+
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    console.log("[CountryDetail] Filter change received:", newFilters);
-    console.log("[CountryDetail] Current filters before update:", filters);
-    setFilters(prev => {
-      const updated = {
-        ...prev,
-        ...newFilters
-      };
-      console.log("[CountryDetail] Updated filters:", updated);
-      return updated;
-    });
-  }, [filters]);
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters
+    }));
+  }, []);
 
   const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
@@ -106,42 +104,40 @@ const CountryDetail = () => {
 
   // Handle preferences loaded callback
   const handlePreferencesLoaded = useCallback(() => {
-    console.log("[CountryDetail] Preferences loaded");
     setPreferencesLoaded(true);
   }, []);
 
   // Calculate loading state - include preferences loading
   const isLoading = countryLoading || banknotesLoading || !preferencesLoaded;
 
-  // Log right before rendering BanknoteDisplay
-  console.log("[CountryDetail] groupMode:", groupMode, "userCollection length:", userCollection.length, "preferencesLoaded:", preferencesLoaded);
-
   return (
-    <div className="w-full px-2 sm:px-6 py-8 -mb-10">
-      <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
-        <CountryFilterSection
-          countryId={countryId}
-          countryName={country ? decodeURIComponent(country) : ""}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          isLoading={isLoading}
-          onViewModeChange={handleViewModeChange}
-          groupMode={groupMode}
-          onGroupModeChange={handleGroupModeChange}
-          onPreferencesLoaded={handlePreferencesLoaded}
-        />
+    <WishlistProvider banknoteIds={banknoteIds}>
+      <div className="w-full px-2 sm:px-6 py-8 -mb-10">
+        <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
+          <CountryFilterSection
+            countryId={countryId}
+            countryName={country ? decodeURIComponent(country) : ""}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            isLoading={isLoading}
+            onViewModeChange={handleViewModeChange}
+            groupMode={groupMode}
+            onGroupModeChange={handleGroupModeChange}
+            onPreferencesLoaded={handlePreferencesLoaded}
+          />
 
-        <BanknoteDisplay
-          groups={groupedItems}
-          showSultanGroups={filters.sort.includes('sultan')}
-          viewMode={viewMode}
-          countryId={countryId}
-          isLoading={isLoading}
-          groupMode={groupMode}
-          userCollection={userCollection}
-        />
+          <BanknoteDisplay
+            groups={groupedItems}
+            showSultanGroups={filters.sort.includes('sultan')}
+            viewMode={viewMode}
+            countryId={countryId}
+            isLoading={isLoading}
+            groupMode={groupMode}
+            userCollection={userCollection}
+          />
+        </div>
       </div>
-    </div>
+    </WishlistProvider>
   );
 };
 

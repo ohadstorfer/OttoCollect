@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Check, Eye, Heart, BookCopy } from "lucide-react";
+import { Plus, Check, Eye, Heart, BookCopy, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem, UserRank } from "@/types";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ import { getBanknoteCollectors } from "@/services/banknoteService";
 import { useQuery } from "@tanstack/react-query";
 import { getInitials } from "@/lib/utils";
 import UserProfileLink from "@/components/common/UserProfileLink";
+import { useWishlist } from "@/context/WishlistContext";
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -49,6 +50,9 @@ const BanknoteDetailCard = ({
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
 
+  // Use wishlist context instead of individual API calls
+  const { isWishlistItem, getWishlistItemId, addToWishlistMap, removeFromWishlistMap } = useWishlist();
+
   // Toast window state: track shown toast's ID to programmatically dismiss it
   const toastIdRef = useRef<string | null>(null);
   const addBtnEventRef = useRef<React.MouseEvent | null>(null);
@@ -56,8 +60,6 @@ const BanknoteDetailCard = ({
   // Track if this banknote was just added for optimistic UI update
   const [hasJustBeenAdded, setHasJustBeenAdded] = useState(false);
   const [showOwnershipToast, setShowOwnershipToast] = useState(false);
-  const [isInWishlist, setIsInWishlist] = useState(false);
-  const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
   const [showCollectorsDialog, setShowCollectorsDialog] = useState(false);
 
   // Add collectors query
@@ -67,27 +69,15 @@ const BanknoteDetailCard = ({
     enabled: !!banknote.id
   });
 
-
   // Only care about ownership when viewing from catalog
   const ownsThisBanknote =
     source === "catalog" && userHasBanknoteInCollection(banknote, userCollection);
 
+  // Get wishlist status from context
+  const isInWishlist = isWishlistItem(banknote.id);
+  const wishlistItemId = getWishlistItemId(banknote.id);
 
 
-  // Check if banknote is in wishlist on component mount
-  useEffect(() => {
-    const checkWishlist = async () => {
-      if (!user?.id || !banknote.id) return;
-      try {
-        const item = await fetchWishlistItem(user.id, banknote.id);
-        setIsInWishlist(!!item);
-        setWishlistItemId(item?.id || null);
-      } catch (error) {
-        console.error('Error checking wishlist status:', error);
-      }
-    };
-    checkWishlist();
-  }, [user?.id, banknote.id]);
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (!user) {
@@ -209,8 +199,7 @@ const BanknoteDetailCard = ({
         // Remove from wishlist
         const success = await deleteWishlistItem(wishlistItemId);
         if (success) {
-          setIsInWishlist(false);
-          setWishlistItemId(null);
+          removeFromWishlistMap(banknote.id);
           toast({
             title: "Removed from wishlist",
             description: "The banknote has been removed from your wishlist.",
@@ -221,10 +210,11 @@ const BanknoteDetailCard = ({
         // Add to wishlist
         const success = await addToWishlist(user.id, banknote.id);
         if (success) {
-          setIsInWishlist(true);
           // Fetch the new wishlist item to get its ID
           const newItem = await fetchWishlistItem(user.id, banknote.id);
-          setWishlistItemId(newItem?.id || null);
+          if (newItem) {
+            addToWishlistMap(banknote.id, newItem);
+          }
           toast({
             title: "Added to wishlist",
             description: "The banknote has been added to your wishlist.",
