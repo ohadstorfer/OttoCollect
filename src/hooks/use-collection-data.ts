@@ -41,9 +41,9 @@ export const useCollectionData = ({
       return;
     }
 
-    // Skip fetching if filters are empty (preferences not loaded yet)
-    if (!filters.categories.length && !filters.types.length && !filters.sort.length) {
-      console.log('[useCollectionData] Skipping fetch - filters not loaded yet');
+    // Only skip fetching if explicitly told to skip
+    if (skipInitialFetch) {
+      console.log('[useCollectionData] Skipping fetch - skipInitialFetch is true');
       return;
     }
 
@@ -76,7 +76,7 @@ export const useCollectionData = ({
     } finally {
       setLoading(false);
     }
-  }, [countryId, userId, countryName, filters.categories.length, filters.types.length, filters.sort.length]);
+  }, [countryId, userId, countryName, skipInitialFetch]);
 
   // Calculate missing banknotes
   const missingBanknotes = allBanknotes.filter(banknote => 

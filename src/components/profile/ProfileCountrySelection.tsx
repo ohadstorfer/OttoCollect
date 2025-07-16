@@ -6,17 +6,17 @@ import { useAuth } from '@/context/AuthContext';
 import CountrySelection from '@/pages/CountrySelection';
 import CountryCollectionTabs from '@/components/profile/CountryCollectionTabs';
 import { CountryHeader } from '../country/CountryHeader';
-import { fetchCountryById, fetchCountryByName } from '@/services/countryService'; // assuming you have this
+import { fetchCountryById, fetchCountryByName } from '@/services/countryService';
 import { CountryHeaderCollection } from '../country/CountryHeaderCollection';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
 
 interface ProfileCountrySelectionProps {
   userId: string;
   isOwnProfile: boolean;
-  selectedCountry: string | null; // previous: could be either country name or id, but let's clarify!
+  selectedCountry: string | null; // country ID
   showCountryDetail: boolean;
   profileId: string;
-  onCountrySelect: (countryId: string, countryName: string) => void; // update to send both
+  onCountrySelect: (countryId: string, countryName: string) => void;
   onBackToCountries: () => void;
   profileView?: boolean;
   profile?: {
@@ -27,7 +27,6 @@ interface ProfileCountrySelectionProps {
   };
 }
 
-// We'll keep a local state to store both the country ID and name when selected
 const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   userId,
   isOwnProfile,
@@ -39,102 +38,48 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   profileView = true,
   profile
 }) => {
-  // State for both country ID and countryName (after lookup, if necessary)
-  const [countryId, setCountryId] = useState<string | null>(null);
+  // State for country name (after lookup, if necessary)
   const [countryName, setCountryName] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const initialCheckDone = useRef(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Check for last viewed country on mount
+  // Scroll position management for smooth loading
   useEffect(() => {
-    if (initialCheckDone.current) return;
-    initialCheckDone.current = true;
-
-    const storedCountry = sessionStorage.getItem('lastViewedCountry');
-    if (!storedCountry || selectedCountry) {
-      setIsLoading(false);
-      return;
+    // Keep page at top during loading
+    if (isLoading) {
+      window.scrollTo(0, 0);
     }
+  }, [isLoading]);
 
-    try {
-      // Try to parse as JSON first
-      const countryData = JSON.parse(storedCountry);
-      if (countryData && countryData.name) {
-        if (countryData.id) {
-          // If we have both id and name, use them directly
-          setCountryId(countryData.id);
-          setCountryName(countryData.name);
-          onCountrySelect(countryData.id, countryData.name);
-          setIsLoading(false);
-        } else {
-          // If we only have the name, fetch the ID
-          fetchCountryByName(countryData.name).then(data => {
-            if (data) {
-              setCountryId(data.id);
-              setCountryName(data.name);
-              onCountrySelect(data.id, data.name);
-            }
-            setIsLoading(false);
-          });
-        }
-      } else {
-        setIsLoading(false);
-      }
-    } catch (error) {
-      // If JSON parsing fails, treat it as a plain country name (old format)
-      fetchCountryByName(storedCountry).then(data => {
-        if (data) {
-          setCountryId(data.id);
-          setCountryName(data.name);
-          onCountrySelect(data.id, data.name);
-        }
-        setIsLoading(false);
-      });
-    } finally {
-      // Clear the stored country after attempting to use it
-      sessionStorage.removeItem('lastViewedCountry');
-    }
-  }, [selectedCountry, onCountrySelect]);
-
-  // On mount (or when selectedCountry changes), resolve both countryId and countryName
+  // When selectedCountry changes, fetch the country name for display
   useEffect(() => {
-    if (!selectedCountry) {
-      return;
-    }
-    
-    // If it's already a UUID, we'll assume that
-    const isUuid = /^[0-9a-fA-F-]{36}$/.test(selectedCountry);
-
-    if (isUuid) {
-      setCountryId(selectedCountry);
-      // Fetch the country name as well (needed for display)
+    if (selectedCountry && showCountryDetail) {
+      setIsLoading(true);
       fetchCountryById(selectedCountry).then(countryData => {
-        if (countryData) setCountryName(countryData.name);
+        if (countryData) {
+          setCountryName(countryData.name);
+        }
+        setIsLoading(false);
+      }).catch(() => {
+        setIsLoading(false);
       });
     } else {
-      // Otherwise, look up by name to get the ID
-      fetchCountryByName(selectedCountry).then(countryData => {
-        if (countryData) {
-          setCountryId(countryData.id);
-          setCountryName(countryData.name);
-        }
-      });
+      setCountryName(null);
+      setIsLoading(false);
     }
-  }, [selectedCountry]);
+  }, [selectedCountry, showCountryDetail]);
 
   // Updated handler to match CountrySelection's expected type
   const handleCountrySelect = (country: string) => {
     // First fetch the country by name to get its ID
     fetchCountryByName(country).then(countryData => {
       if (countryData) {
-        setCountryId(countryData.id);
-        setCountryName(countryData.name);
         onCountrySelect(countryData.id, countryData.name);
       }
     });
   };
 
-  if (isLoading) {
+  // Show loading state if we're supposed to show country detail but don't have the country name yet
+  if (showCountryDetail && selectedCountry && !countryName && isLoading) {
     return (
       <div className="flex justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
@@ -142,7 +87,12 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
     );
   }
 
-  return showCountryDetail && countryId && countryName ? (
+  // Don't render anything if we're supposed to show country detail but don't have the required data
+  if (showCountryDetail && (!selectedCountry || !countryName)) {
+    return null;
+  }
+
+  return showCountryDetail && selectedCountry && countryName ? (
     <div >
       <CountryDetailCollection 
         userId={userId} 

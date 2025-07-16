@@ -9,17 +9,27 @@ import { ProfileEditForm } from '@/components/profile/ProfileEditForm';
 import ProfileCountrySelection from '@/components/profile/ProfileCountrySelection';
 import { useTheme } from "@/context/ThemeContext";
 import { Card } from '@/components/ui/card';
+import { fetchCountryByName, fetchCountryById } from '@/services/countryService';
 
 const Profile: React.FC = () => {
-  const { username: routeUsername } = useParams<{ username?: string }>();
+  const { username: routeUsername, country: routeCountry } = useParams<{ username?: string; country?: string }>();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const [selectedCountry, setSelectedCountry] = React.useState<string | null>(null);
   const [showCountryDetail, setShowCountryDetail] = React.useState(false);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
+  const [isLoadingCountry, setIsLoadingCountry] = React.useState(false);
   const { theme } = useTheme();
 
   const username = routeUsername || authUser?.username;
+
+  // Scroll position management for smooth loading
+  React.useEffect(() => {
+    // Keep page at top during country loading
+    if (routeCountry && isLoadingCountry) {
+      window.scrollTo(0, 0);
+    }
+  }, [routeCountry, isLoadingCountry]);
 
   const {
     data: profile,
@@ -43,40 +53,73 @@ const Profile: React.FC = () => {
   React.useEffect(() => {
     console.log('Profile component state:', {
       routeUsername,
+      routeCountry,
       'authUser?.id': authUser?.id,
       'profile?.id': profile?.id,
-      isOwnProfile
+      isOwnProfile,
+      selectedCountry,
+      showCountryDetail,
+      isLoadingCountry
     });
-  }, [routeUsername, authUser, profile, isOwnProfile]);
+  }, [routeUsername, routeCountry, authUser, profile, isOwnProfile, selectedCountry, showCountryDetail, isLoadingCountry]);
 
-  // Store and restore the selected country when navigating back to profile
+  // Handle country selection from URL parameter
   React.useEffect(() => {
-    // When the component mounts, reset the country selection state
-    if (profile?.id) {
+    if (routeCountry && profile?.id) {
+      setIsLoadingCountry(true);
+      
+      // Check if routeCountry is a UUID (country ID) or country name
+      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/i.test(routeCountry);
+      
+      const fetchCountryData = async () => {
+        try {
+          if (isUuid) {
+            // It's a country ID, fetch the country name
+            const countryData = await fetchCountryById(routeCountry);
+            if (countryData) {
+              setSelectedCountry(routeCountry);
+              setShowCountryDetail(true);
+            }
+          } else {
+            // It's a country name, fetch the country ID
+            const countryData = await fetchCountryByName(decodeURIComponent(routeCountry));
+            if (countryData) {
+              setSelectedCountry(countryData.id);
+              setShowCountryDetail(true);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching country data:', error);
+        } finally {
+          setIsLoadingCountry(false);
+        }
+      };
+      
+      fetchCountryData();
+    } else if (profile?.id) {
+      // No country in URL, reset to country selection view
       setSelectedCountry(null);
       setShowCountryDetail(false);
-      // Clear the stored country from session storage
-      sessionStorage.removeItem(`profile-selected-country-${profile.id}`);
-      sessionStorage.removeItem(`profile-showing-detail-${profile.id}`);
+      setIsLoadingCountry(false);
     }
-  }, [profile?.id]);
-  
-  // Update session storage when selected country changes
-  React.useEffect(() => {
-    if (profile?.id && selectedCountry !== null) {
-      sessionStorage.setItem(`profile-selected-country-${profile.id}`, selectedCountry);
-      sessionStorage.setItem(`profile-showing-detail-${profile.id}`, String(showCountryDetail));
-    }
-  }, [profile?.id, selectedCountry, showCountryDetail]);
+  }, [routeCountry, profile?.id]);
 
   // Handlers for country selection and back navigation
-  const handleCountrySelect = (country: string) => {
-    setSelectedCountry(country);
+  const handleCountrySelect = (countryId: string, countryName: string) => {
+    setSelectedCountry(countryId);
     setShowCountryDetail(true);
+    
+    // Update URL to include the country
+    const encodedCountryName = encodeURIComponent(countryName);
+    navigate(`/profile/${username}/${encodedCountryName}`, { replace: true });
   };
 
   const handleBackToCountries = () => {
     setShowCountryDetail(false);
+    setSelectedCountry(null);
+    
+    // Update URL to remove the country parameter
+    navigate(`/profile/${username}`, { replace: true });
   };
 
   // Handle save completion for profile edit
@@ -85,7 +128,7 @@ const Profile: React.FC = () => {
     await refetchProfile();
   };
 
-  if (profileLoading) {
+  if (profileLoading || (routeCountry && isLoadingCountry)) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="flex justify-center py-12">

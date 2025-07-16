@@ -88,6 +88,7 @@ function App() {
                     <Route path="/banknote-details/:id" element={<BanknoteCatalogDetail />} />
                     <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
                     <Route path="/profile/:username" element={<Profile />} />
+                    <Route path="/profile/:username/:country" element={<Profile />} />
                     <Route path="/collection" element={<CountrySelection />} />
                     <Route path="/collectionNew/:country" element={<CountryDetailCollection />} />
                     <Route path="/collection/:countryId" element={<Collection />} />

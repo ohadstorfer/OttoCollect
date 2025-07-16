@@ -43,6 +43,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [isFullyLoaded, setIsFullyLoaded] = useState(false);
+  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
   
   // Define effectiveCountryName first
   const effectiveCountryName = countryName || (country ? decodeURIComponent(country) : "");
@@ -73,8 +75,15 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       };
       sessionStorage.setItem('lastViewedCountry', JSON.stringify(countryData));
     }
-    navigate(`/profile/${userId || user?.id}`);
-  }, [effectiveCountryName, countryId, userId, user?.id, navigate]);
+    
+    // Navigate to profile with country in URL if we're in profile view
+    if (profileView && userId) {
+      const encodedCountryName = encodeURIComponent(effectiveCountryName);
+      navigate(`/profile/${userId}/${encodedCountryName}`);
+    } else {
+      navigate(`/profile/${userId || user?.id}`);
+    }
+  }, [effectiveCountryName, countryId, userId, user?.id, navigate, profileView]);
   
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
@@ -82,7 +91,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     types: [],
     sort: [],
   });
-  const [activeTab, setActiveTab] = useState<'collection' | 'missing' | 'wishlist'>('collection');
+  const [activeTab, setActiveTab] = useState<'collection' | 'wishlist' | 'missing'>('collection');
   // Use the new optimized collection data hook
   const {
     collectionItems,
@@ -96,17 +105,71 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     userId: effectiveUserId || '',
     countryName: effectiveCountryName,
     filters,
-    skipInitialFetch: !preferencesLoaded
+    skipInitialFetch: false // Changed from !preferencesLoaded to false to prevent flash
   });
   
+  // Show loading indicator after a short delay to prevent flashing
+  useEffect(() => {
+    const isLoading = countryLoading || collectionDataLoading;
+    if (isLoading && !showLoadingIndicator) {
+      const timer = setTimeout(() => {
+        setShowLoadingIndicator(true);
+      }, 300); // Show loading indicator after 300ms of loading
+      
+      return () => clearTimeout(timer);
+    } else if (!isLoading) {
+      setShowLoadingIndicator(false);
+    }
+  }, [countryLoading, collectionDataLoading, showLoadingIndicator]);
+  
+  // Scroll position management for smooth loading
+  useEffect(() => {
+    // Keep page at top during loading
+    if (!isFullyLoaded) {
+      window.scrollTo(0, 0);
+    }
+  }, [isFullyLoaded]);
+
+  // Determine when the component is fully loaded
+  useEffect(() => {
+    const isLoaded = !countryLoading && !collectionDataLoading && countryId && effectiveCountryName;
+    if (isLoaded && !isFullyLoaded) {
+      // Small delay to ensure all content is rendered
+      const timer = setTimeout(() => {
+        setIsFullyLoaded(true);
+        console.log('[CountryDetailCollection] Component fully loaded');
+        
+        // Restore scroll position if available and we're not in profile view
+        if (!profileView) {
+          const savedScrollY = sessionStorage.getItem('scrollY');
+          if (savedScrollY) {
+            const scrollY = parseInt(savedScrollY, 10);
+            if (!isNaN(scrollY)) {
+              // Smooth scroll to the saved position
+              window.scrollTo({
+                top: scrollY,
+                behavior: 'smooth'
+              });
+            }
+          }
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [countryLoading, collectionDataLoading, countryId, effectiveCountryName, isFullyLoaded, profileView]);
+
   useEffect(() => {
     const handleScroll = () => {
-      sessionStorage.setItem('scrollY', window.scrollY.toString());
+      // Only save scroll position when fully loaded
+      if (isFullyLoaded) {
+        sessionStorage.setItem('scrollY', window.scrollY.toString());
+      }
     };
   
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isFullyLoaded]);
 
   // Add hooks for categories and types
   const { categories: categoryDefs, loading: categoriesLoading } = useCountryCategoryDefs(effectiveCountryName);
@@ -319,7 +382,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     setViewMode(mode);
   };
 
-  const isLoading = countryLoading || collectionDataLoading || !preferencesLoaded;
+  const isLoading = countryLoading || collectionDataLoading;
 
   const handlePreferencesLoaded = useCallback(() => {
     console.log('[CountryDetailCollection] Preferences loaded, setting preferencesLoaded to true');
