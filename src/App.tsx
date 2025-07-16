@@ -43,6 +43,7 @@ import { Router } from "react-router-dom";
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import '@/i18n/config';  // Import this at the top
+import AboutUs from "./pages/AboutUs";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -111,6 +112,7 @@ function App() {
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/delete-processed-images" element={<DeleteProcessedImages />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/about-us" element={<AboutUs />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </main>
