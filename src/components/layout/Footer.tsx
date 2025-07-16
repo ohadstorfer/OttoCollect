@@ -11,7 +11,7 @@ export const Footer = () => {
   const isHomePage = location.pathname === "/";
   
   return (
-    <footer className={`${theme === 'light' ? 'bg-ottoman-950' : 'bg-dark-950'} animate-fade-in ${!isHomePage ? 'mt-20' : ''}`}>
+    <footer className={`${theme === 'light' ? 'bg-ottoman-950' : 'bg-dark-950'} animate-fade-in `}>
       <div className="container mx-auto px-4 py-5">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Brand Column - full width on mobile */}

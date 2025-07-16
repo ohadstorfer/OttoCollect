@@ -126,7 +126,7 @@ const Forum = () => {
 
   return (
     <div>
-      <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden`}>
+      <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">
           <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${theme === 'light'
               ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
@@ -206,7 +206,7 @@ const Forum = () => {
 
             <TabsContent value="all" className="mt-8">
               {loading ? (
-                <div className="text-center py-10">
+                <div className="text-center py-10 mb-20 ">
                   <p>Loading forum posts...</p>
                 </div>
               ) : (

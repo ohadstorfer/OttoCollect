@@ -130,7 +130,7 @@ const Profile: React.FC = () => {
 
   if (profileLoading || (routeCountry && isLoadingCountry)) {
     return (
-      <div className="page-container max-w-5xl mx-auto py-10">
+      <div className="page-container max-w-5xl mx-auto py-10 mb-20">
         <div className="flex justify-center py-12">
           <div className="animate-pulse flex flex-col items-center">
             <div className="rounded-full bg-gray-200 h-24 w-24 mb-4"></div>
@@ -171,7 +171,7 @@ const Profile: React.FC = () => {
 
   return ( 
     <div className='mb-20'>
-      <section className={`${theme === 'light' ? 'bg-ottoman-100/50' : 'bg-dark-600'} py-0 sm:py-6 relative overflow-hidden`}>
+      <section className={`${theme === 'light' ? 'bg-ottoman-100/50' : 'bg-dark-600'} py-0 sm:py-6 relative overflow-hidden `}>
       <div className="w-[90%] sm:w-[92%] mx-auto py-5">
      
         <ProfileHeader 

@@ -151,7 +151,7 @@ const Admin = () => {
 
   // Full admin dashboard for super admins
   return (
-    <div className="page-container">
+    <div className="page-container mb-20">
       <h1 className="page-title"><span>Admin Dashboard</span></h1>
       
       <div className="max-w-6xl mx-auto">
