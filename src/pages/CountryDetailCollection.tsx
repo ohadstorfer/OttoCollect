@@ -10,14 +10,12 @@ import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { useAuth } from "@/context/AuthContext";
 import { CollectionItemsDisplay } from "@/components/country/CollectionItemsDisplay";
 import CountryDetailMissingItems from "@/pages/CountryDetailMissingItems";
-import { fetchUserCollectionByCountry } from '@/services/collectionService';
-import { fetchBanknotesByCountryId } from '@/services/banknoteService';
 import { FilterOption } from "@/components/filter/BaseBanknoteFilterProfile";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
-import { fetchUserWishlistByCountry } from '@/services/wishlistService';
 import BanknoteDetailCardWishList from '@/components/banknotes/BanknoteDetailCardWishList';
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
+import { useCollectionData } from '@/hooks/use-collection-data';
 import { cn } from "@/lib/utils";
 
 interface CountryDetailCollectionProps {
@@ -82,13 +80,24 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     search: "",
     categories: [],
     types: [],
-    sort: ["extPick"],
+    sort: [],
   });
   const [activeTab, setActiveTab] = useState<'collection' | 'missing' | 'wishlist'>('collection');
-  const [userCollection, setUserCollection] = useState([]);
-  const [allBanknotes, setAllBanknotes] = useState([]);
-  const [wishlistItems, setWishlistItems] = useState([]);
-  const [wishlistLoading, setWishlistLoading] = useState(false);
+  // Use the new optimized collection data hook
+  const {
+    collectionItems,
+    allBanknotes,
+    wishlistItems,
+    missingBanknotes,
+    loading: collectionDataLoading,
+    error: collectionDataError
+  } = useCollectionData({
+    countryId: countryId || '',
+    userId: effectiveUserId || '',
+    countryName: effectiveCountryName,
+    filters,
+    skipInitialFetch: !preferencesLoaded
+  });
   
   useEffect(() => {
     const handleScroll = () => {
@@ -103,16 +112,135 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const { categories: categoryDefs, loading: categoriesLoading } = useCountryCategoryDefs(effectiveCountryName);
   const { types: typeDefs, loading: typesLoading } = useCountryTypeDefs(effectiveCountryName);
 
-  // Use the collection items fetching hook with skipInitialFetch option
-  const { collectionItems, loading: collectionItemsLoading } = useCollectionItemsFetching({
-    countryId,
-    filters,
-    userId: effectiveUserId,
-    skipInitialFetch: !preferencesLoaded
-  });
+  // Use the collection items from the optimized hook
+  const finalCollectionItems = collectionItems;
+
+  // Filter collection items before sorting/grouping
+  const filteredCollectionItems = useMemo(() => {
+    console.log("[CollectionItems] Starting filter with items:", finalCollectionItems.length);
+    console.log("[CollectionItems] Filter criteria:", {
+      search: filters.search,
+      categories: filters.categories,
+      types: filters.types
+    });
+
+    // Create a map of category names to IDs
+    const categoryNameToId = (categoryDefs || []).reduce((acc, cat) => {
+      acc[cat.name] = cat.id;
+      return acc;
+    }, {} as Record<string, string>);
+
+    // Create a map of type names to IDs
+    const typeNameToId = (typeDefs || []).reduce((acc, type) => {
+      acc[type.name] = type.id;
+      return acc;
+    }, {} as Record<string, string>);
+
+    console.log("[CollectionItems] Category name to ID mapping:", categoryNameToId);
+    console.log("[CollectionItems] Type name to ID mapping:", typeNameToId);
+
+    const filtered = finalCollectionItems.filter(item => {
+      if (!item.banknote) return false;
+
+      // Search filter
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const matches =
+          (item.banknote.denomination && item.banknote.denomination.toLowerCase().includes(searchLower)) ||
+          (item.banknote.sultanName && item.banknote.sultanName.toLowerCase().includes(searchLower)) ||
+          (item.banknote.extendedPickNumber && item.banknote.extendedPickNumber.toLowerCase().includes(searchLower)) ||
+          (item.banknote.category && item.banknote.category.toLowerCase().includes(searchLower)) ||
+          (item.banknote.type && item.banknote.type.toLowerCase().includes(searchLower));
+        
+        if (!matches) {
+          console.log("[CollectionItems] Item filtered out by search:", {
+            id: item.id,
+            denomination: item.banknote.denomination,
+            sultanName: item.banknote.sultanName,
+            extendedPickNumber: item.banknote.extendedPickNumber,
+            category: item.banknote.category,
+            type: item.banknote.type
+          });
+          return false;
+        }
+      }
+
+      // Categories filter - only apply if categories are selected and we have category mappings
+      if (filters.categories && filters.categories.length > 0 && Object.keys(categoryNameToId).length > 0) {
+        // Get the category ID for this item's category name
+        const itemCategoryId = categoryNameToId[item.banknote.category];
+        
+        if (!itemCategoryId) {
+          console.log("[CollectionItems] No category ID found for category name:", {
+            itemId: item.id,
+            categoryName: item.banknote.category,
+            availableCategories: Object.keys(categoryNameToId)
+          });
+          return false;
+        }
+
+        const categoryMatch = filters.categories.includes(itemCategoryId);
+        
+        if (!categoryMatch) {
+          console.log("[CollectionItems] Category mismatch:", {
+            itemId: item.id,
+            itemCategory: item.banknote.category,
+            itemCategoryId,
+            selectedCategories: filters.categories
+          });
+          return false;
+        }
+      }
+
+      // Types filter - only apply if types are selected and we have type mappings
+      if (filters.types && filters.types.length > 0 && Object.keys(typeNameToId).length > 0) {
+        // Get the type ID for this item's type name
+        const itemTypeId = typeNameToId[item.banknote.type];
+        
+        if (!itemTypeId) {
+          console.log("[CollectionItems] No type ID found for type name:", {
+            itemId: item.id,
+            typeName: item.banknote.type,
+            availableTypes: Object.keys(typeNameToId)
+          });
+          return false;
+        }
+
+        const typeMatch = filters.types.includes(itemTypeId);
+        
+        if (!typeMatch) {
+          console.log("[CollectionItems] Type mismatch:", {
+            itemId: item.id,
+            itemType: item.banknote.type,
+            itemTypeId,
+            selectedTypes: filters.types
+          });
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    console.log("[CollectionItems] Filtered items count:", filtered.length);
+    if (filtered.length === 0) {
+      console.log("[CollectionItems] Sample of items that were filtered out:", 
+        finalCollectionItems.slice(0, 3).map(item => ({
+          id: item.id,
+          category: item.banknote?.category,
+          categoryId: item.banknote ? categoryNameToId[item.banknote.category] : null,
+          type: item.banknote?.type,
+          typeId: item.banknote ? typeNameToId[item.banknote.type] : null,
+          denomination: item.banknote?.denomination
+        }))
+      );
+    }
+
+    return filtered;
+  }, [finalCollectionItems, filters, categoryDefs, typeDefs]);
 
   // Map collection items to a format compatible with the sorting hook
-  const collectionItemsForSorting = collectionItems.map(item => ({
+  const collectionItemsForSorting = filteredCollectionItems.map(item => ({
     ...item.banknote,
     collectionData: {
       id: item.id,
@@ -152,7 +280,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const groupedCollectionItems = groupedItems.map(group => {
     // Map each banknote in the group to its corresponding collection item using collectionItemId
     const collectionItemsInGroup = group.items.map(banknote => {
-      const collectionItem = collectionItems.find(item => item.id === (banknote as any).collectionItemId);
+      const collectionItem = filteredCollectionItems.find(item => item.id === (banknote as any).collectionItemId);
       if (!collectionItem) {
         console.error("Could not find collection item for banknote with collectionItemId:", (banknote as any).collectionItemId);
       }
@@ -163,7 +291,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     const sultanGroups = group.sultanGroups?.map(sultanGroup => ({
       sultan: sultanGroup.sultan,
       items: sultanGroup.items.map(banknote => {
-        const collectionItem = collectionItems.find(item => item.id === (banknote as any).collectionItemId);
+        const collectionItem = filteredCollectionItems.find(item => item.id === (banknote as any).collectionItemId);
         if (!collectionItem) {
           console.error("Could not find collection item for banknote with collectionItemId in sultan group:", (banknote as any).collectionItemId);
         }
@@ -191,55 +319,38 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     setViewMode(mode);
   };
 
-  const isLoading = countryLoading || collectionItemsLoading;
+  const isLoading = countryLoading || collectionDataLoading || !preferencesLoaded;
 
   const handlePreferencesLoaded = useCallback(() => {
+    console.log('[CountryDetailCollection] Preferences loaded, setting preferencesLoaded to true');
     setPreferencesLoaded(true);
   }, []);
+
+  // Debug logging for loading states
+  console.log('[CountryDetailCollection] Loading states:', {
+    countryLoading,
+    collectionDataLoading,
+    preferencesLoaded,
+    isLoading,
+    filters: {
+      categories: filters.categories.length,
+      types: filters.types.length,
+      sort: filters.sort.length
+    }
+  });
 
   // Determine the return path - if we're in profile view, it should return to profile
   const returnPath = userId ? `/profile/${user?.username}` : '/collection';
 
-  useEffect(() => {
-    async function loadUserCollection() {
-      if (countryId && effectiveUserId) {
-        const items = await fetchUserCollectionByCountry(effectiveUserId, countryId);
-        setUserCollection(items);
-      } else {
-        setUserCollection([]);
-      }
-    }
-    loadUserCollection();
-  }, [countryId, effectiveUserId]);
+  // Remove the old useEffect hooks that were fetching data individually
+  // The useCollectionData hook now handles all data fetching in parallel
 
-  useEffect(() => {
-    async function loadAllBanknotes() {
-      if (countryId) {
-        const banknotes = await fetchBanknotesByCountryId(countryId);
-        setAllBanknotes(banknotes);
-      } else {
-        setAllBanknotes([]);
-      }
-    }
-    loadAllBanknotes();
-  }, [countryId]);
-
-  const missingBanknotes = useMemo(() => {
-    if (!allBanknotes || !userCollection) return [];
-    const userCountryCollection = userCollection.filter(
-      item =>
-        item.banknote &&
-        item.banknote.country &&
-        effectiveCountryName &&
-        item.banknote.country.trim().toLowerCase() === effectiveCountryName.trim().toLowerCase()
-    );
-    const userBanknoteIds = new Set(userCountryCollection.map(item => String(item.banknoteId)));
-    return allBanknotes.filter(banknote => !userBanknoteIds.has(String(banknote.id)));
-  }, [allBanknotes, userCollection, effectiveCountryName]);
+  // Use the missing banknotes from the optimized hook
+  const finalMissingBanknotes = missingBanknotes;
 
   // 1. Map missing banknotes to CollectionItem structure
-  console.log("[MissingItems] Initial missingBanknotes:", missingBanknotes);
-  const missingCollectionItems = missingBanknotes.map(banknote => ({
+  console.log("[MissingItems] Initial missingBanknotes:", finalMissingBanknotes);
+  const missingCollectionItems = finalMissingBanknotes.map(banknote => ({
     ...banknote, // spread all fields to top level for grouping/sorting
     id: banknote.id,
     userId: '',
@@ -388,21 +499,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   );
   console.log("[MissingItems] Grouped missing items:", groupedMissingItems);
 
-  // Fetch wishlist items for the user and country
-  useEffect(() => {
-    async function loadWishlist() {
-      if (countryId && effectiveUserId && effectiveCountryName) {
-        setWishlistLoading(true);
-        const items = await fetchUserWishlistByCountry(effectiveUserId, effectiveCountryName);
-        setWishlistItems(items || []);
-        setWishlistLoading(false);
-      } else {
-        setWishlistItems([]);
-      }
-    }
-    loadWishlist();
-  }, [countryId, effectiveUserId, effectiveCountryName]);
-
   // Map wishlist items to collection-like structure
   const wishlistCollectionItems = useMemo(() => wishlistItems.map(item => ({
     ...item.detailed_banknotes,
@@ -528,7 +624,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       )}
       {activeTab === 'wishlist' && (
         <div className="mt-6">
-          {wishlistLoading ? (
+          {collectionDataLoading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
             </div>

@@ -194,57 +194,70 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
   return fetchUserCollection(userId);
 }
 
-// --- Update fetchUserCollectionByCountry: use optimized fetchUserCollection ---
+// --- Update fetchUserCollectionByCountry: use optimized query with country filtering ---
 export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
   try {
     console.log(`[fetchUserCollectionByCountry] Fetching collection for user: ${userId} and country: ${countryId}`);
 
-    // Single optimized query to fetch all collection items
+    // Get country name first
+    const { data: countryData, error: countryError } = await supabase
+      .from('countries')
+      .select('name')
+      .eq('id', countryId)
+      .single();
+
+    if (countryError || !countryData) {
+      console.error(`[fetchUserCollectionByCountry] Country not found for ID: ${countryId}`, countryError);
+      return [];
+    }
+
+    const countryName = countryData.name;
+
+    // Optimized query: filter by country at database level using JOIN
     const { data: collectionItems, error: collectionError } = await supabase
       .from('collection_items')
       .select(`
         *,
-        enhanced_detailed_banknotes(*),
+        enhanced_detailed_banknotes!inner(*),
         unlisted_banknotes(*)
       `)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .eq('enhanced_detailed_banknotes.country', countryName);
 
     if (collectionError) {
       console.error("[fetchUserCollectionByCountry] Error fetching collection items:", collectionError);
       return [];
     }
 
+    // Also fetch unlisted banknotes for this country
+    const { data: unlistedItems, error: unlistedError } = await supabase
+      .from('collection_items')
+      .select(`
+        *,
+        unlisted_banknotes!inner(*)
+      `)
+      .eq('user_id', userId)
+      .eq('is_unlisted_banknote', true)
+      .eq('unlisted_banknotes.country', countryName);
+
+    if (unlistedError) {
+      console.error("[fetchUserCollectionByCountry] Error fetching unlisted items:", unlistedError);
+    }
+
     const enrichedItems: CollectionItem[] = [];
 
-    // Process both detailed and unlisted banknotes
+    // Process detailed banknotes
     if (collectionItems) {
       for (const item of collectionItems) {
-        let banknote;
-
-        if (item.is_unlisted_banknote) {
-          // Process unlisted banknote
-          const unlistedData = item.unlisted_banknotes;
-          if (unlistedData) {
-            // Set default category if not provided
-            if (!unlistedData.category) {
-              unlistedData.category = 'Unlisted Banknotes';
-            }
-            banknote = normalizeBanknoteData(unlistedData, "unlisted");
-          }
-        } else {
-          // Process detailed banknote
-          const banknoteData = item.enhanced_detailed_banknotes;
-          if (banknoteData) {
-            banknote = normalizeBanknoteData(mapBanknoteFromDatabase(banknoteData), "detailed");
-          }
-        }
-
-        if (banknote) {
+        const banknoteData = item.enhanced_detailed_banknotes;
+        if (banknoteData) {
+          const banknote = normalizeBanknoteData(mapBanknoteFromDatabase(banknoteData), "detailed");
+          
           enrichedItems.push({
             id: item.id,
             userId: item.user_id,
-            banknoteId: item.is_unlisted_banknote ? item.unlisted_banknotes_id : item.banknote_id,
-            banknote_id: item.is_unlisted_banknote ? item.unlisted_banknotes_id : item.banknote_id,
+            banknoteId: item.banknote_id,
+            banknote_id: item.banknote_id,
             user_id: item.user_id,
             banknote,
             condition: item.condition,
@@ -253,6 +266,7 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
             grade_condition_description: item.grade_condition_description,
             salePrice: item.sale_price,
             isForSale: item.is_for_sale,
+            is_for_sale: item.is_for_sale,
             publicNote: item.public_note,
             privateNote: item.private_note,
             purchasePrice: item.purchase_price,
@@ -265,36 +279,74 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
             obverse_image_thumbnail: item.obverse_image_thumbnail,
             reverse_image_thumbnail: item.reverse_image_thumbnail,
             orderIndex: item.order_index,
+            order_index: item.order_index,
             createdAt: item.created_at,
+            created_at: item.created_at,
             updatedAt: item.updated_at,
-            is_unlisted_banknote: item.is_unlisted_banknote,
-            unlisted_banknotes_id: item.unlisted_banknotes_id,
-            hide_images: item.hide_images || false
+            updated_at: item.updated_at,
+            is_unlisted_banknote: false,
+            hide_images: item.hide_images || false,
+            type: item.type,
+            prefix: item.prefix
           } as CollectionItem);
         }
       }
     }
 
-    // Filter by country
-    const { data: countryData } = await supabase
-      .from('countries')
-      .select('name')
-      .eq('id', countryId)
-      .single();
-
-    if (!countryData) {
-      console.error(`[fetchUserCollectionByCountry] Country not found for ID: ${countryId}`);
-      return [];
+    // Process unlisted banknotes
+    if (unlistedItems) {
+      for (const item of unlistedItems) {
+        const unlistedData = item.unlisted_banknotes;
+        if (unlistedData) {
+          // Set default category if not provided
+          if (!unlistedData.category) {
+            unlistedData.category = 'Unlisted Banknotes';
+          }
+          const banknote = normalizeBanknoteData(unlistedData, "unlisted");
+          
+          enrichedItems.push({
+            id: item.id,
+            userId: item.user_id,
+            banknoteId: item.unlisted_banknotes_id,
+            banknote_id: item.unlisted_banknotes_id,
+            user_id: item.user_id,
+            banknote,
+            condition: item.condition,
+            grade_by: item.grade_by,
+            grade: item.grade,
+            grade_condition_description: item.grade_condition_description,
+            salePrice: item.sale_price,
+            isForSale: item.is_for_sale,
+            is_for_sale: item.is_for_sale,
+            publicNote: item.public_note,
+            privateNote: item.private_note,
+            purchasePrice: item.purchase_price,
+            purchaseDate: item.purchase_date,
+            location: item.location,
+            obverseImage: item.obverse_image,
+            reverseImage: item.reverse_image,
+            obverse_image_watermarked: item.obverse_image_watermarked,
+            reverse_image_watermarked: item.reverse_image_watermarked,
+            obverse_image_thumbnail: item.obverse_image_thumbnail,
+            reverse_image_thumbnail: item.reverse_image_thumbnail,
+            orderIndex: item.order_index,
+            order_index: item.order_index,
+            createdAt: item.created_at,
+            created_at: item.created_at,
+            updatedAt: item.updated_at,
+            updated_at: item.updated_at,
+            is_unlisted_banknote: true,
+            unlisted_banknotes_id: item.unlisted_banknotes_id,
+            hide_images: item.hide_images || false,
+            type: item.type,
+            prefix: item.prefix
+          } as CollectionItem);
+        }
+      }
     }
 
-    const countryName = countryData.name;
-    const filteredItems = enrichedItems.filter(item => {
-      if (!item.banknote) return false;
-      return item.banknote.country === countryName;
-    });
-
-    console.log(`[fetchUserCollectionByCountry] Successfully fetched ${filteredItems.length} items for country ${countryName}`);
-    return filteredItems;
+    console.log(`[fetchUserCollectionByCountry] Successfully fetched ${enrichedItems.length} items for country ${countryName}`);
+    return enrichedItems;
   } catch (error) {
     console.error("[fetchUserCollectionByCountry] Error:", error);
     return [];
