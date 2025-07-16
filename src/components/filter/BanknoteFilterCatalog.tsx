@@ -212,6 +212,12 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         // Mark as complete to prevent repeated loads
         initialLoadComplete.current = true;
         lastCountryId.current = countryId;
+        
+        // Call onPreferencesLoaded callback when everything is ready
+        if (onPreferencesLoaded) {
+          console.log("BanknoteFilterCatalog: Calling onPreferencesLoaded");
+          onPreferencesLoaded();
+        }
       } catch (error) {
         console.error("Error loading filter options:", error);
         toast({
@@ -219,6 +225,12 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           description: "Failed to load filter options.",
           variant: "destructive",
         });
+        
+        // Even on error, call onPreferencesLoaded to prevent hanging
+        if (onPreferencesLoaded) {
+          console.log("BanknoteFilterCatalog: Calling onPreferencesLoaded after error");
+          onPreferencesLoaded();
+        }
       } finally {
         setLoading(false);
         isFetchingFilter.current = false;

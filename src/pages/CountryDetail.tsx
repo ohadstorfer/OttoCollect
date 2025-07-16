@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
 import { cn } from "@/lib/utils";
@@ -9,7 +9,6 @@ import { useCountryData } from "@/hooks/use-country-data";
 import { useBanknoteFetching } from "@/hooks/use-banknote-fetching";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
-import { useEffect } from "react";
 import { CollectionItem, fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
 
@@ -27,6 +26,9 @@ const CountryDetail = () => {
   // New: user + collection loading
   const { user } = useAuth();
   const [userCollection, setUserCollection] = useState<CollectionItem[]>([]);
+  
+  // Add preferences loading state
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   useEffect(() => {
     const fetchCollection = async () => {
@@ -86,6 +88,7 @@ const CountryDetail = () => {
   );
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
+    console.log("[CountryDetail] Filter change:", newFilters);
     setFilters(prev => ({
       ...prev,
       ...newFilters
@@ -96,15 +99,20 @@ const CountryDetail = () => {
     setViewMode(mode);
   };
 
-  const isLoading = countryLoading || banknotesLoading;
+  // Handle preferences loaded callback
+  const handlePreferencesLoaded = useCallback(() => {
+    console.log("[CountryDetail] Preferences loaded");
+    setPreferencesLoaded(true);
+  }, []);
+
+  // Calculate loading state - include preferences loading
+  const isLoading = countryLoading || banknotesLoading || !preferencesLoaded;
 
   // Log right before rendering BanknoteDisplay
-  console.log("[CountryDetail] groupMode:", groupMode, "userCollection length:", userCollection.length);
+  console.log("[CountryDetail] groupMode:", groupMode, "userCollection length:", userCollection.length, "preferencesLoaded:", preferencesLoaded);
 
   return (
     <div className="w-full px-2 sm:px-6 py-8 -mb-10">
-
-
       <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
         <CountryFilterSection
           countryId={countryId}
@@ -115,6 +123,7 @@ const CountryDetail = () => {
           onViewModeChange={handleViewModeChange}
           groupMode={groupMode}
           onGroupModeChange={handleGroupModeChange}
+          onPreferencesLoaded={handlePreferencesLoaded}
         />
 
         <BanknoteDisplay
