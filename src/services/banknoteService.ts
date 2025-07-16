@@ -324,68 +324,122 @@ export const uploadBanknoteImage = async (file: File): Promise<string> => {
 
 // Helper function to map database fields to client-side model
 export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
-  const mapped = {
-    id: item.id,
-    catalogId: item.extended_pick_number || '',
-    extendedPickNumber: item.extended_pick_number || '', 
-    country: item.country || '',
-    denomination: item.face_value || '',
-    year: item.gregorian_year || '',
-    series: item.category || '', // Use category as series
-    description: item.banknote_description || '',
+  // Destructure all fields at once for better performance
+  const {
+    id,
+    extended_pick_number,
+    country,
+    face_value,
+    gregorian_year,
+    category,
+    banknote_description,
+    front_picture,
+    back_picture,
+    is_approved,
+    is_pending,
+    created_at,
+    updated_at,
+    pick_number,
+    turk_catalog_number,
+    sultan_name,
+    seal_names,
+    rarity,
+    printer,
+    type,
+    islamic_year,
+    historical_description,
+    serial_numbering,
+    security_element,
+    signatures_front,
+    signatures_back,
+    colors,
+    watermark_picture,
+    signatures_front_urls,
+    signatures_back_urls,
+    seal_picture_urls,
+    watermark_picture_url,
+    tughra_picture_url,
+    authority_name,
+    front_picture_watermarked,
+    back_picture_watermarked,
+    front_picture_thumbnail,
+    back_picture_thumbnail
+  } = item;
+
+  // Create the mapped object using spread and computed properties
+  const mapped: DetailedBanknote = {
+    // Basic fields with fallbacks
+    id,
+    catalogId: extended_pick_number || '',
+    extendedPickNumber: extended_pick_number || '',
+    country: country || '',
+    denomination: face_value || '',
+    year: gregorian_year || '',
+    series: category || '', // Use category as series
+    description: banknote_description || '',
     obverseDescription: '',
     reverseDescription: '',
-    imageUrls: [
-      item.front_picture || '',
-      item.back_picture || ''
-    ].filter(Boolean),
-    isApproved: item.is_approved || false,
-    isPending: item.is_pending || false,
-    createdAt: item.created_at || '',
-    updatedAt: item.updated_at || '',
-    pickNumber: item.pick_number,
-    turkCatalogNumber: item.turk_catalog_number,
-    sultanName: item.sultan_name,
-    sealNames: item.seal_names,
-    rarity: item.rarity,
-    printer: item.printer,
-    type: item.type,
-    category: item.category,
-    islamicYear: item.islamic_year,
-    gregorianYear: item.gregorian_year,
-    banknoteDescription: item.banknote_description,
-    historicalDescription: item.historical_description,
-    serialNumbering: item.serial_numbering,
-    securityElement: item.security_element,
-    signaturesFront: Array.isArray(item.signatures_front) ? item.signatures_front.join(', ') : (item.signatures_front || ''),
-    signaturesBack: Array.isArray(item.signatures_back) ? item.signatures_back.join(', ') : (item.signatures_back || ''),
-    colors: item.colors,
-    watermark: item.watermark_picture,
     
-    // Add the new resolved URL fields from the enhanced view
-    signaturesFrontUrls: item.signatures_front_urls || [],
-    signaturesBackUrls: item.signatures_back_urls || [],
-    sealPictureUrls: item.seal_picture_urls || [],
-    watermarkUrl: item.watermark_picture_url || null,
-    tughraUrl: item.tughra_picture_url || null,
+    // Image URLs array with filtering
+    imageUrls: [front_picture, back_picture].filter(Boolean),
     
-    // Legacy compatibility property - combine front and back signature URLs
+    // Boolean fields with fallbacks
+    isApproved: is_approved || false,
+    isPending: is_pending || false,
+    
+    // Date fields
+    createdAt: created_at || '',
+    updatedAt: updated_at || '',
+    
+    // Optional fields (no fallbacks needed)
+    pickNumber: pick_number,
+    turkCatalogNumber: turk_catalog_number,
+    sultanName: sultan_name,
+    sealNames: seal_names,
+    rarity,
+    printer,
+    type,
+    category,
+    islamicYear: islamic_year,
+    gregorianYear: gregorian_year,
+    banknoteDescription: banknote_description,
+    historicalDescription: historical_description,
+    serialNumbering: serial_numbering,
+    securityElement: security_element,
+    
+    // Signature fields with array handling
+    signaturesFront: Array.isArray(signatures_front) ? signatures_front.join(', ') : (signatures_front || ''),
+    signaturesBack: Array.isArray(signatures_back) ? signatures_back.join(', ') : (signatures_back || ''),
+    
+    // Other fields
+    colors,
+    watermark: watermark_picture,
+    
+    // Resolved URL fields with fallbacks
+    signaturesFrontUrls: signatures_front_urls || [],
+    signaturesBackUrls: signatures_back_urls || [],
+    sealPictureUrls: seal_picture_urls || [],
+    watermarkUrl: watermark_picture_url || null,
+    tughraUrl: tughra_picture_url || null,
+    
+    // Legacy compatibility - combine front and back signature URLs
     signaturePictureUrls: [
-      ...(item.signatures_front_urls || []),
-      ...(item.signatures_back_urls || [])
+      ...(signatures_front_urls || []),
+      ...(signatures_back_urls || [])
     ],
     
-    // Map the authority_name field
-    authorityName: item.authority_name || null,
+    // Authority name
+    authorityName: authority_name || null,
+    
+    // Watermarked and thumbnail images
+    frontPictureWatermarked: front_picture_watermarked || null,
+    backPictureWatermarked: back_picture_watermarked || null,
+    frontPictureThumbnail: front_picture_thumbnail || null,
+    backPictureThumbnail: back_picture_thumbnail || null
+  };
 
-    // Map the new watermarked and thumbnail image fields
-    frontPictureWatermarked: item.front_picture_watermarked || null,
-    backPictureWatermarked: item.back_picture_watermarked || null,
-    frontPictureThumbnail: item.front_picture_thumbnail || null,
-    backPictureThumbnail: item.back_picture_thumbnail || null
-  }
-
-  console.log(`mapBanknoteFromDatabase - Mapped banknote ${item.id} with resolved URLs and authority name:`, {
+  // Log the mapping result for debugging
+  console.log(`mapBanknoteFromDatabase - Mapped banknote ${id} with resolved URLs and authority name:`, {
     id: mapped.id,
     signaturesFrontUrls: mapped.signaturesFrontUrls,
     signaturesBackUrls: mapped.signaturesBackUrls,
@@ -398,15 +452,15 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     frontPictureThumbnail: mapped.frontPictureThumbnail,
     backPictureThumbnail: mapped.backPictureThumbnail,
     rawData: {
-      signatures_front_urls: item.signatures_front_urls,
-      signatures_back_urls: item.signatures_back_urls,
-      seal_picture_urls: item.seal_picture_urls,
-      watermark_picture_url: item.watermark_picture_url,
-      authority_name: item.authority_name,
-      front_picture_watermarked: item.front_picture_watermarked,
-      back_picture_watermarked: item.back_picture_watermarked,
-      front_picture_thumbnail: item.front_picture_thumbnail,
-      back_picture_thumbnail: item.back_picture_thumbnail
+      signatures_front_urls: signatures_front_urls,
+      signatures_back_urls: signatures_back_urls,
+      seal_picture_urls: seal_picture_urls,
+      watermark_picture_url: watermark_picture_url,
+      authority_name: authority_name,
+      front_picture_watermarked: front_picture_watermarked,
+      back_picture_watermarked: back_picture_watermarked,
+      front_picture_thumbnail: front_picture_thumbnail,
+      back_picture_thumbnail: back_picture_thumbnail
     }
   });
 

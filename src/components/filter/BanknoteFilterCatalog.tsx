@@ -213,6 +213,21 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         initialLoadComplete.current = true;
         lastCountryId.current = countryId;
         
+        console.log("BanknoteFilterCatalog: Filter options and preferences loaded successfully");
+        console.log("BanknoteFilterCatalog: Final filters applied:", {
+          categories: userPreferences?.selected_categories || mappedCategories.map(cat => cat.id),
+          types: userPreferences?.selected_types || mappedTypes.filter(type => type.name.toLowerCase().includes('issued')).map(t => t.id),
+          sort: userPreferences ? 
+            Array.from(new Set([
+              ...userPreferences.selected_sort_options.map(sortId => {
+                const option = sortOptionsData.find(opt => opt.id === sortId);
+                return option ? option.field_name : null;
+              }).filter(Boolean) as string[],
+              ...requiredSortFields
+            ])) : 
+            ['extPick']
+        });
+        
         // Call onPreferencesLoaded callback when everything is ready
         if (onPreferencesLoaded) {
           console.log("BanknoteFilterCatalog: Calling onPreferencesLoaded");
@@ -239,7 +254,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
 
     loadFilterOptionsAndPreferences();
     // groupMode is NOT included in the dependency array because it would cause infinite loops
-  }, [countryId, user, onFilterChange, toast, onGroupModeChange, onPreferencesLoaded]); // groupMode removed from dependencies
+  }, [countryId, user, onFilterChange, toast, onGroupModeChange]); // Removed onPreferencesLoaded from dependencies to prevent re-runs
 
   const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {

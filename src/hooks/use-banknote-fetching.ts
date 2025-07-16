@@ -26,8 +26,11 @@ export const useBanknoteFetching = ({
   const lastFetchKey = useRef<string>("");
 
   useEffect(() => {
-    // Skip empty countryId
-    if (!countryId) return;
+    // Skip empty countryId or empty filters (preferences not loaded yet)
+    if (!countryId || !filters.categories?.length) {
+      console.log("UseBanknoteFetching: Skipping fetch - countryId:", countryId, "categories length:", filters.categories?.length);
+      return;
+    }
     
     // Create a cache key from countryId and filters
     const fetchKey = countryId + JSON.stringify(filters);

@@ -20,7 +20,7 @@ const CountryDetail = () => {
     search: "",
     categories: [],
     types: [],
-    sort: ["extPick"],
+    sort: [],
   });
 
   // New: user + collection loading
@@ -88,12 +88,17 @@ const CountryDetail = () => {
   );
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    console.log("[CountryDetail] Filter change:", newFilters);
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters
-    }));
-  }, []);
+    console.log("[CountryDetail] Filter change received:", newFilters);
+    console.log("[CountryDetail] Current filters before update:", filters);
+    setFilters(prev => {
+      const updated = {
+        ...prev,
+        ...newFilters
+      };
+      console.log("[CountryDetail] Updated filters:", updated);
+      return updated;
+    });
+  }, [filters]);
 
   const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);

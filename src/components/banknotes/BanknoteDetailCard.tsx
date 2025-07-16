@@ -67,21 +67,12 @@ const BanknoteDetailCard = ({
     enabled: !!banknote.id
   });
 
-  // --- Debug logs: input props ---
-  console.log('[BanknoteDetailCard] banknote:', banknote);
-  console.log('[BanknoteDetailCard] userCollection:', userCollection);
 
   // Only care about ownership when viewing from catalog
   const ownsThisBanknote =
     source === "catalog" && userHasBanknoteInCollection(banknote, userCollection);
 
-  // --- Debug logs: ownership decision ---
-  console.log(
-    '[BanknoteDetailCard] source:', source,
-    '| result of userHasBanknoteInCollection:', userHasBanknoteInCollection(banknote, userCollection),
-    '| ownsThisBanknote:', ownsThisBanknote,
-    '| banknote id:', banknote?.id
-  );
+
 
   // Check if banknote is in wishlist on component mount
   useEffect(() => {
