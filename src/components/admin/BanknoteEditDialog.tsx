@@ -740,17 +740,6 @@ const BanknoteEditDialog = ({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signature_pictures">signature_pictures</Label>
-                <Textarea
-                  id="signature_pictures"
-                  name="signature_pictures"
-                  value={formData.signature_pictures || ''}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="Enter signature pictures as comma-separated values"
-                />
-              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="seal_names">seal_names</Label>
@@ -763,35 +752,7 @@ const BanknoteEditDialog = ({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signatures_front">signatures_front</Label>
-                <Input
-                  id="signatures_front"
-                  name="signatures_front"
-                  value={Array.isArray(formData.signatures_front) ? formData.signatures_front.join(', ') : formData.signatures_front || ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const signatures = value.split(',').map(s => s.trim()).filter(s => s);
-                    setFormData(prev => ({ ...prev, signatures_front: signatures }));
-                  }}
-                  placeholder="Enter front signatures as comma-separated values"
-                />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signatures_back">signatures_back</Label>
-                <Input
-                  id="signatures_back"
-                  name="signatures_back"
-                  value={Array.isArray(formData.signatures_back) ? formData.signatures_back.join(', ') : formData.signatures_back || ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const signatures = value.split(',').map(s => s.trim()).filter(s => s);
-                    setFormData(prev => ({ ...prev, signatures_back: signatures }));
-                  }}
-                  placeholder="Enter back signatures as comma-separated values"
-                />
-              </div>
             </TabsContent>
             
             <TabsContent value="images" className="space-y-6">
