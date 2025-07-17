@@ -72,7 +72,7 @@ const BanknoteEditDialog = ({
     watermark_picture: '',
     tughra_picture: '',
     other_element_pictures: [],
-    other_element_files: [],
+    other_element_files: [], // This is for the UI only, not saved to DB
     turk_catalog_number: '',
     security_element: '',
     colors: '',
@@ -339,17 +339,17 @@ const BanknoteEditDialog = ({
     
     for (const imageFile of imageFiles) {
       try {
-        // Upload the file directly without processing (no thumbnail/watermark)
-        const fileName = `${user.id}_${Date.now()}_${Math.random().toString(36).substring(2)}.${imageFile.file.name.split('.').pop()}`;
+        // Upload the file to the banknote_images bucket instead of banknotes
+        const fileName = `other_elements/${user.id}_${Date.now()}_${Math.random().toString(36).substring(2)}.${imageFile.file.name.split('.').pop()}`;
         const { data, error } = await supabase.storage
-          .from('banknotes')
+          .from('banknote_images')
           .upload(fileName, imageFile.file);
         
         if (error) throw error;
         
         // Get the public URL
         const { data: urlData } = supabase.storage
-          .from('banknotes')
+          .from('banknote_images')
           .getPublicUrl(fileName);
         
         uploadedUrls.push(urlData.publicUrl);
@@ -411,17 +411,18 @@ const BanknoteEditDialog = ({
       // Upload other element images if any
       const otherElementUrls = await uploadOtherElementImages(formData.other_element_files || []);
       
-      // Prepare the data to save
-      const dataToSave = {
-        ...formData,
-        other_element_pictures: otherElementUrls
+      // Prepare the data to save - remove other_element_files as it doesn't exist in DB
+      const { other_element_files, ...dataToSave } = formData;
+      const finalData = {
+        ...dataToSave,
+        other_element_pictures: otherElementUrls.length > 0 ? otherElementUrls : (formData.other_element_pictures || [])
       };
       
       if (isNew) {
         // Create new banknote
         const { data, error } = await supabase
           .from('detailed_banknotes')
-          .insert([dataToSave])
+          .insert([finalData])
           .select()
           .single();
         
@@ -463,7 +464,7 @@ const BanknoteEditDialog = ({
         // Update existing banknote
         const { error } = await supabase
           .from('detailed_banknotes')
-          .update(dataToSave)
+          .update(finalData)
           .eq('id', banknote.id);
         
         if (error) throw error;
@@ -507,6 +508,7 @@ const BanknoteEditDialog = ({
       setIsSubmitting(false);
     }
   };
+  
   
   return (
     <Dialog open={open} onOpenChange={onClose}>
