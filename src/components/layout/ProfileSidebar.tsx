@@ -97,6 +97,16 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               <MessageSquare className="mr-2 h-4 w-4" />
               Forum
             </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => handleNavigation('/blog')}
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Blog
+            </Button>
+
           </div>
 
           <Button
