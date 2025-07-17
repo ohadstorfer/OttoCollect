@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'message' | 'forum_post' | 'collection_activity' | 'follow' | 'badge_earned' | 'badge_achievement';
+  type: 'message' | 'forum_post' | 'collection_activity' | 'follow' | 'badge_earned' | 'badge_achievement' | 'blog_post';
   title: string;
   content: string;
   reference_id: string | null;
@@ -92,6 +92,10 @@ export const notificationService = {
 
   // Navigate to the relevant page based on notification type
   getNotificationLink(notification: Notification): string {
+    console.log('getNotificationLink called for:', notification.type);
+    console.log('Reference ID:', notification.reference_id);
+    console.log('Reference data:', notification.reference_data);
+    
     switch (notification.type) {
       case 'message':
         // For message notifications, navigate directly to the conversation with the sender
@@ -103,8 +107,24 @@ export const notificationService = {
         return `/profile/${notification.reference_data?.active_username}`;
       case 'forum_post':
         return `/community/forum/post/${notification.reference_id}`;
+      case 'blog_post':
+        return `/blog/${notification.reference_id}`;
       case 'badge_earned':
       case 'badge_achievement':
+        console.log('Badge notification - checking for blog_post_id:', notification.reference_data?.blog_post_id);
+        console.log('Badge notification - checking for reference_id:', notification.reference_id);
+        // For badge notifications, check for blog post ID in reference_data
+        if (notification.reference_data?.blog_post_id) {
+          console.log('Navigating to blog post:', `/blog/${notification.reference_data.blog_post_id}`);
+          return `/blog/${notification.reference_data.blog_post_id}`;
+        }
+        // Also check reference_id as fallback
+        if (notification.reference_id) {
+          console.log('Navigating to blog post (fallback):', `/blog/${notification.reference_id}`);
+          return `/blog/${notification.reference_id}`;
+        }
+        // Fallback to user profile if no blog post ID
+        console.log('Navigating to profile (fallback):', `/profile/${notification.reference_data?.recipient_username}`);
         return `/profile/${notification.reference_data?.recipient_username}`;
       default:
         return '/';

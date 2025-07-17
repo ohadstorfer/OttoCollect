@@ -48,7 +48,14 @@ export function NotificationPanel({
   }, [open, notifications, onMarkAsRead]);
 
   const handleNotificationClick = (notification: Notification) => {
+    console.log('Notification clicked:', notification);
+    console.log('Notification type:', notification.type);
+    console.log('Reference ID:', notification.reference_id);
+    console.log('Reference data:', notification.reference_data);
+    
     const link = notificationService.getNotificationLink(notification);
+    console.log('Generated link:', link);
+    
     navigate(link);
     onOpenChange(false);
   };
@@ -63,6 +70,8 @@ export function NotificationPanel({
         return BookOpen;
       case 'forum_post':
         return MessageSquare;
+      case 'blog_post':
+        return BookOpen;
       case 'badge_earned':
       case 'badge_achievement':
         return Trophy;
