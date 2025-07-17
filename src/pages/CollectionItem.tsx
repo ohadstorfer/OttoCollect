@@ -75,20 +75,20 @@ export default function CollectionItem() {
   // Check for image suggestion status
   useEffect(() => {
     const checkImageStatus = async () => {
-      if (!collectionItem?.banknote?.id || !user?.id) {
+      if (!collectionItem?.id || !user?.id) {
         setSuggestionStatus(null);
         setHasPendingSuggestion(false);
         return;
       }
 
       try {
-        console.log('Checking image suggestion status for banknote:', collectionItem.banknote.id);
+        console.log('Checking image suggestion status for collection item:', collectionItem.id);
         
-        // Check if the collection item owner's suggestion was approved
+        // Check if the collection item's suggestion was approved
         const { data: ownerSuggestions, error } = await supabase
           .from('image_suggestions')
           .select('status')
-          .eq('banknote_id', collectionItem.banknote.id)
+          .eq('collection_item_id', collectionItem.id)
           .eq('user_id', collectionItem.userId)
           .eq('status', 'approved')
           .limit(1);
@@ -112,7 +112,7 @@ export default function CollectionItem() {
           const { data: userSuggestions, error: userError } = await supabase
             .from('image_suggestions')
             .select('status')
-            .eq('banknote_id', collectionItem.banknote.id)
+            .eq('collection_item_id', collectionItem.id)
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
             .limit(1);
@@ -139,16 +139,16 @@ export default function CollectionItem() {
     };
 
     checkImageStatus();
-  }, [collectionItem?.banknote?.id, collectionItem?.userId, isOwner, user?.id]);
+  }, [collectionItem?.id, collectionItem?.userId, isOwner, user?.id]);
 
   const handleUpdateSuccess = async (updatedItem?: CollectionItemType, hasImageChanged?: boolean) => {
     setIsEditDialogOpen(false);
     toast("Collection item updated successfully");
     
     // If images were changed, delete existing suggestions and reset suggestion status
-    if (hasImageChanged && collectionItem?.banknote?.id && user?.id) {
+    if (hasImageChanged && collectionItem?.id && user?.id) {
       try {
-        await deleteExistingImageSuggestions(collectionItem.banknote.id, user.id);
+        await deleteExistingImageSuggestions(collectionItem.id, user.id);
         console.log("Existing image suggestions deleted successfully");
       } catch (error) {
         console.error("Failed to delete existing image suggestions:", error);
@@ -172,7 +172,7 @@ export default function CollectionItem() {
     try {
       // Delete any existing suggestions first (safety measure)
       try {
-        await deleteExistingImageSuggestions(collectionItem.banknote.id, user.id);
+        await deleteExistingImageSuggestions(collectionItem.id, user.id);
       } catch (error) {
         console.error("Failed to delete existing suggestions before submitting new one:", error);
         // Continue with submission even if deletion fails
@@ -181,6 +181,7 @@ export default function CollectionItem() {
       await submitImageSuggestion({
         banknoteId: collectionItem.banknote.id,
         userId: user.id,
+        collectionItemId: collectionItem.id,
         obverseImage: collectionItem.obverseImage,
         reverseImage: collectionItem.reverseImage
       });

@@ -759,6 +759,7 @@ export type Database = {
       image_suggestions: {
         Row: {
           banknote_id: string
+          collection_item_id: string | null
           created_at: string
           id: string
           obverse_image: string | null
@@ -773,6 +774,7 @@ export type Database = {
         }
         Insert: {
           banknote_id: string
+          collection_item_id?: string | null
           created_at?: string
           id?: string
           obverse_image?: string | null
@@ -787,6 +789,7 @@ export type Database = {
         }
         Update: {
           banknote_id?: string
+          collection_item_id?: string | null
           created_at?: string
           id?: string
           obverse_image?: string | null
@@ -813,6 +816,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "enhanced_detailed_banknotes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "image_suggestions_collection_item_id_fkey"
+            columns: ["collection_item_id"]
+            isOneToOne: false
+            referencedRelation: "collection_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "image_suggestions_collection_item_id_fkey"
+            columns: ["collection_item_id"]
+            isOneToOne: false
+            referencedRelation: "user_collection_view"
+            referencedColumns: ["collection_item_id"]
           },
         ]
       }

@@ -78,14 +78,14 @@ export default function CollectionItemUnlisted() {
   }, [collectionItem, user]);
 
   const checkExistingSuggestion = async () => {
-    if (!collectionItem?.banknote.id || !user?.id) return;
+    if (!collectionItem?.id || !user?.id) return;
 
     try {
-      const hasExisting = await hasExistingImageSuggestion(
-        collectionItem.banknote.id,
+      const { hasSuggestion } = await hasExistingImageSuggestion(
+        collectionItem.id,
         user.id
       );
-      setHasPendingSuggestion(hasExisting);
+      setHasPendingSuggestion(hasSuggestion);
     } catch (error) {
       console.error("Failed to check existing suggestions:", error);
     }
@@ -116,6 +116,7 @@ export default function CollectionItemUnlisted() {
       await submitImageSuggestion({
         banknoteId: collectionItem.banknote.id,
         userId: user.id,
+        collectionItemId: collectionItem.id,
         obverseImage: collectionItem.obverseImage,
         reverseImage: collectionItem.reverseImage
       });

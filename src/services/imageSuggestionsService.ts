@@ -7,6 +7,7 @@ import { toast } from "sonner";
 export async function submitImageSuggestion(data: {
   banknoteId: string;
   userId: string;
+  collectionItemId: string;
   obverseImage?: string | null;
   reverseImage?: string | null;
   obverseImageWatermarked?: string | null;
@@ -22,6 +23,7 @@ export async function submitImageSuggestion(data: {
     console.log('Submitting image suggestion with data:', {
       banknote_id: data.banknoteId,
       user_id: data.userId,
+      collection_item_id: data.collectionItemId,
       obverse_image: data.obverseImage,
       reverse_image: data.reverseImage,
       obverse_image_watermarked: data.obverseImageWatermarked,
@@ -36,6 +38,7 @@ export async function submitImageSuggestion(data: {
       .insert({
         banknote_id: data.banknoteId,
         user_id: data.userId,
+        collection_item_id: data.collectionItemId,
         obverse_image: data.obverseImage,
         reverse_image: data.reverseImage,
         obverse_image_watermarked: data.obverseImageWatermarked,
@@ -58,9 +61,9 @@ export async function submitImageSuggestion(data: {
 }
 
 /**
- * Check if user has already submitted an image suggestion for this banknote
+ * Check if user has already submitted an image suggestion for this collection item
  */
-export async function hasExistingImageSuggestion(banknoteId: string, userId: string): Promise<{ 
+export async function hasExistingImageSuggestion(collectionItemId: string, userId: string): Promise<{ 
   hasSuggestion: boolean; 
   status: 'pending' | 'approved' | 'rejected' | null;
 }> {
@@ -68,7 +71,7 @@ export async function hasExistingImageSuggestion(banknoteId: string, userId: str
     const { data, error } = await supabase
       .from('image_suggestions')
       .select('status')
-      .eq('banknote_id', banknoteId)
+      .eq('collection_item_id', collectionItemId)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(1);
@@ -92,16 +95,16 @@ export async function hasExistingImageSuggestion(banknoteId: string, userId: str
 }
 
 /**
- * Delete existing image suggestions for a specific banknote and user
+ * Delete existing image suggestions for a specific collection item and user
  */
-export async function deleteExistingImageSuggestions(banknoteId: string, userId: string): Promise<boolean> {
+export async function deleteExistingImageSuggestions(collectionItemId: string, userId: string): Promise<boolean> {
   try {
-    console.log(`Deleting existing image suggestions for banknote ${banknoteId} and user ${userId}`);
+    console.log(`Deleting existing image suggestions for collection item ${collectionItemId} and user ${userId}`);
     
     const { data, error } = await supabase
       .from('image_suggestions')
       .delete()
-      .eq('banknote_id', banknoteId)
+      .eq('collection_item_id', collectionItemId)
       .eq('user_id', userId)
       .select(); // Return deleted rows for logging
 
