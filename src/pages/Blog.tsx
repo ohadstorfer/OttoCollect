@@ -129,12 +129,7 @@ const Blog = () => {
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="all" className="mb-10">
             <div className="flex items-center justify-center gap-2 sm:gap-4">
-              <TabsList className="shrink-0">
-                <TabsTrigger value="all">All Posts</TabsTrigger>
-                {user && (
-                  <TabsTrigger value="my-posts">My Posts</TabsTrigger>
-                )}
-              </TabsList>
+              
 
               <div className="relative w-32 sm:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
