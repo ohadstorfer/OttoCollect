@@ -65,7 +65,7 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
     enabled: !!profileId
   });
 
-  const { data: badgeCategories = [] } = useQuery({
+  const { data: badgeCategories = [], isLoading: badgeCategoriesLoading } = useQuery({
     queryKey: ['badge-categories', profileId],
     queryFn: async () => {
       await checkAndAwardBadges(profileId);
@@ -331,6 +331,7 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
         onOpenChange={setShowBadgesDialog}
         userBadges={highestBadge ? [highestBadge] : []}
         badgeCategories={badgeCategories}
+        isLoading={badgeCategoriesLoading}
       />
       
     </div>
