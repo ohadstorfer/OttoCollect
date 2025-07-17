@@ -16,6 +16,7 @@ import { DetailedBanknote } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SimpleImageUpload from '@/components/collection/SimpleImageUpload';
+import MultipleImageUpload from './MultipleImageUpload';
 import { uploadBanknoteImage } from '@/services/banknoteService';
 import { fetchStampPictures } from '@/services/stampsService';
 import { StampPicture, StampType } from '@/types/stamps';
@@ -65,9 +66,13 @@ const BanknoteEditDialog = ({
     back_picture_thumbnail: '',
     signatures_front: [],
     signatures_back: [],
+    signature_pictures: [],
     seal_pictures: [],
+    seal_names: '',
     watermark_picture: '',
     tughra_picture: '',
+    other_element_pictures: [],
+    other_element_files: [],
     turk_catalog_number: '',
     security_element: '',
     colors: '',
@@ -131,9 +136,13 @@ const BanknoteEditDialog = ({
         back_picture: banknote.imageUrls[1] || '',
         signatures_front: banknote.signaturesFront?.split(', ') || [],
         signatures_back: banknote.signaturesBack?.split(', ') || [],
+        signature_pictures: banknote.signaturesFrontUrls || [],
         seal_pictures: banknote.sealNames?.split(', ') || [],
-        watermark_picture: banknote.watermark || '',
-        tughra_picture: '',
+        seal_names: banknote.sealNames || '',
+        watermark_picture: banknote.watermarkUrl || '',
+        tughra_picture: banknote.tughraUrl || '',
+        other_element_pictures: [],
+        other_element_files: [],
         turk_catalog_number: banknote.turkCatalogNumber || '',
         security_element: banknote.securityElement || '',
         colors: banknote.colors || '',
@@ -159,6 +168,20 @@ const BanknoteEditDialog = ({
       });
     }
   }, [formData.country]);
+
+  // Cleanup preview URLs when component unmounts or dialog closes
+  useEffect(() => {
+    return () => {
+      // Clean up any preview URLs to prevent memory leaks
+      if (formData.other_element_files) {
+        formData.other_element_files.forEach((imageFile: any) => {
+          if (imageFile.previewUrl) {
+            URL.revokeObjectURL(imageFile.previewUrl);
+          }
+        });
+      }
+    };
+  }, []);
   
   const fetchDetailedBanknoteInfo = async (banknoteId: string) => {
     try {
@@ -171,9 +194,20 @@ const BanknoteEditDialog = ({
       if (error) throw error;
       
       if (data) {
+        // Ensure other_element_pictures is an array
+        const processedData = {
+          ...data,
+          other_element_pictures: Array.isArray(data.other_element_pictures) 
+            ? data.other_element_pictures 
+            : data.other_element_pictures 
+              ? [data.other_element_pictures] 
+              : [],
+          other_element_files: [] // Reset files when loading existing data
+        };
+        
         setFormData(prev => ({
           ...prev,
-          ...data
+          ...processedData
         }));
       }
     } catch (error) {
@@ -290,6 +324,43 @@ const BanknoteEditDialog = ({
       toast.error('Failed to process back image');
     }
   };
+
+  const handleOtherElementImagesChange = (imageFiles: any[]) => {
+    setFormData(prev => ({
+      ...prev,
+      other_element_files: imageFiles
+    }));
+  };
+
+  const uploadOtherElementImages = async (imageFiles: any[]): Promise<string[]> => {
+    if (!user || !imageFiles.length) return [];
+    
+    const uploadedUrls: string[] = [];
+    
+    for (const imageFile of imageFiles) {
+      try {
+        // Upload the file directly without processing (no thumbnail/watermark)
+        const fileName = `${user.id}_${Date.now()}_${Math.random().toString(36).substring(2)}.${imageFile.file.name.split('.').pop()}`;
+        const { data, error } = await supabase.storage
+          .from('banknotes')
+          .upload(fileName, imageFile.file);
+        
+        if (error) throw error;
+        
+        // Get the public URL
+        const { data: urlData } = supabase.storage
+          .from('banknotes')
+          .getPublicUrl(fileName);
+        
+        uploadedUrls.push(urlData.publicUrl);
+      } catch (error) {
+        console.error('Error uploading other element image:', error);
+        toast.error(`Failed to upload image: ${imageFile.file.name}`);
+      }
+    }
+    
+    return uploadedUrls;
+  };
   
   const handleStampChange = (type: StampType, value: string) => {
     if (value === 'none') {
@@ -337,11 +408,20 @@ const BanknoteEditDialog = ({
     setIsSubmitting(true);
     
     try {
+      // Upload other element images if any
+      const otherElementUrls = await uploadOtherElementImages(formData.other_element_files || []);
+      
+      // Prepare the data to save
+      const dataToSave = {
+        ...formData,
+        other_element_pictures: otherElementUrls
+      };
+      
       if (isNew) {
         // Create new banknote
         const { data, error } = await supabase
           .from('detailed_banknotes')
-          .insert([formData])
+          .insert([dataToSave])
           .select()
           .single();
         
@@ -383,7 +463,7 @@ const BanknoteEditDialog = ({
         // Update existing banknote
         const { error } = await supabase
           .from('detailed_banknotes')
-          .update(formData)
+          .update(dataToSave)
           .eq('id', banknote.id);
         
         if (error) throw error;
@@ -638,6 +718,59 @@ const BanknoteEditDialog = ({
                   rows={3}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signature_pictures">signature_pictures</Label>
+                <Textarea
+                  id="signature_pictures"
+                  name="signature_pictures"
+                  value={formData.signature_pictures || ''}
+                  onChange={handleChange}
+                  rows={3}
+                  placeholder="Enter signature pictures as comma-separated values"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="seal_names">seal_names</Label>
+                <Input
+                  id="seal_names"
+                  name="seal_names"
+                  value={formData.seal_names || ''}
+                  onChange={handleChange}
+                  placeholder="Enter seal names"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signatures_front">signatures_front</Label>
+                <Input
+                  id="signatures_front"
+                  name="signatures_front"
+                  value={Array.isArray(formData.signatures_front) ? formData.signatures_front.join(', ') : formData.signatures_front || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const signatures = value.split(',').map(s => s.trim()).filter(s => s);
+                    setFormData(prev => ({ ...prev, signatures_front: signatures }));
+                  }}
+                  placeholder="Enter front signatures as comma-separated values"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signatures_back">signatures_back</Label>
+                <Input
+                  id="signatures_back"
+                  name="signatures_back"
+                  value={Array.isArray(formData.signatures_back) ? formData.signatures_back.join(', ') : formData.signatures_back || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const signatures = value.split(',').map(s => s.trim()).filter(s => s);
+                    setFormData(prev => ({ ...prev, signatures_back: signatures }));
+                  }}
+                  placeholder="Enter back signatures as comma-separated values"
+                />
+              </div>
             </TabsContent>
             
             <TabsContent value="images" className="space-y-6">
@@ -660,6 +793,8 @@ const BanknoteEditDialog = ({
                   />
                 </div>
               </div>
+
+              
 
               <div className="space-y-6 pt-6 border-t">
                 <h3 className="text-lg font-medium"><span>Stamp Pictures</span></h3>
@@ -750,10 +885,20 @@ const BanknoteEditDialog = ({
                         </SelectContent>
                       </Select>
                     </div>
+
+                    
+              
                   </div>
                 )}
               </div>
-              
+                                  <div className="space-y-4">
+                      <MultipleImageUpload
+                        images={formData.other_element_files || []}
+                        onImagesChange={handleOtherElementImagesChange}
+                        label="Other Element Pictures"
+                        maxImages={10}
+                      />
+                    </div>
 
             </TabsContent>
           </Tabs>

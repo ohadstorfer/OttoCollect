@@ -572,8 +572,8 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       const { error: updateError } = await supabase
         .from('detailed_banknotes')
         .update(updateData)
-        .eq('id', suggestion.banknote_id);
-      
+          .eq('id', suggestion.banknote_id);
+        
       if (updateError) {
         console.error('Error updating banknote images:', updateError);
         toast.error(`Failed to update banknote images: ${updateError.message}`);

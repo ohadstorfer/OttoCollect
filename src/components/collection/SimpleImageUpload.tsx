@@ -5,7 +5,7 @@ import ImageCropDialog from '@/components/shared/ImageCropDialog';
 
 interface SimpleImageUploadProps {
   image: string;
-  side: 'front' | 'back';
+  side: 'front' | 'back' | 'other';
   onImageUploaded: (file: File) => void;
 }
 

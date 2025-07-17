@@ -296,12 +296,12 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
     // Process unlisted banknotes
     if (unlistedItems) {
       for (const item of unlistedItems) {
-        const unlistedData = item.unlisted_banknotes;
-        if (unlistedData) {
-          // Set default category if not provided
-          if (!unlistedData.category) {
-            unlistedData.category = 'Unlisted Banknotes';
-          }
+          const unlistedData = item.unlisted_banknotes;
+          if (unlistedData) {
+            // Set default category if not provided
+            if (!unlistedData.category) {
+              unlistedData.category = 'Unlisted Banknotes';
+            }
           const banknote = normalizeBanknoteData(unlistedData, "unlisted");
           
           enrichedItems.push({
