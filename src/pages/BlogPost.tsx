@@ -10,7 +10,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { addBlogComment, fetchBlogPostById, deleteBlogPost, updateBlogComment, checkUserDailyBlogLimit } from "@/services/blogService";
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
-import BlogCommentComponent from "@/components/blog/BlogComment";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
 import { ArrowLeft, Trash2, Edit2, Ban } from 'lucide-react';
@@ -45,6 +44,7 @@ const BlogPostPage = () => {
   const [showProfileActionDialog, setShowProfileActionDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isBlockingUser, setIsBlockingUser] = useState(false);
+  const [isUserBlocked, setIsUserBlocked] = useState(false);
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
@@ -54,6 +54,27 @@ const BlogPostPage = () => {
       loadPost(postId);
     }
   }, [postId]);
+
+  useEffect(() => {
+    const checkUserBlockStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('is_forum_blocked')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+        setIsUserBlocked(data?.is_forum_blocked || false);
+      } catch (error) {
+        console.error('Error checking user block status:', error);
+      }
+    };
+
+    checkUserBlockStatus();
+  }, [user]);
 
   useEffect(() => {
     const checkDailyLimit = async () => {
@@ -206,6 +227,29 @@ const BlogPostPage = () => {
     setEditedContent('');
   };
 
+  // Function to block user from forum
+  const handleBlockUserFromForum = async (userId: string) => {
+    if (!user?.role?.includes('Super Admin')) return;
+    
+    setIsBlockingUser(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_forum_blocked: true })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      toast.success('User has been blocked from the forum');
+      setShowProfileActionDialog(false);
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      toast.error('Failed to block user from forum');
+    } finally {
+      setIsBlockingUser(false);
+    }
+  };
+
   // Profile click handler
   const handleOnProfileClick = (userId: string | undefined) => {
     if (!userId) return;
@@ -335,17 +379,6 @@ const BlogPostPage = () => {
         </div>
 
         <div className="glass-card p-6 rounded-md shadow-md mb-6 animate-fade-in">
-          {/* Main Image */}
-          {post.main_image_url && (
-            <div className="w-full aspect-video mb-6 overflow-hidden rounded-lg">
-              <img 
-                src={post.main_image_url} 
-                alt={post.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-
           <div className="flex items-start gap-4">
             <Avatar
               className="h-12 w-12 border cursor-pointer hover:opacity-80 active:scale-95 transition"
@@ -372,8 +405,18 @@ const BlogPostPage = () => {
                 </div>
                 <span className="text-sm text-muted-foreground">{formattedDate}</span>
               </div>
-              <h6 className="font-semibold text-2xl animate-fade-in mb-2"><span>{post.title}</span></h6>
-              <div className="whitespace-pre-line">{post.content}</div>
+              <h6 className="font-semibold text-2xl animate-fade-in"><span>{post.title}</span></h6>
+              <div className="whitespace-pre-line mb-4">{post.content}</div>
+
+              {post.main_image_url && (
+                <div className="w-full aspect-video mb-4 overflow-hidden rounded-lg">
+                  <img 
+                    src={post.main_image_url} 
+                    alt={post.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -382,44 +425,52 @@ const BlogPostPage = () => {
           <h2 className="text-xl font-semibold mb-4"><span>Comments • {post.commentCount || 0}</span></h2>
 
           {user ? (
-            <>
-              {/* Daily activity warning for limited ranks */}
-              {isLimitedRank && hasReachedDailyLimit && (
-                <div className="mb-4">
-                    <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
-                      <p className="text-red-600 dark:text-red-400 text-sm">
-                        You have reached your daily limit of 6 blog activities (posts + comments).
-                      </p>
-                    </div>
-                </div>
-              )}
+            isUserBlocked ? (
+              <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800 text-center mb-6">
+                <p className="text-red-600 dark:text-red-400">
+                  You have been blocked from commenting on blog posts
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Daily activity warning for limited ranks */}
+                {isLimitedRank && hasReachedDailyLimit && (
+                  <div className="mb-4">
+                      <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
+                        <p className="text-red-600 dark:text-red-400 text-sm">
+                          You have reached your daily limit of 6 blog activities (posts + comments).
+                        </p>
+                      </div>
+                  </div>
+                )}
 
-              <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatarUrl} />
-                  <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                    {getInitials(user.username)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-2">
-                  <Textarea
-                    value={commentContent}
-                    onChange={(e) => setCommentContent(e.target.value)}
-                    placeholder="Add your comment..."
-                    className="resize-none min-h-[100px]"
-                    disabled={hasReachedDailyLimit}
-                  />
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={handleAddComment}
-                      disabled={isSubmitting || commentContent.trim() === '' || hasReachedDailyLimit}
-                    >
-                      {isSubmitting ? 'Posting...' : 'Post Comment'}
-                    </Button>
+                <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatarUrl} />
+                    <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                      {getInitials(user.username)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-2">
+                    <Textarea
+                      value={commentContent}
+                      onChange={(e) => setCommentContent(e.target.value)}
+                      placeholder="Add your comment..."
+                      className="resize-none min-h-[100px]"
+                      disabled={hasReachedDailyLimit}
+                    />
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={handleAddComment}
+                        disabled={isSubmitting || commentContent.trim() === '' || hasReachedDailyLimit}
+                      >
+                        {isSubmitting ? 'Posting...' : 'Post Comment'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </>
+              </>
+            )
           ) : (
             <div className="bg-parchment-10/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">
               <p className="text-muted-foreground">
@@ -449,31 +500,143 @@ const BlogPostPage = () => {
                       </Avatar>
                     </div>
                     <div className="flex-1">
-                      <BlogCommentComponent
-                        id={comment.id}
-                        content={comment.content}
-                        author={{
-                          id: comment.author?.id || '',
-                          username: comment.author?.username || 'Anonymous',
-                          avatarUrl: comment.author?.avatarUrl,
-                          rank: comment.author?.rank || 'Unknown'
-                        }}
-                        createdAt={comment.createdAt || comment.created_at}
-                        isEdited={comment.isEdited}
-                        onCommentUpdate={() => loadPost(post.id)}
-                      />
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="font-semibold text-sm text-ottoman-900 dark:text-parchment-200 cursor-pointer"
+                          onClick={() => handleOnProfileClick(comment.author?.id)}
+                          tabIndex={0}
+                          role="button"
+                          aria-label="Go to comment author profile"
+                          onKeyDown={e => { if (e.key === 'Enter') handleOnProfileClick(comment.author?.id); }}
+                        >
+                          {comment.author?.username || 'Anonymous'}
+                        </span>
+                        <span className="text-sm text-muted-foreground">{formattedDate}</span>
+                        {comment.isEdited && <span className="text-xs italic text-muted-foreground">(edited)</span>}
+                      </div>
+
+                      {editingCommentId === comment.id ? (
+                        <div className="mt-2 space-y-2">
+                          <Textarea
+                            value={editedContent}
+                            onChange={(e) => setEditedContent(e.target.value)}
+                            className="min-h-[100px]"
+                            disabled={isSubmitting}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={cancelEditing}
+                              disabled={isSubmitting}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleEditComment(comment.id, editedContent)}
+                              disabled={isSubmitting || editedContent.trim() === ''}
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="whitespace-pre-line mb-2">{comment.content}</div>
+
+                          {/* Comment Actions */}
+                          {((user?.id === comment.authorId) || user?.role?.includes('Admin')) && (
+                            <div className="flex gap-2 justify-end">
+                              {user?.id === comment.authorId && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => startEditing(comment)}
+                                  className="text-ottoman-600 hover:text-ottoman-700 hover:bg-ottoman-100/50"
+                                >
+                                  <Edit2 className="h-4 w-4 mr-1" />
+                                  {/* Edit */}
+                                </Button>
+                              )}
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    {/* Delete */}
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this comment? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => onDeleteComment(comment.id)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>No comments yet. Be the first to share your thoughts!</p>
-              </div>
-            )}
+            )
+              : (
+                <div className="bg-parchment-10/20 p-8 rounded-md border border-ottoman-100/50 text-center">
+                  <p className="text-muted-foreground">No comments yet. Be the first to contribute!</p>
+                </div>
+              )}
           </div>
         </div>
       </div>
+
+      {/* Profile Action Dialog for Super Admin */}
+      <AlertDialog open={showProfileActionDialog} onOpenChange={setShowProfileActionDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>User Profile Actions</AlertDialogTitle>
+
+          </AlertDialogHeader>
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                navigate(`/profile/${selectedUserId}`);
+                setShowProfileActionDialog(false);
+              }}
+            >
+              Go to Profile
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => selectedUserId && handleBlockUserFromForum(selectedUserId)}
+              disabled={isBlockingUser}
+            >
+              <Ban className="h-4 w-4 mr-2" />
+              {isBlockingUser ? 'Blocking...' : 'Block from Forum'}
+            </Button>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
