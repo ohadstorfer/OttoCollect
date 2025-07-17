@@ -44,6 +44,9 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import '@/i18n/config';  // Import this at the top
 import AboutUs from "./pages/AboutUs";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
+import CreateBlogPost from "./pages/CreateBlogPost";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -113,6 +116,9 @@ function App() {
                     <Route path="/delete-processed-images" element={<DeleteProcessedImages />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/about-us" element={<AboutUs />} />
+                    <Route path="/blog" element={<Blog />} />
+                    <Route path="/blog/:id" element={<BlogPost />} />
+                    <Route path="/blog/new" element={<CreateBlogPost />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </main>
