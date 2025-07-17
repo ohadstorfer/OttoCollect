@@ -1,0 +1,137 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User } from "@/types";
+import { BlogComment } from "@/types/blog";
+import { addBlogComment, checkUserDailyBlogLimit } from '@/services/blogService';
+import { useToast } from "@/hooks/use-toast";
+import { getInitials } from "@/lib/utils";
+
+interface AddCommentFormProps {
+  postId: string;
+  user: User;
+  onCommentAdded: (comment: BlogComment) => void;
+}
+
+export default function AddCommentForm({ postId, user, onCommentAdded }: AddCommentFormProps) {
+  const [content, setContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasReachedLimit, setHasReachedLimit] = useState(false);
+  const [dailyCount, setDailyCount] = useState(0);
+  const { toast } = useToast();
+
+  // Check if user is in limited ranks
+  const isLimitedRank = ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '');
+
+  useEffect(() => {
+    const checkDailyLimit = async () => {
+      if (!isLimitedRank) return;
+      
+      try {
+        const { hasReachedLimit: limitReached, dailyCount: count } = await checkUserDailyBlogLimit(user.id);
+        setHasReachedLimit(limitReached);
+        setDailyCount(count);
+      } catch (error) {
+        console.error('Error checking daily limit:', error);
+      }
+    };
+
+    checkDailyLimit();
+  }, [user.id, isLimitedRank]);
+
+  const handleSubmit = async () => {
+    if (content.trim() === '') return;
+    
+    // Check limit before submitting
+    if (isLimitedRank) {
+      const { hasReachedLimit: limitReached } = await checkUserDailyBlogLimit(user.id);
+      if (limitReached) {
+        toast({
+          title: "Daily limit reached",
+          description: "You have reached your daily limit of 6 blog activities (posts + comments).",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const comment = await addBlogComment(postId, content);
+      
+      if (comment) {
+        onCommentAdded(comment);
+        setContent('');
+        
+        // Update daily count after successful comment
+        if (isLimitedRank) {
+          setDailyCount(prev => prev + 1);
+          if (dailyCount + 1 >= 6) {
+            setHasReachedLimit(true);
+          }
+        }
+        
+        toast({
+          title: "Comment added",
+          description: "Your comment has been added successfully.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add comment. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="flex gap-3">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={user.avatarUrl} />
+        <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+          {getInitials(user.username)}
+        </AvatarFallback>
+      </Avatar>
+      
+      <div className="flex-1 space-y-2">
+        {isLimitedRank && hasReachedLimit && (
+          <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
+            <p className="text-red-600 dark:text-red-400 text-sm">
+              You have reached your daily limit of 6 blog activities (posts + comments).
+            </p>
+          </div>
+        )}
+        
+        {isLimitedRank && !hasReachedLimit && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded-md border border-yellow-200 dark:border-yellow-800">
+            <p className="text-yellow-600 dark:text-yellow-400 text-sm">
+              Daily blog activity: {dailyCount}/6 (posts + comments)
+            </p>
+          </div>
+        )}
+        
+        <Textarea 
+          placeholder="Write your comment..."
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="resize-none"
+          disabled={hasReachedLimit}
+        />
+        
+        <div className="flex justify-end">
+          <Button 
+            onClick={handleSubmit}
+            disabled={isSubmitting || content.trim() === '' || hasReachedLimit}
+            size="sm"
+          >
+            {isSubmitting ? 'Posting...' : 'Post Comment'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

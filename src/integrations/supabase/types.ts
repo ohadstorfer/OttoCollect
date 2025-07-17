@@ -263,6 +263,44 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          is_edited: boolean | null
+          post_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_edited?: boolean | null
+          post_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_edited?: boolean | null
+          post_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_id: string
@@ -1764,6 +1802,10 @@ export type Database = {
           current_value: number
         }[]
       }
+      get_user_daily_blog_activity_count: {
+        Args: { user_id_param: string }
+        Returns: number
+      }
       get_user_daily_forum_activity_count: {
         Args: { user_id_param: string }
         Returns: number
@@ -1816,6 +1858,10 @@ export type Database = {
       recalculate_all_user_points_and_ranks: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      user_has_reached_daily_blog_limit: {
+        Args: { user_id_param: string }
+        Returns: boolean
       }
       user_has_reached_daily_forum_limit: {
         Args: { user_id_param: string }
