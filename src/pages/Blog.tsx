@@ -34,6 +34,9 @@ const Blog = () => {
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
 
+  // Check if user is admin
+  const isAdmin = user ? user.role === 'Super Admin' || user.role?.includes('Admin') : false;
+  
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
 
@@ -142,7 +145,7 @@ const Blog = () => {
                 />
               </div>
 
-              {user && !hasReachedDailyLimit && (
+              {user && isAdmin && (
                 <Button
                   onClick={handleCreatePost}
                   className="flex-shrink-0 px-2 sm:px-4"
@@ -230,13 +233,15 @@ const Blog = () => {
                     ) : (
                       <div className="text-center py-10">
                         <p>You haven't created any posts yet.</p>
-                        <Button
-                          onClick={handleCreatePost}
-                          variant="outline"
-                          className="mt-4"
-                        >
-                          Create Your First Post
-                        </Button>
+                        {isAdmin && (
+                          <Button
+                            onClick={handleCreatePost}
+                            variant="outline"
+                            className="mt-4"
+                          >
+                            Create Your First Post
+                          </Button>
+                        )}
                       </div>
                     )}
                   </>
