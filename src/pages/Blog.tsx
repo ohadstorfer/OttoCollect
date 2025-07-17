@@ -92,7 +92,7 @@ const Blog = () => {
       const filtered = posts.filter(post =>
         post.title.toLowerCase().includes(term.toLowerCase()) ||
         post.content.toLowerCase().includes(term.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(term.toLowerCase())
+        (post.excerpt && post.excerpt.toLowerCase().includes(term.toLowerCase()))
       );
       setFilteredPosts(filtered);
     }

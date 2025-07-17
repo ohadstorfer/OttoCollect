@@ -43,7 +43,7 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
 
       <CardContent className="p-4 pt-0 flex-1">
         <p className="text-muted-foreground text-sm line-clamp-3">
-          {post.excerpt}
+          {post.excerpt || (post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content)}
         </p>
       </CardContent>
 

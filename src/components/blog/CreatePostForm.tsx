@@ -17,7 +17,6 @@ export function CreatePostForm() {
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [excerpt, setExcerpt] = useState('');
   const [mainImage, setMainImage] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
@@ -45,7 +44,7 @@ export function CreatePostForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !title.trim() || !content.trim() || !excerpt.trim() || !mainImage) {
+    if (!user || !title.trim() || !content.trim()) {
       return;
     }
 
@@ -64,7 +63,9 @@ export function CreatePostForm() {
 
     setIsSubmitting(true);
     try {
-      const newPost = await createBlogPost(title, content, excerpt, mainImage, user.id);
+      // Generate excerpt from content (first 150 characters)
+      const excerpt = content.length > 150 ? content.substring(0, 150) + '...' : content;
+      const newPost = await createBlogPost(title, content, excerpt, mainImage || '', user.id);
       
       if (newPost) {
         toast({
@@ -125,39 +126,25 @@ export function CreatePostForm() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="excerpt">Excerpt</Label>
-            <Textarea
-              id="excerpt"
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              placeholder="Write a short summary of your blog post..."
-              required
-              className="min-h-[80px]"
-              maxLength={300}
-              disabled={hasReachedLimit}
-            />
-          </div>
-          
-          <div className="space-y-2">
             <Label htmlFor="content">Content</Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your blog post content..."
+              placeholder="Share your thoughts, insights, or knowledge..."
               required
-              className="min-h-[300px]"
+              className="min-h-[200px]"
               disabled={hasReachedLimit}
             />
           </div>
           
           <div className="space-y-2">
-            <Label>Main Image</Label>
+            <Label>Main Image (Optional)</Label>
             <ImageUploader 
               image={mainImage} 
-              onChange={setMainImage} 
+              onChange={setMainImage}
               disabled={hasReachedLimit}
-              required={true}
+              required={false}
             />
           </div>
         </CardContent>
@@ -173,7 +160,7 @@ export function CreatePostForm() {
           </Button>
           <Button 
             type="submit"
-            disabled={isSubmitting || !title.trim() || !content.trim() || !excerpt.trim() || !mainImage || hasReachedLimit}
+            disabled={isSubmitting || !title.trim() || !content.trim() || hasReachedLimit}
           >
             {isSubmitting ? (
               <>
