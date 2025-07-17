@@ -194,6 +194,16 @@ const BanknoteEditDialog = ({
       if (error) throw error;
       
       if (data) {
+        // Process existing other_element_pictures to create file objects for UI
+        const existingOtherElementFiles = Array.isArray(data.other_element_pictures) 
+          ? data.other_element_pictures.map((url: string, index: number) => ({
+              id: `existing-${index}`,
+              file: null, // No file object for existing images
+              previewUrl: url,
+              isExisting: true
+            }))
+          : [];
+
         // Ensure other_element_pictures is an array
         const processedData = {
           ...data,
@@ -202,7 +212,7 @@ const BanknoteEditDialog = ({
             : data.other_element_pictures 
               ? [data.other_element_pictures] 
               : [],
-          other_element_files: [] // Reset files when loading existing data
+          other_element_files: existingOtherElementFiles // Set existing images as files for UI
         };
         
         setFormData(prev => ({
@@ -339,23 +349,32 @@ const BanknoteEditDialog = ({
     
     for (const imageFile of imageFiles) {
       try {
-        // Upload the file to the banknote_images bucket instead of banknotes
-        const fileName = `other_elements/${user.id}_${Date.now()}_${Math.random().toString(36).substring(2)}.${imageFile.file.name.split('.').pop()}`;
-        const { data, error } = await supabase.storage
-          .from('banknote_images')
-          .upload(fileName, imageFile.file);
-        
-        if (error) throw error;
-        
-        // Get the public URL
-        const { data: urlData } = supabase.storage
-          .from('banknote_images')
-          .getPublicUrl(fileName);
-        
-        uploadedUrls.push(urlData.publicUrl);
+        // Skip existing images that are already uploaded
+        if (imageFile.isExisting && imageFile.previewUrl) {
+          uploadedUrls.push(imageFile.previewUrl);
+          continue;
+        }
+
+        // Only upload new files
+        if (imageFile.file) {
+          // Upload the file to the banknote_images bucket instead of banknotes
+          const fileName = `other_elements/${user.id}_${Date.now()}_${Math.random().toString(36).substring(2)}.${imageFile.file.name.split('.').pop()}`;
+          const { data, error } = await supabase.storage
+            .from('banknote_images')
+            .upload(fileName, imageFile.file);
+          
+          if (error) throw error;
+          
+          // Get the public URL
+          const { data: urlData } = supabase.storage
+            .from('banknote_images')
+            .getPublicUrl(fileName);
+          
+          uploadedUrls.push(urlData.publicUrl);
+        }
       } catch (error) {
         console.error('Error uploading other element image:', error);
-        toast.error(`Failed to upload image: ${imageFile.file.name}`);
+        toast.error(`Failed to upload image: ${imageFile.file?.name || 'existing image'}`);
       }
     }
     
@@ -796,8 +815,6 @@ const BanknoteEditDialog = ({
                 </div>
               </div>
 
-              
-
               <div className="space-y-6 pt-6 border-t">
                 <h3 className="text-lg font-medium"><span>Stamp Pictures</span></h3>
                 {isLoadingStamps ? (
@@ -887,21 +904,18 @@ const BanknoteEditDialog = ({
                         </SelectContent>
                       </Select>
                     </div>
-
-                    
-              
                   </div>
                 )}
               </div>
-                                  <div className="space-y-4">
-                      <MultipleImageUpload
-                        images={formData.other_element_files || []}
-                        onImagesChange={handleOtherElementImagesChange}
-                        label="Other Element Pictures"
-                        maxImages={10}
-                      />
-                    </div>
-
+              
+              <div className="space-y-4">
+                <MultipleImageUpload
+                  images={formData.other_element_files || []}
+                  onImagesChange={handleOtherElementImagesChange}
+                  label="Other Element Pictures"
+                  maxImages={10}
+                />
+              </div>
             </TabsContent>
           </Tabs>
           
