@@ -86,41 +86,26 @@ export function NotificationPanel({
         className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all hover:scale-[1.02] border ${
           notification.is_read
             ? 'bg-background hover:bg-accent/50 border-muted'
-            : isBadgeNotification
-              ? 'bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700 shadow-md'
-              : 'bg-accent/30 hover:bg-accent/40 border-accent shadow-sm'
+            : 'bg-accent/30 hover:bg-accent/40 border-accent shadow-sm'
         }`}
         onClick={() => handleNotificationClick(notification)}
       >
         <div className="flex-shrink-0">
-          {isBadgeNotification ? (
-            <div className="h-8 w-8 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center text-yellow-700 dark:text-yellow-300">
-              <Trophy className="h-4 w-4" />
-            </div>
-          ) : (
-            <div className={`h-8 w-8 rounded-full bg-background flex items-center justify-center ${
-              notification.is_read ? 'text-muted-foreground' : 'text-primary'
-            }`}>
-              <IconComponent className="h-4 w-4" />
-            </div>
-          )}
+          <div className={`h-8 w-8 rounded-full bg-background flex items-center justify-center ${
+            notification.is_read ? 'text-muted-foreground' : 'text-primary'
+          }`}>
+            <IconComponent className="h-4 w-4" />
+          </div>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className={`text-sm font-medium ${
               notification.is_read 
                 ? 'text-muted-foreground' 
-                : isBadgeNotification 
-                  ? 'text-yellow-800 dark:text-yellow-200'
-                  : 'text-foreground'
+                : 'text-foreground'
             }`}>
               {notification.title}
             </p>
-            {isBadgeNotification && badgeData && (
-              <div className="animate-bounce">
-                🎉
-              </div>
-            )}
           </div>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-sm text-muted-foreground line-clamp-2">
@@ -145,11 +130,7 @@ export function NotificationPanel({
         </div>
         {!notification.is_read && (
           <div className="flex-shrink-0">
-            <div className={`h-2 w-2 rounded-full ${
-              isBadgeNotification 
-                ? 'bg-yellow-500 dark:bg-yellow-400' 
-                : 'bg-primary'
-            } animate-pulse`} />
+            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
           </div>
         )}
       </div>
