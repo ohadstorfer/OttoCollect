@@ -212,15 +212,10 @@ const Forum = () => {
               ) : (
                 <>
                   {filteredPosts.length > 0 ? (
-                    <div className="px-4">
-                      <div className="columns-1 md:columns-2 lg:columns-3 gap-4 md:gap-6 [column-fill:_balance] w-full">
+                    <div className="max-w-4xl mx-auto">
+                      <div className="space-y-0">
                         {filteredPosts.map((post) => (
-                          <div 
-                            key={post.id} 
-                            className="break-inside-avoid mb-4 md:mb-6 transform transition-all duration-300 hover:scale-[1.02]"
-                          >
-                            <ForumPostCard post={post} />
-                          </div>
+                          <ForumPostCard key={post.id} post={post} />
                         ))}
                       </div>
                     </div>
@@ -245,17 +240,12 @@ const Forum = () => {
                 ) : (
                   <>
                     {filteredPosts.filter(post => post.authorId === user.id).length > 0 ? (
-                      <div className="px-4">
-                        <div className="columns-1 md:columns-2 lg:columns-3 gap-4 md:gap-6 [column-fill:_balance] w-full">
+                      <div className="max-w-4xl mx-auto">
+                        <div className="space-y-0">
                           {filteredPosts
                             .filter(post => post.authorId === user.id)
                             .map((post) => (
-                              <div 
-                                key={post.id} 
-                                className="break-inside-avoid mb-4 md:mb-6 transform transition-all duration-300 hover:scale-[1.02]"
-                              >
-                                <ForumPostCard post={post} />
-                              </div>
+                              <ForumPostCard key={post.id} post={post} />
                             ))}
                         </div>
                       </div>
