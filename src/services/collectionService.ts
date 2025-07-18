@@ -85,7 +85,8 @@ export function normalizeBanknoteData(data: any, source: 'detailed' | 'unlisted'
       otherElementPictures: data.other_element_pictures || [],
       securityElement: data.security_element || '',
       serialNumbering: data.serial_numbering || '',
-      colors: data.colors || ''
+      colors: data.colors || '',
+      dimensions: data.dimensions || ''
     } as DetailedBanknote;
   } else {
     // For detailed banknotes, the data is already normalized by mapBanknoteFromDatabase
