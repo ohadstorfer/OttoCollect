@@ -169,7 +169,8 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       signatures_front_urls: data.signatures_front_urls,
       signatures_back_urls: data.signatures_back_urls,
       seal_picture_urls: data.seal_picture_urls,
-      watermark_picture_url: data.watermark_picture_url
+      watermark_picture_url: data.watermark_picture_url,
+      dimensions: data.dimensions
     });
     
     return mapBanknoteFromDatabase(data);
@@ -201,7 +202,8 @@ export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote 
       signatures_front_urls: data.signatures_front_urls,
       signatures_back_urls: data.signatures_back_urls,
       seal_picture_urls: data.seal_picture_urls,
-      watermark_picture_url: data.watermark_picture_url
+      watermark_picture_url: data.watermark_picture_url,
+      dimensions: data.dimensions
     });
     
     return mapBanknoteFromDatabase(data);
