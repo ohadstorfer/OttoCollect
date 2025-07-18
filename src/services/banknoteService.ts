@@ -296,6 +296,7 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     seal_picture_urls,
     watermark_picture_url,
     tughra_picture_url,
+    other_element_pictures,
     authority_name,
     front_picture_watermarked,
     back_picture_watermarked,
@@ -358,7 +359,7 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     sealPictureUrls: seal_picture_urls || [],
     watermarkUrl: watermark_picture_url || null,
     tughraUrl: tughra_picture_url || null,
-    
+    otherElementPictures: other_element_pictures || [],
     // Legacy compatibility - combine front and back signature URLs
     signaturePictureUrls: [
       ...(signatures_front_urls || []),

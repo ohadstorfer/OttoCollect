@@ -223,7 +223,7 @@ export interface DetailedBanknote {
   sealPictureUrls?: string[];
   watermarkUrl?: string;
   tughraUrl?: string;
-  
+  otherElementPictures?: string[];
   // Legacy compatibility properties
   signaturePictureUrls?: string[];
   

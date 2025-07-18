@@ -406,21 +406,19 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       title: "Basic Information",
       icon: <Info className="h-5 w-5" />,
       fields: [
-        { label: "Denomination", value: banknote?.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
+        { label: "Extended Pick Number", value: banknote?.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Pick Number", value: banknote?.pickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Turkish Catalog Number", value: banknote?.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Face Value", value: banknote?.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
         { label: "Country", value: banknote?.country, icon: <Map className="h-4 w-4" /> },
         { label: "Islamic Year", value: banknote?.islamicYear, icon: <Calendar className="h-4 w-4" /> },
         { label: "Gregorian Year", value: banknote?.gregorianYear, icon: <Calendar className="h-4 w-4" /> },
         { label: "Category", value: banknote?.category, icon: <Hash className="h-4 w-4" /> },
         { label: "Type", value: banknote?.type, icon: <FileText className="h-4 w-4" /> },
-        { label: "Sultan", value: banknote?.sultanName, icon: <Users className="h-4 w-4" /> },
-        { label: "Pick Number", value: banknote?.pickNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Extended Pick", value: banknote?.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Turkish Cat #", value: banknote?.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: "Sultan Name", value: banknote?.sultanName, icon: <Users className="h-4 w-4" /> },
         { label: "Rarity", value: banknote?.rarity, icon: <Star className="h-4 w-4" /> }
       ]
     },
-
-
     {
       title: "Production Details",
       icon: <Building className="h-5 w-5" />,
@@ -434,10 +432,18 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       title: "Security Features",
       icon: <Shield className="h-5 w-5" />,
       fields: [
-        { label: "Security Elements", value: banknote.securityElement, icon: <Shield className="h-4 w-4" /> },
+        { label: "Security Element", value: banknote.securityElement, icon: <Shield className="h-4 w-4" /> },
         { label: "Seal Names", value: banknote.sealNames, icon: <Stamp className="h-4 w-4" /> },
         { label: "Front Signatures", value: banknote.signaturesFront, icon: <Hash className="h-4 w-4" /> },
         { label: "Back Signatures", value: banknote.signaturesBack, icon: <Hash className="h-4 w-4" /> }
+      ]
+    },
+    {
+      title: "Descriptions",
+      icon: <FileText className="h-5 w-5" />,
+      fields: [
+        { label: "Banknote Description", value: banknote.banknoteDescription, icon: <FileText className="h-4 w-4" /> },
+        { label: "Historical Description", value: banknote.historicalDescription, icon: <History className="h-4 w-4" /> }
       ]
     }
   ];

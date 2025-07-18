@@ -76,6 +76,7 @@ export interface EnhancedBanknote {
   watermark_picture_url?: string;
   tughra_picture_url?: string;
   
+  
   // New authority_name field
   authority_name?: string;
 }
@@ -104,6 +105,7 @@ export interface DetailedBanknote {
   sealPictureUrls: string[];
   watermarkUrl?: string;
   tughraUrl?: string;
+  otherElementPictures?: string[];
   serialNumbering?: string;
   rarity?: string;
   name?: string;
