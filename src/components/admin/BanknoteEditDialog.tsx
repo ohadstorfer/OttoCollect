@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -77,6 +78,7 @@ const BanknoteEditDialog = ({
     security_element: '',
     colors: '',
     serial_numbering: '',
+    dimensions: '',
     is_approved: true,
     is_pending: false
   });
@@ -147,6 +149,7 @@ const BanknoteEditDialog = ({
         security_element: banknote.securityElement || '',
         colors: banknote.colors || '',
         serial_numbering: banknote.serialNumbering || '',
+        dimensions: banknote.dimensions || '',
         is_approved: banknote.isApproved,
         is_pending: banknote.isPending
       });
@@ -659,6 +662,16 @@ const BanknoteEditDialog = ({
                   id="serial_numbering"
                   name="serial_numbering"
                   value={formData.serial_numbering}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="dimensions">dimensions</Label>
+                <Input
+                  id="dimensions"
+                  name="dimensions"
+                  value={formData.dimensions}
                   onChange={handleChange}
                 />
               </div>

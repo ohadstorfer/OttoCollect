@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DetailedBanknote } from '@/types';
 
@@ -109,6 +110,12 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
         <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
           <span className="text-sm font-medium text-muted-foreground w-32">Historical Description</span>
           <span className="text-base">{banknote.historicalDescription}</span>
+        </div>
+      )}
+      {banknote?.dimensions && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Dimensions</span>
+          <span className="text-base">{banknote.dimensions}</span>
         </div>
       )}
       {banknote?.signaturesFront && (

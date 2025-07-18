@@ -1,3 +1,4 @@
+
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -216,6 +217,7 @@ export interface DetailedBanknote {
   signaturesBack?: string;
   colors?: string;
   watermark?: string;
+  dimensions?: string;
   
   // New resolved URL fields from the enhanced view
   signaturesFrontUrls?: string[];

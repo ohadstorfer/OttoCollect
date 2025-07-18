@@ -64,6 +64,7 @@ export interface EnhancedBanknote {
   serial_numbering?: string;
   banknote_description?: string;
   historical_description?: string;
+  dimensions?: string;
   is_approved: boolean;
   is_pending: boolean;
   created_at: string;
@@ -109,6 +110,7 @@ export interface DetailedBanknote {
   serialNumbering?: string;
   rarity?: string;
   name?: string;
+  dimensions?: string;
 }
 
 export interface CollectionItem {

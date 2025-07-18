@@ -524,6 +524,7 @@ export type Database = {
           colors: string | null
           country: string
           created_at: string | null
+          dimensions: string | null
           extended_pick_number: string
           face_value: string
           front_picture: string | null
@@ -562,6 +563,7 @@ export type Database = {
           colors?: string | null
           country: string
           created_at?: string | null
+          dimensions?: string | null
           extended_pick_number: string
           face_value: string
           front_picture?: string | null
@@ -600,6 +602,7 @@ export type Database = {
           colors?: string | null
           country?: string
           created_at?: string | null
+          dimensions?: string | null
           extended_pick_number?: string
           face_value?: string
           front_picture?: string | null
