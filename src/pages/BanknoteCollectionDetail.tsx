@@ -218,6 +218,12 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               <span className="text-base">{collectionItem.banknote.colors}</span>
             </div>
           )}
+          {collectionItem.banknote?.dimensions && (
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">Dimensions</span>
+              <span className="text-base">{collectionItem.banknote.dimensions}</span>
+            </div>
+          )}
           {collectionItem.banknote?.printer && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">Printer</span>

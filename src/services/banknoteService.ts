@@ -346,7 +346,7 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     historicalDescription: historical_description,
     serialNumbering: serial_numbering,
     securityElement: security_element,
-    dimensions,
+    dimensions: dimensions,
     
     // Signature fields with array handling
     signaturesFront: Array.isArray(signatures_front) ? signatures_front.join(', ') : (signatures_front || ''),
