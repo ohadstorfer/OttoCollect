@@ -1,170 +1,246 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { DetailedBanknote } from '@/types';
 
 interface BanknoteCatalogDetailMinimizedProps {
   banknote: DetailedBanknote;
+  onImageClick?: (url: string) => void;
 }
 
-const BanknoteCatalogDetailMinimized: React.FC<BanknoteCatalogDetailMinimizedProps> = ({ banknote }) => {
+export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: BanknoteCatalogDetailMinimizedProps) {
   return (
-    <div className="space-y-4">
-      {/* Basic Information */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Basic Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Country:</span>
-              <p className="text-sm">{banknote.country || '-'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Denomination:</span>
-              <p className="text-sm">{banknote.denomination || '-'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Pick Number:</span>
-              <p className="text-sm">{banknote.pickNumber || '-'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Extended Pick Number:</span>
-              <p className="text-sm">{banknote.extendedPickNumber || '-'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Year:</span>
-              <p className="text-sm">{banknote.gregorianYear || banknote.year || '-'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Category:</span>
-              <p className="text-sm">{banknote.category || '-'}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-2">
+      {banknote?.extendedPickNumber && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Extended Pick Number</span>
+          <span className="text-base">{banknote.extendedPickNumber}</span>
+        </div>
+      )}
+      {banknote?.pickNumber && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Pick Number</span>
+          <span className="text-base">{banknote.pickNumber} </span>
+        </div>
+      )}
+      {banknote?.turkCatalogNumber && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Turk Catalog Number</span>
+          <span className="text-base">{banknote.turkCatalogNumber}</span>
+        </div>
+      )}
+      {banknote?.denomination && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Face Value</span>
+          <span className="text-base">{banknote.denomination}</span>
+        </div>
+      )}
+      {banknote?.country && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Country</span>
+          <span className="text-base">{banknote.country}</span>
+        </div>
+      )}
+      {banknote?.islamicYear && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Islamic Year</span>
+          <span className="text-base">{banknote.islamicYear}</span>
+        </div>
+      )}
+      {banknote?.gregorianYear && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Gregorian Year</span>
+          <span className="text-base">{banknote.gregorianYear}</span>
+        </div>
+      )}
+      {banknote?.sultanName && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+           <span className="text-sm font-medium text-muted-foreground w-32">{banknote.authorityName || "Sultan Name"}</span>
+          <span className="text-base">{banknote.sultanName}</span>
+        </div>
+      )}
+      {banknote?.printer && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Printer</span>
+          <span className="text-base">{banknote.printer}</span>
+        </div>
+      )}
+      {banknote?.type && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Type</span>
+          <span className="text-base">{banknote.type}</span>
+        </div>
+      )}
+      {banknote?.category && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Category</span>
+          <span className="text-base">{banknote.category}</span>
+        </div>
+      )}
+      {banknote?.rarity && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Rarity</span>
+          <span className="text-base">{banknote.rarity}</span>
+        </div>
+      )}
+      {banknote?.securityElement && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Security Element</span>
+          <span className="text-base">{banknote.securityElement}</span>
+        </div>
+      )}
+      {banknote?.colors && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Colors</span>
+          <span className="text-base">{banknote.colors}</span>
+        </div>
+      )}
+      {banknote?.serialNumbering && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Serial Numbering</span>
+          <span className="text-base">{banknote.serialNumbering}</span>
+        </div>
+      )}
+      {banknote?.description && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Banknote Description</span>
+          <span className="text-base">{banknote.description}</span>
+        </div>
+      )}
+      {banknote?.historicalDescription && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Historical Description</span>
+          <span className="text-base">{banknote.historicalDescription}</span>
+        </div>
+      )}
+      {banknote?.dimensions && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Dimensions</span>
+          <span className="text-base">{banknote.dimensions}</span>
+        </div>
+      )}
+      {banknote?.signaturesFront && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Front Signatures</span>
+          <span className="text-base">{banknote.signaturesFront}</span>
+        </div>
+      )}
+      {banknote?.signaturesBack && (
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+          <span className="text-sm font-medium text-muted-foreground w-32">Back Signatures</span>
+          <span className="text-base">{banknote.signaturesBack}</span>
+        </div>
+      )}
+      {banknote?.sealNames &&
+  (!banknote.sealPictureUrls || banknote.sealPictureUrls.length === 0) && (
+    <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+      <span className="text-sm font-medium text-muted-foreground w-32">Seal Names</span>
+      <span className="text-base">{banknote.sealNames}</span>
+    </div>
+)}
 
-      {/* Technical Details */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Technical Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Type:</span>
-              <p className="text-sm">{banknote.type || '-'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Printer:</span>
-              <p className="text-sm">{banknote.printer || '-'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Rarity:</span>
-              <p className="text-sm">{banknote.rarity || '-'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Colors:</span>
-              <p className="text-sm">{banknote.colors || '-'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Security Elements:</span>
-              <p className="text-sm">{banknote.securityElement || '-'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Serial Numbering:</span>
-              <p className="text-sm">{banknote.serialNumbering || '-'}</p>
-            </div>
-            {banknote.dimensions && (
-              <div>
-                <span className="font-semibold text-sm text-muted-foreground">Dimensions:</span>
-                <p className="text-sm">{banknote.dimensions}</p>
-              </div>
-            )}
+      {/* Display resolved signature picture URLs from enhanced view */}
+      {banknote?.signaturesFrontUrls && banknote.signaturesFrontUrls.length > 0 && (
+        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Front Signature Pictures</span>
+          <div className="flex flex-wrap gap-2">
+            {banknote.signaturesFrontUrls.map((url, index) => (
+              <img
+                key={index}
+                src={url}
+                alt={`Signature ${index + 1}`}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                onClick={() => onImageClick?.(url)}
+              />
+            ))}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Sultan Information */}
-      {banknote.sultanName && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Sultan Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Sultan Name:</span>
-              <p className="text-sm">{banknote.sultanName}</p>
-            </div>
-            {banknote.islamicYear && (
-              <div>
-                <span className="font-semibold text-sm text-muted-foreground">Islamic Year:</span>
-                <p className="text-sm">{banknote.islamicYear}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        </div>
       )}
 
-      {/* Signatures and Seals */}
-      {(banknote.signaturesFront || banknote.signaturesBack || banknote.sealNames) && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Signatures & Seals</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {banknote.signaturesFront && (
-              <div>
-                <span className="font-semibold text-sm text-muted-foreground">Signatures (Front):</span>
-                <p className="text-sm">{banknote.signaturesFront}</p>
-              </div>
-            )}
-            {banknote.signaturesBack && (
-              <div>
-                <span className="font-semibold text-sm text-muted-foreground">Signatures (Back):</span>
-                <p className="text-sm">{banknote.signaturesBack}</p>
-              </div>
-            )}
-            {banknote.sealNames && (
-              <div>
-                <span className="font-semibold text-sm text-muted-foreground">Seals:</span>
-                <p className="text-sm">{banknote.sealNames}</p>
-              </div>
-            )}
-            {banknote.watermark && (
-              <div>
-                <span className="font-semibold text-sm text-muted-foreground">Watermark:</span>
-                <p className="text-sm">{banknote.watermark}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Display resolved signature picture URLs from enhanced view */}
+      {banknote?.signaturesBackUrls && banknote.signaturesBackUrls.length > 0 && (
+        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Back Signature Pictures</span>
+          <div className="flex flex-wrap gap-2">
+            {banknote.signaturesBackUrls.map((url, index) => (
+              <img
+                key={index}
+                src={url}
+                alt={`Signature ${index + 1}`}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                onClick={() => onImageClick?.(url)}
+              />
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* Descriptions */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Descriptions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {banknote.banknoteDescription && (
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Banknote Description:</span>
-              <p className="text-sm whitespace-pre-wrap">{banknote.banknoteDescription}</p>
-            </div>
-          )}
-          {banknote.historicalDescription && (
-            <div>
-              <span className="font-semibold text-sm text-muted-foreground">Historical Description:</span>
-              <p className="text-sm whitespace-pre-wrap">{banknote.historicalDescription}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Display resolved seal picture URLs from enhanced view */}
+      {banknote?.sealPictureUrls && banknote.sealPictureUrls.length > 0 && (
+        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Seal Pictures</span>
+          <div className="flex flex-wrap gap-2">
+            {banknote.sealPictureUrls.map((url, index) => (
+              <img
+                key={index}
+                src={url}
+                alt={`Seal ${index + 1}`}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                onClick={() => onImageClick?.(url)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+     
+
+
+      {/* Display resolved watermark picture URL from enhanced view */}
+      {banknote?.watermarkUrl && (
+        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Watermark Picture</span>
+          <img
+            src={banknote.watermarkUrl}
+            alt="Watermark"
+            className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+            onClick={() => onImageClick?.(banknote.watermarkUrl!)}
+          />
+        </div>
+      )}
+
+      {/* Display resolved tughra picture URL from enhanced view */}
+      {banknote?.tughraUrl && (
+        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Tughra Picture</span>
+          <img
+            src={banknote.tughraUrl}
+            alt="Tughra"
+            className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+            onClick={() => onImageClick?.(banknote.tughraUrl!)}
+          />
+        </div>
+      )}
+
+
+       {/* Display resolved other element picture URLs from enhanced view */}
+       {banknote?.otherElementPictures && banknote.otherElementPictures.length > 0 && (
+        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Other Pictures</span>
+          <div className="flex flex-wrap gap-2">
+            {banknote.otherElementPictures.map((url, index) => (
+              <img
+                key={index}
+                src={url}
+                alt={`Other Element ${index + 1}`}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                onClick={() => onImageClick?.(url)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
-};
-
-export default BanknoteCatalogDetailMinimized;
+}
