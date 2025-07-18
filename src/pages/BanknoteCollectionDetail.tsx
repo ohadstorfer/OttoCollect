@@ -24,19 +24,27 @@ const BanknoteCollectionDetail = () => {
       
       try {
         setLoading(true);
-        // First fetch the collection item to get the banknote ID
+        // Fetch the collection item which includes enhanced_detailed_banknotes data
         const collectionItem = await fetchCollectionItem(id);
-        if (!collectionItem || !collectionItem.banknote_id) {
-          throw new Error('Collection item not found or has no banknote');
+        if (!collectionItem) {
+          throw new Error('Collection item not found');
         }
         
-        // Then fetch the banknote details using the banknote ID
-        const data = await fetchBanknoteDetail(collectionItem.banknote_id);
-        if (data) {
-          setBanknote(data as DetailedBanknote);
+        // Use the enhanced_detailed_banknotes data from the collection item
+        if (collectionItem.enhanced_detailed_banknotes) {
+          setBanknote(collectionItem.enhanced_detailed_banknotes as DetailedBanknote);
           setFetchError(null);
+        } else if (collectionItem.banknote_id) {
+          // Fallback: fetch banknote details if enhanced data is not available
+          const data = await fetchBanknoteDetail(collectionItem.banknote_id);
+          if (data) {
+            setBanknote(data as DetailedBanknote);
+            setFetchError(null);
+          } else {
+            throw new Error('Banknote not found');
+          }
         } else {
-          throw new Error('Banknote not found');
+          throw new Error('No banknote data available');
         }
       } catch (error) {
         console.error('Error loading banknote:', error);
@@ -92,7 +100,7 @@ const BanknoteCollectionDetail = () => {
           Back
         </Button>
         <h1 className="text-2xl font-serif font-semibold">
-          {banknote.denomination} ({banknote.country}, {banknote.year})
+          {banknote.face_value} ({banknote.country}, {banknote.gregorian_year})
         </h1>
       </div>
 
@@ -109,19 +117,19 @@ const BanknoteCollectionDetail = () => {
             </div>
             <div>
               <span className="font-semibold text-sm text-muted-foreground">Denomination:</span>
-              <p className="text-sm">{banknote.denomination || '-'}</p>
+              <p className="text-sm">{banknote.face_value || '-'}</p>
             </div>
             <div>
               <span className="font-semibold text-sm text-muted-foreground">Pick Number:</span>
-              <p className="text-sm">{banknote.pickNumber || '-'}</p>
+              <p className="text-sm">{banknote.pick_number || '-'}</p>
             </div>
             <div>
               <span className="font-semibold text-sm text-muted-foreground">Extended Pick Number:</span>
-              <p className="text-sm">{banknote.extendedPickNumber || '-'}</p>
+              <p className="text-sm">{banknote.extended_pick_number || '-'}</p>
             </div>
             <div>
               <span className="font-semibold text-sm text-muted-foreground">Year:</span>
-              <p className="text-sm">{banknote.gregorianYear || banknote.year || '-'}</p>
+              <p className="text-sm">{banknote.gregorian_year || '-'}</p>
             </div>
             <div>
               <span className="font-semibold text-sm text-muted-foreground">Category:</span>
@@ -160,11 +168,11 @@ const BanknoteCollectionDetail = () => {
             </div>
             <div>
               <span className="font-semibold text-sm text-muted-foreground">Security Elements:</span>
-              <p className="text-sm">{banknote.securityElement || '-'}</p>
+              <p className="text-sm">{banknote.security_element || '-'}</p>
             </div>
             <div>
               <span className="font-semibold text-sm text-muted-foreground">Serial Numbering:</span>
-              <p className="text-sm">{banknote.serialNumbering || '-'}</p>
+              <p className="text-sm">{banknote.serial_numbering || '-'}</p>
             </div>
           </CardContent>
         </Card>
@@ -175,16 +183,16 @@ const BanknoteCollectionDetail = () => {
             <CardTitle>Descriptions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {banknote.banknoteDescription && (
+            {banknote.banknote_description && (
               <div>
                 <span className="font-semibold text-sm text-muted-foreground">Banknote Description:</span>
-                <p className="text-sm whitespace-pre-wrap">{banknote.banknoteDescription}</p>
+                <p className="text-sm whitespace-pre-wrap">{banknote.banknote_description}</p>
               </div>
             )}
-            {banknote.historicalDescription && (
+            {banknote.historical_description && (
               <div>
                 <span className="font-semibold text-sm text-muted-foreground">Historical Description:</span>
-                <p className="text-sm whitespace-pre-wrap">{banknote.historicalDescription}</p>
+                <p className="text-sm whitespace-pre-wrap">{banknote.historical_description}</p>
               </div>
             )}
           </CardContent>
