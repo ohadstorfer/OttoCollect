@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DetailedBanknote } from '@/types';
 import { fetchBanknoteDetail } from '@/services/banknoteService';
+import { fetchCollectionItem } from '@/services/collectionService';
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,14 @@ const BanknoteCollectionDetail = () => {
       
       try {
         setLoading(true);
-        const data = await fetchBanknoteDetail(id);
+        // First fetch the collection item to get the banknote ID
+        const collectionItem = await fetchCollectionItem(id);
+        if (!collectionItem || !collectionItem.banknote_id) {
+          throw new Error('Collection item not found or has no banknote');
+        }
+        
+        // Then fetch the banknote details using the banknote ID
+        const data = await fetchBanknoteDetail(collectionItem.banknote_id);
         if (data) {
           setBanknote(data as DetailedBanknote);
           setFetchError(null);
