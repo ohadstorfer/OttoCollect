@@ -81,7 +81,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       const encodedCountryName = encodeURIComponent(effectiveCountryName);
       navigate(`/profile/${userId}/${encodedCountryName}`);
     } else {
-      navigate(`/profile/${userId || user?.id}`);
+    navigate(`/profile/${userId || user?.id}`);
     }
   }, [effectiveCountryName, countryId, userId, user?.id, navigate, profileView]);
   
@@ -158,12 +158,12 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       return () => clearTimeout(timer);
     }
   }, [countryLoading, collectionDataLoading, countryId, effectiveCountryName, isFullyLoaded, profileView]);
-
+  
   useEffect(() => {
     const handleScroll = () => {
       // Only save scroll position when fully loaded
       if (isFullyLoaded) {
-        sessionStorage.setItem('scrollY', window.scrollY.toString());
+      sessionStorage.setItem('scrollY', window.scrollY.toString());
       }
     };
   

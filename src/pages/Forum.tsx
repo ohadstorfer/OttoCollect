@@ -32,6 +32,7 @@ const Forum = () => {
   const [posts, setPosts] = useState<ForumPostWithAuthor[]>([]);
   const [announcements, setAnnouncements] = useState<ForumPostWithAuthor[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<ForumPostWithAuthor[]>([]);
+  const [filteredAnnouncements, setFilteredAnnouncements] = useState<ForumPostWithAuthor[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
@@ -92,6 +93,7 @@ const Forum = () => {
         })) as ForumPostWithAuthor[];
 
         setAnnouncements(announcementsWithAuthorRank);
+        setFilteredAnnouncements(announcementsWithAuthorRank);
       } catch (error) {
         console.error('Error fetching forum posts and announcements:', error);
       } finally {
@@ -145,12 +147,22 @@ const Forum = () => {
 
     if (term.trim() === '') {
       setFilteredPosts(posts);
+      setFilteredAnnouncements(announcements);
     } else {
-      const filtered = posts.filter(post =>
+      // Search in both posts and announcements
+      const filteredPosts = posts.filter(post =>
         post.title.toLowerCase().includes(term.toLowerCase()) ||
         post.content.toLowerCase().includes(term.toLowerCase())
       );
-      setFilteredPosts(filtered);
+      
+      const filteredAnnouncements = announcements.filter(announcement =>
+        announcement.title.toLowerCase().includes(term.toLowerCase()) ||
+        announcement.content.toLowerCase().includes(term.toLowerCase())
+      );
+      
+      // Set filtered results
+      setFilteredPosts(filteredPosts);
+      setFilteredAnnouncements(filteredAnnouncements);
     }
   };
 
@@ -278,11 +290,11 @@ const Forum = () => {
                 </div>
               ) : (
                 <>
-                  {(announcements.length > 0 || filteredPosts.length > 0) ? (
+                  {(filteredAnnouncements.length > 0 || filteredPosts.length > 0) ? (
                     <div className="max-w-4xl mx-auto">
                       <div className="space-y-0">
                         {/* Render announcements first */}
-                        {announcements.map((announcement) => (
+                        {filteredAnnouncements.map((announcement) => (
                           <ForumPostCardAnnouncements key={`announcement-${announcement.id}`} post={announcement} />
                         ))}
                         
@@ -295,7 +307,7 @@ const Forum = () => {
                   ) : (
                     <div className="text-center py-10">
                       {searchTerm ? (
-                        <p>No posts found matching your search.</p>
+                        <p>No posts or announcements found matching your search.</p>
                       ) : (
                         <p>No forum posts yet. Be the first to create one!</p>
                       )}
@@ -312,26 +324,44 @@ const Forum = () => {
                   </div>
                 ) : (
                   <>
-                    {filteredPosts.filter(post => post.authorId === user.id).length > 0 ? (
+                    {(filteredPosts.filter(post => post.authorId === user.id).length > 0 || 
+                      filteredAnnouncements.filter(announcement => announcement.authorId === user.id).length > 0) ? (
                       <div className="max-w-4xl mx-auto">
                         <div className="space-y-0">
+                          {/* Render user's announcements first */}
+                          {filteredAnnouncements
+                            .filter(announcement => announcement.authorId === user.id)
+                            .map((announcement) => (
+                              <ForumPostCardAnnouncements key={`my-announcement-${announcement.id}`} post={announcement} />
+                            ))}
+                          
+                          {/* Render user's posts */}
                           {filteredPosts
                             .filter(post => post.authorId === user.id)
                             .map((post) => (
-                              <ForumPostCard key={post.id} post={post} />
+                              <ForumPostCard key={`my-post-${post.id}`} post={post} />
                             ))}
                         </div>
                       </div>
                     ) : (
                       <div className="text-center py-10">
-                        <p>You haven't created any posts yet.</p>
-                        <Button
-                          onClick={handleCreatePost}
-                          variant="outline"
-                          className="mt-4"
-                        >
-                          Create Your First Post
-                        </Button>
+                        <p>You haven't created any posts or announcements yet.</p>
+                        <div className="flex gap-2 justify-center mt-4">
+                          <Button
+                            onClick={handleCreatePost}
+                            variant="outline"
+                          >
+                            Create Your First Post
+                          </Button>
+                          {isSuperAdmin && (
+                            <Button
+                              onClick={handleCreateAnnouncement}
+                              variant="outline"
+                            >
+                              Create Announcement
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     )}
                   </>
