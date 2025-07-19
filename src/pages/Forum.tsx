@@ -151,7 +151,7 @@ const Forum = () => {
           <Tabs defaultValue="all" className="mb-10">
             <div className="flex items-center justify-center gap-2 sm:gap-4">
               <TabsList className="shrink-0">
-                <TabsTrigger value="all">All Posts</TabsTrigger>
+              <TabsTrigger value="all">All Topics</TabsTrigger>
                 {user && (
                   <TabsTrigger value="my-posts">My Posts</TabsTrigger>
                 )}
