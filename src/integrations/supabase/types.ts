@@ -667,6 +667,36 @@ export type Database = {
           },
         ]
       }
+      forum_announcements: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          image_urls: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          image_urls?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          image_urls?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       forum_comments: {
         Row: {
           author_id: string

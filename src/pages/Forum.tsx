@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PenSquare, Search, ArrowLeft } from 'lucide-react';
+import { PenSquare, Search, ArrowLeft, Megaphone } from 'lucide-react';
 import ForumPostCard from '@/components/forum/ForumPostCard';
 import { fetchForumPosts, checkUserDailyForumLimit } from '@/services/forumService';
 import { ForumPost } from '@/types/forum';
@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from "@/context/ThemeContext";
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from "@/lib/utils";
+import ForumPostCardAnnouncements from '@/components/forum/ForumPostCardAnnouncements';
 
 interface Author {
   id: string;
@@ -27,6 +28,7 @@ const Forum = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [posts, setPosts] = useState<ForumPostWithAuthor[]>([]);
+  const [announcements, setAnnouncements] = useState<ForumPostWithAuthor[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<ForumPostWithAuthor[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -39,29 +41,56 @@ const Forum = () => {
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
 
   useEffect(() => {
-    const loadPosts = async () => {
+    const loadPostsAndAnnouncements = async () => {
       setLoading(true);
       try {
+        // Load regular forum posts
         const fetchedPosts = await fetchForumPosts();
-        // Ensure all posts have the required rank property
         const postsWithAuthorRank = fetchedPosts.map(post => ({
           ...post,
           author: {
             ...post.author,
-            rank: post.author.rank || 'Unknown' // Provide a default rank if missing
+            rank: post.author.rank || 'Unknown'
           }
         })) as ForumPostWithAuthor[];
         
+        // Load announcements
+        const { data: announcementsData, error } = await supabase
+          .from('forum_announcements')
+          .select(`
+            *,
+            author:profiles!forum_announcements_author_id_fkey(id, username, avatar_url, rank)
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const announcementsWithAuthorRank = (announcementsData || []).map(announcement => ({
+          id: announcement.id,
+          title: announcement.title,
+          content: announcement.content,
+          authorId: announcement.author_id,
+          author: {
+            ...announcement.author,
+            rank: announcement.author.rank || 'Unknown'
+          },
+          imageUrls: announcement.image_urls || [],
+          created_at: announcement.created_at,
+          updated_at: announcement.updated_at,
+          commentCount: 0
+        })) as ForumPostWithAuthor[];
+        
         setPosts(postsWithAuthorRank);
+        setAnnouncements(announcementsWithAuthorRank);
         setFilteredPosts(postsWithAuthorRank);
       } catch (error) {
-        console.error('Error fetching forum posts:', error);
+        console.error('Error fetching forum posts and announcements:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadPosts();
+    loadPostsAndAnnouncements();
   }, []);
 
   useEffect(() => {
@@ -118,6 +147,10 @@ const Forum = () => {
 
   const handleCreatePost = () => {
     navigate('/community/forum/new');
+  };
+
+  const handleCreateAnnouncement = () => {
+    navigate('/community/forum/announcement/new');
   };
 
   const handleBack = () => {
@@ -180,6 +213,18 @@ const Forum = () => {
                 </Button>
               )}
 
+              {user && user.role === 'Super Admin' && (
+                <Button
+                  onClick={handleCreateAnnouncement}
+                  className="flex-shrink-0 px-2 sm:px-4"
+                  size="sm"
+                  variant="default"
+                >
+                  <Megaphone className="h-4 w-4" />
+                  <span className="hidden sm:inline-block sm:ml-2">Announcement</span>
+                </Button>
+              )}
+
               {user && isUserBlocked && (
                 <div className="text-red-600 text-xs sm:text-sm">
                   Blocked
@@ -211,9 +256,14 @@ const Forum = () => {
                 </div>
               ) : (
                 <>
-                  {filteredPosts.length > 0 ? (
+                  {(announcements.length > 0 || filteredPosts.length > 0) ? (
                     <div className="max-w-4xl mx-auto">
                       <div className="space-y-0">
+                        {/* Render announcements first */}
+                        {announcements.map((announcement) => (
+                          <ForumPostCardAnnouncements key={`announcement-${announcement.id}`} post={announcement} />
+                        ))}
+                        {/* Then render regular posts */}
                         {filteredPosts.map((post) => (
                           <ForumPostCard key={post.id} post={post} />
                         ))}
