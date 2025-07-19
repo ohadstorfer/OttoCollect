@@ -7,14 +7,14 @@ import { toast } from "sonner";
 import { ForumPost as ForumPostType, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
-import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment, checkUserDailyForumLimit } from "@/services/forumService";
+import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment, checkUserDailyForumLimit, fetchCommentsByPostId } from "@/services/forumService";
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumCommentComponent from "@/components/forum/ForumComment";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
-import { ArrowLeft, Trash2, Edit2, Ban, MessageSquare, Megaphone } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit2, Ban, MessageSquare, Megaphone, Reply } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
   AlertDialog,
@@ -35,7 +35,7 @@ const renderTextWithLinks = (text: string) => {
   const parts = text.split(urlRegex);
   
   return parts.map((part, index) => {
-    if (urlRegex.test(part)) {
+    if (part.match(urlRegex)) {
       return (
         <a
           key={index}
@@ -52,6 +52,228 @@ const renderTextWithLinks = (text: string) => {
   });
 };
 
+// Recursive comment rendering function
+const renderComment = (
+  comment: ForumComment,
+  depth: number = 0,
+  maxDepth: number = 3,
+  props: {
+    user: any;
+    isUserBlocked: boolean;
+    hasReachedDailyLimit: boolean;
+    isLimitedRank: boolean;
+    replyingToCommentId: string | null;
+    replyContent: string;
+    isSubmittingReply: boolean;
+    editingCommentId: string | null;
+    editedContent: string;
+    isSubmitting: boolean;
+    startReplying: (comment: ForumComment) => void;
+    cancelReplying: () => void;
+    handleReplyToComment: (commentId: string) => void;
+    startEditing: (comment: ForumComment) => void;
+    cancelEditing: () => void;
+    handleEditComment: (commentId: string, content: string) => void;
+    onDeleteComment: (commentId: string) => void;
+    handleOnProfileClick: (userId: string | undefined) => void;
+    renderTextWithLinks: (text: string) => React.ReactNode;
+    formattedDate: string;
+    updateReplyContent: (content: string) => void;
+  }
+) => {
+  const isReply = depth > 0;
+  const canReply = props.user && depth < maxDepth;
+
+  return (
+    <div key={comment.id} className={`${isReply ? 'ml-4 sm:ml-6 lg:ml-8' : ''} ${depth > 0 ? 'mt-3' : ''}`}>
+      <div className={`
+        ${isReply 
+          ? 'border-l-2 border-muted/60 pl-4 py-2' 
+          : 'bg-card border rounded-lg p-3'
+        }
+        ${depth > 0 ? 'bg-muted/20' : ''}
+      `}>
+        <div className="flex gap-3">
+          <Avatar
+            className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+            onClick={() => props.handleOnProfileClick(comment.author?.id)}
+          >
+            <AvatarImage src={comment.author?.avatarUrl} />
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+              {getInitials(comment.author?.username || 'Anonymous')}
+            </AvatarFallback>
+          </Avatar>
+
+          <div className="flex-1 min-w-0">
+            {/* Comment Header */}
+            <div className="flex items-center gap-2 mb-2">
+              <span
+                className="font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+                onClick={() => props.handleOnProfileClick(comment.author?.id)}
+              >
+                {comment.author?.username || 'Anonymous'}
+              </span>
+              <span className="text-xs text-muted-foreground">•</span>
+              <span className="text-xs text-muted-foreground">{props.formattedDate}</span>
+              {comment.isEdited && (
+                <>
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <span className="text-xs italic text-muted-foreground">edited</span>
+                </>
+              )}
+              {isReply && (
+                <>
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <span className="text-xs text-muted-foreground">replying to comment</span>
+                </>
+              )}
+            </div>
+
+            {/* Comment Content */}
+            {props.editingCommentId === comment.id ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={props.editedContent}
+                  onChange={(e) => props.handleEditComment(comment.id, e.target.value)}
+                  className="min-h-[80px] text-sm"
+                  disabled={props.isSubmitting}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={props.cancelEditing}
+                    disabled={props.isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => props.handleEditComment(comment.id, props.editedContent)}
+                    disabled={props.isSubmitting || props.editedContent.trim() === ''}
+                  >
+                    Save
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="text-sm leading-relaxed text-foreground mb-2">
+                  {props.renderTextWithLinks(comment.content)}
+                </div>
+
+                {/* Reply Form */}
+                {props.replyingToCommentId === comment.id && (
+                  <div className="mt-3 space-y-3 border-t pt-3">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <MessageSquare className="h-3 w-3" />
+                      <span>Replying to {comment.author?.username || 'this comment'}</span>
+                    </div>
+                    <Textarea 
+                      value={props.replyContent}
+                      onChange={(e) => props.updateReplyContent(e.target.value)}
+                      className="min-h-[60px] resize-none text-sm"
+                      placeholder={`Reply to ${comment.author?.username || 'this comment'}...`}
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => props.handleReplyToComment(comment.id)}
+                        disabled={props.isSubmittingReply || !props.replyContent.trim()}
+                      >
+                        {props.isSubmittingReply ? 'Posting...' : 'Post Reply'}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={props.cancelReplying}
+                        disabled={props.isSubmittingReply}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Comment Actions */}
+                {props.replyingToCommentId !== comment.id && (
+                  <div className="flex gap-2 justify-end">
+                    {canReply && !props.isUserBlocked && !props.hasReachedDailyLimit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => props.startReplying(comment)}
+                        className="text-muted-foreground hover:text-foreground h-6 px-2"
+                      >
+                        <Reply className="h-3 w-3 mr-1" />
+                        Reply
+                      </Button>
+                    )}
+                    {((props.user?.id === comment.authorId) || props.user?.role?.includes('Admin')) && (
+                      <>
+                        {props.user?.id === comment.authorId && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => props.startEditing(comment)}
+                            className="text-muted-foreground hover:text-foreground h-6 px-2"
+                          >
+                            <Edit2 className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                        )}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-100/50 h-6 px-2"
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this comment? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => props.onDeleteComment(comment.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Render nested replies */}
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {comment.replies.map((reply) => 
+            renderComment(reply, depth + 1, maxDepth, props)
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ForumPostAnnouncementsPage = () => {
   const { id: postId } = useParams();
   const { user } = useAuth();
@@ -63,6 +285,9 @@ const ForumPostAnnouncementsPage = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState('');
+  const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
   const navigate = useNavigate();
@@ -139,24 +364,41 @@ const ForumPostAnnouncementsPage = () => {
           id: data.id,
           title: data.title,
           content: data.content,
+          author_id: data.author_id,
           authorId: data.author_id,
           author: {
             ...data.author,
             avatarUrl: data.author.avatar_url, // Fix: map avatar_url to avatarUrl
           },
           imageUrls: data.image_urls || [],
+          image_urls: data.image_urls || [],
           createdAt: data.created_at,
           updatedAt: data.updated_at,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
           commentCount: 0,
           comments: []
         });
-        setComments([]);
+        // Load comments with nested structure
+        const nestedComments = await fetchCommentsByPostId(postId);
+        setComments(nestedComments);
       }
     } catch (error) {
       console.error('Error loading announcement:', error);
       toast.error("Failed to load announcement.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Function to refresh comments with nested structure
+  const refreshComments = async () => {
+    if (!post) return;
+    try {
+      const nestedComments = await fetchCommentsByPostId(post.id);
+      setComments(nestedComments);
+    } catch (error) {
+      console.error('Error refreshing comments:', error);
     }
   };
 
@@ -281,6 +523,60 @@ const ForumPostAnnouncementsPage = () => {
     setEditedContent('');
   };
 
+  const startReplying = (comment: ForumComment) => {
+    setReplyingToCommentId(comment.id);
+    setReplyContent('');
+  };
+
+  const cancelReplying = () => {
+    setReplyingToCommentId(null);
+    setReplyContent('');
+  };
+
+  const updateReplyContent = (content: string) => {
+    setReplyContent(content);
+  };
+
+  const handleReplyToComment = async (commentId: string) => {
+    if (!user || !post || replyContent.trim() === '') return;
+
+    // Check limit before submitting reply
+    if (isLimitedRank) {
+      const { hasReachedLimit } = await checkUserDailyForumLimit(user.id);
+      if (hasReachedLimit) {
+        toast.error("You have reached your daily limit of 6 forum activities (posts + comments).");
+        return;
+      }
+    }
+
+    setIsSubmittingReply(true);
+    try {
+      const newReply = await addForumComment(post.id, replyContent.trim(), commentId);
+
+      if (newReply) {
+        setReplyContent('');
+        setReplyingToCommentId(null);
+        refreshComments(); // Refresh to get the nested structure
+        toast.success("Your reply has been added successfully.");
+
+        // Update daily count after successful reply
+        if (isLimitedRank) {
+          setDailyCount(prev => prev + 1);
+          if (dailyCount + 1 >= 6) {
+            setHasReachedDailyLimit(true);
+          }
+        }
+      } else {
+        toast.error("Failed to add reply. Please try again.");
+      }
+    } catch (error) {
+      console.error('Error adding reply:', error);
+      toast.error("Failed to add reply");
+    } finally {
+      setIsSubmittingReply(false);
+    }
+  };
+
   // Function to block user from forum
   const handleBlockUserFromForum = async (userId: string) => {
     if (!user?.role?.includes('Super Admin')) return;
@@ -375,7 +671,8 @@ const ForumPostAnnouncementsPage = () => {
 
   const onAddComment = (comment: ForumComment) => {
     if (!post) return;
-    setComments((prev) => [comment, ...prev]);
+    // Refresh comments to get the updated nested structure
+    refreshComments();
     setPost({
       ...post,
       commentCount: (post.commentCount || 0) + 1,
@@ -562,13 +859,31 @@ const ForumPostAnnouncementsPage = () => {
                 <p>No comments yet. Be the first to comment!</p>
               </div>
             ) : (
-              comments.map((comment) => (
-                <ForumCommentComponent
-                  key={comment.id}
-                  comment={comment}
-                  onCommentUpdate={() => window.location.reload()}
-                />
-              ))
+              comments.map((comment) => 
+                renderComment(comment, 0, 3, {
+                  user,
+                  isUserBlocked,
+                  hasReachedDailyLimit,
+                  isLimitedRank,
+                  replyingToCommentId,
+                  replyContent,
+                  isSubmittingReply,
+                  editingCommentId,
+                  editedContent,
+                  isSubmitting,
+                  startReplying,
+                  cancelReplying,
+                  handleReplyToComment,
+                  startEditing,
+                  cancelEditing,
+                  handleEditComment,
+                  onDeleteComment,
+                  handleOnProfileClick,
+                  renderTextWithLinks,
+                  formattedDate,
+                  updateReplyContent
+                })
+              )
             )}
           </div>
         </div>
