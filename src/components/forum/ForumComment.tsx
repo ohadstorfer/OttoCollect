@@ -105,7 +105,12 @@ export default function ForumComment({
   };
   
   return (
-    <div className={`${isReply ? 'ml-4 sm:ml-6 lg:ml-8' : ''} ${depth > 0 ? 'mt-3' : ''}`}>
+    <div className={`${isReply ? 'ml-4 sm:ml-6 lg:ml-8' : ''} ${depth > 0 ? 'mt-3' : ''} relative`}>
+      {/* Connection line for replies */}
+      {isReply && (
+        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-400 dark:bg-gray-500"></div>
+      )}
+      
       <div className={`
         ${isReply 
           ? 'border-l-2 border-muted/60 pl-4 py-2' 
@@ -113,6 +118,7 @@ export default function ForumComment({
         }
         ${depth > 0 ? 'bg-muted/20' : ''}
       `}>
+        
         {/* Comment Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2 flex-wrap">
@@ -123,11 +129,7 @@ export default function ForumComment({
               size="sm"
             />
             <RankBadge rank={comment.author?.rank as any} size="sm" />
-            {isReply && (
-              <span className="text-xs text-muted-foreground">
-                replying to {comment.parent_comment_id ? 'comment' : 'post'}
-              </span>
-            )}
+
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>
@@ -223,10 +225,7 @@ export default function ForumComment({
         {/* Reply Form */}
         {isReplying && (
           <div className="mt-4 space-y-3 border-t pt-3">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <MessageSquare className="h-3 w-3" />
-              <span>Replying to {comment.author?.username || 'this comment'}</span>
-            </div>
+
             <Textarea 
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}

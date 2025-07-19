@@ -85,17 +85,21 @@ const renderComment = (
   const canReply = props.user && depth < maxDepth;
 
   return (
-    <div key={comment.id} className={`${isReply ? 'ml-4 sm:ml-6 lg:ml-8' : ''} ${depth > 0 ? 'mt-3' : ''}`}>
-      <div className={`
-        ${isReply 
-          ? 'border-l-2 border-muted/60 pl-4 py-2' 
-          : 'bg-card border rounded-lg p-3'
-        }
-        ${depth > 0 ? 'bg-muted/20' : ''}
-      `}>
+    <div key={comment.id} className={`${isReply ? 'ml-6' : ''} ${depth > 0 ? 'mt-4' : 'mb-6'}`}>
+      {/* Reply connection line */}
+      {isReply && (
+        <div className="relative">
+          {/* Vertical line from parent comment */}
+          <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-300 dark:bg-gray-600 z-10"></div>
+          {/* Horizontal line connecting to reply avatar */}
+          <div className="absolute left-4 top-4 w-2 h-px bg-gray-300 dark:bg-gray-600 z-10"></div>
+        </div>
+      )}
+      
+      <div className={`${isReply ? 'ml-6' : ''} relative`}>
         <div className="flex gap-3">
           <Avatar
-            className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+            className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition relative z-20"
             onClick={() => props.handleOnProfileClick(comment.author?.id)}
           >
             <AvatarImage src={comment.author?.avatarUrl} />
@@ -121,12 +125,6 @@ const renderComment = (
                   <span className="text-xs italic text-muted-foreground">edited</span>
                 </>
               )}
-              {isReply && (
-                <>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-xs text-muted-foreground">replying to comment</span>
-                </>
-              )}
             </div>
 
             {/* Comment Content */}
@@ -135,7 +133,7 @@ const renderComment = (
                 <Textarea
                   value={props.editedContent}
                   onChange={(e) => props.handleEditComment(comment.id, e.target.value)}
-                  className="min-h-[80px] text-sm"
+                  className="min-h-[80px] text-sm border rounded-md"
                   disabled={props.isSubmitting}
                 />
                 <div className="flex justify-end gap-2">
@@ -158,13 +156,13 @@ const renderComment = (
               </div>
             ) : (
               <>
-                <div className="text-sm leading-relaxed text-foreground mb-2">
+                <div className="text-sm leading-relaxed text-foreground mb-3">
                   {props.renderTextWithLinks(comment.content)}
                 </div>
 
                 {/* Reply Form */}
                 {props.replyingToCommentId === comment.id && (
-                  <div className="mt-3 space-y-3 border-t pt-3">
+                  <div className="mb-4 space-y-3">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <MessageSquare className="h-3 w-3" />
                       <span>Replying to {comment.author?.username || 'this comment'}</span>
@@ -172,7 +170,7 @@ const renderComment = (
                     <Textarea 
                       value={props.replyContent}
                       onChange={(e) => props.updateReplyContent(e.target.value)}
-                      className="min-h-[60px] resize-none text-sm"
+                      className="min-h-[60px] resize-none text-sm border rounded-md"
                       placeholder={`Reply to ${comment.author?.username || 'this comment'}...`}
                       autoFocus
                     />
@@ -198,16 +196,15 @@ const renderComment = (
 
                 {/* Comment Actions */}
                 {props.replyingToCommentId !== comment.id && (
-                  <div className="flex gap-2 justify-end">
-                    {canReply && !props.isUserBlocked && !props.hasReachedDailyLimit && (
+                  <div className="flex items-center gap-4 text-xs">
+                    {canReply && !props.isUserBlocked && !props.hasReachedDailyLimit && !isReply && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => props.startReplying(comment)}
                         className="text-muted-foreground hover:text-foreground h-6 px-2"
                       >
-                        <Reply className="h-3 w-3 mr-1" />
-                        Reply
+                        <Reply className="h-3 w-3" />
                       </Button>
                     )}
                     {((props.user?.id === comment.authorId) || props.user?.role?.includes('Admin')) && (
@@ -219,8 +216,7 @@ const renderComment = (
                             onClick={() => props.startEditing(comment)}
                             className="text-muted-foreground hover:text-foreground h-6 px-2"
                           >
-                            <Edit2 className="h-3 w-3 mr-1" />
-                            Edit
+                            <Edit2 className="h-3 w-3" />
                           </Button>
                         )}
                         <AlertDialog>
@@ -230,8 +226,7 @@ const renderComment = (
                               size="sm"
                               className="text-red-600 hover:text-red-700 hover:bg-red-100/50 h-6 px-2"
                             >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Delete
+                              <Trash2 className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -264,7 +259,7 @@ const renderComment = (
 
       {/* Render nested replies */}
       {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-4 space-y-4">
           {comment.replies.map((reply) => 
             renderComment(reply, depth + 1, maxDepth, props)
           )}
