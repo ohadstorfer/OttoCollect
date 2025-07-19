@@ -36,6 +36,8 @@ export interface ForumComment {
   created_at: string;
   updated_at: string;
   isEdited?: boolean;
+  parent_comment_id?: string;
+  replies?: ForumComment[];
   
   // Compatibility aliases to handle both naming conventions
   postId?: string;

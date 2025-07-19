@@ -566,15 +566,7 @@ const ForumPostAnnouncementsPage = () => {
                 <ForumCommentComponent
                   key={comment.id}
                   comment={comment}
-                  onUpdate={onUpdateComment}
-                  onDelete={onDeleteComment}
-                  onEdit={handleEditComment}
-                  isEditing={editingCommentId === comment.id}
-                  editedContent={editedContent}
-                  setEditedContent={setEditedContent}
-                  onStartEdit={() => startEditing(comment)}
-                  onCancelEdit={cancelEditing}
-                  onProfileClick={handleOnProfileClick}
+                  onCommentUpdate={() => window.location.reload()}
                 />
               ))
             )}

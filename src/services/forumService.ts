@@ -222,16 +222,79 @@ export const fetchForumPostById = async (id: string): Promise<ForumPost | null> 
 };
 
 /**
- * Fetch comments for a specific post
+ * Build comment tree structure with nested replies
+ */
+const buildCommentTree = (comments: any[]): ForumComment[] => {
+  const commentMap = new Map();
+  const rootComments: ForumComment[] = [];
+
+  // First pass: create all comment objects
+  comments.forEach(comment => {
+    const formattedComment = {
+      id: comment.id,
+      post_id: comment.post_id,
+      postId: comment.post_id,
+      content: comment.content,
+      author_id: comment.author_id,
+      authorId: comment.author_id,
+      created_at: comment.created_at,
+      updated_at: comment.updated_at,
+      createdAt: comment.created_at,
+      updatedAt: comment.updated_at,
+      isEdited: comment.is_edited || false,
+      parent_comment_id: comment.parent_comment_id,
+      author: comment.author,
+      replies: [] as ForumComment[]
+    };
+    commentMap.set(comment.id, formattedComment);
+  });
+
+  // Second pass: build the tree structure
+  comments.forEach(comment => {
+    const formattedComment = commentMap.get(comment.id);
+    if (comment.parent_comment_id) {
+      // This is a reply
+      const parentComment = commentMap.get(comment.parent_comment_id);
+      if (parentComment) {
+        parentComment.replies.push(formattedComment);
+      }
+    } else {
+      // This is a root comment
+      rootComments.push(formattedComment);
+    }
+  });
+
+  // Sort replies by creation date (oldest first for natural reading)
+  const sortReplies = (comment: ForumComment) => {
+    comment.replies = comment.replies.sort((a, b) => 
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+    comment.replies.forEach(sortReplies);
+  };
+
+  rootComments.forEach(sortReplies);
+  return rootComments;
+};
+
+/**
+ * Fetch comments for a specific post with nested structure
  */
 export const fetchCommentsByPostId = async (postId: string): Promise<ForumComment[]> => {
   try {
     console.log("Fetching comments for post:", postId);
     
-    // Step 1: Fetch comments for the post
+    // Step 1: Fetch comments for the post with author profiles
     const { data: comments, error: commentsError } = await supabase
       .from('forum_comments')
-      .select('*')
+      .select(`
+        *,
+        author:profiles!forum_comments_author_id_fkey(
+          id,
+          username,
+          avatar_url,
+          rank
+        )
+      `)
       .eq('post_id', postId)
       .order('created_at', { ascending: false });
 
@@ -242,56 +305,23 @@ export const fetchCommentsByPostId = async (postId: string): Promise<ForumCommen
 
     console.log("Fetched comments:", comments.length);
 
-    // Step 2: Get unique author IDs from comments
-    const authorIds = Array.from(new Set(comments.map(comment => comment.author_id)));
-    
-    if (authorIds.length === 0) {
+    if (comments.length === 0) {
       return [];
     }
 
-    // Step 3: Fetch author profiles
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('id, username, avatar_url, rank')
-      .in('id', authorIds);
+    // Step 2: Format and build tree structure
+    const formattedComments = comments.map(comment => ({
+      ...comment,
+      author: comment.author ? {
+        id: comment.author.id,
+        username: comment.author.username,
+        avatarUrl: comment.author.avatar_url,
+        rank: comment.author.rank
+      } : null
+    }));
 
-    if (profilesError) {
-      console.error('Error fetching comment author profiles:', profilesError);
-      return [];
-    }
-
-    console.log("Fetched comment profiles:", profiles.length);
-
-    // Step 4: Create a lookup map for profiles
-    const profileMap = profiles.reduce((acc, profile) => {
-      acc[profile.id] = profile;
-      return acc;
-    }, {} as Record<string, any>);
-
-    // Step 5: Combine data to create normalized comments
-    return comments.map(comment => {
-      const authorProfile = profileMap[comment.author_id] || null;
-      
-      return {
-        id: comment.id,
-        post_id: comment.post_id,
-        postId: comment.post_id, // Add compatibility alias
-        content: comment.content,
-        author_id: comment.author_id,
-        authorId: comment.author_id, // Add compatibility alias
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        createdAt: comment.created_at,
-        updatedAt: comment.updated_at,
-        isEdited: comment.is_edited || false,
-        author: authorProfile ? {
-          id: authorProfile.id,
-          username: authorProfile.username,
-          avatarUrl: authorProfile.avatar_url,
-          rank: authorProfile.rank
-        } : null
-      };
-    });
+    // Step 3: Build the comment tree
+    return buildCommentTree(formattedComments);
   } catch (error) {
     console.error('Error in fetchCommentsByPostId:', error);
     return [];
@@ -488,11 +518,12 @@ export const deleteForumPost = async (id: string): Promise<boolean> => {
 };
 
 /**
- * Add a comment to a forum post
+ * Add a comment to a forum post or reply to another comment
  */
 export const addForumComment = async (
   postId: string,
-  content: string
+  content: string,
+  parentCommentId?: string
 ): Promise<ForumComment | null> => {
   try {
     console.log("Adding comment to post:", postId);
@@ -510,6 +541,7 @@ export const addForumComment = async (
           post_id: postId,
           content,
           author_id: user.id,
+          parent_comment_id: parentCommentId || null,
         },
       ])
       .select('*')

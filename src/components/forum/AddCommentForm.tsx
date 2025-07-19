@@ -13,9 +13,11 @@ interface AddCommentFormProps {
   postId: string;
   user: User;
   onCommentAdded: (comment: ForumComment) => void;
+  parentCommentId?: string;
+  placeholder?: string;
 }
 
-export default function AddCommentForm({ postId, user, onCommentAdded }: AddCommentFormProps) {
+export default function AddCommentForm({ postId, user, onCommentAdded, parentCommentId, placeholder = "Write your comment..." }: AddCommentFormProps) {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
@@ -59,7 +61,7 @@ export default function AddCommentForm({ postId, user, onCommentAdded }: AddComm
     
     setIsSubmitting(true);
     try {
-      const comment = await addForumComment(postId, content);
+      const comment = await addForumComment(postId, content, parentCommentId);
       
       if (comment) {
         onCommentAdded(comment);
@@ -116,7 +118,7 @@ export default function AddCommentForm({ postId, user, onCommentAdded }: AddComm
         )}
         
         <Textarea 
-          placeholder="Write your comment..."
+          placeholder={placeholder}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           className="resize-none"
