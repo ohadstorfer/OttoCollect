@@ -429,44 +429,44 @@ const BlogPostPage = () => {
                 </p>
               </div>
             ) : (
-              <>
-                {/* Daily activity warning for limited ranks */}
-                {isLimitedRank && hasReachedDailyLimit && (
-                  <div className="mb-4">
-                      <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
-                        <p className="text-red-600 dark:text-red-400 text-sm">
-                          You have reached your daily limit of 6 blog activities (posts + comments).
-                        </p>
-                      </div>
-                  </div>
-                )}
-
-                <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatarUrl} />
-                    <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                      {getInitials(user.username)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 space-y-2">
-                    <Textarea
-                      value={commentContent}
-                      onChange={(e) => setCommentContent(e.target.value)}
-                      placeholder="Add your comment..."
-                      className="resize-none min-h-[100px]"
-                      disabled={hasReachedDailyLimit}
-                    />
-                    <div className="flex justify-end">
-                      <Button
-                        onClick={handleAddComment}
-                        disabled={isSubmitting || commentContent.trim() === '' || hasReachedDailyLimit}
-                      >
-                        {isSubmitting ? 'Posting...' : 'Post Comment'}
-                      </Button>
+            <>
+              {/* Daily activity warning for limited ranks */}
+              {isLimitedRank && hasReachedDailyLimit && (
+                <div className="mb-4">
+                    <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
+                      <p className="text-red-600 dark:text-red-400 text-sm">
+                        You have reached your daily limit of 6 blog activities (posts + comments).
+                      </p>
                     </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.avatarUrl} />
+                  <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+                    {getInitials(user.username)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-2">
+                  <Textarea
+                    value={commentContent}
+                    onChange={(e) => setCommentContent(e.target.value)}
+                    placeholder="Add your comment..."
+                    className="resize-none min-h-[100px]"
+                    disabled={hasReachedDailyLimit}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleAddComment}
+                      disabled={isSubmitting || commentContent.trim() === '' || hasReachedDailyLimit}
+                    >
+                      {isSubmitting ? 'Posting...' : 'Post Comment'}
+                    </Button>
                   </div>
                 </div>
-              </>
+              </div>
+            </>
             )
           ) : (
             <div className="bg-parchment-10/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">
@@ -597,8 +597,8 @@ const BlogPostPage = () => {
               : (
                 <div className="bg-parchment-10/20 p-8 rounded-md border border-ottoman-100/50 text-center">
                   <p className="text-muted-foreground">No comments yet. Be the first to contribute!</p>
-                </div>
-              )}
+              </div>
+            )}
           </div>
         </div>
       </div>

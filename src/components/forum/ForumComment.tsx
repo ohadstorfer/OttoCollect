@@ -105,18 +105,15 @@ export default function ForumComment({
   };
   
   return (
-    <div className={`${isReply ? 'ml-4 sm:ml-6 lg:ml-8' : ''} ${depth > 0 ? 'mt-3' : ''} relative`}>
-      {/* Connection line for replies */}
-      {isReply && (
-        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-400 dark:bg-gray-500"></div>
-      )}
-      
+    <div className={`${depth > 0 ? 'mt-3' : ''}`}>
+      {/* Wrap parent comment and replies with soft outline */}
       <div className={`
-        ${isReply 
-          ? 'border-l-2 border-muted/60 pl-4 py-2' 
-          : 'border border-muted/30 rounded-lg p-4 bg-card'
+        ${depth === 0 && comment.replies && comment.replies.length > 0 
+          ? 'border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50/50 dark:bg-gray-800/20' 
+          : depth > 0 
+            ? 'border-l-2 border-muted/60 pl-4 py-2 bg-muted/20' 
+            : 'border border-muted/30 rounded-lg p-4 bg-card'
         }
-        ${depth > 0 ? 'bg-muted/20' : ''}
       `}>
         
         {/* Comment Header */}

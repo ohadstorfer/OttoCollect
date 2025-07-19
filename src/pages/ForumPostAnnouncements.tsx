@@ -85,21 +85,12 @@ const renderComment = (
   const canReply = props.user && depth < maxDepth;
 
   return (
-    <div key={comment.id} className={`${isReply ? 'ml-6' : ''} ${depth > 0 ? 'mt-4' : 'mb-6'}`}>
-      {/* Reply connection line */}
-      {isReply && (
-        <div className="relative">
-          {/* Vertical line from parent comment */}
-          <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-300 dark:bg-gray-600 z-10"></div>
-          {/* Horizontal line connecting to reply avatar */}
-          <div className="absolute left-4 top-4 w-2 h-px bg-gray-300 dark:bg-gray-600 z-10"></div>
-        </div>
-      )}
-      
-      <div className={`${isReply ? 'ml-6' : ''} relative`}>
+    <div key={comment.id} className={`${depth > 0 ? 'mt-4' : 'mb-6'}`}>
+      {/* Wrap parent comment and replies with soft outline */}
+      <div className={`${depth === 0 && comment.replies && comment.replies.length > 0 ? 'border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50/50 dark:bg-gray-800/20' : ''}`}>
         <div className="flex gap-3">
           <Avatar
-            className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition relative z-20"
+            className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition"
             onClick={() => props.handleOnProfileClick(comment.author?.id)}
           >
             <AvatarImage src={comment.author?.avatarUrl} />
@@ -255,16 +246,16 @@ const renderComment = (
             )}
           </div>
         </div>
-      </div>
 
-      {/* Render nested replies */}
-      {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-4 space-y-4">
-          {comment.replies.map((reply) => 
-            renderComment(reply, depth + 1, maxDepth, props)
-          )}
-        </div>
-      )}
+        {/* Render nested replies */}
+        {comment.replies && comment.replies.length > 0 && (
+          <div className="mt-4 space-y-4">
+            {comment.replies.map((reply) => 
+              renderComment(reply, depth + 1, maxDepth, props)
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
