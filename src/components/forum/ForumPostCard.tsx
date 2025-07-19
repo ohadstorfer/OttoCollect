@@ -24,6 +24,30 @@ interface ForumPostCardProps {
   post: ForumPostWithAuthor;
 }
 
+// Simple function to detect and render links
+const renderTextWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline break-all"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 const ForumPostCard = ({ post }: ForumPostCardProps) => {
   const navigate = useNavigate();
 
@@ -41,7 +65,7 @@ const ForumPostCard = ({ post }: ForumPostCardProps) => {
           {/* Title and Author Section */}
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-base line-clamp-1 group-hover:text-primary transition-colors mb-1">
-              <span>{post.title}</span>
+              <span>{renderTextWithLinks(post.title)}</span>
             </h3>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <UserProfileLink

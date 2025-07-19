@@ -14,7 +14,7 @@ import ForumCommentComponent from "@/components/forum/ForumComment";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
-import { ArrowLeft, Trash2, Edit2, Ban } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit2, Ban, MessageSquare } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
   AlertDialog,
@@ -27,6 +27,30 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import ImageGalleryForum from '@/components/forum/ImageGalleryForum';
+
+// Simple function to detect and render links
+const renderTextWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
 
 const ForumPostPage = () => {
   const { id: postId } = useParams();
@@ -337,15 +361,17 @@ const ForumPostPage = () => {
   return (
     <div className="page-container">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-2">
-      <Button
+        {/* Header with back button and delete option */}
+        <div className="flex items-center justify-between mb-4">
+          <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={handleBack}
-            aria-label="Go back"
+            className="text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="h-5 w-5" />
-          </Button> 
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Forum
+          </Button>
 
           {canDeletePost && (
             <AlertDialog>
@@ -356,7 +382,6 @@ const ForumPostPage = () => {
                   className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
                 >
                   <Trash2 className="h-4 w-4" />
-                  {/* Delete Post */}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -380,50 +405,68 @@ const ForumPostPage = () => {
           )}
         </div>
 
-        <div className="glass-card p-6 rounded-md shadow-md mb-6 animate-fade-in">
-          <div className="flex items-start gap-4">
+        {/* Main Post */}
+        <div className="bg-card border rounded-lg p-4 mb-6">
+          <div className="flex gap-3">
+            {/* Author Avatar */}
             <Avatar
-              className="h-12 w-12 border cursor-pointer hover:opacity-80 active:scale-95 transition"
+              className="h-10 w-10 flex-shrink-0 cursor-pointer hover:opacity-80 transition"
               onClick={() => handleOnProfileClick(post?.author?.id)}
             >
               <AvatarImage src={post.author?.avatarUrl} />
-              <AvatarFallback className="bg-ottoman-700 text-parchment-100">
+              <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                 {post.author?.username ? getInitials(post.author.username) : '??'}
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <div
-                  className="flex items-center gap-2 cursor-pointer"
+            {/* Post Content */}
+            <div className="flex-1 min-w-0">
+              {/* Post Header */}
+              <div className="flex items-center gap-2 mb-2">
+                <span
+                  className="font-medium text-sm cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleOnProfileClick(post?.author?.id)}
-                  tabIndex={0}
-                  role="button"
-                  aria-label="Go to author profile"
                 >
-                  <span className="font-semibold text-base text-ottoman-900 dark:text-parchment-200">
-                    {post.author?.username || 'Anonymous'}
-                  </span>
-                </div>
-                <span className="text-sm text-muted-foreground">{formattedDate}</span>
+                  {post.author?.username || 'Anonymous'}
+                </span>
+                <span className="text-xs text-muted-foreground">•</span>
+                <span className="text-xs text-muted-foreground">{formattedDate}</span>
               </div>
-              <h6 className="font-semibold text-2xl animate-fade-in"><span>{post.title}</span></h6>
-              <div className="whitespace-pre-line mb-4">{post.content}</div>
 
+              {/* Post Title */}
+              <h1 className="text-xl font-semibold mb-3 text-foreground">
+                <span>{renderTextWithLinks(post.title)}</span>
+              </h1>
+
+              {/* Post Content */}
+              <div className="text-sm leading-relaxed mb-4 text-foreground">
+                {renderTextWithLinks(post.content)}
+              </div>
+
+              {/* Post Images - Compact Gallery */}
               {post.imageUrls && post.imageUrls.length > 0 && (
-                <ImageGallery images={post.imageUrls} />
+                <div className="mb-3">
+                  <ImageGalleryForum images={post.imageUrls} />
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <h2 className="text-xl font-semibold mb-4"><span>Comments • {post.commentCount || 0}</span></h2>
+        {/* Comments Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MessageSquare className="h-4 w-4" />
+            <h2 className="text-lg font-semibold">
+              <span>Comments ({post.commentCount || 0})</span>
+            </h2>
+          </div>
 
+          {/* Comment Form */}
           {user ? (
             isUserBlocked ? (
-              <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800 text-center mb-6">
-                <p className="text-red-600 dark:text-red-400">
+              <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 text-center mb-4">
+                <p className="text-red-600 dark:text-red-400 text-sm">
                   You have been blocked from commenting on forum posts
                 </p>
               </div>
@@ -432,91 +475,94 @@ const ForumPostPage = () => {
                 {/* Daily activity warning for limited ranks */}
                 {isLimitedRank && hasReachedDailyLimit && (
                   <div className="mb-4">
-                      <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
-                        <p className="text-red-600 dark:text-red-400 text-sm">
-                          You have reached your daily limit of 6 forum activities (posts + comments).
-                        </p>
-                      </div>
+                    <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
+                      <p className="text-red-600 dark:text-red-400 text-sm">
+                        You have reached your daily limit of 6 forum activities (posts + comments).
+                      </p>
+                    </div>
                   </div>
                 )}
 
-                <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatarUrl} />
-                    <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                      {getInitials(user.username)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 space-y-2">
-                    <Textarea
-                      value={commentContent}
-                      onChange={(e) => setCommentContent(e.target.value)}
-                      placeholder="Add your comment..."
-                      className="resize-none min-h-[100px]"
-                      disabled={hasReachedDailyLimit}
-                    />
-                    <div className="flex justify-end">
-                      <Button
-                        onClick={handleAddComment}
-                        disabled={isSubmitting || commentContent.trim() === '' || hasReachedDailyLimit}
-                      >
-                        {isSubmitting ? 'Posting...' : 'Post Comment'}
-                      </Button>
+                <div className="bg-card border rounded-lg p-4 mb-4">
+                  <div className="flex gap-3">
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={user.avatarUrl} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                        {getInitials(user.username)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 space-y-3">
+                      <Textarea
+                        value={commentContent}
+                        onChange={(e) => setCommentContent(e.target.value)}
+                        placeholder="Add your comment..."
+                        className="resize-none min-h-[80px] text-sm"
+                        disabled={hasReachedDailyLimit}
+                      />
+                      <div className="flex justify-end">
+                        <Button
+                          onClick={handleAddComment}
+                          disabled={isSubmitting || commentContent.trim() === '' || hasReachedDailyLimit}
+                          size="sm"
+                        >
+                          {isSubmitting ? 'Posting...' : 'Post Comment'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </>
             )
           ) : (
-            <div className="bg-parchment-10/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">
-              <p className="text-muted-foreground">
+            <div className="bg-muted/50 p-4 rounded-md border text-center mb-4">
+              <p className="text-muted-foreground text-sm">
                 Please log in to add a comment.
               </p>
             </div>
           )}
 
-          <div className="space-y-4 px-4 glass-card p-4 rounded-md border">
+          {/* Comments List */}
+          <div className="space-y-3">
             {comments.length > 0 ? (
-              <div className="bg-parchment-10/20 rounded-md border p-6">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="group mb-3 last:mb-0 flex items-start gap-3">
-                    <div
-                      className="cursor-pointer"
+              comments.map((comment) => (
+                <div key={comment.id} className="bg-card border rounded-lg p-3">
+                  <div className="flex gap-3">
+                    <Avatar
+                      className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition"
                       onClick={() => handleOnProfileClick(comment.author?.id)}
-                      tabIndex={0}
-                      role="button"
-                      aria-label="Go to comment author profile"
-                      onKeyDown={e => { if (e.key === 'Enter') handleOnProfileClick(comment.author?.id); }}
                     >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={comment.author?.avatarUrl} />
-                        <AvatarFallback className="bg-ottoman-700 text-parchment-100">
-                          {getInitials(comment.author?.username || 'Anonymous')}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                      <AvatarImage src={comment.author?.avatarUrl} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                        {getInitials(comment.author?.username || 'Anonymous')}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      {/* Comment Header */}
+                      <div className="flex items-center gap-2 mb-2">
                         <span
-                          className="font-semibold text-sm text-ottoman-900 dark:text-parchment-200 cursor-pointer"
+                          className="font-medium text-sm cursor-pointer hover:text-primary transition-colors"
                           onClick={() => handleOnProfileClick(comment.author?.id)}
-                          tabIndex={0}
-                          role="button"
-                          aria-label="Go to comment author profile"
-                          onKeyDown={e => { if (e.key === 'Enter') handleOnProfileClick(comment.author?.id); }}
                         >
                           {comment.author?.username || 'Anonymous'}
                         </span>
-                        <span className="text-sm text-muted-foreground">{formattedDate}</span>
-                        {comment.isEdited && <span className="text-xs italic text-muted-foreground">(edited)</span>}
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <span className="text-xs text-muted-foreground">{formattedDate}</span>
+                        {comment.isEdited && (
+                          <>
+                            <span className="text-xs text-muted-foreground">•</span>
+                            <span className="text-xs italic text-muted-foreground">edited</span>
+                          </>
+                        )}
                       </div>
 
+                      {/* Comment Content */}
                       {editingCommentId === comment.id ? (
-                        <div className="mt-2 space-y-2">
+                        <div className="space-y-2">
                           <Textarea
                             value={editedContent}
                             onChange={(e) => setEditedContent(e.target.value)}
-                            className="min-h-[100px]"
+                            className="min-h-[80px] text-sm"
                             disabled={isSubmitting}
                           />
                           <div className="flex justify-end gap-2">
@@ -539,7 +585,9 @@ const ForumPostPage = () => {
                         </div>
                       ) : (
                         <>
-                          <div className="whitespace-pre-line mb-2">{comment.content}</div>
+                          <div className="text-sm leading-relaxed text-foreground mb-2">
+                            {renderTextWithLinks(comment.content)}
+                          </div>
 
                           {/* Comment Actions */}
                           {((user?.id === comment.authorId) || user?.role?.includes('Admin')) && (
@@ -549,10 +597,10 @@ const ForumPostPage = () => {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => startEditing(comment)}
-                                  className="text-ottoman-600 hover:text-ottoman-700 hover:bg-ottoman-100/50"
+                                  className="text-muted-foreground hover:text-foreground h-6 px-2"
                                 >
-                                  <Edit2 className="h-4 w-4 mr-1" />
-                                  {/* Edit */}
+                                  <Edit2 className="h-3 w-3 mr-1" />
+                                  Edit
                                 </Button>
                               )}
                               <AlertDialog>
@@ -560,10 +608,10 @@ const ForumPostPage = () => {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50 h-6 px-2"
                                   >
-                                    <Trash2 className="h-4 w-4 mr-1" />
-                                    {/* Delete */}
+                                    <Trash2 className="h-3 w-3 mr-1" />
+                                    Delete
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -590,14 +638,13 @@ const ForumPostPage = () => {
                       )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )
-              : (
-                <div className="bg-parchment-10/20 p-8 rounded-md border border-ottoman-100/50 text-center">
-                  <p className="text-muted-foreground">No comments yet. Be the first to contribute!</p>
                 </div>
-              )}
+              ))
+            ) : (
+              <div className="bg-muted/50 p-8 rounded-md border text-center">
+                <p className="text-muted-foreground text-sm">No comments yet. Be the first to contribute!</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -607,7 +654,6 @@ const ForumPostPage = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>User Profile Actions</AlertDialogTitle>
-
           </AlertDialogHeader>
           <div className="flex flex-col gap-2">
             <Button
