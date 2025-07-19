@@ -79,13 +79,14 @@ const renderComment = (
     renderTextWithLinks: (text: string) => React.ReactNode;
     formattedDate: string;
     updateReplyContent: (content: string) => void;
+    updateEditedContent: (content: string) => void;
   }
 ) => {
   const isReply = depth > 0;
   const canReply = props.user && depth < maxDepth;
 
   return (
-    <div key={comment.id} className={`${isReply ? 'ml-8' : ''} `}>
+    <div key={comment.id} className={`${isReply ? 'ml-10' : ''} `}>
       {/* Wrap parent comment and replies with soft outline */}
       <div className={`${depth === 0 && comment.replies  ? 'border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50/50 dark:bg-gray-800/20' : ''}`}>
         <div className="flex gap-3">
@@ -101,19 +102,19 @@ const renderComment = (
 
           <div className="flex-1 min-w-0">
             {/* Comment Header */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span
-                className="font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+                className="font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words"
                 onClick={() => props.handleOnProfileClick(comment.author?.id)}
               >
                 {comment.author?.username || 'Anonymous'}
               </span>
-              <span className="text-xs text-muted-foreground">•</span>
-              <span className="text-xs text-muted-foreground">{props.formattedDate}</span>
+              <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
+              <span className="text-xs text-muted-foreground flex-shrink-0">{props.formattedDate}</span>
               {comment.isEdited && (
                 <>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-xs italic text-muted-foreground">edited</span>
+                  <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
+                  <span className="text-xs italic text-muted-foreground flex-shrink-0">edited</span>
                 </>
               )}
             </div>
@@ -123,8 +124,8 @@ const renderComment = (
               <div className="space-y-2">
                 <Textarea
                   value={props.editedContent}
-                  onChange={(e) => props.handleEditComment(comment.id, e.target.value)}
-                  className="min-h-[80px] text-sm border rounded-md"
+                  onChange={(e) => props.updateEditedContent(e.target.value)}
+                  className="min-h-[80px] text-sm border rounded-md resize-none"
                   disabled={props.isSubmitting}
                 />
                 <div className="flex justify-end gap-2">
@@ -147,7 +148,7 @@ const renderComment = (
               </div>
             ) : (
               <>
-                <div className="text-sm leading-relaxed text-foreground mb-3">
+                <div className="text-sm leading-relaxed text-foreground mb-3 break-words whitespace-pre-wrap overflow-hidden">
                   {props.renderTextWithLinks(comment.content)}
                 </div>
 
@@ -155,8 +156,8 @@ const renderComment = (
                 {props.replyingToCommentId === comment.id && (
                   <div className="mb-4 space-y-3">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <MessageSquare className="h-3 w-3" />
-                      <span>Replying to {comment.author?.username || 'this comment'}</span>
+                      <MessageSquare className="h-3 w-3 flex-shrink-0" />
+                      <span className="break-words">Replying to {comment.author?.username || 'this comment'}</span>
                     </div>
                     <Textarea 
                       value={props.replyContent}
@@ -187,7 +188,7 @@ const renderComment = (
 
                 {/* Comment Actions */}
                 {props.replyingToCommentId !== comment.id && (
-                  <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-4 text-xs flex-wrap">
                     {canReply && !props.isUserBlocked && !props.hasReachedDailyLimit && !isReply && (
                       <Button
                         variant="ghost"
@@ -374,8 +375,13 @@ const ForumPostPage = () => {
       const newComment = await addForumComment(post.id, commentContent);
 
       if (newComment) {
-        onAddComment(newComment);
+        // Add the new comment to the list immediately
+        setComments(prevComments => [newComment, ...prevComments]);
         setCommentContent('');
+        setPost({
+          ...post,
+          commentCount: (post.commentCount || 0) + 1,
+        });
         toast.success("Your comment has been added successfully.");
 
         // Update daily count after successful comment
@@ -393,14 +399,24 @@ const ForumPostPage = () => {
     }
   };
 
-  const onUpdateComment = (commentId: string, content: string) => {
-    // Refresh comments to get the updated nested structure
-    refreshComments();
-  };
-
   const onDeleteComment = (commentId: string) => {
-    // Refresh comments to get the updated nested structure
-    refreshComments();
+    // Remove the comment from the nested structure properly
+    const removeCommentFromTree = (comments: ForumComment[]): ForumComment[] => {
+      return comments
+        .filter(comment => comment.id !== commentId)
+        .map(comment => {
+          if (comment.replies && comment.replies.length > 0) {
+            return {
+              ...comment,
+              replies: removeCommentFromTree(comment.replies)
+            };
+          }
+          return comment;
+        });
+    };
+
+    setComments(prevComments => removeCommentFromTree(prevComments));
+    
     if (post) {
       setPost({ ...post, commentCount: (post.commentCount || 1) - 1 });
     }
@@ -434,6 +450,10 @@ const ForumPostPage = () => {
     }
   };
 
+  const updateEditedContent = (content: string) => {
+    setEditedContent(content);
+  };
+
   const handleEditComment = async (commentId: string, newContent: string) => {
     if (!user) return;
 
@@ -442,13 +462,23 @@ const ForumPostPage = () => {
       const updatedComment = await updateForumComment(commentId, newContent);
 
       if (updatedComment) {
-        setComments(prevComments =>
-          prevComments.map(comment =>
-            comment.id === commentId
-              ? { ...comment, content: newContent, isEdited: true }
-              : comment
-          )
-        );
+        // Update the nested comment structure properly
+        const updateCommentInTree = (comments: ForumComment[]): ForumComment[] => {
+          return comments.map(comment => {
+            if (comment.id === commentId) {
+              return { ...comment, content: newContent, isEdited: true };
+            }
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: updateCommentInTree(comment.replies)
+              };
+            }
+            return comment;
+          });
+        };
+
+        setComments(prevComments => updateCommentInTree(prevComments));
         setEditingCommentId(null);
         setEditedContent('');
         toast.success("Comment updated successfully");
@@ -504,9 +534,28 @@ const ForumPostPage = () => {
       const newReply = await addForumComment(post.id, replyContent.trim(), commentId);
 
       if (newReply) {
+        // Add the new reply to the nested structure immediately
+        const addReplyToTree = (comments: ForumComment[]): ForumComment[] => {
+          return comments.map(comment => {
+            if (comment.id === commentId) {
+              return {
+                ...comment,
+                replies: [...(comment.replies || []), newReply]
+              };
+            }
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: addReplyToTree(comment.replies)
+              };
+            }
+            return comment;
+          });
+        };
+
+        setComments(prevComments => addReplyToTree(prevComments));
         setReplyContent('');
         setReplyingToCommentId(null);
-        refreshComments(); // Refresh to get the nested structure
         toast.success("Your reply has been added successfully.");
 
         // Update daily count after successful reply
@@ -621,8 +670,8 @@ const ForumPostPage = () => {
 
   const onAddComment = (comment: ForumComment) => {
     if (!post) return;
-    // Refresh comments to get the updated nested structure
-    refreshComments();
+    // Add the new comment to the list immediately
+    setComments(prevComments => [comment, ...prevComments]);
     setPost({
       ...post,
       commentCount: (post.commentCount || 0) + 1,
@@ -697,24 +746,24 @@ const ForumPostPage = () => {
             {/* Post Content */}
             <div className="flex-1 min-w-0">
               {/* Post Header */}
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span
-                  className="font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+                  className="font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words"
                   onClick={() => handleOnProfileClick(post?.author?.id)}
                 >
                   {post.author?.username || 'Anonymous'}
                 </span>
-                <span className="text-xs text-muted-foreground">•</span>
-                <span className="text-xs text-muted-foreground">{formattedDate}</span>
+                <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
+                <span className="text-xs text-muted-foreground flex-shrink-0">{formattedDate}</span>
               </div>
 
               {/* Post Title */}
-              <h1 className="text-xl font-semibold mb-3 text-foreground">
+              <h1 className="text-xl font-semibold mb-3 text-foreground break-words">
                 <span>{renderTextWithLinks(post.title)}</span>
               </h1>
 
               {/* Post Content */}
-              <div className="text-sm leading-relaxed mb-4 text-foreground">
+              <div className="text-sm leading-relaxed mb-4 text-foreground break-words whitespace-pre-wrap overflow-hidden">
                 {renderTextWithLinks(post.content)}
               </div>
 
@@ -821,7 +870,8 @@ const ForumPostPage = () => {
                   handleOnProfileClick,
                   renderTextWithLinks,
                   formattedDate,
-                  updateReplyContent
+                  updateReplyContent,
+                  updateEditedContent
                 })
               )
             ) : (

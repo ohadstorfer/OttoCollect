@@ -128,7 +128,7 @@ export default function ForumComment({
             <RankBadge rank={comment.author?.rank as any} size="sm" />
 
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0">
             <span>
               {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
               {comment.isEdited && <span className="ml-1 italic">(edited)</span>}
@@ -178,11 +178,11 @@ export default function ForumComment({
         ) : (
           <div className="space-y-3">
             <div className="prose prose-sm max-w-none">
-              <p className="text-sm whitespace-pre-wrap leading-relaxed">{comment.content}</p>
+              <p className="text-sm whitespace-pre-wrap leading-relaxed break-words overflow-hidden">{comment.content}</p>
             </div>
             
             {/* Action Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               {canReply && !isReplying && (
                 <Button
                   variant="ghost"

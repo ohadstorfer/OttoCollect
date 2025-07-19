@@ -7,7 +7,15 @@ import { toast } from "sonner";
 import { ForumPost as ForumPostType, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
 import { formatDistanceToNow } from 'date-fns';
-import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment, checkUserDailyForumLimit, fetchCommentsByPostId } from "@/services/forumService";
+import {
+  fetchForumAnnouncementById,
+  fetchAnnouncementComments,
+  addForumAnnouncementComment,
+  updateForumAnnouncementComment,
+  deleteForumAnnouncementComment,
+  deleteForumAnnouncement,
+  checkUserDailyForumLimit
+} from '@/services/forumService';
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumCommentComponent from "@/components/forum/ForumComment";
@@ -79,13 +87,14 @@ const renderComment = (
     renderTextWithLinks: (text: string) => React.ReactNode;
     formattedDate: string;
     updateReplyContent: (content: string) => void;
+    updateEditedContent: (content: string) => void;
   }
 ) => {
   const isReply = depth > 0;
   const canReply = props.user && depth < maxDepth;
 
   return (
-    <div key={comment.id} className={`${depth > 0 ? 'mt-4' : 'mb-6'}`}>
+    <div key={comment.id} className={`${isReply ? 'ml-10' : ''} ${depth > 0 ? 'mt-4' : 'mb-6'}`}>
       {/* Wrap parent comment and replies with soft outline */}
       <div className={`${depth === 0 && comment.replies && comment.replies.length > 0 ? 'border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50/50 dark:bg-gray-800/20' : ''}`}>
         <div className="flex gap-3">
@@ -101,19 +110,19 @@ const renderComment = (
 
           <div className="flex-1 min-w-0">
             {/* Comment Header */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span
-                className="font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+                className="font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words"
                 onClick={() => props.handleOnProfileClick(comment.author?.id)}
               >
                 {comment.author?.username || 'Anonymous'}
               </span>
-              <span className="text-xs text-muted-foreground">•</span>
-              <span className="text-xs text-muted-foreground">{props.formattedDate}</span>
+              <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
+              <span className="text-xs text-muted-foreground flex-shrink-0">{props.formattedDate}</span>
               {comment.isEdited && (
                 <>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-xs italic text-muted-foreground">edited</span>
+                  <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
+                  <span className="text-xs italic text-muted-foreground flex-shrink-0">edited</span>
                 </>
               )}
             </div>
@@ -123,8 +132,8 @@ const renderComment = (
               <div className="space-y-2">
                 <Textarea
                   value={props.editedContent}
-                  onChange={(e) => props.handleEditComment(comment.id, e.target.value)}
-                  className="min-h-[80px] text-sm border rounded-md"
+                  onChange={(e) => props.updateEditedContent(e.target.value)}
+                  className="min-h-[80px] text-sm border rounded-md resize-none"
                   disabled={props.isSubmitting}
                 />
                 <div className="flex justify-end gap-2">
@@ -147,7 +156,7 @@ const renderComment = (
               </div>
             ) : (
               <>
-                <div className="text-sm leading-relaxed text-foreground mb-3">
+                <div className="text-sm leading-relaxed text-foreground mb-3 break-words whitespace-pre-wrap overflow-hidden">
                   {props.renderTextWithLinks(comment.content)}
                 </div>
 
@@ -155,8 +164,8 @@ const renderComment = (
                 {props.replyingToCommentId === comment.id && (
                   <div className="mb-4 space-y-3">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <MessageSquare className="h-3 w-3" />
-                      <span>Replying to {comment.author?.username || 'this comment'}</span>
+                      <MessageSquare className="h-3 w-3 flex-shrink-0" />
+                      <span className="break-words">Replying to {comment.author?.username || 'this comment'}</span>
                     </div>
                     <Textarea 
                       value={props.replyContent}
@@ -187,7 +196,7 @@ const renderComment = (
 
                 {/* Comment Actions */}
                 {props.replyingToCommentId !== comment.id && (
-                  <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-4 text-xs flex-wrap">
                     {canReply && !props.isUserBlocked && !props.hasReachedDailyLimit && !isReply && (
                       <Button
                         variant="ghost"
@@ -332,46 +341,15 @@ const ForumPostAnnouncementsPage = () => {
   const loadPost = async (postId: string) => {
     setIsLoading(true);
     try {
-      // For announcements, we would need a separate service function
-      // For now, using the forum post service
-      const { data, error } = await supabase
-        .from('forum_announcements')
-        .select(`
-          *,
-          author:profiles!forum_announcements_author_id_fkey(id, username, avatar_url, rank)
-        `)
-        .eq('id', postId)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setPost({
-          id: data.id,
-          title: data.title,
-          content: data.content,
-          author_id: data.author_id,
-          authorId: data.author_id,
-          author: {
-            ...data.author,
-            avatarUrl: data.author.avatar_url, // Fix: map avatar_url to avatarUrl
-          },
-          imageUrls: data.image_urls || [],
-          image_urls: data.image_urls || [],
-          createdAt: data.created_at,
-          updatedAt: data.updated_at,
-          created_at: data.created_at,
-          updated_at: data.updated_at,
-          commentCount: 0,
-          comments: []
-        });
+      const announcement = await fetchForumAnnouncementById(postId);
+      if (announcement) {
+        setPost(announcement);
         // Load comments with nested structure
-        const nestedComments = await fetchCommentsByPostId(postId);
+        const nestedComments = await fetchAnnouncementComments(postId);
         setComments(nestedComments);
       }
     } catch (error) {
       console.error('Error loading announcement:', error);
-      toast.error("Failed to load announcement.");
     } finally {
       setIsLoading(false);
     }
@@ -381,7 +359,7 @@ const ForumPostAnnouncementsPage = () => {
   const refreshComments = async () => {
     if (!post) return;
     try {
-      const nestedComments = await fetchCommentsByPostId(post.id);
+      const nestedComments = await fetchAnnouncementComments(post.id);
       setComments(nestedComments);
     } catch (error) {
       console.error('Error refreshing comments:', error);
@@ -402,7 +380,7 @@ const ForumPostAnnouncementsPage = () => {
 
     setIsSubmitting(true);
     try {
-      const newComment = await addForumComment(post.id, commentContent);
+      const newComment = await addForumAnnouncementComment(post.id, commentContent);
 
       if (newComment) {
         onAddComment(newComment);
@@ -424,18 +402,24 @@ const ForumPostAnnouncementsPage = () => {
     }
   };
 
-  const onUpdateComment = (commentId: string, content: string) => {
-    setComments((prevComments) =>
-      prevComments.map((comment) =>
-        comment.id === commentId ? { ...comment, content, isEdited: true } : comment
-      )
-    );
-  };
-
   const onDeleteComment = (commentId: string) => {
-    setComments((prevComments) =>
-      prevComments.filter((comment) => comment.id !== commentId)
-    );
+    // Remove the comment from the nested structure properly
+    const removeCommentFromTree = (comments: ForumComment[]): ForumComment[] => {
+      return comments
+        .filter(comment => comment.id !== commentId)
+        .map(comment => {
+          if (comment.replies && comment.replies.length > 0) {
+            return {
+              ...comment,
+              replies: removeCommentFromTree(comment.replies)
+            };
+          }
+          return comment;
+        });
+    };
+
+    setComments(prevComments => removeCommentFromTree(prevComments));
+    
     if (post) {
       setPost({ ...post, commentCount: (post.commentCount || 1) - 1 });
     }
@@ -453,15 +437,14 @@ const ForumPostAnnouncementsPage = () => {
 
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from('forum_announcements')
-        .delete()
-        .eq('id', post.id);
+      const success = await deleteForumAnnouncement(post.id);
 
-      if (error) throw error;
-
-      toast.success("Announcement deleted successfully");
-      navigate('/community/forum');
+      if (success) {
+        toast.success("Announcement deleted successfully");
+        navigate('/community/forum');
+      } else {
+        toast.error("Failed to delete announcement");
+      }
     } catch (error) {
       console.error('Error deleting announcement:', error);
       toast.error("Failed to delete announcement");
@@ -470,21 +453,35 @@ const ForumPostAnnouncementsPage = () => {
     }
   };
 
+  const updateEditedContent = (content: string) => {
+    setEditedContent(content);
+  };
+
   const handleEditComment = async (commentId: string, newContent: string) => {
     if (!user) return;
 
     setIsSubmitting(true);
     try {
-      const updatedComment = await updateForumComment(commentId, newContent);
+      const updatedComment = await updateForumAnnouncementComment(commentId, newContent);
 
       if (updatedComment) {
-        setComments(prevComments =>
-          prevComments.map(comment =>
-            comment.id === commentId
-              ? { ...comment, content: newContent, isEdited: true }
-              : comment
-          )
-        );
+        // Update the nested comment structure properly
+        const updateCommentInTree = (comments: ForumComment[]): ForumComment[] => {
+          return comments.map(comment => {
+            if (comment.id === commentId) {
+              return { ...comment, content: newContent, isEdited: true };
+            }
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: updateCommentInTree(comment.replies)
+              };
+            }
+            return comment;
+          });
+        };
+
+        setComments(prevComments => updateCommentInTree(prevComments));
         setEditingCommentId(null);
         setEditedContent('');
         toast.success("Comment updated successfully");
@@ -537,12 +534,31 @@ const ForumPostAnnouncementsPage = () => {
 
     setIsSubmittingReply(true);
     try {
-      const newReply = await addForumComment(post.id, replyContent.trim(), commentId);
+      const newReply = await addForumAnnouncementComment(post.id, replyContent.trim(), commentId);
 
       if (newReply) {
+        // Add the new reply to the nested structure immediately
+        const addReplyToTree = (comments: ForumComment[]): ForumComment[] => {
+          return comments.map(comment => {
+            if (comment.id === commentId) {
+              return {
+                ...comment,
+                replies: [...(comment.replies || []), newReply]
+              };
+            }
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: addReplyToTree(comment.replies)
+              };
+            }
+            return comment;
+          });
+        };
+
+        setComments(prevComments => addReplyToTree(prevComments));
         setReplyContent('');
         setReplyingToCommentId(null);
-        refreshComments(); // Refresh to get the nested structure
         toast.success("Your reply has been added successfully.");
 
         // Update daily count after successful reply
@@ -657,8 +673,8 @@ const ForumPostAnnouncementsPage = () => {
 
   const onAddComment = (comment: ForumComment) => {
     if (!post) return;
-    // Refresh comments to get the updated nested structure
-    refreshComments();
+    // Add the new comment to the list immediately
+    setComments(prevComments => [comment, ...prevComments]);
     setPost({
       ...post,
       commentCount: (post.commentCount || 0) + 1,
@@ -867,7 +883,8 @@ const ForumPostAnnouncementsPage = () => {
                   handleOnProfileClick,
                   renderTextWithLinks,
                   formattedDate,
-                  updateReplyContent
+                  updateReplyContent,
+                  updateEditedContent
                 })
               )
             )}
