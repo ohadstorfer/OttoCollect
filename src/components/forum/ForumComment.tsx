@@ -105,46 +105,51 @@ export default function ForumComment({
   };
   
   return (
-    <div className={`${isReply ? 'ml-4 sm:ml-6 lg:ml-8' : ''} ${depth > 0 ? 'mt-3' : ''}`}>
+    <div className={`${isReply ? 'ml-6 sm:ml-8 lg:ml-12' : ''} ${depth > 0 ? 'mt-4' : 'mb-6'}`}>
       <div className={`
         ${isReply 
-          ? 'border-l-2 border-muted/60 pl-4 py-2' 
-          : 'border border-muted/30 rounded-lg p-4 bg-card'
+          ? 'border-l-2 border-border/40 pl-6 py-3 bg-muted/30 rounded-r-lg' 
+          : 'border border-border/60 rounded-xl p-6 bg-card shadow-sm hover:shadow-md transition-shadow duration-200'
         }
-        ${depth > 0 ? 'bg-muted/20' : ''}
+        ${depth > 0 ? 'bg-muted/40' : ''}
       `}>
         {/* Comment Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
             <UserProfileLink
               userId={comment.author?.id || ''}
               username={comment.author?.username || 'Unknown'}
               avatarUrl={comment.author?.avatarUrl}
-              size="sm"
+              size={isReply ? "sm" : "md"}
             />
-            <RankBadge rank={comment.author?.rank as any} size="sm" />
-            {isReply && (
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-sm text-foreground">
+                  {comment.author?.username || 'Unknown'}
+                </span>
+                <RankBadge rank={comment.author?.rank as any} size="sm" />
+                {isReply && (
+                  <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-1 rounded-full">
+                    replying to comment
+                  </span>
+                )}
+              </div>
               <span className="text-xs text-muted-foreground">
-                replying to {comment.parent_comment_id ? 'comment' : 'post'}
+                {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                {comment.isEdited && <span className="ml-1 italic">(edited)</span>}
               </span>
-            )}
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>
-              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-              {comment.isEdited && <span className="ml-1 italic">(edited)</span>}
-            </span>
-            {canEdit && !isEditing && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                className="h-6 w-6 p-0 hover:bg-muted"
-              >
-                <Edit2 className="h-3 w-3" />
-              </Button>
-            )}
-          </div>
+          {canEdit && !isEditing && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditing(true)}
+              className="h-8 w-8 p-0 hover:bg-muted rounded-full opacity-60 hover:opacity-100 transition-opacity"
+            >
+              <Edit2 className="h-3 w-3" />
+            </Button>
+          )}
         </div>
         
         {/* Comment Content */}
@@ -183,13 +188,13 @@ export default function ForumComment({
             </div>
             
             {/* Action Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4 pt-2">
               {canReply && !isReplying && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsReplying(true)}
-                  className="text-xs h-7 px-2 hover:bg-muted"
+                  className="text-xs h-6 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-md font-medium"
                 >
                   <Reply className="h-3 w-3 mr-1" />
                   Reply
@@ -201,19 +206,10 @@ export default function ForumComment({
                   variant="ghost"
                   size="sm"
                   onClick={toggleReplies}
-                  className="text-xs h-7 px-2 hover:bg-muted"
+                  className="text-xs h-6 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-md font-medium"
                 >
-                  {showReplies ? (
-                    <>
-                      <ChevronDown className="h-3 w-3 mr-1" />
-                      Hide {comment.replies?.length} {comment.replies?.length === 1 ? 'reply' : 'replies'}
-                    </>
-                  ) : (
-                    <>
-                      <ChevronRight className="h-3 w-3 mr-1" />
-                      Show {comment.replies?.length} {comment.replies?.length === 1 ? 'reply' : 'replies'}
-                    </>
-                  )}
+                  <MessageSquare className="h-3 w-3 mr-1" />
+                  {showReplies ? 'Hide' : 'Show'} {comment.replies?.length} {comment.replies?.length === 1 ? 'reply' : 'replies'}
                 </Button>
               )}
             </div>
