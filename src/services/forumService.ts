@@ -283,18 +283,10 @@ export const fetchCommentsByPostId = async (postId: string): Promise<ForumCommen
   try {
     console.log("Fetching comments for post:", postId);
     
-    // Step 1: Fetch comments for the post with author profiles
+    // Step 1: Fetch comments for the post
     const { data: comments, error: commentsError } = await supabase
       .from('forum_comments')
-      .select(`
-        *,
-        author:profiles!forum_comments_author_id_fkey(
-          id,
-          username,
-          avatar_url,
-          rank
-        )
-      `)
+      .select('*')
       .eq('post_id', postId)
       .order('created_at', { ascending: false });
 
@@ -303,24 +295,44 @@ export const fetchCommentsByPostId = async (postId: string): Promise<ForumCommen
       return [];
     }
 
-    console.log("Fetched comments:", comments.length);
-
     if (comments.length === 0) {
       return [];
     }
 
-    // Step 2: Format and build tree structure
+    // Step 2: Get unique author IDs from comments
+    const authorIds = Array.from(new Set(comments.map(comment => comment.author_id)));
+    
+    // Step 3: Fetch author profiles
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .in('id', authorIds);
+
+    if (profilesError) {
+      console.error('Error fetching comment author profiles:', profilesError);
+      return [];
+    }
+
+    console.log("Fetched profiles:", profiles.length);
+
+    // Step 4: Create a lookup map for profiles
+    const profileMap = profiles.reduce((acc, profile) => {
+      acc[profile.id] = profile;
+      return acc;
+    }, {} as Record<string, any>);
+
+    // Step 5: Format and build tree structure
     const formattedComments = comments.map(comment => ({
       ...comment,
-      author: comment.author ? {
-        id: comment.author.id,
-        username: comment.author.username,
-        avatarUrl: comment.author.avatar_url,
-        rank: comment.author.rank
+      author: profileMap[comment.author_id] ? {
+        id: profileMap[comment.author_id].id,
+        username: profileMap[comment.author_id].username,
+        avatarUrl: profileMap[comment.author_id].avatar_url,
+        rank: profileMap[comment.author_id].rank
       } : null
     }));
 
-    // Step 3: Build the comment tree
+    // Step 6: Build the comment tree
     return buildCommentTree(formattedComments);
   } catch (error) {
     console.error('Error in fetchCommentsByPostId:', error);
