@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { addBlogComment, fetchBlogPostById, deleteBlogPost, updateBlogComment, checkUserDailyBlogLimit } from "@/services/blogService";
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
+import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
 import { ArrowLeft, Trash2, Edit2, Ban } from 'lucide-react';
@@ -409,12 +410,8 @@ const BlogPostPage = () => {
               <div className="whitespace-pre-line mb-4">{post.content}</div>
 
               {post.main_image_url && (
-                <div className="w-full aspect-video mb-4 overflow-hidden rounded-lg">
-                  <img 
-                    src={post.main_image_url} 
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
+               <div className="mb-3">
+                  <ImageGallery images={[post.main_image_url]} />
                 </div>
               )}
             </div>

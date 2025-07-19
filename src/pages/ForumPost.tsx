@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import ImageGalleryForum from '@/components/forum/ImageGalleryForum';
+
 
 // Simple function to detect and render links
 const renderTextWithLinks = (text: string) => {
@@ -446,7 +446,7 @@ const ForumPostPage = () => {
               {/* Post Images - Compact Gallery */}
               {post.imageUrls && post.imageUrls.length > 0 && (
                 <div className="mb-3">
-                  <ImageGalleryForum images={post.imageUrls} />
+                  <ImageGallery images={post.imageUrls} />
                 </div>
               )}
             </div>
