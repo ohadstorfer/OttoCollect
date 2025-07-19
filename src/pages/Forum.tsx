@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PenSquare, Search, ArrowLeft, Megaphone } from 'lucide-react';
+import { PenSquare, Search, ArrowLeft } from 'lucide-react';
 import ForumPostCard from '@/components/forum/ForumPostCard';
 import { fetchForumPosts, checkUserDailyForumLimit } from '@/services/forumService';
 import { ForumPost } from '@/types/forum';
@@ -12,6 +12,8 @@ import { useTheme } from "@/context/ThemeContext";
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from "@/lib/utils";
 import ForumPostCardAnnouncements from '@/components/forum/ForumPostCardAnnouncements';
+import { CreatePostDialog } from '@/components/forum/CreatePostDialog';
+import { CreateAnnouncementDialog } from '@/components/forum/CreateAnnouncementDialog';
 
 interface Author {
   id: string;
@@ -36,24 +38,32 @@ const Forum = () => {
   const [isUserBlocked, setIsUserBlocked] = useState(false);
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
+  const [showCreatePostDialog, setShowCreatePostDialog] = useState(false);
+  const [showCreateAnnouncementDialog, setShowCreateAnnouncementDialog] = useState(false);
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
+
+  // Check if user is Super Admin
+  const isSuperAdmin = user?.role === 'Super Admin';
 
   useEffect(() => {
     const loadPostsAndAnnouncements = async () => {
       setLoading(true);
       try {
-        // Load regular forum posts
         const fetchedPosts = await fetchForumPosts();
+        // Ensure all posts have the required rank property
         const postsWithAuthorRank = fetchedPosts.map(post => ({
           ...post,
           author: {
             ...post.author,
-            rank: post.author.rank || 'Unknown'
+            rank: post.author.rank || 'Unknown' // Provide a default rank if missing
           }
         })) as ForumPostWithAuthor[];
         
+        setPosts(postsWithAuthorRank);
+        setFilteredPosts(postsWithAuthorRank);
+
         // Load announcements
         const { data: announcementsData, error } = await supabase
           .from('forum_announcements')
@@ -72,17 +82,16 @@ const Forum = () => {
           authorId: announcement.author_id,
           author: {
             ...announcement.author,
+            avatarUrl: announcement.author.avatar_url, // Fix: map avatar_url to avatarUrl
             rank: announcement.author.rank || 'Unknown'
           },
           imageUrls: announcement.image_urls || [],
           created_at: announcement.created_at,
           updated_at: announcement.updated_at,
-          commentCount: 0
+          commentCount: 0 // Announcements don't have comments
         })) as ForumPostWithAuthor[];
-        
-        setPosts(postsWithAuthorRank);
+
         setAnnouncements(announcementsWithAuthorRank);
-        setFilteredPosts(postsWithAuthorRank);
       } catch (error) {
         console.error('Error fetching forum posts and announcements:', error);
       } finally {
@@ -146,15 +155,25 @@ const Forum = () => {
   };
 
   const handleCreatePost = () => {
-    navigate('/community/forum/new');
+    setShowCreatePostDialog(true);
   };
 
   const handleCreateAnnouncement = () => {
-    navigate('/community/forum/announcement/new');
+    setShowCreateAnnouncementDialog(true);
   };
 
   const handleBack = () => {
     navigate(-1);
+  };
+
+  const handlePostCreated = (postId: string) => {
+    // Refresh the posts list
+    window.location.reload();
+  };
+
+  const handleAnnouncementCreated = (announcementId: string) => {
+    // Refresh the announcements list
+    window.location.reload();
   };
 
   return (
@@ -182,9 +201,9 @@ const Forum = () => {
       <div className="page-container">
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="all" className="mb-10">
-            <div className="flex items-center justify-center gap-2 sm:gap-4">
+            <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
               <TabsList className="shrink-0">
-              <TabsTrigger value="all">All Topics</TabsTrigger>
+                <TabsTrigger value="all">All Posts</TabsTrigger>
                 {user && (
                   <TabsTrigger value="my-posts">My Posts</TabsTrigger>
                 )}
@@ -201,29 +220,32 @@ const Forum = () => {
                 />
               </div>
 
-              {user && !isUserBlocked && !hasReachedDailyLimit && (
-                <Button
-                  onClick={handleCreatePost}
-                  className="flex-shrink-0 px-2 sm:px-4"
-                  size="sm"
-                  variant="outline"
-                >
-                  <PenSquare className="h-4 w-4" />
-                  <span className="hidden sm:inline-block sm:ml-2">Post</span>
-                </Button>
-              )}
+              {/* Action Buttons - Better mobile layout */}
+              <div className="flex gap-2 flex-shrink-0">
+                {user && !isUserBlocked && !hasReachedDailyLimit && (
+                  <Button
+                    onClick={handleCreatePost}
+                    className="px-2 sm:px-4"
+                    size="sm"
+                    variant="outline"
+                  >
+                    <PenSquare className="h-4 w-4" />
+                    <span className={!isSuperAdmin ? "hidden sm:inline-block sm:ml-2" : "ml-2"}>Post</span>
+                  </Button>
+                )}
 
-              {user && user.role === 'Super Admin' && (
-                <Button
-                  onClick={handleCreateAnnouncement}
-                  className="flex-shrink-0 px-2 sm:px-4"
-                  size="sm"
-                  variant="default"
-                >
-                  <Megaphone className="h-4 w-4" />
-                  <span className="hidden sm:inline-block sm:ml-2">Announcement</span>
-                </Button>
-              )}
+                {user && isSuperAdmin && !isUserBlocked && !hasReachedDailyLimit && (
+                  <Button
+                    onClick={handleCreateAnnouncement}
+                    className="px-2 sm:px-4"
+                    size="sm"
+                    variant="outline"
+                  >
+                    <PenSquare className="h-4 w-4" />
+                    <span className={!isSuperAdmin ? "hidden sm:inline-block sm:ml-2" : "ml-2"}>Announcement</span>
+                  </Button>
+                )}
+              </div>
 
               {user && isUserBlocked && (
                 <div className="text-red-600 text-xs sm:text-sm">
@@ -263,7 +285,8 @@ const Forum = () => {
                         {announcements.map((announcement) => (
                           <ForumPostCardAnnouncements key={`announcement-${announcement.id}`} post={announcement} />
                         ))}
-                        {/* Then render regular posts */}
+                        
+                        {/* Render regular posts */}
                         {filteredPosts.map((post) => (
                           <ForumPostCard key={post.id} post={post} />
                         ))}
@@ -318,6 +341,20 @@ const Forum = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Create Post Dialog */}
+      <CreatePostDialog 
+        open={showCreatePostDialog}
+        onOpenChange={setShowCreatePostDialog}
+        onPostCreated={handlePostCreated}
+      />
+
+      {/* Create Announcement Dialog */}
+      <CreateAnnouncementDialog 
+        open={showCreateAnnouncementDialog}
+        onOpenChange={setShowCreateAnnouncementDialog}
+        onAnnouncementCreated={handleAnnouncementCreated}
+      />
     </div>
   );
 };

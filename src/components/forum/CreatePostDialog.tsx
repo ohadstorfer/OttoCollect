@@ -1,17 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUploader } from '@/components/forum/ImageUploader';
-import { createForumAnnouncement, checkUserDailyForumLimit } from '@/services/forumService';
+import { createForumPost, checkUserDailyForumLimit } from '@/services/forumService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-export function CreateAnnouncementForm() {
+interface CreatePostDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onPostCreated?: (postId: string) => void;
+}
+
+export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePostDialogProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -63,23 +74,37 @@ export function CreateAnnouncementForm() {
 
     setIsSubmitting(true);
     try {
-      const newAnnouncement = await createForumAnnouncement(title, content, user.id, images);
+      const newPost = await createForumPost(title, content, user.id, images);
       
-      if (newAnnouncement) {
+      if (newPost) {
         toast({
           title: "Success",
-          description: "Your announcement has been published successfully.",
+          description: "Your post has been published successfully.",
         });
-        navigate(`/community/forum/announcement/${newAnnouncement.id}`);
+        
+        // Reset form
+        setTitle('');
+        setContent('');
+        setImages([]);
+        
+        // Close dialog
+        onOpenChange(false);
+        
+        // Callback to refresh posts or navigate
+        if (onPostCreated) {
+          onPostCreated(newPost.id);
+        } else {
+          navigate(`/community/forum/${newPost.id}`);
+        }
       } else {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to create announcement. Please try again.",
+          description: "Failed to create post. Please try again.",
         });
       }
     } catch (error) {
-      console.error("Error creating announcement:", error);
+      console.error("Error creating post:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -90,13 +115,34 @@ export function CreateAnnouncementForm() {
     }
   };
 
+  const handleCancel = () => {
+    setTitle('');
+    setContent('');
+    setImages([]);
+    onOpenChange(false);
+  };
+
   return (
-    <form onSubmit={handleSubmit}>
-      <Card>
-        <CardContent className="p-6 space-y-6">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
+            <span>Create New Forum Post</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
           {isLimitedRank && hasReachedLimit && (
             <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800">
-              <p className="text-red-600 dark:text-red-400">
+              <p className="text-red-600 dark:text-red-400 text-sm">
                 You have reached your daily limit of 6 forum activities (posts + comments).
               </p>
             </div>
@@ -104,19 +150,19 @@ export function CreateAnnouncementForm() {
           
           {isLimitedRank && !hasReachedLimit && (
             <div className="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-md border border-yellow-200 dark:border-yellow-800">
-              <p className="text-yellow-600 dark:text-yellow-400">
+              <p className="text-yellow-600 dark:text-yellow-400 text-sm">
                 Daily forum activity: {dailyCount}/6 (posts + comments)
               </p>
             </div>
           )}
           
           <div className="space-y-2">
-          <Label htmlFor="title">  <span> Announcement Title </span> </Label>
+            <Label htmlFor="title">Title</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Add a clear title for your announcement"
+              placeholder="Add a descriptive title for your post"
               required
               maxLength={100}
               disabled={hasReachedLimit}
@@ -124,14 +170,14 @@ export function CreateAnnouncementForm() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="content">Announcement Content</Label> 
+            <Label htmlFor="content">Content</Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share important information with the community..."
+              placeholder="Share your thoughts, questions, or insights..."
               required
-              className="min-h-[200px]"
+              className="min-h-[200px] resize-none"
               disabled={hasReachedLimit}
             />
           </div>
@@ -140,32 +186,32 @@ export function CreateAnnouncementForm() {
             <Label>Images (Optional)</Label>
             <ImageUploader images={images} onChange={setImages} disabled={hasReachedLimit} />
           </div>
-        </CardContent>
-        
-        <CardFooter className="px-6 py-4 border-t flex justify-between">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => navigate('/community/forum')}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit"
-            disabled={isSubmitting || !title.trim() || !content.trim() || hasReachedLimit}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Publishing...
-              </>
-            ) : (
-              'Publish Announcement'
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
-    </form>
+          
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              disabled={isSubmitting || !title.trim() || !content.trim() || hasReachedLimit}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                'Publish Post'
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
-}
+} 

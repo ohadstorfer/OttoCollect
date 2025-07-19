@@ -52,7 +52,7 @@ export default function CreateForumAnnouncement() {
       </Button>
 
       <div className="mb-6">
-        <h1 className="text-3xl font-serif">Create New Announcement</h1>
+      <h1 className="text-3xl font-serif"> <span> Create New Announcement </span> </h1>
         <p className="text-muted-foreground mt-2">
           Share important information with the entire community
         </p>

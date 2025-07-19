@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,9 +8,21 @@ import { ImageUploader } from '@/components/forum/ImageUploader';
 import { createForumAnnouncement, checkUserDailyForumLimit } from '@/services/forumService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-export function CreateAnnouncementForm() {
+interface CreateAnnouncementDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAnnouncementCreated?: (announcementId: string) => void;
+}
+
+export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCreated }: CreateAnnouncementDialogProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -24,6 +35,9 @@ export function CreateAnnouncementForm() {
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
+
+  // Check if user is Super Admin
+  const isSuperAdmin = user?.role === 'Super Admin';
 
   useEffect(() => {
     const checkDailyLimit = async () => {
@@ -45,6 +59,15 @@ export function CreateAnnouncementForm() {
     e.preventDefault();
     
     if (!user || !title.trim() || !content.trim()) {
+      return;
+    }
+
+    if (!isSuperAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only Super Admins can create announcements.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -70,7 +93,21 @@ export function CreateAnnouncementForm() {
           title: "Success",
           description: "Your announcement has been published successfully.",
         });
-        navigate(`/community/forum/announcement/${newAnnouncement.id}`);
+        
+        // Reset form
+        setTitle('');
+        setContent('');
+        setImages([]);
+        
+        // Close dialog
+        onOpenChange(false);
+        
+        // Callback to refresh announcements or navigate
+        if (onAnnouncementCreated) {
+          onAnnouncementCreated(newAnnouncement.id);
+        } else {
+          navigate(`/community/forum/announcement/${newAnnouncement.id}`);
+        }
       } else {
         toast({
           variant: "destructive",
@@ -90,13 +127,42 @@ export function CreateAnnouncementForm() {
     }
   };
 
+  const handleCancel = () => {
+    setTitle('');
+    setContent('');
+    setImages([]);
+    onOpenChange(false);
+  };
+
   return (
-    <form onSubmit={handleSubmit}>
-      <Card>
-        <CardContent className="p-6 space-y-6">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
+            <span>Create New Announcement</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {!isSuperAdmin && (
+            <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800">
+              <p className="text-red-600 dark:text-red-400 text-sm">
+                Only Super Admins can create announcements.
+              </p>
+            </div>
+          )}
+          
           {isLimitedRank && hasReachedLimit && (
             <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800">
-              <p className="text-red-600 dark:text-red-400">
+              <p className="text-red-600 dark:text-red-400 text-sm">
                 You have reached your daily limit of 6 forum activities (posts + comments).
               </p>
             </div>
@@ -104,14 +170,16 @@ export function CreateAnnouncementForm() {
           
           {isLimitedRank && !hasReachedLimit && (
             <div className="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-md border border-yellow-200 dark:border-yellow-800">
-              <p className="text-yellow-600 dark:text-yellow-400">
+              <p className="text-yellow-600 dark:text-yellow-400 text-sm">
                 Daily forum activity: {dailyCount}/6 (posts + comments)
               </p>
             </div>
           )}
           
           <div className="space-y-2">
-          <Label htmlFor="title">  <span> Announcement Title </span> </Label>
+            <Label htmlFor="title">
+              <span>Announcement Title</span>
+            </Label>
             <Input
               id="title"
               value={title}
@@ -119,53 +187,53 @@ export function CreateAnnouncementForm() {
               placeholder="Add a clear title for your announcement"
               required
               maxLength={100}
-              disabled={hasReachedLimit}
+              disabled={hasReachedLimit || !isSuperAdmin}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="content">Announcement Content</Label> 
+            <Label htmlFor="content">Announcement Content</Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share important information with the community..."
+              placeholder="Share important information, updates, or announcements..."
               required
-              className="min-h-[200px]"
-              disabled={hasReachedLimit}
+              className="min-h-[200px] resize-none"
+              disabled={hasReachedLimit || !isSuperAdmin}
             />
           </div>
           
           <div className="space-y-2">
             <Label>Images (Optional)</Label>
-            <ImageUploader images={images} onChange={setImages} disabled={hasReachedLimit} />
+            <ImageUploader images={images} onChange={setImages} disabled={hasReachedLimit || !isSuperAdmin} />
           </div>
-        </CardContent>
-        
-        <CardFooter className="px-6 py-4 border-t flex justify-between">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => navigate('/community/forum')}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit"
-            disabled={isSubmitting || !title.trim() || !content.trim() || hasReachedLimit}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Publishing...
-              </>
-            ) : (
-              'Publish Announcement'
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
-    </form>
+          
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              disabled={isSubmitting || !title.trim() || !content.trim() || hasReachedLimit || !isSuperAdmin}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                'Publish Announcement'
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
-}
+} 
