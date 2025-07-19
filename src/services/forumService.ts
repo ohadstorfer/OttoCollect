@@ -115,6 +115,42 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
 };
 
 /**
+ * Create a new forum announcement
+ */
+export const createForumAnnouncement = async (
+  title: string,
+  content: string,
+  authorId: string,
+  imageUrls?: string[] | null
+): Promise<ForumPost | null> => {
+  try {
+    console.log("Creating forum announcement:", { title, authorId });
+    
+    const { data, error } = await supabase
+      .from('forum_announcements')
+      .insert({
+        title,
+        content,
+        author_id: authorId,
+        image_urls: imageUrls || []
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating forum announcement:', error);
+      return null;
+    }
+
+    console.log("Created announcement:", data.id);
+    return data;
+  } catch (error) {
+    console.error('Error in createForumAnnouncement:', error);
+    return null;
+  }
+};
+
+/**
  * Fetch a single forum post by ID
  */
 export const fetchForumPostById = async (id: string): Promise<ForumPost | null> => {

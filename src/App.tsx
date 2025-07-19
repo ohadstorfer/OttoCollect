@@ -21,6 +21,8 @@ import MarketplaceItemDetail from "@/pages/MarketplaceItemDetail";
 import Forum from "@/pages/Forum";
 import ForumPost from "@/pages/ForumPost";
 import CreateForumPost from "@/pages/CreateForumPost";
+import CreateForumAnnouncement from "@/pages/CreateForumAnnouncement";
+import ForumPostAnnouncements from "@/pages/ForumPostAnnouncements";
 import Messaging from "@/pages/Messaging";
 import Members from "@/pages/Members";
 import NotFound from "@/pages/NotFound";
@@ -108,6 +110,8 @@ function App() {
                     <Route path="/community/forum/post/:id" element={<ForumPost />} />
                     <Route path="/community/forum/:id" element={<ForumPost />} />
                     <Route path="/community/forum/new" element={<CreateForumPost />} />
+                    <Route path="/community/forum/announcement/new" element={<CreateForumAnnouncement />} />
+                    <Route path="/community/forum/announcement/:id" element={<ForumPostAnnouncements />} />
                     <Route path="/messaging" element={<Messaging />} />
                     <Route path="/messaging/:userId" element={<Messaging />} />
                     <Route path="/members" element={<Members />} />
