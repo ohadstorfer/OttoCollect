@@ -9,7 +9,7 @@ export const Footer = () => {
   const { user } = useAuth();
   const location = useLocation();
   const isHomePage = location.pathname === "/";
-  const isMarginTopRequired = location.pathname !== '/' && location.pathname !== '/about' && location.pathname !== '/*';
+  const isMarginTopRequired = location.pathname !== '/' && location.pathname !== '/about' && location.pathname !== '/auth';
   
   return (
     <footer className={`${theme === 'light' ? 'bg-ottoman-950' : 'bg-dark-950'} animate-fade-in ${isMarginTopRequired ? 'mt-20' : ''}`}>

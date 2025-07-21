@@ -72,6 +72,9 @@ export default function CollectionItem() {
   // Determine if the current user is the owner of this item
   const isOwner = user?.id === collectionItem?.userId;
 
+
+
+  
   // Check for image suggestion status
   useEffect(() => {
     const checkImageStatus = async () => {
@@ -359,6 +362,10 @@ export default function CollectionItem() {
     collectionItem.reverse_image_watermarked || collectionItem.reverseImage
   ].filter(Boolean) as string[];
 
+
+
+
+  
   return (
     <div className="page-container">
       <div className="flex flex-col space-y-6">
@@ -579,7 +586,8 @@ export default function CollectionItem() {
                             </div>
                           </div>
                         </div>
-                      ))}
+                      ))
+                      }
                     </div>
                   ) : (
                     <div className="p-6 text-center bg-muted rounded-md">

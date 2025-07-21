@@ -27,8 +27,8 @@ const Auth = () => {
       </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-serif font-bold tracking-tight text-gradient sm:text-4xl">
-            Ottoman Banknote Archive
+          <h2 className="text-4xl font-serif font-bold tracking-tight text-gradient sm:text-5xl">
+            <span>Ottocollect</span>
           </h2>
           <p className="mt-4 text-lg text-ottoman-300">
             Join our community of collectors and explore the rich history of Ottoman Empire banknotes.

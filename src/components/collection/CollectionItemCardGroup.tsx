@@ -37,8 +37,7 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
     item.obverseImage && item.obverseImage !== '/placeholder.svg'
   ) || items[0];
 
-  const imageUrl = displayItem.obverseImage || 
-    (displayItem.banknote && displayItem.banknote.imageUrls ? displayItem.banknote.imageUrls[0] : null);
+  const imageUrl = displayItem.obverse_image_thumbnail ;
   const denomination = displayItem.banknote ? displayItem.banknote.denomination || '' : '';
 
   const handleClick = () => {

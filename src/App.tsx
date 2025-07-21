@@ -50,6 +50,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CreateBlogPost from "./pages/CreateBlogPost";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -125,6 +126,7 @@ function App() {
                     <Route path="/blog/:id" element={<BlogPost />} />
                     <Route path="/blog/new" element={<CreateBlogPost />} />
                     <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<TermsOfService />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </main>
