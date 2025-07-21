@@ -399,61 +399,117 @@ export default function CollectionItemUnlisted() {
                           )}
                         </div>
                       )}
-                      {displayImages.map((url, index) => (
-                        <div
-                          key={index}
-                          className="w-full relative"
-                        >
-                          {canDeleteImages && (
-                            <div className="absolute top-2 right-2 z-10">
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Image</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete this image? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => {
-                                        setImageToDelete(index === 0 ? 'obverse' : 'reverse');
-                                        handleDeleteImage();
-                                      }}
-                                      className="bg-red-600 hover:bg-red-700"
-                                      disabled={isDeletingImage}
-                                    >
-                                      {isDeletingImage ? 'Deleting...' : 'Delete'}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                      {displayImages.length === 2 ? (
+                        // For exactly 2 images (obverse/reverse), render side by side
+                        <div className="grid grid-cols-2 gap-3">
+                          {displayImages.map((url, index) => (
+                            <div key={index} className="relative">
+                              {canDeleteImages && (
+                                <div className="absolute top-2 right-2 z-10">
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Are you sure you want to delete this image? This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => {
+                                            setImageToDelete(index === 0 ? 'obverse' : 'reverse');
+                                            handleDeleteImage();
+                                          }}
+                                          className="bg-red-600 hover:bg-red-700"
+                                          disabled={isDeletingImage}
+                                        >
+                                          {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              )}
+                              <div
+                                className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => openImageViewer(url)}
+                              >
+                                <div className="w-full rounded-md overflow-hidden border">
+                                  <img
+                                    src={url}
+                                    alt={`Banknote Image ${index + 1}`}
+                                    className="w-full h-auto object-contain"
+                                  />
+                                </div>
+                              </div>
                             </div>
-                          )}
-                          <div
-                            className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => openImageViewer(url)}
-                          >
-                            <div className="w-full rounded-md overflow-hidden border">
-                              <img
-                                src={url}
-                                alt={`Banknote Image ${index + 1}`}
-                                className="w-full h-auto object-contain"
-                              />
+                          ))}
+                        </div>
+                      ) : (
+                        // For more than 2 images, stack them vertically
+                        displayImages.map((url, index) => (
+                          <div key={index} className="w-full relative">
+                            {canDeleteImages && (
+                              <div className="absolute top-2 right-2 z-10">
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete this image? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => {
+                                          setImageToDelete(index === 0 ? 'obverse' : 'reverse');
+                                          handleDeleteImage();
+                                        }}
+                                        className="bg-red-600 hover:bg-red-700"
+                                        disabled={isDeletingImage}
+                                      >
+                                        {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            )}
+                            <div
+                              className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => openImageViewer(url)}
+                            >
+                              <div className="w-full rounded-md overflow-hidden border">
+                                <img
+                                  src={url}
+                                  alt={`Banknote Image ${index + 1}`}
+                                  className="w-full h-auto object-contain"
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   ) : (
                     <div className="p-6 text-center bg-muted rounded-md">

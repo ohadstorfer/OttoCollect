@@ -504,21 +504,43 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                 <CardContent className="px-2 pt-2 pb-2">
                   <div className="flex flex-col space-y-3">
                     {imageUrls.length > 0 ? (
-                      imageUrls.slice(0, 4).map((url, index) => (
-                        <div
-                          key={index}
-                          className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => openImageViewer(url)}
-                        >
-                          <div className="w-full rounded-md overflow-hidden border">
-                            <img
-                              src={url}
-                              alt={`Banknote Image ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
+                      imageUrls.length === 2 ? (
+                        // For exactly 2 images (obverse/reverse), render side by side
+                        <div className="grid grid-cols-2 gap-3">
+                          {imageUrls.map((url, index) => (
+                            <div
+                              key={index}
+                              className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => openImageViewer(url)}
+                            >
+                              <div className="w-full rounded-md overflow-hidden border">
+                                <img
+                                  src={url}
+                                  alt={`Banknote Image ${index + 1}`}
+                                  className="w-full h-auto object-contain"
+                                />
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))
+                      ) : (
+                        // For more than 2 images, stack them vertically
+                        imageUrls.slice(0, 4).map((url, index) => (
+                          <div
+                            key={index}
+                            className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => openImageViewer(url)}
+                          >
+                            <div className="w-full rounded-md overflow-hidden border">
+                              <img
+                                src={url}
+                                alt={`Banknote Image ${index + 1}`}
+                                className="w-full h-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                        ))
+                      )
                     ) : (
                       <div className="col-span-2 p-6 text-center bg-muted rounded-md">
                         <p className="text-muted-foreground">No images available</p>
