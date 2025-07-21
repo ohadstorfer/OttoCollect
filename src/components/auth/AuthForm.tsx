@@ -716,9 +716,7 @@ const AuthForm = () => {
       {/* Terms of Service dialog */}
       <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
         <DialogContent className="w-[95vw] max-w-4xl max-h-[85vh] overflow-y-auto mx-auto mt-4 mb-4 sm:my-4">
-          <DialogHeader>
-            <DialogTitle>Terms of Service</DialogTitle>
-          </DialogHeader>
+
           <div className="mt-4 px-2 sm:px-0">
             <div className="prose prose-sm max-w-none text-sm sm:text-base">
               <h1 className="text-xl sm:text-2xl font-bold mb-6">
@@ -1005,9 +1003,7 @@ const AuthForm = () => {
       {/* Privacy Policy dialog */}
       <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}>
         <DialogContent className="w-[95vw] max-w-4xl max-h-[85vh] overflow-y-auto mx-auto mt-4 mb-4 sm:my-4">
-          <DialogHeader>
-            <DialogTitle>Privacy Policy</DialogTitle>
-          </DialogHeader>
+
           <div className="mt-4 px-2 sm:px-0">
             <div className="prose prose-sm max-w-none text-sm sm:text-base">
               <h1 className="text-xl sm:text-2xl font-bold mb-6">
