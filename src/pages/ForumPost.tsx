@@ -77,7 +77,6 @@ const renderComment = (
     onDeleteComment: (commentId: string) => void;
     handleOnProfileClick: (userId: string | undefined) => void;
     renderTextWithLinks: (text: string) => React.ReactNode;
-    formattedDate: string;
     updateReplyContent: (content: string) => void;
     updateEditedContent: (content: string) => void;
   }
@@ -110,7 +109,7 @@ const renderComment = (
                 {comment.author?.username || 'Anonymous'}
               </span>
               <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-              <span className="text-xs text-muted-foreground flex-shrink-0">{props.formattedDate}</span>
+              <span className="text-xs text-muted-foreground flex-shrink-0">{formatDistanceToNow(new Date(comment.created_at || comment.createdAt), { addSuffix: true })}</span>
               {comment.isEdited && (
                 <>
                   <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
@@ -869,7 +868,6 @@ const ForumPostPage = () => {
                   onDeleteComment,
                   handleOnProfileClick,
                   renderTextWithLinks,
-                  formattedDate,
                   updateReplyContent,
                   updateEditedContent
                 })

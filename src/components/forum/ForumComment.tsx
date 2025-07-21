@@ -130,7 +130,7 @@ export default function ForumComment({
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0">
             <span>
-              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+              {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
               {comment.isEdited && <span className="ml-1 italic">(edited)</span>}
             </span>
             {canEdit && !isEditing && (
