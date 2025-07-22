@@ -159,7 +159,7 @@ export function NotificationPanel({
         <div className="flex items-center justify-between border-b border-muted pb-2 mb-3">
           <div className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            <h2 className="text-lg font-semibold">Notifications</h2>
+            <h2 className="text-lg font-semibold"> <span> Notifications </span> </h2>
           </div>
           {unreadNotifications.length > 0 && (
             <button
@@ -188,7 +188,7 @@ export function NotificationPanel({
               {unreadNotifications.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <h3 className="text-sm font-medium text-primary">New</h3>
+                    <h3 className="text-sm font-medium text-primary"> <span> New </span> </h3>
                     <div className="h-5 px-2 rounded-full bg-primary/10 text-primary text-xs font-medium flex items-center">
                       {unreadNotifications.length}
                     </div>
@@ -209,7 +209,7 @@ export function NotificationPanel({
               {/* Read notifications section */}
               {readNotifications.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Earlier</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3"> <span> Earlier </span> </h3>
                   <div className="space-y-2">
                     {readNotifications.map((notification) => (
                       <NotificationItem key={notification.id} notification={notification} />
