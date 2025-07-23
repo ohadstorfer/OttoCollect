@@ -133,9 +133,10 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     return (
       <div className="page-container max-w-5xl mx-auto">
         <h3 className="text-xl font-medium mb-4"><span>Wishlist Items ({validWishlist.length})</span></h3>
-        <div className={`grid ${viewMode === 'grid' 
-          ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
-          : 'grid-cols-1'} gap-4`}>
+        <div className={viewMode === 'grid' 
+          ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'
+          : 'space-y-2'
+        }>
           {validWishlist.map(item =>
             <BanknoteDetailCardWishList
               key={item.id}
@@ -144,6 +145,9 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
               onDeleted={refetchCollection} // handy event for parent to act if wish
               refetchWishlist={wishlistLoading ? undefined : () => { void refetchCollection(); }} // to refresh on delete
               source="catalog"
+              viewMode={viewMode}
+              countryId={countryId}
+              userCollection={userCollection || []}
             />
           )}
         </div>

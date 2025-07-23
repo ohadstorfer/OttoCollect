@@ -697,7 +697,10 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
               <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-start">
+            <div className={viewMode === 'grid' 
+              ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-start'
+              : 'space-y-2'
+            }>
               {groupedWishlistItems.flatMap(group =>
                 group.items.map(item => (
                   <BanknoteDetailCardWishList
@@ -705,6 +708,9 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
                     banknote={item.banknote}
                     wishlistItemId={item.wishlistItemId}
                     source="catalog"
+                    viewMode={viewMode}
+                    countryId={countryId}
+                    userCollection={collectionItems}
                   />
                 ))
               )}

@@ -256,14 +256,42 @@ const BanknoteDetailCardWishList = ({
 
   // IMAGE: fully shown, dynamic height
   const renderBanknoteImage = () => {
+    // Check if we have both front and back images
+    const hasBackImage = banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]);
+    
     if (displayImage && displayImage !== '/placeholder.svg') {
-      return (
-        <img
-          src={displayImage}
-          alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-          className="object-contain w-full h-auto max-h-60"
-        />
-      );
+      if (hasBackImage) {
+        // Show both front and back images side by side
+        return (
+          <div className="flex gap-2 p-2">
+            {/* Front image */}
+            <div className="flex-1">
+              <img
+                src={displayImage}
+                alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Front`}
+                className="object-contain w-full h-auto max-h-60"
+              />
+            </div>
+            {/* Back image */}
+            <div className="flex-1">
+              <img
+                src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
+                alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Back`}
+                className="object-contain w-full h-auto max-h-60"
+              />
+            </div>
+          </div>
+        );
+      } else {
+        // Show only front image
+        return (
+          <img
+            src={displayImage}
+            alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
+            className="object-contain w-full h-auto max-h-60"
+          />
+        );
+      }
     } else {
       return (
         <AspectRatio ratio={4 / 2}>
@@ -277,7 +305,140 @@ const BanknoteDetailCardWishList = ({
     }
   };
 
+  if (viewMode === 'list') {
+    return (
+      <>
+        {renderOwnershipToast()}
+        <Card
+          className={cn(
+            "overflow-hidden transition-all duration-300 cursor-pointer bg-card",
+            isHovering ? "shadow-lg" : ""
+          )}
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+          onClick={handleCardClick}
+        >
+          <div className="flex items-center p-2">
+            {/* Image container - showing both front and back */}
+            <div className="flex-shrink-0 flex items-center space-x-1">
+              {/* Front image */}
+              <div className="h-[58px] w-[90px] flex-shrink-0 overflow-hidden rounded">
+                {displayImage && displayImage !== '/placeholder.svg' ? (
+                  <img
+                    src={displayImage}
+                    alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Front`}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img
+                      src="/placeholder.svg"
+                      alt="Placeholder"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
 
+              {/* Back image */}
+              <div className="h-[58px] w-[90px] flex-shrink-0 overflow-hidden rounded">
+                {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
+                  <img
+                    src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
+                    alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Back`}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img
+                      src="/placeholder.svg"
+                      alt="Placeholder"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex-1 ml-4">
+              <div className="flex justify-between items-start">
+                <h4 className="font-bold"><span>{banknote.face_value}</span></h4>
+                {/* Wishlist: Trash icon instead of Add/Check */}
+                {wishlistItemId ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={handleDeleteWishlist}
+                    disabled={isDeleting}
+                    aria-label="Remove from wishlist"
+                  >
+                    <Trash className="h-4 w-4 text-destructive" />
+                  </Button>
+                ) : shouldShowCheck ? (
+                  <>
+                    {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (list view) | banknote id:', banknote.id)}
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className={checkButtonClass}
+                      aria-label="You already own this banknote"
+                      onClick={handleOwnershipCheckButton}
+                      tabIndex={0}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (list view) | banknote id:', banknote.id)}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={handleAddButtonClick}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+              <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
+                {banknote.extended_pick_number && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                    {banknote.extended_pick_number}
+                  </Badge>
+                )}
+                {banknote.turk_catalog_number && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                    {banknote.turk_catalog_number}
+                  </Badge>
+                )}
+                {banknote.gregorian_year && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                    {banknote.gregorian_year}
+                  </Badge>
+                )}
+                {banknote.rarity && (
+                  <Badge
+                    variant="secondary"
+                    className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
+                  >
+                    {banknote.rarity}
+                  </Badge>
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {banknote.sultanName && (
+                  <span>{banknote.authorityName || "Authority"}: {banknote.sultanName}</span>
+                )}
+                {banknote.sealNames && <span className="ml-2">Seals: {banknote.sealNames}</span>}
+              </div>
+            </div>
+          </div>
+        </Card>
+      </>
+    );
+  }
 
   return (
     <>
