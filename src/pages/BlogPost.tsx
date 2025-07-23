@@ -27,6 +27,32 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+// Function to detect and make links clickable
+const renderTextWithLinks = (text: string) => {
+  if (!text) return text;
+  
+  // URL regex pattern
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 const BlogPostPage = () => {
   const { id: postId } = useParams();
   const { user } = useAuth();
@@ -334,14 +360,15 @@ const BlogPostPage = () => {
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-2">
-      <Button
+        <div className="flex items-center justify-between mb-4">
+          <Button
             variant="ghost"
             size="icon"
             onClick={handleBack}
             aria-label="Go back"
+            className="flex-shrink-0"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button> 
@@ -352,10 +379,9 @@ const BlogPostPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-100/50 flex-shrink-0"
                 >
                   <Trash2 className="h-4 w-4" />
-                  {/* Delete Post */}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -379,10 +405,10 @@ const BlogPostPage = () => {
           )}
         </div>
 
-        <div className="glass-card p-6 rounded-md shadow-md mb-6 animate-fade-in">
-          <div className="flex items-start gap-4">
+        <div className="glass-card p-4 sm:p-6 rounded-md shadow-md mb-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
             <Avatar
-              className="h-12 w-12 border cursor-pointer hover:opacity-80 active:scale-95 transition"
+              className="h-12 w-12 border cursor-pointer hover:opacity-80 active:scale-95 transition flex-shrink-0"
               onClick={() => handleOnProfileClick(post?.author?.id)}
             >
               <AvatarImage src={post.author?.avatarUrl} />
@@ -391,8 +417,8 @@ const BlogPostPage = () => {
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                 <div
                   className="flex items-center gap-2 cursor-pointer"
                   onClick={() => handleOnProfileClick(post?.author?.id)}
@@ -400,14 +426,18 @@ const BlogPostPage = () => {
                   role="button"
                   aria-label="Go to author profile"
                 >
-                  <span className="font-semibold text-base text-ottoman-900 dark:text-parchment-200">
+                  <span className="font-semibold text-base text-ottoman-900 dark:text-parchment-200 truncate">
                     {post.author?.username || 'Anonymous'}
                   </span>
                 </div>
-                <span className="text-sm text-muted-foreground">{formattedDate}</span>
+                <span className="text-sm text-muted-foreground flex-shrink-0">{formattedDate}</span>
               </div>
-              <h6 className="font-semibold text-2xl animate-fade-in"><span>{post.title}</span></h6>
-              <div className="whitespace-pre-line mb-4">{post.content}</div>
+              <h6 className="font-semibold text-xl sm:text-2xl animate-fade-in break-words">
+                {renderTextWithLinks(post.title)}
+              </h6>
+              <div className="whitespace-pre-line mb-4 break-words overflow-wrap-anywhere">
+                {renderTextWithLinks(post.content)}
+              </div>
 
               {post.main_image_url && (
                <div className="mb-3">
@@ -441,14 +471,14 @@ const BlogPostPage = () => {
                 </div>
               )}
 
-              <div className="flex gap-3 mb-6 glass-card p-4 rounded-md border">
-                <Avatar className="h-8 w-8">
+              <div className="flex flex-col sm:flex-row gap-3 mb-6 glass-card p-4 rounded-md border">
+                <Avatar className="h-8 w-8 flex-shrink-0">
                   <AvatarImage src={user.avatarUrl} />
                   <AvatarFallback className="bg-ottoman-700 text-parchment-100">
                     {getInitials(user.username)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-2 min-w-0">
                   <Textarea
                     value={commentContent}
                     onChange={(e) => setCommentContent(e.target.value)}
@@ -476,13 +506,13 @@ const BlogPostPage = () => {
             </div>
           )}
 
-          <div className="space-y-4 px-4 glass-card p-4 rounded-md border">
+          <div className="space-y-4 px-2 sm:px-4 glass-card p-4 rounded-md border">
             {comments.length > 0 ? (
-              <div className="bg-parchment-10/20 rounded-md border p-6">
+              <div className="bg-parchment-10/20 rounded-md border p-4 sm:p-6">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="group mb-3 last:mb-0 flex items-start gap-3">
+                  <div key={comment.id} className="group mb-3 last:mb-0 flex flex-col sm:flex-row sm:items-start gap-3">
                     <div
-                      className="cursor-pointer"
+                      className="cursor-pointer flex-shrink-0"
                       onClick={() => handleOnProfileClick(comment.author?.id)}
                       tabIndex={0}
                       role="button"
@@ -496,10 +526,10 @@ const BlogPostPage = () => {
                         </AvatarFallback>
                       </Avatar>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                         <span
-                          className="font-semibold text-sm text-ottoman-900 dark:text-parchment-200 cursor-pointer"
+                          className="font-semibold text-sm text-ottoman-900 dark:text-parchment-200 cursor-pointer truncate"
                           onClick={() => handleOnProfileClick(comment.author?.id)}
                           tabIndex={0}
                           role="button"
@@ -508,8 +538,8 @@ const BlogPostPage = () => {
                         >
                           {comment.author?.username || 'Anonymous'}
                         </span>
-                        <span className="text-sm text-muted-foreground">{formattedDate}</span>
-                        {comment.isEdited && <span className="text-xs italic text-muted-foreground">(edited)</span>}
+                        <span className="text-sm text-muted-foreground flex-shrink-0">{formattedDate}</span>
+                        {comment.isEdited && <span className="text-xs italic text-muted-foreground flex-shrink-0">(edited)</span>}
                       </div>
 
                       {editingCommentId === comment.id ? (
@@ -540,7 +570,9 @@ const BlogPostPage = () => {
                         </div>
                       ) : (
                         <>
-                          <div className="whitespace-pre-line mb-2">{comment.content}</div>
+                          <div className="whitespace-pre-line mb-2 break-words overflow-wrap-anywhere">
+                            {renderTextWithLinks(comment.content)}
+                          </div>
 
                           {/* Comment Actions */}
                           {((user?.id === comment.authorId) || user?.role?.includes('Admin')) && (
@@ -553,7 +585,6 @@ const BlogPostPage = () => {
                                   className="text-ottoman-600 hover:text-ottoman-700 hover:bg-ottoman-100/50"
                                 >
                                   <Edit2 className="h-4 w-4 mr-1" />
-                                  {/* Edit */}
                                 </Button>
                               )}
                               <AlertDialog>
@@ -564,7 +595,6 @@ const BlogPostPage = () => {
                                     className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
                                   >
                                     <Trash2 className="h-4 w-4 mr-1" />
-                                    {/* Delete */}
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
