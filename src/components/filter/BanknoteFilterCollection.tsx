@@ -65,6 +65,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   // Add refs to track states and prevent render loops
   const initialLoadComplete = useRef(false);
   const ignoreNextGroupModeChange = useRef(false);
+  const ignoreNextViewModeChange = useRef(false);
   const isFetchingFilter = useRef(false);
   const lastCountryId = useRef("");
 
@@ -178,14 +179,34 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
             if (userPreferences && 
                 userPreferences.view_mode && 
                 onViewModeChange && 
-                userPreferences.view_mode !== viewMode && 
                 !initialLoadComplete.current) {
+              
+              console.log("BanknoteFilterCollection: Loading view mode from preferences:", userPreferences.view_mode);
+              
+              // Set a flag to ignore the next view mode change to prevent infinite loops
+              ignoreNextViewModeChange.current = true;
               
               setViewMode(userPreferences.view_mode);
               onViewModeChange(userPreferences.view_mode);
             }
           } catch (err) {
             console.error("Error fetching user preferences:", err);
+          }
+        } else {
+          // For non-logged-in users, try to load from session storage
+          try {
+            const savedViewMode = sessionStorage.getItem(`viewMode-${countryId}`);
+            console.log("BanknoteFilterCollection: Checking session storage for view mode:", savedViewMode);
+            if (savedViewMode && onViewModeChange && !initialLoadComplete.current) {
+              const parsedViewMode = JSON.parse(savedViewMode) as 'grid' | 'list';
+              console.log("BanknoteFilterCollection: Loaded view mode from session storage:", parsedViewMode);
+              
+              ignoreNextViewModeChange.current = true;
+              setViewMode(parsedViewMode);
+              onViewModeChange(parsedViewMode);
+            }
+          } catch (err) {
+            console.error("Error loading view mode from session storage:", err);
           }
         }
         
@@ -320,6 +341,15 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   }, [onFilterChange, sortOptions, authUser, countryId, currentFilters, groupMode]);
   
   const handleViewModeChange = React.useCallback((mode: 'grid' | 'list') => {
+    // If we're set to ignore the next change, skip this call
+    if (ignoreNextViewModeChange.current) {
+      ignoreNextViewModeChange.current = false;
+      return;
+    }
+    
+    // If the mode is the same as the current one, don't do anything
+    if (mode === viewMode) return;
+    
     setViewMode(mode);
     if (onViewModeChange) {
       onViewModeChange(mode);
@@ -327,17 +357,34 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     
     // Save view mode preference
     if (authUser && countryId) {
+      console.log("BanknoteFilterCollection: Saving view mode preference:", mode);
+      
+      // Get current sort option IDs
+      const sortOptionIds = currentFilters.sort
+        .map(fieldName => {
+          const option = sortOptions.find(opt => opt.fieldName === fieldName);
+          return option ? option.id : null;
+        })
+        .filter(Boolean) as string[];
+      
       saveUserFilterPreferences(authUser.id, countryId, {
         selected_categories: currentFilters.categories || [],
         selected_types: currentFilters.types || [],
-        selected_sort_options: currentFilters.sort || [],
+        selected_sort_options: sortOptionIds,
         group_mode: groupMode || false,
         view_mode: mode
       }).catch(err => {
         console.error("Error saving view mode preference:", err);
       });
+    } else {
+      // For non-logged-in users, store in session storage
+      try {
+        sessionStorage.setItem(`viewMode-${countryId}`, JSON.stringify(mode));
+      } catch (e) {
+        console.error("Unable to store view mode in session storage:", e);
+      }
     }
-  }, [onViewModeChange, authUser, countryId, currentFilters, groupMode]);
+  }, [onViewModeChange, authUser, countryId, currentFilters, groupMode, viewMode, sortOptions]);
   
   const handleGroupModeChange = React.useCallback((mode: boolean) => {
     // If we're set to ignore the next change, skip this call
