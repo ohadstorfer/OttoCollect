@@ -128,14 +128,14 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
           </Button>
 
           <div className="border-t pt-2 mt-4">
-           
-
-          
-
-
-          
-            
-
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => handleNavigation('/settings')}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Button>
 
             {isAdmin && (
               <Button

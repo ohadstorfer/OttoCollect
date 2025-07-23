@@ -48,6 +48,7 @@ const Navbar = () => {
     { path: '/marketplace', label: t('nav.marketplace') },
     { path: '/community/forum', label: t('nav.forum') },
     { path: '/blog', label: 'Blog' },
+    ...(user ? [{ path: '/settings', label: 'Settings' }] : []),
     // ...(isAdmin ? [{ path: '/admin', label: 'Admin Dashboard' }] : []),
   ];
 

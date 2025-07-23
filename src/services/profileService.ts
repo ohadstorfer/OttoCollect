@@ -50,6 +50,9 @@ export async function getUserProfile(userIdOrUsername: string): Promise<User | n
       avatarUrl: data.avatar_url || '/placeholder-brown.svg',
       ...(data.country && { country: data.country }),
       ...(data.about && { about: data.about }),
+      ...(data.facebook_url && { facebook_url: data.facebook_url }),
+      ...(data.instagram_url && { instagram_url: data.instagram_url }),
+      ...(data.twitter_url && { twitter_url: data.twitter_url }),
     };
 
     return userProfile;
@@ -62,7 +65,13 @@ export async function getUserProfile(userIdOrUsername: string): Promise<User | n
 // Update a user's profile
 export async function updateUserProfile(
   userId: string,
-  updates: { about?: string | null; username?: string }
+  updates: { 
+    about?: string | null; 
+    username?: string;
+    facebook_url?: string | null;
+    instagram_url?: string | null;
+    twitter_url?: string | null;
+  }
 ): Promise<boolean> {
   try {
     const { error } = await supabase

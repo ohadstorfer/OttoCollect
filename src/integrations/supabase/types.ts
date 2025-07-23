@@ -667,6 +667,61 @@ export type Database = {
           },
         ]
       }
+      forum_announcement_comments: {
+        Row: {
+          announcement_id: string
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          is_edited: boolean | null
+          parent_comment_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          announcement_id: string
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_edited?: boolean | null
+          parent_comment_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          announcement_id?: string
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_edited?: boolean | null
+          parent_comment_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_announcement_comments_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "forum_announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_announcement_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_announcement_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "forum_announcement_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forum_announcements: {
         Row: {
           author_id: string
@@ -1069,12 +1124,15 @@ export type Database = {
           country: string | null
           created_at: string
           email: string
+          facebook_url: string | null
           id: string
+          instagram_url: string | null
           is_forum_blocked: boolean | null
           points: number
           rank: string
           role: string
           role_id: string | null
+          twitter_url: string | null
           updated_at: string
           username: string
         }
@@ -1088,12 +1146,15 @@ export type Database = {
           country?: string | null
           created_at?: string
           email: string
+          facebook_url?: string | null
           id: string
+          instagram_url?: string | null
           is_forum_blocked?: boolean | null
           points?: number
           rank?: string
           role?: string
           role_id?: string | null
+          twitter_url?: string | null
           updated_at?: string
           username: string
         }
@@ -1107,12 +1168,15 @@ export type Database = {
           country?: string | null
           created_at?: string
           email?: string
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
           is_forum_blocked?: boolean | null
           points?: number
           rank?: string
           role?: string
           role_id?: string | null
+          twitter_url?: string | null
           updated_at?: string
           username?: string
         }
@@ -1825,12 +1889,15 @@ export type Database = {
           country: string | null
           created_at: string
           email: string
+          facebook_url: string | null
           id: string
+          instagram_url: string | null
           is_forum_blocked: boolean | null
           points: number
           rank: string
           role: string
           role_id: string | null
+          twitter_url: string | null
           updated_at: string
           username: string
         }

@@ -68,6 +68,9 @@ export interface User {
   updatedAt?: string;
   blocked?: boolean;
   is_forum_blocked?: boolean;
+  facebook_url?: string;
+  instagram_url?: string;
+  twitter_url?: string;
 }
 
 // Add missing Banknote interface

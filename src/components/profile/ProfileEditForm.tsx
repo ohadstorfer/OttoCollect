@@ -24,6 +24,9 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
   const [username, setUsername] = useState(profile.username);
   const [about, setAbout] = useState(profile.about || '');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || '');
+  const [facebookUrl, setFacebookUrl] = useState(profile.facebook_url || '');
+  const [instagramUrl, setInstagramUrl] = useState(profile.instagram_url || '');
+  const [twitterUrl, setTwitterUrl] = useState(profile.twitter_url || '');
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -45,6 +48,9 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
       await updateUserProfile(authUser.id, {
         username,
         about: about || null,
+        facebook_url: facebookUrl || null,
+        instagram_url: instagramUrl || null,
+        twitter_url: twitterUrl || null,
       });
       
       // Update the local user state
@@ -52,6 +58,9 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         username,
         about,
         avatarUrl,
+        facebook_url: facebookUrl,
+        instagram_url: instagramUrl,
+        twitter_url: twitterUrl,
       });
       
       onSaveComplete();
@@ -179,6 +188,42 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
                 placeholder="Tell us a bit about yourself and your collection interests..."
                 className="min-h-[120px]"
               />
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-medium">Social Media Links</h4>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="facebook_url">Facebook</Label>
+                  <Input
+                    id="facebook_url"
+                    type="url"
+                    value={facebookUrl}
+                    onChange={(e) => setFacebookUrl(e.target.value)}
+                    placeholder="https://facebook.com/your-profile"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="instagram_url">Instagram</Label>
+                  <Input
+                    id="instagram_url"
+                    type="url"
+                    value={instagramUrl}
+                    onChange={(e) => setInstagramUrl(e.target.value)}
+                    placeholder="https://instagram.com/your-profile"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="twitter_url">Twitter/X</Label>
+                  <Input
+                    id="twitter_url"
+                    type="url"
+                    value={twitterUrl}
+                    onChange={(e) => setTwitterUrl(e.target.value)}
+                    placeholder="https://twitter.com/your-profile"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

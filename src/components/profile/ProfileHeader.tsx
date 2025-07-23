@@ -4,6 +4,7 @@ import { User } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Edit } from "lucide-react";
+import { Facebook, Instagram, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -59,20 +60,58 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                 <h1 className={`text-2xl font-serif mb-2 ${theme === 'dark' ? '!text-white' : ''}`}><span>{profile.username}</span></h1>
                 <Badge variant="user" rank={userRank} role={profile.role} showIcon />
                 <div className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>
-                  <span className="inline-flex items-center gap-2">
-                    {profile.about && <span>{profile.about}</span>}
-                    {/* Edit Profile Button */}
-                    {isOwnProfile && (
-                      <Button
-                        onClick={onEditProfileClick}
-                        variant={theme === 'dark' ? "secondary" : "outline"}
-                        size="icon"
-                        className="h-5 w-5 inline-flex items-center justify-center"
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
+                  <div className="flex flex-col gap-2">
+                    <span className="inline-flex items-center gap-2">
+                      {profile.about && <span>{profile.about}</span>}
+                      {/* Edit Profile Button */}
+                      {isOwnProfile && (
+                        <Button
+                          onClick={onEditProfileClick}
+                          variant={theme === 'dark' ? "secondary" : "outline"}
+                          size="icon"
+                          className="h-5 w-5 inline-flex items-center justify-center"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </span>
+                    
+                    {/* Social Media Links */}
+                    {(profile.facebook_url || profile.instagram_url || profile.twitter_url) && (
+                      <div className="flex items-center gap-2">
+                        {profile.facebook_url && (
+                          <a 
+                            href={profile.facebook_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="p-1 rounded hover:bg-muted transition-colors"
+                          >
+                            <Facebook className="h-4 w-4 text-blue-600" />
+                          </a>
+                        )}
+                        {profile.instagram_url && (
+                          <a 
+                            href={profile.instagram_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="p-1 rounded hover:bg-muted transition-colors"
+                          >
+                            <Instagram className="h-4 w-4 text-pink-600" />
+                          </a>
+                        )}
+                        {profile.twitter_url && (
+                          <a 
+                            href={profile.twitter_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="p-1 rounded hover:bg-muted transition-colors"
+                          >
+                            <Twitter className="h-4 w-4 text-blue-500" />
+                          </a>
+                        )}
+                      </div>
                     )}
-                  </span>
+                  </div>
                 </div>
               </div>
 
@@ -114,20 +153,58 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
               </div>
 
               <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>
-                <span className="inline-flex items-center gap-2">
-                  {profile.about && <span>{profile.about}</span>}
-                  {/* Edit Profile Button */}
-                  {isOwnProfile && (
-                    <Button
-                      onClick={onEditProfileClick}
-                      variant={theme === 'dark' ? "secondary" : "outline"}
-                      size="icon"
-                      className="h-5 w-5 inline-flex items-center justify-center"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
+                <div className="flex flex-col gap-2">
+                  <span className="inline-flex items-center gap-2">
+                    {profile.about && <span>{profile.about}</span>}
+                    {/* Edit Profile Button */}
+                    {isOwnProfile && (
+                      <Button
+                        onClick={onEditProfileClick}
+                        variant={theme === 'dark' ? "secondary" : "outline"}
+                        size="icon"
+                        className="h-5 w-5 inline-flex items-center justify-center"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </span>
+                  
+                  {/* Social Media Links */}
+                  {(profile.facebook_url || profile.instagram_url || profile.twitter_url) && (
+                    <div className="flex items-center gap-2">
+                      {profile.facebook_url && (
+                        <a 
+                          href={profile.facebook_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="p-1 rounded hover:bg-muted transition-colors"
+                        >
+                          <Facebook className="h-4 w-4 text-blue-600" />
+                        </a>
+                      )}
+                      {profile.instagram_url && (
+                        <a 
+                          href={profile.instagram_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="p-1 rounded hover:bg-muted transition-colors"
+                        >
+                          <Instagram className="h-4 w-4 text-pink-600" />
+                        </a>
+                      )}
+                      {profile.twitter_url && (
+                        <a 
+                          href={profile.twitter_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="p-1 rounded hover:bg-muted transition-colors"
+                        >
+                          <Twitter className="h-4 w-4 text-blue-500" />
+                        </a>
+                      )}
+                    </div>
                   )}
-                </span>
+                </div>
               </div>
             </div>           
 
