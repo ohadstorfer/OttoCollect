@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
-import { Loader2, Upload } from 'lucide-react';
+import { Loader2, Upload, Check, ExternalLink, X } from 'lucide-react';
 
 export interface ProfileEditFormProps {
   profile: User;
@@ -19,6 +20,7 @@ export interface ProfileEditFormProps {
 }
 
 export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEditFormProps) {
+  const navigate = useNavigate();
   const { user: authUser, updateUserState } = useAuth();
   const { toast } = useToast();
   const [username, setUsername] = useState(profile.username);
@@ -28,6 +30,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
   const [instagramUrl, setInstagramUrl] = useState(profile.instagram_url || '');
   const [twitterUrl, setTwitterUrl] = useState(profile.twitter_url || '');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,14 +46,15 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     }
     
     setIsLoading(true);
+    setIsSuccess(false);
     
     try {
       await updateUserProfile(authUser.id, {
         username,
         about: about || null,
-        facebook_url: facebookUrl || null,
-        instagram_url: instagramUrl || null,
-        twitter_url: twitterUrl || null,
+        facebook_url: facebookUrl.trim() || null,
+        instagram_url: instagramUrl.trim() || null,
+        twitter_url: twitterUrl.trim() || null,
       });
       
       // Update the local user state
@@ -58,10 +62,24 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         username,
         about,
         avatarUrl,
-        facebook_url: facebookUrl,
-        instagram_url: instagramUrl,
-        twitter_url: twitterUrl,
+        facebook_url: facebookUrl.trim() || null,
+        instagram_url: instagramUrl.trim() || null,
+        twitter_url: twitterUrl.trim() || null,
       });
+      
+      setIsSuccess(true);
+      
+      // Show success toast
+      toast({
+        title: "Profile updated successfully!",
+        description: "Your profile changes have been saved.",
+        className: "bg-green-50 border-green-200 text-green-800",
+      });
+      
+      // Reset success state after 2 seconds
+      setTimeout(() => {
+        setIsSuccess(false);
+      }, 2000);
       
       onSaveComplete();
       
@@ -69,11 +87,29 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
       console.error("Error updating profile:", error);
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: "Failed to update profile. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  const clearSocialLink = (platform: 'facebook' | 'instagram' | 'twitter') => {
+    switch (platform) {
+      case 'facebook':
+        setFacebookUrl('');
+        break;
+      case 'instagram':
+        setInstagramUrl('');
+        break;
+      case 'twitter':
+        setTwitterUrl('');
+        break;
     }
   };
 
@@ -130,10 +166,79 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     }
   };
 
+  const SocialMediaInput = ({ 
+    platform, 
+    value, 
+    onChange, 
+    placeholder, 
+    label 
+  }: {
+    platform: 'facebook' | 'instagram' | 'twitter';
+    value: string;
+    onChange: (value: string) => void;
+    placeholder: string;
+    label: string;
+  }) => {
+    const hasValue = value.trim().length > 0;
+    const originalValue = profile[`${platform}_url` as keyof User] as string;
+    const isNewlyAdded = hasValue && !originalValue;
+    const isModified = hasValue && originalValue && value !== originalValue;
+
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={`${platform}_url`} className="flex items-center gap-2">
+          {label}
+          {hasValue && (
+            <div className="flex items-center gap-1">
+              <Check className="h-3 w-3 text-green-600" />
+              <span className="text-xs text-green-600 font-normal">
+                {isNewlyAdded ? 'Added' : isModified ? 'Modified' : 'Connected'}
+              </span>
+            </div>
+          )}
+        </Label>
+        <div className="flex items-center gap-2">
+  <Input
+    id={`${platform}_url`}
+    type="url"
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    placeholder={placeholder}
+    className={`flex-1 ${hasValue ? 'border-green-300 bg-green-50/50' : ''}`}
+  />
+  {hasValue && (
+    <div className="flex items-center gap-1">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-6 w-6 p-0 hover:bg-red-100"
+        onClick={() => clearSocialLink(platform)}
+        title="Remove link"
+      >
+        <X className="h-3 w-3 text-red-500" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-6 w-6 p-0 hover:bg-blue-100"
+        onClick={() => window.open(value, '_blank')}
+        title="Open link"
+      >
+        <ExternalLink className="h-3 w-3 text-blue-500" />
+      </Button>
+    </div>
+  )}
+</div>
+
+      </div>
+    );
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="ottoman-card p-6">
-        <h3 className="text-xl font-medium mb-4"><span>Edit Profile</span></h3>
+    <form onSubmit={handleSubmit} className="space-y-6 mt-5">
+      <div className="ottoman-card p-6 ">
         
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex flex-col items-center space-y-3">
@@ -191,38 +296,29 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-medium">Social Media Links</h4>
+              <h4 className="font-medium"> <span> Social Media Links </span> </h4>
               <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="facebook_url">Facebook</Label>
-                  <Input
-                    id="facebook_url"
-                    type="url"
-                    value={facebookUrl}
-                    onChange={(e) => setFacebookUrl(e.target.value)}
-                    placeholder="https://facebook.com/your-profile"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="instagram_url">Instagram</Label>
-                  <Input
-                    id="instagram_url"
-                    type="url"
-                    value={instagramUrl}
-                    onChange={(e) => setInstagramUrl(e.target.value)}
-                    placeholder="https://instagram.com/your-profile"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="twitter_url">Twitter/X</Label>
-                  <Input
-                    id="twitter_url"
-                    type="url"
-                    value={twitterUrl}
-                    onChange={(e) => setTwitterUrl(e.target.value)}
-                    placeholder="https://twitter.com/your-profile"
-                  />
-                </div>
+                <SocialMediaInput
+                  platform="facebook"
+                  value={facebookUrl}
+                  onChange={setFacebookUrl}
+                  placeholder="https://facebook.com/your-profile"
+                  label="Facebook"
+                />
+                <SocialMediaInput
+                  platform="instagram"
+                  value={instagramUrl}
+                  onChange={setInstagramUrl}
+                  placeholder="https://instagram.com/your-profile"
+                  label="Instagram"
+                />
+                <SocialMediaInput
+                  platform="twitter"
+                  value={twitterUrl}
+                  onChange={setTwitterUrl}
+                  placeholder="https://twitter.com/your-profile"
+                  label="Twitter/X"
+                />
               </div>
             </div>
           </div>
@@ -233,7 +329,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         <Button 
           type="button" 
           variant="outline" 
-          onClick={onCancel}
+          onClick={handleCancel}
           disabled={isLoading}
         >
           Cancel
@@ -242,13 +338,21 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         <Button 
           type="submit"
           disabled={isLoading}
+          className={isSuccess ? 'bg-green-600 hover:bg-green-700' : ''}
         >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Saving...
             </>
-          ) : "Save Changes"}
+          ) : isSuccess ? (
+            <>
+              <Check className="mr-2 h-4 w-4" />
+              Saved!
+            </>
+          ) : (
+            "Save Changes"
+          )}
         </Button>
       </div>
     </form>

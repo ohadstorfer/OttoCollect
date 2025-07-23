@@ -78,7 +78,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                     
                     {/* Social Media Links */}
                     {(profile.facebook_url || profile.instagram_url || profile.twitter_url) && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center gap-2 md:justify-start">
                         {profile.facebook_url && (
                           <a 
                             href={profile.facebook_url} 
@@ -159,7 +159,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                     {/* Edit Profile Button */}
                     {isOwnProfile && (
                       <Button
-                        onClick={onEditProfileClick}
+                        onClick={handleEditClick}
                         variant={theme === 'dark' ? "secondary" : "outline"}
                         size="icon"
                         className="h-5 w-5 inline-flex items-center justify-center"
