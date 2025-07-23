@@ -152,10 +152,13 @@ export async function fetchUserFilterPreferences(userId: string, countryId: stri
 export async function saveUserFilterPreferences(
   userId: string,
   countryId: string,
-  selectedCategories: string[],
-  selectedTypes: string[],
-  selectedSortOptions: string[],
-  groupMode: boolean
+  preferences: {
+    selected_categories: string[];
+    selected_types: string[];
+    selected_sort_options: string[];
+    group_mode: boolean;
+    view_mode?: 'grid' | 'list';
+  }
 ): Promise<void> {
   try {
     const { data, error } = await supabase
@@ -164,10 +167,11 @@ export async function saveUserFilterPreferences(
         {
           user_id: userId,
           country_id: countryId,
-          selected_categories: selectedCategories,
-          selected_types: selectedTypes,
-          selected_sort_options: selectedSortOptions,
-          group_mode: groupMode,
+          selected_categories: preferences.selected_categories,
+          selected_types: preferences.selected_types,
+          selected_sort_options: preferences.selected_sort_options,
+          group_mode: preferences.group_mode,
+          view_mode: preferences.view_mode || 'grid',
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'user_id,country_id' }

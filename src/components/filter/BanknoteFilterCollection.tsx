@@ -173,6 +173,17 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
               // Call the parent's onGroupModeChange
               onGroupModeChange(userPreferences.group_mode);
             }
+
+            // Set view mode if it's defined in preferences, but only during initial load
+            if (userPreferences && 
+                userPreferences.view_mode && 
+                onViewModeChange && 
+                userPreferences.view_mode !== viewMode && 
+                !initialLoadComplete.current) {
+              
+              setViewMode(userPreferences.view_mode);
+              onViewModeChange(userPreferences.view_mode);
+            }
           } catch (err) {
             console.error("Error fetching user preferences:", err);
           }
@@ -294,10 +305,12 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       saveUserFilterPreferences(
         authUser.id,
         countryId,
-        newFilters.categories || currentFilters.categories || [],
-        newFilters.types || currentFilters.types || [],
-        sortOptionIds,
-        groupMode // Pass current groupMode value
+        {
+          selected_categories: newFilters.categories || currentFilters.categories || [],
+          selected_types: newFilters.types || currentFilters.types || [],
+          selected_sort_options: sortOptionIds,
+          group_mode: groupMode || false
+        }
       ).catch(error => {
         console.error("Error saving filter preferences:", error);
       });
@@ -311,7 +324,20 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     if (onViewModeChange) {
       onViewModeChange(mode);
     }
-  }, [onViewModeChange]);
+    
+    // Save view mode preference
+    if (authUser && countryId) {
+      saveUserFilterPreferences(authUser.id, countryId, {
+        selected_categories: currentFilters.categories || [],
+        selected_types: currentFilters.types || [],
+        selected_sort_options: currentFilters.sort || [],
+        group_mode: groupMode || false,
+        view_mode: mode
+      }).catch(err => {
+        console.error("Error saving view mode preference:", err);
+      });
+    }
+  }, [onViewModeChange, authUser, countryId, currentFilters, groupMode]);
   
   const handleGroupModeChange = React.useCallback((mode: boolean) => {
     // If we're set to ignore the next change, skip this call
@@ -339,10 +365,12 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       saveUserFilterPreferences(
         authUser.id,
         countryId,
-        currentFilters.categories || [],
-        currentFilters.types || [],
-        sortOptionIds,
-        mode // Pass the new group mode value
+        {
+          selected_categories: currentFilters.categories || [],
+          selected_types: currentFilters.types || [],
+          selected_sort_options: sortOptionIds,
+          group_mode: mode
+        }
       ).catch(error => {
         console.error("Error saving group mode preference:", error);
       });

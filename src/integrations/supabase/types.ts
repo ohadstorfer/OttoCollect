@@ -1545,6 +1545,7 @@ export type Database = {
           selected_types: string[] | null
           updated_at: string
           user_id: string
+          view_mode: string | null
         }
         Insert: {
           country_id: string
@@ -1556,6 +1557,7 @@ export type Database = {
           selected_types?: string[] | null
           updated_at?: string
           user_id: string
+          view_mode?: string | null
         }
         Update: {
           country_id?: string
@@ -1567,6 +1569,7 @@ export type Database = {
           selected_types?: string[] | null
           updated_at?: string
           user_id?: string
+          view_mode?: string | null
         }
         Relationships: [
           {

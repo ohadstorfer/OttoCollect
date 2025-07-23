@@ -58,7 +58,8 @@ export interface UserFilterPreference {
   selected_categories: string[];
   selected_types: string[];
   selected_sort_options: string[];
-  group_mode: boolean; // Added this field
+  group_mode: boolean;
+  view_mode: 'grid' | 'list';
   created_at: string;
   updated_at: string;
 }
