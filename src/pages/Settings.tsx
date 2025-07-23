@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { ProfileEditForm } from '@/components/profile/ProfileEditForm';
 import { useTheme } from '@/context/ThemeContext';
+import ChangePassword from '@/components/auth/ChangePassword';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
@@ -60,6 +61,7 @@ const Settings: React.FC = () => {
           onCancel={() => {}} // Empty function since ProfileEditForm handles navigation internally
           onSaveComplete={handleSaveComplete}
         />
+        {/* <ChangePassword /> */}
       </div>
     </div>
   );
