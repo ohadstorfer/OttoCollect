@@ -61,7 +61,7 @@ const ChangePassword: React.FC = () => {
 
   return (
     <div className="w-full max-w-md mx-auto animate-fade-in">
-      <Card className="ottoman-card shadow-lg mt-8">
+      <Card className="ottoman-card shadow-lg ">
         <div className="space-y-6 px-6 py-4">
           <div className="text-center">
             <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500"><span>Change Password</span></h3>

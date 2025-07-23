@@ -185,7 +185,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     const isModified = hasValue && originalValue && value !== originalValue;
 
     return (
-      <div className="space-y-2">
+      <div className="space-y-2 ">
         <Label htmlFor={`${platform}_url`} className="flex items-center gap-2">
           {label}
           {hasValue && (
