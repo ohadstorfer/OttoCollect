@@ -71,6 +71,7 @@ export interface User {
   facebook_url?: string;
   instagram_url?: string;
   twitter_url?: string;
+  linkedin_url?: string;
 }
 
 // Add missing Banknote interface

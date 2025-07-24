@@ -1128,6 +1128,7 @@ export type Database = {
           id: string
           instagram_url: string | null
           is_forum_blocked: boolean | null
+          linkedin_url: string | null
           points: number
           rank: string
           role: string
@@ -1150,6 +1151,7 @@ export type Database = {
           id: string
           instagram_url?: string | null
           is_forum_blocked?: boolean | null
+          linkedin_url?: string | null
           points?: number
           rank?: string
           role?: string
@@ -1172,6 +1174,7 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_forum_blocked?: boolean | null
+          linkedin_url?: string | null
           points?: number
           rank?: string
           role?: string
@@ -1896,6 +1899,7 @@ export type Database = {
           id: string
           instagram_url: string | null
           is_forum_blocked: boolean | null
+          linkedin_url: string | null
           points: number
           rank: string
           role: string

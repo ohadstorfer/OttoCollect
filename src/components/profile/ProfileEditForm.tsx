@@ -29,6 +29,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
   const [facebookUrl, setFacebookUrl] = useState(profile.facebook_url || '');
   const [instagramUrl, setInstagramUrl] = useState(profile.instagram_url || '');
   const [twitterUrl, setTwitterUrl] = useState(profile.twitter_url || '');
+  const [linkedinUrl, setLinkedinUrl] = useState(profile.linkedin_url || '');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -55,6 +56,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         facebook_url: facebookUrl.trim() || null,
         instagram_url: instagramUrl.trim() || null,
         twitter_url: twitterUrl.trim() || null,
+        linkedin_url: linkedinUrl.trim() || null,
       });
       
       // Update the local user state
@@ -65,6 +67,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         facebook_url: facebookUrl.trim() || null,
         instagram_url: instagramUrl.trim() || null,
         twitter_url: twitterUrl.trim() || null,
+        linkedin_url: linkedinUrl.trim() || null,
       });
       
       setIsSuccess(true);
@@ -99,7 +102,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     navigate(-1);
   };
 
-  const clearSocialLink = (platform: 'facebook' | 'instagram' | 'twitter') => {
+  const clearSocialLink = (platform: 'facebook' | 'instagram' | 'twitter' | 'linkedin') => {
     switch (platform) {
       case 'facebook':
         setFacebookUrl('');
@@ -109,6 +112,9 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         break;
       case 'twitter':
         setTwitterUrl('');
+        break;
+      case 'linkedin':
+        setLinkedinUrl('');
         break;
     }
   };
@@ -173,7 +179,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     placeholder, 
     label 
   }: {
-    platform: 'facebook' | 'instagram' | 'twitter';
+    platform: 'facebook' | 'instagram' | 'twitter' | 'linkedin';
     value: string;
     onChange: (value: string) => void;
     placeholder: string;
@@ -318,6 +324,13 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
                   onChange={setTwitterUrl}
                   placeholder="https://twitter.com/your-profile"
                   label="Twitter/X"
+                />
+                <SocialMediaInput
+                  platform="linkedin"
+                  value={linkedinUrl}
+                  onChange={setLinkedinUrl}
+                  placeholder="https://linkedin.com/in/your-profile"
+                  label="LinkedIn"
                 />
               </div>
             </div>

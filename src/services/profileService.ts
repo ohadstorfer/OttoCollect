@@ -53,6 +53,7 @@ export async function getUserProfile(userIdOrUsername: string): Promise<User | n
       ...(data.facebook_url && { facebook_url: data.facebook_url }),
       ...(data.instagram_url && { instagram_url: data.instagram_url }),
       ...(data.twitter_url && { twitter_url: data.twitter_url }),
+      ...(data.linkedin_url && { linkedin_url: data.linkedin_url }),
     };
 
     return userProfile;
@@ -71,6 +72,7 @@ export async function updateUserProfile(
     facebook_url?: string | null;
     instagram_url?: string | null;
     twitter_url?: string | null;
+    linkedin_url?: string | null;
   }
 ): Promise<boolean> {
   try {
