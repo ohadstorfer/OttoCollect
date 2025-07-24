@@ -7,12 +7,15 @@ import { useAuth } from '@/context/AuthContext';
 import { getSuperAdmins } from '@/services/adminService';
 import { User } from '@/types';
 import UserProfileLink from '@/components/common/UserProfileLink';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function ContactUs() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [superAdmins, setSuperAdmins] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
+
 
   useEffect(() => {
     const fetchSuperAdmins = async () => {
@@ -44,27 +47,44 @@ export default function ContactUs() {
   };
 
   return (
-    <div className="page-container">
-      <h1 className="page-title">
-        <span>Contact Us</span>
-      </h1>
+<div >
+    <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
+        <div className="absolute inset-0 -z-10">
+          <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${theme === 'light'
+              ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
+              : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
+            } shadow-xl ring-1 ring-inset`} aria-hidden="true" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10 flex items-center justify-center">
+          
+          <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
+            <span>Contact Us</span>
+          </h1>
+          
+        </div>
+        <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
+          We're here to help! Choose the best way to reach us based on your needs.
+          </p>
+      </section>
+
+    
+
       
       <div className="max-w-4xl mx-auto space-y-6">
-        <p className="text-center text-muted-foreground mb-8">
-          We're here to help! Choose the best way to reach us based on your needs.
-        </p>
+
 
         <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Email Section */}
           <Card className="ottoman-card">
             <CardHeader className="text-center">
               <Mail className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <CardTitle>Email Support</CardTitle>
+              <CardTitle><span>Email Support</span></CardTitle>
               <CardDescription>
                 Get in touch via email for general inquiries
               </CardDescription>
             </CardHeader>
-            <CardContent className="text-center">
+            <CardContent className="text-center sm:mt-4">
               <a 
                 href="mailto:info@ottocollect.com" 
                 className="text-primary hover:underline font-medium"
@@ -74,11 +94,11 @@ export default function ContactUs() {
             </CardContent>
           </Card>
 
-          {/* Social Media Section */}
+          {/* Social Media Section */}  
           <Card className="ottoman-card">
             <CardHeader className="text-center">
               <Instagram className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <CardTitle>Follow Us</CardTitle>
+              <CardTitle><span>Follow Us</span></CardTitle>
               <CardDescription>
                 Stay updated with our latest news and updates
               </CardDescription>
@@ -87,7 +107,7 @@ export default function ContactUs() {
               <Button 
                 variant="outline"
                 onClick={() => window.open('https://www.instagram.com/ottocollect?igsh=MXdnN2M2bTEwZjlwZg%3D%3D&utm_source=qr', '_blank')}
-                className="w-full"
+                className="w-full sm:mt-3"
               >
                 <Instagram className="h-4 w-4 mr-2" />
                 @ottocollect
@@ -99,7 +119,7 @@ export default function ContactUs() {
           <Card className="ottoman-card">
             <CardHeader className="text-center">
               <MessageCircle className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <CardTitle>Direct Message</CardTitle>
+              <CardTitle><span>Direct Message</span></CardTitle>
               <CardDescription>
                 Send a private message to our administrators
               </CardDescription>
@@ -123,37 +143,31 @@ export default function ContactUs() {
                   No administrators available
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground mb-3 text-center">
-                    Choose an administrator to message:
-                  </p>
-                  {superAdmins.map((admin) => (
-                    <Button
-                      key={admin.id}
-                      variant="ghost"
-                      className="w-full justify-start p-3 h-auto"
-                      onClick={() => handleMessageAdmin(admin.id)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                          {admin.avatarUrl ? (
-                            <img 
-                              src={admin.avatarUrl} 
-                              alt={admin.username} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </div>
-                        <div className="text-left">
-                          <p className="font-medium text-sm">{admin.username}</p>
-                          <p className="text-xs text-muted-foreground">Administrator</p>
-                        </div>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
+                <div className="flex flex-wrap justify-center gap-2 mb-0">
+  {superAdmins.map((admin) => (
+    <Button
+      key={admin.id}
+      variant="ghost"
+      className="flex flex-col items-center w-25 p-1 h-auto text-center"
+      onClick={() => handleMessageAdmin(admin.id)}
+    >
+      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden mb-0">
+        {admin.avatarUrl ? (
+          <img 
+            src={admin.avatarUrl} 
+            alt={admin.username} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <MessageCircle className="h-6 w-6 text-muted-foreground" />
+        )}
+      </div>
+      <div>
+        <p className="font-medium text-sm">{admin.username}</p>
+      </div>
+    </Button>
+  ))}
+</div>
               )}
             </CardContent>
           </Card>
@@ -162,7 +176,7 @@ export default function ContactUs() {
         {/* Additional Information */}
         <Card className="ottoman-card mt-8">
           <CardHeader>
-            <CardTitle className="text-center">Need Help?</CardTitle>
+            <CardTitle className="text-center"><span>Need Help?</span></CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center space-y-2 text-sm text-muted-foreground">
