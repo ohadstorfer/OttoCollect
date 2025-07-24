@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Facebook, Github, Twitter } from "lucide-react";
+import { Facebook, Github, Instagram, Twitter } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "react-router-dom";
@@ -115,12 +115,12 @@ export const Footer = () => {
               <Twitter size={20} />
             </a>
             <a
-              href="https://github.com"
+              href="https://www.instagram.com/ottocollect?igsh=MXdnN2M2bTEwZjlwZg%3D%3D&utm_source=qr"
               target="_blank"
               rel="noopener noreferrer"
               className={`${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}
             >
-              <Github size={20} />
+              <Instagram size={20} />
             </a>
           </div>
           </div>
