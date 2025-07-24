@@ -99,7 +99,7 @@ export const Footer = () => {
           </p>
           <div className="flex items-center space-x-4">
             <a
-              href="https://facebook.com"
+              href="https://www.facebook.com/share/g/1An224PDXp/?mibextid=wwXIfr"
               target="_blank"
               rel="noopener noreferrer"
               className={`${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}
