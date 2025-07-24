@@ -334,7 +334,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 variant="outline"
                 size="icon"
                 onClick={toggleViewMode}
-                aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+                title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
               >
                 {viewMode === 'grid' ? (
                   <LayoutList className="h-4 w-4" />

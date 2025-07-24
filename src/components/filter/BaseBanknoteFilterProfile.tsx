@@ -409,20 +409,20 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   />
                 )}
 
-                {onViewModeChange && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={toggleViewMode}
-                    aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
-                  >
-                    {viewMode === 'grid' ? (
-                      <LayoutList className="h-4 w-4" />
-                    ) : (
-                      <LayoutGrid className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
+                  {onViewModeChange && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={toggleViewMode}
+                      title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+                    >
+                      {viewMode === 'grid' ? (
+                        <LayoutList className="h-4 w-4" />
+                      ) : (
+                        <LayoutGrid className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
                 
                 {onGroupModeChange && (
                   <Button

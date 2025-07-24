@@ -304,7 +304,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         <Button
                     variant="outline"
                     size="icon"
-                    aria-label={"Add a new unlisted banknote"}
+                    title="Create a new Unlisted Banknote"
                   >
           <BookmarkPlus style={{ width: "1.1rem", height: "1.1rem" }} />
         </Button>
