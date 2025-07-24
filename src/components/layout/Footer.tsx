@@ -73,7 +73,7 @@ export const Footer = () => {
                 <Link to="/guide" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
                   User Guide
                 </Link>
-                <Link to="/contact" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
+                <Link to="/contact-us" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
                   Contact Us
                 </Link>
                 <Link to="/privacy" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
