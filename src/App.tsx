@@ -51,6 +51,7 @@ import BlogPost from "./pages/BlogPost";
 import CreateBlogPost from "./pages/CreateBlogPost";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import ContactUs from "./pages/ContactUs";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -116,6 +117,7 @@ function App() {
                     <Route path="/community/forum/announcement/:id" element={<ForumPostAnnouncements />} />
                     <Route path="/messaging" element={<Messaging />} />
                     <Route path="/messaging/:userId" element={<Messaging />} />
+                    <Route path="/contact-us" element={<ContactUs />} />
                     <Route path="/members" element={<Members />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/admin" element={<Admin />} />

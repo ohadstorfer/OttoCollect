@@ -1,4 +1,40 @@
 import { supabase } from '@/integrations/supabase/client';
+import { User, UserRole, UserRank } from '@/types';
+
+export async function getSuperAdmins(): Promise<User[]> {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("role", "Super Admin");
+
+    if (error) {
+      console.error("Error fetching super admins:", error);
+      return [];
+    }
+
+    return data.map(profile => ({
+      id: profile.id,
+      username: profile.username,
+      email: profile.email,
+      role: profile.role as UserRole,
+      role_id: profile.role_id || "",
+      rank: profile.rank as UserRank,
+      points: profile.points,
+      createdAt: profile.created_at,
+      avatarUrl: profile.avatar_url || '/placeholder-brown.svg',
+      ...(profile.country && { country: profile.country }),
+      ...(profile.about && { about: profile.about }),
+      ...(profile.facebook_url && { facebook_url: profile.facebook_url }),
+      ...(profile.instagram_url && { instagram_url: profile.instagram_url }),
+      ...(profile.twitter_url && { twitter_url: profile.twitter_url }),
+      ...(profile.linkedin_url && { linkedin_url: profile.linkedin_url }),
+    }));
+  } catch (error) {
+    console.error("Error in getSuperAdmins:", error);
+    return [];
+  }
+}
 
 export async function updateCategoryDefinition(
   categoryId: string,
