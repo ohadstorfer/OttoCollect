@@ -92,7 +92,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             createdAt: data.created_at,
             avatarUrl: data.avatar_url || '/placeholder.svg',
             ...(data.country && { country: data.country }),
-            ...(data.about && { about: data.about })
+            ...(data.about && { about: data.about }),
+            facebook_url: data.facebook_url,
+            instagram_url: data.instagram_url,
+            twitter_url: data.twitter_url,
+            linkedin_url: data.linkedin_url
           };
           setUser(userProfile);
           setBlockedNotice(null);
