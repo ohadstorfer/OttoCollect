@@ -18,7 +18,13 @@ export default function ContactUs() {
     const fetchSuperAdmins = async () => {
       try {
         const admins = await getSuperAdmins();
-        setSuperAdmins(admins);
+        // Filter to only show specific admin users
+        const specificAdminIds = [
+          'e0ceafe0-0a02-42a9-a72f-6232af4b2579',
+          '589295a6-1042-4e19-afd7-9060d53324fe'
+        ];
+        const filteredAdmins = admins.filter(admin => specificAdminIds.includes(admin.id));
+        setSuperAdmins(filteredAdmins);
       } catch (error) {
         console.error('Error fetching super admins:', error);
       } finally {
