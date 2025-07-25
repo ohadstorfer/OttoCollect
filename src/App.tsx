@@ -52,6 +52,8 @@ import CreateBlogPost from "./pages/CreateBlogPost";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import ContactUs from "./pages/ContactUs";
+import { CookieConsent } from "@/components/ui/cookie-consent";
+import CookiePolicy from "./pages/CookiePolicy";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -128,10 +130,13 @@ function App() {
                     <Route path="/blog/:id" element={<BlogPost />} />
                     <Route path="/blog/new" element={<CreateBlogPost />} />
                     <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/cookie-policy" element={<CookiePolicy />} />
                     <Route path="/terms" element={<TermsOfService />} />
+                    <Route path="/terms-of-service" element={<TermsOfService />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </main>
+                <CookieConsent />
                 <Footer />
                 <Toaster />
               </PageBackground>
