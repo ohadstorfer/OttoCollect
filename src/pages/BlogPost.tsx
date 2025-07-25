@@ -433,7 +433,7 @@ const BlogPostPage = () => {
                 <span className="text-sm text-muted-foreground flex-shrink-0">{formattedDate}</span>
               </div>
               <h6 className="font-semibold text-xl sm:text-2xl animate-fade-in break-words">
-                {renderTextWithLinks(post.title)}
+                <span> {renderTextWithLinks(post.title)} </span>
               </h6>
               <div className="whitespace-pre-line mb-4 break-words overflow-wrap-anywhere">
                 {renderTextWithLinks(post.content)}
