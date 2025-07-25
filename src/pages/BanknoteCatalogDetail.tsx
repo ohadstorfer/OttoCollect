@@ -694,10 +694,10 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                       </Button>
                       {shouldShowCheckButton ? (
                         <Button
+                          title="You already own this banknote"
                           variant="ghost"
                           size="icon"
                           className={checkButtonClass}
-                          aria-label="You already own this banknote"
                           onClick={handleOwnershipCheckButton}
                           tabIndex={0}
                         >

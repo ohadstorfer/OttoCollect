@@ -772,12 +772,13 @@ export default function CollectionItem() {
                         className="flex items-center gap-1 text-red-600 hover:bg-red-100"
                         onClick={() => setIsDeleteDialogOpen(true)}
                         disabled={isDeleting || isEditDialogOpen}
-                        aria-label="Delete"
+                        title="Delete Collection Item"
                       >
                         <Trash className="w-4 h-4" />
                         <span className="sr-only">Delete</span>
                       </Button>
                       <Button
+                        title="Edit Collection Item"
                         variant="ghost"
                         size="sm"
                         className="flex items-center gap-1"

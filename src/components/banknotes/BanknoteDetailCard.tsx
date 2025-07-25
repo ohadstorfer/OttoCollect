@@ -500,7 +500,6 @@ const BanknoteDetailCard = ({
                     variant="secondary"
                     size="icon"
                     className={checkButtonClass}
-                    aria-label="You already own this banknote"
                     onClick={handleOwnershipCheckButton}
                     tabIndex={0}
                   >
