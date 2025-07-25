@@ -396,6 +396,7 @@ const BanknoteDetailCard = ({
                     </Button>
                     {shouldShowCheck ? (
                       <Button
+                        title="You already own this banknote"
                         variant="ghost"
                         size="icon"
                         className={cn(checkButtonClass, "flex-shrink-0 h-7 w-7")}
@@ -405,6 +406,7 @@ const BanknoteDetailCard = ({
                       </Button>
                     ) : (
                       <Button
+                        title="Add to your collection"
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 flex-shrink-0"
@@ -431,17 +433,18 @@ const BanknoteDetailCard = ({
 
               <div className="p-0.5 gap-0.5 sm:gap-1.5 flex flex-wrap items-center text-sm mb-1 overflow-hidden">
                 {banknote.extendedPickNumber && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  <Badge title={"Extended Pick Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.extendedPickNumber}
                   </Badge>
                 )}
                 {banknote.turkCatalogNumber && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  <Badge title={"Turkish Catalog Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.turkCatalogNumber}
                   </Badge>
                 )}
                 {banknote.rarity && (
                   <Badge
+                    title={"Rarity"}
                     variant="secondary"
                     className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
                   >
@@ -493,6 +496,7 @@ const BanknoteDetailCard = ({
                 </Button>
                 {shouldShowCheck ? (
                   <Button
+                    title="You already own this banknote"
                     variant="secondary"
                     size="icon"
                     className={checkButtonClass}
@@ -504,6 +508,7 @@ const BanknoteDetailCard = ({
                   </Button>
                 ) : (
                   <Button
+                    title="Add to your collection"
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 shrink-0"
@@ -516,22 +521,23 @@ const BanknoteDetailCard = ({
             </div>
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
               {banknote.extendedPickNumber && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={"Extended Pick Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.extendedPickNumber}
                 </Badge>
               )}
               {banknote.turkCatalogNumber && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={"Turkish Catalog Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.turkCatalogNumber}
                 </Badge>
               )}
               {banknote.year && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={"Year"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.year}
                 </Badge>
               )}
               {banknote.rarity && (
                 <Badge
+                  title={"Rarity"}
                   variant="secondary"
                   className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
                 >

@@ -234,10 +234,10 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
               </div>
               {isOwner && (
                 <div className="flex gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
-                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={handleEditClick}>
+                  <Button title="Edit" variant="outline" size="icon" className="h-7 w-7" onClick={handleEditClick}>
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={handleDeleteClick}>
+                  <Button title="Remove from your collection" variant="outline" size="icon" className="h-7 w-7" onClick={handleDeleteClick}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -246,12 +246,12 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
 
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm mb-1">
               {item?.condition && !item?.grade && (
-                <Badge variant="secondary" className={`text-[10px] px-1.5 py-0.5 h-auto leading-tight ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'} shrink-0`}>
+                <Badge title={"Condition"} variant="secondary" className={`text-[10px] px-1.5 py-0.5 h-auto leading-tight ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'} shrink-0`}>
                   {item.condition}
                 </Badge>
               )}
               {item?.grade && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-emerald-100 text-emerald-800 border border-gray-300 shrink-0">
+                <Badge title={"Grade"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-emerald-100 text-emerald-800 border border-gray-300 shrink-0">
                   {item.grade_by && `${item.grade_by} `}{item.grade}
                 </Badge>
               )}
@@ -280,12 +280,12 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
               <h4 className="font-bold"><span>{item.banknote.denomination}</span></h4>
 
               {item?.condition && !item?.grade && (
-                <span className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
+                <span title={"Condition"} className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
                   {item.condition}
                 </span>
               )}
               {item?.grade && (
-                <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-800">
+                <span title={"Grade"} className="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-800">
                   {item.grade_by && `${item.grade_by} `}{item.grade}
                 </span>
               )}
@@ -318,7 +318,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
         <div className="p-3 bg-background border-t">
 
           {(item.banknote as any).name && (
-            <p className="text-sm text-muted-foreground">
+            <p title={"Name"} className="text-sm text-muted-foreground">
               {(item.banknote as any).name}
             </p>
           )}

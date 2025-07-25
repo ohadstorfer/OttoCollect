@@ -305,7 +305,7 @@ const BanknoteDetailCardMissingItems = ({
                 <h4 className="font-bold"><span>{banknote.denomination}</span></h4>
                 {/* Wishlist: Trash icon instead of Add/Check */}
                 {wishlistItemId ? (
-                  <Button
+                  <Button title="Remove from wishlist"
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 shrink-0"
@@ -319,6 +319,7 @@ const BanknoteDetailCardMissingItems = ({
                   <>
                     {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (list view) | banknote id:', banknote.id)}
                     <Button
+                      title="You already own this banknote"
                       variant="secondary"
                       size="icon"
                       className={checkButtonClass}
@@ -333,6 +334,7 @@ const BanknoteDetailCardMissingItems = ({
                   <>
                     {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (list view) | banknote id:', banknote.id)}
                     <Button
+                      title="Add to your collection"
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 shrink-0"
@@ -345,22 +347,23 @@ const BanknoteDetailCardMissingItems = ({
               </div>
               <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
                 {banknote.extendedPickNumber && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  <Badge title={"Extended Pick Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.extendedPickNumber}
                   </Badge>
                 )}
                 {banknote.turkCatalogNumber && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  <Badge title={"Turkish Catalog Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.turkCatalogNumber}
                   </Badge>
                 )}
                 {banknote.year && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  <Badge title={"Year"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.year}
                   </Badge>
                 )}
                 {banknote.rarity && (
                   <Badge
+                    title={"Rarity"}
                     variant="secondary"
                     className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
                   >
@@ -396,13 +399,13 @@ const BanknoteDetailCardMissingItems = ({
               <h4 className="font-bold"><span>{banknote.denomination}</span></h4>
               {/* Wishlist: Trash icon instead of Add/Check */}
               {wishlistItemId ? (
-                <Button
+                <Button 
+                  title="Remove from wishlist"
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 shrink-0"
                   onClick={handleDeleteWishlist}
                   disabled={isDeleting}
-                  aria-label="Remove from wishlist"
                 >
                   <Trash className="h-4 w-4 text-destructive" />
                 </Button>
@@ -410,10 +413,10 @@ const BanknoteDetailCardMissingItems = ({
                 <>
                   {console.log('[BanknoteDetailCard] RENDERING DARK CHECK BUTTON (grid view) | banknote id:', banknote.id)}
                   <Button
+                    title="You already own this banknote"
                     variant="secondary"
                     size="icon"
                     className={checkButtonClass}
-                    aria-label="You already own this banknote"
                     onClick={handleOwnershipCheckButton}
                     tabIndex={0}
                   >
@@ -424,6 +427,7 @@ const BanknoteDetailCardMissingItems = ({
                 <>
                   {console.log('[BanknoteDetailCard] RENDERING PLUS BUTTON (grid view) | banknote id:', banknote.id)}
                   <Button
+                    title="Add to your collection"
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 shrink-0"
@@ -436,22 +440,23 @@ const BanknoteDetailCardMissingItems = ({
             </div>
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
               {banknote.extendedPickNumber && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={"Extended Pick Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.extendedPickNumber}
                 </Badge>
               )}
               {banknote.turkCatalogNumber && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={"Turkish Catalog Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.turkCatalogNumber}
                 </Badge>
               )}
               {banknote.year && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={"Year"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.year}
                 </Badge>
               )}
               {banknote.rarity && (
                 <Badge
+                  title={"Rarity"}
                   variant="secondary"
                   className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
                 >
