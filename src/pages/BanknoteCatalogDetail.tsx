@@ -76,6 +76,8 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 };
 
 export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDetailProps = {}) {
+  // All hooks first!
+  const [imageOrientations, setImageOrientations] = useState<Record<number, 'vertical' | 'horizontal'>>({});
   const { id: paramsId } = useParams<{ id: string }>();
   const id = propsId || paramsId;
   const navigate = useNavigate();
@@ -93,12 +95,84 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   // Track "just added" status to help with instant UI feedback and flicker prevention
   const [hasJustBeenAdded, setHasJustBeenAdded] = useState(false);
 
+  // Add: State to force immediate UI update after wishlisting
+  const [hasJustBeenWishlisted, setHasJustBeenWishlisted] = useState(false);
+
+  // Query client for refreshing on add to collection
+  const queryClient = useQueryClient();
+
+  // Fetch the banknote details
+  const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
+    queryKey: ["banknoteDetail", id],
+    queryFn: () => fetchBanknoteDetail(id || ""),
+    enabled: !!id,
+  });
+
+  // Fetch collectors data
+  const { data: collectorsData, isLoading: collectorsLoading } = useQuery({
+    queryKey: ["banknoteCollectors", id],
+    queryFn: () => getBanknoteCollectors(id || ""),
+    enabled: !!id,
+  });
+
+  // Fetch user's collection to check ownership
+  const { data: userCollection } = useQuery({
+    queryKey: ["userCollection", user?.id, ownershipIncrement],
+    queryFn: () => fetchUserCollection(user?.id || ""),
+    enabled: !!user?.id,
+  });
+
+  // Fetch wishlist item
+  const { data: wishlistItem } = useQuery({
+    queryKey: ["wishlistItem", id, user?.id, hasJustBeenWishlisted],
+    queryFn: () => fetchWishlistItem(id || "", user?.id || ""),
+    enabled: !!id && !!user?.id,
+  });
+
+  // Replace imageUrls array with watermarked images
+  const imageUrls = [
+    banknote?.frontPictureWatermarked || banknote?.frontPictureThumbnail,
+    banknote?.backPictureWatermarked || banknote?.backPictureThumbnail
+  ].filter(Boolean);
+
+  // Define getImageOrientation function before using it in useEffect
+  const getImageOrientation = (imageUrl: string): Promise<'vertical' | 'horizontal'> => {
+    return new Promise((resolve) => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        resolve(img.height > img.width ? 'vertical' : 'horizontal');
+      };
+      img.onerror = () => {
+        resolve('horizontal'); // Default to horizontal if image fails to load
+      };
+      img.src = imageUrl;
+    });
+  };
+
+  // Determine image orientations when imageUrls change
+  React.useEffect(() => {
+    const determineOrientations = async () => {
+      const orientations: Record<number, 'vertical' | 'horizontal'> = {};
+      
+      for (let i = 0; i < imageUrls.length; i++) {
+        orientations[i] = await getImageOrientation(imageUrls[i]);
+      }
+      
+      setImageOrientations(orientations);
+    };
+
+    if (imageUrls.length > 0) {
+      determineOrientations();
+    }
+  }, [imageUrls]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   // Styling class for Check button
   const checkButtonClass =
     "h-8 w-8 shrink-0 rounded-full border border-green-900 bg-gradient-to-br from-green-900 via-green-800 to-green-950 text-green-200 hover:bg-green-900 hover:shadow-lg transition-all duration-200 shadow-lg";
-
-  // Add: State to force immediate UI update after wishlisting
-  const [hasJustBeenWishlisted, setHasJustBeenWishlisted] = useState(false);
 
   // Handler for pressing the Check button (shows custom toast/dialog)
   const handleOwnershipCheckButton = (e?: React.MouseEvent) => {
@@ -163,47 +237,6 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       </div>
     );
   };
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
-  // Query client for refreshing on add to collection
-  const queryClient = useQueryClient();
-
-  // Fetch the banknote details
-  const { data: banknote, isLoading: banknoteLoading, isError: banknoteError } = useQuery({
-    queryKey: ["banknoteDetail", id],
-    queryFn: () => fetchBanknoteDetail(id || ""),
-    enabled: !!id,
-  });
-
-  // Fetch user collection, if logged in, and re-fetch after ownershipIncrement
-  const { data: userCollection = [], isLoading: collectionLoading } = useQuery({
-    queryKey: ["userCollection", user?.id, ownershipIncrement], // depend on increment for refetch
-    queryFn: () => user?.id ? fetchUserCollection(user.id) : Promise.resolve([]),
-    enabled: !!user?.id,
-  });
-
-  // === Wishlist Check: Fast existence lookup ===
-  const { data: wishlistItem, isLoading: wishlistLoading } = useQuery({
-    queryKey: ["wishlistStatus", user?.id, banknote?.id],
-    enabled: !!user?.id && !!banknote?.id,
-    queryFn: () =>
-      user && banknote
-        ? fetchWishlistItem(user.id, banknote.id)
-        : Promise.resolve(null),
-    staleTime: 1000 * 60 * 10, // cache for 10min
-  });
-
-  // --- Button Visibility and Ownership ---
-  // Only calculate ownsThisBanknote if not loading collection and have userCollection array
-  // (add hasJustBeenAdded for immediate UI feedback after add)
-  const ownsThisBanknote =
-    user && banknote && Array.isArray(userCollection) && !collectionLoading
-      ? userHasBanknoteInCollection(banknote, userCollection)
-      : false;
-  const shouldShowCheckButton = (ownsThisBanknote || hasJustBeenAdded);
 
   // Functionality for add to collection; triggers refetch for the buttons
   const [adding, setAdding] = useState(false);
@@ -315,12 +348,14 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     }
   };
 
-  // Modify: Query for collectors - remove dialog dependency
-  const { data: collectorsData, isLoading: collectorsLoading } = useQuery({
-    queryKey: ['banknoteCollectors', id],
-    queryFn: () => getBanknoteCollectors(id || ''),
-    enabled: !!id // Remove dialog dependency
-  });
+  // --- Button Visibility and Ownership ---
+  // Only calculate ownsThisBanknote if not loading collection and have userCollection array
+  // (add hasJustBeenAdded for immediate UI feedback after add)
+  const ownsThisBanknote =
+    user && banknote && Array.isArray(userCollection) && !collectorsLoading
+      ? userHasBanknoteInCollection(banknote, userCollection)
+      : false;
+  const shouldShowCheckButton = (ownsThisBanknote || hasJustBeenAdded);
 
   if (banknoteLoading) {
     return (
@@ -395,11 +430,22 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     setSelectedImage(imageUrl);
   };
 
-  // Replace imageUrls array with watermarked images
-  const imageUrls = [
-    banknote?.frontPictureWatermarked || banknote?.frontPictureThumbnail,
-    banknote?.backPictureWatermarked || banknote?.backPictureThumbnail
-  ].filter(Boolean);
+  if (user?.role !== 'Super Admin' && user?.role !== 'Admin' && banknote?.isPending) {
+    return (
+      <div className="page-container max-w-5xl mx-auto py-10">
+        <h1 className="page-title"> <span> Banknote Details </span> </h1>
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="ottoman-card p-8 flex flex-col items-center">
+            <h2 className="text-2xl font-serif mb-4"><span>Pending Approval</span></h2>
+            <p className="mb-6 text-muted-foreground">
+              This banknote is pending administrator approval.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
 
   const detailGroups = [
     {
@@ -505,24 +551,55 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                   <div className="flex flex-col space-y-3">
                     {imageUrls.length > 0 ? (
                       imageUrls.length === 2 ? (
-                        // For exactly 2 images (obverse/reverse), render side by side
-                        <div className="grid grid-cols-2 gap-3">
-                          {imageUrls.map((url, index) => (
-                            <div
-                              key={index}
-                              className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => openImageViewer(url)}
-                            >
-                              <div className="w-full rounded-md overflow-hidden border">
-                                <img
-                                  src={url}
-                                  alt={`Banknote Image ${index + 1}`}
-                                  className="w-full h-auto object-contain"
-                                />
+                        // For exactly 2 images (obverse/reverse), check orientations
+                        (() => {
+                          const firstOrientation = imageOrientations[0];
+                          const secondOrientation = imageOrientations[1];
+                          
+                          // If both images are vertical, display side by side
+                          if (firstOrientation === 'vertical' && secondOrientation === 'vertical') {
+                            return (
+                              <div className="grid grid-cols-2 gap-3">
+                                {imageUrls.map((url, index) => (
+                                  <div
+                                    key={index}
+                                    className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => openImageViewer(url)}
+                                  >
+                                    <div className="w-full rounded-md overflow-hidden border">
+                                      <img
+                                        src={url}
+                                        alt={`Banknote Image ${index + 1}`}
+                                        className="w-full h-auto object-contain"
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
+                            );
+                          }
+                          
+                          // If any image is horizontal, stack them vertically
+                          return (
+                            <div className="flex flex-col space-y-3">
+                              {imageUrls.map((url, index) => (
+                                <div
+                                  key={index}
+                                  className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                  onClick={() => openImageViewer(url)}
+                                >
+                                  <div className="w-full rounded-md overflow-hidden border">
+                                    <img
+                                      src={url}
+                                      alt={`Banknote Image ${index + 1}`}
+                                      className="w-full h-auto object-contain"
+                                    />
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
+                          );
+                        })()
                       ) : (
                         // For more than 2 images, stack them vertically
                         imageUrls.slice(0, 4).map((url, index) => (

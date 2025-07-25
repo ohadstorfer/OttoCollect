@@ -42,6 +42,8 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 };
 
 export default function CollectionItem() {
+  // All hooks first!
+  const [imageOrientations, setImageOrientations] = useState<Record<number, 'vertical' | 'horizontal'>>({});
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -68,6 +70,35 @@ export default function CollectionItem() {
     queryFn: () => fetchCollectionItem(id || ""),
     enabled: !!id,
   });
+
+  // Early returns
+  if (isLoading) {
+    return (
+      <div className="page-container max-w-5xl mx-auto py-10">
+        <div className="flex justify-center py-12">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="rounded-full bg-gray-200 h-16 w-16 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-40 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-32"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !collectionItem) {
+    return (
+      <div className="page-container max-w-5xl mx-auto py-10">
+        <div className="ottoman-card p-8 text-center">
+          <h2 className="text-2xl font-serif mb-4"> <span> Error Loading Collection Item </span> </h2>
+          <p className="mb-6 text-muted-foreground">
+            We couldn't load the collection item details. Please try again later.
+          </p>
+          <Button onClick={() => navigate(-1)}>Go Back</Button>
+        </div>
+      </div>
+    );
+  }
 
   // Determine if the current user is the owner of this item
   const isOwner = user?.id === collectionItem?.userId;
@@ -321,38 +352,6 @@ export default function CollectionItem() {
   // Check if showing private images as admin
   const isShowingPrivateAsAdmin = !isOwner && collectionItem?.hide_images && user?.role === 'Super Admin';
 
-  if (isLoading) {
-    return (
-      <div className="page-container max-w-5xl mx-auto py-10">
-        <div className="flex justify-center py-12">
-          <div className="animate-pulse flex flex-col items-center">
-            <div className="rounded-full bg-gray-200 h-16 w-16 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-40 mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-32"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isError || !collectionItem) {
-    return (
-      <div className="page-container max-w-5xl mx-auto py-10">
-        <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4"> <span> Error Loading Collection Item </span> </h2>
-          <p className="mb-6 text-muted-foreground">
-            We couldn't load the collection item details. Please try again later.
-          </p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
-        </div>
-      </div>
-    );
-  }
-
-  const openImageViewer = (imageUrl: string) => {
-    setSelectedImage(imageUrl);
-  };
-
   // Update to use original images for owner, watermarked for others
   const displayImages = isOwner ? [
     collectionItem.obverseImage,
@@ -362,10 +361,37 @@ export default function CollectionItem() {
     collectionItem.reverse_image_watermarked || collectionItem.reverseImage
   ].filter(Boolean) as string[];
 
+  // Determine image orientations when displayImages change
+  React.useEffect(() => {
+    const determineOrientations = async () => {
+      const orientations: Record<number, 'vertical' | 'horizontal'> = {};
+      
+      for (let i = 0; i < displayImages.length; i++) {
+        orientations[i] = await getImageOrientation(displayImages[i]);
+      }
+      
+      setImageOrientations(orientations);
+    };
 
+    if (displayImages.length > 0) {
+      determineOrientations();
+    }
+  }, [displayImages]);
 
+  const getImageOrientation = (imageUrl: string): Promise<'vertical' | 'horizontal'> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve(img.height > img.width ? 'vertical' : 'horizontal');
+      };
+      img.onerror = () => {
+        resolve('horizontal'); // Default to horizontal if image fails to load
+      };
+      img.src = imageUrl;
+    });
+  };
 
-  
+  // Render
   return (
     <div className="page-container">
       <div className="flex flex-col space-y-6">
@@ -534,60 +560,127 @@ export default function CollectionItem() {
                         </div>
                       )}
                       {displayImages.length === 2 ? (
-                        // For exactly 2 images (obverse/reverse), render side by side
-                        <div className="grid grid-cols-2 gap-3">
-                          {displayImages.map((url, index) => (
-                            <div key={index} className="relative">
-                              {canDeleteImages && (
-                                <div className="absolute top-2 right-2 z-10">
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Image</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to delete this image? This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={() => {
-                                            setImageToDelete(index === 0 ? 'obverse' : 'reverse');
-                                            handleDeleteImage();
-                                          }}
-                                          className="bg-red-600 hover:bg-red-700"
-                                          disabled={isDeletingImage}
-                                        >
-                                          {isDeletingImage ? 'Deleting...' : 'Delete'}
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                </div>
-                              )}
-                              <div
-                                className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => openImageViewer(url)}
-                              >
-                                <div className="w-full rounded-md overflow-hidden border">
-                                  <img
-                                    src={url}
-                                    className="w-full h-auto object-contain"
-                                  />
-                                </div>
+                        // For exactly 2 images (obverse/reverse), check orientations
+                        (() => {
+                          const firstOrientation = imageOrientations[0];
+                          const secondOrientation = imageOrientations[1];
+                          
+                          // If both images are vertical, display side by side
+                          if (firstOrientation === 'vertical' && secondOrientation === 'vertical') {
+                            return (
+                              <div className="grid grid-cols-2 gap-3">
+                                {displayImages.map((url, index) => (
+                                  <div key={index} className="relative">
+                                    {canDeleteImages && (
+                                      <div className="absolute top-2 right-2 z-10">
+                                        <AlertDialog>
+                                          <AlertDialogTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                          </AlertDialogTrigger>
+                                          <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                              <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                              <AlertDialogDescription>
+                                                Are you sure you want to delete this image? This action cannot be undone.
+                                              </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                              <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                              <AlertDialogAction
+                                                onClick={() => {
+                                                  setImageToDelete(index === 0 ? 'obverse' : 'reverse');
+                                                  handleDeleteImage();
+                                                }}
+                                                className="bg-red-600 hover:bg-red-700"
+                                                disabled={isDeletingImage}
+                                              >
+                                                {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                              </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                          </AlertDialogContent>
+                                        </AlertDialog>
+                                      </div>
+                                    )}
+                                    <div
+                                      className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                      onClick={() => openImageViewer(url)}
+                                    >
+                                      <div className="w-full rounded-md overflow-hidden border">
+                                        <img
+                                          src={url}
+                                          className="w-full h-auto object-contain"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
+                            );
+                          }
+                          
+                          // If any image is horizontal, stack them vertically
+                          return (
+                            <div className="flex flex-col space-y-3">
+                              {displayImages.map((url, index) => (
+                                <div key={index} className="relative">
+                                  {canDeleteImages && (
+                                    <div className="absolute top-2 right-2 z-10">
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              Are you sure you want to delete this image? This action cannot be undone.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() => {
+                                                setImageToDelete(index === 0 ? 'obverse' : 'reverse');
+                                                handleDeleteImage();
+                                              }}
+                                              className="bg-red-600 hover:bg-red-700"
+                                              disabled={isDeletingImage}
+                                            >
+                                              {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    </div>
+                                  )}
+                                  <div
+                                    className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => openImageViewer(url)}
+                                  >
+                                    <div className="w-full rounded-md overflow-hidden border">
+                                      <img
+                                        src={url}
+                                        className="w-full h-auto object-contain"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
+                          );
+                        })()
                       ) : (
                         // For more than 2 images, stack them vertically
                         displayImages.map((url, index) => (
