@@ -44,6 +44,8 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 export default function CollectionItem() {
   // All hooks first!
   const [imageOrientations, setImageOrientations] = useState<Record<number, 'vertical' | 'horizontal'>>({});
+  const [itemOwnerRole, setItemOwnerRole] = useState<string | null>(null);
+  const [isLoadingOwnerRole, setIsLoadingOwnerRole] = useState(true);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -71,41 +73,24 @@ export default function CollectionItem() {
     enabled: !!id,
   });
 
-  // Early returns
-  if (isLoading) {
-    return (
-      <div className="page-container max-w-5xl mx-auto py-10">
-        <div className="flex justify-center py-12">
-          <div className="animate-pulse flex flex-col items-center">
-            <div className="rounded-full bg-gray-200 h-16 w-16 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-40 mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-32"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isError || !collectionItem) {
-    return (
-      <div className="page-container max-w-5xl mx-auto py-10">
-        <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4"> <span> Error Loading Collection Item </span> </h2>
-          <p className="mb-6 text-muted-foreground">
-            We couldn't load the collection item details. Please try again later.
-          </p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Determine if the current user is the owner of this item
+  // Determine if the current user is the owner of this item (define early for use in effects)
   const isOwner = user?.id === collectionItem?.userId;
 
+  // Check if images should be hidden for non-owners
+  const shouldHideImages = !isOwner && collectionItem?.hide_images && user?.role !== 'Super Admin';
 
+  // Check if showing private images as admin
+  const isShowingPrivateAsAdmin = !isOwner && collectionItem?.hide_images && user?.role === 'Super Admin';
 
-  
+  // Update to use original images for owner, watermarked for others
+  const displayImages = isOwner ? [
+    collectionItem?.obverseImage,
+    collectionItem?.reverseImage
+  ].filter(Boolean) : [
+    collectionItem?.obverse_image_watermarked || collectionItem?.obverseImage,
+    collectionItem?.reverse_image_watermarked || collectionItem?.reverseImage
+  ].filter(Boolean) as string[];
+
   // Check for image suggestion status
   useEffect(() => {
     const checkImageStatus = async () => {
@@ -114,6 +99,9 @@ export default function CollectionItem() {
         setHasPendingSuggestion(false);
         return;
       }
+
+      // Calculate isOwner inside the effect to avoid dependency issues
+      const isOwner = user?.id === collectionItem?.userId;
 
       try {
         console.log('Checking image suggestion status for collection item:', collectionItem.id);
@@ -173,7 +161,99 @@ export default function CollectionItem() {
     };
 
     checkImageStatus();
-  }, [collectionItem?.id, collectionItem?.userId, isOwner, user?.id]);
+  }, [collectionItem?.id, collectionItem?.userId, user?.id]);
+
+  // Fetch the owner's role to check if they are a Super Admin
+  useEffect(() => {
+    const fetchOwnerRole = async () => {
+      if (!collectionItem?.userId) {
+        setIsLoadingOwnerRole(false);
+        return;
+      }
+      
+      setIsLoadingOwnerRole(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', collectionItem.userId)
+          .single();
+
+        if (error) throw error;
+        setItemOwnerRole(data?.role || null);
+      } catch (error) {
+        console.error('Error fetching owner role:', error);
+      } finally {
+        setIsLoadingOwnerRole(false);
+      }
+    };
+
+    fetchOwnerRole();
+  }, [collectionItem?.userId]);
+
+  // Determine image orientations when displayImages change
+  React.useEffect(() => {
+    const determineOrientations = async () => {
+      const orientations: Record<number, 'vertical' | 'horizontal'> = {};
+      
+      for (let i = 0; i < displayImages.length; i++) {
+        orientations[i] = await getImageOrientation(displayImages[i]);
+      }
+      
+      setImageOrientations(orientations);
+    };
+
+    if (displayImages.length > 0) {
+      determineOrientations();
+    }
+  }, [displayImages]);
+
+  // Early returns
+  if (isLoading) {
+    return (
+      <div className="page-container max-w-5xl mx-auto py-10">
+        <div className="flex justify-center py-12">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="rounded-full bg-gray-200 h-16 w-16 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-40 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-32"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !collectionItem) {
+    return (
+      <div className="page-container max-w-5xl mx-auto py-10">
+        <div className="ottoman-card p-8 text-center">
+          <h2 className="text-2xl font-serif mb-4"> <span> Error Loading Collection Item </span> </h2>
+          <p className="mb-6 text-muted-foreground">
+            We couldn't load the collection item details. Please try again later.
+          </p>
+          <Button onClick={() => navigate(-1)}>Go Back</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const isOwnerSuperAdmin = itemOwnerRole === 'Super Admin';
+  const isUserSuperAdmin = user?.role === 'Super Admin';
+  const isUserCountryAdmin = user?.role && user.role.toLowerCase().includes('admin') && !user.role.toLowerCase().includes('super');
+  const userAdminCountry = isUserCountryAdmin ? user?.role.toLowerCase().replace(' admin', '').trim() : null;
+  
+  // Only allow delete if we have confirmed the owner's role and all conditions are met
+  const canDeleteImages = !isLoadingOwnerRole && !isOwnerSuperAdmin && (
+    isUserSuperAdmin || 
+    (isUserCountryAdmin && 
+     userAdminCountry === collectionItem?.banknote?.country?.toLowerCase())
+  );
+
+  const hasCustomImages = Boolean(collectionItem?.obverseImage || collectionItem?.reverseImage);
+
+  const openImageViewer = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
 
   const handleUpdateSuccess = async (updatedItem?: CollectionItemType, hasImageChanged?: boolean) => {
     setIsEditDialogOpen(false);
@@ -252,44 +332,6 @@ export default function CollectionItem() {
     }
   };
 
-  const hasCustomImages = Boolean(collectionItem?.obverseImage || collectionItem?.reverseImage);
-
-  const isUserSuperAdmin = user?.role === 'Super Admin';
-  const isUserCountryAdmin = user?.role && user.role.toLowerCase().includes('admin') && !user.role.toLowerCase().includes('super');
-  const userAdminCountry = isUserCountryAdmin ? user?.role.toLowerCase().replace(' admin', '').trim() : null;
-  
-  // Fetch the owner's role to check if they are a Super Admin
-  const [itemOwnerRole, setItemOwnerRole] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchOwnerRole = async () => {
-      if (!collectionItem?.userId) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', collectionItem.userId)
-          .single();
-
-        if (error) throw error;
-        setItemOwnerRole(data?.role || null);
-      } catch (error) {
-        console.error('Error fetching owner role:', error);
-      }
-    };
-
-    fetchOwnerRole();
-  }, [collectionItem?.userId]);
-
-  const isOwnerSuperAdmin = itemOwnerRole === 'Super Admin';
-  
-  const canDeleteImages = !isOwnerSuperAdmin && (
-    isUserSuperAdmin || 
-    (isUserCountryAdmin && 
-     userAdminCountry === collectionItem?.banknote?.country?.toLowerCase())
-  );
-
   const handleDeleteImage = async () => {
     if (!imageToDelete || !collectionItem) return;
     
@@ -345,45 +387,6 @@ export default function CollectionItem() {
       setShowVisibilityDialog(false);
     }
   };
-
-  // Check if images should be hidden for non-owners
-  const shouldHideImages = !isOwner && collectionItem?.hide_images && user?.role !== 'Super Admin';
-
-  // Check if showing private images as admin
-  const isShowingPrivateAsAdmin = !isOwner && collectionItem?.hide_images && user?.role === 'Super Admin';
-
-
-  const openImageViewer = (imageUrl: string) => {
-    setSelectedImage(imageUrl);
-  };
-
-
-  
-  // Update to use original images for owner, watermarked for others
-  const displayImages = isOwner ? [
-    collectionItem.obverseImage,
-    collectionItem.reverseImage
-  ].filter(Boolean) : [
-    collectionItem.obverse_image_watermarked || collectionItem.obverseImage,
-    collectionItem.reverse_image_watermarked || collectionItem.reverseImage
-  ].filter(Boolean) as string[];
-
-  // Determine image orientations when displayImages change
-  React.useEffect(() => {
-    const determineOrientations = async () => {
-      const orientations: Record<number, 'vertical' | 'horizontal'> = {};
-      
-      for (let i = 0; i < displayImages.length; i++) {
-        orientations[i] = await getImageOrientation(displayImages[i]);
-      }
-      
-      setImageOrientations(orientations);
-    };
-
-    if (displayImages.length > 0) {
-      determineOrientations();
-    }
-  }, [displayImages]);
 
   const getImageOrientation = (imageUrl: string): Promise<'vertical' | 'horizontal'> => {
     return new Promise((resolve) => {
