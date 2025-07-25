@@ -352,6 +352,13 @@ export default function CollectionItem() {
   // Check if showing private images as admin
   const isShowingPrivateAsAdmin = !isOwner && collectionItem?.hide_images && user?.role === 'Super Admin';
 
+
+  const openImageViewer = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
+
+
+  
   // Update to use original images for owner, watermarked for others
   const displayImages = isOwner ? [
     collectionItem.obverseImage,
@@ -390,6 +397,7 @@ export default function CollectionItem() {
       img.src = imageUrl;
     });
   };
+  
 
   // Render
   return (

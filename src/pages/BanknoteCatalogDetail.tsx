@@ -513,16 +513,16 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
 
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-3xl font-bold flex items-center gap-2">
-                    <span> {banknote.denomination} </span>
-                  </h1>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <span> {banknote.denomination} </span>
+            </h1>
                   <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
-                  {banknote.extendedPickNumber && (
-                    <p className="text-xl leading-tight">
-                      {banknote.extendedPickNumber}
-                    </p>
-                  )}
-                </div>
+            {banknote.extendedPickNumber && (
+              <p className="text-xl leading-tight">
+                {banknote.extendedPickNumber}
+              </p>
+            )}
+          </div>
 
 
               
@@ -535,21 +535,21 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               </div>
             </div>
 
-            </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            <div className="lg:col-span-3 space-y-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center">
-                    <Image className="h-5 w-5 mr-2" />
-                    <span> Banknote Images </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-2 pt-2 pb-2">
-                  <div className="flex flex-col space-y-3">
-                    {imageUrls.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          <div className="lg:col-span-3 space-y-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center">
+                  <Image className="h-5 w-5 mr-2" />
+                  <span> Banknote Images </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-2 pt-2 pb-2">
+                <div className="flex flex-col space-y-3">
+                  {imageUrls.length > 0 ? (
                       imageUrls.length === 2 ? (
                         // For exactly 2 images (obverse/reverse), check orientations
                         (() => {
@@ -602,74 +602,74 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         })()
                       ) : (
                         // For more than 2 images, stack them vertically
-                        imageUrls.slice(0, 4).map((url, index) => (
-                          <div
-                            key={index}
-                            className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => openImageViewer(url)}
-                          >
-                            <div className="w-full rounded-md overflow-hidden border">
-                              <img
-                                src={url}
-                                alt={`Banknote Image ${index + 1}`}
+                    imageUrls.slice(0, 4).map((url, index) => (
+                      <div
+                        key={index}
+                        className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => openImageViewer(url)}
+                      >
+                        <div className="w-full rounded-md overflow-hidden border">
+                          <img
+                            src={url}
+                            alt={`Banknote Image ${index + 1}`}
                                 className="w-full h-auto object-contain"
-                              />
-                            </div>
-                          </div>
-                        ))
-                      )
-                    ) : (
-                      <div className="col-span-2 p-6 text-center bg-muted rounded-md">
-                        <p className="text-muted-foreground">No images available</p>
+                          />
+                        </div>
                       </div>
-                    )}
+                    ))
+                      )
+                  ) : (
+                    <div className="col-span-2 p-6 text-center bg-muted rounded-md">
+                      <p className="text-muted-foreground">No images available</p>
+                    </div>
+                  )}
 
-                    {imageUrls.length > 4 && (
-                      <Sheet>
-                        <SheetTrigger asChild>
-                          <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
-                            <span className="text-lg font-medium">+{imageUrls.length - 4} more</span>
-                          </div>
-                        </SheetTrigger>
-                        <SheetContent className="w-[90%] sm:max-w-lg">
-                          <SheetHeader>
-                            <SheetTitle>All Banknote Images</SheetTitle>
-                            <SheetDescription>
-                              {banknote.country}, {banknote.denomination}, {banknote.year}
-                            </SheetDescription>
-                          </SheetHeader>
-                          <div className="grid grid-cols-2 gap-4 mt-8">
-                            {imageUrls.map((url, index) => (
-                              <div
-                                key={index}
-                                className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => openImageViewer(url)}
-                              >
-                                <div className="absolute inset-0 rounded-md overflow-hidden border">
-                                  <img
-                                    src={url}
-                                    alt={`Banknote Image ${index + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
+                  {imageUrls.length > 4 && (
+                    <Sheet>
+                      <SheetTrigger asChild>
+                        <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
+                          <span className="text-lg font-medium">+{imageUrls.length - 4} more</span>
+                        </div>
+                      </SheetTrigger>
+                      <SheetContent className="w-[90%] sm:max-w-lg">
+                        <SheetHeader>
+                          <SheetTitle>All Banknote Images</SheetTitle>
+                          <SheetDescription>
+                            {banknote.country}, {banknote.denomination}, {banknote.year}
+                          </SheetDescription>
+                        </SheetHeader>
+                        <div className="grid grid-cols-2 gap-4 mt-8">
+                          {imageUrls.map((url, index) => (
+                            <div
+                              key={index}
+                              className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => openImageViewer(url)}
+                            >
+                              <div className="absolute inset-0 rounded-md overflow-hidden border">
+                                <img
+                                  src={url}
+                                  alt={`Banknote Image ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
                               </div>
-                            ))}
-                          </div>
-                        </SheetContent>
-                      </Sheet>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                            </div>
+                          ))}
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-            <div className="lg:col-span-2">
-              <Card className="border-t-4 border-t-primary shadow-md">
-                <CardHeader className="border-b bg-muted/20">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-xl m-0">
-                      <span> Banknote Details </span>
-                    </CardTitle>
+          <div className="lg:col-span-2">
+            <Card className="border-t-4 border-t-primary shadow-md">
+              <CardHeader className="border-b bg-muted/20">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-xl m-0">
+                    <span> Banknote Details </span>
+                  </CardTitle>
                     <div className="flex gap-0">
                       <Button
                         variant="ghost"
@@ -715,33 +715,33 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         </Button>
                       )}
                     </div>
-                  </div>
-                  <CardDescription>
-                    Detailed information about this banknote
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <BanknoteCatalogDetailMinimized
-                    banknote={banknote}
-                    onImageClick={openImageViewer}
-                  />
-                </CardContent>
-              </Card>
+                </div>
+                <CardDescription>
+                  Detailed information about this banknote
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <BanknoteCatalogDetailMinimized 
+                  banknote={banknote} 
+                  onImageClick={openImageViewer} 
+                />
+              </CardContent>
+            </Card>
 
-              {selectedImage && (
-                <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-                  <DialogContent className="sm:max-w-[800px] p-1">
-                    <img
-                      src={selectedImage}
-                      alt="Banknote detail"
-                      className="w-full h-auto rounded"
-                    />
-                  </DialogContent>
-                </Dialog>
-              )}
-            </div>
+            {selectedImage && (
+              <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+                <DialogContent className="sm:max-w-[800px] p-1">
+                  <img
+                    src={selectedImage}
+                    alt="Banknote detail"
+                    className="w-full h-auto rounded"
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
+      </div>
 
         {/* Add Collectors Dialog */}
         <Dialog open={showCollectorsDialog} onOpenChange={setShowCollectorsDialog}>
@@ -789,6 +789,6 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
             </div>
           </DialogContent>
         </Dialog>
-      </div>
-      );
+    </div>
+  );
 }
