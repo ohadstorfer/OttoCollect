@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import useMessages from '@/hooks/use-messages';
 import { useAuth } from '@/context/AuthContext';
 import { MessageList } from './MessageList';
@@ -9,6 +9,7 @@ import { ChevronLeft, MessageCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { UserRank } from '@/types';
 import { checkUserDailyMessagingLimit } from '@/services/messageService';
+import { Message } from '@/types/message';
 
 interface MessageCenterProps {
   hasReachedDailyLimit?: boolean;
@@ -24,10 +25,10 @@ export function MessageCenter({
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  // Default: on desktop, show message panel if there's a selected convo; on mobile, show convo list on initial load
   const [showMessages, setShowMessages] = useState(!isMobile);
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(initialHasReachedDailyLimit);
   const [dailyCount, setDailyCount] = useState(0);
+  const [temporaryConversation, setTemporaryConversation] = useState<any | null>(null);
 
   const { 
     conversations, 
@@ -37,7 +38,7 @@ export function MessageCenter({
     loadMessages, 
     sendMessage,
     setActiveConversation
-  } = useMessages(user?.id);
+  } = useMessages();
 
   // Check daily limit when component mounts or user changes
   useEffect(() => {
@@ -58,11 +59,25 @@ export function MessageCenter({
 
   // Handle initial user ID from URL parameter
   useEffect(() => {
-    if (initialUserId && conversations.length > 0 && !activeConversation) {
+    const setupInitialConversation = async () => {
+      // Wait for conversations to be loaded and user to be available
+      if (!initialUserId || !user?.id || !conversations || conversations.length === 0) return;
+
       // Check if we have a conversation with this user
-      const existingConversation = conversations.find(c => c.otherUserId === initialUserId);
+      const existingConversation = conversations.find(c => 
+        c.otherUserId === initialUserId || 
+        (c.lastMessage && (
+          c.lastMessage.senderId === initialUserId || 
+          c.lastMessage.recipientId === initialUserId
+        ))
+      );
+
       if (existingConversation) {
         loadMessages(initialUserId);
+        setActiveConversation(initialUserId);
+        if (isMobile) {
+          setShowMessages(true);
+        }
       } else {
         // If no existing conversation, we still want to open the chat panel
         // The user might want to start a new conversation
@@ -71,8 +86,10 @@ export function MessageCenter({
           setShowMessages(true);
         }
       }
-    }
-  }, [initialUserId, conversations, activeConversation, loadMessages, setActiveConversation, isMobile]);
+    };
+
+    setupInitialConversation();
+  }, [initialUserId, conversations, user?.id, loadMessages, setActiveConversation, isMobile]);
 
   // Sync showMessages with isMobile and activeConversation
   // On mobile: show messages only if a conversation is selected, otherwise show the conversations list
