@@ -401,9 +401,9 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 </div>
 
                 {/* AddUnlistedBanknoteDialog button for owners */}
-                {isOwner && (
+                {isOwner && userId && (
                   <AddUnlistedBanknoteDialog
-                    userId={userId || ''}
+                    userId={userId}
                     countryName={countryName || ''}
                     onCreated={onAddUnlistedBanknote}
                   />
