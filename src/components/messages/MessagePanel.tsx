@@ -36,6 +36,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
@@ -52,7 +53,10 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
   }, [localMessages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      container.scrollTop = container.scrollHeight;
+    }
   };
 
   const fetchMessages = async () => {
@@ -208,6 +212,14 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     );
   }
 
+  if (!currentUserId) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-muted-foreground">Please sign in to view messages</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full min-h-0">
       {!recipientId && !recipientData ? (
@@ -216,7 +228,10 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
         </div>
       ) : (
         <>
-          <div className="flex-1 overflow-y-auto p-4 min-h-0">
+          <div 
+            ref={messagesContainerRef}
+            className="flex-1 overflow-y-auto p-4 min-h-0"
+          >
             {displayMessages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
@@ -254,35 +269,35 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
             <div ref={messagesEndRef} />
           </div>
 
-            {/* Daily activity warning for limited ranks */}
-            {isLimitedRank && hasReachedDailyLimit && (
-              <div className="mb-4 text-center">
-                <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
-                  <p className="text-red-600 dark:text-red-400 text-sm">
-                    You have reached your daily limit of 6 messages.
-                  </p>
-                </div>
+          {/* Daily activity warning for limited ranks */}
+          {isLimitedRank && hasReachedDailyLimit && (
+            <div className="mb-4 text-center">
+              <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
+                <p className="text-red-600 dark:text-red-400 text-sm">
+                  You have reached your daily limit of 6 messages.
+                </p>
               </div>
-            )}
+            </div>
+          )}
 
           <div className="flex items-center space-x-2 p-4 border-t">
-              <Input
-                ref={inputRef}
-                type="text"
-                placeholder="Enter your message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyPress}
-                disabled={isLimitedRank && hasReachedDailyLimit}
-                className="flex-1"
-              />
-              <Button 
-                onClick={handleSendMessage}
+            <Input
+              ref={inputRef}
+              type="text"
+              placeholder="Enter your message..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyPress}
+              disabled={isLimitedRank && hasReachedDailyLimit}
+              className="flex-1"
+            />
+            <Button 
+              onClick={handleSendMessage}
               disabled={(isLimitedRank && hasReachedDailyLimit) || !newMessage.trim()}
-                size="icon"
-              >
-                  <Send className="h-4 w-4" />
-              </Button>
+              size="icon"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
         </>
       )}
