@@ -70,14 +70,14 @@ export function normalizeBanknoteData(data: any, source: 'detailed' | 'unlisted'
       printer: data.printer || '',
       name: data.name || '',
       sealNames: data.seal_names || '',
-      // Add empty arrays for stamp URLs since unlisted banknotes don't have stamps
-      signaturesFrontUrls: [],
-      signaturesBackUrls: [],
-      sealPictureUrls: [],
-      watermarkUrl: null,
-      tughraUrl: null,
       authorityName: null,
-      // Add other fields that might be needed
+      // Map unlisted banknote image fields to match expected interface
+      signaturesFrontUrls: data.signatures_front || [],
+      signaturesBackUrls: data.signatures_back || [],
+      sealPictureUrls: data.seal_pictures || [],
+      watermarkUrl: data.watermark_picture || null,
+      tughraUrl: data.tughra_picture || null,
+      // Keep backward compatibility fields
       signaturePictureUrls: data.signature_pictures || [],
       sealPictures: data.seal_pictures || [],
       watermarkPicture: data.watermark_picture || null,
