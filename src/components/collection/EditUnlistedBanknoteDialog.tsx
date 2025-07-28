@@ -29,6 +29,7 @@ import { useAuth } from '@/context/AuthContext';
 import MultipleImageUpload from '@/components/admin/MultipleImageUpload';
 import { uploadStampImage } from '@/services/stampsService';
 import { ImageFile } from '@/types/stamps';
+import SimpleImageUpload from './SimpleImageUpload';
 
 const formSchema = z.object({
   // CollectionItem fields

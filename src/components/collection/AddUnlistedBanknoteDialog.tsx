@@ -38,6 +38,7 @@ import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
 import { format } from "date-fns";
+import SimpleImageUpload from './SimpleImageUpload';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
 import { getGradeDescription } from '@/utils/grading';
@@ -844,53 +845,23 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                       <div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Tughra */}
-                          <div>
+                          <div className="space-y-2">
                             <Label className="text-sm font-medium">Tughra</Label>
-                            <div className="mt-2 flex items-center gap-4">
-                              <div className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted">
-                                {tughraImageUrl ? (
-                                  <img src={tughraImageUrl} alt="Tughra" className="w-full h-full object-contain" />
-                                ) : (
-                                  <Upload className="h-8 w-8 text-muted-foreground" />
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleTughraImageUploaded(file);
-                                  }}
-                                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-foreground hover:file:bg-accent/90"
-                                />
-                              </div>
-                            </div>
+                            <SimpleImageUpload
+                              image={tughraImageUrl || ''}
+                              side="other"
+                              onImageUploaded={handleTughraImageUploaded}
+                            />
                           </div>
 
                           {/* Watermark */}
-                          <div>
+                          <div className="space-y-2">
                             <Label className="text-sm font-medium">Watermark</Label>
-                            <div className="mt-2 flex items-center gap-4">
-                              <div className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted">
-                                {watermarkImageUrl ? (
-                                  <img src={watermarkImageUrl} alt="Watermark" className="w-full h-full object-contain" />
-                                ) : (
-                                  <Upload className="h-8 w-8 text-muted-foreground" />
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleWatermarkImageUploaded(file);
-                                  }}
-                                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-foreground hover:file:bg-accent/90"
-                                />
-                              </div>
-                            </div>
+                            <SimpleImageUpload
+                              image={watermarkImageUrl || ''}
+                              side="other"
+                              onImageUploaded={handleWatermarkImageUploaded}
+                            />
                           </div>
                         </div>
                       </div>
@@ -924,14 +895,6 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                               images={form.watch('seal_files') || []}
                               onImagesChange={handleSealImagesChange}
                               label="Seals"
-                              maxImages={10}
-                            />
-                          </div>
-                          <div>
-                            <MultipleImageUpload
-                              images={form.watch('signature_files') || []}
-                              onImagesChange={handleSignatureImagesChange}
-                              label="Other Signatures"
                               maxImages={10}
                             />
                           </div>
