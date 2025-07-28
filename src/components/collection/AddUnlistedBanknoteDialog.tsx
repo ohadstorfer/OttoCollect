@@ -975,7 +975,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                       {/* Multiple Image Sections */}
                       <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                          <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
+                          <div className=" p-4 border rounded-lg bg-muted/5">
                             <MultipleImageUpload
                               images={form.watch('signatures_front_files') || []}
                               onImagesChange={handleSignaturesFrontImagesChange}

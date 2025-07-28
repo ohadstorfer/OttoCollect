@@ -1127,7 +1127,7 @@ export default function EditUnlistedBanknoteDialog({
                   {/* Multiple Image Sections */}
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
-                      <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
+                      <div className=" p-4 border rounded-lg bg-muted/5">
                         <MultipleImageUpload
                           images={form.watch('signatures_front_files') || []}
                           onImagesChange={handleSignaturesFrontImagesChange}
@@ -1135,7 +1135,7 @@ export default function EditUnlistedBanknoteDialog({
                           maxImages={10}
                         />
                       </div>
-                      <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
+                      <div className=" p-4 border rounded-lg bg-muted/5">
                         <MultipleImageUpload
                           images={form.watch('signatures_back_files') || []}
                           onImagesChange={handleSignaturesBackImagesChange}
@@ -1146,7 +1146,7 @@ export default function EditUnlistedBanknoteDialog({
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
-                      <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
+                      <div className=" p-4 border rounded-lg bg-muted/5">
                         <MultipleImageUpload
                           images={form.watch('seal_files') || []}
                           onImagesChange={handleSealImagesChange}
@@ -1154,7 +1154,7 @@ export default function EditUnlistedBanknoteDialog({
                           maxImages={10}
                         />
                       </div>
-                      <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
+                      <div className=" p-4 border rounded-lg bg-muted/5">
                         <MultipleImageUpload
                           images={form.watch('signature_files') || []}
                           onImagesChange={handleSignatureImagesChange}
@@ -1164,7 +1164,7 @@ export default function EditUnlistedBanknoteDialog({
                       </div>
                     </div>
 
-                    <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
+                    <div className=" p-4 border rounded-lg bg-muted/5">
                       <MultipleImageUpload
                         images={form.watch('other_element_files') || []}
                         onImagesChange={handleOtherElementImagesChange}
