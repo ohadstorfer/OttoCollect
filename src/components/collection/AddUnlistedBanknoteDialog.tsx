@@ -45,6 +45,7 @@ import ImageCropDialog from '@/components/shared/ImageCropDialog';
 import { useAuth } from "@/context/AuthContext";
 import MultipleImageUpload from '@/components/admin/MultipleImageUpload';
 import { uploadStampImage } from '@/services/stampsService';
+import { ImageFile } from '@/types/stamps';
 
 interface AddUnlistedBanknoteDialogProps {
   userId: string;
@@ -89,29 +90,19 @@ const formSchema = z.object({
   front_image_file: z.any().optional(),
   reverse_image_file: z.any().optional(),
   
-  // Additional stamp image fields
+  // Add dimensions field
+  dimensions: z.string().optional(),
+  
+  // Single image fields
   tughra_picture: z.string().optional(),
   watermark_picture: z.string().optional(),
-  other_element_files: z.array(z.object({
-    file: z.any(),
-    previewUrl: z.string()
-  })).optional(),
-  seal_files: z.array(z.object({
-    file: z.any(),
-    previewUrl: z.string()
-  })).optional(),
-  signature_files: z.array(z.object({
-    file: z.any(),
-    previewUrl: z.string()
-  })).optional(),
-  signatures_front_files: z.array(z.object({
-    file: z.any(),
-    previewUrl: z.string()
-  })).optional(),
-  signatures_back_files: z.array(z.object({
-    file: z.any(),
-    previewUrl: z.string()
-  })).optional(),
+  
+  // Multiple image fields
+  other_element_files: z.array(z.custom<ImageFile>()).optional(),
+  seal_files: z.array(z.custom<ImageFile>()).optional(),
+  signature_files: z.array(z.custom<ImageFile>()).optional(),
+  signatures_front_files: z.array(z.custom<ImageFile>()).optional(),
+  signatures_back_files: z.array(z.custom<ImageFile>()).optional(),
 });
 
 const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
@@ -151,7 +142,15 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       isForSale: false,
       purchasePrice: '',
       salePrice: '',
-      location: 'In my collection'
+      location: 'In my collection',
+      dimensions: '',
+      tughra_picture: '',
+      watermark_picture: '',
+      other_element_files: [],
+      seal_files: [],
+      signature_files: [],
+      signatures_front_files: [],
+      signatures_back_files: []
     }
   });
 
@@ -230,6 +229,37 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         reverseProcessedImages = await processAndUploadImage(reverseImageFile, 'collection-items', userId);
       }
 
+      // Upload additional image arrays
+      const otherElementUrls = [];
+      for (const img of values.other_element_files || []) {
+        const url = await uploadStampImage(img.file);
+        otherElementUrls.push(url);
+      }
+
+      const sealUrls = [];
+      for (const img of values.seal_files || []) {
+        const url = await uploadStampImage(img.file);
+        sealUrls.push(url);
+      }
+
+      const signatureUrls = [];
+      for (const img of values.signature_files || []) {
+        const url = await uploadStampImage(img.file);
+        signatureUrls.push(url);
+      }
+
+      const signaturesFrontUrls = [];
+      for (const img of values.signatures_front_files || []) {
+        const url = await uploadStampImage(img.file);
+        signaturesFrontUrls.push(url);
+      }
+
+      const signaturesBackUrls = [];
+      for (const img of values.signatures_back_files || []) {
+        const url = await uploadStampImage(img.file);
+        signaturesBackUrls.push(url);
+      }
+
       // Build the update data
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
       
@@ -279,6 +309,14 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         sale_price: values.salePrice === '' ? undefined : Number(values.salePrice),
         obverse_image: obverseProcessedImages?.original,
         reverse_image: reverseProcessedImages?.original,
+        dimensions: values.dimensions,
+        tughra_picture: values.tughra_picture || tughraImageUrl,
+        watermark_picture: values.watermark_picture || watermarkImageUrl,
+        other_element_pictures: otherElementUrls,
+        seal_pictures: sealUrls,
+        signature_pictures: signatureUrls,
+        signatures_front: signaturesFrontUrls,
+        signatures_back: signaturesBackUrls
       });
 
       if (result) {
@@ -305,12 +343,12 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
           description: "Banknote added successfully",
         });
 
-      if (onCreated) onCreated();
-      form.reset();
-      setObverseImageFile(null);
-      setReverseImageFile(null);
-      setObverseImagePreview(null);
-      setReverseImagePreview(null);
+        if (onCreated) onCreated();
+        form.reset();
+        setObverseImageFile(null);
+        setReverseImageFile(null);
+        setObverseImagePreview(null);
+        setReverseImagePreview(null);
         setOpen(false);
       } else {
         throw new Error("Failed to add banknote");
@@ -325,6 +363,57 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Image upload handlers for new fields
+  const handleTughraImageUploaded = async (file: File) => {
+    try {
+      const url = await uploadStampImage(file);
+      setTughraImageUrl(url);
+      form.setValue('tughra_picture', url);
+    } catch (error) {
+      console.error('Error uploading tughra image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload tughra image",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleWatermarkImageUploaded = async (file: File) => {
+    try {
+      const url = await uploadStampImage(file);
+      setWatermarkImageUrl(url);
+      form.setValue('watermark_picture', url);
+    } catch (error) {
+      console.error('Error uploading watermark image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload watermark image",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleOtherElementImagesChange = (images: ImageFile[]) => {
+    form.setValue('other_element_files', images);
+  };
+
+  const handleSealImagesChange = (images: ImageFile[]) => {
+    form.setValue('seal_files', images);
+  };
+
+  const handleSignatureImagesChange = (images: ImageFile[]) => {
+    form.setValue('signature_files', images);
+  };
+
+  const handleSignaturesFrontImagesChange = (images: ImageFile[]) => {
+    form.setValue('signatures_front_files', images);
+  };
+
+  const handleSignaturesBackImagesChange = (images: ImageFile[]) => {
+    form.setValue('signatures_back_files', images);
   };
 
   return (
@@ -624,206 +713,333 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                   )}
                 />
 
-                {/* Custom Images */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium"><span>Custom Images</span></h3>
-                  <p className="text-muted-foreground text-sm">
-                    Upload your own images of the banknote (optional)
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Obverse */}
-                    <div>
-                      <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
-                      <div className="mt-2 flex items-center gap-4">
-                        <div
-                          onClick={() => obverseImagePreview && openImageViewer(obverseImagePreview)}
-                          className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
-                        >
-                          {obverseImagePreview ? (
-                            <img src={obverseImagePreview} alt="Obverse preview" className="w-full h-full object-contain" />
-                          ) : (
-                            <Upload className="h-8 w-8 text-muted-foreground" />
-                          )}
-                        </div>
-                        <div className="flex flex-col gap-2">
-                        <input
-                          id="obverseImage"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleObverseImageChange}
-                          className="hidden"
-                            ref={obverseInputRef}
-                          />
-                          {obverseImagePreview && (
-                            <>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleCropClick(obverseImagePreview, 'obverse')}
+                {/* Custom Images Section */}
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg border border-muted bg-background px-4 py-3 text-sm font-medium transition-all hover:bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <span>Images</span>
+                      <span className="text-xs text-muted-foreground">(Front, Back, Details, Stamps)</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4 pb-6">
+                    {/* Main Banknote Images */}
+                    <div className="space-y-6">
+                      <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Obverse */}
+                          <div>
+                            <Label htmlFor="obverseImage">Obverse (Front) Image</Label>
+                            <div className="mt-2 flex items-center gap-4">
+                              <div
+                                onClick={() => obverseImagePreview && openImageViewer(obverseImagePreview)}
+                                className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer hover:bg-muted/80 transition-colors"
                               >
-                                Edit Image
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => obverseInputRef.current?.click()}
+                                {obverseImagePreview ? (
+                                  <img src={obverseImagePreview} alt="Obverse preview" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Upload className="h-8 w-8 text-muted-foreground" />
+                                )}
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <input
+                                  id="obverseImage"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleObverseImageChange}
+                                  className="hidden"
+                                  ref={obverseInputRef}
+                                />
+                                {obverseImagePreview ? (
+                                  <>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleCropClick(obverseImagePreview, 'obverse')}
+                                    >
+                                      Edit Image
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => obverseInputRef.current?.click()}
+                                    >
+                                      Change Image
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => obverseInputRef.current?.click()}
+                                  >
+                                    Upload Image
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          {/* Reverse */}
+                          <div>
+                            <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
+                            <div className="mt-2 flex items-center gap-4">
+                              <div
+                                onClick={() => reverseImagePreview && openImageViewer(reverseImagePreview)}
+                                className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer hover:bg-muted/80 transition-colors"
                               >
-                                Change Image
-                              </Button>
-                            </>
-                          )}
-                          {!obverseImagePreview && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => obverseInputRef.current?.click()}
-                            >
-                              Upload Image
-                            </Button>
-                          )}
+                                {reverseImagePreview ? (
+                                  <img src={reverseImagePreview} alt="Reverse preview" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Upload className="h-8 w-8 text-muted-foreground" />
+                                )}
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <input
+                                  id="reverseImage"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleReverseImageChange}
+                                  className="hidden"
+                                  ref={reverseInputRef}
+                                />
+                                {reverseImagePreview ? (
+                                  <>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleCropClick(reverseImagePreview, 'reverse')}
+                                    >
+                                      Edit Image
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => reverseInputRef.current?.click()}
+                                    >
+                                      Change Image
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => reverseInputRef.current?.click()}
+                                  >
+                                    Upload Image
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    {/* Reverse */}
-                    <div>
-                      <Label htmlFor="reverseImage">Reverse (Back) Image</Label>
-                      <div className="mt-2 flex items-center gap-4">
-                        <div
-                          onClick={() => reverseImagePreview && openImageViewer(reverseImagePreview)}
-                          className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer"
-                        >
-                          {reverseImagePreview ? (
-                            <img src={reverseImagePreview} alt="Reverse preview" className="w-full h-full object-contain" />
-                          ) : (
-                            <Upload className="h-8 w-8 text-muted-foreground" />
-                          )}
-                        </div>
-                        <div className="flex flex-col gap-2">
-                        <input
-                          id="reverseImage"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleReverseImageChange}
-                          className="hidden"
-                            ref={reverseInputRef}
-                          />
-                          {reverseImagePreview && (
-                            <>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleCropClick(reverseImagePreview, 'reverse')}
-                              >
-                                Edit Image
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => reverseInputRef.current?.click()}
-                              >
-                                Change Image
-                              </Button>
-                            </>
-                          )}
-                          {!reverseImagePreview && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => reverseInputRef.current?.click()}
-                            >
-                              Upload Image
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Extra Fields Dropdown */}
-                <div>
-                  <Collapsible>
-                    <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg border border-muted bg-background px-4 py-3 text-sm font-medium transition-all hover:bg-muted/50">
-                      <span>Extra Fields</span>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                        <FormField
-                          control={form.control}
-                          name="gregorian_year"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Gregorian Year</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="e.g., 1923" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="islamic_year"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Islamic Year</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="e.g., 1342" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="sultan_name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Sultan Name</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Sultan." />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="printer"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Printer</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Printer" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="rarity"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Rarity</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Rarity" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                      {/* Special Features */}
+                      <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Tughra */}
+                          <div>
+                            <Label className="text-sm font-medium">Tughra</Label>
+                            <div className="mt-2 flex items-center gap-4">
+                              <div className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted">
+                                {tughraImageUrl ? (
+                                  <img src={tughraImageUrl} alt="Tughra" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Upload className="h-8 w-8 text-muted-foreground" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleTughraImageUploaded(file);
+                                  }}
+                                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-foreground hover:file:bg-accent/90"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Watermark */}
+                          <div>
+                            <Label className="text-sm font-medium">Watermark</Label>
+                            <div className="mt-2 flex items-center gap-4">
+                              <div className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted">
+                                {watermarkImageUrl ? (
+                                  <img src={watermarkImageUrl} alt="Watermark" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Upload className="h-8 w-8 text-muted-foreground" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleWatermarkImageUploaded(file);
+                                  }}
+                                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-foreground hover:file:bg-accent/90"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Multiple Image Sections */}
+                      <div className="space-y-6">
+                        <h4 className="text-sm font-medium mb-4">Additional Details</h4>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <MultipleImageUpload
+                              images={form.watch('signatures_front_files') || []}
+                              onImagesChange={handleSignaturesFrontImagesChange}
+                              label="Front Signatures"
+                              maxImages={10}
+                            />
+                          </div>
+                          <div>
+                            <MultipleImageUpload
+                              images={form.watch('signatures_back_files') || []}
+                              onImagesChange={handleSignaturesBackImagesChange}
+                              label="Back Signatures"
+                              maxImages={10}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <MultipleImageUpload
+                              images={form.watch('seal_files') || []}
+                              onImagesChange={handleSealImagesChange}
+                              label="Seals"
+                              maxImages={10}
+                            />
+                          </div>
+                          <div>
+                            <MultipleImageUpload
+                              images={form.watch('signature_files') || []}
+                              onImagesChange={handleSignatureImagesChange}
+                              label="Other Signatures"
+                              maxImages={10}
+                            />
+                          </div>
+                        </div>
+
+                        <MultipleImageUpload
+                          images={form.watch('other_element_files') || []}
+                          onImagesChange={handleOtherElementImagesChange}
+                          label="Other Elements"
+                          maxImages={10}
                         />
                       </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Extra Fields Section */}
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg border border-muted bg-background px-4 py-3 text-sm font-medium transition-all hover:bg-muted/50">
+                    <span>Extra Fields</span>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                      <FormField
+                        control={form.control}
+                        name="gregorian_year"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Gregorian Year</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="e.g., 1923" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="islamic_year"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Islamic Year</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="e.g., 1342" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="sultan_name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Sultan Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Sultan." />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="printer"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Printer</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Printer" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="rarity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Rarity</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Rarity" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dimensions"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dimensions</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="e.g. 156 x 67 mm" />
+                            </FormControl>
+                            <FormDescription>
+                              Enter the banknote dimensions in millimeters
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
 
                 <div className="py-6">
                   <div className="w-full h-px bg-muted" />

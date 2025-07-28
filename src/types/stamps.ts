@@ -20,3 +20,20 @@ export interface StampUploadData {
   image_url: string;
   country_id: string;
 }
+
+export interface ImageFile {
+  file: File;
+  previewUrl: string;
+}
+
+export interface StampImage {
+  id: string;
+  url: string;
+  type: 'tughra' | 'watermark' | 'other_element' | 'seal' | 'signature' | 'signature_front' | 'signature_back';
+  created_at: string;
+}
+
+export interface StampImageUploadResponse {
+  url: string;
+  id: string;
+}

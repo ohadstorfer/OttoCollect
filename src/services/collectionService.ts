@@ -1098,6 +1098,14 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
   sale_price?: number;
   name?: string;
   seal_names?: string;
+  dimensions?: string;
+  tughra_picture?: string;
+  watermark_picture?: string;
+  other_element_pictures?: string[];
+  seal_pictures?: string[];
+  signature_pictures?: string[];
+  signatures_front?: string[];
+  signatures_back?: string[];
 }): Promise<{ id: string; banknoteId: string } | null> {
   try {
     // Create unlisted banknote

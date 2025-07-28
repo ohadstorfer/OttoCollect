@@ -28,6 +28,7 @@ import ImageCropDialog from '@/components/shared/ImageCropDialog';
 import { useAuth } from '@/context/AuthContext';
 import MultipleImageUpload from '@/components/admin/MultipleImageUpload';
 import { uploadStampImage } from '@/services/stampsService';
+import { ImageFile } from '@/types/stamps';
 
 const formSchema = z.object({
   // CollectionItem fields
@@ -65,29 +66,19 @@ const formSchema = z.object({
   front_image_file: z.any().optional(),
   reverse_image_file: z.any().optional(),
   
-  // Additional stamp image fields
+  // Add dimensions field
+  dimensions: z.string().optional(),
+  
+  // Single image fields
   tughra_picture: z.string().optional(),
   watermark_picture: z.string().optional(),
-  other_element_files: z.array(z.object({
-    file: z.any(),
-    previewUrl: z.string()
-  })).optional(),
-  seal_files: z.array(z.object({
-    file: z.any(),
-    previewUrl: z.string()
-  })).optional(),
-  signature_files: z.array(z.object({
-    file: z.any(),
-    previewUrl: z.string()
-  })).optional(),
-  signatures_front_files: z.array(z.object({
-    file: z.any(),
-    previewUrl: z.string()
-  })).optional(),
-  signatures_back_files: z.array(z.object({
-    file: z.any(),
-    previewUrl: z.string()
-  })).optional(),
+  
+  // Multiple image fields
+  other_element_files: z.array(z.custom<ImageFile>()).optional(),
+  seal_files: z.array(z.custom<ImageFile>()).optional(),
+  signature_files: z.array(z.custom<ImageFile>()).optional(),
+  signatures_front_files: z.array(z.custom<ImageFile>()).optional(),
+  signatures_back_files: z.array(z.custom<ImageFile>()).optional(),
 });
 
 interface EditUnlistedBanknoteDialogProps {
@@ -196,6 +187,9 @@ export default function EditUnlistedBanknoteDialog({
       signature_files: [],
       signatures_front_files: [],
       signatures_back_files: [],
+      dimensions: collectionItem.banknote?.dimensions || '',
+      tughra_picture: collectionItem.banknote?.tughraUrl || '',
+      watermark_picture: collectionItem.banknote?.watermarkUrl || '',
     }
   });
 
@@ -296,23 +290,23 @@ export default function EditUnlistedBanknoteDialog({
     }
   };
 
-  const handleOtherElementImagesChange = (images: { file: File; previewUrl: string }[]) => {
+  const handleOtherElementImagesChange = (images: ImageFile[]) => {
     form.setValue('other_element_files', images);
   };
 
-  const handleSealImagesChange = (images: { file: File; previewUrl: string }[]) => {
+  const handleSealImagesChange = (images: ImageFile[]) => {
     form.setValue('seal_files', images);
   };
 
-  const handleSignatureImagesChange = (images: { file: File; previewUrl: string }[]) => {
+  const handleSignatureImagesChange = (images: ImageFile[]) => {
     form.setValue('signature_files', images);
   };
 
-  const handleSignaturesFrontImagesChange = (images: { file: File; previewUrl: string }[]) => {
+  const handleSignaturesFrontImagesChange = (images: ImageFile[]) => {
     form.setValue('signatures_front_files', images);
   };
 
-  const handleSignaturesBackImagesChange = (images: { file: File; previewUrl: string }[]) => {
+  const handleSignaturesBackImagesChange = (images: ImageFile[]) => {
     form.setValue('signatures_back_files', images);
   };
 
@@ -811,6 +805,22 @@ export default function EditUnlistedBanknoteDialog({
                             <FormControl>
                               <Input {...field} />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dimensions"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dimensions</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="e.g. 156 x 67 mm" />
+                            </FormControl>
+                            <FormDescription>
+                              Enter the banknote dimensions in millimeters
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
