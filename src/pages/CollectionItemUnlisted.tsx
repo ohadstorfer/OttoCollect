@@ -18,6 +18,7 @@ import EditUnlistedBanknoteDialog from "@/components/collection/EditUnlistedBank
 import { submitImageSuggestion, hasExistingImageSuggestion } from "@/services/imageSuggestionsService";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
+import BanknoteCollectionDetaiUnlisted from "./BanknoteCollectionDetaiUnlisted";
 
 interface LabelValuePairProps {
   label: string;
@@ -563,7 +564,7 @@ export default function CollectionItemUnlisted() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <BanknoteCollectionDetail isOwner={isOwner} />
+                <BanknoteCollectionDetaiUnlisted isOwner={isOwner} />
               </CardContent>
             </Card>
             
@@ -596,7 +597,7 @@ export default function CollectionItemUnlisted() {
         onClose={() => setIsEditDialogOpen(false)}
         onUpdate={handleUpdateSuccess}
         collectionItem={collectionItem}
-        user={user}
+        // user={user}
       />
 
       {/* Delete Confirmation Dialog */}
