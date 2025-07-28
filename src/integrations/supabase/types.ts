@@ -1387,6 +1387,7 @@ export type Database = {
           colors: string | null
           country: string
           created_at: string | null
+          dimensions: string | null
           extended_pick_number: string | null
           face_value: string
           front_picture: string | null
@@ -1408,8 +1409,8 @@ export type Database = {
           security_element: string | null
           serial_numbering: string | null
           signature_pictures: string[] | null
-          signatures_back: string | null
-          signatures_front: string | null
+          signatures_back: string[] | null
+          signatures_front: string[] | null
           sultan_name: string | null
           tughra_picture: string | null
           turk_catalog_number: string | null
@@ -1427,6 +1428,7 @@ export type Database = {
           colors?: string | null
           country: string
           created_at?: string | null
+          dimensions?: string | null
           extended_pick_number?: string | null
           face_value: string
           front_picture?: string | null
@@ -1448,8 +1450,8 @@ export type Database = {
           security_element?: string | null
           serial_numbering?: string | null
           signature_pictures?: string[] | null
-          signatures_back?: string | null
-          signatures_front?: string | null
+          signatures_back?: string[] | null
+          signatures_front?: string[] | null
           sultan_name?: string | null
           tughra_picture?: string | null
           turk_catalog_number?: string | null
@@ -1467,6 +1469,7 @@ export type Database = {
           colors?: string | null
           country?: string
           created_at?: string | null
+          dimensions?: string | null
           extended_pick_number?: string | null
           face_value?: string
           front_picture?: string | null
@@ -1488,8 +1491,8 @@ export type Database = {
           security_element?: string | null
           serial_numbering?: string | null
           signature_pictures?: string[] | null
-          signatures_back?: string | null
-          signatures_front?: string | null
+          signatures_back?: string[] | null
+          signatures_front?: string[] | null
           sultan_name?: string | null
           tughra_picture?: string | null
           turk_catalog_number?: string | null
