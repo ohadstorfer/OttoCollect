@@ -326,7 +326,7 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
           )}
 
           {/* Display resolved tughra picture URL from enhanced view */}
-          {collectionItem.banknote?.tughra && (
+          {collectionItem.banknote?.tughraUrl && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
               <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Tughra Picture</span>
               <img
