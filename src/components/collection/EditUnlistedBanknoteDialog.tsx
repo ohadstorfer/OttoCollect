@@ -138,17 +138,15 @@ export default function EditUnlistedBanknoteDialog({
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [selectedImageToCrop, setSelectedImageToCrop] = useState<{
     url: string;
-    type: 'obverse' | 'reverse';
+    type: 'obverse' | 'reverse' | 'tughra' | 'watermark';
   } | null>(null);
-  const [imagePreviewDialogOpen, setImagePreviewDialogOpen] = useState(false);
-  const [previewImage, setPreviewImage] = useState<{ url: string; alt: string } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const obverseInputRef = useRef<HTMLInputElement>(null);
   const reverseInputRef = useRef<HTMLInputElement>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   
   // State for additional image uploads
-  const [tughraImageUrl, setTughraImageUrl] = useState<string>(collectionItem.banknote?.tughraUrl || '');
-  const [watermarkImageUrl, setWatermarkImageUrl] = useState<string>(collectionItem.banknote?.watermarkUrl || '');
+  const [tughraImageUrl, setTughraImageUrl] = useState<string>('');
+  const [watermarkImageUrl, setWatermarkImageUrl] = useState<string>('');
 
   const { currencies, loading: loadingCurrencies } = useCountryCurrencies(collectionItem.banknote?.country || '');
   const { categories, loading: loadingCategories } = useCountryCategoryDefs(collectionItem.banknote?.country || '');
@@ -213,13 +211,15 @@ export default function EditUnlistedBanknoteDialog({
     }
   };
 
-  const handleCropClick = (imageUrl: string | null, type: 'obverse' | 'reverse') => {
+  // Update the handleCropClick function to handle all image types
+  const handleCropClick = (imageUrl: string, type: 'obverse' | 'reverse' | 'tughra' | 'watermark') => {
     if (imageUrl) {
       setSelectedImageToCrop({ url: imageUrl, type });
       setCropDialogOpen(true);
     }
   };
 
+  // Update the handleCroppedImage function to handle all image types
   const handleCroppedImage = async (croppedImageUrl: string) => {
     try {
       // Convert data URL to Blob
@@ -233,10 +233,18 @@ export default function EditUnlistedBanknoteDialog({
         setObverseImageFile(file);
         setObverseImagePreview(URL.createObjectURL(file));
         form.setValue("front_image_file", file);
-      } else {
+      } else if (selectedImageToCrop?.type === 'reverse') {
         setReverseImageFile(file);
         setReverseImagePreview(URL.createObjectURL(file));
         form.setValue("reverse_image_file", file);
+      } else if (selectedImageToCrop?.type === 'tughra') {
+        const url = await uploadStampImage(file);
+        setTughraImageUrl(url);
+        form.setValue('tughra_picture', url);
+      } else if (selectedImageToCrop?.type === 'watermark') {
+        const url = await uploadStampImage(file);
+        setWatermarkImageUrl(url);
+        form.setValue('watermark_picture', url);
       }
     } catch (error) {
       console.error('Error saving cropped image:', error);
@@ -995,92 +1003,172 @@ export default function EditUnlistedBanknoteDialog({
                     <span className="text-sm text-muted-foreground">Stamp and detail images</span>
                   </div>
 
-                  <div className="space-y-6">
-                    {/* Single Image Uploads */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Special Features */}
+                  <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Tughra */}
                       <div>
-                        <Label className="text-sm font-medium">Tughra Picture</Label>
-                        <div className="mt-2">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleTughraImageUploaded(file);
-                            }}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                          />
-                          {tughraImageUrl && (
-                            <div className="mt-2">
-                              <img src={tughraImageUrl} alt="Tughra" className="h-20 w-20 object-cover rounded" />
-                            </div>
-                          )}
+                        <Label htmlFor="tughraImage">Tughra Image</Label>
+                        <div className="mt-2 flex items-center gap-4">
+                          <div
+                            onClick={() => tughraImageUrl && openImageViewer(tughraImageUrl)}
+                            className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer hover:bg-muted/80 transition-colors"
+                          >
+                            {tughraImageUrl ? (
+                              <img src={tughraImageUrl} alt="Tughra preview" className="w-full h-full object-contain" />
+                            ) : (
+                              <Upload className="h-8 w-8 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <input
+                              id="tughraImage"
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleTughraImageUploaded(file);
+                              }}
+                              className="hidden"
+                            />
+                            {tughraImageUrl ? (
+                              <>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleCropClick(tughraImageUrl, 'tughra')}
+                                >
+                                  Edit Image
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => document.getElementById('tughraImage')?.click()}
+                                >
+                                  Change Image
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => document.getElementById('tughraImage')?.click()}
+                              >
+                                Upload Image
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
 
+                      {/* Watermark */}
                       <div>
-                        <Label className="text-sm font-medium">Watermark Picture</Label>
-                        <div className="mt-2">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleWatermarkImageUploaded(file);
-                            }}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                          />
-                          {watermarkImageUrl && (
-                            <div className="mt-2">
-                              <img src={watermarkImageUrl} alt="Watermark" className="h-20 w-20 object-cover rounded" />
-                            </div>
-                          )}
+                        <Label htmlFor="watermarkImage">Watermark Image</Label>
+                        <div className="mt-2 flex items-center gap-4">
+                          <div
+                            onClick={() => watermarkImageUrl && openImageViewer(watermarkImageUrl)}
+                            className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer hover:bg-muted/80 transition-colors"
+                          >
+                            {watermarkImageUrl ? (
+                              <img src={watermarkImageUrl} alt="Watermark preview" className="w-full h-full object-contain" />
+                            ) : (
+                              <Upload className="h-8 w-8 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <input
+                              id="watermarkImage"
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleWatermarkImageUploaded(file);
+                              }}
+                              className="hidden"
+                            />
+                            {watermarkImageUrl ? (
+                              <>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleCropClick(watermarkImageUrl, 'watermark')}
+                                >
+                                  Edit Image
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => document.getElementById('watermarkImage')?.click()}
+                                >
+                                  Change Image
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => document.getElementById('watermarkImage')?.click()}
+                              >
+                                Upload Image
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Multiple Image Uploads */}
-                    <div className="space-y-4">
+                  {/* Multiple Image Sections */}
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
+                      <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
+                        <MultipleImageUpload
+                          images={form.watch('signatures_front_files') || []}
+                          onImagesChange={handleSignaturesFrontImagesChange}
+                          label="Front Signatures"
+                          maxImages={10}
+                        />
+                      </div>
+                      <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
+                        <MultipleImageUpload
+                          images={form.watch('signatures_back_files') || []}
+                          onImagesChange={handleSignaturesBackImagesChange}
+                          label="Back Signatures"
+                          maxImages={10}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
+                      <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
+                        <MultipleImageUpload
+                          images={form.watch('seal_files') || []}
+                          onImagesChange={handleSealImagesChange}
+                          label="Seals"
+                          maxImages={10}
+                        />
+                      </div>
+                      <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
+                        <MultipleImageUpload
+                          images={form.watch('signature_files') || []}
+                          onImagesChange={handleSignatureImagesChange}
+                          label="Other Signatures"
+                          maxImages={10}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
                       <MultipleImageUpload
                         images={form.watch('other_element_files') || []}
                         onImagesChange={handleOtherElementImagesChange}
-                        label="Other Element Pictures"
-                        maxImages={10}
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                      <MultipleImageUpload
-                        images={form.watch('seal_files') || []}
-                        onImagesChange={handleSealImagesChange}
-                        label="Seal Pictures"
-                        maxImages={10}
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                      <MultipleImageUpload
-                        images={form.watch('signature_files') || []}
-                        onImagesChange={handleSignatureImagesChange}
-                        label="Signature Pictures"
-                        maxImages={10}
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                      <MultipleImageUpload
-                        images={form.watch('signatures_front_files') || []}
-                        onImagesChange={handleSignaturesFrontImagesChange}
-                        label="Front Signatures"
-                        maxImages={10}
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                      <MultipleImageUpload
-                        images={form.watch('signatures_back_files') || []}
-                        onImagesChange={handleSignaturesBackImagesChange}
-                        label="Back Signatures"
+                        label="Other Images"
                         maxImages={10}
                       />
                     </div>

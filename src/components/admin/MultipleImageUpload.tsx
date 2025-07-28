@@ -156,7 +156,7 @@ const MultipleImageUpload: React.FC<MultipleImageUploadProps> = ({
                 <img
                   src={imageFile.previewUrl}
                   alt={`Image ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain p-2"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = '/placeholder.svg';

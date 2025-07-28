@@ -122,7 +122,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [selectedImageToCrop, setSelectedImageToCrop] = useState<{
     url: string;
-    type: 'obverse' | 'reverse';
+    type: 'obverse' | 'reverse' | 'tughra' | 'watermark';
   } | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const obverseInputRef = useRef<HTMLInputElement>(null);
@@ -173,13 +173,15 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
     }
   };
 
-  const handleCropClick = (imageUrl: string | null, type: 'obverse' | 'reverse') => {
+  // Update the handleCropClick function to handle all image types
+  const handleCropClick = (imageUrl: string, type: 'obverse' | 'reverse' | 'tughra' | 'watermark') => {
     if (imageUrl) {
       setSelectedImageToCrop({ url: imageUrl, type });
       setCropDialogOpen(true);
     }
   };
 
+  // Update the handleCroppedImage function to handle all image types
   const handleCroppedImage = async (croppedImageUrl: string) => {
     try {
       // Convert data URL to Blob
@@ -193,10 +195,18 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         setObverseImageFile(file);
         setObverseImagePreview(URL.createObjectURL(file));
         form.setValue("front_image_file", file);
-      } else {
+      } else if (selectedImageToCrop?.type === 'reverse') {
         setReverseImageFile(file);
         setReverseImagePreview(URL.createObjectURL(file));
         form.setValue("reverse_image_file", file);
+      } else if (selectedImageToCrop?.type === 'tughra') {
+        const url = await uploadStampImage(file);
+        setTughraImageUrl(url);
+        form.setValue('tughra_picture', url);
+      } else if (selectedImageToCrop?.type === 'watermark') {
+        const url = await uploadStampImage(file);
+        setWatermarkImageUrl(url);
+        form.setValue('watermark_picture', url);
       }
     } catch (error) {
       console.error('Error saving cropped image:', error);
@@ -845,33 +855,127 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                       <div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Tughra */}
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium">Tughra</Label>
-                            <SimpleImageUpload
-                              image={tughraImageUrl || ''}
-                              side="other"
-                              onImageUploaded={handleTughraImageUploaded}
-                            />
+                          <div>
+                            <Label htmlFor="tughraImage">Tughra Image</Label>
+                            <div className="mt-2 flex items-center gap-4">
+                              <div
+                                onClick={() => tughraImageUrl && openImageViewer(tughraImageUrl)}
+                                className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer hover:bg-muted/80 transition-colors"
+                              >
+                                {tughraImageUrl ? (
+                                  <img src={tughraImageUrl} alt="Tughra preview" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Upload className="h-8 w-8 text-muted-foreground" />
+                                )}
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <input
+                                  id="tughraImage"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleTughraImageUploaded(file);
+                                  }}
+                                  className="hidden"
+                                />
+                                {tughraImageUrl ? (
+                                  <>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleCropClick(tughraImageUrl, 'tughra')}
+                                    >
+                                      Edit Image
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => document.getElementById('tughraImage')?.click()}
+                                    >
+                                      Change Image
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => document.getElementById('tughraImage')?.click()}
+                                  >
+                                    Upload Image
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
                           </div>
 
                           {/* Watermark */}
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium">Watermark</Label>
-                            <SimpleImageUpload
-                              image={watermarkImageUrl || ''}
-                              side="other"
-                              onImageUploaded={handleWatermarkImageUploaded}
-                            />
+                          <div>
+                            <Label htmlFor="watermarkImage">Watermark Image</Label>
+                            <div className="mt-2 flex items-center gap-4">
+                              <div
+                                onClick={() => watermarkImageUrl && openImageViewer(watermarkImageUrl)}
+                                className="relative w-24 h-24 border rounded flex items-center justify-center overflow-hidden bg-muted cursor-pointer hover:bg-muted/80 transition-colors"
+                              >
+                                {watermarkImageUrl ? (
+                                  <img src={watermarkImageUrl} alt="Watermark preview" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Upload className="h-8 w-8 text-muted-foreground" />
+                                )}
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <input
+                                  id="watermarkImage"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleWatermarkImageUploaded(file);
+                                  }}
+                                  className="hidden"
+                                />
+                                {watermarkImageUrl ? (
+                                  <>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleCropClick(watermarkImageUrl, 'watermark')}
+                                    >
+                                      Edit Image
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => document.getElementById('watermarkImage')?.click()}
+                                    >
+                                      Change Image
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => document.getElementById('watermarkImage')?.click()}
+                                  >
+                                    Upload Image
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
 
                       {/* Multiple Image Sections */}
                       <div className="space-y-6">
-                        <h4 className="text-sm font-medium mb-4">Additional Details</h4>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
+                        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                          <div className="min-h-[400px] p-4 border rounded-lg bg-muted/5">
                             <MultipleImageUpload
                               images={form.watch('signatures_front_files') || []}
                               onImagesChange={handleSignaturesFrontImagesChange}
@@ -879,7 +983,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                               maxImages={10}
                             />
                           </div>
-                          <div>
+                          <div className=" p-4 border rounded-lg bg-muted/5">
                             <MultipleImageUpload
                               images={form.watch('signatures_back_files') || []}
                               onImagesChange={handleSignaturesBackImagesChange}
@@ -889,8 +993,8 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
+                        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                          <div className=" p-4 border rounded-lg bg-muted/5">
                             <MultipleImageUpload
                               images={form.watch('seal_files') || []}
                               onImagesChange={handleSealImagesChange}
@@ -898,14 +1002,24 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                               maxImages={10}
                             />
                           </div>
+                          <div className=" p-4 border rounded-lg bg-muted/5">
+                            <MultipleImageUpload
+                              images={form.watch('signature_files') || []}
+                              onImagesChange={handleSignatureImagesChange}
+                              label="Other Signatures"
+                              maxImages={10}
+                            />
+                          </div>
                         </div>
 
-                        <MultipleImageUpload
-                          images={form.watch('other_element_files') || []}
-                          onImagesChange={handleOtherElementImagesChange}
-                          label="Other Elements"
-                          maxImages={10}
-                        />
+                        <div className=" p-4 border rounded-lg bg-muted/5">
+                          <MultipleImageUpload
+                            images={form.watch('other_element_files') || []}
+                            onImagesChange={handleOtherElementImagesChange}
+                            label="Other Images"
+                            maxImages={10}
+                          />
+                        </div>
                       </div>
                     </div>
                   </CollapsibleContent>
