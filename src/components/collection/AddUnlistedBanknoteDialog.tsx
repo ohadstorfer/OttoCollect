@@ -291,6 +291,20 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         grade = null;
         grade_condition_description = null;
       }
+
+      // Debug logging - Check all form values and variables
+      console.log('DEBUG: Form values from react-hook-form:', JSON.stringify(values, null, 2));
+      console.log('DEBUG: Face value:', face_value);
+      console.log('DEBUG: Country name:', countryName);
+      console.log('DEBUG: User ID:', userId);
+      console.log('DEBUG: Types array:', types);
+      console.log('DEBUG: Categories array:', categories);
+      console.log('DEBUG: Condition value:', condition);
+      console.log('DEBUG: Grade values:', { grade_by, grade, grade_condition_description });
+      console.log('DEBUG: Type ID:', values.typeId);
+      console.log('DEBUG: Category ID:', values.categoryId);
+      console.log('DEBUG: Found type:', types.find(t => t.id === values.typeId));
+      console.log('DEBUG: Found category:', categories.find(c => c.id === values.categoryId));
       
       const result = await createUnlistedBanknoteWithCollectionItem({
         userId: userId,

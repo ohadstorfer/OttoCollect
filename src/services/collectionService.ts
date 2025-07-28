@@ -1108,36 +1108,40 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
   signatures_back?: string[];
 }): Promise<{ id: string; banknoteId: string } | null> {
   try {
+    // Debug logging - inspect all parameters
+    console.log('DEBUG: createUnlistedBanknoteWithCollectionItem params:', JSON.stringify(params, null, 2));
+    
+    // Prepare data for unlisted_banknotes insert (remove user_id as it doesn't exist in unlisted_banknotes table)
+    const banknoteData = {
+      country: params.country,
+      extended_pick_number: params.extended_pick_number,
+      pick_number: params.pick_number || null,
+      turk_catalog_number: params.turk_catalog_number || null,
+      face_value: params.face_value,
+      gregorian_year: params.gregorian_year || null,
+      islamic_year: params.islamic_year || null,
+      sultan_name: params.sultan_name || null,
+      printer: params.printer || null,
+      type: params.type || null,
+      category: params.category || null,
+      rarity: params.rarity || null,
+      name: params.name || null,
+      dimensions: params.dimensions || null,
+      tughra_picture: params.tughra_picture || null,
+      watermark_picture: params.watermark_picture || null,
+      other_element_pictures: params.other_element_pictures && params.other_element_pictures.length > 0 ? params.other_element_pictures : null,
+      seal_pictures: params.seal_pictures && params.seal_pictures.length > 0 ? params.seal_pictures : null,
+      signature_pictures: params.signature_pictures && params.signature_pictures.length > 0 ? params.signature_pictures : null,
+      signatures_front: params.signatures_front && params.signatures_front.length > 0 ? params.signatures_front : null,
+      signatures_back: params.signatures_back && params.signatures_back.length > 0 ? params.signatures_back : null,
+    };
+
+    console.log('DEBUG: banknoteData for unlisted_banknotes insert:', JSON.stringify(banknoteData, null, 2));
+
     // Create unlisted banknote
     const { data: banknote, error: banknoteError } = await supabase
       .from('unlisted_banknotes')
-      .insert({
-        user_id: params.userId,
-        country: params.country,
-        extended_pick_number: params.extended_pick_number,
-        pick_number: params.pick_number,
-        turk_catalog_number: params.turk_catalog_number,
-        face_value: params.face_value,
-        gregorian_year: params.gregorian_year,
-        islamic_year: params.islamic_year,
-        sultan_name: params.sultan_name,
-        printer: params.printer,
-        type: params.type,
-        category: params.category || 'Unlisted Banknotes',
-        rarity: params.rarity,
-        banknote_description: params.banknote_description,
-        historical_description: params.historical_description,
-        name: params.name,
-        seal_names: params.seal_names,
-        dimensions: params.dimensions,
-        tughra_picture: params.tughra_picture,
-        watermark_picture: params.watermark_picture,
-        other_element_pictures: params.other_element_pictures,
-        seal_pictures: params.seal_pictures,
-        signature_pictures: params.signature_pictures,
-        signatures_front: params.signatures_front,
-        signatures_back: params.signatures_back,
-      })
+      .insert(banknoteData)
       .select()
       .single();
 
@@ -1146,27 +1150,34 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
       throw banknoteError;
     }
 
+    console.log('DEBUG: Successfully created unlisted banknote:', banknote);
+
+    // Prepare data for collection_items insert
+    const collectionItemData = {
+      user_id: params.userId,
+      unlisted_banknotes_id: banknote.id,
+      condition: params.condition || null,
+      grade_by: params.grade_by || null,
+      grade: params.grade || null,
+      grade_condition_description: params.grade_condition_description || null,
+      public_note: params.public_note || null,
+      private_note: params.private_note || null,
+      purchase_price: params.purchase_price || null,
+      purchase_date: params.purchase_date || null,
+      location: params.location || null,
+      is_for_sale: params.is_for_sale || false,
+      sale_price: params.sale_price || null,
+      obverse_image: params.obverse_image || null,
+      reverse_image: params.reverse_image || null,
+      is_unlisted_banknote: true,
+    };
+
+    console.log('DEBUG: collectionItemData for insert:', JSON.stringify(collectionItemData, null, 2));
+
     // Create collection item
     const { data: collectionItem, error: collectionError } = await supabase
       .from('collection_items')
-      .insert({
-        user_id: params.userId,
-        unlisted_banknotes_id: banknote.id,
-        condition: params.condition,
-        grade_by: params.grade_by,
-        grade: params.grade,
-        grade_condition_description: params.grade_condition_description,
-        public_note: params.public_note,
-        private_note: params.private_note,
-        purchase_price: params.purchase_price,
-        purchase_date: params.purchase_date,
-        location: params.location,
-        is_for_sale: params.is_for_sale,
-        sale_price: params.sale_price,
-        obverse_image: params.obverse_image,
-        reverse_image: params.reverse_image,
-        is_unlisted_banknote: true,
-      })
+      .insert(collectionItemData)
       .select()
       .single();
 
