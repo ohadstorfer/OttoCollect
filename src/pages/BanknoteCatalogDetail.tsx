@@ -730,7 +730,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
 
             {selectedImage && (
               <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-                <DialogContent className="sm:max-w-[800px] p-1">
+                <DialogContent className=" max-h-screen overflow-auto p-1">
                   <img
                     src={selectedImage}
                     alt="Banknote detail"

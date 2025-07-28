@@ -392,7 +392,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
 
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContentWithScroll className="sm:max-w-[800px] p-1">
+          <DialogContentWithScroll className=" max-h-screen overflow-auto p-1">
             <img
               src={selectedImage}
               alt="Banknote detail"
