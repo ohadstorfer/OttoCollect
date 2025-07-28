@@ -1111,8 +1111,9 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
     // Debug logging - inspect all parameters
     console.log('DEBUG: createUnlistedBanknoteWithCollectionItem params:', JSON.stringify(params, null, 2));
     
-    // Prepare data for unlisted_banknotes insert (remove user_id as it doesn't exist in unlisted_banknotes table)
+    // Prepare data for unlisted_banknotes insert
     const banknoteData = {
+      user_id: params.userId,
       country: params.country,
       extended_pick_number: params.extended_pick_number,
       pick_number: params.pick_number || null,
