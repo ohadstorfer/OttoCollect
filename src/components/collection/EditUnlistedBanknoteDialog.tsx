@@ -26,6 +26,8 @@ import { useCountryTypeDefs } from '@/hooks/useCountryTypeDefs';
 import { getGradeDescription } from '@/utils/grading';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
 import { useAuth } from '@/context/AuthContext';
+import MultipleImageUpload from '@/components/admin/MultipleImageUpload';
+import { uploadStampImage } from '@/services/stampsService';
 
 const formSchema = z.object({
   // CollectionItem fields
@@ -62,6 +64,30 @@ const formSchema = z.object({
   // images
   front_image_file: z.any().optional(),
   reverse_image_file: z.any().optional(),
+  
+  // Additional stamp image fields
+  tughra_picture: z.string().optional(),
+  watermark_picture: z.string().optional(),
+  other_element_files: z.array(z.object({
+    file: z.any(),
+    previewUrl: z.string()
+  })).optional(),
+  seal_files: z.array(z.object({
+    file: z.any(),
+    previewUrl: z.string()
+  })).optional(),
+  signature_files: z.array(z.object({
+    file: z.any(),
+    previewUrl: z.string()
+  })).optional(),
+  signatures_front_files: z.array(z.object({
+    file: z.any(),
+    previewUrl: z.string()
+  })).optional(),
+  signatures_back_files: z.array(z.object({
+    file: z.any(),
+    previewUrl: z.string()
+  })).optional(),
 });
 
 interface EditUnlistedBanknoteDialogProps {
@@ -127,6 +153,10 @@ export default function EditUnlistedBanknoteDialog({
   const obverseInputRef = useRef<HTMLInputElement>(null);
   const reverseInputRef = useRef<HTMLInputElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  // State for additional image uploads
+  const [tughraImageUrl, setTughraImageUrl] = useState<string>(collectionItem.banknote?.tughraUrl || '');
+  const [watermarkImageUrl, setWatermarkImageUrl] = useState<string>(collectionItem.banknote?.watermarkUrl || '');
 
   const { currencies, loading: loadingCurrencies } = useCountryCurrencies(collectionItem.banknote?.country || '');
   const { categories, loading: loadingCategories } = useCountryCategoryDefs(collectionItem.banknote?.country || '');
@@ -161,6 +191,11 @@ export default function EditUnlistedBanknoteDialog({
       salePrice: collectionItem.salePrice || '',
       type: (collectionItem as any).type || '',
       prefix: (collectionItem as any).prefix || '',
+      other_element_files: [],
+      seal_files: [],
+      signature_files: [],
+      signatures_front_files: [],
+      signatures_back_files: [],
     }
   });
 
@@ -230,6 +265,57 @@ export default function EditUnlistedBanknoteDialog({
     setSelectedImage(imageUrl);
   };
 
+  // Image upload handlers for new fields
+  const handleTughraImageUploaded = async (file: File) => {
+    try {
+      const url = await uploadStampImage(file);
+      setTughraImageUrl(url);
+      form.setValue('tughra_picture', url);
+    } catch (error) {
+      console.error('Error uploading tughra image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload tughra image",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleWatermarkImageUploaded = async (file: File) => {
+    try {
+      const url = await uploadStampImage(file);
+      setWatermarkImageUrl(url);
+      form.setValue('watermark_picture', url);
+    } catch (error) {
+      console.error('Error uploading watermark image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload watermark image",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleOtherElementImagesChange = (images: { file: File; previewUrl: string }[]) => {
+    form.setValue('other_element_files', images);
+  };
+
+  const handleSealImagesChange = (images: { file: File; previewUrl: string }[]) => {
+    form.setValue('seal_files', images);
+  };
+
+  const handleSignatureImagesChange = (images: { file: File; previewUrl: string }[]) => {
+    form.setValue('signature_files', images);
+  };
+
+  const handleSignaturesFrontImagesChange = (images: { file: File; previewUrl: string }[]) => {
+    form.setValue('signatures_front_files', images);
+  };
+
+  const handleSignaturesBackImagesChange = (images: { file: File; previewUrl: string }[]) => {
+    form.setValue('signatures_back_files', images);
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
@@ -242,6 +328,37 @@ export default function EditUnlistedBanknoteDialog({
       }
       if (reverseImageFile) {
         reverseProcessedImages = await processAndUploadImage(reverseImageFile, 'collection-items', collectionItem.userId);
+      }
+
+      // Upload additional image arrays
+      const otherElementUrls = [];
+      for (const img of values.other_element_files || []) {
+        const url = await uploadStampImage(img.file);
+        otherElementUrls.push(url);
+      }
+
+      const sealUrls = [];
+      for (const img of values.seal_files || []) {
+        const url = await uploadStampImage(img.file);
+        sealUrls.push(url);
+      }
+
+      const signatureUrls = [];
+      for (const img of values.signature_files || []) {
+        const url = await uploadStampImage(img.file);
+        signatureUrls.push(url);
+      }
+
+      const signaturesFrontUrls = [];
+      for (const img of values.signatures_front_files || []) {
+        const url = await uploadStampImage(img.file);
+        signaturesFrontUrls.push(url);
+      }
+
+      const signaturesBackUrls = [];
+      for (const img of values.signatures_back_files || []) {
+        const url = await uploadStampImage(img.file);
+        signaturesBackUrls.push(url);
       }
 
       // Build the update data
@@ -291,7 +408,14 @@ export default function EditUnlistedBanknoteDialog({
         obverse_image: obverseProcessedImages?.original,
         reverse_image: reverseProcessedImages?.original,
         type: values.type,
-        prefix: values.prefix
+        prefix: values.prefix,
+        tughra_picture: values.tughra_picture || tughraImageUrl,
+        watermark_picture: values.watermark_picture || watermarkImageUrl,
+        other_element_pictures: otherElementUrls,
+        seal_pictures: sealUrls,
+        signature_pictures: signatureUrls,
+        signatures_front: signaturesFrontUrls,
+        signatures_back: signaturesBackUrls
       } as UnlistedBanknoteUpdateParams);
 
       // Update the collection item with watermarked and thumbnail images
@@ -850,6 +974,105 @@ export default function EditUnlistedBanknoteDialog({
                       </FormItem>
                     )}
                   />
+                </div>
+
+                {/* Section: Additional Images */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-7">
+                    <h3 className="text-lg font-medium">Additional Images</h3>
+                    <span className="text-sm text-muted-foreground">Stamp and detail images</span>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Single Image Uploads */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium">Tughra Picture</Label>
+                        <div className="mt-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleTughraImageUploaded(file);
+                            }}
+                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                          />
+                          {tughraImageUrl && (
+                            <div className="mt-2">
+                              <img src={tughraImageUrl} alt="Tughra" className="h-20 w-20 object-cover rounded" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium">Watermark Picture</Label>
+                        <div className="mt-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleWatermarkImageUploaded(file);
+                            }}
+                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                          />
+                          {watermarkImageUrl && (
+                            <div className="mt-2">
+                              <img src={watermarkImageUrl} alt="Watermark" className="h-20 w-20 object-cover rounded" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Multiple Image Uploads */}
+                    <div className="space-y-4">
+                      <MultipleImageUpload
+                        images={form.watch('other_element_files') || []}
+                        onImagesChange={handleOtherElementImagesChange}
+                        label="Other Element Pictures"
+                        maxImages={10}
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <MultipleImageUpload
+                        images={form.watch('seal_files') || []}
+                        onImagesChange={handleSealImagesChange}
+                        label="Seal Pictures"
+                        maxImages={10}
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <MultipleImageUpload
+                        images={form.watch('signature_files') || []}
+                        onImagesChange={handleSignatureImagesChange}
+                        label="Signature Pictures"
+                        maxImages={10}
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <MultipleImageUpload
+                        images={form.watch('signatures_front_files') || []}
+                        onImagesChange={handleSignaturesFrontImagesChange}
+                        label="Front Signatures"
+                        maxImages={10}
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <MultipleImageUpload
+                        images={form.watch('signatures_back_files') || []}
+                        onImagesChange={handleSignaturesBackImagesChange}
+                        label="Back Signatures"
+                        maxImages={10}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Private Section */}

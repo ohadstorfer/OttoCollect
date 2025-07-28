@@ -43,6 +43,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { getGradeDescription } from '@/utils/grading';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
 import { useAuth } from "@/context/AuthContext";
+import MultipleImageUpload from '@/components/admin/MultipleImageUpload';
+import { uploadStampImage } from '@/services/stampsService';
 
 interface AddUnlistedBanknoteDialogProps {
   userId: string;
@@ -86,6 +88,30 @@ const formSchema = z.object({
   // images stored only in collection_items
   front_image_file: z.any().optional(),
   reverse_image_file: z.any().optional(),
+  
+  // Additional stamp image fields
+  tughra_picture: z.string().optional(),
+  watermark_picture: z.string().optional(),
+  other_element_files: z.array(z.object({
+    file: z.any(),
+    previewUrl: z.string()
+  })).optional(),
+  seal_files: z.array(z.object({
+    file: z.any(),
+    previewUrl: z.string()
+  })).optional(),
+  signature_files: z.array(z.object({
+    file: z.any(),
+    previewUrl: z.string()
+  })).optional(),
+  signatures_front_files: z.array(z.object({
+    file: z.any(),
+    previewUrl: z.string()
+  })).optional(),
+  signatures_back_files: z.array(z.object({
+    file: z.any(),
+    previewUrl: z.string()
+  })).optional(),
 });
 
 const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
@@ -109,6 +135,10 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const obverseInputRef = useRef<HTMLInputElement>(null);
   const reverseInputRef = useRef<HTMLInputElement>(null);
+  
+  // State for additional image uploads
+  const [tughraImageUrl, setTughraImageUrl] = useState<string>('');
+  const [watermarkImageUrl, setWatermarkImageUrl] = useState<string>('');
 
   const { currencies, loading: loadingCurrencies } = useCountryCurrencies(countryName);
   const { categories, loading: loadingCategories } = useCountryCategoryDefs(countryName);
