@@ -1129,6 +1129,14 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
         historical_description: params.historical_description,
         name: params.name,
         seal_names: params.seal_names,
+        dimensions: params.dimensions,
+        tughra_picture: params.tughra_picture,
+        watermark_picture: params.watermark_picture,
+        other_element_pictures: params.other_element_pictures,
+        seal_pictures: params.seal_pictures,
+        signature_pictures: params.signature_pictures,
+        signatures_front: params.signatures_front,
+        signatures_back: params.signatures_back,
       })
       .select()
       .single();
