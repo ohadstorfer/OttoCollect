@@ -409,7 +409,8 @@ export default function EditUnlistedBanknoteDialog({
         seal_pictures: sealUrls,
         signature_pictures: signatureUrls,
         signatures_front: signaturesFrontUrls,
-        signatures_back: signaturesBackUrls
+        signatures_back: signaturesBackUrls,
+        dimensions: values.dimensions
       } as UnlistedBanknoteUpdateParams);
 
       // Update the collection item with watermarked and thumbnail images
