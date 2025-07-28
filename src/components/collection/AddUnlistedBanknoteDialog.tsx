@@ -49,7 +49,6 @@ import { uploadStampImage } from '@/services/stampsService';
 import { ImageFile } from '@/types/stamps';
 
 interface AddUnlistedBanknoteDialogProps {
-  userId: string;
   countryName: string;
   onCreated?: () => void;
 }
@@ -107,13 +106,18 @@ const formSchema = z.object({
 });
 
 const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
-  userId, countryName, onCreated
+  countryName, onCreated
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
+
+  // Early return if no user
+  if (!user) {
+    return null;
+  }
 
   const [obverseImageFile, setObverseImageFile] = useState<File | null>(null);
   const [reverseImageFile, setReverseImageFile] = useState<File | null>(null);
@@ -227,6 +231,15 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
 
   // Handle submit
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add a banknote",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Upload images if provided
@@ -234,10 +247,10 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       let reverseProcessedImages = null;
 
       if (obverseImageFile) {
-        obverseProcessedImages = await processAndUploadImage(obverseImageFile, 'collection-items', userId);
+        obverseProcessedImages = await processAndUploadImage(obverseImageFile, 'collection-items', user.id);
       }
       if (reverseImageFile) {
-        reverseProcessedImages = await processAndUploadImage(reverseImageFile, 'collection-items', userId);
+        reverseProcessedImages = await processAndUploadImage(reverseImageFile, 'collection-items', user.id);
       }
 
       // Upload additional image arrays
@@ -292,22 +305,10 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         grade_condition_description = null;
       }
 
-      // Debug logging - Check all form values and variables
-      console.log('DEBUG: Form values from react-hook-form:', JSON.stringify(values, null, 2));
-      console.log('DEBUG: Face value:', face_value);
-      console.log('DEBUG: Country name:', countryName);
-      console.log('DEBUG: User ID:', userId);
-      console.log('DEBUG: Types array:', types);
-      console.log('DEBUG: Categories array:', categories);
-      console.log('DEBUG: Condition value:', condition);
-      console.log('DEBUG: Grade values:', { grade_by, grade, grade_condition_description });
-      console.log('DEBUG: Type ID:', values.typeId);
-      console.log('DEBUG: Category ID:', values.categoryId);
-      console.log('DEBUG: Found type:', types.find(t => t.id === values.typeId));
-      console.log('DEBUG: Found category:', categories.find(c => c.id === values.categoryId));
+
       
       const result = await createUnlistedBanknoteWithCollectionItem({
-        userId: userId,
+        userId: user.id,
         country: countryName,
         extended_pick_number: "",
         pick_number: "",
@@ -358,7 +359,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
         if (values.isForSale) {
           await createMarketplaceItem({
             collectionItemId: result.id,
-            sellerId: userId,
+            sellerId: user.id,
             banknoteId: result.banknoteId
           });
         }

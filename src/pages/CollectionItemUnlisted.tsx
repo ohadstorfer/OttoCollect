@@ -342,7 +342,7 @@ export default function CollectionItemUnlisted() {
                   ) : displayImages.length > 0 ? (
                     <div className="relative">
                       {(isOwner || isShowingPrivateAsAdmin) && (
-                        <div className="absolute top-2 left-2 z-50">
+                        <div className="absolute top-2 left-2 z-10">
                           {isShowingPrivateAsAdmin ? (
                             <div className="bg-white/90 rounded-sm px-2 py-1 shadow-sm border">
                               <p className="text-xs text-muted-foreground">Private images, visible to admins</p>

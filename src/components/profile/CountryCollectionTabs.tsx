@@ -170,11 +170,10 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 
           {isOwner && (
             <AddUnlistedBanknoteDialog
-              userId={userId}
               countryName={countryName}
               onCreated={refetchCollection}
             />
-        )}
+          )}
 
         </TabsList>       
       </div>

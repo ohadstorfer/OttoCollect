@@ -259,10 +259,7 @@ export default function EditUnlistedBanknoteDialog({
     }
   };
 
-  const handleImageClick = (imageUrl: string, alt: string) => {
-    setPreviewImage({ url: imageUrl, alt });
-    setImagePreviewDialogOpen(true);
-  };
+
 
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);
@@ -320,6 +317,15 @@ export default function EditUnlistedBanknoteDialog({
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to edit a banknote",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Upload images if changed
@@ -327,10 +333,10 @@ export default function EditUnlistedBanknoteDialog({
       let reverseProcessedImages = null;
 
       if (obverseImageFile) {
-        obverseProcessedImages = await processAndUploadImage(obverseImageFile, 'collection-items', collectionItem.userId);
+        obverseProcessedImages = await processAndUploadImage(obverseImageFile, 'collection-items', user.id);
       }
       if (reverseImageFile) {
-        reverseProcessedImages = await processAndUploadImage(reverseImageFile, 'collection-items', collectionItem.userId);
+        reverseProcessedImages = await processAndUploadImage(reverseImageFile, 'collection-items', user.id);
       }
 
       // Upload additional image arrays
@@ -386,7 +392,7 @@ export default function EditUnlistedBanknoteDialog({
       }
 
       const updatedItem = await updateUnlistedBanknoteWithCollectionItem(collectionItem.id, {
-        userId: collectionItem.userId,
+        userId: user.id,
         country: collectionItem.banknote?.country || '',
         extended_pick_number: collectionItem.banknote?.extendedPickNumber || '',
         face_value: face_value,
@@ -435,7 +441,7 @@ export default function EditUnlistedBanknoteDialog({
       if (values.isForSale) {
         await createMarketplaceItem({
           collectionItemId: collectionItem.id,
-          sellerId: collectionItem.userId,
+          sellerId: user.id,
           banknoteId: collectionItem.banknote?.id || ''
         });
       }
