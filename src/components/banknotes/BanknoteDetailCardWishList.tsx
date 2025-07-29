@@ -109,7 +109,29 @@ const BanknoteDetailCardWishList = ({
     return '/placeholder.svg';
   };
 
+  const getBackImage = (): string => {
+    if (!banknote) return '/placeholder.svg';
+    
+    // First try to use the thumbnail
+    if (banknote.backPictureThumbnail) {
+      return banknote.backPictureThumbnail;
+    }
+    
+    // Then try back_picture
+    if (banknote.back_picture) {
+      return banknote.back_picture;
+    }
+    
+    // Then try imageUrls
+    if (Array.isArray(banknote.imageUrls) && banknote.imageUrls.length > 1) {
+      return banknote.imageUrls[1];
+    }
+
+    return '/placeholder.svg';
+  };
+
   const displayImage = getDisplayImage();
+  const backImage = getBackImage();
 
   // Centralized function to create collection item and show toast
   const createCollectionItem = async (e: React.MouseEvent) => {
@@ -257,7 +279,7 @@ const BanknoteDetailCardWishList = ({
   // IMAGE: fully shown, dynamic height
   const renderBanknoteImage = () => {
     // Check if we have both front and back images
-    const hasBackImage = banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]);
+    const hasBackImage = backImage !== '/placeholder.svg';
     
     if (displayImage && displayImage !== '/placeholder.svg') {
       if (hasBackImage) {
@@ -275,7 +297,7 @@ const BanknoteDetailCardWishList = ({
             {/* Back image */}
             <div className="flex-1">
               <img
-                src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
+                src={backImage}
                 alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Back`}
                 className="object-contain w-full h-auto max-h-60"
               />
@@ -342,9 +364,9 @@ const BanknoteDetailCardWishList = ({
 
               {/* Back image */}
               <div className="h-[58px] w-[90px] flex-shrink-0 overflow-hidden rounded">
-                {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
+                {backImage && backImage !== '/placeholder.svg' ? (
                   <img
-                    src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
+                    src={backImage}
                     alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Back`}
                     className="w-full h-full object-contain"
                   />

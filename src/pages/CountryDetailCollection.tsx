@@ -413,16 +413,43 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 
   // 1. Map missing banknotes to CollectionItem structure
   console.log("[MissingItems] Initial missingBanknotes:", finalMissingBanknotes);
-  const missingCollectionItems = finalMissingBanknotes.map(banknote => ({
-    ...banknote, // spread all fields to top level for grouping/sorting
-    id: banknote.id,
-    userId: '',
-    banknoteId: banknote.id,
-    banknote, // keep the full object for the card
-    isForSale: false,
-    is_unlisted_banknote: false,
-    isMissing: true,
-  }));
+  const missingCollectionItems = finalMissingBanknotes.map(banknote => {
+    // Get image URLs from the banknote
+    const obverseImage = banknote.imageUrls?.[0] || '';
+    const reverseImage = banknote.imageUrls?.[1] || '';
+
+    return {
+      ...banknote, // spread all fields to top level for grouping/sorting
+      id: banknote.id,
+      userId: '',
+      banknoteId: banknote.id,
+      banknote, // keep the full object for the card
+      isForSale: false,
+      is_unlisted_banknote: false,
+      isMissing: true,
+      // Add image fields with correct mapping
+      obverseImage,
+      reverseImage,
+      obverse_image_watermarked: null,
+      reverse_image_watermarked: null,
+      obverse_image_thumbnail: obverseImage,
+      reverse_image_thumbnail: reverseImage,
+      hide_images: false,
+      // Add other fields that might be needed
+      condition: null,
+      grade: null,
+      grade_by: null,
+      grade_condition_description: null,
+      publicNote: null,
+      privateNote: null,
+      purchasePrice: null,
+      purchaseDate: null,
+      location: null,
+      orderIndex: null,
+      createdAt: banknote.createdAt,
+      updatedAt: banknote.updatedAt
+    };
+  });
   console.log("[MissingItems] Mapped missingCollectionItems:", missingCollectionItems);
   console.log("[MissingItems] Current filters:", filters);
 
