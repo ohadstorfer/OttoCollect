@@ -21,7 +21,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
   onSave,
   title = 'Edit Image'
 }) => {
-  console.log('ImageCropDialog rendered with props:', { imageUrl, open, title });
+  
   
   const [crop, setCrop] = useState<Crop>({
     unit: '%',
@@ -86,14 +86,14 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
 
   // Handle image load to get natural dimensions
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    console.log('Image loaded, getting dimensions');
+    // console.log('Image loaded, getting dimensions');
     const img = e.currentTarget;
     setImageDimensions({
       width: img.naturalWidth,
       height: img.naturalHeight
     });
     setImageLoaded(true);
-    console.log('Image dimensions set:', { width: img.naturalWidth, height: img.naturalHeight });
+    // console.log('Image dimensions set:', { width: img.naturalWidth, height: img.naturalHeight });
   };
 
   const handleZoom = (direction: 'in' | 'out') => {
@@ -114,9 +114,30 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
       setLoading(true);
       const image = imgRef.current;
 
-      // Calculate the size of the crop area in actual pixels
+      // Calculate base scaling factors
       const scaleX = image.naturalWidth / image.width;
       const scaleY = image.naturalHeight / image.height;
+
+      // When zoomed out (scale < 1), the visible area is larger than the display area
+      const visibleWidth = image.width / scale;
+      const visibleHeight = image.height / scale;
+
+      // Calculate the visible area coordinates in the original image space
+      const pixelCrop = {
+        // When zoomed out, we need to capture a larger area centered on the display
+        width: visibleWidth * scaleX,
+        height: visibleHeight * scaleY,
+        // Calculate the starting point to center the larger area
+        x: ((image.width - visibleWidth) / 2) * scaleX,
+        y: ((image.height - visibleHeight) / 2) * scaleY
+      };
+
+      console.log('scale', scale);
+      console.log('image dimensions', { width: image.width, height: image.height });
+      console.log('visible dimensions', { width: visibleWidth, height: visibleHeight });
+      console.log('scaleX', scaleX, 'scaleY', scaleY);
+      console.log('crop', crop);
+      console.log('pixelCrop', pixelCrop);
 
       // Create a canvas for the cropped area
       const cropCanvas = document.createElement('canvas');
@@ -128,17 +149,9 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
         throw new Error('No 2d context');
       }
 
-      // Set the canvas size to match the crop dimensions
-      const pixelCrop = {
-        x: crop.x * scaleX,
-        y: crop.y * scaleY,
-        width: crop.width * scaleX,
-        height: crop.height * scaleY
-      };
-
-      // If there's rotation, we need a larger canvas to prevent clipping
+      // Set canvas size to match the visible area
       if (rotation !== 0) {
-        // Calculate the bounding box of the rotated crop area
+        // For rotated images, we need a larger canvas
         const rotatedSize = Math.ceil(Math.sqrt(
           Math.pow(pixelCrop.width, 2) + Math.pow(pixelCrop.height, 2)
         ));
@@ -155,7 +168,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
         // Move back so the crop area is centered
         cropCtx.translate(-pixelCrop.width / 2, -pixelCrop.height / 2);
       } else {
-        // No rotation, just use crop dimensions
+        // No rotation, use the visible dimensions
         cropCanvas.width = pixelCrop.width;
         cropCanvas.height = pixelCrop.height;
       }
@@ -178,28 +191,12 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
           pixelCrop.width,
           pixelCrop.height
         );
-      } else {
-        // For non-rotated images, draw directly
-        cropCtx.drawImage(
-          image,
-          pixelCrop.x,
-          pixelCrop.y,
-          pixelCrop.width,
-          pixelCrop.height,
-        0,
-        0,
-          pixelCrop.width,
-          pixelCrop.height
-      );
-      }
 
-      // If we have rotation, we need to crop out the actual area from our rotated canvas
-      if (rotation !== 0) {
         // Create final canvas for the actual crop size
-      const finalCanvas = document.createElement('canvas');
+        const finalCanvas = document.createElement('canvas');
         const finalCtx = finalCanvas.getContext('2d');
       
-      if (!finalCtx) {
+        if (!finalCtx) {
           throw new Error('No 2d context');
         }
 
@@ -224,11 +221,11 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
         );
 
         // Convert to blob with maximum quality
-      const blob = await new Promise<Blob>((resolve, reject) => {
+        const blob = await new Promise<Blob>((resolve, reject) => {
           finalCanvas.toBlob(
             (blob) => {
-            if (blob) {
-              resolve(blob);
+              if (blob) {
+                resolve(blob);
               } else {
                 reject(new Error('Canvas to Blob conversion failed'));
               }
@@ -241,7 +238,20 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
         const croppedImageUrl = URL.createObjectURL(blob);
         await onSave(croppedImageUrl);
       } else {
-        // No rotation, convert directly to blob
+        // For non-rotated images, draw directly
+        cropCtx.drawImage(
+          image,
+          pixelCrop.x,
+          pixelCrop.y,
+          pixelCrop.width,
+          pixelCrop.height,
+          0,
+          0,
+          pixelCrop.width,
+          pixelCrop.height
+        );
+
+        // Convert to blob with maximum quality
         const blob = await new Promise<Blob>((resolve, reject) => {
           cropCanvas.toBlob(
             (blob) => {
@@ -256,7 +266,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
           );
         });
 
-      const croppedImageUrl = URL.createObjectURL(blob);
+        const croppedImageUrl = URL.createObjectURL(blob);
         await onSave(croppedImageUrl);
       }
       
