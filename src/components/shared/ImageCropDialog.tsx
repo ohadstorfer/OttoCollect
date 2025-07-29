@@ -60,33 +60,41 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
     setRotation(prev => direction === 'left' ? prev - 1 : prev + 1);
   };
 
-  // Function to handle continuous rotation
   const startRotation = (direction: 'left' | 'right') => {
     // Clear any existing interval
     if (rotationInterval.current) {
       clearInterval(rotationInterval.current);
     }
-
+  
     // Initial rotation
     handleSingleRotation(direction);
-
-    // Start continuous rotation after a short delay
+  
+    // Initial interval (slow start)
+    let currentInterval = 300;
+    const minInterval = 20;
+  
     const startTime = Date.now();
-    rotationInterval.current = setInterval(() => {
-      const elapsedTime = Date.now() - startTime;
-      // Gradually increase rotation speed
-      const interval = Math.max(50, 150 - Math.floor(elapsedTime / 500) * 25);
+  
+    const updateRotation = () => {
       handleSingleRotation(direction);
-      
-      // Update the interval if needed
-      if (rotationInterval.current && interval < 150) {
-        clearInterval(rotationInterval.current);
-        rotationInterval.current = setInterval(() => {
-          handleSingleRotation(direction);
-        }, interval);
+  
+      const elapsedTime = Date.now() - startTime;
+      const newInterval = Math.max(
+        minInterval,
+        300 - Math.floor(elapsedTime / 200) * 40
+      );
+  
+      if (newInterval !== currentInterval) {
+        currentInterval = newInterval;
+        clearInterval(rotationInterval.current!);
+        rotationInterval.current = setInterval(updateRotation, currentInterval);
       }
-    }, 150);
+    };
+  
+    // Start with slow interval
+    rotationInterval.current = setInterval(updateRotation, currentInterval);
   };
+  
 
   // Function to handle pointer down (works for both mouse and touch)
   const handlePointerDown = (direction: 'left' | 'right') => {
