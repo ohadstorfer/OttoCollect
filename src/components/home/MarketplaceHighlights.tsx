@@ -1,18 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { DollarSign, Calendar, Tag, User } from "lucide-react";
+import { DollarSign, Calendar, Tag, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, isValid, parseISO } from 'date-fns';
 import { formatDistanceToNow } from 'date-fns';
 import { MarketplaceItem } from '@/types';
 import { cn } from '@/lib/utils';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 interface MarketplaceHighlightsProps {
   items: MarketplaceItem[];
@@ -20,25 +13,19 @@ interface MarketplaceHighlightsProps {
 }
 
 const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlightsProps) => {
-  console.log('Rendering MarketplaceHighlights component with items:', items?.length || 0);
-  
-  useEffect(() => {
-    console.log('MarketplaceHighlights items:', items);
-  }, [items]);
-  
+
   const navigate = useNavigate();
+  const [currentIndex, setCurrentIndex] = useState(0);
   
   // Function to safely format dates
   const safeFormatDate = (dateString: string) => {
     try {
       // Parse the ISO string to a Date object first
-      console.log('Formatting date:', dateString);
       const date = parseISO(dateString);
       // Check if the resulting date is valid before formatting
       if (isValid(date)) {
         return format(date, 'MMM d, yyyy');
       }
-      console.log('Invalid date:', dateString);
       return 'Unknown date';
     } catch (error) {
       console.error('Error formatting date:', dateString, error);
@@ -51,6 +38,14 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
       return formatDistanceToNow(dateString, { addSuffix: true });
     }
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  };
+
+  const nextItem = () => {
+    setCurrentIndex((prev) => (prev + 1) % items.length);
+  };
+
+  const prevItem = () => {
+    setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
   };
 
   if (loading) {
@@ -163,83 +158,112 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
     </div>
   );
   
-  // For mobile - carousel view
-  const CarouselView = () => (
-    <Carousel className="md:hidden w-full">
-      <CarouselContent>
-        {items.map((item, index) => (
-          <CarouselItem key={item.id}>
-            <div 
-              className="glass-card p-5 cursor-pointer hover:shadow-lg transition-all border border-ottoman-800/50 h-full"
-              onClick={() => handleItemClick(item.id)}
-            >
-              <div className="flex flex-col gap-4">
-                {/* Item Image */}
-                <div className="w-full aspect-[3/2] rounded-md overflow-hidden border border-ottoman-800/50">
-                  {item.collectionItem.obverseImage ? (
-                    <img 
-                      src={item.collectionItem.obverseImage} 
-                      alt={`${item.collectionItem.banknote.country} ${item.collectionItem.banknote.denomination}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (item.collectionItem.banknote.imageUrls && item.collectionItem.banknote.imageUrls.length > 0) ? (
-                    <img 
-                      src={item.collectionItem.banknote.imageUrls[0]} 
-                      alt={`${item.collectionItem.banknote.country} ${item.collectionItem.banknote.denomination}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-ottoman-700 flex items-center justify-center">
-                      <DollarSign className="w-10 h-10 text-parchment-100" />
-                    </div>
-                  )}
+  // For mobile - custom carousel view
+  const CarouselView = () => {
+    const currentItem = items[currentIndex];
+    
+    return (
+      <div className="md:hidden w-full">
+        <div 
+          className="glass-card p-5 cursor-pointer hover:shadow-lg transition-all border border-ottoman-800/50 h-full"
+          onClick={() => handleItemClick(currentItem.id)}
+        >
+          <div className="flex flex-col gap-4">
+            {/* Item Image */}
+            <div className="w-full aspect-[3/2] rounded-md overflow-hidden border border-ottoman-800/50">
+              {currentItem.collectionItem.obverseImage ? (
+                <img 
+                  src={currentItem.collectionItem.obverseImage} 
+                  alt={`${currentItem.collectionItem.banknote.country} ${currentItem.collectionItem.banknote.denomination}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (currentItem.collectionItem.banknote.imageUrls && currentItem.collectionItem.banknote.imageUrls.length > 0) ? (
+                <img 
+                  src={currentItem.collectionItem.banknote.imageUrls[0]} 
+                  alt={`${currentItem.collectionItem.banknote.country} ${currentItem.collectionItem.banknote.denomination}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-ottoman-700 flex items-center justify-center">
+                  <DollarSign className="w-10 h-10 text-parchment-100" />
                 </div>
-                
-                <div>
-                  {/* Item Title */}
-                  <div className="flex justify-between">
-                    <h3 className="font-serif font-semibold text-lg text-parchment-400">
-                      <span>{item.collectionItem.banknote.denomination} ({item.collectionItem.banknote.year})</span>
-                    </h3>
-                    <span className="text-ottoman-100 font-semibold bg-ottoman-600/50 px-2 py-0.5 rounded text-sm">
-                      ${item.collectionItem.salePrice}
-                    </span>
-                  </div>
-                  
-                  {/* Item Country */}
-                  <p className="text-sm text-ottoman-300 mb-2">
-                    {item.collectionItem.banknote.country}
-                  </p>
-                  
-                  {/* Additional Info */}
-                  <div className="flex items-center text-xs text-ottoman-300 gap-3">
-                    <div className="flex items-center">
-                      <Tag className="h-3 w-3 mr-1" />
-                      {item.collectionItem.condition}
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="h-3 w-3 mr-1" />
-                      {safeFormatDate(item.createdAt)}
-                    </div>
-                  </div>
-                  
-                  {/* Seller info */}
-                  <div className="mt-3 flex items-center gap-2">
-                    <span className="text-xs text-ottoman-400">Seller:</span>
-                    <span className="text-xs text-ottoman-200">{item.seller.username}</span>
-                  </div>
+              )}
+            </div>
+            
+            <div>
+              {/* Item Title */}
+              <div className="flex justify-between">
+                <h3 className="font-serif font-semibold text-lg text-parchment-400">
+                  <span>{currentItem.collectionItem.banknote.denomination} ({currentItem.collectionItem.banknote.year})</span>
+                </h3>
+                <span className="text-ottoman-100 font-semibold bg-ottoman-600/50 px-2 py-0.5 rounded text-sm">
+                  ${currentItem.collectionItem.salePrice}
+                </span>
+              </div>
+              
+              {/* Item Country */}
+              <p className="text-sm text-ottoman-300 mb-2">
+                {currentItem.collectionItem.banknote.country}
+              </p>
+              
+              {/* Additional Info */}
+              <div className="flex items-center text-xs text-ottoman-300 gap-3">
+                <div className="flex items-center">
+                  <Tag className="h-3 w-3 mr-1" />
+                  {currentItem.collectionItem.condition}
+                </div>
+                <div className="flex items-center">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  {safeFormatDate(currentItem.createdAt)}
                 </div>
               </div>
+              
+              {/* Seller info */}
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-xs text-ottoman-400">Seller:</span>
+                <span className="text-xs text-ottoman-200">{currentItem.seller.username}</span>
+              </div>
             </div>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      <div className="flex justify-center mt-4">
-        <CarouselPrevious className="static translate-y-0 mr-2" />
-        <CarouselNext className="static translate-y-0 ml-2" />
+          </div>
+        </div>
+        
+        {/* Navigation Controls */}
+        <div className="flex justify-center items-center gap-4 mt-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={prevItem}
+            className="h-10 w-10"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
+          <div className="flex gap-1">
+            {items.map((_, index) => (
+              <div
+                key={index}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-colors",
+                  index === currentIndex 
+                    ? "bg-ottoman-400" 
+                    : "bg-ottoman-600"
+                )}
+              />
+            ))}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={nextItem}
+            className="h-10 w-10"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-    </Carousel>
-  );
+    );
+  };
 
   return (
     <>
