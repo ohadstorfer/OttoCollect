@@ -191,20 +191,26 @@ const Index = () => {
         </div>
       </section>
 
-      <section className={`py-20 ${featuresBgColor} border-y`}>
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16 reveal fade-bottom">
-            <h2 className={`text-3xl md:text-4xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'}`}>
+      <section className={`py-24 ${featuresBgColor} border-y relative overflow-hidden`}>
+        {/* Background decoration */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-ottoman-500 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-ottoman-400 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center max-w-4xl mx-auto mb-20 reveal fade-bottom">
+            <h2 className={`text-4xl md:text-5xl font-serif font-bold mb-6 ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'}`}>
               <span>Comprehensive Platform for Collectors</span>
             </h2>
-            <p className={`mt-4 text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}>
-              Everything you need to manage, showcase, and grow your Ottoman and it's successor countries banknotes collection
+            <p className={`text-xl leading-relaxed ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}>
+              Everything you need to manage, showcase, and grow your Ottoman and its successor countries banknotes collection
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 px-1">
             <div
-              className="glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-lg transition"
+              className="group glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-transparent hover:border-ottoman-500/20"
               style={{ animationDelay: '100ms' }}
               onClick={() => navigate('/catalog')}
               tabIndex={0}
@@ -212,17 +218,24 @@ const Index = () => {
               aria-label="Go to Catalogue"
               onKeyDown={e => { if (e.key === 'Enter') navigate('/catalog'); }}
             >
-              <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
-                <Database className="h-6 w-6 text-white" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-ottoman-600 to-ottoman-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0">
+                  <Database className="h-6 w-6 text-white" />
+                </div>
+                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
+                  <span>Catalogues</span>
+                </h3>
               </div>
-              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Catalogues</span></h3>
-              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Browse comprehensive
-                catalogue of ottoman and it's
-                successor countries banknotes</p>
+              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
+                Browse comprehensive catalogue of Ottoman and its successor countries banknotes with detailed information
+              </p>
+              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="w-6 h-0.5 bg-gradient-to-r from-ottoman-500 to-ottoman-600 rounded-full"></div>
+              </div>
             </div>
 
             <div
-              className="glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-lg transition"
+              className="group glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-transparent hover:border-ottoman-500/20"
               style={{ animationDelay: '200ms' }}
               onClick={() => navigate('/collection')}
               tabIndex={0}
@@ -230,15 +243,24 @@ const Index = () => {
               aria-label="Go to Collection"
               onKeyDown={e => { if (e.key === 'Enter') navigate('/collection'); }}
             >
-              <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
-                <BookOpen className="h-6 w-6 text-white" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-ottoman-600 to-ottoman-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0">
+                  <BookOpen className="h-6 w-6 text-white" />
+                </div>
+                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
+                  <span>Collection Tools</span>
+                </h3>
               </div>
-              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Collection Tools</span></h3>
-              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Track your collection, wishlist, and display missing items with detailed information</p>
+              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
+                Track your collection, manage wishlists, and identify missing items with comprehensive tools
+              </p>
+              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="w-6 h-0.5 bg-gradient-to-r from-ottoman-500 to-ottoman-600 rounded-full"></div>
+              </div>
             </div>
 
             <div
-              className="glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-lg transition"
+              className="group glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-transparent hover:border-ottoman-500/20"
               style={{ animationDelay: '300ms' }}
               onClick={() => navigate('/marketplace')}
               tabIndex={0}
@@ -246,15 +268,24 @@ const Index = () => {
               aria-label="Go to Marketplace"
               onKeyDown={e => { if (e.key === 'Enter') navigate('/marketplace'); }}
             >
-              <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-white" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-ottoman-600 to-ottoman-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0">
+                  <DollarSign className="h-6 w-6 text-white" />
+                </div>
+                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
+                  <span>Marketplace</span>
+                </h3>
               </div>
-              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Marketplace</span></h3>
-              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>Buy and sell banknotes within the community through our integrated marketplace</p>
+              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
+                Buy and sell banknotes within our trusted community through our secure marketplace platform
+              </p>
+              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="w-6 h-0.5 bg-gradient-to-r from-ottoman-500 to-ottoman-600 rounded-full"></div>
+              </div>
             </div>
 
             <div
-              className="glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-lg transition"
+              className="group glass-card p-6 reveal fade-bottom cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-transparent hover:border-ottoman-500/20"
               style={{ animationDelay: '400ms' }}
               onClick={() => navigate('/community')}
               tabIndex={0}
@@ -262,14 +293,20 @@ const Index = () => {
               aria-label="Go to Community"
               onKeyDown={e => { if (e.key === 'Enter') navigate('/community'); }}
             >
-              <div className="w-12 h-12 mb-4 bg-ottoman-600 rounded-lg flex items-center justify-center">
-                <Users className="h-6 w-6 text-white" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-ottoman-600 to-ottoman-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
+                  <span>Community</span>
+                </h3>
               </div>
-              <h3 className={`text-xl font-serif font-semibold mb-2 ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}><span>Community</span></h3>
-              <p className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>View other personal collection.
-                Connect interact and follow
-                other collectors from around the
-                world.</p>
+              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
+                Connect with collectors worldwide, view personal collections, and build relationships
+              </p>
+              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="w-6 h-0.5 bg-gradient-to-r from-ottoman-500 to-ottoman-600 rounded-full"></div>
+              </div>
             </div>
           </div>
         </div>
