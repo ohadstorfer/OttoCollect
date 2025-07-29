@@ -469,7 +469,7 @@ export default function EditUnlistedBanknoteDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="mt-4">
-          <DialogTitle>Edit Unlisted Banknote</DialogTitle>
+          <DialogTitle> <span> Edit Unlisted Banknote </span> </DialogTitle>
         </DialogHeader>
         <Card>
           <CardContent className="pt-6">
@@ -478,7 +478,7 @@ export default function EditUnlistedBanknoteDialog({
                 {/* Section: Public Details */}
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-7">
-                    <h3 className="text-lg font-medium">Public Details</h3>
+                    <h3 className="text-lg font-medium"> <span> Public Details </span> </h3>
                     <span className="text-sm text-muted-foreground">Visible to everyone</span>
                   </div>
 
@@ -1005,7 +1005,7 @@ export default function EditUnlistedBanknoteDialog({
                 {/* Section: Additional Images */}
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-7">
-                    <h3 className="text-lg font-medium">Additional Images</h3>
+                    <h3 className="text-lg font-medium"> <span> Additional Images </span> </h3>
                     <span className="text-sm text-muted-foreground">Stamp and detail images</span>
                   </div>
 
@@ -1183,7 +1183,7 @@ export default function EditUnlistedBanknoteDialog({
 
                 {/* Private Section */}
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-medium">Private Details</h3>
+                  <h3 className="text-lg font-medium"> <span> Private Details </span> </h3>
                   <span className="text-sm text-muted-foreground">Only visible to you</span>
                 </div>
 

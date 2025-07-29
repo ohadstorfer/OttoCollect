@@ -387,9 +387,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
     <Card className="mt-4">
       <CardContent className="pt-6">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">
-            Edit Collection Item
-          </h2>
+          <h2 className="text-2xl font-bold mb-2"> <span> Edit Collection Item </span> </h2>
           <p className="text-muted-foreground">
             Update the details of this banknote in your collection.
           </p>
@@ -410,7 +408,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
               <div className="grid grid-cols-1 gap-y-4">
 
                 <div className="flex items-center gap-2 mb-7 ">
-                  <h3 className="text-lg font-medium">Public Details</h3>
+                  <h3 className="text-lg font-medium"><span> Public Details </span></h3>
                   <span className="text-sm text-muted-foreground">Visible to everyone</span>
                 </div>
 
@@ -616,7 +614,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
                 {/* Custom Images Section */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Custom Images</h3>
+                  <h3 className="text-lg font-medium"> <span> Custom Images </span> </h3>
                   <p className="text-muted-foreground text-sm">
                     Upload your own images of the banknote (optional)
                   </p>
@@ -752,7 +750,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 <div className="w-full h-px bg-muted my-6" />
 
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-medium">Private Details</h3>
+                  <h3 className="text-lg font-medium"> <span> Private Details </span> </h3>
                   <span className="text-sm text-muted-foreground">Only visible to you</span>
                 </div>
 
