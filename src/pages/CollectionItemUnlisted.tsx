@@ -19,6 +19,7 @@ import { submitImageSuggestion, hasExistingImageSuggestion } from "@/services/im
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
 import BanknoteCollectionDetaiUnlisted from "./BanknoteCollectionDetaiUnlisted";
+import ImagePreview from "@/components/shared/ImagePreview";
 
 interface LabelValuePairProps {
   label: string;
@@ -579,17 +580,10 @@ export default function CollectionItemUnlisted() {
         </div>
       </div>
 
-      {selectedImage && (
-        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContentWithScroll className="sm:max-w-[800px] p-1">
-            <img
-              src={selectedImage}
-              alt="Banknote detail"
-              className="w-full h-auto rounded"
-            />
-          </DialogContentWithScroll>
-        </Dialog>
-      )}
+      <ImagePreview 
+        src={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
 
       {/* Edit dialog */}
       <EditUnlistedBanknoteDialog

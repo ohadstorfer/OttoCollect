@@ -13,6 +13,7 @@ import { Dialog, DialogContentWithScroll } from '@/components/ui/dialog';
 import CollectionItemForm from '@/components/collection/CollectionItemForm';
 import { useToast } from '@/hooks/use-toast';
 import { BanknoteImage } from '@/components/banknote/BanknoteImage';
+import ImagePreview from "@/components/shared/ImagePreview";
 
 interface BanknoteCollectionDetailProps {
   isOwner: boolean;
@@ -390,17 +391,10 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         )}
       </div>
 
-      {selectedImage && (
-        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContentWithScroll className=" max-h-screen overflow-auto p-1">
-            <img
-              src={selectedImage}
-              alt="Banknote detail"
-              className="w-full h-auto rounded"
-            />
-          </DialogContentWithScroll>
-        </Dialog>
-      )}
+      <ImagePreview 
+        src={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
 
     </div>
   );

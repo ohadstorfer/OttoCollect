@@ -49,6 +49,7 @@ import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDeta
 import { cn } from "@/lib/utils";
 import { getInitials } from "@/lib/utils";
 import UserProfileLink from "@/components/common/UserProfileLink";
+import ImagePreview from "@/components/shared/ImagePreview";
 
 interface LabelValuePairProps {
   label: string;
@@ -728,17 +729,10 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               </CardContent>
             </Card>
 
-            {selectedImage && (
-              <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-                <DialogContent className=" max-h-screen overflow-auto p-1">
-                  <img
-                    src={selectedImage}
-                    alt="Banknote detail"
-                    className="w-full h-auto rounded"
-                  />
-                </DialogContent>
-              </Dialog>
-            )}
+            <ImagePreview 
+        src={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
           </div>
         </div>
       </div>
