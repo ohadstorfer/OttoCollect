@@ -55,16 +55,47 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
     }
   }, [open]);
 
+  // Function to handle single rotation step
+  const handleSingleRotation = (direction: 'left' | 'right') => {
+    setRotation(prev => direction === 'left' ? prev - 1 : prev + 1);
+  };
+
   // Function to handle continuous rotation
   const startRotation = (direction: 'left' | 'right') => {
-    console.log('Starting rotation:', direction);
-    // Initial rotation
-    setRotation(prev => direction === 'left' ? prev - 1 : prev + 1);
+    // Clear any existing interval
+    if (rotationInterval.current) {
+      clearInterval(rotationInterval.current);
+    }
 
-    // Set up continuous rotation
+    // Initial rotation
+    handleSingleRotation(direction);
+
+    // Start continuous rotation after a short delay
+    const startTime = Date.now();
     rotationInterval.current = setInterval(() => {
-      setRotation(prev => direction === 'left' ? prev - 1 : prev + 1);
-    }, 200); // Adjust speed by changing interval (lower = faster)
+      const elapsedTime = Date.now() - startTime;
+      // Gradually increase rotation speed
+      const interval = Math.max(50, 150 - Math.floor(elapsedTime / 500) * 25);
+      handleSingleRotation(direction);
+      
+      // Update the interval if needed
+      if (rotationInterval.current && interval < 150) {
+        clearInterval(rotationInterval.current);
+        rotationInterval.current = setInterval(() => {
+          handleSingleRotation(direction);
+        }, interval);
+      }
+    }, 150);
+  };
+
+  // Function to handle pointer down (works for both mouse and touch)
+  const handlePointerDown = (direction: 'left' | 'right') => {
+    startRotation(direction);
+  };
+
+  // Function to handle pointer up (works for both mouse and touch)
+  const handlePointerUp = () => {
+    stopRotation();
   };
 
   const stopRotation = () => {
@@ -283,27 +314,25 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
     <Dialog 
       open={open} 
       onOpenChange={(isOpen) => {
-        console.log('Dialog onOpenChange:', { isOpen, loading });
         if (!isOpen && !loading) {
           onClose();
         }
       }}
     >
-      <DialogContent className="sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle> <span> {title} </span> </DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl"> <span> {title} </span> </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="relative flex justify-center items-center bg-muted rounded-lg overflow-hidden">
             {imageLoaded ? (
               <ReactCrop
                 crop={crop}
                 onChange={(c) => {
-                  console.log('Crop changed:', c);
                   setCrop(c);
                 }}
-                className="max-h-[60vh] w-auto"
+                className="max-h-[50vh] sm:max-h-[60vh] w-auto"
               >
                 <img
                   ref={imgRef}
@@ -312,7 +341,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
                   crossOrigin="anonymous"
                   onLoad={handleImageLoad}
                   style={{ 
-                    maxHeight: '60vh',
+                    maxHeight: '50vh',
                     width: 'auto',
                     transform: `rotate(${rotation}deg) scale(${scale})`,
                     transition: 'transform 0.1s ease'
@@ -321,7 +350,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
                 />
               </ReactCrop>
             ) : (
-              <div className="w-full h-[60vh] flex items-center justify-center">
+              <div className="w-full h-[50vh] sm:h-[60vh] flex items-center justify-center">
                 <img
                   src={imageUrl}
                   alt="Loading preview"
@@ -334,64 +363,71 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
             )}
           </div>
 
-          <div className="flex justify-between items-center">
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onMouseDown={() => startRotation('left')}
-                onMouseUp={stopRotation}
-                onMouseLeave={stopRotation}
-                onTouchStart={() => startRotation('left')}
-                onTouchEnd={stopRotation}
-                disabled={loading}
-              >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onMouseDown={() => startRotation('right')}
-                onMouseUp={stopRotation}
-                onMouseLeave={stopRotation}
-                onTouchStart={() => startRotation('right')}
-                onTouchEnd={stopRotation}
-                disabled={loading}
-              >
-                <RotateCw className="h-4 w-4" />
-              </Button>
-              <span className="text-sm text-muted-foreground ml-2">
-                {rotation}°
-              </span>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-2">
+            <div className="flex gap-2 items-center w-full sm:w-auto">
+              {/* Rotation Controls */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 sm:h-8 sm:w-8 touch-none" // Added touch-none to prevent default touch behavior
+                  onPointerDown={() => handlePointerDown('left')}
+                  onPointerUp={handlePointerUp}
+                  onPointerLeave={handlePointerUp}
+                  disabled={loading}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 sm:h-8 sm:w-8 touch-none" // Added touch-none to prevent default touch behavior
+                  onPointerDown={() => handlePointerDown('right')}
+                  onPointerUp={handlePointerUp}
+                  onPointerLeave={handlePointerUp}
+                  disabled={loading}
+                >
+                  <RotateCw className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground ml-2">
+                  {rotation}°
+                </span>
+              </div>
 
               <div className="border-l mx-2 h-6" />
 
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleZoom('out')}
-                disabled={loading || scale <= 0.1}
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleZoom('in')}
-                disabled={loading || scale >= 3}
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <span className="text-sm text-muted-foreground ml-2">
-                {Math.round(scale * 100)}%
-              </span>
+              {/* Zoom Controls */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 sm:h-8 sm:w-8" // Larger touch target on mobile
+                  onClick={() => handleZoom('out')}
+                  disabled={loading || scale <= 0.1}
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 sm:h-8 sm:w-8" // Larger touch target on mobile
+                  onClick={() => handleZoom('in')}
+                  disabled={loading || scale >= 3}
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground ml-2">
+                  {Math.round(scale * 100)}%
+                </span>
+              </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
                 onClick={onClose}
                 disabled={loading}
+                className="flex-1 sm:flex-initial"
               >
                 <X className="h-4 w-4 mr-2" />
                 Cancel
@@ -400,6 +436,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
                 variant="default"
                 onClick={handleSave}
                 disabled={loading || !crop}
+                className="flex-1 sm:flex-initial"
               >
                 <Check className="h-4 w-4 mr-2" />
                 Save
