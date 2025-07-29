@@ -7,7 +7,7 @@ import type { CollectionItem as CollectionItemType } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogContentWithScroll } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
 import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, Eye, EyeOff } from "lucide-react";
@@ -19,6 +19,8 @@ import { submitImageSuggestion, hasExistingImageSuggestion, deleteExistingImageS
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
+import ImagePreview from "@/components/shared/ImagePreview";
+
 
 interface LabelValuePairProps {
   label: string;
@@ -812,18 +814,12 @@ export default function CollectionItem() {
         </div>
       </div>
 
-      {selectedImage && (
-        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContentWithScroll className="sm:max-w-[800px] p-1">
-            <img
-              src={selectedImage}
-              alt="Banknote detail"
-              className="w-full h-auto rounded"
-            />
-          </DialogContentWithScroll>
-        </Dialog>
-      )}
-
+      {/* Replace the existing Dialog preview with: */}
+      <ImagePreview 
+        src={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
+      
       {/* Edit dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContentWithScroll className="sm:max-w-[800px]" onClick={(e) => e.stopPropagation()}>

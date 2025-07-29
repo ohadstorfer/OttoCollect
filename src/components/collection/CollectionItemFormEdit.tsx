@@ -1004,7 +1004,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
               if (!open) setSelectedImage(null);
             }}
           >
-            <DialogContent className="sm:max-w-[800px] p-1">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto p-1">
               <img
                 src={selectedImage}
                 alt="Banknote detail"
