@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { X, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,27 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    setImageDimensions({
+      width: img.naturalWidth,
+      height: img.naturalHeight
+    });
+  };
 
   const handleZoom = (direction: 'in' | 'out') => {
     setScale(prev => {
@@ -69,9 +90,78 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
     }
   };
 
+  // Calculate dynamic dimensions based on image and device
+  const getDialogStyle = () => {
+    if (imageDimensions.width === 0 || imageDimensions.height === 0) {
+      return {
+        width: isMobile ? '95vw' : 'auto',
+        height: isMobile ? '90vh' : '90vh',
+        maxWidth: isMobile ? '95vw' : '85vw',
+        maxHeight: '90vh'
+      };
+    }
+
+    const aspectRatio = imageDimensions.height / imageDimensions.width;
+    const isHorizontal = imageDimensions.width > imageDimensions.height;
+
+    if (isMobile) {
+      // Mobile: Height determined by image height (without zoom consideration)
+      const containerWidth = window.innerWidth * 0.95;
+      const imageHeight = containerWidth * aspectRatio; // Remove scale factor
+      const totalHeight = Math.min(imageHeight + 60, window.innerHeight * 0.9);
+      
+      return {
+        width: '95vw',
+        height: `${totalHeight}px`,
+        maxWidth: '95vw',
+        maxHeight: '90vh'
+      };
+    } else {
+      // Desktop: Both width and height determined by image (without zoom consideration)
+      const maxContainerWidth = window.innerWidth * 0.85;
+      const maxContainerHeight = window.innerHeight * 0.9;
+      
+      let containerWidth, containerHeight;
+      
+      if (isHorizontal) {
+        // Horizontal image: fit to width, height follows
+        containerWidth = Math.min(maxContainerWidth, 1200);
+        containerHeight = containerWidth * aspectRatio; // Remove scale factor
+        
+        // If height exceeds max, scale down proportionally
+        if (containerHeight > maxContainerHeight) {
+          const scaleFactor = maxContainerHeight / containerHeight;
+          containerWidth *= scaleFactor;
+          containerHeight = maxContainerHeight;
+        }
+      } else {
+        // Vertical image: fit to height, width follows
+        containerHeight = Math.min(maxContainerHeight, 800);
+        containerWidth = containerHeight / aspectRatio; // Remove scale factor
+        
+        // If width exceeds max, scale down proportionally
+        if (containerWidth > maxContainerWidth) {
+          const scaleFactor = maxContainerWidth / containerWidth;
+          containerHeight *= scaleFactor;
+          containerWidth = maxContainerWidth;
+        }
+      }
+      
+      return {
+        width: `${containerWidth}px`,
+        height: `${containerHeight + 60}px`, // Add space for controls
+        maxWidth: '85vw',
+        maxHeight: '90vh'
+      };
+    }
+  };
+
   return (
     <Dialog open={!!src} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[80vw] p-0 gap-0">
+      <DialogContent 
+        className="p-0 gap-0 overflow-hidden"
+        style={getDialogStyle()}
+      >
         <div className="absolute top-2 right-2 z-50 flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-lg p-2">
           <Button
             variant="outline"
@@ -105,7 +195,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
         </div>
 
         <div 
-          className="relative w-full h-[90vh] overflow-hidden bg-background/95 cursor-move flex items-center justify-center"
+          className="relative w-full h-full overflow-hidden bg-background/95 cursor-move flex items-center justify-center"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -120,6 +210,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
             <img
               src={src || ''}
               alt={alt}
+              onLoad={handleImageLoad}
               className="w-full h-auto transition-transform duration-200 ease-out"
               style={{
                 transform: `scale(${scale})`,
