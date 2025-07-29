@@ -9,6 +9,8 @@ import { fetchCountriesForCatalog } from "@/services/countryCatalogService";
 import { fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext"; // <-- FIXED HERE
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG } from "@/config/seoConfig";
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,6 +65,11 @@ const Catalog = () => {
 
   return (
     <div className="min-h-screen animate-fade-in">
+      <SEOHead
+        title={SEO_CONFIG.pages.catalog.title}
+        description={SEO_CONFIG.pages.catalog.description}
+        keywords={SEO_CONFIG.pages.catalog.keywords}
+      />
       <section className="bg-dark-600 dark:bg-dark-600 bg-ottoman-100 py-12 mb-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div

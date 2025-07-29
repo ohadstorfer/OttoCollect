@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { LogIn, MessageCircle, Users, BookOpen, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG } from "@/config/seoConfig";
 
 export default function Community() {
   const { user } = useAuth();
@@ -67,6 +69,11 @@ export default function Community() {
 
   return (
     <div className="page-container">
+      <SEOHead
+        title={SEO_CONFIG.pages.community.title}
+        description={SEO_CONFIG.pages.community.description}
+        keywords={SEO_CONFIG.pages.community.keywords}
+      />
       <h1 className="page-title"><span>Community</span></h1>
       
       <div className="flex flex-col mb-10">

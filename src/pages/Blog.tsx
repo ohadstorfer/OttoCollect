@@ -11,6 +11,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from "@/context/ThemeContext";
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from "@/lib/utils";
+import SEOHead from '@/components/seo/SEOHead';
+import { SEO_CONFIG } from '@/config/seoConfig';
 
 interface Author {
   id: string;
@@ -108,6 +110,11 @@ const Blog = () => {
 
   return (
     <div>
+      <SEOHead
+        title={SEO_CONFIG.pages.blog.title}
+        description={SEO_CONFIG.pages.blog.description}
+        keywords={SEO_CONFIG.pages.blog.keywords}
+      />
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">
           <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${theme === 'light'

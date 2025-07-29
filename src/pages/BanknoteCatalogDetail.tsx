@@ -50,6 +50,7 @@ import { cn } from "@/lib/utils";
 import { getInitials } from "@/lib/utils";
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ImagePreview from "@/components/shared/ImagePreview";
+import SEOHead from "@/components/seo/SEOHead";
 
 interface LabelValuePairProps {
   label: string;
@@ -498,6 +499,18 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   return (
     <div className="page-container ">
       {renderOwnershipToast()}
+      <SEOHead
+        banknoteData={{
+          id: banknote?.id,
+          country: banknote?.country,
+          denomination: banknote?.denomination,
+          year: banknote?.gregorianYear || banknote?.year,
+          extendedPickNumber: banknote?.extendedPickNumber
+      
+        }}
+        type="product"
+        url={`${window.location.origin}/banknote-details/${banknote?.id}`}
+      />
       <div className="flex flex-col space-y-6">
         <div className="space-y-1 page-container max-w-5xl">
           <div className="flex justify-between items-center">

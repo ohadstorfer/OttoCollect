@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import ForumPostCardAnnouncements from '@/components/forum/ForumPostCardAnnouncements';
 import { CreatePostDialog } from '@/components/forum/CreatePostDialog';
 import { CreateAnnouncementDialog } from '@/components/forum/CreateAnnouncementDialog';
+import SEOHead from '@/components/seo/SEOHead';
+import { SEO_CONFIG } from '@/config/seoConfig';
 
 interface Author {
   id: string;
@@ -190,6 +192,11 @@ const Forum = () => {
 
   return (
     <div>
+      <SEOHead
+        title={SEO_CONFIG.pages.forum.title}
+        description={SEO_CONFIG.pages.forum.description}
+        keywords={SEO_CONFIG.pages.forum.keywords}
+      />
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">
           <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${theme === 'light'

@@ -19,6 +19,8 @@ import { useDynamicFilter } from '@/hooks/use-dynamic-filter';
 import { updateCollectionItem } from '@/services/collectionService';
 import { Dialog, DialogContentWithScroll } from '@/components/ui/dialog';
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
+import SEOHead from '@/components/seo/SEOHead';
+import { SEO_CONFIG } from '@/config/seoConfig';
 
 const Collection = () => {
   const { user } = useAuth();
@@ -264,6 +266,11 @@ const Collection = () => {
 
   return (
     <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
+      <SEOHead
+        title={SEO_CONFIG.pages.collection.title}
+        description={SEO_CONFIG.pages.collection.description}
+        keywords={SEO_CONFIG.pages.collection.keywords}
+      />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         {country ? (
           <div className="flex flex-col gap-2 mb-4 md:mb-0">

@@ -19,6 +19,8 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
+import SEOHead from '@/components/seo/SEOHead';
+import { SEO_CONFIG } from '@/config/seoConfig';
 
 const AboutUs: React.FC = () => {
     const navigate = useNavigate();
@@ -51,6 +53,11 @@ const AboutUs: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-ottoman-50 to-ottoman-100 dark:from-dark-900 dark:to-dark-800">
+            <SEOHead
+                title={SEO_CONFIG.pages.aboutUs.title}
+                description={SEO_CONFIG.pages.aboutUs.description}
+                keywords={SEO_CONFIG.pages.aboutUs.keywords}
+            />
             <div className="container mx-auto px-4 py-8 max-w-6xl">
 
                 {/* Header */}

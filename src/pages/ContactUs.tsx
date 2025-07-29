@@ -8,6 +8,8 @@ import { getSuperAdmins } from '@/services/adminService';
 import { User } from '@/types';
 import UserProfileLink from '@/components/common/UserProfileLink';
 import { useTheme } from '@/context/ThemeContext';
+import SEOHead from '@/components/seo/SEOHead';
+import { SEO_CONFIG } from '@/config/seoConfig';
 
 export default function ContactUs() {
   const navigate = useNavigate();
@@ -48,6 +50,11 @@ export default function ContactUs() {
 
   return (
 <div >
+<SEOHead
+                title={SEO_CONFIG.pages.contactUs.title}
+                description={SEO_CONFIG.pages.contactUs.description}
+                keywords={SEO_CONFIG.pages.contactUs.keywords}
+            />
     <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">
           <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${theme === 'light'

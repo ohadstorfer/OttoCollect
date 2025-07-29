@@ -2,6 +2,7 @@
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { HelmetProvider } from 'react-helmet-async';
 import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import Index from "@/pages/Index";
@@ -86,61 +87,63 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <QueryClientProvider client={queryClient}>
-            <div data-theme={theme} className="flex flex-col min-h-screen">
-              <PageBackground>
-                <Navbar />
-                <main className="flex-grow">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/catalog" element={<Catalog />} />
-                    <Route path="/catalog/:country" element={<CountryDetail />} />
-                    <Route path="/banknote-details/:id" element={<BanknoteCatalogDetail />} />
-                    <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
-                    <Route path="/profile/:username" element={<Profile />} />
-                    <Route path="/profile/:username/:country" element={<Profile />} />
-                    <Route path="/collection" element={<CountrySelection />} />
-                    <Route path="/collectionNew/:country" element={<CountryDetailCollection />} />
-                    <Route path="/collection/:countryId" element={<Collection />} />
-                    <Route path="/collection-item/:id" element={<CollectionItem />} />
-                    <Route path="/collection-item-unlisted/:id" element={<CollectionItemUnlisted />} />
-                    <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
-                    <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
-                    <Route path="/marketplace" element={<Marketplace />} />
-                    <Route path="/marketplace/:id" element={<MarketplaceItemDetail />} />
-                    <Route path="/marketplace-unlisted/:id" element={<MarketplaceItemDetailUnlisted />} />
-                    <Route path="/community" element={<Community />} />
-                    <Route path="/community/forum" element={<Forum />} />
-                    <Route path="/community/forum/post/:id" element={<ForumPost />} />
-                    <Route path="/community/forum/:id" element={<ForumPost />} />
-                    <Route path="/community/forum/new" element={<CreateForumPost />} />
-                    <Route path="/community/forum/announcement/new" element={<CreateForumAnnouncement />} />
-                    <Route path="/community/forum/announcement/:id" element={<ForumPostAnnouncements />} />
-                    <Route path="/messaging" element={<Messaging />} />
-                    <Route path="/messaging/:userId" element={<Messaging />} />
-                    <Route path="/contact-us" element={<ContactUs />} />
-                    <Route path="/members" element={<Members />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/delete-processed-images" element={<DeleteProcessedImages />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="/about-us" element={<AboutUs />} />
-                    <Route path="/blog" element={<Blog />} />
-                    <Route path="/blog/:id" element={<BlogPost />} />
-                    <Route path="/blog/new" element={<CreateBlogPost />} />
-                    <Route path="/privacy" element={<PrivacyPolicy />} />
-                    <Route path="/cookie-policy" element={<CookiePolicy />} />
-                    <Route path="/terms" element={<TermsOfService />} />
-                    <Route path="/terms-of-service" element={<TermsOfService />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </main>
-                <CookieConsent />
-                <Footer />
-                <Toaster />
-              </PageBackground>
-            </div>
+            <HelmetProvider>
+              <div data-theme={theme} className="flex flex-col min-h-screen">
+                <PageBackground>
+                  <Navbar />
+                  <main className="flex-grow">
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/home" element={<Home />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/catalog" element={<Catalog />} />
+                      <Route path="/catalog/:country" element={<CountryDetail />} />
+                      <Route path="/banknote-details/:id" element={<BanknoteCatalogDetail />} />
+                      <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
+                      <Route path="/profile/:username" element={<Profile />} />
+                      <Route path="/profile/:username/:country" element={<Profile />} />
+                      <Route path="/collection" element={<CountrySelection />} />
+                      <Route path="/collectionNew/:country" element={<CountryDetailCollection />} />
+                      <Route path="/collection/:countryId" element={<Collection />} />
+                      <Route path="/collection-item/:id" element={<CollectionItem />} />
+                      <Route path="/collection-item-unlisted/:id" element={<CollectionItemUnlisted />} />
+                      <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
+                      <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
+                      <Route path="/marketplace" element={<Marketplace />} />
+                      <Route path="/marketplace/:id" element={<MarketplaceItemDetail />} />
+                      <Route path="/marketplace-unlisted/:id" element={<MarketplaceItemDetailUnlisted />} />
+                      <Route path="/community" element={<Community />} />
+                      <Route path="/community/forum" element={<Forum />} />
+                      <Route path="/community/forum/post/:id" element={<ForumPost />} />
+                      <Route path="/community/forum/:id" element={<ForumPost />} />
+                      <Route path="/community/forum/new" element={<CreateForumPost />} />
+                      <Route path="/community/forum/announcement/new" element={<CreateForumAnnouncement />} />
+                      <Route path="/community/forum/announcement/:id" element={<ForumPostAnnouncements />} />
+                      <Route path="/messaging" element={<Messaging />} />
+                      <Route path="/messaging/:userId" element={<Messaging />} />
+                      <Route path="/contact-us" element={<ContactUs />} />
+                      <Route path="/members" element={<Members />} />
+                      <Route path="/settings" element={<Settings />} />
+                      <Route path="/admin" element={<Admin />} />
+                      <Route path="/delete-processed-images" element={<DeleteProcessedImages />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/about-us" element={<AboutUs />} />
+                      <Route path="/blog" element={<Blog />} />
+                      <Route path="/blog/:id" element={<BlogPost />} />
+                      <Route path="/blog/new" element={<CreateBlogPost />} />
+                      <Route path="/privacy" element={<PrivacyPolicy />} />
+                      <Route path="/cookie-policy" element={<CookiePolicy />} />
+                      <Route path="/terms" element={<TermsOfService />} />
+                      <Route path="/terms-of-service" element={<TermsOfService />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </main>
+                  <CookieConsent />
+                  <Footer />
+                  <Toaster />
+                </PageBackground>
+              </div>
+            </HelmetProvider>
           </QueryClientProvider>
         </AuthProvider>
       </ThemeProvider>
