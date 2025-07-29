@@ -119,10 +119,74 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
           </div>
         ) : filteredCountries.length === 0 ? (
           <div className="text-center py-12">
-            <h3 className="text-xl font-medium mb-4"><span>No Collections Found</span></h3>
-            <p className="text-muted-foreground mb-6">
-              {searchTerm ? 'No countries match your search.' : 'Start collecting banknotes to see countries here.'}
-            </p>
+            {searchTerm ? (
+              // Search results empty state
+              <div className="max-w-md mx-auto">
+                <div className="mb-6">
+                  <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-xl font-medium mb-2">
+                    <span>No countries found</span>
+                  </h3>
+                  <p className="text-muted-foreground">
+                    No countries match your search for "{searchTerm}". Try a different search term.
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSearchTerm('')}
+                  className="mt-4"
+                >
+                  Clear Search
+                </Button>
+              </div>
+            ) : (
+              // No collections empty state
+              <div className="max-w-lg mx-auto">
+                <div className="mb-6">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-ottoman-100 dark:bg-ottoman-900 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">🏛️</span>
+                  </div>
+                  <h3 className="text-xl font-medium mb-2">
+                    {userId && userId !== user?.id ? (
+                      <span>No collections yet</span>
+                    ) : (
+                      <span>Start your collection journey</span>
+                    )}
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    {userId && userId !== user?.id ? (
+                      "This collector hasn't added any banknotes to their collection yet."
+                    ) : (
+                      "Begin building your Ottoman Empire banknote collection by adding your first banknote."
+                    )}
+                  </p>
+                </div>
+                
+                {(!userId || userId === user?.id) && (
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button 
+                      onClick={() => navigate('/catalog')}
+                      className="flex items-center gap-2"
+                    >
+                      <span>Browse Catalog</span>
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => navigate('/marketplace')}
+                      className="flex items-center gap-2"
+                    >
+                      <span>Visit Marketplace</span>
+                    </Button>
+                  </div>
+                )}
+                
+                {userId && userId !== user?.id && (
+                  <div className="text-sm text-muted-foreground">
+                    <p>Check back later to see their collection grow!</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 ">

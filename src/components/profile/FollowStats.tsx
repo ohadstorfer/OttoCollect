@@ -184,7 +184,7 @@ export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsPr
                 className="scale-90 transform-gpu" 
               />
             ) : (
-              <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}>-</span>
+              <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}>0</span>
             )}
           </div>
           <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>Badges</span>
