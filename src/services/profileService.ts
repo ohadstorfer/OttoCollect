@@ -47,7 +47,7 @@ export async function getUserProfile(userIdOrUsername: string): Promise<User | n
       rank: data.rank as UserRank,
       points: data.points,
       createdAt: data.created_at,
-      avatarUrl: data.avatar_url || '/placeholder-brown.svg',
+      avatarUrl: data.avatar_url,
       ...(data.country && { country: data.country }),
       ...(data.about && { about: data.about }),
       ...(data.facebook_url && { facebook_url: data.facebook_url }),

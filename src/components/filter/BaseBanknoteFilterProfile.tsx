@@ -29,6 +29,7 @@ import {
 import { withHighlight } from "./withHighlight";
 import { AddUnlistedBanknoteDialog } from '@/components/collection/AddUnlistedBanknoteDialog';
 
+
 export type FilterOption = {
   id: string;
   name: string;
@@ -345,13 +346,11 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   alt={profileUser.username}
                   className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
                 />
-              ) : (
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-muted flex items-center justify-center">
-                  <span className="text-sm font-medium">
-                    {profileUser.username.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
+                              ) : (
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-ottoman-600 to-ottoman-800 flex items-center justify-center text-parchment-100 text-sm sm:text-xl font-semibold uppercase">
+                    {profileUser?.username?.charAt(0) || "?"}
+                  </div>
+                )}
               <span className="font-medium min-w-0 shrink">{profileUser.username}</span>
               {!isMobile && profileUser.rank && (
                 <Badge variant="user" rank={profileUser.rank} role={profileUser.role} showIcon className="shrink-0 ml-1 sm:ml-2" />
