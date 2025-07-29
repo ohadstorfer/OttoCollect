@@ -260,6 +260,13 @@ export interface MarketplaceItem {
   status: 'Available' | 'Sold' | 'Reserved';
   created_at: string;
   updated_at: string;
+  // Additional properties returned by the service
+  collectionItemId?: string;
+  collectionItem?: CollectionItem;
+  sellerId?: string;
+  seller?: User;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Country {

@@ -14,6 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ContactSeller } from "@/components/messages/ContactSeller";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
 import { BanknoteProvider } from "@/context/BanknoteContext";
+import ImagePreview from "@/components/shared/ImagePreview";
 
 const MarketplaceItemDetail = () => {
   console.log('Rendering MarketplaceItemDetail component');
@@ -24,9 +25,48 @@ const MarketplaceItemDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageOrientations, setImageOrientations] = useState<Record<number, 'vertical' | 'horizontal'>>({});
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Image orientation detection function
+  const getImageOrientation = (imageUrl: string): Promise<'vertical' | 'horizontal'> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve(img.height > img.width ? 'vertical' : 'horizontal');
+      };
+      img.onerror = () => {
+        resolve('horizontal'); // Default to horizontal if image fails to load
+      };
+      img.src = imageUrl;
+    });
+  };
+
+  // Determine image orientations when images change
+  useEffect(() => {
+    const determineOrientations = async () => {
+      if (!item?.collectionItem) return;
+      
+      const displayImages = [
+        item.collectionItem.obverseImage || item.collectionItem.banknote?.imageUrls?.[0],
+        item.collectionItem.reverseImage || item.collectionItem.banknote?.imageUrls?.[1]
+      ].filter(Boolean) as string[];
+
+      const orientations: Record<number, 'vertical' | 'horizontal'> = {};
+      
+      for (let i = 0; i < displayImages.length; i++) {
+        orientations[i] = await getImageOrientation(displayImages[i]);
+      }
+      
+      setImageOrientations(orientations);
+    };
+
+    if (item?.collectionItem) {
+      determineOrientations();
+    }
+  }, [item?.collectionItem]);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -110,6 +150,16 @@ const MarketplaceItemDetail = () => {
 
   const sellerRank = seller?.rank || "Newbie";
 
+  // Get display images
+  const displayImages = [
+    obverseImage || banknote.imageUrls?.[0],
+    reverseImage || banknote.imageUrls?.[1]
+  ].filter(Boolean) as string[];
+
+  const openImageViewer = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
+
   return (
     <div className="container py-8">
       <div className="flex items-center gap-2 mb-1">
@@ -129,63 +179,90 @@ const MarketplaceItemDetail = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left column: Images */}
         <div>
-          <Tabs defaultValue="obverse" className="mb-6">
-            <TabsList className="mb-4">
-              <TabsTrigger value="obverse">Obverse (Front)</TabsTrigger>
-              <TabsTrigger value="reverse">Reverse (Back)</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="obverse">
-              <div className="aspect-[4/3] overflow-hidden rounded-lg border">
-                <img
-                  src={obverseImage || banknote.imageUrls[0] || '/placeholder.svg'}
-                  alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - front`}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="reverse">
-              <div className="aspect-[4/3] overflow-hidden rounded-lg border">
-                <img
-                  src={reverseImage || banknote.imageUrls[1] || '/placeholder.svg'}
-                  alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - back`}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {/* Seller information */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-ottoman-400" />
+          <Card className="mb-6">
+            <CardContent className="px-2 pt-2 pb-2">
+              <div className="flex flex-col space-y-3">
+                {displayImages.length > 0 ? (
                   <div>
-                    <Link
-                      to={`/profile/${seller.id}`}
-                      className="text-ottoman-500 hover:text-ottoman-600"
-                    >
-                      {seller.username} <Badge variant="user" rank={sellerRank as UserRank} role={seller.role} />
-                    </Link>
+                    {displayImages.length === 2 ? (
+                      // For exactly 2 images (obverse/reverse), check orientations
+                      (() => {
+                        const firstOrientation = imageOrientations[0];
+                        const secondOrientation = imageOrientations[1];
+                        
+                        // If both images are vertical, display side by side
+                        if (firstOrientation === 'vertical' && secondOrientation === 'vertical') {
+                          return (
+                            <div className="grid grid-cols-2 gap-3">
+                              {displayImages.map((url, index) => (
+                                <div key={index} className="relative">
+                                  <div
+                                    className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => openImageViewer(url)}
+                                  >
+                                    <div className="w-full rounded-md overflow-hidden border">
+                                      <img
+                                        src={url}
+                                        className="w-full h-auto object-contain"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        }
+                        
+                        // If any image is horizontal, stack them vertically
+                        return (
+                          <div className="flex flex-col space-y-3">
+                            {displayImages.map((url, index) => (
+                              <div key={index} className="relative">
+                                <div
+                                  className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                  onClick={() => openImageViewer(url)}
+                                >
+                                  <div className="w-full rounded-md overflow-hidden border">
+                                    <img
+                                      src={url}
+                                      className="w-full h-auto object-contain"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      // For more than 2 images, stack them vertically
+                      displayImages.map((url, index) => (
+                        <div key={index} className="w-full relative">
+                          <div
+                            className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => openImageViewer(url)}
+                          >
+                            <div className="w-full rounded-md overflow-hidden border">
+                              <img
+                                src={url}
+                                className="w-full h-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
-                  
-                </div>
-
-                {user && user.id !== seller.id && (
-                  <div>
-                    <ContactSeller
-                      sellerId={seller.id}
-                      sellerName={seller.username}
-                      itemId={collectionItem.id}
-                      itemName={`${banknote.denomination} (${banknote.year})`}
-                    />
+                ) : (
+                  <div className="p-6 text-center bg-muted rounded-md">
+                    <p className="text-muted-foreground">No images available</p>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
+
+         
         </div>
 
         {/* Right column: Details */}
@@ -220,7 +297,7 @@ const MarketplaceItemDetail = () => {
 
               <Separator className="mb-4" />
 
-              <div className="flex items-center justify-between gap-4 mb-6">
+              <div className="flex items-center justify-between gap-4 mb-1">
                 <div className="text-3xl font-bold text-ottoman-500">
                   ${salePrice}
                 </div>
@@ -228,15 +305,48 @@ const MarketplaceItemDetail = () => {
                 
               </div>
 
-              {publicNote && (
+              {/* {publicNote && (
                 <div className="mt-4">
                   <p className="text-sm text-ottoman-400">Seller's Note</p>
                   <p className="mt-1 text-ottoman-200 p-3 bg-ottoman-900/20 rounded-md">
                     {publicNote}
                   </p>
                 </div>
-              )}
+              )} */}
             </CardContent>
+
+
+            {/* Seller information */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-ottoman-400" />
+                  <div>
+                    <Link
+                      to={`/profile/${seller.id}`}
+                      className="text-ottoman-500 hover:text-ottoman-600"
+                    >
+                      {seller.username} <Badge variant="user" rank={sellerRank as UserRank} role={seller.role} />
+                    </Link>
+                  </div>
+                  
+                </div>
+
+                {user && user.id !== seller.id && (
+                  <div>
+                    <ContactSeller
+                      sellerId={seller.id}
+                      sellerName={seller.username}
+                      itemId={collectionItem.id}
+                      itemName={`${banknote.denomination} (${banknote.year})`}
+                    />
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           </Card>
 
           {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
@@ -260,6 +370,12 @@ const MarketplaceItemDetail = () => {
           </Card>
         </div>
       </div>
+
+      {/* Image Preview Dialog */}
+      <ImagePreview
+        src={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
     </div>
   );
 };
