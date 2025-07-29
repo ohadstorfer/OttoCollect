@@ -157,24 +157,29 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
       const scaleX = image.naturalWidth / image.width;
       const scaleY = image.naturalHeight / image.height;
 
-      // When zoomed out (scale < 1), the visible area is larger than the display area
-      const visibleWidth = image.width / scale;
-      const visibleHeight = image.height / scale;
-
-      // Calculate the visible area coordinates in the original image space
+      // Calculate the crop area in the original image space
       const pixelCrop = {
-        // When zoomed out, we need to capture a larger area centered on the display
-        width: visibleWidth * scaleX,
-        height: visibleHeight * scaleY,
-        // Calculate the starting point to center the larger area
-        x: ((image.width - visibleWidth) / 2) * scaleX,
-        y: ((image.height - visibleHeight) / 2) * scaleY
+        width: (crop.width * image.width * scaleX) / 100,
+        height: (crop.height * image.height * scaleY) / 100,
+        x: (crop.x * image.width * scaleX) / 100,
+        y: (crop.y * image.height * scaleY) / 100
       };
+
+      // When zoomed, adjust the crop area
+      if (scale !== 1) {
+        const visibleWidth = image.width / scale;
+        const visibleHeight = image.height / scale;
+        const zoomOffsetX = ((image.width - visibleWidth) / 2) * scaleX;
+        const zoomOffsetY = ((image.height - visibleHeight) / 2) * scaleY;
+
+        pixelCrop.width = (pixelCrop.width / scale);
+        pixelCrop.height = (pixelCrop.height / scale);
+        pixelCrop.x = (pixelCrop.x / scale) + zoomOffsetX;
+        pixelCrop.y = (pixelCrop.y / scale) + zoomOffsetY;
+      }
 
       console.log('scale', scale);
       console.log('image dimensions', { width: image.width, height: image.height });
-      console.log('visible dimensions', { width: visibleWidth, height: visibleHeight });
-      console.log('scaleX', scaleX, 'scaleY', scaleY);
       console.log('crop', crop);
       console.log('pixelCrop', pixelCrop);
 
@@ -188,7 +193,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
         throw new Error('No 2d context');
       }
 
-      // Set canvas size to match the visible area
+      // Set canvas size to match the cropped area
       if (rotation !== 0) {
         // For rotated images, we need a larger canvas
         const rotatedSize = Math.ceil(Math.sqrt(
@@ -207,7 +212,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
         // Move back so the crop area is centered
         cropCtx.translate(-pixelCrop.width / 2, -pixelCrop.height / 2);
       } else {
-        // No rotation, use the visible dimensions
+        // No rotation, use the crop dimensions
         cropCanvas.width = pixelCrop.width;
         cropCanvas.height = pixelCrop.height;
       }
