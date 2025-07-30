@@ -106,11 +106,11 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const activeTab = (typeof propActiveTab === 'string' ? propActiveTab : internalActiveTab) as 'collection' | 'wishlist' | 'missing' | 'sale';
   const onTabChange = propOnTabChange || setInternalActiveTab;
 
-  const tabList: { key: 'collection' | 'wishlist' | 'missing'| 'sale'; label: string; mobileLabel?: string }[] = [
-    { key: 'collection', label: 'Collection', mobileLabel: 'Coll' },
-    { key: 'wishlist', label: 'Wishlist', mobileLabel: 'Wish' },
-    { key: 'missing', label: 'Missing', mobileLabel: 'Miss' },
-    { key: 'sale', label: 'Sale', mobileLabel: 'Sale' },
+  const tabList: { key: 'collection' | 'wishlist' | 'missing'| 'sale'; label: string;  }[] = [
+    { key: 'collection', label: 'Collection'},
+    { key: 'wishlist', label: 'Wishlist' },
+    { key: 'missing', label: 'Missing'},
+    { key: 'sale', label: 'Sale'},
   ];
 
   console.log("BaseBanknoteFilter: Render with props", { 
@@ -373,7 +373,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
               <button
                 key={tab.key}
                 className={cn(
-                  'px-1 sm:px-2 md:px-3 lg:px-4 py-1 rounded-md transition-colors outline-none',
+                  'px-3 sm:px-1 md:px-2 lg:px-3 py-1 rounded-md transition-colors outline-none',
                   activeTab === tab.key
                     ? 'bg-white text-black font-semibold'
                     : 'bg-transparent text-[#857e77] font-medium hover:bg-[#e7e1db]',
@@ -382,13 +382,12 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 onClick={() => onTabChange(tab.key)}
                 type="button"
               >
-                <span className="sm:hidden">{tab.mobileLabel || tab.label}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
+                <span >{tab.label}</span>
               </button>
             ))}
            
           </div>
-          <div className="ml-auto">
+          <div >
             <div className="flex flex-col sm:flex-row gap-1 lg:gap-2">
               <div className="flex gap-1 lg:gap-2 items-center">
                 <div className="relative flex-1 ">
@@ -445,7 +444,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       className="flex-1 sm:flex-initial flex items-center justify-center gap-1 lg:gap-2"
                       disabled={isLoading}
                     >
-                      <Filter className="h-4 w-4 hidden lg:block" />
+                      <Filter className="h-4 w-4 sm:hidden lg:block" />
                       <span>Filter</span>
                     </Button>
                   </SheetTrigger>
@@ -527,10 +526,10 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   <SheetTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="flex-1 sm:flex-initial flex items-center justify-center gap-1 lg:gap-2"
+                      className="flex-1 sm:flex-initial flex items-center justify-center gap-1 sm:gap-0 lg:gap-2"
                       disabled={isLoading}
                     >
-                      <ArrowUpDown className="h-4 w-4 hidden lg:block" />
+                      <ArrowUpDown className="h-4 w-4 sm:hidden lg:block" />
                       <span>Sort</span>
                     </Button>
                   </SheetTrigger>
