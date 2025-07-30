@@ -2,6 +2,7 @@ import React from "react";
 import { CollectionItem } from "@/types";
 import { CollectionItemsGroups } from "@/components/collection/CollectionItemsGroups";
 import { cn } from "@/lib/utils";
+import LazyCollectionDisplay from "./LazyCollectionDisplay";
 
 interface CollectionItemsDisplayProps {
   groups: {
@@ -66,11 +67,10 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
           )}
         </div>
       ) : (
-        <CollectionItemsGroups
+        <LazyCollectionDisplay
           groups={groups}
           showSultanGroups={showSultanGroups}
           viewMode={viewMode}
-          countryId={countryId}
           isLoading={isLoading}
           groupMode={groupMode}
           onUpdate={handleUpdate}

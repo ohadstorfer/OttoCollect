@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { CollectionItem } from '@/types';
 
-interface CollectionGroupedData {
+export interface CollectionGroupedData {
   category: string;
   items: CollectionItem[];
   sultanGroups?: { sultan: string; items: CollectionItem[] }[];

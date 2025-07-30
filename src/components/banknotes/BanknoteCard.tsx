@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import LazyImage from "@/components/shared/LazyImage";
 
 interface BanknoteCardProps {
   banknote: Banknote;
@@ -83,13 +84,14 @@ const BanknoteCard = ({
     >
       <div className="relative">
         <div className="aspect-[4/3] overflow-hidden">
-          <img
+          <LazyImage
             src={banknote.imageUrls[0] || '/placeholder.svg'}
             alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
             className={cn(
               "w-full h-full object-cover transition-transform duration-500",
               isHovering ? "scale-110" : "scale-100"
             )}
+            fallback="/placeholder.svg"
           />
         </div>
         

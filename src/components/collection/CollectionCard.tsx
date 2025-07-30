@@ -7,6 +7,7 @@ import { Eye, Edit, Tag, ArrowUpToLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import LazyImage from "@/components/shared/LazyImage";
 
 interface CollectionCardProps {
   item: CollectionItem;
@@ -62,13 +63,14 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
           className="aspect-[4/3] overflow-hidden cursor-pointer"
           onClick={() => setShowReverse(!showReverse)}
         >
-          <img
+          <LazyImage
             src={getDisplayImage()}
             alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) ${showReverse ? 'Reverse' : 'Obverse'}`}
             className={cn(
               "w-full h-full object-cover transition-transform duration-500",
               isHovering ? "scale-110" : "scale-100"
             )}
+            fallback="/placeholder.svg"
           />
           {(item.obverseImage || item.reverseImage) && (
             <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">

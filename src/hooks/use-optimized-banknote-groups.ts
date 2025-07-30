@@ -8,13 +8,15 @@ interface CategoryDefinition {
   display_order: number;
 }
 
-interface BanknoteGroup {
+export interface BanknoteGroupedData {
   category: string;
   categoryId: string;
   items: DetailedBanknote[];
   mixedItems?: MixedBanknoteItem[];
   sultanGroups?: { sultan: string; items: MixedBanknoteItem[] }[];
 }
+
+interface BanknoteGroup extends BanknoteGroupedData {}
 
 interface GroupingOptions {
   banknotes: DetailedBanknote[];
@@ -27,7 +29,7 @@ export const useOptimizedBanknoteGroups = ({
   banknotes, 
   sortFields, 
   categoryOrder 
-}: GroupingOptions): BanknoteGroup[] => {
+}: GroupingOptions): BanknoteGroupedData[] => {
   // Memoize category order map for O(1) lookups
   const categoryOrderMap = useMemo(() => {
     const map = new Map<string, number>();

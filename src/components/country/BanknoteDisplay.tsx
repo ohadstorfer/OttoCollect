@@ -1,7 +1,7 @@
-
 import React from "react";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
+import LazyBanknoteDisplay from "./LazyBanknoteDisplay";
 
 interface BanknoteDisplayProps {
   groups: {
@@ -46,7 +46,7 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
             {/* Log before passing down */}
             {/* {console.log("[BanknoteDisplay] Passing userCollection to BanknoteGroups, length:", userCollection?.length)} */}
           </div>
-          <BanknoteGroups
+          <LazyBanknoteDisplay
             groups={groups}
             showSultanGroups={showSultanGroups}
             viewMode={viewMode}
