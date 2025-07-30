@@ -1,0 +1,50 @@
+{
+  "title": "My Collection",
+  "subtitle": "Manage your banknote collection",
+  "addItem": "Add Item",
+  "editItem": "Edit Item",
+  "deleteItem": "Delete Item",
+  "totalItems": "{{count}} Item",
+  "totalItems_plural": "{{count}} Items",
+  "totalValue": "Total Value: {{value}}",
+  "filters": {
+    "ownedOnly": "Owned Only",
+    "missingOnly": "Missing Only",
+    "wishlistOnly": "Wishlist Only",
+    "showAll": "Show All"
+  },
+  "form": {
+    "condition": "Condition",
+    "grade": "Grade",
+    "notes": "Notes",
+    "purchasePrice": "Purchase Price",
+    "purchaseDate": "Purchase Date",
+    "dealer": "Dealer",
+    "frontImage": "Front Image",
+    "backImage": "Back Image",
+    "required": "Required field",
+    "optional": "Optional"
+  },
+  "conditions": {
+    "unc": "Uncirculated",
+    "au": "About Uncirculated",
+    "xf": "Extremely Fine",
+    "vf": "Very Fine",
+    "f": "Fine",
+    "vg": "Very Good",
+    "g": "Good",
+    "poor": "Poor"
+  },
+  "grades": {
+    "gem": "Gem Uncirculated",
+    "choice": "Choice Uncirculated",
+    "uncirculated": "Uncirculated",
+    "aboutUncirculated": "About Uncirculated",
+    "extremelyFine": "Extremely Fine",
+    "veryFine": "Very Fine",
+    "fine": "Fine",
+    "veryGood": "Very Good",
+    "good": "Good",
+    "poor": "Poor"
+  }
+}

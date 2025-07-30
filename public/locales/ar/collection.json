@@ -1,0 +1,50 @@
+{
+  "title": "مجموعتي",
+  "subtitle": "إدارة مجموعة الأوراق النقدية الخاصة بك",
+  "addItem": "إضافة عنصر",
+  "editItem": "تحرير العنصر",
+  "deleteItem": "حذف العنصر",
+  "totalItems": "{{count}} عنصر",
+  "totalItems_plural": "{{count}} عنصر",
+  "totalValue": "القيمة الإجمالية: {{value}}",
+  "filters": {
+    "ownedOnly": "المملوكة فقط",
+    "missingOnly": "المفقودة فقط",
+    "wishlistOnly": "قائمة الأماني فقط",
+    "showAll": "عرض الكل"
+  },
+  "form": {
+    "condition": "الحالة",
+    "grade": "الدرجة",
+    "notes": "الملاحظات",
+    "purchasePrice": "سعر الشراء",
+    "purchaseDate": "تاريخ الشراء",
+    "dealer": "التاجر",
+    "frontImage": "الصورة الأمامية",
+    "backImage": "الصورة الخلفية",
+    "required": "حقل مطلوب",
+    "optional": "اختياري"
+  },
+  "conditions": {
+    "unc": "غير متداولة",
+    "au": "شبه غير متداولة",
+    "xf": "ممتازة جداً",
+    "vf": "جيدة جداً",
+    "f": "جيدة",
+    "vg": "جيدة نوعاً ما",
+    "g": "عادية",
+    "poor": "ضعيفة"
+  },
+  "grades": {
+    "gem": "غير متداولة رائعة",
+    "choice": "غير متداولة مختارة",
+    "uncirculated": "غير متداولة",
+    "aboutUncirculated": "شبه غير متداولة",
+    "extremelyFine": "ممتازة جداً",
+    "veryFine": "جيدة جداً",
+    "fine": "جيدة",
+    "veryGood": "جيدة نوعاً ما",
+    "good": "عادية",
+    "poor": "ضعيفة"
+  }
+}

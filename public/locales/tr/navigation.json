@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "catalog": "Katalog",
+    "myCollection": "Koleksiyonum",
+    "marketplace": "Pazar",
+    "forum": "Forum",
+    "blog": "Blog",
+    "community": "Topluluk",
+    "members": "Üyeler",
+    "messages": "Mesajlar",
+    "profile": "Profil",
+    "settings": "Ayarlar",
+    "admin": "Yönetim",
+    "login": "Giriş",
+    "logout": "Çıkış"
+  },
+  "breadcrumb": {
+    "home": "Ana Sayfa",
+    "catalog": "Katalog",
+    "collection": "Koleksiyon",
+    "marketplace": "Pazar",
+    "forum": "Forum",
+    "profile": "Profil",
+    "admin": "Yönetim",
+    "banknote": "Banknot",
+    "country": "Ülke"
+  },
+  "buttons": {
+    "back": "Geri",
+    "next": "İleri",
+    "previous": "Önceki",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "close": "Kapat",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "add": "Ekle",
+    "remove": "Kaldır",
+    "search": "Ara",
+    "filter": "Filtrele",
+    "sort": "Sırala",
+    "view": "Görüntüle",
+    "upload": "Yükle"
+  }
+}

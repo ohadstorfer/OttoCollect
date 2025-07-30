@@ -1,0 +1,50 @@
+{
+  "title": "Koleksiyonum",
+  "subtitle": "Banknot koleksiyonunuzu yönetin",
+  "addItem": "Öğe Ekle",
+  "editItem": "Öğeyi Düzenle",
+  "deleteItem": "Öğeyi Sil",
+  "totalItems": "{{count}} Öğe",
+  "totalItems_plural": "{{count}} Öğe",
+  "totalValue": "Toplam Değer: {{value}}",
+  "filters": {
+    "ownedOnly": "Sadece Sahip Olunanlar",
+    "missingOnly": "Sadece Eksikler",
+    "wishlistOnly": "Sadece İstek Listesi",
+    "showAll": "Hepsini Göster"
+  },
+  "form": {
+    "condition": "Durum",
+    "grade": "Not",
+    "notes": "Notlar",
+    "purchasePrice": "Satın Alma Fiyatı",
+    "purchaseDate": "Satın Alma Tarihi",
+    "dealer": "Satıcı",
+    "frontImage": "Ön Resim",
+    "backImage": "Arka Resim",
+    "required": "Zorunlu alan",
+    "optional": "İsteğe bağlı"
+  },
+  "conditions": {
+    "unc": "Tedavülde Değil",
+    "au": "Tedavülde Değile Yakın",
+    "xf": "Son Derece İyi",
+    "vf": "Çok İyi",
+    "f": "İyi",
+    "vg": "Oldukça İyi",
+    "g": "Normal",
+    "poor": "Kötü"
+  },
+  "grades": {
+    "gem": "Mükemmel Tedavülde Değil",
+    "choice": "Seçkin Tedavülde Değil",
+    "uncirculated": "Tedavülde Değil",
+    "aboutUncirculated": "Tedavülde Değile Yakın",
+    "extremelyFine": "Son Derece İyi",
+    "veryFine": "Çok İyi",
+    "fine": "İyi",
+    "veryGood": "Oldukça İyi",
+    "good": "Normal",
+    "poor": "Kötü"
+  }
+}

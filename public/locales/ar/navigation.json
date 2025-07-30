@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "catalog": "الفهرس",
+    "myCollection": "مجموعتي",
+    "marketplace": "السوق",
+    "forum": "المنتدى",
+    "blog": "المدونة",
+    "community": "المجتمع",
+    "members": "الأعضاء",
+    "messages": "الرسائل",
+    "profile": "الملف الشخصي",
+    "settings": "الإعدادات",
+    "admin": "الإدارة",
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج"
+  },
+  "breadcrumb": {
+    "home": "الرئيسية",
+    "catalog": "الفهرس",
+    "collection": "المجموعة",
+    "marketplace": "السوق",
+    "forum": "المنتدى",
+    "profile": "الملف الشخصي",
+    "admin": "الإدارة",
+    "banknote": "ورقة نقدية",
+    "country": "البلد"
+  },
+  "buttons": {
+    "back": "عودة",
+    "next": "التالي",
+    "previous": "السابق",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "edit": "تحرير",
+    "delete": "حذف",
+    "add": "إضافة",
+    "remove": "إزالة",
+    "search": "بحث",
+    "filter": "فلترة",
+    "sort": "ترتيب",
+    "view": "عرض",
+    "upload": "رفع"
+  }
+}

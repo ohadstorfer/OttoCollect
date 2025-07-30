@@ -1,0 +1,42 @@
+{
+  "title": "فهرس الأوراق النقدية",
+  "subtitle": "استكشف الأوراق النقدية من حول العالم",
+  "searchPlaceholder": "ابحث عن البلدان...",
+  "countryCount": "{{count}} دولة متاحة",
+  "banknoteCount": "{{count}} ورقة نقدية",
+  "banknoteCount_plural": "{{count}} ورقة نقدية",
+  "filters": {
+    "search": "بحث",
+    "categories": "الفئات",
+    "types": "الأنواع",
+    "sort": "ترتيب حسب",
+    "viewMode": "وضع العرض",
+    "grid": "شبكة",
+    "list": "قائمة",
+    "groupMode": "وضع المجموعة",
+    "grouped": "مجمعة",
+    "ungrouped": "جميع العناصر"
+  },
+  "sorting": {
+    "extPick": "رقم الفهرس",
+    "year": "السنة",
+    "denomination": "الفئة",
+    "sultan": "فترة السلطان"
+  },
+  "country": {
+    "banknotes": "أوراق {{country}} النقدية",
+    "collection": "مجموعة {{country}}",
+    "noResults": "لم يتم العثور على أوراق نقدية",
+    "loading": "جاري تحميل الأوراق النقدية..."
+  },
+  "card": {
+    "addToCollection": "أضف إلى المجموعة",
+    "addToWishlist": "أضف إلى قائمة الأماني",
+    "removeFromWishlist": "إزالة من قائمة الأماني",
+    "viewDetails": "عرض التفاصيل",
+    "grade": "الدرجة",
+    "condition": "الحالة",
+    "year": "السنة",
+    "denomination": "الفئة"
+  }
+}

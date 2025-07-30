@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "catalog": "Catalogue",
+    "myCollection": "My Collection",
+    "marketplace": "Marketplace",
+    "forum": "Forum",
+    "blog": "Blog",
+    "community": "Community",
+    "members": "Members",
+    "messages": "Messages",
+    "profile": "Profile",
+    "settings": "Settings",
+    "admin": "Admin",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "collection": "Collection",
+    "marketplace": "Marketplace",
+    "forum": "Forum",
+    "profile": "Profile",
+    "admin": "Admin",
+    "banknote": "Banknote",
+    "country": "Country"
+  },
+  "buttons": {
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "remove": "Remove",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "view": "View",
+    "upload": "Upload"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "title": "Banknote Catalog",
+  "subtitle": "Explore banknotes from around the world",
+  "searchPlaceholder": "Search countries...",
+  "countryCount": "{{count}} Countries Available",
+  "banknoteCount": "{{count}} Banknotes",
+  "banknoteCount_plural": "{{count}} Banknotes",
+  "filters": {
+    "search": "Search",
+    "categories": "Categories",
+    "types": "Types",
+    "sort": "Sort by",
+    "viewMode": "View Mode",
+    "grid": "Grid",
+    "list": "List",
+    "groupMode": "Group Mode",
+    "grouped": "Grouped",
+    "ungrouped": "All Items"
+  },
+  "sorting": {
+    "extPick": "Catalog Number",
+    "year": "Year",
+    "denomination": "Denomination",
+    "sultan": "Sultan Period"
+  },
+  "country": {
+    "banknotes": "{{country}} Banknotes",
+    "collection": "{{country}} Collection",
+    "noResults": "No banknotes found",
+    "loading": "Loading banknotes..."
+  },
+  "card": {
+    "addToCollection": "Add to Collection",
+    "addToWishlist": "Add to Wishlist",
+    "removeFromWishlist": "Remove from Wishlist",
+    "viewDetails": "View Details",
+    "grade": "Grade",
+    "condition": "Condition",
+    "year": "Year",
+    "denomination": "Denomination"
+  }
+}

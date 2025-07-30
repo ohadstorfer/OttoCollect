@@ -1,8 +1,9 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
+import { RTLArrow } from '@/components/common/RTLArrow';
 
 interface CountryHeaderProps {
   countryName: string;
@@ -16,6 +17,7 @@ export const CountryHeader: React.FC<CountryHeaderProps> = ({
   hideBackButton = false // Default to showing the back button
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation(['navigation', 'catalog']);
 
   const handleBack = () => {
     navigate(returnPath);
@@ -25,10 +27,12 @@ export const CountryHeader: React.FC<CountryHeaderProps> = ({
     <div className="flex items-center gap-4 mb-1">
       {!hideBackButton && (
         <Button variant="ghost" onClick={handleBack} className="p-2">
-          <ArrowLeft className="h-5 w-5" />
+          <RTLArrow direction="left" className="h-5 w-5" />
         </Button>
       )}
-      <h1 className="text-2xl font-bold"><span>{countryName} Banknotes</span></h1>
+      <h1 className="text-2xl font-bold">
+        <span>{t('catalog:country.banknotes', { country: countryName })}</span>
+      </h1>
     </div>
   );
 };

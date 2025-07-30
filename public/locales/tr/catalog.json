@@ -1,0 +1,42 @@
+{
+  "title": "Banknot Kataloğu",
+  "subtitle": "Dünyanın her yerinden banknotları keşfedin",
+  "searchPlaceholder": "Ülke ara...",
+  "countryCount": "{{count}} Ülke Mevcut",
+  "banknoteCount": "{{count}} Banknot",
+  "banknoteCount_plural": "{{count}} Banknot",
+  "filters": {
+    "search": "Ara",
+    "categories": "Kategoriler",
+    "types": "Türler",
+    "sort": "Sırala",
+    "viewMode": "Görünüm Modu",
+    "grid": "Izgara",
+    "list": "Liste",
+    "groupMode": "Gruplama Modu",
+    "grouped": "Gruplandırılmış",
+    "ungrouped": "Tüm Öğeler"
+  },
+  "sorting": {
+    "extPick": "Katalog Numarası",
+    "year": "Yıl",
+    "denomination": "Değer",
+    "sultan": "Sultan Dönemi"
+  },
+  "country": {
+    "banknotes": "{{country}} Banknotları",
+    "collection": "{{country}} Koleksiyonu",
+    "noResults": "Banknot bulunamadı",
+    "loading": "Banknotlar yükleniyor..."
+  },
+  "card": {
+    "addToCollection": "Koleksiyona Ekle",
+    "addToWishlist": "İstek Listesine Ekle",
+    "removeFromWishlist": "İstek Listesinden Kaldır",
+    "viewDetails": "Detayları Görüntüle",
+    "grade": "Not",
+    "condition": "Durum",
+    "year": "Yıl",
+    "denomination": "Değer"
+  }
+}
