@@ -103,7 +103,7 @@ function App() {
                       <Route path="/profile/:username" element={<Profile />} />
                       <Route path="/profile/:username/:country" element={<Profile />} />
                       <Route path="/collection" element={<CountrySelection />} />
-                      <Route path="/collectionNew/:country" element={<CountryDetailCollection />} />
+                      <Route path="/collectionNew/:country" element={<CountryDetailCollection onBackToCountries={() => {}} />} />
                       <Route path="/collection/:countryId" element={<Collection />} />
                       <Route path="/collection-item/:id" element={<CollectionItem />} />
                       <Route path="/collection-item-unlisted/:id" element={<CollectionItemUnlisted />} />

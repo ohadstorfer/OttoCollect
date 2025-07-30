@@ -22,7 +22,7 @@ interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
   countryName?: string; // Optional country name prop when not using URL params
   profileView?: boolean; // New prop to indicate if we're in profile view
-  onBackToCountries: () => void;
+  onBackToCountries?: () => void; // Make this optional
   profileData?: {
     id: string;
     username: string;

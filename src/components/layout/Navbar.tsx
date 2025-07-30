@@ -1,8 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { useTranslation } from 'react-i18next';
-import { LanguageProvider } from '@/context/LanguageContext';
-import { LanguageSelector } from '@/components/layout/LanguageSelector';
 import { cn } from "@/lib/utils";
 import { Menu, X, Search, User, LogIn, ShoppingCart, BookOpen, MessageCircle, Sun, Moon, Shield } from "lucide-react";
 import { useState } from "react";
@@ -100,7 +97,7 @@ const Navbar = () => {
 
           {/* Right section (both desktop and mobile) */}
           <div className="flex items-center gap-3" style={{ gap: '0.75rem' }}>
-            {/* <LanguageSelector /> */}
+            <LanguageSelector />
             {user && <NotificationBell />}
 
             {user ? (

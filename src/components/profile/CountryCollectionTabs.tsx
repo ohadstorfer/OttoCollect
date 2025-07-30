@@ -184,6 +184,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           userId={userId} 
           countryName={countryName}
           profileView={true}
+          onBackToCountries={() => {}}
         />
       </TabsContent>
 
