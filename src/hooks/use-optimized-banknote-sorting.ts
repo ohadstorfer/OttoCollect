@@ -20,56 +20,56 @@ export const useOptimizedBanknoteSorting = ({
   currencies, 
   sortFields 
 }: SortingOptions): DetailedBanknote[] => {
+  // Create currency order map for O(1) lookups
+  const currencyOrderMap = useMemo(() => {
+    const map = new Map<string, number>();
+    currencies.forEach(currency => {
+      map.set(currency.name.toLowerCase(), currency.display_order);
+    });
+    return map;
+  }, [currencies]);
+
+  // Memoized parsing functions for better performance
+  const parseExtendedPickNumber = useMemo(() => {
+    const cache = new Map<string, { base: number; letter: string; suffix: number }>();
+    
+    return (pickNumber: string) => {
+      if (cache.has(pickNumber)) {
+        return cache.get(pickNumber)!;
+      }
+      
+      const match = pickNumber.match(/^(\d+)([A-Za-z]?)(\d*)$/);
+      const result = {
+        base: match ? parseInt(match[1], 10) : 0,
+        letter: match ? match[2] : '',
+        suffix: match && match[3] ? parseInt(match[3], 10) : 0
+      };
+      
+      cache.set(pickNumber, result);
+      return result;
+    };
+  }, []);
+
+  const parseNumericValue = useMemo(() => {
+    const cache = new Map<string, number>();
+    
+    return (value: string) => {
+      if (cache.has(value)) {
+        return cache.get(value)!;
+      }
+      
+      const numericPart = value.replace(/[^\d.]/g, '');
+      const result = numericPart ? parseFloat(numericPart) : 0;
+      
+      cache.set(value, result);
+      return result;
+    };
+  }, []);
+
   return useMemo(() => {
     if (!banknotes.length || !sortFields.length) {
       return banknotes;
     }
-
-    // Create currency order map for O(1) lookups
-    const currencyOrderMap = useMemo(() => {
-      const map = new Map<string, number>();
-      currencies.forEach(currency => {
-        map.set(currency.name.toLowerCase(), currency.display_order);
-      });
-      return map;
-    }, [currencies]);
-
-    // Memoized parsing functions for better performance
-    const parseExtendedPickNumber = useMemo(() => {
-      const cache = new Map<string, { base: number; letter: string; suffix: number }>();
-      
-      return (pickNumber: string) => {
-        if (cache.has(pickNumber)) {
-          return cache.get(pickNumber)!;
-        }
-        
-        const match = pickNumber.match(/^(\d+)([A-Za-z]?)(\d*)$/);
-        const result = {
-          base: match ? parseInt(match[1], 10) : 0,
-          letter: match ? match[2] : '',
-          suffix: match && match[3] ? parseInt(match[3], 10) : 0
-        };
-        
-        cache.set(pickNumber, result);
-        return result;
-      };
-    }, []);
-
-    const parseNumericValue = useMemo(() => {
-      const cache = new Map<string, number>();
-      
-      return (value: string) => {
-        if (cache.has(value)) {
-          return cache.get(value)!;
-        }
-        
-        const numericPart = value.replace(/[^\d.]/g, '');
-        const result = numericPart ? parseFloat(numericPart) : 0;
-        
-        cache.set(value, result);
-        return result;
-      };
-    }, []);
 
     // Create optimized comparison function
     const sortedBanknotes = [...banknotes].sort((a, b) => {
