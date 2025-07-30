@@ -454,12 +454,12 @@ export default function CollectionItem() {
                   {(suggestionStatus === 'approved' && hasCustomImages) && (
                     <div className="w-full rounded-md">
                       <div className="w-full flex justify-between items-center py-2 px-3">
-                        <div className="w-full flex items-center justify-center gap-2 py-1.5">
-                          <Star className="h-5 w-5 fill-gold-500 text-gold-500" />
-                          <span className="font-medium text-gold-600">
-                            Catalogue Image
-                          </span>
-                        </div>
+                          <div className="w-full flex items-center justify-center gap-2 py-1.5">
+                            <Star className="h-5 w-5 fill-gold-500 text-gold-500" />
+                            <span className="font-medium text-gold-600">
+                              Catalogue Image
+                            </span>
+                          </div>
                       </div>
                     </div>
                   )}
@@ -582,7 +582,7 @@ export default function CollectionItem() {
                           if (firstOrientation === 'vertical' && secondOrientation === 'vertical') {
                             return (
                               <div className="grid grid-cols-2 gap-3">
-                                {displayImages.map((url, index) => (
+                      {displayImages.map((url, index) => (
                                   <div key={index} className="relative">
                                     {canDeleteImages && (
                                       <div className="absolute top-2 right-2 z-10">
@@ -642,55 +642,55 @@ export default function CollectionItem() {
                             <div className="flex flex-col space-y-3">
                               {displayImages.map((url, index) => (
                                 <div key={index} className="relative">
-                                  {canDeleteImages && (
-                                    <div className="absolute top-2 right-2 z-10">
-                                      <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                          <AlertDialogHeader>
-                                            <AlertDialogTitle>Delete Image</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                              Are you sure you want to delete this image? This action cannot be undone.
-                                            </AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                            <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction
-                                              onClick={() => {
-                                                setImageToDelete(index === 0 ? 'obverse' : 'reverse');
-                                                handleDeleteImage();
-                                              }}
-                                              className="bg-red-600 hover:bg-red-700"
-                                              disabled={isDeletingImage}
-                                            >
-                                              {isDeletingImage ? 'Deleting...' : 'Delete'}
-                                            </AlertDialogAction>
-                                          </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                      </AlertDialog>
-                                    </div>
-                                  )}
-                                  <div
-                                    className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                                    onClick={() => openImageViewer(url)}
+                          {canDeleteImages && (
+                            <div className="absolute top-2 right-2 z-10">
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
                                   >
-                                    <div className="w-full rounded-md overflow-hidden border">
-                                      <img
-                                        src={url}
-                                        className="w-full h-auto object-contain"
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this image? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => {
+                                        setImageToDelete(index === 0 ? 'obverse' : 'reverse');
+                                        handleDeleteImage();
+                                      }}
+                                      className="bg-red-600 hover:bg-red-700"
+                                      disabled={isDeletingImage}
+                                    >
+                                      {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          )}
+                          <div
+                            className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => openImageViewer(url)}
+                          >
+                            <div className="w-full rounded-md overflow-hidden border">
+                              <img
+                                src={url}
+                                className="w-full h-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                             </div>
                           );
                         })()
@@ -816,10 +816,10 @@ export default function CollectionItem() {
 
       {/* Replace the existing Dialog preview with: */}
       <ImagePreview 
-        src={selectedImage}
+              src={selectedImage}
         onClose={() => setSelectedImage(null)}
-      />
-      
+            />
+
       {/* Edit dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContentWithScroll className="sm:max-w-[800px]" onClick={(e) => e.stopPropagation()}>

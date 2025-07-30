@@ -24,8 +24,8 @@ export interface BanknoteFilterCollectionProps {
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
   onPreferencesLoaded?: () => void;
-  activeTab?: 'collection' | 'wishlist' | 'missing';
-  onTabChange?: (tab: 'collection' | 'wishlist' | 'missing') => void;
+  activeTab?: 'collection' | 'wishlist' | 'missing' | 'sale';
+  onTabChange?: (tab: 'collection' | 'wishlist' | 'missing' | 'sale') => void;
   isOwner?: boolean;
   profileUser?: {
     id: string;

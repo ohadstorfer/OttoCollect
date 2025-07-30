@@ -16,8 +16,8 @@ interface CountryFilterSectionProps {
   collectionCategories?: { id: string; name: string; count: number }[];
   collectionTypes?: { id: string; name: string; count: number }[];
   onPreferencesLoaded?: () => void;
-  activeTab?: 'collection' | 'wishlist' | 'missing';
-  onTabChange?: (tab: 'collection' | 'wishlist' | 'missing') => void;
+  activeTab?: 'collection' | 'wishlist' | 'missing' | 'sale';
+  onTabChange?: (tab: 'collection' | 'wishlist' | 'missing' | 'sale') => void;
   isOwner?: boolean;
   profileUser?: {
     id: string;

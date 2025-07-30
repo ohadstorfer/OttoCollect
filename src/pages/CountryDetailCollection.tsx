@@ -91,7 +91,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     types: [],
     sort: [],
   });
-  const [activeTab, setActiveTab] = useState<'collection' | 'wishlist' | 'missing'>('collection');
+  const [activeTab, setActiveTab] = useState<'collection' | 'wishlist' | 'missing' | 'sale'>('collection');
   // Use the new optimized collection data hook
   const {
     collectionItems,
@@ -302,8 +302,17 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     return filtered;
   }, [finalCollectionItems, filters, categoryDefs, typeDefs]);
 
+  // Separate sale items from regular collection items
+  const filteredCollectionItemsForSale = useMemo(() => {
+    return filteredCollectionItems.filter(item => item.isForSale === true);
+  }, [filteredCollectionItems]);
+
+  const filteredCollectionItemsRegular = useMemo(() => {
+    return filteredCollectionItems.filter(item => item.isForSale !== true);
+  }, [filteredCollectionItems]);
+
   // Map collection items to a format compatible with the sorting hook
-  const collectionItemsForSorting = filteredCollectionItems.map(item => ({
+  const collectionItemsForSorting = filteredCollectionItemsRegular.map(item => ({
     ...item.banknote,
     collectionData: {
       id: item.id,
@@ -325,7 +334,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   // Transform the sorted detailed banknotes back to collection items using the stored collectionItemId
   const sortedCollectionItemsWithData = sortedCollectionItems.map(sortedBanknote => {
     // Use the direct reference to the collection item ID
-    const originalItem = collectionItems.find(item => item.id === (sortedBanknote as any).collectionItemId);
+    const originalItem = filteredCollectionItemsRegular.find(item => item.id === (sortedBanknote as any).collectionItemId);
     if (!originalItem) {
       console.error("Could not find original collection item for ID:", (sortedBanknote as any).collectionItemId);
       return null;
@@ -343,7 +352,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const groupedCollectionItems = groupedItems.map(group => {
     // Map each banknote in the group to its corresponding collection item using collectionItemId
     const collectionItemsInGroup = group.items.map(banknote => {
-      const collectionItem = filteredCollectionItems.find(item => item.id === (banknote as any).collectionItemId);
+      const collectionItem = filteredCollectionItemsRegular.find(item => item.id === (banknote as any).collectionItemId);
       if (!collectionItem) {
         console.error("Could not find collection item for banknote with collectionItemId:", (banknote as any).collectionItemId);
       }
@@ -354,9 +363,70 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     const sultanGroups = group.sultanGroups?.map(sultanGroup => ({
       sultan: sultanGroup.sultan,
       items: sultanGroup.items.map(banknote => {
-        const collectionItem = filteredCollectionItems.find(item => item.id === (banknote as any).collectionItemId);
+        const collectionItem = filteredCollectionItemsRegular.find(item => item.id === (banknote as any).collectionItemId);
         if (!collectionItem) {
           console.error("Could not find collection item for banknote with collectionItemId in sultan group:", (banknote as any).collectionItemId);
+        }
+        return collectionItem;
+      }).filter(Boolean) as any[]
+    }));
+
+    return {
+      category: group.category,
+      items: collectionItemsInGroup,
+      sultanGroups: sultanGroups
+    };
+  });
+
+  // Sort and group sale items
+  const saleItemsForSorting = filteredCollectionItemsForSale.map(item => ({
+    ...item.banknote,
+    collectionData: {
+      id: item.id,
+      condition: item.condition,
+      purchaseDate: item.purchaseDate,
+      isForSale: item.isForSale,
+      salePrice: item.salePrice
+    },
+    collectionItemId: item.id
+  }));
+
+  const sortedSaleItems = useBanknoteSorting({
+    banknotes: saleItemsForSorting,
+    currencies,
+    sortFields: filters.sort
+  });
+
+  const sortedSaleItemsWithData = sortedSaleItems.map(sortedBanknote => {
+    const originalItem = filteredCollectionItemsForSale.find(item => item.id === (sortedBanknote as any).collectionItemId);
+    if (!originalItem) {
+      console.error("Could not find original sale item for ID:", (sortedBanknote as any).collectionItemId);
+      return null;
+    }
+    return originalItem;
+  }).filter(Boolean) as any[];
+
+  const groupedSaleItems = useBanknoteGroups(
+    sortedSaleItems,
+    filters.sort,
+    categoryOrder
+  );
+
+  const groupedSaleCollectionItems = groupedSaleItems.map(group => {
+    const collectionItemsInGroup = group.items.map(banknote => {
+      const collectionItem = filteredCollectionItemsForSale.find(item => item.id === (banknote as any).collectionItemId);
+      if (!collectionItem) {
+        console.error("Could not find sale item for banknote with collectionItemId:", (banknote as any).collectionItemId);
+      }
+      return collectionItem;
+    }).filter(Boolean) as any[];
+    
+    const sultanGroups = group.sultanGroups?.map(sultanGroup => ({
+      sultan: sultanGroup.sultan,
+      items: sultanGroup.items.map(banknote => {
+        const collectionItem = filteredCollectionItemsForSale.find(item => item.id === (banknote as any).collectionItemId);
+        if (!collectionItem) {
+          console.error("Could not find sale item for banknote with collectionItemId in sultan group:", (banknote as any).collectionItemId);
         }
         return collectionItem;
       }).filter(Boolean) as any[]
@@ -655,13 +725,13 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   // On mount, restore tab from sessionStorage if available
   useEffect(() => {
     const savedTab = sessionStorage.getItem('countryDetailActiveTab');
-    if (savedTab === 'collection' || savedTab === 'missing' || savedTab === 'wishlist') {
+    if (savedTab === 'collection' || savedTab === 'missing' || savedTab === 'wishlist' || savedTab === 'sale') {
       setActiveTab(savedTab);
     }
   }, []);
 
   // Handler to change tab and persist it
-  const handleTabChange = (tab: 'collection' | 'missing' | 'wishlist') => {
+  const handleTabChange = (tab: 'collection' | 'missing' | 'wishlist' | 'sale') => {
     setActiveTab(tab);
     sessionStorage.setItem('countryDetailActiveTab', tab);
   };
@@ -699,6 +769,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           isLoading={isLoading}
           groupMode={groupMode}
           isOwner={isOwner}
+          activeTab={activeTab}
+          countryName={effectiveCountryName}
         />
       )}
       {activeTab === 'missing' && (
@@ -710,6 +782,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           isLoading={isLoading}
           groupMode={groupMode}
           isOwner={isOwner}
+          activeTab={activeTab}
+          countryName={effectiveCountryName}
         />
       )}
       {activeTab === 'wishlist' && (
@@ -744,6 +818,19 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
             </div>
           )}
         </div>
+      )}
+      {activeTab === 'sale' && (
+        <CollectionItemsDisplay
+          groups={groupedSaleCollectionItems}
+          showSultanGroups={filters.sort.includes('sultan')}
+          viewMode={viewMode}
+          countryId={countryId}
+          isLoading={isLoading}
+          groupMode={groupMode}
+          isOwner={isOwner}
+          activeTab={activeTab}
+          countryName={effectiveCountryName}
+        />
       )}
     </div>
   );

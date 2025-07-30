@@ -52,8 +52,8 @@ export type BaseBanknoteFilterProps = {
   onViewModeChange?: (mode: 'grid' | 'list') => void;
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
-  activeTab?: 'collection' | 'wishlist' | 'missing';
-  onTabChange?: (tab: 'collection' | 'wishlist' | 'missing') => void;
+  activeTab?: 'collection' | 'wishlist' | 'missing' | 'sale';
+  onTabChange?: (tab: 'collection' | 'wishlist' | 'missing' | 'sale') => void;
   isOwner?: boolean;
   userId?: string;
   countryName?: string;
@@ -102,14 +102,15 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const isLocalChange = useRef(false);
   const prevFiltersRef = useRef<DynamicFilterState | null>(null);
 
-  const [internalActiveTab, setInternalActiveTab] = useState<'collection' | 'wishlist' | 'missing'>('collection');
-  const activeTab = (typeof propActiveTab === 'string' ? propActiveTab : internalActiveTab) as 'collection' | 'wishlist' | 'missing';
+  const [internalActiveTab, setInternalActiveTab] = useState<'collection' | 'wishlist' | 'missing' | 'sale'>('collection');
+  const activeTab = (typeof propActiveTab === 'string' ? propActiveTab : internalActiveTab) as 'collection' | 'wishlist' | 'missing' | 'sale';
   const onTabChange = propOnTabChange || setInternalActiveTab;
 
-  const tabList: { key: 'collection' | 'wishlist' | 'missing'; label: string }[] = [
-    { key: 'collection', label: 'Collection' },
-    { key: 'wishlist', label: 'Wishlist' },
-    { key: 'missing', label: 'Missing' },
+  const tabList: { key: 'collection' | 'wishlist' | 'missing'| 'sale'; label: string; mobileLabel?: string }[] = [
+    { key: 'collection', label: 'Collection', mobileLabel: 'Coll' },
+    { key: 'wishlist', label: 'Wishlist', mobileLabel: 'Wish' },
+    { key: 'missing', label: 'Missing', mobileLabel: 'Miss' },
+    { key: 'sale', label: 'Sale', mobileLabel: 'Sale' },
   ];
 
   console.log("BaseBanknoteFilter: Render with props", { 
@@ -372,7 +373,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
               <button
                 key={tab.key}
                 className={cn(
-                  'px-6 sm:px-2 md:px-3 lg:px-4 py-1 rounded-md transition-colors outline-none',
+                  'px-1 sm:px-2 md:px-3 lg:px-4 py-1 rounded-md transition-colors outline-none',
                   activeTab === tab.key
                     ? 'bg-white text-black font-semibold'
                     : 'bg-transparent text-[#857e77] font-medium hover:bg-[#e7e1db]',
@@ -381,7 +382,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 onClick={() => onTabChange(tab.key)}
                 type="button"
               >
-                {tab.label}
+                <span className="sm:hidden">{tab.mobileLabel || tab.label}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
             ))}
            

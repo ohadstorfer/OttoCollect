@@ -15,6 +15,8 @@ interface CollectionItemsDisplayProps {
   isLoading: boolean;
   groupMode: boolean;
   isOwner: boolean;
+  activeTab?: 'collection' | 'wishlist' | 'missing' | 'sale';
+  countryName?: string;
 }
 
 export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
@@ -24,7 +26,9 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
   countryId,
   isLoading,
   groupMode,
-  isOwner
+  isOwner,
+  activeTab,
+  countryName
 }) => {
   // Function to update collection items after changes
   const handleUpdate = async () => {
@@ -45,8 +49,21 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
         </div>
       ) : groups.length === 0 ? (
         <div className="text-center py-8">
-          <h3 className="text-xl font-medium mb-4"><span>No collection items found</span></h3>
-          <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+          {activeTab === 'sale' ? (
+            <>
+              <h3 className="text-xl font-medium mb-4">
+                <span>No banknotes from {countryName || 'this country'} are currently listed for sale.</span>
+              </h3>
+              <p className="text-muted-foreground">
+                {isOwner ? 'To list your banknotes for sale, edit your collection items.' : 'Check back later for new listings.'}
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-xl font-medium mb-4"><span>No collection items found</span></h3>
+              <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+            </>
+          )}
         </div>
       ) : (
         <CollectionItemsGroups

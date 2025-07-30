@@ -36,7 +36,7 @@ const Collection = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [groupMode, setGroupMode] = useState(false);
   const [country, setCountry] = useState<CountryData | null>(null);
-  const [activeTab, setActiveTab] = useState<'collection' | 'wishlist' | 'missing'>('collection');
+  const [activeTab, setActiveTab] = useState<'collection' | 'wishlist' | 'missing' | 'sale'>('collection');
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [profileUser, setProfileUser] = useState<{
     id: string;
@@ -256,7 +256,7 @@ const Collection = () => {
     // Handle preferences loaded
   };
 
-  const handleTabChange = (tab: 'collection' | 'wishlist' | 'missing') => {
+  const handleTabChange = (tab: 'collection' | 'wishlist' | 'missing' | 'sale') => {
     setActiveTab(tab);
   };
 
