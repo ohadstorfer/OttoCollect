@@ -1,9 +1,9 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DetailedBanknote } from "@/types";
 import { DynamicFilterState } from "@/types/filter";
-import { fetchBanknotesByCountryId } from "@/services/banknoteService";
+import { useBanknoteQuery } from "./use-banknote-query";
 
 interface UseBanknoteFetchingProps {
   countryId: string;
@@ -15,68 +15,39 @@ interface UseBanknoteFetchingResult {
   loading: boolean;
 }
 
+// Optimized hook using React Query with smart memoization
 export const useBanknoteFetching = ({ 
   countryId, 
   filters 
 }: UseBanknoteFetchingProps): UseBanknoteFetchingResult => {
   const { toast } = useToast();
-  const [banknotes, setBanknotes] = useState<DetailedBanknote[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const isFetchingRef = useRef<boolean>(false);
-  const lastFetchKey = useRef<string>("");
+  
+  // Use React Query for caching and optimized fetching
+  const {
+    banknotes,
+    loading,
+    error,
+  } = useBanknoteQuery({
+    countryId,
+    filters,
+    enabled: !!countryId && !!filters.categories?.length,
+  });
 
-  useEffect(() => {
-    // Skip empty countryId or empty filters (preferences not loaded yet)
-    if (!countryId || !filters.categories?.length) {
-      return;
-    }
-    
-    // Create a cache key from countryId and filters
-    const fetchKey = countryId + JSON.stringify(filters);
-    
-    // Skip duplicate fetches with same parameters
-    if (fetchKey === lastFetchKey.current) {
-      return;
-    }
-    
-    // Skip if already fetching
-    if (isFetchingRef.current) {
-      return;
-    }
-    
-    const fetchBanknotesData = async () => {
-      setLoading(true);
-      isFetchingRef.current = true;
+  // Handle errors with toast notifications
+  if (error) {
+    console.error("CountryDetail: Error fetching banknotes:", error);
+    toast({
+      title: "Error",
+      description: "Failed to load banknotes. Please try again later.",
+      variant: "destructive",
+    });
+  }
 
-      try {
-        const filterParams = {
-          search: filters.search,
-          categories: filters.categories,
-          types: filters.types,
-          sort: filters.sort
-        };
+  // Memoize the result to prevent unnecessary re-renders
+  const result = useMemo(() => ({
+    banknotes,
+    loading,
+  }), [banknotes, loading]);
 
-        const data = await fetchBanknotesByCountryId(countryId, filterParams);
-        
-        // Only update state if component is still mounted
-        setBanknotes(data);
-        lastFetchKey.current = fetchKey;
-      } catch (error) {
-        console.error("CountryDetail: Error fetching banknotes:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load banknotes. Please try again later.",
-          variant: "destructive",
-        });
-        setBanknotes([]);
-      } finally {
-        setLoading(false);
-        isFetchingRef.current = false;
-      }
-    };
-
-    fetchBanknotesData();
-  }, [countryId, filters, toast]);
-
-  return { banknotes, loading };
+  return result;
 };

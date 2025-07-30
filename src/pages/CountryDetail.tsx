@@ -7,8 +7,8 @@ import { CountryFilterSection } from "@/components/country/CountryFilterSection"
 import { BanknoteDisplay } from "@/components/country/BanknoteDisplay";
 import { useCountryData } from "@/hooks/use-country-data";
 import { useBanknoteFetching } from "@/hooks/use-banknote-fetching";
-import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
-import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
+import { useOptimizedBanknoteSorting } from "@/hooks/use-optimized-banknote-sorting";
+import { useOptimizedBanknoteGroups } from "@/hooks/use-optimized-banknote-groups";
 import { CollectionItem, fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
@@ -76,17 +76,17 @@ const CountryDetail = () => {
     filters
   });
 
-  const sortedBanknotes = useBanknoteSorting({
+  const sortedBanknotes = useOptimizedBanknoteSorting({
     banknotes,
     currencies,
     sortFields: filters.sort
   });
 
-  const groupedItems = useBanknoteGroups(
-    sortedBanknotes, 
-    filters.sort, 
+  const groupedItems = useOptimizedBanknoteGroups({
+    banknotes: sortedBanknotes, 
+    sortFields: filters.sort, 
     categoryOrder
-  );
+  });
 
   // Extract banknote IDs for wishlist context
   const banknoteIds = banknotes.map(banknote => banknote.id);
