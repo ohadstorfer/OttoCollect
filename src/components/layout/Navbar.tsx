@@ -21,7 +21,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { direction } = useLanguage();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['navigation']);
 
   const closeMenu = () => setIsOpen(false);
   
@@ -47,7 +47,7 @@ const Navbar = () => {
     { path: `/profile/${user?.id}`, label: t('nav.myCollection') },
     { path: '/marketplace', label: t('nav.marketplace') },
     { path: '/community/forum', label: t('nav.forum') },
-    { path: '/blog', label: 'Blog' },
+    { path: '/blog', label: t('nav.blog') },
     // ...(isAdmin ? [{ path: '/admin', label: 'Admin Dashboard' }] : []),
   ];
 

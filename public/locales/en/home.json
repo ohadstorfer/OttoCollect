@@ -1,0 +1,36 @@
+{
+  "hero": {
+    "title": "OttoCollect",
+    "subtitle": "Discover the Legacy of Ottoman empire and it's successor countries Banknotes",
+    "description": "Explore, collect, and trade historical banknotes from across regions and eras. Join our community of passionate collectors.",
+    "exploreButton": "Explore Catalogue",
+    "joinButton": "Join Community"
+  },
+  "features": {
+    "title": "Comprehensive Platform for Collectors",
+    "subtitle": "Everything you need to manage, showcase, and grow your Ottoman and its successor countries banknotes collection",
+    "catalogues": {
+      "title": "Catalogues",
+      "description": "Browse comprehensive catalogue of Ottoman and its successor countries banknotes with detailed information"
+    },
+    "collection": {
+      "title": "Collection Management",
+      "description": "Organize and track your personal collection with advanced filtering and categorization tools"
+    },
+    "marketplace": {
+      "title": "Marketplace",
+      "description": "Buy and sell authentic banknotes in a secure marketplace with verified sellers"
+    },
+    "community": {
+      "title": "Community",
+      "description": "Connect with fellow collectors, share knowledge, and participate in discussions"
+    }
+  },
+  "animatedWords": {
+    "rare": "Rare",
+    "historic": "Historic",
+    "valuable": "Valuable",
+    "unique": "Unique",
+    "exquisite": "Exquisite"
+  }
+} 

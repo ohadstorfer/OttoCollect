@@ -1,0 +1,109 @@
+{
+  "home": {
+    "hero": {
+      "title": "OttoCollect",
+      "subtitle": "Osmanlı İmparatorluğu ve halef ülkelerin banknotlarının mirasını keşfedin",
+      "description": "Farklı bölgeler ve dönemlerden tarihi banknotları keşfedin, toplayın ve ticaretini yapın. Tutkulu koleksiyoncular topluluğumuza katılın.",
+      "exploreButton": "Kataloğu Keşfet",
+      "joinButton": "Topluluğa Katıl"
+    },
+    "features": {
+      "title": "Koleksiyoncular İçin Kapsamlı Platform",
+      "subtitle": "Osmanlı ve halef ülkelerin banknot koleksiyonunuzu yönetmek, sergilemek ve büyütmek için ihtiyacınız olan her şey",
+      "catalogues": {
+        "title": "Kataloglar",
+        "description": "Detaylı bilgilerle Osmanlı ve halef ülkelerin banknotlarının kapsamlı kataloğunu gözden geçirin"
+      },
+      "collection": {
+        "title": "Koleksiyon Yönetimi",
+        "description": "Gelişmiş filtreleme ve kategorilendirme araçlarıyla kişisel koleksiyonunuzu organize edin ve takip edin"
+      },
+      "marketplace": {
+        "title": "Pazar Yeri",
+        "description": "Doğrulanmış satıcılarla güvenli bir pazarda orijinal banknotları satın alın ve satın"
+      },
+      "community": {
+        "title": "Topluluk",
+        "description": "Fellow koleksiyoncularla bağlantı kurun, bilgi paylaşın ve tartışmalara katılın"
+      }
+    },
+    "communityDiscussions": {
+      "title": "Topluluk Tartışmaları",
+      "description": "Osmanlı ve halef ülkelerin banknot koleksiyoncularıyla sohbete katılın",
+      "viewAllButton": "Tüm Tartışmaları Görüntüle"
+    },
+    "marketplaceHighlights": {
+      "title": "Pazar Yeri Öne Çıkanları",
+      "description": "Koleksiyoncu topluluğumuzdan şu anda mevcut olan öğeler",
+      "visitButton": "Pazar Yerini Ziyaret Et"
+    },
+    "regions": {
+      "middleEast": "Orta Doğu ve Kuzey Afrika",
+      "balkans": "Balkanlar"
+    },
+    "callToAction": {
+      "title": "Bugün Topluluğumuza Katılın",
+      "description": "Fellow koleksiyoncularla bağlantı kurun, koleksiyonunuzu takip edin ve Osmanlı banknotlarının zengin tarihini keşfedin",
+      "startExploringButton": "Keşfetmeye Başla",
+      "signUpButton": "Şimdi Kayıt Ol"
+    },
+    "adminDialog": {
+      "title": "Yönetici Gerekli",
+      "description": "{{country}} banknotları için bir Yönetici arıyoruz.",
+      "contactInfo": "Bu alanda koleksiyoncu veya uzman iseniz, sizden haber almak isteriz.",
+      "emailInfo": "Lütfen bizimle iletişime geçin:",
+      "gotItButton": "Anladım"
+    },
+    "countries": {
+      "header": "Desteklenecek banknot katalogları ve koleksiyonlarının tam listemiz",
+      "subtitle": "1840'tan günümüze Osmanlı İmparatorluğu'nun halef ülkeleri",
+      "ottomanEmpire": "Osmanlı İmparatorluğu",
+      "middleEastCountries": {
+        "turkey": "Türkiye",
+        "egypt": "Mısır",
+        "iraq": "Irak",
+        "israel": "İsrail",
+        "jordan": "Ürdün",
+        "libya": "Libya",
+        "kuwait": "Kuveyt",
+        "lebanon": "Lübnan",
+        "palestine": "Filistin",
+        "saudiArabia": "Suudi Arabistan",
+        "syria": "Suriye"
+      },
+      "balkanCountries": {
+        "albania": "Arnavutluk",
+        "bosniaHerzegovina": "Bosna Hersek",
+        "bulgaria": "Bulgaristan",
+        "kosovo": "Kosova",
+        "macedonia": "Makedonya",
+        "montenegro": "Karadağ",
+        "serbia": "Sırbistan"
+      }
+    }
+  },
+  "collection": {
+    "emptyState": {
+      "title": "Koleksiyon öğesi bulunamadı",
+      "description": "Filtrelerinizi veya arama kriterlerinizi ayarlamayı deneyin.",
+      "saleTitle": "{{country}}'den şu anda satışta olan banknot yok.",
+      "saleDescriptionOwner": "Banknotlarınızı satışa çıkarmak için koleksiyon öğelerinizi düzenleyin.",
+      "saleDescriptionViewer": "Yeni listeler için daha sonra tekrar kontrol edin."
+    },
+    "tabs": {
+      "collection": "Koleksiyon",
+      "wishlist": "İstek Listesi",
+      "missing": "Eksik",
+      "sale": "Satış"
+    }
+  },
+  "countrySelection": {
+    "noCollections": "Henüz koleksiyon yok",
+    "startJourney": "Koleksiyon yolculuğunuza başlayın",
+    "noCollectionsDescription": "Bu koleksiyoncu henüz koleksiyonuna herhangi bir banknot eklememiş.",
+    "startJourneyDescription": "İlk banknotunuzu ekleyerek Osmanlı İmparatorluğu banknot koleksiyonunuzu oluşturmaya başlayın.",
+    "browseCatalog": "Kataloğu Gözden Geçir",
+    "visitMarketplace": "Pazar Yerini Ziyaret Et",
+    "checkBackLater": "Koleksiyonlarının büyümesini görmek için daha sonra tekrar kontrol edin!"
+  }
+} 

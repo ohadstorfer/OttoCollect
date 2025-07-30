@@ -1,0 +1,109 @@
+{
+  "home": {
+    "hero": {
+      "title": "OttoCollect",
+      "subtitle": "Discover the Legacy of Ottoman empire and it's successor countries Banknotes",
+      "description": "Explore, collect, and trade historical banknotes from across regions and eras. Join our community of passionate collectors.",
+      "exploreButton": "Explore Catalogue",
+      "joinButton": "Join Community"
+    },
+    "features": {
+      "title": "Comprehensive Platform for Collectors",
+      "subtitle": "Everything you need to manage, showcase, and grow your Ottoman and its successor countries banknotes collection",
+      "catalogues": {
+        "title": "Catalogues",
+        "description": "Browse comprehensive catalogue of Ottoman and its successor countries banknotes with detailed information"
+      },
+      "collection": {
+        "title": "Collection Management",
+        "description": "Organize and track your personal collection with advanced filtering and categorization tools"
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "description": "Buy and sell authentic banknotes in a secure marketplace with verified sellers"
+      },
+      "community": {
+        "title": "Community",
+        "description": "Connect with fellow collectors, share knowledge, and participate in discussions"
+      }
+    },
+    "communityDiscussions": {
+      "title": "Community Discussions",
+      "description": "Join the conversation with fellow Ottoman and it's successor countries banknotes collectors",
+      "viewAllButton": "View All Discussions"
+    },
+    "marketplaceHighlights": {
+      "title": "Marketplace Highlights",
+      "description": "Currently available items from our collector community",
+      "visitButton": "Visit Marketplace"
+    },
+    "regions": {
+      "middleEast": "Middle East and North Africa",
+      "balkans": "Balkans"
+    },
+    "callToAction": {
+      "title": "Join Our Community Today",
+      "description": "Connect with fellow collectors, track your collection, and explore the rich history of Ottoman banknotes",
+      "startExploringButton": "Start Exploring",
+      "signUpButton": "Sign Up Now"
+    },
+    "adminDialog": {
+      "title": "Administrator Needed",
+      "description": "We are seeking an Administrator for {{country}} banknotes.",
+      "contactInfo": "If you are a collector or an expert in this area, we'd love to hear from you.",
+      "emailInfo": "Please contact us at:",
+      "gotItButton": "Got it"
+    },
+    "countries": {
+      "header": "Our full list of banknotes catalogues and collections that will be supported",
+      "subtitle": "Ottoman Empire's successor countries from 1840 to the present days",
+      "ottomanEmpire": "Ottoman Empire",
+      "middleEastCountries": {
+        "turkey": "Turkey",
+        "egypt": "Egypt",
+        "iraq": "Iraq",
+        "israel": "Israel",
+        "jordan": "Jordan",
+        "libya": "Libya",
+        "kuwait": "Kuwait",
+        "lebanon": "Lebanon",
+        "palestine": "Palestine",
+        "saudiArabia": "Saudi Arabia",
+        "syria": "Syria"
+      },
+      "balkanCountries": {
+        "albania": "Albania",
+        "bosniaHerzegovina": "Bosnia & Herzegovina",
+        "bulgaria": "Bulgaria",
+        "kosovo": "Kosovo",
+        "macedonia": "Macedonia",
+        "montenegro": "Montenegro",
+        "serbia": "Serbia"
+      }
+    }
+  },
+  "collection": {
+    "emptyState": {
+      "title": "No collection items found",
+      "description": "Try adjusting your filters or search criteria.",
+      "saleTitle": "No banknotes from {{country}} are currently listed for sale.",
+      "saleDescriptionOwner": "To list your banknotes for sale, edit your collection items.",
+      "saleDescriptionViewer": "Check back later for new listings."
+    },
+    "tabs": {
+      "collection": "Collection",
+      "wishlist": "Wishlist", 
+      "missing": "Missing",
+      "sale": "Sale"
+    }
+  },
+  "countrySelection": {
+    "noCollections": "No collections yet",
+    "startJourney": "Start your collection journey",
+    "noCollectionsDescription": "This collector hasn't added any banknotes to their collection yet.",
+    "startJourneyDescription": "Begin building your Ottoman Empire banknote collection by adding your first banknote.",
+    "browseCatalog": "Browse Catalog",
+    "visitMarketplace": "Visit Marketplace",
+    "checkBackLater": "Check back later to see their collection grow!"
+  }
+} 

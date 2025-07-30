@@ -18,11 +18,105 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "@/components/ui/alert-dialog";
 import SEOHead from "@/components/seo/SEOHead";
 import { SEO_CONFIG } from "@/config/seoConfig";
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from "@/context/LanguageContext";
+import i18n from '@/i18n/config';
 
 const Index = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { direction } = useLanguage();
   const { toast } = useToast();
+  const { t } = useTranslation(['pages', 'navigation']);
+  
+  // Debug: Check if translations are loading
+  console.log('Translation debug:', {
+    currentLanguage: i18n.language,
+    direction,
+    featuresTitle: t('home.features.title'),
+    regionsMiddleEast: t('home.regions.middleEast'),
+    callToActionTitle: t('home.callToAction.title'),
+    countriesHeader: t('home.countries.header'),
+    ottomanEmpire: t('home.countries.ottomanEmpire'),
+    namespaces: i18n.reportNamespaces.getUsedNamespaces(),
+    loadedNamespaces: i18n.reportNamespaces.getUsedNamespaces(),
+    hasResourceBundle: i18n.hasResourceBundle('ar', 'pages'),
+    store: i18n.store
+  });
+  
+  // Force reload translations if needed
+  useEffect(() => {
+    const reloadTranslations = async () => {
+      try {
+        await i18n.reloadResources();
+        console.log('Translations reloaded');
+      } catch (error) {
+        console.error('Failed to reload translations:', error);
+      }
+    };
+    
+    // Reload translations when language changes
+    reloadTranslations();
+  }, [i18n.language]);
+  
+  // Fallback function for translations
+  const tWithFallback = (key: string, fallback: string) => {
+    const translation = t(key);
+    return translation === key ? fallback : translation;
+  };
+
+  // Simple test for basic translations
+  const testTranslation = t('home.hero.title');
+  console.log('Basic translation test:', testTranslation);
+  
+  // If basic translations aren't working, use hardcoded fallbacks
+  const getTranslationOrFallback = (key: string, fallback: string) => {
+    const translation = t(key);
+    if (translation === key || translation === '') {
+      console.warn(`Translation missing for key: ${key}, using fallback: ${fallback}`);
+      return fallback;
+    }
+    return translation;
+  };
+
+  // Country name translation mappings with fallbacks
+  const getCountryTranslation = (englishName: string) => {
+    const countryMap: { [key: string]: string } = {
+      'Turkey': tWithFallback('home.countries.middleEastCountries.turkey', 'Turkey'),
+      'Egypt': tWithFallback('home.countries.middleEastCountries.egypt', 'Egypt'),
+      'Iraq': tWithFallback('home.countries.middleEastCountries.iraq', 'Iraq'),
+      'Israel': tWithFallback('home.countries.middleEastCountries.israel', 'Israel'),
+      'Jordan': tWithFallback('home.countries.middleEastCountries.jordan', 'Jordan'),
+      'Libya': tWithFallback('home.countries.middleEastCountries.libya', 'Libya'),
+      'Kuwait': tWithFallback('home.countries.middleEastCountries.kuwait', 'Kuwait'),
+      'Lebanon': tWithFallback('home.countries.middleEastCountries.lebanon', 'Lebanon'),
+      'Palestine': tWithFallback('home.countries.middleEastCountries.palestine', 'Palestine'),
+      'Saudi Arabia': tWithFallback('home.countries.middleEastCountries.saudiArabia', 'Saudi Arabia'),
+      'Syria': tWithFallback('home.countries.middleEastCountries.syria', 'Syria'),
+      'Albania': tWithFallback('home.countries.balkanCountries.albania', 'Albania'),
+      'Bosnia & Herzegovina': tWithFallback('home.countries.balkanCountries.bosniaHerzegovina', 'Bosnia & Herzegovina'),
+      'Bulgaria': tWithFallback('home.countries.balkanCountries.bulgaria', 'Bulgaria'),
+      'Kosovo': tWithFallback('home.countries.balkanCountries.kosovo', 'Kosovo'),
+      'Macedonia': tWithFallback('home.countries.balkanCountries.macedonia', 'Macedonia'),
+      'Montenegro': tWithFallback('home.countries.balkanCountries.montenegro', 'Montenegro'),
+      'Serbia': tWithFallback('home.countries.balkanCountries.serbia', 'Serbia')
+    };
+    return countryMap[englishName] || englishName;
+  };
+
+  // Manual reload function for debugging
+  const reloadTranslations = async () => {
+    try {
+      await i18n.reloadResources();
+      console.log('Translations manually reloaded');
+      // Force re-render
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to reload translations:', error);
+    }
+  };
+
+  
   const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItem[]>([]);
   const [forumPosts, setForumPosts] = useState<ForumPost[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
@@ -160,7 +254,7 @@ const Index = () => {
 
           <h3 className={`mb-1 text-2xl sm:text-2xl lg:text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight line-clamp-2`}>
             <span>
-              Discover the Legacy of Ottoman empire and it's successor countries Banknotes
+              {t('home.hero.subtitle')}
             </span>
           </h3>
 
@@ -168,10 +262,7 @@ const Index = () => {
             className={`text-lg ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-100'
               } w-[90vw] max-w-2xl`}
           >
-            Explore, collect, and trade historical banknotes from across regions
-            and eras. Join our <span className={`${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'} font-medium animate-pulse-subtle`}>
-              community of passionate collectors.
-            </span>
+            {t('home.hero.description')}
           </p>
 
           <div className="mt-10 flex flex-wrap justify-center gap-4">
@@ -179,7 +270,7 @@ const Index = () => {
               className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg group"
               onClick={() => navigate('/catalog')}
             >
-              <span className="group-hover:animate-bounce-subtle">Explore Catalogue</span>
+              <span className="group-hover:animate-bounce-subtle">{t('home.hero.exploreButton')}</span>
               <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
             </Button>
             {!user && (
@@ -190,7 +281,7 @@ const Index = () => {
                     ? 'border-ottoman-400 text-ottoman-800 hover:bg-ottoman-200/50'
                     : 'border-ottoman-700 text-ottoman-100 hover:bg-ottoman-800/50'} py-6 px-8 text-lg`}
                 >
-                  Join Community
+                  {t('home.hero.joinButton')}
                 </Button>
               </Link>
             )}
@@ -207,11 +298,11 @@ const Index = () => {
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto mb-20 reveal fade-bottom">
-            <h2 className={`text-4xl md:text-5xl font-serif font-bold mb-6 ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'}`}>
-              <span>Comprehensive Platform for Collectors</span>
+            <h2 className={`text-4xl md:text-5xl font-serif font-bold mb-6 ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+              <span>{t('home.features.title')}</span>
             </h2>
-            <p className={`text-xl leading-relaxed ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}>
-              Everything you need to manage, showcase, and grow your Ottoman and its successor countries banknotes collection
+            <p className={`text-xl leading-relaxed ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+              {t('home.features.subtitle')}
             </p>
           </div>
 
@@ -229,12 +320,12 @@ const Index = () => {
                 <div className="w-12 h-12 bg-gradient-to-br from-ottoman-600 to-ottoman-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0">
                   <Database className="h-6 w-6 text-white" />
                 </div>
-                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-                  <span>Catalogues</span>
+                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                  <span>{t('home.features.catalogues.title')}</span>
                 </h3>
               </div>
-              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
-                Browse comprehensive catalogue of Ottoman and its successor countries banknotes with detailed information
+              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                {t('home.features.catalogues.description')}
               </p>
               <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="w-6 h-0.5 bg-gradient-to-r from-ottoman-500 to-ottoman-600 rounded-full"></div>
@@ -254,12 +345,12 @@ const Index = () => {
                 <div className="w-12 h-12 bg-gradient-to-br from-ottoman-600 to-ottoman-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0">
                   <BookOpen className="h-6 w-6 text-white" />
                 </div>
-                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-                  <span>Collection Tools</span>
+                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                  <span>{t('home.features.collection.title')}</span>
                 </h3>
               </div>
-              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
-                Track your collection, manage wishlists, and identify missing items with comprehensive tools
+              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                {t('home.features.collection.description')}
               </p>
               <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="w-6 h-0.5 bg-gradient-to-r from-ottoman-500 to-ottoman-600 rounded-full"></div>
@@ -279,12 +370,12 @@ const Index = () => {
                 <div className="w-12 h-12 bg-gradient-to-br from-ottoman-600 to-ottoman-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0">
                   <DollarSign className="h-6 w-6 text-white" />
                 </div>
-                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-                  <span>Marketplace</span>
+                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                  <span>{t('home.features.marketplace.title')}</span>
                 </h3>
               </div>
-              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
-                Buy and sell banknotes within our trusted community through our secure marketplace platform
+              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                {t('home.features.marketplace.description')}
               </p>
               <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="w-6 h-0.5 bg-gradient-to-r from-ottoman-500 to-ottoman-600 rounded-full"></div>
@@ -304,12 +395,12 @@ const Index = () => {
                 <div className="w-12 h-12 bg-gradient-to-br from-ottoman-600 to-ottoman-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0">
                   <Users className="h-6 w-6 text-white" />
                 </div>
-                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-                  <span>Community</span>
+                <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                  <span>{t('home.features.community.title')}</span>
                 </h3>
               </div>
-              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`}>
-                Connect with collectors worldwide, view personal collections, and build relationships
+              <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                {t('home.features.community.description')}
               </p>
               <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="w-6 h-0.5 bg-gradient-to-r from-ottoman-500 to-ottoman-600 rounded-full"></div>
@@ -323,11 +414,11 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
             <div className="reveal fade-right">
-              <h2 className={`text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-3`}>
-                <span>Community Discussions</span>
+              <h2 className={`text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-3`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                <span>{t('home.communityDiscussions.title')}</span>
               </h2>
-              <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl`}>
-                Join the conversation with fellow Ottoman and it's successor countries banknotes collectors
+              <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                {t('home.communityDiscussions.description')}
               </p>
             </div>
             <div className="mt-4 md:mt-0 reveal fade-left">
@@ -335,7 +426,7 @@ const Index = () => {
                 <Button variant="outline" className={`${theme === 'light'
                   ? 'border-ottoman-400 text-ottoman-800 hover:bg-ottoman-200/50'
                   : 'border-ottoman-700 text-ottoman-100 hover:bg-ottoman-800/50'}`}>
-                  View All Discussions
+                  {t('home.communityDiscussions.viewAllButton')}
                 </Button>
               </Link>
             </div>
@@ -349,11 +440,11 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10">
             <div className="reveal fade-right">
-              <h2 className={`text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-3`}>
-                <span>Marketplace Highlights</span>
+              <h2 className={`text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-3`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                <span>{t('home.marketplaceHighlights.title')}</span>
               </h2>
-              <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl`}>
-                Currently available items from our collector community
+              <p className={`${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                {t('home.marketplaceHighlights.description')}
               </p>
             </div>
             <div className="mt-4 md:mt-0 reveal fade-left">
@@ -361,7 +452,7 @@ const Index = () => {
                 <Button variant="outline" className={`${theme === 'light'
                   ? 'border-ottoman-400 text-ottoman-800 hover:bg-ottoman-200/50'
                   : 'border-ottoman-700 text-ottoman-100 hover:bg-ottoman-800/50'}`}>
-                  Visit Marketplace
+                  {t('home.marketplaceHighlights.visitButton')}
                 </Button>
               </Link>
             </div>
@@ -376,12 +467,11 @@ const Index = () => {
         <div className="container mx-auto px-4 reveal fade-bottom">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className={`text-3xl md:text-4xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-3`}>
-                <span>Our full list of banknotes catalogues and collections that will be supported</span>
+              <h2 className={`text-3xl md:text-4xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-3`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                <span>{getTranslationOrFallback('home.countries.header', 'Our full list of banknotes catalogues and collections that will be supported')}</span>
               </h2>
-              <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`}>
-                Ottoman Empire's successor countries from 1840 to the present days
-
+              <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                {getTranslationOrFallback('home.countries.subtitle', "Ottoman Empire's successor countries from 1840 to the present days")}
               </p>
             </div>
 
@@ -392,7 +482,7 @@ const Index = () => {
                 onClick={handleOttomanEmpireClick}
               >
                 <div className={`text-white text-2xl md:text-3xl font-serif font-bold text-center`}>
-                  <span>Ottoman Empire</span>
+                  <span>{tWithFallback('home.countries.ottomanEmpire', 'Ottoman Empire')}</span>
                 </div>
               </div>
 
@@ -400,8 +490,8 @@ const Index = () => {
                 {/* Middle East and North Africa */}
                 <div className="mb-8">
                   <div className="flex items-center gap-3 mb-4">
-                    <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
-                      <span>Middle East and North Africa</span>
+                    <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                      <span>{t('home.regions.middleEast')}</span>
                     </h3>
                     <div className={`h-px flex-1 ${theme === 'light' ? 'bg-ottoman-200' : 'bg-ottoman-800'}`}></div>
                   </div>
@@ -415,8 +505,8 @@ const Index = () => {
                             : 'bg-dark-600 hover:bg-dark-500 border-ottoman-800 hover:border-ottoman-700'}`}
                         onClick={() => handleCountryClick(country)}
                       >
-                        <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
-                          {country}
+                        <div className={`text-center font-medium ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`} style={{ textAlign: direction === 'rtl' ? 'center' : 'center' }}>
+                          {getCountryTranslation(country)}
                         </div>
                       </div>
                     ))}
@@ -426,8 +516,8 @@ const Index = () => {
                 {/* Balkans */}
                 <div>
                   <div className="flex items-center gap-3 mb-4">
-                    <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`}>
-                      <span>Balkans</span>
+                    <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+                      <span>{t('home.regions.balkans')}</span>
                     </h3>
                     <div className={`h-px flex-1 ${theme === 'light' ? 'bg-ottoman-200' : 'bg-ottoman-800'}`}></div>
                   </div>
@@ -457,8 +547,9 @@ const Index = () => {
   className={`text-center font-medium truncate w-full
     ${theme === 'light' ? 'text-ottoman-900' : 'text-ottoman-100'}
     ${country === 'Bosnia & Herzegovina' ? 'text-sm sm:text-base leading-none px-0 py-0' : ''}`}
+  style={{ textAlign: direction === 'rtl' ? 'center' : 'center' }}
 >
-  {country}
+  {getCountryTranslation(country)}
 </div>
                       </div>
                     ))}
@@ -482,11 +573,11 @@ const Index = () => {
         </div>
 
         <div className="container mx-auto px-4 text-center reveal fade-bottom ">
-          <h2 className={`text-3xl md:text-4xl lg:text-5xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-6`}>
-            <span>Join Our Community Today</span>
+          <h2 className={`text-3xl md:text-4xl lg:text-5xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-6`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+            <span>{t('home.callToAction.title')}</span>
           </h2>
-          <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'} max-w-2xl mx-auto mb-10`}>
-            Connect with fellow collectors, track your collection, and explore the rich history of Ottoman banknotes
+          <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'} max-w-2xl mx-auto mb-10`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+            {t('home.callToAction.description')}
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -494,7 +585,7 @@ const Index = () => {
               className="ottoman-button bg-ottoman-600 hover:bg-ottoman-700 text-white py-6 px-8 text-lg"
               onClick={() => navigate('/catalog')}
             >
-              Start Exploring
+              {t('home.callToAction.startExploringButton')}
             </Button>
 
             {!user && (
@@ -502,7 +593,7 @@ const Index = () => {
                 <Button variant="outline" className={`${theme === 'light'
                   ? 'border-ottoman-400 text-ottoman-800 hover:bg-ottoman-200/50'
                   : 'border-ottoman-700 text-ottoman-100 hover:bg-ottoman-800/50'} py-6 px-8 text-lg`}>
-                  Sign Up Now
+                  {t('home.callToAction.signUpButton')}
                 </Button>
               </Link>
             )}
@@ -514,16 +605,16 @@ const Index = () => {
       <AlertDialog open={showAdminDialog} onOpenChange={setShowAdminDialog}>
         <AlertDialogContent className="sm:max-w-[425px]">
           <AlertDialogHeader>
-            <AlertDialogTitle><span>Administrator Needed</span></AlertDialogTitle>
+            <AlertDialogTitle><span>{t('home.adminDialog.title')}</span></AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
               <p>
-                We are seeking an Administrator for <strong>{selectedCountry}</strong> banknotes.
+                {t('home.adminDialog.description', { country: selectedCountry })}
               </p>
               <p>
-                If you are a collector or an expert in this area, we'd love to hear from you.
+                {t('home.adminDialog.contactInfo')}
               </p>
               <p>
-                Please contact us at:{" "}
+                {t('home.adminDialog.emailInfo')}{" "}
                 <a
                   href="mailto:info@ottocollect.com"
                   className="text-ottoman-600 hover:text-ottoman-700 font-medium"
@@ -535,7 +626,7 @@ const Index = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setShowAdminDialog(false)}>
-              Got it
+              {t('home.adminDialog.gotItButton')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
