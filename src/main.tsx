@@ -7,6 +7,7 @@ import { ThemeProvider } from './context/ThemeContext.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { QueryProvider } from './providers/QueryProvider.tsx'
 import { LanguageProvider } from '@/context/LanguageContext';
+import { TutorialProvider } from '@/context/TutorialContext';
 import '@/i18n/config';
 
 createRoot(document.getElementById("root")!).render(
@@ -14,9 +15,11 @@ createRoot(document.getElementById("root")!).render(
     <QueryProvider>
       <AuthProvider>
         <LanguageProvider>
-          <ThemeProvider>
-            <App />
-          </ThemeProvider>
+          <TutorialProvider>
+            <ThemeProvider>
+              <App />
+            </ThemeProvider>
+          </TutorialProvider>
         </LanguageProvider>
       </AuthProvider>
     </QueryProvider>

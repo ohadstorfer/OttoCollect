@@ -1,0 +1,126 @@
+{
+  "title": "User Guide",
+  "sections": {
+    "addBanknote": {
+      "title": "How to Add a Banknote to Your Collection",
+      "icon": "🧾",
+      "steps": {
+        "step1": {
+          "title": "Go to the Catalogue",
+          "description": "From the top menu, click on \"Catalogue\"."
+        },
+        "step2": {
+          "title": "Choose a Country", 
+          "description": "Click on the country whose banknotes you want to view."
+        },
+        "step3": {
+          "title": "Browse and Add Banknotes",
+          "description": "Scroll through the list of banknotes. To add one to your collection, click the \"+\" icon on the top-right of the banknote card."
+        },
+        "step4": {
+          "title": "Add More Banknotes",
+          "description": "Repeat the process for every banknote you own. You can quickly add multiple this way."
+        },
+        "step5": {
+          "title": "View Your Collection",
+          "description": "Once you're done, go to the \"My Collection\" section from the menu to see all the banknotes you've added."
+        },
+        "step6": {
+          "title": "Remove a Mistaken Entry",
+          "description": "If you added a banknote by mistake: Click on that banknote in your collection. On its page, click the trash icon 🗑️ to remove it. The banknote will be deleted from your collection.",
+          "type": "error"
+        }
+      }
+    },
+    "editBanknote": {
+      "title": "How to Add Information or a Picture to a Banknote in Your Collection",
+      "icon": "🖼️",
+      "steps": {
+        "step1": {
+          "title": "Open \"My Collection\"",
+          "description": "From the top menu, click on \"My Collection\" to access your personal banknotes."
+        },
+        "step2": {
+          "title": "Select a Country",
+          "description": "Choose the country of the banknote you'd like to edit."
+        },
+        "step3": {
+          "title": "Choose the Banknote",
+          "description": "Scroll down and click on the banknote you want to update."
+        },
+        "step4": {
+          "title": "Click the Edit Icon ✏️",
+          "description": "In the banknote details page, click on the Edit icon (typically a pencil)."
+        },
+        "step5": {
+          "title": "Fill in the Details",
+          "description": "A form will appear. You can now: Add or update quantity, Enter notes, grade, purchase source, or any other personal details."
+        },
+        "step6": {
+          "title": "Click \"Change Picture\"",
+          "description": "To upload or replace a photo, click the \"Change Picture\" button."
+        },
+        "step7": {
+          "title": "Select Your Image",
+          "description": "Choose a front or back image of the banknote from your device."
+        },
+        "step8": {
+          "title": "Edit Image (Optional)",
+          "description": "Adjust or crop the picture to fit the required display area."
+        },
+        "step9": {
+          "title": "Save",
+          "description": "Click the Save button to confirm changes."
+        },
+        "step10": {
+          "title": "Click \"Update\"",
+          "description": "To finish, click the Update button to apply the edits to your collection."
+        }
+      }
+    },
+    "suggestPicture": {
+      "title": "How to Suggest a Picture from Your Collection to the Main Catalogue",
+      "icon": "🖼️",
+      "steps": {
+        "step1": {
+          "title": "Go to the Banknote Page",
+          "description": "Navigate to the banknote page in your collection that contains the photo you want to suggest."
+        },
+        "step2": {
+          "title": "Click \"Suggest to Catalogue\"",
+          "description": "Above your uploaded banknote image, click the \"Suggest to Catalogue\" button. This submits your image for review by an administrator."
+        },
+        "step3": {
+          "title": "Wait for Review",
+          "description": "Your suggestion will be reviewed by the site's admin team. They may approve or reject your submission based on quality and clarity."
+        },
+        "step4": {
+          "title": "Edit and Re-Suggest if Needed",
+          "description": "If you edit or change the image later, the system will allow you to suggest it again for catalogue inclusion."
+        }
+      },
+      "note": {
+        "title": "Best Picture Wins",
+        "description": "Only the best-quality images are selected for the main catalogue. Admins may choose another user's photo if it's better suited."
+      }
+    }
+  },
+  "tutorials": {
+    "welcome": {
+      "title": "Welcome to OttoCollect!",
+      "description": "Let's help you get started with your banknote collection."
+    },
+    "firstCatalogueVisit": {
+      "title": "Explore the Catalogue",
+      "description": "Browse banknotes by country and click the \"+\" icon to add them to your collection."
+    },
+    "firstCollectionVisit": {
+      "title": "Your Collection",
+      "description": "Here you can view, edit, and manage all your banknotes. Click on any banknote to see more details."
+    },
+    "firstEditClick": {
+      "title": "Edit Your Banknote",
+      "description": "Click the edit icon to add personal details, upload pictures, and manage your banknote information."
+    }
+  }
+}

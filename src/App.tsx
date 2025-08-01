@@ -48,6 +48,7 @@ import { useTranslation } from 'react-i18next';
 import '@/i18n/config';  // Import this at the top
 import AboutUs from "./pages/AboutUs";
 import Blog from "./pages/Blog";
+import Guide from "./pages/Guide";
 import BlogPost from "./pages/BlogPost";
 import CreateBlogPost from "./pages/CreateBlogPost";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -55,6 +56,8 @@ import TermsOfService from "./pages/TermsOfService";
 import ContactUs from "./pages/ContactUs";
 import { CookieConsent } from "@/components/ui/cookie-consent";
 import CookiePolicy from "./pages/CookiePolicy";
+import { TutorialPopup } from '@/components/tutorial/TutorialPopup';
+import { TutorialTriggers } from '@/components/tutorial/TutorialTriggers';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -135,12 +138,15 @@ function App() {
                       <Route path="/cookie-policy" element={<CookiePolicy />} />
                       <Route path="/terms" element={<TermsOfService />} />
                       <Route path="/terms-of-service" element={<TermsOfService />} />
+                      <Route path="/guide" element={<Guide />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </main>
                   <CookieConsent />
                   <Footer />
                   <Toaster />
+                  <TutorialPopup />
+                  <TutorialTriggers />
                 </PageBackground>
               </div>
             </HelmetProvider>
