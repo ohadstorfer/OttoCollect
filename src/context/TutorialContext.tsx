@@ -25,6 +25,15 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isVisible, setIsVisible] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<TutorialStep>>(new Set());
 
+  // Check if user is new (created within last 7 days)
+  const isNewUser = (user: any) => {
+    if (!user?.created_at) return false;
+    const userCreatedAt = new Date(user.created_at);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    return userCreatedAt > sevenDaysAgo;
+  };
+
   // Load tutorial state from localStorage
   useEffect(() => {
     if (user) {
@@ -32,8 +41,8 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (tutorialState) {
         const { completed } = JSON.parse(tutorialState);
         setCompletedSteps(new Set(completed));
-      } else {
-        // New user - show welcome tutorial
+      } else if (isNewUser(user)) {
+        // New user - show welcome tutorial after 1 second
         setTimeout(() => showTutorial('welcome'), 1000);
       }
     }
@@ -49,6 +58,9 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const showTutorial = (step: TutorialStep) => {
+    // Only show tutorials for new users (except manual triggers)
+    if (!user || (!isNewUser(user) && step !== 'firstEditClick')) return;
+    
     if (!completedSteps.has(step) && step !== 'completed') {
       setCurrentStep(step);
       setIsVisible(true);

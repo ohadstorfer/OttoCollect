@@ -22,7 +22,7 @@ const Guide = () => {
         <CardContent className="p-8">
           <div className="flex items-center gap-3 mb-6">
             <span className="text-2xl">{section.icon}</span>
-            <h2 className="text-2xl font-bold text-foreground">{section.title}</h2>
+            <h2 className="text-2xl font-bold text-foreground"><span>{section.title}</span></h2>
           </div>
           
           <div className="space-y-6">
@@ -32,7 +32,7 @@ const Guide = () => {
                   <StepIcon type={step.type} />
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-foreground mb-2">
-                      {step.title}
+                      <span>{step.title}</span>
                     </h3>
                     <p className="text-muted-foreground leading-relaxed">
                       {step.description}
@@ -52,7 +52,7 @@ const Guide = () => {
                   <Info className="h-5 w-5 text-primary mt-0.5" />
                   <div>
                     <h4 className="font-semibold text-foreground mb-1">
-                      ℹ️ {section.note.title}
+                      <span>ℹ️ {section.note.title}</span>
                     </h4>
                     <p className="text-muted-foreground text-sm">
                       {section.note.description}
@@ -71,7 +71,7 @@ const Guide = () => {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-foreground mb-4">
-          {t('title')}
+          <span>{t('title')}</span>
         </h1>
         <p className="text-lg text-muted-foreground">
           Learn how to use OttoCollect effectively

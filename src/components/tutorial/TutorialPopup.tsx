@@ -34,7 +34,7 @@ export const TutorialPopup = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <h3 className="text-lg font-semibold text-foreground">
-                      {tutorial.title}
+                      <span>{tutorial.title}</span>
                     </h3>
                   </div>
                   <Button
