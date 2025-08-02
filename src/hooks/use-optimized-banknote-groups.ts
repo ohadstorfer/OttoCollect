@@ -13,7 +13,7 @@ export interface BanknoteGroupedData {
   categoryId: string;
   items: DetailedBanknote[];
   mixedItems?: MixedBanknoteItem[];
-  sultanGroups?: { sultan: string; items: MixedBanknoteItem[] }[];
+  sultanGroups?: { sultan: string; items: DetailedBanknote[] }[];
 }
 
 interface BanknoteGroup extends BanknoteGroupedData {}
@@ -75,7 +75,9 @@ export const useOptimizedBanknoteGroups = ({
           ...group,
           sultanGroups: sultanGroups.map(sultanGroup => ({
             sultan: sultanGroup.sultan,
-            items: sultanGroup.items
+            items: sultanGroup.items.flatMap(item => 
+              item.type === 'single' ? [item.banknote] : item.group.items
+            )
           }))
         };
       } else {

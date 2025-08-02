@@ -92,9 +92,31 @@ export const useOptimizedBanknoteSorting = ({
           }
           
           case 'faceValue': {
+            const getCurrencyInfo = (note: DetailedBanknote) => {
+              const denomination = note.denomination?.toLowerCase() || '';
+              return currencies.find(c =>
+                denomination.includes(c.name.toLowerCase())
+              );
+            };
+
+            const currencyA = getCurrencyInfo(a);
+            const currencyB = getCurrencyInfo(b);
+
             const aValue = parseNumericValue(a.denomination || '');
             const bValue = parseNumericValue(b.denomination || '');
-            comparison = aValue - bValue;
+
+            if (currencyA && currencyB) {
+              comparison = currencyA.display_order - currencyB.display_order;
+              if (comparison === 0) {
+                comparison = aValue - bValue;
+              }
+            } else if (currencyA) {
+              comparison = -1;
+            } else if (currencyB) {
+              comparison = 1;
+            } else {
+              comparison = aValue - bValue;
+            }
             break;
           }
           
