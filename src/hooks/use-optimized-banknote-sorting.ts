@@ -58,8 +58,9 @@ export const useOptimizedBanknoteSorting = ({
         return cache.get(value)!;
       }
       
-      const numericPart = value.replace(/[^\d.]/g, '');
-      const result = numericPart ? parseFloat(numericPart) : 0;
+      // Use the same regex as the working implementation
+      const match = value.match(/(\d+(\.\d+)?)/);
+      const result = match ? parseFloat(match[0]) : 0;
       
       cache.set(value, result);
       return result;
@@ -71,9 +72,21 @@ export const useOptimizedBanknoteSorting = ({
       return banknotes;
     }
 
+    // Step 2: Create effectiveSortFields to prioritize faceValue if present
+    let effectiveSortFields = [...sortFields];
+    if (sortFields.includes('faceValue')) {
+      effectiveSortFields = [
+        'faceValue',
+        ...sortFields.filter(sf => sf !== 'faceValue'),
+      ];
+    }
+    // Ensure no duplicates if 'faceValue' was already first
+    effectiveSortFields = [...new Set(effectiveSortFields)];
+
     // Create optimized comparison function
     const sortedBanknotes = [...banknotes].sort((a, b) => {
-      for (const field of sortFields) {
+      // Apply sorts based on effective (potentially reordered) fields
+      for (const field of effectiveSortFields) {
         let comparison = 0;
 
         switch (field) {
@@ -92,6 +105,12 @@ export const useOptimizedBanknoteSorting = ({
           }
           
           case 'faceValue': {
+            console.log('🎯 Optimized Sorting: Processing faceValue sort', { 
+              a: a.denomination, 
+              b: b.denomination,
+              currencies: currencies.length 
+            });
+            
             const getCurrencyInfo = (note: DetailedBanknote) => {
               const denomination = note.denomination?.toLowerCase() || '';
               return currencies.find(c =>
@@ -105,18 +124,27 @@ export const useOptimizedBanknoteSorting = ({
             const aValue = parseNumericValue(a.denomination || '');
             const bValue = parseNumericValue(b.denomination || '');
 
+            console.log('🎯 Optimized Sorting: Currency info', { 
+              currencyA: currencyA?.name, 
+              currencyB: currencyB?.name,
+              aValue, 
+              bValue 
+            });
+
             if (currencyA && currencyB) {
               comparison = currencyA.display_order - currencyB.display_order;
-              if (comparison === 0) {
+              if (comparison === 0) { // If same currency display_order, sort by numeric value
                 comparison = aValue - bValue;
               }
-            } else if (currencyA) {
-              comparison = -1;
-            } else if (currencyB) {
-              comparison = 1;
-            } else {
+            } else if (currencyA) { // Only A has a recognized currency
+              comparison = -1; // A comes before B
+            } else if (currencyB) { // Only B has a recognized currency
+              comparison = 1;  // B comes before A
+            } else { // Neither has a recognized currency, fallback to numeric value sort
               comparison = aValue - bValue;
             }
+            
+            console.log('🎯 Optimized Sorting: Final comparison', { comparison });
             break;
           }
           
