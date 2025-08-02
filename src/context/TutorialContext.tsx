@@ -21,6 +21,8 @@ interface TutorialContextType {
   resetTutorials: () => void;
   isNewUser: boolean;
   completedGuides: Set<TutorialGuide>;
+  triggerEditBanknoteGuide: () => void;
+  triggerSuggestPictureGuide: () => void;
 }
 
 const TutorialContext = createContext<TutorialContextType | undefined>(undefined);
@@ -224,7 +226,9 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       skipTutorial,
       resetTutorials,
       isNewUser,
-      completedGuides
+      completedGuides,
+      triggerEditBanknoteGuide,
+      triggerSuggestPictureGuide
     }}>
       {children}
     </TutorialContext.Provider>

@@ -6,6 +6,7 @@ import { UploadCloud, X, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CollectionItem } from '@/types';
 import { uploadCollectionImage } from '@/services/collectionService';
+import { useTutorial } from '@/context/TutorialContext';
 
 interface CollectionImageUploadProps {
   collectionItem: CollectionItem;
@@ -25,6 +26,7 @@ export default function CollectionImageUpload({
   className = '',
 }: CollectionImageUploadProps) {
   const { toast } = useToast();
+  const { triggerSuggestPictureGuide } = useTutorial();
   const [isUploading, setIsUploading] = useState(false);
   const [personalImages, setPersonalImages] = useState<string[]>(
     collectionItem.personalImages || []
@@ -75,6 +77,11 @@ export default function CollectionImageUpload({
         title: `${type.charAt(0).toUpperCase() + type.slice(1)} image uploaded successfully.`,
         variant: 'default'
       });
+      
+      // Trigger suggest picture guide after first image upload
+      if (type === 'obverse' || type === 'reverse') {
+        triggerSuggestPictureGuide();
+      }
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({

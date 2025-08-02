@@ -9,11 +9,12 @@ import { cn } from "@/lib/utils";
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import CollectionItemForm from '../collection/CollectionItemForm';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from "@/components/ui/toast";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { addToCollection } from "@/services/collectionService";
 import { deleteWishlistItem } from "@/services/wishlistService";
+import { useTutorial } from "@/context/TutorialContext";
 import { useAuth } from "@/context/AuthContext";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
@@ -48,6 +49,8 @@ const BanknoteDetailCardWishList = ({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const { triggerEditBanknoteGuide } = useTutorial();
 
   // Toast window state: track shown toast's ID to programmatically dismiss it
   const toastIdRef = useRef<string | null>(null);
@@ -158,6 +161,9 @@ const BanknoteDetailCardWishList = ({
           className: "justify-center items-center w-full",
           duration: 3000,
         });
+        
+        // Trigger edit banknote guide for first collection item
+        triggerEditBanknoteGuide();
       } else {
         throw new Error("Unable to add banknote to collection");
       }

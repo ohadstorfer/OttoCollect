@@ -15,6 +15,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { addToCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
+import { useTutorial } from "@/context/TutorialContext";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 import { addToWishlist, deleteWishlistItem, fetchWishlistItem } from "@/services/wishlistService";
@@ -49,6 +50,7 @@ const BanknoteDetailCard = ({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
+  const { triggerEditBanknoteGuide } = useTutorial();
 
   // Use wishlist context instead of individual API calls
   const { isWishlistItem, getWishlistItemId, addToWishlistMap, removeFromWishlistMap } = useWishlist();
@@ -140,6 +142,8 @@ const BanknoteDetailCard = ({
           className: "justify-center items-center w-full",
           duration: 3000,
         });
+        // Trigger edit banknote guide for first collection item
+        triggerEditBanknoteGuide();
       } else {
         throw new Error("Unable to add banknote to collection");
       }
