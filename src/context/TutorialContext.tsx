@@ -12,7 +12,7 @@ interface TutorialState {
 
 interface TutorialContextType {
   tutorialState: TutorialState;
-  showGuide: (guide: TutorialGuide) => void;
+  showGuide: (guide: TutorialGuide, force?: boolean) => void;
   nextStep: () => void;
   previousStep: () => void;
   hideTutorial: () => void;
@@ -87,9 +87,9 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const showGuide = (guide: TutorialGuide) => {
-    // Don't show if already completed (unless manually triggered)
-    if (completedGuides.has(guide)) return;
+  const showGuide = (guide: TutorialGuide, force: boolean = false) => {
+    // Don't show if already completed (unless manually triggered or forced)
+    if (completedGuides.has(guide) && !force) return;
     
     const totalSteps = getGuideSteps(guide);
     setTutorialState({
@@ -162,7 +162,7 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Debug functions for testing
   const debugShowGuide = (guide: TutorialGuide) => {
     console.log(`🎯 Debug: Showing guide: ${guide}`);
-    showGuide(guide);
+    showGuide(guide, true); // Force show even if completed
   };
 
   const debugResetTutorials = () => {
@@ -174,11 +174,40 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // Comprehensive debug function for testing all tutorials
+  const debugTutorials = () => {
+    console.log('🎯 Debug: Starting comprehensive tutorial debug mode');
+    
+    // Reset all tutorial progress
+    setCompletedGuides(new Set());
+    setIsNewUser(true);
+    if (user) {
+      localStorage.removeItem(`tutorials_${user.id}`);
+    }
+    
+    // Hide any current tutorial
+    setTutorialState({
+      currentGuide: null,
+      currentStep: 1,
+      totalSteps: 0,
+      isVisible: false
+    });
+    
+    // Show welcome tutorial after a brief delay
+    setTimeout(() => {
+      console.log('🎯 Debug: Showing addBanknote (welcome) guide');
+      showGuide('addBanknote', true);
+    }, 500);
+    
+    console.log('✅ Debug mode active - all guides can now be triggered even if previously completed');
+  };
+
   // Expose debug functions to window for console access
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).showGuide = debugShowGuide;
       (window as any).resetTutorials = debugResetTutorials;
+      (window as any).debugTutorials = debugTutorials;
       (window as any).triggerEditGuide = triggerEditBanknoteGuide;
       (window as any).triggerSuggestGuide = triggerSuggestPictureGuide;
     }
