@@ -2224,6 +2224,14 @@ export type Database = {
           threshold_value: number
         }[]
       }
+      get_weekly_active_users: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      get_weekly_guest_visits: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       is_country_admin: {
         Args: { user_uuid: string; country_uuid: string }
         Returns: boolean
