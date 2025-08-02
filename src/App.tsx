@@ -58,6 +58,7 @@ import { CookieConsent } from "@/components/ui/cookie-consent";
 import CookiePolicy from "./pages/CookiePolicy";
 import { TutorialPopup } from '@/components/tutorial/TutorialPopup';
 import { TutorialTriggers } from '@/components/tutorial/TutorialTriggers';
+import { TutorialDebug } from '@/components/tutorial/TutorialDebug';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -147,6 +148,7 @@ function App() {
                   <Toaster />
                   <TutorialPopup />
                   <TutorialTriggers />
+                  <TutorialDebug />
                 </PageBackground>
               </div>
             </HelmetProvider>

@@ -1,0 +1,51 @@
+import React from 'react';
+import { useTutorial } from '@/context/TutorialContext';
+import { cn } from '@/lib/utils';
+
+interface TutorialHighlightProps {
+  step: string;
+  children: React.ReactNode;
+  className?: string;
+  highlight?: boolean;
+}
+
+export const TutorialHighlight: React.FC<TutorialHighlightProps> = ({
+  step,
+  children,
+  className = '',
+  highlight = false
+}) => {
+  const { currentStep, isVisible } = useTutorial();
+  const isHighlighted = highlight && isVisible && currentStep === step;
+
+  return (
+    <div
+      className={cn(
+        "relative transition-all duration-300",
+        isHighlighted && "z-40",
+        className
+      )}
+    >
+      {children}
+      
+      {/* Highlight overlay */}
+      {isHighlighted && (
+        <>
+          {/* Glow effect */}
+          <div className="absolute inset-0 bg-blue-500/20 rounded-lg animate-pulse" />
+          
+          {/* Border highlight */}
+          <div className="absolute inset-0 border-2 border-blue-500 rounded-lg animate-ping" />
+          
+          {/* Arrow indicator */}
+          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
+            <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium animate-bounce">
+              Click here!
+            </div>
+            <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-blue-500 mx-auto" />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}; 

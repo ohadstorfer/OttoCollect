@@ -107,20 +107,40 @@
   },
   "tutorials": {
     "welcome": {
-      "title": "Welcome to OttoCollect!",
-      "description": "Let's help you get started with your banknote collection."
+      "title": "Welcome to OttoCollect! 🎉",
+      "description": "You're about to embark on an exciting journey through the world of Ottoman Empire banknotes. Let us guide you through the basics to get you started!",
+      "action": "Let's Begin!",
+      "skipText": "Skip Introduction"
     },
     "firstCatalogueVisit": {
-      "title": "Explore the Catalogue",
-      "description": "Browse banknotes by country and click the \"+\" icon to add them to your collection."
+      "title": "Explore the Catalogue 📚",
+      "description": "Browse through our comprehensive collection of Ottoman Empire and successor country banknotes. Click the \"+\" icon on any banknote to add it to your collection!",
+      "action": "Got it!",
+      "skipText": "Skip Tutorial"
     },
     "firstCollectionVisit": {
-      "title": "Your Collection",
-      "description": "Here you can view, edit, and manage all your banknotes. Click on any banknote to see more details."
+      "title": "Your Personal Collection 💼",
+      "description": "This is where you'll manage all your banknotes. Click on any banknote to view details, edit information, or upload your own photos!",
+      "action": "Got it!",
+      "skipText": "Skip Tutorial"
     },
     "firstEditClick": {
-      "title": "Edit Your Banknote",
-      "description": "Click the edit icon to add personal details, upload pictures, and manage your banknote information."
+      "title": "Customize Your Banknote ✏️",
+      "description": "Add personal details like condition, purchase price, or upload your own photos. Make your collection truly unique!",
+      "action": "Got it!",
+      "skipText": "Skip Tutorial"
+    },
+    "firstMarketplaceVisit": {
+      "title": "Buy & Sell Banknotes 💰",
+      "description": "Connect with other collectors in our secure marketplace. Buy authentic banknotes or sell duplicates from your collection!",
+      "action": "Got it!",
+      "skipText": "Skip Tutorial"
+    },
+    "firstForumVisit": {
+      "title": "Join the Community 💬",
+      "description": "Connect with fellow collectors, share knowledge, and participate in discussions about Ottoman Empire banknotes!",
+      "action": "Got it!",
+      "skipText": "Skip Tutorial"
     }
   }
 }
