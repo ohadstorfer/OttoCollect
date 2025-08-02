@@ -42,7 +42,7 @@ export const UserStatsSection: React.FC = () => {
     },
     weeklyActive: {
       label: "Weekly Active",
-      color: "hsl(var(--secondary))",
+      color: "hsl(0, 0%, 30%)", // Dark grey color
     },
     weeklyGuests: {
       label: "Weekly Guests",
