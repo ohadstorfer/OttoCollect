@@ -99,6 +99,7 @@ export const useOptimizedBanknoteSorting = ({
           }
           
           case 'faceValue': {
+            // Match the exact logic from useBanknoteSorting
             const getCurrencyInfo = (note: DetailedBanknote) => {
               const denomination = note.denomination?.toLowerCase() || '';
               return currencies.find(c =>
@@ -110,26 +111,26 @@ export const useOptimizedBanknoteSorting = ({
             const currencyB = getCurrencyInfo(b);
 
             const extractNumericValue = (value: string) => {
-              const match = value.match(/(\d+(\.\d+)?)/);
+              const match = value.match(/(\d+(\.\d+)?)/); // Same regex as working version
               return match ? parseFloat(match[0]) : 0;
             };
 
-            const aValue = extractNumericValue(a.denomination || '');
-            const bValue = extractNumericValue(b.denomination || '');
+            const valueA = extractNumericValue(a.denomination || '');
+            const valueB = extractNumericValue(b.denomination || '');
 
             if (currencyA && currencyB) {
               comparison = currencyA.display_order - currencyB.display_order;
-              if (comparison === 0) {
-                comparison = aValue - bValue;
+              if (comparison === 0) { // If same currency display_order, sort by numeric value
+                comparison = valueA - valueB;
               }
-            } else if (currencyA) {
-              comparison = -1;
-            } else if (currencyB) {
-              comparison = 1;
-            } else {
-              comparison = aValue - bValue;
+            } else if (currencyA) { // Only A has a recognized currency
+              comparison = -1; // A comes before B
+            } else if (currencyB) { // Only B has a recognized currency
+              comparison = 1;  // B comes before A
+            } else { // Neither has a recognized currency, fallback to numeric value sort
+              comparison = valueA - valueB;
             }
-            break;
+            break; // Crucial break
           }
           
           case 'year': {
