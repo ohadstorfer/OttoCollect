@@ -192,7 +192,7 @@ export const statisticsService = {
       .from('user_collection_views')
       .select(`
         user_id,
-        profiles!inner(username)
+        profiles!user_collection_views_user_id_fkey(username)
       `)
       .order('view_date', { ascending: false });
     
@@ -221,7 +221,7 @@ export const statisticsService = {
       .from('blog_post_views')
       .select(`
         blog_post_id,
-        blog_posts!inner(title)
+        blog_posts!blog_post_views_blog_post_id_fkey(title)
       `)
       .order('view_date', { ascending: false });
     

@@ -65,7 +65,7 @@ export const CatalogStatsSection: React.FC = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Catalog Items Overview</CardTitle>
+          <CardTitle><span>Catalog Items Overview</span></CardTitle>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[400px]">
@@ -104,7 +104,7 @@ export const CatalogStatsSection: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Catalog Statistics by Country</CardTitle>
+          <CardTitle><span>Catalog Statistics by Country</span></CardTitle>
         </CardHeader>
         <CardContent>
           <Table>

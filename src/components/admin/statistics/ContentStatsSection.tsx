@@ -85,7 +85,7 @@ export const ContentStatsSection: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Content Growth Over Time</CardTitle>
+          <CardTitle><span>Content Growth Over Time</span></CardTitle>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[400px]">

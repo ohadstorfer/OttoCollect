@@ -37,7 +37,7 @@ export const ViewStatsSection: React.FC = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Top Collection Views by User</CardTitle>
+          <CardTitle><span>Top Collection Views by User</span></CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -83,7 +83,7 @@ export const ViewStatsSection: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Top Blog Post Views</CardTitle>
+          <CardTitle><span>Top Blog Post Views</span></CardTitle>
         </CardHeader>
         <CardContent>
           <Table>

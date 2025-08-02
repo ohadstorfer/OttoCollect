@@ -86,7 +86,7 @@ export const UserStatsSection: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>User Growth Trends</CardTitle>
+          <CardTitle><span>User Growth Trends</span></CardTitle>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[400px]">
