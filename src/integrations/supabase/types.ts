@@ -301,6 +301,45 @@ export type Database = {
           },
         ]
       }
+      blog_post_views: {
+        Row: {
+          blog_post_id: string
+          created_at: string
+          id: string
+          view_date: string
+          viewer_id: string | null
+        }
+        Insert: {
+          blog_post_id: string
+          created_at?: string
+          id?: string
+          view_date?: string
+          viewer_id?: string | null
+        }
+        Update: {
+          blog_post_id?: string
+          created_at?: string
+          id?: string
+          view_date?: string
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_views_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_id: string
@@ -513,6 +552,134 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      daily_blog_stats: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          total_blog_posts: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          total_blog_posts?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          total_blog_posts?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      daily_catalog_stats: {
+        Row: {
+          country_id: string
+          country_name: string
+          created_at: string
+          date: string
+          id: string
+          items_missing_photos: number
+          items_with_photos: number
+          total_collections: number
+          total_items: number
+          total_views: number
+          updated_at: string
+        }
+        Insert: {
+          country_id: string
+          country_name: string
+          created_at?: string
+          date: string
+          id?: string
+          items_missing_photos?: number
+          items_with_photos?: number
+          total_collections?: number
+          total_items?: number
+          total_views?: number
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          country_name?: string
+          created_at?: string
+          date?: string
+          id?: string
+          items_missing_photos?: number
+          items_with_photos?: number
+          total_collections?: number
+          total_items?: number
+          total_views?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_catalog_stats_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_forum_stats: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          total_forum_posts: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          total_forum_posts?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          total_forum_posts?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      daily_user_stats: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          total_registered_users: number
+          updated_at: string
+          weekly_active_users: number
+          weekly_guest_visits: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          total_registered_users?: number
+          updated_at?: string
+          weekly_active_users?: number
+          weekly_guest_visits?: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          total_registered_users?: number
+          updated_at?: string
+          weekly_active_users?: number
+          weekly_guest_visits?: number
+        }
+        Relationships: []
       }
       detailed_banknotes: {
         Row: {
@@ -897,6 +1064,27 @@ export type Database = {
           id?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      guest_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          last_activity: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_activity?: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_activity?: string
+          session_id?: string
         }
         Relationships: []
       }
@@ -1540,6 +1728,55 @@ export type Database = {
           },
         ]
       }
+      user_collection_views: {
+        Row: {
+          country_id: string
+          created_at: string
+          id: string
+          user_id: string
+          view_date: string
+          viewer_id: string | null
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+          view_date?: string
+          viewer_id?: string | null
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          view_date?: string
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_collection_views_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_collection_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_collection_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_filter_preferences: {
         Row: {
           country_id: string
@@ -1583,6 +1820,35 @@ export type Database = {
             columns: ["country_id"]
             isOneToOne: false
             referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_logins: {
+        Row: {
+          created_at: string
+          id: string
+          login_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          login_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          login_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_logins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1886,6 +2152,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      generate_daily_statistics: {
+        Args: { target_date?: string }
+        Returns: undefined
+      }
       get_current_user: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1986,6 +2256,22 @@ export type Database = {
       }
       recalculate_all_user_points_and_ranks: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      track_blog_post_view: {
+        Args: { post_id: string; viewer_id_param?: string }
+        Returns: undefined
+      }
+      track_collection_view: {
+        Args: {
+          collection_user_id: string
+          country_id_param: string
+          viewer_id_param?: string
+        }
+        Returns: undefined
+      }
+      track_user_login: {
+        Args: { user_id_param: string }
         Returns: undefined
       }
       user_has_reached_daily_blog_limit: {
