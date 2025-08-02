@@ -158,10 +158,7 @@ const Admin = () => {
       <div className="max-w-6xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6 w-full">
-            <TabsTrigger value="statistics">
-              <BarChart3 className="mr-2 h-4 w-4" />
-              Statistics
-            </TabsTrigger>
+            
             <TabsTrigger value="users">
               <Users className="mr-2 h-4 w-4" />
               Users
@@ -186,11 +183,13 @@ const Admin = () => {
               <Settings className="mr-2 h-4 w-4" />
               Filters
             </TabsTrigger>
+            <TabsTrigger value="statistics">
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Statistics
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="statistics">
-            <AdminStatistics />
-          </TabsContent>
+         
 
           <TabsContent value="users">
             <Card>
@@ -250,6 +249,12 @@ const Admin = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+
+          <TabsContent value="statistics">
+            <AdminStatistics />
+          </TabsContent>
+          
         </Tabs>
       </div>
     </div>
