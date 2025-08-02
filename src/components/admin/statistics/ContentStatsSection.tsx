@@ -48,7 +48,7 @@ export const ContentStatsSection: React.FC = () => {
     },
     forumPosts: {
       label: "Forum Posts",
-      color: "hsl(var(--secondary))",
+      color: "hsl(280, 70%, 60%)", // Purple color
     },
   };
 
