@@ -31,6 +31,8 @@ export interface ForumStats {
 export interface CollectionViewStats {
   userId: string;
   username: string;
+  countryId: string;
+  countryName: string;
   totalViews: number;
 }
 
@@ -192,23 +194,27 @@ export const statisticsService = {
       .from('user_collection_views')
       .select(`
         user_id,
-        profiles!user_collection_views_user_id_fkey(username)
+        country_id,
+        profiles!user_collection_views_user_id_fkey(username),
+        countries!user_collection_views_country_id_fkey(name)
       `)
       .order('view_date', { ascending: false });
     
     if (error) throw error;
     
-    // Group by user and count views
+    // Group by user + country and count views
     const viewCounts = data.reduce((acc, view) => {
-      const userId = view.user_id;
-      if (!acc[userId]) {
-        acc[userId] = {
-          userId,
+      const key = `${view.user_id}_${view.country_id}`;
+      if (!acc[key]) {
+        acc[key] = {
+          userId: view.user_id,
           username: (view.profiles as any).username,
+          countryId: view.country_id,
+          countryName: (view.countries as any).name,
           totalViews: 0
         };
       }
-      acc[userId].totalViews++;
+      acc[key].totalViews++;
       return acc;
     }, {} as Record<string, CollectionViewStats>);
     

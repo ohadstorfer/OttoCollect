@@ -51,6 +51,7 @@ export const ViewStatsSection: React.FC = () => {
                     Username
                   </div>
                 </TableHead>
+                <TableHead>Country</TableHead>
                 <TableHead className="text-right">
                   <div className="flex items-center justify-end">
                     <Eye className="mr-2 h-4 w-4" />
@@ -61,19 +62,20 @@ export const ViewStatsSection: React.FC = () => {
             </TableHeader>
             <TableBody>
               {collectionViews.map((view, index) => (
-                <TableRow key={view.userId}>
+                <TableRow key={`${view.userId}-${view.countryId}`}>
                   <TableCell className="font-medium">
                     <div className="flex items-center">
                       <span className="mr-2 text-muted-foreground">#{index + 1}</span>
                       {view.username}
                     </div>
                   </TableCell>
+                  <TableCell className="text-muted-foreground">{view.countryName}</TableCell>
                   <TableCell className="text-right">{view.totalViews.toLocaleString()}</TableCell>
                 </TableRow>
               ))}
               {collectionViews.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={2} className="text-center text-muted-foreground">
+                  <TableCell colSpan={3} className="text-center text-muted-foreground">
                     No collection views recorded yet
                   </TableCell>
                 </TableRow>
