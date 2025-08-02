@@ -33,6 +33,8 @@ export const ViewStatsSection: React.FC = () => {
     return <div>Loading view statistics...</div>;
   }
 
+  console.log('View stats data:', { collectionViews, blogPostViews });
+
   return (
     <div className="space-y-6">
       <Card>

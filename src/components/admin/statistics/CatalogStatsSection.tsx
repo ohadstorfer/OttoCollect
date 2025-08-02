@@ -61,6 +61,8 @@ export const CatalogStatsSection: React.FC = () => {
     return <div>Loading catalog statistics...</div>;
   }
 
+  console.log('Catalog stats data:', { catalogStats, chartData });
+
   return (
     <div className="space-y-6">
       <Card>
@@ -68,37 +70,46 @@ export const CatalogStatsSection: React.FC = () => {
           <CardTitle><span>Catalog Items Overview</span></CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="country" 
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={100}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar 
-                  dataKey="totalItems" 
-                  fill="var(--color-totalItems)" 
-                  radius={[2, 2, 0, 0]}
-                />
-                <Bar 
-                  dataKey="itemsWithPhotos" 
-                  fill="var(--color-itemsWithPhotos)" 
-                  radius={[2, 2, 0, 0]}
-                />
-                <Bar 
-                  dataKey="itemsMissingPhotos" 
-                  fill="var(--color-itemsMissingPhotos)" 
-                  radius={[2, 2, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {chartData.length > 0 ? (
+            <ChartContainer config={chartConfig} className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="country" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                  />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar 
+                    dataKey="totalItems" 
+                    fill="var(--color-totalItems)" 
+                    radius={[2, 2, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="itemsWithPhotos" 
+                    fill="var(--color-itemsWithPhotos)" 
+                    radius={[2, 2, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="itemsMissingPhotos" 
+                    fill="var(--color-itemsMissingPhotos)" 
+                    radius={[2, 2, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          ) : (
+            <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <p className="text-lg mb-2">No catalog data available</p>
+                <p className="text-sm">Generate daily statistics to see catalog overview</p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -138,19 +149,27 @@ export const CatalogStatsSection: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {catalogStats.map((stat) => (
-                <TableRow key={stat.countryId}>
-                  <TableCell className="font-medium">{stat.countryName}</TableCell>
-                  <TableCell className="text-right">{stat.totalViews.toLocaleString()}</TableCell>
-                  <TableCell className="text-right">{stat.totalCollections.toLocaleString()}</TableCell>
-                  <TableCell className="text-right">{stat.totalItems.toLocaleString()}</TableCell>
-                  <TableCell className="text-right">
-                    <span className={stat.itemsMissingPhotos > 0 ? "text-destructive" : "text-muted-foreground"}>
-                      {stat.itemsMissingPhotos.toLocaleString()}
-                    </span>
+              {catalogStats.length > 0 ? (
+                catalogStats.map((stat) => (
+                  <TableRow key={stat.countryId}>
+                    <TableCell className="font-medium">{stat.countryName}</TableCell>
+                    <TableCell className="text-right">{stat.totalViews.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">{stat.totalCollections.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">{stat.totalItems.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">
+                      <span className={stat.itemsMissingPhotos > 0 ? "text-destructive" : "text-muted-foreground"}>
+                        {stat.itemsMissingPhotos.toLocaleString()}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    No catalog statistics available. Generate daily statistics to see data.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>
