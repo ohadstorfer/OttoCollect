@@ -67,14 +67,7 @@ export const useOptimizedBanknoteSorting = ({
   }, []);
 
   return useMemo(() => {
-    console.log('useOptimizedBanknoteSorting: Starting sort with', { 
-      banknoteCount: banknotes.length, 
-      sortFields, 
-      currencyCount: currencies.length 
-    });
-    
     if (!banknotes.length || !sortFields.length) {
-      console.log('useOptimizedBanknoteSorting: Early return - no banknotes or sort fields');
       return banknotes;
     }
 
@@ -99,38 +92,10 @@ export const useOptimizedBanknoteSorting = ({
           }
           
           case 'faceValue': {
-            // Match the exact logic from useBanknoteSorting
-            const getCurrencyInfo = (note: DetailedBanknote) => {
-              const denomination = note.denomination?.toLowerCase() || '';
-              return currencies.find(c =>
-                denomination.includes(c.name.toLowerCase())
-              );
-            };
-
-            const currencyA = getCurrencyInfo(a);
-            const currencyB = getCurrencyInfo(b);
-
-            const extractNumericValue = (value: string) => {
-              const match = value.match(/(\d+(\.\d+)?)/); // Same regex as working version
-              return match ? parseFloat(match[0]) : 0;
-            };
-
-            const valueA = extractNumericValue(a.denomination || '');
-            const valueB = extractNumericValue(b.denomination || '');
-
-            if (currencyA && currencyB) {
-              comparison = currencyA.display_order - currencyB.display_order;
-              if (comparison === 0) { // If same currency display_order, sort by numeric value
-                comparison = valueA - valueB;
-              }
-            } else if (currencyA) { // Only A has a recognized currency
-              comparison = -1; // A comes before B
-            } else if (currencyB) { // Only B has a recognized currency
-              comparison = 1;  // B comes before A
-            } else { // Neither has a recognized currency, fallback to numeric value sort
-              comparison = valueA - valueB;
-            }
-            break; // Crucial break
+            const aValue = parseNumericValue(a.denomination || '');
+            const bValue = parseNumericValue(b.denomination || '');
+            comparison = aValue - bValue;
+            break;
           }
           
           case 'year': {
@@ -165,16 +130,6 @@ export const useOptimizedBanknoteSorting = ({
       return 0;
     });
 
-    console.log('useOptimizedBanknoteSorting: Completed sort, sample results:', {
-      firstThree: sortedBanknotes.slice(0, 3).map(b => ({ 
-        id: b.id, 
-        extPick: b.extendedPickNumber, 
-        denomination: b.denomination,
-        sultanName: b.sultanName 
-      })),
-      sortFields
-    });
-
     return sortedBanknotes;
-  }, [banknotes, currencies, sortFields, currencyOrderMap, parseExtendedPickNumber]);
+  }, [banknotes, currencies, sortFields]);
 };
