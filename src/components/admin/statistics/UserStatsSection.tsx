@@ -46,7 +46,7 @@ export const UserStatsSection: React.FC = () => {
     },
     weeklyGuests: {
       label: "Weekly Guests",
-      color: "hsl(var(--accent))",
+      color: "hsl(280, 70%, 60%)", // Purple color to distinguish from primary
     },
   };
 
@@ -79,7 +79,7 @@ export const UserStatsSection: React.FC = () => {
           description="Last 7 days"
         />
         <StatCard
-          title="Weekly Active Users"
+          title="Weekly Registered Users"
           value={currentTotals.weeklyActive}
           icon={UserCheck}
           description="Logged in users (last 7 days)"
