@@ -102,8 +102,13 @@ export const useOptimizedBanknoteSorting = ({
             const currencyA = getCurrencyInfo(a);
             const currencyB = getCurrencyInfo(b);
 
-            const aValue = parseNumericValue(a.denomination || '');
-            const bValue = parseNumericValue(b.denomination || '');
+            const extractNumericValue = (value: string) => {
+              const match = value.match(/(\d+(\.\d+)?)/);
+              return match ? parseFloat(match[0]) : 0;
+            };
+
+            const aValue = extractNumericValue(a.denomination || '');
+            const bValue = extractNumericValue(b.denomination || '');
 
             if (currencyA && currencyB) {
               comparison = currencyA.display_order - currencyB.display_order;
