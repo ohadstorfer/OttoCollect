@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -12,14 +12,33 @@ import { statisticsService } from '@/services/statisticsService';
 
 export const AdminStatistics: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleGenerateStats = async () => {
+  useEffect(() => {
+    // Auto-generate daily statistics when component loads
+    generateStatsOnLoad();
+  }, []);
+
+  const generateStatsOnLoad = async () => {
+    try {
+      setIsGenerating(true);
+      await statisticsService.generateDailyStats();
+      console.log('Daily statistics auto-generated successfully');
+      setRefreshKey(prev => prev + 1); // Trigger refresh of child components
+    } catch (error) {
+      console.error('Error auto-generating daily stats:', error);
+      // Don't show error toast for auto-generation to avoid annoying users
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleManualGenerateStats = async () => {
     setIsGenerating(true);
     try {
       await statisticsService.generateDailyStats();
       toast.success('Daily statistics generated successfully');
-      // Trigger a refresh of all stats components
-      window.location.reload();
+      setRefreshKey(prev => prev + 1); // Trigger refresh of child components
     } catch (error) {
       console.error('Error generating daily stats:', error);
       toast.error('Failed to generate daily statistics');
@@ -38,12 +57,12 @@ export const AdminStatistics: React.FC = () => {
           </p>
         </div>
         <Button 
-          onClick={handleGenerateStats}
+          onClick={handleManualGenerateStats}
           disabled={isGenerating}
           className="flex items-center gap-2"
         >
           <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
-          {isGenerating ? 'Generating...' : 'Generate Daily Stats'}
+          {isGenerating ? 'Generating...' : 'Refresh Stats'}
         </Button>
       </div>
 
@@ -68,19 +87,19 @@ export const AdminStatistics: React.FC = () => {
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
-          <UserStatsSection />
+          <UserStatsSection key={`user-${refreshKey}`} />
         </TabsContent>
 
         <TabsContent value="catalog" className="space-y-4">
-          <CatalogStatsSection />
+          <CatalogStatsSection key={`catalog-${refreshKey}`} />
         </TabsContent>
 
         <TabsContent value="content" className="space-y-4">
-          <ContentStatsSection />
+          <ContentStatsSection key={`content-${refreshKey}`} />
         </TabsContent>
 
         <TabsContent value="views" className="space-y-4">
-          <ViewStatsSection />
+          <ViewStatsSection key={`views-${refreshKey}`} />
         </TabsContent>
       </Tabs>
     </div>
