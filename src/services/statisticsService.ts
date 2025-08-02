@@ -272,5 +272,26 @@ export const statisticsService = {
     });
     
     if (error) console.error('Error tracking blog post view:', error);
+  },
+
+  // Track guest session
+  async trackGuestSession() {
+    // Generate a unique session ID for this browser session
+    let sessionId = sessionStorage.getItem('guest_session_id');
+    if (!sessionId) {
+      sessionId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+      sessionStorage.setItem('guest_session_id', sessionId);
+    }
+    
+    const { error } = await supabase
+      .from('guest_sessions')
+      .upsert({ 
+        session_id: sessionId,
+        last_activity: new Date().toISOString()
+      }, {
+        onConflict: 'session_id'
+      });
+    
+    if (error) console.error('Error tracking guest session:', error);
   }
 };

@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { statisticsService } from "@/services/statisticsService";
 
 type AuthContextType = {
   user: User | null;
@@ -100,6 +101,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           setUser(userProfile);
           setBlockedNotice(null);
+          
+          // Track user login
+          statisticsService.trackUserLogin(data.id);
         }
       }
     } catch (error) {

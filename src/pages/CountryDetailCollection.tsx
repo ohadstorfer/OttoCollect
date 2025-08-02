@@ -17,6 +17,7 @@ import BanknoteDetailCardWishList from '@/components/banknotes/BanknoteDetailCar
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
 import { useCollectionData } from '@/hooks/use-collection-data';
 import { cn } from "@/lib/utils";
+import { statisticsService } from "@/services/statisticsService";
 
 interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
@@ -158,6 +159,14 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       return () => clearTimeout(timer);
     }
   }, [countryLoading, collectionDataLoading, countryId, effectiveCountryName, isFullyLoaded, profileView]);
+
+  // Track collection view when page is loaded
+  useEffect(() => {
+    if (countryId && effectiveUserId && isFullyLoaded) {
+      // Track the collection view
+      statisticsService.trackCollectionView(effectiveUserId, countryId, user?.id);
+    }
+  }, [countryId, effectiveUserId, user?.id, isFullyLoaded]);
   
   useEffect(() => {
     const handleScroll = () => {

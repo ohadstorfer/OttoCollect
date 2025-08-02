@@ -59,6 +59,7 @@ import CookiePolicy from "./pages/CookiePolicy";
 import { TutorialPopup } from '@/components/tutorial/TutorialPopup';
 import { TutorialTriggers } from '@/components/tutorial/TutorialTriggers';
 import { TutorialDebug } from '@/components/tutorial/TutorialDebug';
+import { statisticsService } from '@/services/statisticsService';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,6 +86,13 @@ function App() {
       i18n.off('languageChanged', handleLanguageChanged);
     };
   }, [i18n]);
+
+  // Track guest sessions for non-authenticated users
+  useEffect(() => {
+    if (!user) {
+      statisticsService.trackGuestSession();
+    }
+  }, [user]);
 
   return (
     <LanguageProvider>
