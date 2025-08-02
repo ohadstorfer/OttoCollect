@@ -44,17 +44,17 @@ export const TutorialPopup = () => {
     addBanknote: { 
       icon: '🧾', 
       color: 'bg-gradient-to-r from-green-500 to-blue-500',
-      name: 'Welcome Guide'
+      name: 'How to Add a Banknote to Your Collection'
     },
     editBanknote: { 
       icon: '✏️', 
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      name: 'Edit Guide'
+      name: 'How to Add Information or a Picture to a Banknote in Your Collection'
     },
     suggestPicture: { 
       icon: '🖼️', 
       color: 'bg-gradient-to-r from-orange-500 to-red-500',
-      name: 'Suggest Guide'
+      name: 'How to Suggest a Picture from Your Collection to the Main Catalogue'
     }
   };
 
@@ -77,18 +77,34 @@ export const TutorialPopup = () => {
               <div className="text-2xl animate-pulse">
                 {currentGuideConfig.icon}
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
+                {/* Welcome message - only for first step of addBanknote */}
                 {isWelcomeStep && (
-                  <h3 className="text-lg font-bold mb-1">
-                    Welcome to OttoCollect! 🎉
-                  </h3>
+                  <h2 className="text-xl font-bold mb-2 leading-tight">
+                    <span>Welcome to OttoCollect! 🎉</span>
+                  </h2>
                 )}
-                <h4 className={cn("font-semibold", isWelcomeStep ? "text-sm text-white/90" : "text-lg")}>
-                  {stepContent.title}
-                </h4>
-                <p className="text-white/90 text-sm mt-1">
-                  Step {currentStep} of {totalSteps} • {currentGuideConfig.name}
-                </p>
+                
+                {/* Guide name - always visible */}
+                <h3 className={cn(
+                  "font-semibold leading-tight",
+                  isWelcomeStep ? "text-base text-white/90" : "text-lg text-white"
+                )}>
+                 <span>{currentGuideConfig.name}</span>
+                </h3>
+                
+                {/* Step counter and current step title */}
+                <div className="mt-2 space-y-1">
+                  <p className="text-white/80 text-xs font-medium">
+                    Step {currentStep} of {totalSteps}
+                  </p>
+                  <h4 className={cn(
+                    "font-bold leading-tight",
+                    isWelcomeStep ? "text-base text-white/90" : "text-lg text-white"
+                  )}>
+                    <span>{stepContent.title}</span>
+                  </h4>
+                </div>
               </div>
               <Button
                 variant="ghost"
