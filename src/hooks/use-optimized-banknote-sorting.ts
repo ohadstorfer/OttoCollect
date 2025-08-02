@@ -67,7 +67,14 @@ export const useOptimizedBanknoteSorting = ({
   }, []);
 
   return useMemo(() => {
+    console.log('useOptimizedBanknoteSorting: Starting sort with', { 
+      banknoteCount: banknotes.length, 
+      sortFields, 
+      currencyCount: currencies.length 
+    });
+    
     if (!banknotes.length || !sortFields.length) {
+      console.log('useOptimizedBanknoteSorting: Early return - no banknotes or sort fields');
       return banknotes;
     }
 
@@ -157,6 +164,16 @@ export const useOptimizedBanknoteSorting = ({
       return 0;
     });
 
+    console.log('useOptimizedBanknoteSorting: Completed sort, sample results:', {
+      firstThree: sortedBanknotes.slice(0, 3).map(b => ({ 
+        id: b.id, 
+        extPick: b.extendedPickNumber, 
+        denomination: b.denomination,
+        sultanName: b.sultanName 
+      })),
+      sortFields
+    });
+
     return sortedBanknotes;
-  }, [banknotes, currencies, sortFields]);
+  }, [banknotes, currencies, sortFields, currencyOrderMap, parseExtendedPickNumber]);
 };
