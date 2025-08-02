@@ -1,35 +1,40 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
-type TutorialStep = 
-  | 'welcome'
-  | 'firstCatalogueVisit'
-  | 'firstCollectionVisit'
-  | 'firstEditClick'
-  | 'firstMarketplaceVisit'
-  | 'firstForumVisit'
-  | 'completed';
+type TutorialGuide = 'addBanknote' | 'editBanknote' | 'suggestPicture';
+
+interface TutorialState {
+  currentGuide: TutorialGuide | null;
+  currentStep: number;
+  totalSteps: number;
+  isVisible: boolean;
+}
 
 interface TutorialContextType {
-  currentStep: TutorialStep | null;
-  isVisible: boolean;
-  showTutorial: (step: TutorialStep) => void;
+  tutorialState: TutorialState;
+  showGuide: (guide: TutorialGuide) => void;
+  nextStep: () => void;
+  previousStep: () => void;
   hideTutorial: () => void;
   completeTutorial: () => void;
-  resetTutorial: () => void;
+  skipTutorial: () => void;
+  resetTutorials: () => void;
   isNewUser: boolean;
-  hasSeenWelcome: boolean;
+  completedGuides: Set<TutorialGuide>;
 }
 
 const TutorialContext = createContext<TutorialContextType | undefined>(undefined);
 
 export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState<TutorialStep | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const [completedSteps, setCompletedSteps] = useState<Set<TutorialStep>>(new Set());
+  const [tutorialState, setTutorialState] = useState<TutorialState>({
+    currentGuide: null,
+    currentStep: 1,
+    totalSteps: 0,
+    isVisible: false
+  });
+  const [completedGuides, setCompletedGuides] = useState<Set<TutorialGuide>>(new Set());
   const [isNewUser, setIsNewUser] = useState(false);
-  const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
 
   // Enhanced new user detection
   const checkIfNewUser = (user: any) => {
@@ -39,166 +44,158 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const now = new Date();
     const daysSinceCreation = Math.floor((now.getTime() - userCreatedAt.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Consider user "new" if:
-    // 1. Account created within last 14 days
-    // 2. Has less than 5 banknotes in collection
-    // 3. Hasn't completed most tutorials
+    // Consider user "new" if account created within last 14 days
     return daysSinceCreation <= 14;
+  };
+
+  // Get total steps for a guide from guide.json structure
+  const getGuideSteps = (guide: TutorialGuide): number => {
+    // These correspond to the steps in guide.json
+    const stepCounts = {
+      addBanknote: 6,
+      editBanknote: 10,
+      suggestPicture: 4
+    };
+    return stepCounts[guide];
   };
 
   // Load tutorial state from localStorage
   useEffect(() => {
     if (user) {
-      const tutorialState = localStorage.getItem(`tutorial_${user.id}`);
+      const savedState = localStorage.getItem(`tutorials_${user.id}`);
       const isNew = checkIfNewUser(user);
       setIsNewUser(isNew);
       
-      if (tutorialState) {
-        const { completed, seenWelcome } = JSON.parse(tutorialState);
-        setCompletedSteps(new Set(completed));
-        setHasSeenWelcome(seenWelcome || false);
+      if (savedState) {
+        const { completed } = JSON.parse(savedState);
+        setCompletedGuides(new Set(completed));
       } else if (isNew) {
-        // New user - show welcome tutorial after 2 seconds
+        // New user - show addBanknote guide (welcome) after 2 seconds
         setTimeout(() => {
-          if (!hasSeenWelcome) {
-            showTutorial('welcome');
-          }
+          showGuide('addBanknote');
         }, 2000);
       }
     }
   }, [user]);
 
   // Save tutorial state to localStorage
-  const saveTutorialState = (completed: Set<TutorialStep>, seenWelcome: boolean) => {
+  const saveTutorialState = (completed: Set<TutorialGuide>) => {
     if (user) {
-      localStorage.setItem(`tutorial_${user.id}`, JSON.stringify({
-        completed: Array.from(completed),
-        seenWelcome
+      localStorage.setItem(`tutorials_${user.id}`, JSON.stringify({
+        completed: Array.from(completed)
       }));
     }
   };
 
-  const showTutorial = (step: TutorialStep) => {
-    // Allow manual triggers for all users (from debug panel or console)
-    if (step === 'firstEditClick' || step === 'welcome' || step === 'firstCatalogueVisit' || 
-        step === 'firstCollectionVisit' || step === 'firstMarketplaceVisit' || step === 'firstForumVisit') {
-      setCurrentStep(step);
-      setIsVisible(true);
-      
-      // Mark welcome as seen if it's the welcome tutorial
-      if (step === 'welcome') {
-        setHasSeenWelcome(true);
-        saveTutorialState(completedSteps, true);
-      }
-      return;
-    }
+  const showGuide = (guide: TutorialGuide) => {
+    // Don't show if already completed (unless manually triggered)
+    if (completedGuides.has(guide)) return;
     
-    // For automatic triggers, only show tutorials for new users
-    if (!user || (!isNewUser && step !== 'firstEditClick')) return;
-    
-    if (!completedSteps.has(step) && step !== 'completed') {
-      setCurrentStep(step);
-      setIsVisible(true);
-      
-      // Mark welcome as seen
-      if (step === 'welcome') {
-        setHasSeenWelcome(true);
-        saveTutorialState(completedSteps, true);
+    const totalSteps = getGuideSteps(guide);
+    setTutorialState({
+      currentGuide: guide,
+      currentStep: 1,
+      totalSteps,
+      isVisible: true
+    });
+  };
+
+  const nextStep = () => {
+    setTutorialState(prev => {
+      if (prev.currentStep < prev.totalSteps) {
+        return { ...prev, currentStep: prev.currentStep + 1 };
       }
-    }
+      return prev;
+    });
+  };
+
+  const previousStep = () => {
+    setTutorialState(prev => {
+      if (prev.currentStep > 1) {
+        return { ...prev, currentStep: prev.currentStep - 1 };
+      }
+      return prev;
+    });
   };
 
   const hideTutorial = () => {
-    setIsVisible(false);
-    setTimeout(() => setCurrentStep(null), 300);
+    setTutorialState(prev => ({ ...prev, isVisible: false }));
+    setTimeout(() => {
+      setTutorialState(prev => ({ ...prev, currentGuide: null, currentStep: 1, totalSteps: 0 }));
+    }, 300);
   };
 
   const completeTutorial = () => {
-    if (currentStep && currentStep !== 'completed') {
-      const newCompleted = new Set(completedSteps);
-      newCompleted.add(currentStep);
-      setCompletedSteps(newCompleted);
-      saveTutorialState(newCompleted, hasSeenWelcome);
-      
-      // Auto-advance to next tutorial for new users
-      if (isNewUser) {
-        const nextStep = getNextTutorialStep(currentStep);
-        if (nextStep) {
-          setTimeout(() => showTutorial(nextStep), 500);
-        }
-      }
+    if (tutorialState.currentGuide) {
+      const newCompleted = new Set(completedGuides);
+      newCompleted.add(tutorialState.currentGuide);
+      setCompletedGuides(newCompleted);
+      saveTutorialState(newCompleted);
     }
     hideTutorial();
   };
 
-  const getNextTutorialStep = (currentStep: TutorialStep): TutorialStep | null => {
-    const tutorialFlow: TutorialStep[] = [
-      'welcome',
-      'firstCatalogueVisit',
-      'firstCollectionVisit',
-      'firstEditClick',
-      'firstMarketplaceVisit',
-      'firstForumVisit'
-    ];
-    
-    const currentIndex = tutorialFlow.indexOf(currentStep);
-    if (currentIndex < tutorialFlow.length - 1) {
-      return tutorialFlow[currentIndex + 1];
-    }
-    return null;
+  const skipTutorial = () => {
+    hideTutorial();
   };
 
-  const resetTutorial = () => {
-    setCompletedSteps(new Set());
-    setHasSeenWelcome(false);
+  const resetTutorials = () => {
+    setCompletedGuides(new Set());
     if (user) {
-      localStorage.removeItem(`tutorial_${user.id}`);
+      localStorage.removeItem(`tutorials_${user.id}`);
     }
   };
 
-  // Debug function for testing tutorials
-  const debugTriggerTutorials = () => {
-    console.log('🎯 Debug: Triggering tutorials for testing...');
-    setCompletedSteps(new Set());
-    setHasSeenWelcome(false);
+  // Trigger functions for specific events
+  const triggerEditBanknoteGuide = () => {
+    if (!completedGuides.has('editBanknote') && user) {
+      setTimeout(() => showGuide('editBanknote'), 1000);
+    }
+  };
+
+  const triggerSuggestPictureGuide = () => {
+    if (!completedGuides.has('suggestPicture') && user) {
+      setTimeout(() => showGuide('suggestPicture'), 1000);
+    }
+  };
+
+  // Debug functions for testing
+  const debugShowGuide = (guide: TutorialGuide) => {
+    console.log(`🎯 Debug: Showing guide: ${guide}`);
+    showGuide(guide);
+  };
+
+  const debugResetTutorials = () => {
+    console.log('🎯 Debug: Resetting all tutorials');
+    setCompletedGuides(new Set());
     setIsNewUser(true);
     if (user) {
-      localStorage.removeItem(`tutorial_${user.id}`);
+      localStorage.removeItem(`tutorials_${user.id}`);
     }
-    // Show welcome tutorial immediately
-    setTimeout(() => {
-      setCurrentStep('welcome');
-      setIsVisible(true);
-    }, 500);
   };
 
-  // Direct debug method that bypasses all checks
-  const debugShowTutorial = (step: TutorialStep) => {
-    console.log(`🎯 Debug: Directly showing tutorial: ${step}`);
-    setCurrentStep(step);
-    setIsVisible(true);
-  };
-
-  // Expose debug function to window for console access
+  // Expose debug functions to window for console access
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any).debugTutorials = debugTriggerTutorials;
-      (window as any).resetTutorials = resetTutorial;
-      (window as any).showTutorial = showTutorial;
-      (window as any).debugShowTutorial = debugShowTutorial;
+      (window as any).showGuide = debugShowGuide;
+      (window as any).resetTutorials = debugResetTutorials;
+      (window as any).triggerEditGuide = triggerEditBanknoteGuide;
+      (window as any).triggerSuggestGuide = triggerSuggestPictureGuide;
     }
   }, [user]);
 
   return (
     <TutorialContext.Provider value={{
-      currentStep,
-      isVisible,
-      showTutorial,
+      tutorialState,
+      showGuide,
+      nextStep,
+      previousStep,
       hideTutorial,
       completeTutorial,
-      resetTutorial,
+      skipTutorial,
+      resetTutorials,
       isNewUser,
-      hasSeenWelcome
+      completedGuides
     }}>
       {children}
     </TutorialContext.Provider>

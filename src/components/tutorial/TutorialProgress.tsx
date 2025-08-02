@@ -6,21 +6,18 @@ import { HelpCircle, CheckCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const TutorialProgress: React.FC = () => {
-  const { isNewUser, completedSteps, resetTutorial } = useTutorial();
+  const { isNewUser, completedGuides, resetTutorials } = useTutorial();
 
   if (!isNewUser) return null;
 
-  const tutorialSteps = [
-    'welcome',
-    'firstCatalogueVisit',
-    'firstCollectionVisit',
-    'firstEditClick',
-    'firstMarketplaceVisit',
-    'firstForumVisit'
+  const guides = [
+    { key: 'addBanknote', name: 'Welcome Guide', icon: '🧾' },
+    { key: 'editBanknote', name: 'Edit Guide', icon: '✏️' },
+    { key: 'suggestPicture', name: 'Suggest Guide', icon: '🖼️' }
   ];
 
-  const completedCount = tutorialSteps.filter(step => completedSteps.has(step as any)).length;
-  const progress = (completedCount / tutorialSteps.length) * 100;
+  const completedCount = completedGuides.size;
+  const progress = (completedCount / guides.length) * 100;
 
   return (
     <div className="fixed bottom-4 right-4 z-40">
@@ -30,7 +27,7 @@ export const TutorialProgress: React.FC = () => {
           <h3 className="text-sm font-semibold">Getting Started</h3>
           <div className="ml-auto">
             <span className="text-xs text-muted-foreground">
-              {completedCount}/{tutorialSteps.length}
+              {completedCount}/{guides.length}
             </span>
           </div>
         </div>
@@ -46,7 +43,7 @@ export const TutorialProgress: React.FC = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={resetTutorial}
+              onClick={resetTutorials}
               className="text-xs"
             >
               Restart
@@ -54,17 +51,18 @@ export const TutorialProgress: React.FC = () => {
           )}
         </div>
         
-        {/* Step indicators */}
+        {/* Guide indicators */}
         <div className="flex gap-1 mt-2">
-          {tutorialSteps.map((step, index) => (
+          {guides.map((guide) => (
             <div
-              key={step}
+              key={guide.key}
               className={cn(
                 "w-2 h-2 rounded-full transition-all duration-300",
-                completedSteps.has(step as any)
+                completedGuides.has(guide.key as any)
                   ? "bg-green-500"
                   : "bg-gray-300"
               )}
+              title={guide.name}
             />
           ))}
         </div>

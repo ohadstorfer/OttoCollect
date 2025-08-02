@@ -5,7 +5,7 @@ import { HelpCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TutorialButtonProps {
-  step: 'firstEditClick' | 'firstCatalogueVisit' | 'firstCollectionVisit' | 'firstMarketplaceVisit' | 'firstForumVisit';
+  guide: 'addBanknote' | 'editBanknote' | 'suggestPicture';
   className?: string;
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'sm' | 'default' | 'lg';
@@ -14,17 +14,17 @@ interface TutorialButtonProps {
 }
 
 export const TutorialButton: React.FC<TutorialButtonProps> = ({ 
-  step, 
+  guide, 
   className = '',
   variant = 'ghost',
   size = 'default',
   showSparkle = false,
   children
 }) => {
-  const { showTutorial, isNewUser } = useTutorial();
+  const { showGuide, isNewUser } = useTutorial();
 
   const handleClick = () => {
-    showTutorial(step);
+    showGuide(guide);
   };
 
   // Only show sparkle for new users

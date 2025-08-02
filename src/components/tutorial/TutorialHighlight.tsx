@@ -3,20 +3,26 @@ import { useTutorial } from '@/context/TutorialContext';
 import { cn } from '@/lib/utils';
 
 interface TutorialHighlightProps {
-  step: string;
+  guide: 'addBanknote' | 'editBanknote' | 'suggestPicture';
+  step?: number;
   children: React.ReactNode;
   className?: string;
   highlight?: boolean;
 }
 
 export const TutorialHighlight: React.FC<TutorialHighlightProps> = ({
-  step,
+  guide,
+  step = 1,
   children,
   className = '',
   highlight = false
 }) => {
-  const { currentStep, isVisible } = useTutorial();
-  const isHighlighted = highlight && isVisible && currentStep === step;
+  const { tutorialState } = useTutorial();
+  
+  const isHighlighted = highlight && 
+    tutorialState.isVisible && 
+    tutorialState.currentGuide === guide && 
+    (!step || tutorialState.currentStep === step);
 
   return (
     <div
