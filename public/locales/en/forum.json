@@ -1,0 +1,105 @@
+{
+  "title": "Forum",
+  "subtitle": "Discuss banknotes and collecting strategies",
+  "announcement": "Announcement",
+  "tabs": {
+    "allPosts": "All Posts",
+    "myPosts": "My Posts"
+  },
+  "search": {
+    "placeholder": "Search...",
+    "noResults": "No posts or announcements found matching your search.",
+    "noPostsYet": "No forum posts yet. Be the first to create one!"
+  },
+  "actions": {
+    "post": "Post",
+    "announcement": "Announcement",
+    "createPost": "Create Post",
+    "createAnnouncement": "Create Announcement",
+    "createFirstPost": "Create Your First Post",
+    "reply": "Reply",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "publish": "Publish",
+    "postComment": "Post Comment",
+    "postReply": "Post Reply"
+  },
+  "status": {
+    "blocked": "Blocked",
+    "dailyLimitReached": "Daily Limit Reached",
+    "loading": "Loading forum posts...",
+    "loadingMyPosts": "Loading your posts...",
+    "noMyPosts": "You haven't created any posts or announcements yet.",
+    "saving": "Saving...",
+    "posting": "Posting...",
+    "publishing": "Publishing..."
+  },
+  "limits": {
+    "dailyLimitWarning": "You have reached your daily limit of 6 forum activities (posts + comments).",
+    "dailyActivity": "Daily forum activity: {{count}}/6 (posts + comments)",
+    "accessDenied": "Only Super Admins can create announcements."
+  },
+  "content": {
+    "announcements": "Announcements",
+    "posts": "Posts",
+    "comments": "Comments",
+    "replies": "Replies",
+    "views": "Views",
+    "likes": "Likes",
+    "created": "Created",
+    "updated": "Updated",
+    "author": "Author",
+    "title": "Title",
+    "content": "Content",
+    "category": "Category",
+    "tags": "Tags",
+    "edited": "edited",
+    "unknown": "Unknown"
+  },
+  "moderation": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "report": "Report",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "move": "Move",
+    "merge": "Merge"
+  },
+  "notifications": {
+    "postCreated": "Post created successfully",
+    "postUpdated": "Post updated successfully",
+    "postDeleted": "Post deleted successfully",
+    "announcementCreated": "Announcement created successfully",
+    "announcementUpdated": "Announcement updated successfully",
+    "announcementDeleted": "Announcement deleted successfully",
+    "commentAdded": "Comment added successfully",
+    "commentUpdated": "Comment updated successfully",
+    "replyAdded": "Reply added successfully",
+    "error": "An error occurred. Please try again.",
+    "failedToAddComment": "Failed to add comment. Please try again.",
+    "failedToCreatePost": "Failed to create post. Please try again.",
+    "unexpectedError": "An unexpected error occurred. Please try again."
+  },
+  "forms": {
+    "createNewPost": "Create New Forum Post",
+    "createNewAnnouncement": "Create New Announcement",
+    "titleLabel": "Title",
+    "contentLabel": "Content",
+    "imagesLabel": "Images (Optional)",
+    "titlePlaceholder": "Add a descriptive title for your post",
+    "contentPlaceholder": "Share your thoughts, questions, or insights...",
+    "commentPlaceholder": "Write your comment...",
+    "replyPlaceholder": "Reply to {{username}}...",
+    "publishPost": "Publish Post",
+    "publishAnnouncement": "Publish Announcement"
+  },
+  "comments": {
+    "showReplies": "Show {{count}} {{count, plural, one {reply} other {replies}}}",
+    "hideReplies": "Hide {{count}} {{count, plural, one {reply} other {replies}}}",
+    "emptyComment": "Comment cannot be empty",
+    "emptyReply": "Reply cannot be empty"
+  }
+} 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslation } from 'react-i18next';
 
 interface CreatePostDialogProps {
   open: boolean;
@@ -26,12 +27,21 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation(['forum']);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
@@ -64,8 +74,8 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
       const { hasReachedLimit: limitReached } = await checkUserDailyForumLimit(user.id);
       if (limitReached) {
         toast({
-          title: "Daily limit reached",
-          description: "You have reached your daily limit of 6 forum activities (posts + comments).",
+          title: tWithFallback('status.dailyLimitReached', 'Daily limit reached'),
+          description: tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).'),
           variant: "destructive",
         });
         return;
@@ -78,8 +88,8 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
       
       if (newPost) {
         toast({
-          title: "Success",
-          description: "Your post has been published successfully.",
+          title: tWithFallback('notifications.postCreated', 'Success'),
+          description: tWithFallback('notifications.postCreated', 'Your post has been published successfully.'),
         });
         
         // Reset form
@@ -99,16 +109,16 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
       } else {
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to create post. Please try again.",
+          title: tWithFallback('notifications.error', 'Error'),
+          description: tWithFallback('notifications.failedToCreatePost', 'Failed to create post. Please try again.'),
         });
       }
     } catch (error) {
       console.error("Error creating post:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: tWithFallback('notifications.error', 'Error'),
+        description: tWithFallback('notifications.unexpectedError', 'An unexpected error occurred. Please try again.'),
       });
     } finally {
       setIsSubmitting(false);
@@ -127,7 +137,7 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>Create New Forum Post</span>
+            <span>{tWithFallback('forms.createNewPost', 'Create New Forum Post')}</span>
             <Button
               variant="ghost"
               size="sm"
@@ -143,7 +153,7 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
           {isLimitedRank && hasReachedLimit && (
             <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800">
               <p className="text-red-600 dark:text-red-400 text-sm">
-                You have reached your daily limit of 6 forum activities (posts + comments).
+                {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).')}
               </p>
             </div>
           )}
@@ -151,18 +161,18 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
           {isLimitedRank && !hasReachedLimit && (
             <div className="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-md border border-yellow-200 dark:border-yellow-800">
               <p className="text-yellow-600 dark:text-yellow-400 text-sm">
-                Daily forum activity: {dailyCount}/6 (posts + comments)
+                {tWithFallback('limits.dailyActivity', 'Daily forum activity: {{count}}/6 (posts + comments)', { count: dailyCount })}
               </p>
             </div>
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{tWithFallback('forms.titleLabel', 'Title')}</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Add a descriptive title for your post"
+              placeholder={tWithFallback('forms.titlePlaceholder', 'Add a descriptive title for your post')}
               required
               maxLength={100}
               disabled={hasReachedLimit}
@@ -170,12 +180,12 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
+            <Label htmlFor="content">{tWithFallback('forms.contentLabel', 'Content')}</Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share your thoughts, questions, or insights..."
+              placeholder={tWithFallback('forms.contentPlaceholder', 'Share your thoughts, questions, or insights...')}
               required
               className="min-h-[200px] resize-none"
               disabled={hasReachedLimit}
@@ -183,7 +193,7 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
           </div>
           
           <div className="space-y-2">
-            <Label>Images (Optional)</Label>
+            <Label>{tWithFallback('forms.imagesLabel', 'Images (Optional)')}</Label>
             <ImageUploader images={images} onChange={setImages} disabled={hasReachedLimit} />
           </div>
           
@@ -194,7 +204,7 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
               onClick={handleCancel}
               disabled={isSubmitting}
             >
-              Cancel
+              {tWithFallback('actions.cancel', 'Cancel')}
             </Button>
             <Button 
               type="submit"
@@ -203,10 +213,10 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Publishing...
+                  {tWithFallback('status.publishing', 'Publishing...')}
                 </>
               ) : (
-                'Publish Post'
+                tWithFallback('forms.publishPost', 'Publish Post')
               )}
             </Button>
           </div>

@@ -3,13 +3,35 @@ import { Facebook, Github, Instagram, Twitter } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
+import i18n from "@/i18n/config";
 
 export const Footer = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
   const location = useLocation();
+  const { t, i18n: i18nInstance } = useTranslation(['common']);
   const isHomePage = location.pathname === "/";
   const isMarginTopRequired = location.pathname !== '/' && location.pathname !== '/about' && location.pathname !== '/auth';
+  
+  // Check if current language is Arabic for RTL alignment
+  const isArabic = i18nInstance.language === 'ar';
+  
+  // Force reload translations when language changes
+  useEffect(() => {
+    const reloadTranslations = async () => {
+      try {
+        await i18n.reloadResources();
+        console.log('Footer translations reloaded');
+      } catch (error) {
+        console.error('Failed to reload footer translations:', error);
+      }
+    };
+    
+    // Reload translations when language changes
+    reloadTranslations();
+  }, [i18n.language]);
   
   return (
     <footer className={`${theme === 'light' ? 'bg-ottoman-950' : 'bg-dark-950'} animate-fade-in ${isMarginTopRequired ? 'mt-20' : ''}`}>
@@ -30,61 +52,61 @@ export const Footer = () => {
                 <span className="text-ottoman-100 !important">OttoCollect</span>
               </h2>
             </div>
-            <p className={`${theme === 'light' ? 'text-ottoman-300' : 'text-ottoman-400'} text-sm max-w-md mt-4`}>
-              The premier platform for Ottoman empire and its successor countries banknotes collectors and historians, enthusiasts.
+            <p className={`${theme === 'light' ? 'text-ottoman-300' : 'text-ottoman-400'} text-sm max-w-md mt-4 ${isArabic ? 'text-right' : 'text-left'}`}>
+              {t('footer.description')}
             </p>
           </div>
 
           {/* Quick Links and Help & Support container - side by side on all screens */}
           <div className="col-span-1 md:col-span-6 lg:col-span-6 grid grid-cols-2 gap-8">
             {/* Quick Links */}
-            <div>
+            <div className={isArabic ? 'text-right' : 'text-left'}>
               <h3 className="text-lg font-serif font-semibold text-ottoman-100 !important h-8 leading-8">
-                <span className="text-ottoman-100 !important">Quick Links</span>
+                <span className="text-ottoman-100 !important">{t('footer.quickLinks')}</span>
               </h3>
               <nav className="space-y-2 mt-4">
                 <Link to="/" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  Home
+                  {t('footer.home')}
                 </Link>
                 <Link to="/catalog" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  Catalogue
+                  {t('footer.catalog')}
                 </Link>
                 <Link to="/marketplace" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  Marketplace
+                  {t('footer.marketplace')}
                 </Link>
                 <Link to={`/profile/${user?.id}`} className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  My Collection
+                  {t('footer.myCollection')}
                 </Link>
                 <Link to="/blog" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  Blog
+                  {t('footer.blog')}
                 </Link>
                 <Link to="/community/forum" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  Forum
+                  {t('footer.forum')}
                 </Link>
               </nav>
             </div>
 
             {/* Help & Support */}
-            <div>
+            <div className={isArabic ? 'text-right' : 'text-left'}>
               <h3 className="text-lg font-serif font-semibold text-ottoman-100 !important h-8 leading-8">
-                <span className="text-ottoman-100 !important">Help & Support</span>
+                <span className="text-ottoman-100 !important">{t('footer.helpSupport')}</span>
               </h3>
               <nav className="space-y-2 mt-4">
                 <Link to="/guide" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  User Guide
+                  {t('footer.userGuide')}
                 </Link>
                 <Link to="/contact-us" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  Contact Us
+                  {t('footer.contactUs')}
                 </Link>
                 <Link to="/privacy" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-              Privacy Policy
-            </Link>
+                  {t('footer.privacyPolicy')}
+                </Link>
                 <Link to="/terms" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-              Terms of Service
-            </Link>
+                  {t('footer.termsOfService')}
+                </Link>
                 <Link to="/about-us" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
-                  About Us
-            </Link>
+                  {t('footer.aboutUs')}
+                </Link>
               </nav>
             </div>
           </div>
@@ -94,8 +116,8 @@ export const Footer = () => {
       {/* Bottom Bar */}
       <div className={`border-t ${theme === 'light' ? 'border-ottoman-800/50' : 'border-ottoman-900/50'} px-4 py-4`}>
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className={`${theme === 'light' ? 'text-ottoman-300' : 'text-ottoman-400'} text-sm`}>
-            © 2025 Otto Collect. All rights reserved.
+          <p className={`${theme === 'light' ? 'text-ottoman-300' : 'text-ottoman-400'} text-sm ${isArabic ? 'text-right' : 'text-left'}`}>
+            {t('footer.copyright')}
           </p>
           <div className="flex items-center space-x-4">
             <a

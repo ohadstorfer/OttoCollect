@@ -7,6 +7,7 @@ import { ForumPost } from '@/types';
 import UserProfileLink from '@/components/common/UserProfileLink';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface Author {
   id: string;
@@ -50,6 +51,7 @@ const renderTextWithLinks = (text: string) => {
 
 const ForumPostCardAnnouncements = ({ post }: ForumPostCardAnnouncementsProps) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handlePostClick = () => {
     navigate(`/community/forum/announcement/${post.id}`);
@@ -66,7 +68,7 @@ const ForumPostCardAnnouncements = ({ post }: ForumPostCardAnnouncementsProps) =
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <Megaphone className="h-4 w-4 text-blue-600" />
-              <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">Announcement</span>
+              <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">{t('announcement')}</span>
             </div>
             <h3 className="font-medium text-base line-clamp-1 group-hover:text-primary transition-colors mb-1">
               <span>{renderTextWithLinks(post.title)}</span>

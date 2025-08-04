@@ -1,0 +1,195 @@
+{
+  "title": "Pazar",
+  "subtitle": "Diğer koleksiyonculardan Osmanlı banknotlarını gözden geçirin ve satın alın",
+  "description": "Doğrulanmış satıcılarla güvenli bir pazarda otantik banknotları satın alın ve satın",
+  
+  "filters": {
+    "title": "Filtreler ve Sıralama",
+    "search": "Banknotları ara...",
+    "searchPlaceholder": "Pick numarası, nominal değer, ülke ile ara...",
+    "categories": "Kategoriler",
+    "types": "Türler",
+    "countries": "Ülkeler",
+    "conditions": "Durumlar",
+    "priceRange": "Fiyat Aralığı",
+    "clearFilters": "Filtreleri Temizle",
+    "applyFilters": "Filtreleri Uygula",
+    "sortBy": "Sırala",
+    "sortOptions": {
+      "priceLow": "Fiyat: Düşükten Yükseğe",
+      "priceHigh": "Fiyat: Yüksekten Düşüğe",
+      "dateNew": "Tarih: En Yeni Önce",
+      "dateOld": "Tarih: En Eski Önce",
+      "pickNumber": "Pick Numarası",
+      "extPick": "Genişletilmiş Pick Numarası",
+      "denomination": "Nominal Değer",
+      "condition": "Durum"
+    }
+  },
+
+  "actions": {
+    "refresh": "Yenile",
+    "myListings": "İlanlarım",
+    "listForSale": "Satışa Çıkar",
+    "editListing": "İlanı Düzenle",
+    "removeListing": "Satıştan Kaldır",
+    "contactSeller": "Satıcıyla İletişim Kur",
+    "makeOffer": "Teklif Ver",
+    "buyNow": "Şimdi Satın Al",
+    "addToWishlist": "İstek Listesine Ekle",
+    "removeFromWishlist": "İstek Listesinden Kaldır"
+  },
+
+  "item": {
+    "price": "Fiyat",
+    "condition": "Durum",
+    "grade": "Not",
+    "seller": "Satıcı",
+    "location": "Konum",
+    "listedDate": "İlan Tarihi",
+    "pickNumber": "Pick Numarası",
+    "extendedPickNumber": "Genişletilmiş Pick Numarası",
+    "denomination": "Nominal Değer",
+    "faceValue": "Yüz Değeri",
+    "country": "Ülke",
+    "series": "Seri",
+    "type": "Tür",
+    "year": "Yıl",
+    "sultanName": "Sultan Adı",
+    "rarity": "Nadirlik",
+    "description": "Açıklama",
+    "notes": "Notlar",
+    "images": "Resimler",
+    "obverse": "Ön Yüz",
+    "reverse": "Arka Yüz",
+    "watermark": "Filigran",
+    "serialNumber": "Seri Numarası",
+    "printer": "Matbaa",
+    "colors": "Renkler",
+    "status": {
+      "available": "Mevcut",
+      "reserved": "Rezerve",
+      "sold": "Satıldı",
+      "pending": "Beklemede"
+    }
+  },
+
+  "listing": {
+    "form": {
+      "title": "Banknotu Satışa Çıkar",
+      "editTitle": "İlanı Düzenle",
+      "price": "Satış Fiyatı",
+      "pricePlaceholder": "USD cinsinden fiyat girin",
+      "condition": "Durum",
+      "grade": "Not",
+      "gradeBy": "Notlandıran",
+      "gradeNumber": "Not Numarası",
+      "gradeLetters": "Not Harfleri",
+      "description": "Açıklama",
+      "descriptionPlaceholder": "Banknotun durumunu, geçmişini veya dikkat çekici özelliklerini açıklayın...",
+      "publicNotes": "Genel Notlar",
+      "publicNotesPlaceholder": "Alıcılar tarafından görülebilen notlar...",
+      "privateNotes": "Özel Notlar",
+      "privateNotesPlaceholder": "Sadece sizin görebileceğiniz notlar...",
+      "images": "Resimler",
+      "addImages": "Resim Ekle",
+      "removeImages": "Resimleri Kaldır",
+      "uploadImages": "Resim Yükle",
+      "imageRequirements": "Her iki yüzün net resimlerini yükleyin",
+      "submit": "Satışa Çıkar",
+      "update": "İlanı Güncelle",
+      "cancel": "İptal"
+    },
+    "validation": {
+      "priceRequired": "Fiyat gerekli",
+      "pricePositive": "Fiyat pozitif olmalı",
+      "descriptionRequired": "Açıklama gerekli",
+      "imagesRequired": "En az bir resim gerekli"
+    }
+  },
+
+  "messaging": {
+    "contactSeller": "Satıcıyla İletişim Kur",
+    "sendMessage": "Mesaj Gönder",
+    "messagePlaceholder": "Satıcıya mesajınızı yazın...",
+    "subject": "Konu",
+    "subjectPlaceholder": "Banknot ilanınız hakkında soru",
+    "send": "Mesaj Gönder",
+    "cancel": "İptal",
+    "messageSent": "Mesaj başarıyla gönderildi",
+    "messageError": "Mesaj gönderilemedi"
+  },
+
+  "status": {
+    "loading": "Pazar öğeleri yükleniyor...",
+    "noItems": "Öğe Bulunamadı",
+    "noItemsDescription": "Şu anda pazarda hiçbir öğe mevcut değil",
+    "noItemsFiltered": "Mevcut filtrelerinize uyan öğe yok. Kriterlerinizi ayarlamayı deneyin.",
+    "error": "Pazar öğeleri yüklenirken hata",
+    "errorDescription": "Pazar öğeleri yüklenemedi. Lütfen daha sonra tekrar deneyin.",
+    "tryAgain": "Tekrar Dene",
+    "refreshing": "Yenileniyor..."
+  },
+
+  "pricing": {
+    "currency": "USD",
+    "negotiable": "Fiyat Pazarlık Edilebilir",
+    "firm": "Fiyat Sabit",
+    "bestOffer": "En İyi Teklif",
+    "freeShipping": "Ücretsiz Kargo",
+    "shippingIncluded": "Kargo Dahil",
+    "shippingExtra": "Kargo Ekstra"
+  },
+
+  "conditions": {
+    "unc": "Tedavül Edilmemiş",
+    "au": "Tedavül Edilmemişe Yakın",
+    "xf": "Son Derece İyi",
+    "vf": "Çok İyi",
+    "f": "İyi",
+    "vg": "Oldukça İyi",
+    "g": "Normal",
+    "poor": "Kötü"
+  },
+
+  "grades": {
+    "gem": "Mükemmel Tedavül Edilmemiş",
+    "choice": "Seçkin Tedavül Edilmemiş",
+    "uncirculated": "Tedavül Edilmemiş",
+    "aboutUncirculated": "Tedavül Edilmemişe Yakın",
+    "extremelyFine": "Son Derece İyi",
+    "veryFine": "Çok İyi",
+    "fine": "İyi",
+    "veryGood": "Oldukça İyi",
+    "good": "Normal",
+    "poor": "Kötü"
+  },
+
+  "security": {
+    "verifiedSeller": "Doğrulanmış Satıcı",
+    "authenticityGuaranteed": "Orijinallik Garantili",
+    "securePayment": "Güvenli Ödeme",
+    "escrowService": "Emanet Hizmeti Mevcut",
+    "returnPolicy": "İade Politikası",
+    "buyerProtection": "Alıcı Koruması"
+  },
+
+  "notifications": {
+    "itemListed": "Banknot başarıyla satışa çıkarıldı",
+    "itemUpdated": "İlan başarıyla güncellendi",
+    "itemRemoved": "Banknot satıştan kaldırıldı",
+    "offerReceived": "Yeni bir teklif aldınız",
+    "messageReceived": "Yeni bir mesaj aldınız",
+    "itemSold": "Banknotunuz satıldı"
+  },
+
+  "analytics": {
+    "totalListings": "Toplam İlanlar",
+    "activeListings": "Aktif İlanlar",
+    "soldItems": "Satılan Öğeler",
+    "totalValue": "Toplam Değer",
+    "averagePrice": "Ortalama Fiyat",
+    "views": "Görüntülemeler",
+    "inquiries": "Sorgular"
+  }
+} 

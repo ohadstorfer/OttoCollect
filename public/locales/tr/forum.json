@@ -1,0 +1,105 @@
+{
+  "title": "Forum",
+  "subtitle": "Banknotları tartışın ve toplama stratejilerini paylaşın",
+  "announcement": "Duyuru",
+  "tabs": {
+    "allPosts": "Tüm Gönderiler",
+    "myPosts": "Gönderilerim"
+  },
+  "search": {
+    "placeholder": "Ara...",
+    "noResults": "Aramanızla eşleşen gönderi veya duyuru bulunamadı.",
+    "noPostsYet": "Henüz forum gönderisi yok. İlk gönderiyi oluşturan siz olun!"
+  },
+  "actions": {
+    "post": "Gönderi",
+    "announcement": "Duyuru",
+    "createPost": "Gönderi Oluştur",
+    "createAnnouncement": "Duyuru Oluştur",
+    "createFirstPost": "İlk Gönderinizi Oluşturun",
+    "reply": "Yanıtla",
+    "edit": "Düzenle",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "publish": "Yayınla",
+    "postComment": "Yorum Yayınla",
+    "postReply": "Yanıt Yayınla"
+  },
+  "status": {
+    "blocked": "Engellendi",
+    "dailyLimitReached": "Günlük Limit Doldu",
+    "loading": "Forum gönderileri yükleniyor...",
+    "loadingMyPosts": "Gönderileriniz yükleniyor...",
+    "noMyPosts": "Henüz hiç gönderi veya duyuru oluşturmadınız.",
+    "saving": "Kaydediliyor...",
+    "posting": "Yayınlanıyor...",
+    "publishing": "Yayınlanıyor..."
+  },
+  "limits": {
+    "dailyLimitWarning": "Forum aktiviteleri için günlük 6 gönderi + yorum limitine ulaştınız.",
+    "dailyActivity": "Günlük forum aktivitesi: {{count}}/6 (gönderi + yorum)",
+    "accessDenied": "Sadece Süper Yöneticiler duyuru oluşturabilir."
+  },
+  "content": {
+    "announcements": "Duyurular",
+    "posts": "Gönderiler",
+    "comments": "Yorumlar",
+    "replies": "Yanıtlar",
+    "views": "Görüntülemeler",
+    "likes": "Beğeniler",
+    "created": "Oluşturuldu",
+    "updated": "Güncellendi",
+    "author": "Yazar",
+    "title": "Başlık",
+    "content": "İçerik",
+    "category": "Kategori",
+    "tags": "Etiketler",
+    "edited": "düzenlendi",
+    "unknown": "Bilinmiyor"
+  },
+  "moderation": {
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "report": "Bildir",
+    "pin": "Sabitle",
+    "unpin": "Sabitlemeyi Kaldır",
+    "lock": "Kilitle",
+    "unlock": "Kilidi Aç",
+    "move": "Taşı",
+    "merge": "Birleştir"
+  },
+  "notifications": {
+    "postCreated": "Gönderi başarıyla oluşturuldu",
+    "postUpdated": "Gönderi başarıyla güncellendi",
+    "postDeleted": "Gönderi başarıyla silindi",
+    "announcementCreated": "Duyuru başarıyla oluşturuldu",
+    "announcementUpdated": "Duyuru başarıyla güncellendi",
+    "announcementDeleted": "Duyuru başarıyla silindi",
+    "commentAdded": "Yorum başarıyla eklendi",
+    "commentUpdated": "Yorum başarıyla güncellendi",
+    "replyAdded": "Yanıt başarıyla eklendi",
+    "error": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "failedToAddComment": "Yorum eklenemedi. Lütfen tekrar deneyin.",
+    "failedToCreatePost": "Gönderi oluşturulamadı. Lütfen tekrar deneyin.",
+    "unexpectedError": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin."
+  },
+  "forms": {
+    "createNewPost": "Yeni Forum Gönderisi Oluştur",
+    "createNewAnnouncement": "Yeni Duyuru Oluştur",
+    "titleLabel": "Başlık",
+    "contentLabel": "İçerik",
+    "imagesLabel": "Resimler (İsteğe Bağlı)",
+    "titlePlaceholder": "Gönderiniz için açıklayıcı bir başlık ekleyin",
+    "contentPlaceholder": "Düşüncelerinizi, sorularınızı veya görüşlerinizi paylaşın...",
+    "commentPlaceholder": "Yorumunuzu yazın...",
+    "replyPlaceholder": "{{username}} kullanıcısına yanıt verin...",
+    "publishPost": "Gönderiyi Yayınla",
+    "publishAnnouncement": "Duyuruyu Yayınla"
+  },
+  "comments": {
+    "showReplies": "{{count}} {{count, plural, one {yanıtı} other {yanıtı}}} göster",
+    "hideReplies": "{{count}} {{count, plural, one {yanıtı} other {yanıtı}}} gizle",
+    "emptyComment": "Yorum boş olamaz",
+    "emptyReply": "Yanıt boş olamaz"
+  }
+} 

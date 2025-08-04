@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from 'react-i18next';
 
 interface ProfileSidebarProps {
   isOpen: boolean;
@@ -18,7 +19,19 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { t, i18n: i18nInstance } = useTranslation(['profile']);
   const isAdmin = user?.role === 'Super Admin' || user?.role?.includes('Admin');
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
+
+  // Check if current language is Arabic for RTL behavior
+  const isArabic = i18nInstance.language === 'ar';
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -36,7 +49,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent 
-        side="right" 
+        side={isArabic ? "left" : "right"} 
         className="w-80"
         onInteractOutside={() => onOpenChange(false)}
         onEscapeKeyDown={() => onOpenChange(false)}
@@ -68,7 +81,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               onClick={() => handleNavigation('/catalog')}
             >
               <BookOpen className="mr-2 h-4 w-4" />
-              Catalogues
+              {tWithFallback('sidebar.catalogues', 'Catalogues')}
             </Button>
 
             <Button
@@ -77,7 +90,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               onClick={() => handleNavigation(`/profile/${user.id}`)}
             >
               <User className="mr-2 h-4 w-4" />
-              My Collection
+              {tWithFallback('sidebar.myCollection', 'My Collection')}
             </Button>
 
             <Button
@@ -86,7 +99,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               onClick={() => handleNavigation('/marketplace')}
             >
               <ShoppingBag className="mr-2 h-4 w-4" />
-              Marketplace
+              {tWithFallback('sidebar.marketplace', 'Marketplace')}
             </Button>
 
             <Button
@@ -95,7 +108,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               onClick={() => handleNavigation('/community/forum')}
             >
               <MessageSquare className="mr-2 h-4 w-4" />
-              Forum
+              {tWithFallback('sidebar.forum', 'Forum')}
             </Button>
 
             <Button
@@ -104,7 +117,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               onClick={() => handleNavigation('/blog')}
             >
               <BookOpen className="mr-2 h-4 w-4" />
-              Blog
+              {tWithFallback('sidebar.blog', 'Blog')}
             </Button>
 
           </div>
@@ -115,7 +128,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
             onClick={() => handleNavigation('/messaging')}
           >
             <MessageSquare className="mr-2 h-4 w-4" />
-            Messages
+            {tWithFallback('sidebar.messages', 'Messages')}
           </Button>
 
           <Button
@@ -124,7 +137,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
             onClick={() => handleNavigation('/community')}
           >
             <Users className="mr-2 h-4 w-4" />
-            Community
+            {tWithFallback('sidebar.community', 'Community')}
           </Button>
 
           <div className="border-t pt-2 mt-4">
@@ -134,7 +147,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               onClick={() => handleNavigation('/settings')}
             >
               <Settings className="mr-2 h-4 w-4" />
-              Settings
+              {tWithFallback('sidebar.settings', 'Settings')}
             </Button>
 
             {isAdmin && (
@@ -144,7 +157,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
                 onClick={() => handleNavigation('/admin')}
               >
                 <Shield className="mr-2 h-4 w-4" />
-                Admin Dashboard
+                {tWithFallback('sidebar.adminDashboard', 'Admin Dashboard')}
               </Button>
             )}
 
@@ -158,7 +171,10 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               ) : (
                 <Moon className="mr-2 h-4 w-4" />
               )}
-              {theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              {theme === 'dark' 
+                ? tWithFallback('sidebar.switchToLightMode', 'Switch to Light Mode')
+                : tWithFallback('sidebar.switchToDarkMode', 'Switch to Dark Mode')
+              }
             </Button>
 
             <Button
@@ -167,7 +183,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
               onClick={handleSignOut}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
+              {tWithFallback('sidebar.signOut', 'Sign Out')}
             </Button>
           </div>
         </div>

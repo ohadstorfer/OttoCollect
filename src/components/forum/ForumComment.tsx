@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Edit2, Save, X, Reply, MessageSquare, ChevronDown, ChevronRight } from 'lucide-react';
@@ -9,6 +9,7 @@ import UserProfileLink from '@/components/common/UserProfileLink';
 import RankBadge from '@/components/common/RankBadge';
 import { ForumComment as ForumCommentType } from '@/types/forum';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface Author {
   id: string;
@@ -32,6 +33,7 @@ export default function ForumComment({
   maxDepth = 3
 }: ForumCommentProps) {
   const { user } = useAuth();
+  const { t } = useTranslation(['forum']);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [isSaving, setIsSaving] = useState(false);
@@ -40,6 +42,14 @@ export default function ForumComment({
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [showReplies, setShowReplies] = useState(true);
 
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
+
   const canEdit = user?.id === comment.author?.id;
   const canReply = user && depth < maxDepth;
   const hasReplies = comment.replies && comment.replies.length > 0;
@@ -47,7 +57,7 @@ export default function ForumComment({
 
   const handleSave = async () => {
     if (!editContent.trim()) {
-      toast.error('Comment cannot be empty');
+      toast.error(tWithFallback('comments.emptyComment', 'Comment cannot be empty'));
       return;
     }
 
@@ -57,7 +67,7 @@ export default function ForumComment({
       if (success) {
         setIsEditing(false);
         onCommentUpdate?.();
-        toast.success('Comment updated successfully');
+        toast.success(tWithFallback('notifications.commentUpdated', 'Comment updated successfully'));
       }
     } catch (error) {
       console.error('Error updating comment:', error);
@@ -73,7 +83,7 @@ export default function ForumComment({
 
   const handleReply = async () => {
     if (!replyContent.trim()) {
-      toast.error('Reply cannot be empty');
+      toast.error(tWithFallback('comments.emptyReply', 'Reply cannot be empty'));
       return;
     }
 
@@ -85,11 +95,11 @@ export default function ForumComment({
         setIsReplying(false);
         setShowReplies(true); // Show replies when adding a new one
         onCommentUpdate?.();
-        toast.success('Reply added successfully');
+        toast.success(tWithFallback('notifications.replyAdded', 'Reply added successfully'));
       }
     } catch (error) {
       console.error('Error adding reply:', error);
-      toast.error('Failed to add reply');
+      toast.error(tWithFallback('notifications.error', 'Failed to add reply'));
     } finally {
       setIsSubmittingReply(false);
     }
@@ -121,7 +131,7 @@ export default function ForumComment({
           <div className="flex items-center gap-2 flex-wrap">
             <UserProfileLink
               userId={comment.author?.id || ''}
-              username={comment.author?.username || 'Unknown'}
+              username={comment.author?.username || tWithFallback('content.unknown', 'Unknown')}
               avatarUrl={comment.author?.avatarUrl}
               size="sm"
             />
@@ -131,7 +141,7 @@ export default function ForumComment({
           <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0">
             <span>
               {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-              {comment.isEdited && <span className="ml-1 italic">(edited)</span>}
+              {comment.isEdited && <span className="ml-1 italic">({tWithFallback('content.edited', 'edited')})</span>}
             </span>
             {canEdit && !isEditing && (
               <Button
@@ -153,7 +163,7 @@ export default function ForumComment({
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               className="min-h-[80px] resize-none"
-              placeholder="Write your comment..."
+              placeholder={tWithFallback('forms.commentPlaceholder', 'Write your comment...')}
             />
             <div className="flex gap-2">
               <Button 
@@ -162,7 +172,7 @@ export default function ForumComment({
                 disabled={isSaving || !editContent.trim()}
               >
                 <Save className="h-3 w-3 mr-1" />
-                {isSaving ? 'Saving...' : 'Save'}
+                {isSaving ? tWithFallback('status.saving', 'Saving...') : tWithFallback('actions.save', 'Save')}
               </Button>
               <Button 
                 size="sm" 
@@ -171,7 +181,7 @@ export default function ForumComment({
                 disabled={isSaving}
               >
                 <X className="h-3 w-3 mr-1" />
-                Cancel
+                {tWithFallback('actions.cancel', 'Cancel')}
               </Button>
             </div>
           </div>
@@ -191,7 +201,7 @@ export default function ForumComment({
                   className="text-xs h-7 px-2 hover:bg-muted"
                 >
                   <Reply className="h-3 w-3 mr-1" />
-                  Reply
+                  {tWithFallback('actions.reply', 'Reply')}
                 </Button>
               )}
               
@@ -205,12 +215,12 @@ export default function ForumComment({
                   {showReplies ? (
                     <>
                       <ChevronDown className="h-3 w-3 mr-1" />
-                      Hide {comment.replies?.length} {comment.replies?.length === 1 ? 'reply' : 'replies'}
+                      {tWithFallback('comments.hideReplies', 'Hide {{count}} replies', { count: comment.replies?.length })}
                     </>
                   ) : (
                     <>
                       <ChevronRight className="h-3 w-3 mr-1" />
-                      Show {comment.replies?.length} {comment.replies?.length === 1 ? 'reply' : 'replies'}
+                      {tWithFallback('comments.showReplies', 'Show {{count}} replies', { count: comment.replies?.length })}
                     </>
                   )}
                 </Button>
@@ -227,7 +237,7 @@ export default function ForumComment({
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
               className="min-h-[60px] resize-none"
-              placeholder={`Reply to ${comment.author?.username || 'this comment'}...`}
+              placeholder={tWithFallback('forms.replyPlaceholder', 'Reply to {{username}}...', { username: comment.author?.username || tWithFallback('content.unknown', 'Unknown') })}
               autoFocus
             />
             <div className="flex gap-2">
@@ -236,7 +246,7 @@ export default function ForumComment({
                 onClick={handleReply}
                 disabled={isSubmittingReply || !replyContent.trim()}
               >
-                {isSubmittingReply ? 'Posting...' : 'Post Reply'}
+                {isSubmittingReply ? tWithFallback('status.posting', 'Posting...') : tWithFallback('actions.postReply', 'Post Reply')}
               </Button>
               <Button 
                 size="sm" 
@@ -244,7 +254,7 @@ export default function ForumComment({
                 onClick={handleCancelReply}
                 disabled={isSubmittingReply}
               >
-                Cancel
+                {tWithFallback('actions.cancel', 'Cancel')}
               </Button>
             </div>
           </div>

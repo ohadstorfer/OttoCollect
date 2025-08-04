@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslation } from 'react-i18next';
 
 interface CreateAnnouncementDialogProps {
   open: boolean;
@@ -26,12 +27,21 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation(['forum']);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
@@ -64,8 +74,8 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
 
     if (!isSuperAdmin) {
       toast({
-        title: "Access Denied",
-        description: "Only Super Admins can create announcements.",
+        title: tWithFallback('limits.accessDenied', 'Access Denied'),
+        description: tWithFallback('limits.accessDenied', 'Only Super Admins can create announcements.'),
         variant: "destructive",
       });
       return;
@@ -76,8 +86,8 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
       const { hasReachedLimit: limitReached } = await checkUserDailyForumLimit(user.id);
       if (limitReached) {
         toast({
-          title: "Daily limit reached",
-          description: "You have reached your daily limit of 6 forum activities (posts + comments).",
+          title: tWithFallback('status.dailyLimitReached', 'Daily limit reached'),
+          description: tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).'),
           variant: "destructive",
         });
         return;
@@ -90,8 +100,8 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
       
       if (newAnnouncement) {
         toast({
-          title: "Success",
-          description: "Your announcement has been published successfully.",
+          title: tWithFallback('notifications.announcementCreated', 'Success'),
+          description: tWithFallback('notifications.announcementCreated', 'Your announcement has been published successfully.'),
         });
         
         // Reset form

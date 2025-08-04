@@ -1,0 +1,70 @@
+{
+  "sidebar": {
+    "catalogues": "الفهارس",
+    "myCollection": "مجموعتي",
+    "marketplace": "السوق",
+    "forum": "المنتدى",
+    "blog": "المدونة",
+    "messages": "الرسائل",
+    "community": "المجتمع",
+    "settings": "الإعدادات",
+    "adminDashboard": "لوحة الإدارة",
+    "switchToLightMode": "التبديل إلى الوضع الفاتح",
+    "switchToDarkMode": "التبديل إلى الوضع الداكن",
+    "signOut": "تسجيل الخروج"
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "profile": "الملف الشخصي",
+    "catalog": "الفهرس",
+    "marketplace": "السوق",
+    "forum": "المنتدى",
+    "blog": "المدونة",
+    "messaging": "الرسائل",
+    "community": "المجتمع",
+    "settings": "الإعدادات",
+    "admin": "الإدارة"
+  },
+  "actions": {
+    "edit": "تعديل",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "update": "تحديث",
+    "create": "إنشاء",
+    "add": "إضافة",
+    "remove": "إزالة"
+  },
+  "status": {
+    "loading": "جاري التحميل...",
+    "saving": "جاري الحفظ...",
+    "updating": "جاري التحديث...",
+    "deleting": "جاري الحذف...",
+    "success": "نجح",
+    "error": "خطأ",
+    "warning": "تحذير"
+  },
+  "user": {
+    "profile": "الملف الشخصي",
+    "username": "اسم المستخدم",
+    "email": "البريد الإلكتروني",
+    "rank": "الرتبة",
+    "role": "الدور",
+    "avatar": "الصورة الرمزية",
+    "bio": "السيرة الذاتية",
+    "location": "الموقع",
+    "joinDate": "تاريخ الانضمام",
+    "lastSeen": "آخر ظهور"
+  },
+  "collection": {
+    "title": "المجموعة",
+    "items": "العناصر",
+    "total": "المجموع",
+    "categories": "الفئات",
+    "countries": "البلدان",
+    "series": "السلاسل",
+    "types": "الأنواع",
+    "conditions": "الحالات",
+    "grades": "الدرجات"
+  }
+} 

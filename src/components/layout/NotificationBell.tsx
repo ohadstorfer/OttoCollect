@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 
 
+
 export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -74,7 +75,7 @@ export function NotificationBell() {
     <Button
       variant="ghost"
       size="icon"
-      className="relative"
+      className="rounded-full"
       aria-label="Open notifications"
     >
       <Bell className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />

@@ -1,0 +1,195 @@
+{
+  "title": "السوق",
+  "subtitle": "تصفح واشترِ الأوراق النقدية العثمانية من هواة الجمع الآخرين",
+  "description": "اشترِ وابِع الأوراق النقدية الأصيلة في سوق آمن مع بائعين موثقين",
+  
+  "filters": {
+    "title": "المرشحات والترتيب",
+    "search": "البحث في الأوراق النقدية...",
+    "searchPlaceholder": "البحث برقم بيك، الفئة، البلد...",
+    "categories": "الفئات",
+    "types": "الأنواع",
+    "countries": "البلدان",
+    "conditions": "الحالات",
+    "priceRange": "نطاق السعر",
+    "clearFilters": "مسح المرشحات",
+    "applyFilters": "تطبيق المرشحات",
+    "sortBy": "ترتيب حسب",
+    "sortOptions": {
+      "priceLow": "السعر: من الأقل إلى الأعلى",
+      "priceHigh": "السعر: من الأعلى إلى الأقل",
+      "dateNew": "التاريخ: الأحدث أولاً",
+      "dateOld": "التاريخ: الأقدم أولاً",
+      "pickNumber": "رقم بيك",
+      "extPick": "رقم بيك الموسع",
+      "denomination": "الفئة",
+      "condition": "الحالة"
+    }
+  },
+
+  "actions": {
+    "refresh": "تحديث",
+    "myListings": "إعلاناتي",
+    "listForSale": "عرض للبيع",
+    "editListing": "تحرير الإعلان",
+    "removeListing": "إزالة من البيع",
+    "contactSeller": "اتصل بالبائع",
+    "makeOffer": "تقديم عرض",
+    "buyNow": "اشتر الآن",
+    "addToWishlist": "أضف إلى قائمة الأماني",
+    "removeFromWishlist": "إزالة من قائمة الأماني"
+  },
+
+  "item": {
+    "price": "السعر",
+    "condition": "الحالة",
+    "grade": "الدرجة",
+    "seller": "البائع",
+    "location": "الموقع",
+    "listedDate": "تاريخ الإدراج",
+    "pickNumber": "رقم بيك",
+    "extendedPickNumber": "رقم بيك الموسع",
+    "denomination": "الفئة",
+    "faceValue": "القيمة الاسمية",
+    "country": "البلد",
+    "series": "السلسلة",
+    "type": "النوع",
+    "year": "السنة",
+    "sultanName": "اسم السلطان",
+    "rarity": "الندرة",
+    "description": "الوصف",
+    "notes": "الملاحظات",
+    "images": "الصور",
+    "obverse": "الوجه",
+    "reverse": "الظهر",
+    "watermark": "العلامة المائية",
+    "serialNumber": "الرقم التسلسلي",
+    "printer": "المطبعة",
+    "colors": "الألوان",
+    "status": {
+      "available": "متاح",
+      "reserved": "محجوز",
+      "sold": "مباع",
+      "pending": "قيد الانتظار"
+    }
+  },
+
+  "listing": {
+    "form": {
+      "title": "عرض ورقة نقدية للبيع",
+      "editTitle": "تحرير الإعلان",
+      "price": "سعر البيع",
+      "pricePlaceholder": "أدخل السعر بالدولار الأمريكي",
+      "condition": "الحالة",
+      "grade": "الدرجة",
+      "gradeBy": "مقيّم بواسطة",
+      "gradeNumber": "رقم الدرجة",
+      "gradeLetters": "حروف الدرجة",
+      "description": "الوصف",
+      "descriptionPlaceholder": "صف حالة الورقة النقدية وتاريخها أو أي ميزات بارزة...",
+      "publicNotes": "ملاحظات عامة",
+      "publicNotesPlaceholder": "ملاحظات مرئية للمشترين...",
+      "privateNotes": "ملاحظات خاصة",
+      "privateNotesPlaceholder": "ملاحظات مرئية لك فقط...",
+      "images": "الصور",
+      "addImages": "إضافة صور",
+      "removeImages": "إزالة الصور",
+      "uploadImages": "رفع الصور",
+      "imageRequirements": "ارفع صور واضحة للوجهين",
+      "submit": "عرض للبيع",
+      "update": "تحديث الإعلان",
+      "cancel": "إلغاء"
+    },
+    "validation": {
+      "priceRequired": "السعر مطلوب",
+      "pricePositive": "يجب أن يكون السعر موجباً",
+      "descriptionRequired": "الوصف مطلوب",
+      "imagesRequired": "مطلوب على الأقل صورة واحدة"
+    }
+  },
+
+  "messaging": {
+    "contactSeller": "اتصل بالبائع",
+    "sendMessage": "إرسال رسالة",
+    "messagePlaceholder": "اكتب رسالتك للبائع...",
+    "subject": "الموضوع",
+    "subjectPlaceholder": "استفسار حول إعلان الورقة النقدية",
+    "send": "إرسال الرسالة",
+    "cancel": "إلغاء",
+    "messageSent": "تم إرسال الرسالة بنجاح",
+    "messageError": "فشل في إرسال الرسالة"
+  },
+
+  "status": {
+    "loading": "جاري تحميل عناصر السوق...",
+    "noItems": "لم يتم العثور على عناصر",
+    "noItemsDescription": "لا توجد حالياً عناصر متاحة في السوق",
+    "noItemsFiltered": "لا توجد عناصر تطابق المرشحات الحالية. حاول تعديل معاييرك.",
+    "error": "خطأ في تحميل عناصر السوق",
+    "errorDescription": "فشل في تحميل عناصر السوق. يرجى المحاولة مرة أخرى لاحقاً.",
+    "tryAgain": "حاول مرة أخرى",
+    "refreshing": "جاري التحديث..."
+  },
+
+  "pricing": {
+    "currency": "دولار أمريكي",
+    "negotiable": "السعر قابل للتفاوض",
+    "firm": "السعر ثابت",
+    "bestOffer": "أفضل عرض",
+    "freeShipping": "شحن مجاني",
+    "shippingIncluded": "الشحن مشمول",
+    "shippingExtra": "الشحن إضافي"
+  },
+
+  "conditions": {
+    "unc": "غير متداولة",
+    "au": "شبه غير متداولة",
+    "xf": "ممتازة جداً",
+    "vf": "جيدة جداً",
+    "f": "جيدة",
+    "vg": "جيدة نوعاً ما",
+    "g": "عادية",
+    "poor": "ضعيفة"
+  },
+
+  "grades": {
+    "gem": "غير متداولة رائعة",
+    "choice": "غير متداولة مختارة",
+    "uncirculated": "غير متداولة",
+    "aboutUncirculated": "شبه غير متداولة",
+    "extremelyFine": "ممتازة جداً",
+    "veryFine": "جيدة جداً",
+    "fine": "جيدة",
+    "veryGood": "جيدة نوعاً ما",
+    "good": "عادية",
+    "poor": "ضعيفة"
+  },
+
+  "security": {
+    "verifiedSeller": "بائع موثق",
+    "authenticityGuaranteed": "الأصالة مضمونة",
+    "securePayment": "دفع آمن",
+    "escrowService": "خدمة الضمان متاحة",
+    "returnPolicy": "سياسة الإرجاع",
+    "buyerProtection": "حماية المشتري"
+  },
+
+  "notifications": {
+    "itemListed": "تم عرض الورقة النقدية للبيع بنجاح",
+    "itemUpdated": "تم تحديث الإعلان بنجاح",
+    "itemRemoved": "تم إزالة الورقة النقدية من البيع",
+    "offerReceived": "لقد تلقيت عرضاً جديداً",
+    "messageReceived": "لقد تلقيت رسالة جديدة",
+    "itemSold": "تم بيع ورقتك النقدية"
+  },
+
+  "analytics": {
+    "totalListings": "إجمالي الإعلانات",
+    "activeListings": "الإعلانات النشطة",
+    "soldItems": "العناصر المباعة",
+    "totalValue": "القيمة الإجمالية",
+    "averagePrice": "متوسط السعر",
+    "views": "المشاهدات",
+    "inquiries": "الاستفسارات"
+  }
+} 

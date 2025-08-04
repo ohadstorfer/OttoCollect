@@ -1,0 +1,194 @@
+{
+  "title": "Marketplace",
+  "subtitle": "Browse and purchase Ottoman banknotes from fellow collectors",
+  "description": "Buy and sell authentic banknotes in a secure marketplace with verified sellers",
+  
+  "filters": {
+    "title": "Filters & Sorting",
+    "search": "Search banknotes...",
+    "searchPlaceholder": "Search by Pick number, denomination, country...",
+    "categories": "Categories",
+    "types": "Types",
+    "countries": "Countries",
+    "conditions": "Conditions",
+    "priceRange": "Price Range",
+    "clearFilters": "Clear Filters",
+    "applyFilters": "Apply Filters",
+    "sortBy": "Sort by",
+    "sortOptions": {
+      "priceLow": "Price: Low to High",
+      "priceHigh": "Price: High to Low",
+      "dateNew": "Date: Newest First",
+      "dateOld": "Date: Oldest First",
+      "pickNumber": "Pick Number",
+      "extPick": "Extended Pick Number",
+      "denomination": "Denomination",
+      "condition": "Condition"
+    }
+  },
+
+  "actions": {
+    "refresh": "Refresh",
+    "myListings": "My Listings",
+    "listForSale": "List for Sale",
+    "editListing": "Edit Listing",
+    "removeListing": "Remove from Sale",
+    "contactSeller": "Contact Seller",
+    "makeOffer": "Make Offer",
+    "buyNow": "Buy Now",
+    "addToWishlist": "Add to Wishlist",
+    "removeFromWishlist": "Remove from Wishlist"
+  },
+
+  "item": {
+    "price": "Price",
+    "condition": "Condition",
+    "grade": "Grade",
+    "seller": "Seller",
+    "location": "Location",
+    "listedDate": "Listed",
+    "pickNumber": "Pick Number",
+    "extendedPickNumber": "Extended Pick Number",
+    "denomination": "Denomination",
+    "country": "Country",
+    "series": "Series",
+    "type": "Type",
+    "year": "Year",
+    "sultanName": "Sultan Name",
+    "rarity": "Rarity",
+    "description": "Description",
+    "notes": "Notes",
+    "images": "Images",
+    "obverse": "Obverse",
+    "reverse": "Reverse",
+    "watermark": "Watermark",
+    "serialNumber": "Serial Number",
+    "printer": "Printer",
+    "colors": "Colors",
+    "status": {
+      "available": "Available",
+      "reserved": "Reserved",
+      "sold": "Sold",
+      "pending": "Pending"
+    }
+  },
+
+  "listing": {
+    "form": {
+      "title": "List Banknote for Sale",
+      "editTitle": "Edit Listing",
+      "price": "Sale Price",
+      "pricePlaceholder": "Enter price in USD",
+      "condition": "Condition",
+      "grade": "Grade",
+      "gradeBy": "Graded by",
+      "gradeNumber": "Grade Number",
+      "gradeLetters": "Grade Letters",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the banknote's condition, history, or any notable features...",
+      "publicNotes": "Public Notes",
+      "publicNotesPlaceholder": "Notes visible to buyers...",
+      "privateNotes": "Private Notes",
+      "privateNotesPlaceholder": "Notes visible only to you...",
+      "images": "Images",
+      "addImages": "Add Images",
+      "removeImages": "Remove Images",
+      "uploadImages": "Upload Images",
+      "imageRequirements": "Upload clear images of both sides",
+      "submit": "List for Sale",
+      "update": "Update Listing",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "priceRequired": "Price is required",
+      "pricePositive": "Price must be positive",
+      "descriptionRequired": "Description is required",
+      "imagesRequired": "At least one image is required"
+    }
+  },
+
+  "messaging": {
+    "contactSeller": "Contact Seller",
+    "sendMessage": "Send Message",
+    "messagePlaceholder": "Write your message to the seller...",
+    "subject": "Subject",
+    "subjectPlaceholder": "Inquiry about your banknote listing",
+    "send": "Send Message",
+    "cancel": "Cancel",
+    "messageSent": "Message sent successfully",
+    "messageError": "Failed to send message"
+  },
+
+  "status": {
+    "loading": "Loading marketplace items...",
+    "noItems": "No Items Found",
+    "noItemsDescription": "There are currently no items available in the marketplace",
+    "noItemsFiltered": "No items match your current filters. Try adjusting your criteria.",
+    "error": "Error loading marketplace items",
+    "errorDescription": "Failed to load marketplace items. Please try again later.",
+    "tryAgain": "Try Again",
+    "refreshing": "Refreshing..."
+  },
+
+  "pricing": {
+    "currency": "USD",
+    "negotiable": "Price Negotiable",
+    "firm": "Price Firm",
+    "bestOffer": "Best Offer",
+    "freeShipping": "Free Shipping",
+    "shippingIncluded": "Shipping Included",
+    "shippingExtra": "Shipping Extra"
+  },
+
+  "conditions": {
+    "unc": "Uncirculated",
+    "au": "About Uncirculated",
+    "xf": "Extremely Fine",
+    "vf": "Very Fine",
+    "f": "Fine",
+    "vg": "Very Good",
+    "g": "Good",
+    "poor": "Poor"
+  },
+
+  "grades": {
+    "gem": "Gem Uncirculated",
+    "choice": "Choice Uncirculated",
+    "uncirculated": "Uncirculated",
+    "aboutUncirculated": "About Uncirculated",
+    "extremelyFine": "Extremely Fine",
+    "veryFine": "Very Fine",
+    "fine": "Fine",
+    "veryGood": "Very Good",
+    "good": "Good",
+    "poor": "Poor"
+  },
+
+  "security": {
+    "verifiedSeller": "Verified Seller",
+    "authenticityGuaranteed": "Authenticity Guaranteed",
+    "securePayment": "Secure Payment",
+    "escrowService": "Escrow Service Available",
+    "returnPolicy": "Return Policy",
+    "buyerProtection": "Buyer Protection"
+  },
+
+  "notifications": {
+    "itemListed": "Banknote listed for sale successfully",
+    "itemUpdated": "Listing updated successfully",
+    "itemRemoved": "Banknote removed from sale",
+    "offerReceived": "You received a new offer",
+    "messageReceived": "You received a new message",
+    "itemSold": "Your banknote has been sold"
+  },
+
+  "analytics": {
+    "totalListings": "Total Listings",
+    "activeListings": "Active Listings",
+    "soldItems": "Sold Items",
+    "totalValue": "Total Value",
+    "averagePrice": "Average Price",
+    "views": "Views",
+    "inquiries": "Inquiries"
+  }
+} 

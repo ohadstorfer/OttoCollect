@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import { CreatePostDialog } from '@/components/forum/CreatePostDialog';
 import { CreateAnnouncementDialog } from '@/components/forum/CreateAnnouncementDialog';
 import SEOHead from '@/components/seo/SEOHead';
 import { SEO_CONFIG } from '@/config/seoConfig';
+import { useTranslation } from 'react-i18next';
 
 interface Author {
   id: string;
@@ -31,6 +32,7 @@ interface ForumPostWithAuthor extends Omit<ForumPost, 'author'> {
 const Forum = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation(['forum']);
   const [posts, setPosts] = useState<ForumPostWithAuthor[]>([]);
   const [announcements, setAnnouncements] = useState<ForumPostWithAuthor[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<ForumPostWithAuthor[]>([]);
@@ -43,6 +45,14 @@ const Forum = () => {
   const [dailyCount, setDailyCount] = useState(0);
   const [showCreatePostDialog, setShowCreatePostDialog] = useState(false);
   const [showCreateAnnouncementDialog, setShowCreateAnnouncementDialog] = useState(false);
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
@@ -208,12 +218,12 @@ const Forum = () => {
         <div className="container mx-auto px-4 relative z-10 flex items-center justify-center">
           
           <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
-            <span>Forum</span>
+            <span>{tWithFallback('title', 'Forum')}</span>
           </h1>
           
         </div>
         <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
-          Discuss banknotes and collecting strategies
+          {tWithFallback('subtitle', 'Discuss banknotes and collecting strategies')}
           </p>
       </section>
 
@@ -222,9 +232,9 @@ const Forum = () => {
           <Tabs defaultValue="all" className="mb-10">
             <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
               <TabsList className="shrink-0">
-                <TabsTrigger value="all">All Posts</TabsTrigger>
+                <TabsTrigger value="all">{tWithFallback('tabs.allPosts', 'All Posts')}</TabsTrigger>
                 {user && (
-                  <TabsTrigger value="my-posts">My Posts</TabsTrigger>
+                  <TabsTrigger value="my-posts">{tWithFallback('tabs.myPosts', 'My Posts')}</TabsTrigger>
                 )}
               </TabsList>
 
@@ -232,7 +242,7 @@ const Forum = () => {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search..."
+                  placeholder={tWithFallback('search.placeholder', 'Search...')}
                   className="pl-8 text-sm"
                   value={searchTerm}
                   onChange={handleSearch}
@@ -249,7 +259,7 @@ const Forum = () => {
                     variant="outline"
                   >
                     <PenSquare className="h-4 w-4" />
-                    <span className={!isSuperAdmin ? "hidden sm:inline-block sm:ml-2" : "ml-2"}>Post</span>
+                    <span className={!isSuperAdmin ? "hidden sm:inline-block sm:ml-2" : "ml-2"}>{tWithFallback('actions.post', 'Post')}</span>
                   </Button>
                 )}
 
@@ -261,20 +271,20 @@ const Forum = () => {
                     variant="outline"
                   >
                     <PenSquare className="h-4 w-4" />
-                    <span className={!isSuperAdmin ? "hidden sm:inline-block sm:ml-2" : "ml-2"}>Announcement</span>
+                    <span className={!isSuperAdmin ? "hidden sm:inline-block sm:ml-2" : "ml-2"}>{tWithFallback('actions.announcement', 'Announcement')}</span>
                   </Button>
                 )}
               </div>
 
               {user && isUserBlocked && (
                 <div className="text-red-600 text-xs sm:text-sm">
-                  Blocked
+                  {tWithFallback('status.blocked', 'Blocked')}
                 </div>
               )}
 
               {user && hasReachedDailyLimit && (
                 <div className="text-yellow-600 text-xs sm:text-sm">
-                  Daily Limit Reached
+                  {tWithFallback('status.dailyLimitReached', 'Daily Limit Reached')}
                 </div>
               )}
             </div>
@@ -284,7 +294,7 @@ const Forum = () => {
               <div className="mt-4 text-center">
                   <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 max-w-md mx-auto">
                     <p className="text-red-600 dark:text-red-400 text-sm">
-                      You have reached your daily limit of 6 forum activities (posts + comments).
+                      {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).')}
                     </p>
                   </div>
               </div>
@@ -293,7 +303,7 @@ const Forum = () => {
             <TabsContent value="all" className="mt-8">
               {loading ? (
                 <div className="text-center py-10 mb-20 ">
-                  <p>Loading forum posts...</p>
+                  <p>{tWithFallback('status.loading', 'Loading forum posts...')}</p>
                 </div>
               ) : (
                 <>
@@ -314,9 +324,9 @@ const Forum = () => {
                   ) : (
                     <div className="text-center py-10">
                       {searchTerm ? (
-                        <p>No posts or announcements found matching your search.</p>
+                        <p>{tWithFallback('search.noResults', 'No posts or announcements found matching your search.')}</p>
                       ) : (
-                        <p>No forum posts yet. Be the first to create one!</p>
+                        <p>{tWithFallback('search.noPostsYet', 'No forum posts yet. Be the first to create one!')}</p>
                       )}
                     </div>
                   )}
@@ -327,7 +337,7 @@ const Forum = () => {
               <TabsContent value="my-posts" className="mt-8">
                 {loading ? (
                   <div className="text-center py-10">
-                    <p>Loading your posts...</p>
+                    <p>{tWithFallback('status.loadingMyPosts', 'Loading your posts...')}</p>
                   </div>
                 ) : (
                   <>
@@ -352,20 +362,20 @@ const Forum = () => {
                       </div>
                     ) : (
                       <div className="text-center py-10">
-                        <p>You haven't created any posts or announcements yet.</p>
+                        <p>{tWithFallback('status.noMyPosts', 'You haven\'t created any posts or announcements yet.')}</p>
                         <div className="flex gap-2 justify-center mt-4">
                           <Button
                             onClick={handleCreatePost}
                             variant="outline"
                           >
-                            Create Your First Post
+                            {tWithFallback('actions.createFirstPost', 'Create Your First Post')}
                           </Button>
                           {isSuperAdmin && (
                             <Button
                               onClick={handleCreateAnnouncement}
                               variant="outline"
                             >
-                              Create Announcement
+                              {tWithFallback('actions.createAnnouncement', 'Create Announcement')}
                             </Button>
                           )}
                         </div>

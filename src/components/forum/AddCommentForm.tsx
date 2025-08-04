@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,6 +8,7 @@ import { ForumComment } from "@/types/forum";
 import { addForumComment, checkUserDailyForumLimit } from '@/services/forumService';
 import { useToast } from "@/hooks/use-toast";
 import { getInitials } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface AddCommentFormProps {
   postId: string;
@@ -23,6 +24,15 @@ export default function AddCommentForm({ postId, user, onCommentAdded, parentCom
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
   const { toast } = useToast();
+  const { t } = useTranslation(['forum']);
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   // Check if user is in limited ranks
   const isLimitedRank = ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '');
@@ -51,8 +61,8 @@ export default function AddCommentForm({ postId, user, onCommentAdded, parentCom
       const { hasReachedLimit: limitReached } = await checkUserDailyForumLimit(user.id);
       if (limitReached) {
         toast({
-          title: "Daily limit reached",
-          description: "You have reached your daily limit of 6 forum activities (posts + comments).",
+          title: tWithFallback('status.dailyLimitReached', 'Daily limit reached'),
+          description: tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).'),
           variant: "destructive",
         });
         return;
@@ -76,13 +86,13 @@ export default function AddCommentForm({ postId, user, onCommentAdded, parentCom
         }
         
         toast({
-          title: "Comment added",
-          description: "Your comment has been added successfully.",
+          title: tWithFallback('notifications.commentAdded', 'Comment added'),
+          description: tWithFallback('notifications.commentAdded', 'Your comment has been added successfully.'),
         });
       } else {
         toast({
-          title: "Error",
-          description: "Failed to add comment. Please try again.",
+          title: tWithFallback('notifications.error', 'Error'),
+          description: tWithFallback('notifications.failedToAddComment', 'Failed to add comment. Please try again.'),
           variant: "destructive",
         });
       }
@@ -104,7 +114,7 @@ export default function AddCommentForm({ postId, user, onCommentAdded, parentCom
         {isLimitedRank && hasReachedLimit && (
           <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
             <p className="text-red-600 dark:text-red-400 text-sm">
-              You have reached your daily limit of 6 forum activities (posts + comments).
+              {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).')}
             </p>
           </div>
         )}
@@ -112,13 +122,13 @@ export default function AddCommentForm({ postId, user, onCommentAdded, parentCom
         {isLimitedRank && !hasReachedLimit && (
           <div className="bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded-md border border-yellow-200 dark:border-yellow-800">
             <p className="text-yellow-600 dark:text-yellow-400 text-sm">
-              Daily forum activity: {dailyCount}/6 (posts + comments)
+              {tWithFallback('limits.dailyActivity', 'Daily forum activity: {{count}}/6 (posts + comments)', { count: dailyCount })}
             </p>
           </div>
         )}
         
         <Textarea 
-          placeholder={placeholder}
+          placeholder={placeholder || tWithFallback('forms.commentPlaceholder', 'Write your comment...')}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           className="resize-none"
@@ -131,7 +141,7 @@ export default function AddCommentForm({ postId, user, onCommentAdded, parentCom
             disabled={isSubmitting || content.trim() === '' || hasReachedLimit}
             size="sm"
           >
-            {isSubmitting ? 'Posting...' : 'Post Comment'}
+            {isSubmitting ? tWithFallback('status.posting', 'Posting...') : tWithFallback('actions.postComment', 'Post Comment')}
           </Button>
         </div>
       </div>

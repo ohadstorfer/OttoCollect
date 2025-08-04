@@ -26,8 +26,8 @@
     "optional": "İsteğe bağlı"
   },
   "conditions": {
-    "unc": "Tedavülde Değil",
-    "au": "Tedavülde Değile Yakın",
+    "unc": "Tedavül Edilmemiş",
+    "au": "Tedavül Edilmemişe Yakın",
     "xf": "Son Derece İyi",
     "vf": "Çok İyi",
     "f": "İyi",
@@ -36,10 +36,10 @@
     "poor": "Kötü"
   },
   "grades": {
-    "gem": "Mükemmel Tedavülde Değil",
-    "choice": "Seçkin Tedavülde Değil",
-    "uncirculated": "Tedavülde Değil",
-    "aboutUncirculated": "Tedavülde Değile Yakın",
+    "gem": "Mükemmel Tedavül Edilmemiş",
+    "choice": "Seçkin Tedavül Edilmemiş",
+    "uncirculated": "Tedavül Edilmemiş",
+    "aboutUncirculated": "Tedavül Edilmemişe Yakın",
     "extremelyFine": "Son Derece İyi",
     "veryFine": "Çok İyi",
     "fine": "İyi",

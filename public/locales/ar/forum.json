@@ -1,0 +1,105 @@
+{
+  "title": "المنتدى",
+  "subtitle": "ناقش الأوراق النقدية واستراتيجيات الجمع",
+  "announcement": "إعلان",
+  "tabs": {
+    "allPosts": "جميع المشاركات",
+    "myPosts": "مشاركاتي"
+  },
+  "search": {
+    "placeholder": "البحث...",
+    "noResults": "لم يتم العثور على مشاركات أو إعلانات تطابق بحثك.",
+    "noPostsYet": "لا توجد مشاركات في المنتدى بعد. كن أول من ينشئ مشاركة!"
+  },
+  "actions": {
+    "post": "نشر",
+    "announcement": "إعلان",
+    "createPost": "إنشاء مشاركة",
+    "createAnnouncement": "إنشاء إعلان",
+    "createFirstPost": "إنشاء أول مشاركة لك",
+    "reply": "رد",
+    "edit": "تعديل",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "publish": "نشر",
+    "postComment": "نشر تعليق",
+    "postReply": "نشر رد"
+  },
+  "status": {
+    "blocked": "محظور",
+    "dailyLimitReached": "تم الوصول للحد اليومي",
+    "loading": "جاري تحميل مشاركات المنتدى...",
+    "loadingMyPosts": "جاري تحميل مشاركاتك...",
+    "noMyPosts": "لم تنشئ أي مشاركات أو إعلانات بعد.",
+    "saving": "جاري الحفظ...",
+    "posting": "جاري النشر...",
+    "publishing": "جاري النشر..."
+  },
+  "limits": {
+    "dailyLimitWarning": "لقد وصلت إلى الحد اليومي المحدد وهو 6 أنشطة في المنتدى (مشاركات + تعليقات).",
+    "dailyActivity": "النشاط اليومي في المنتدى: {{count}}/6 (مشاركات + تعليقات)",
+    "accessDenied": "فقط المشرفون المتميزون يمكنهم إنشاء إعلانات."
+  },
+  "content": {
+    "announcements": "الإعلانات",
+    "posts": "المشاركات",
+    "comments": "التعليقات",
+    "replies": "الردود",
+    "views": "المشاهدات",
+    "likes": "الإعجابات",
+    "created": "تم الإنشاء",
+    "updated": "تم التحديث",
+    "author": "الكاتب",
+    "title": "العنوان",
+    "content": "المحتوى",
+    "category": "الفئة",
+    "tags": "العلامات",
+    "edited": "تم التعديل",
+    "unknown": "غير معروف"
+  },
+  "moderation": {
+    "edit": "تعديل",
+    "delete": "حذف",
+    "report": "إبلاغ",
+    "pin": "تثبيت",
+    "unpin": "إلغاء التثبيت",
+    "lock": "قفل",
+    "unlock": "إلغاء القفل",
+    "move": "نقل",
+    "merge": "دمج"
+  },
+  "notifications": {
+    "postCreated": "تم إنشاء المشاركة بنجاح",
+    "postUpdated": "تم تحديث المشاركة بنجاح",
+    "postDeleted": "تم حذف المشاركة بنجاح",
+    "announcementCreated": "تم إنشاء الإعلان بنجاح",
+    "announcementUpdated": "تم تحديث الإعلان بنجاح",
+    "announcementDeleted": "تم حذف الإعلان بنجاح",
+    "commentAdded": "تم إضافة التعليق بنجاح",
+    "commentUpdated": "تم تحديث التعليق بنجاح",
+    "replyAdded": "تم إضافة الرد بنجاح",
+    "error": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "failedToAddComment": "فشل في إضافة التعليق. يرجى المحاولة مرة أخرى.",
+    "failedToCreatePost": "فشل في إنشاء المشاركة. يرجى المحاولة مرة أخرى.",
+    "unexpectedError": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+  },
+  "forms": {
+    "createNewPost": "إنشاء مشاركة جديدة في المنتدى",
+    "createNewAnnouncement": "إنشاء إعلان جديد",
+    "titleLabel": "العنوان",
+    "contentLabel": "المحتوى",
+    "imagesLabel": "الصور (اختياري)",
+    "titlePlaceholder": "أضف عنواناً وصفياً لمشاركتك",
+    "contentPlaceholder": "شارك أفكارك أو أسئلتك أو رؤيتك...",
+    "commentPlaceholder": "اكتب تعليقك...",
+    "replyPlaceholder": "رد على {{username}}...",
+    "publishPost": "نشر المشاركة",
+    "publishAnnouncement": "نشر الإعلان"
+  },
+  "comments": {
+    "showReplies": "إظهار {{count}} {{count, plural, one {رد} other {ردود}}}",
+    "hideReplies": "إخفاء {{count}} {{count, plural, one {رد} other {ردود}}}",
+    "emptyComment": "لا يمكن أن يكون التعليق فارغاً",
+    "emptyReply": "لا يمكن أن يكون الرد فارغاً"
+  }
+} 

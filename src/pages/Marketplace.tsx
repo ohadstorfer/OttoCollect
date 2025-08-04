@@ -18,6 +18,8 @@ import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
 import { FilterOption } from "@/components/filter/BaseBanknoteFilter";
 import SEOHead from "@/components/seo/SEOHead";
 import { SEO_CONFIG } from "@/config/seoConfig";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n/config";
 
 const SULTAN_DISPLAY_ORDER: Record<string, number> = {
   AbdulMecid: 1,
@@ -34,12 +36,49 @@ const Marketplace = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const { toast } = useToast();
+  const { t, i18n: i18nInstance } = useTranslation(['marketplace', 'pages']);
   const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItemType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<FilterOption[]>([]);
   const [availableTypes, setAvailableTypes] = useState<FilterOption[]>([]);
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      console.log(`Translation for ${key}:`, translation);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
+
+  // Force reload marketplace translations when component mounts
+  useEffect(() => {
+    const reloadTranslations = async () => {
+      try {
+        // Explicitly load the marketplace namespace
+        await i18nInstance.loadNamespaces(['marketplace']);
+        await i18n.reloadResources(['marketplace']);
+        console.log('Marketplace translations reloaded');
+        
+        // Debug: Check if translations are loaded
+        console.log('Translation debug:', {
+          currentLanguage: i18n.language,
+          hasMarketplaceNamespace: i18n.hasResourceBundle(i18n.language, 'marketplace'),
+          marketplaceTitle: t('title'),
+          marketplaceSubtitle: t('subtitle'),
+          namespaces: i18n.reportNamespaces.getUsedNamespaces(),
+          loadedNamespaces: i18n.reportNamespaces.getUsedNamespaces(),
+          store: i18n.store
+        });
+      } catch (error) {
+        console.error('Failed to reload marketplace translations:', error);
+      }
+    };
+    
+    reloadTranslations();
+  }, [t, i18nInstance]);
 
   const loadMarketplaceItems = useCallback(async (showToast = false) => {
     console.log('Starting loadMarketplaceItems function');
@@ -62,8 +101,8 @@ const Marketplace = () => {
         console.log("No marketplace items found");
         if (showToast) {
           toast({
-            title: "No Items Found",
-            description: "There are currently no items available in the marketplace.",
+            title: tWithFallback('status.noItems', 'No Items Found'),
+            description: tWithFallback('status.noItemsDescription', 'There are currently no items available in the marketplace'),
             variant: "default"
           });
         }
@@ -98,10 +137,10 @@ const Marketplace = () => {
 
     } catch (err) {
       console.error("Error loading marketplace items:", err);
-      setError("Failed to load marketplace items. Please try again later.");
+      setError(tWithFallback('status.errorDescription', 'Failed to load marketplace items. Please try again later.'));
       toast({
-        title: "Error",
-        description: "Failed to load marketplace items. Please try again later.",
+        title: tWithFallback('status.error', 'Error loading marketplace items'),
+        description: tWithFallback('status.errorDescription', 'Failed to load marketplace items. Please try again later.'),
         variant: "destructive"
       });
     } finally {
@@ -109,7 +148,7 @@ const Marketplace = () => {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [toast, user?.role]);
+  }, [toast, user?.role, t]);
 
   useEffect(() => {
     console.log('Initial useEffect for loadMarketplaceItems running');
@@ -158,65 +197,14 @@ const Marketplace = () => {
     setFilters(newFilters);
   }, [setFilters]);
 
-  // Memoize components to avoid unnecessary re-renders
-  // const filterSection = useMemo(() => {
-  //   return (
-  //     <Card className={`mb-8 ${theme === 'light' ? 'bg-white/90 border-ottoman-200/70' : 'bg-dark-600/50 border-ottoman-900/30'} sticky top-[64px] z-50`}>
-  //       <div className="p-4">
-  //         <div className="flex justify-between items-center mb-4">
-  //           <h3 className={`text-lg font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`}>
-  //             Filters & Sorting
-  //           </h3>
-
-  //           <div className="flex items-center gap-3">
-  //             {user && (
-  //               <Link to="/collection?filter=forsale">
-  //                 <Button className="ottoman-button">
-  //                   <SortAsc className="h-4 w-4 mr-2" />
-  //                   My Listings
-  //                 </Button>
-  //               </Link>
-  //             )}
-
-  //             <Button 
-  //               variant="outline" 
-  //               size="sm"
-  //               onClick={handleRefresh}
-  //               disabled={isRefreshing}
-  //               className={theme === 'light' ? 'border-ottoman-300 text-ottoman-800' : 'border-ottoman-700 text-ottoman-200'}
-  //             >
-  //               {isRefreshing ? (
-  //                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-  //               ) : (
-  //                 <RefreshCw className="h-4 w-4 mr-2" />
-  //               )}
-  //               Refresh
-  //             </Button>
-  //           </div>
-  //         </div>
-
-  //         <BanknoteFilterMarketplace
-  //           onFilterChange={handleFilterChange}
-  //           currentFilters={filters}
-  //           isLoading={loading}
-  //           availableCategories={availableCategories}
-  //           availableTypes={availableTypes}
-  //         />
-  //       </div>
-  //     </Card>
-  //   );
-  // }, [theme, user, handleRefresh, isRefreshing, handleFilterChange, filters, loading, availableCategories, availableTypes]);
-
-
-
   const loadingSection = useMemo(() => {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
         <Spinner size="lg" />
-        <p className="dark:text-ottoman-300 text-ottoman-600">Loading marketplace items...</p>
+        <p className="dark:text-ottoman-300 text-ottoman-600">{tWithFallback('status.loading', 'Loading marketplace items...')}</p>
       </div>
     );
-  }, []);
+  }, [t]);
 
   const errorSection = useMemo(() => {
     if (!error) return null;
@@ -224,7 +212,7 @@ const Marketplace = () => {
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
+        <AlertTitle>{tWithFallback('status.error', 'Error loading marketplace items')}</AlertTitle>
         <AlertDescription>
           {error}
           <Button
@@ -233,23 +221,23 @@ const Marketplace = () => {
             onClick={handleRefresh}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Try Again
+            {tWithFallback('status.tryAgain', 'Try Again')}
           </Button>
         </AlertDescription>
       </Alert>
     );
-  }, [error, handleRefresh]);
+  }, [error, handleRefresh, t]);
 
   const emptySection = useMemo(() => {
     return (
       <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
         <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
-          <span>No Items Found</span>
+          <span>{tWithFallback('status.noItems', 'No Items Found')}</span>
         </h3>
         <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
           {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search)
-            ? "No items match your current filters. Try adjusting your criteria."
-            : "There are currently no items available in the marketplace"}
+            ? tWithFallback('status.noItemsFiltered', 'No items match your current filters. Try adjusting your criteria.')
+            : tWithFallback('status.noItemsDescription', 'There are currently no items available in the marketplace')}
         </p>
         <div className="space-x-4">
           <Button
@@ -257,22 +245,20 @@ const Marketplace = () => {
             onClick={handleRefresh}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {tWithFallback('actions.refresh', 'Refresh')}
           </Button>
           {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search) && (
             <Button
               variant="outline"
               onClick={() => setFilters({ categories: [], types: [], search: "", sort: ["extPick"] })}
             >
-              Clear Filters
+              {tWithFallback('filters.clearFilters', 'Clear Filters')}
             </Button>
           )}
         </div>
       </Card>
     );
-  }, [handleRefresh, filters, setFilters]);
-
-
+  }, [handleRefresh, filters, setFilters, t]);
 
   const marketplaceItemsSection = useMemo(() => {
   if (!filteredItems || filteredItems.length === 0) {
@@ -326,10 +312,10 @@ const Marketplace = () => {
 
         <div className="container mx-auto px-4 relative z-10">
           <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
-            <span>Marketplace</span>
+            <span>{tWithFallback('title', 'Marketplace')}</span>
           </h1>
           <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
-            Browse and purchase Ottoman banknotes from fellow collectors
+            {tWithFallback('subtitle', 'Browse and purchase Ottoman banknotes from fellow collectors')}
           </p>
         </div>
       </section>

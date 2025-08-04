@@ -81,13 +81,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const isLocalChange = useRef(false);
   const prevFiltersRef = useRef<DynamicFilterState | null>(null);
 
-  console.log("BaseBanknoteFilter: Render with props", { 
-    categories: categories.length, 
-    types: types.length, 
-    sortOptions: sortOptions.length,
-    currentFilters,
-    localState: { search, selectedCategories, selectedTypes, selectedSort }
-  });
+
 
   useEffect(() => {
     if (isLocalChange.current) {

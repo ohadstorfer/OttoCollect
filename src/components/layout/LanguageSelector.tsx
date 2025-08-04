@@ -9,15 +9,17 @@ import {
 import { Globe } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { LANGUAGES } from '@/i18n/config';
+import { useTheme } from '@/context/ThemeContext';
 
 export const LanguageSelector = () => {
   const { currentLanguage, changeLanguage } = useLanguage();
+  const { theme } = useTheme();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full">
-          <Globe className="h-5 w-5" />
+          <Globe className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

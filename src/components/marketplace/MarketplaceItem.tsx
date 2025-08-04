@@ -4,7 +4,7 @@ import { MarketplaceItem as MarketplaceItemType, UserRank } from "@/types";
 import { Eye, MessageCircle, LogIn, ShoppingBag, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ContactSellerButton } from "@/components/marketplace/ContactSellerButton";
 import { useAuth } from "@/context/AuthContext";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
+import { useTranslation } from "react-i18next";
 
 interface MarketplaceItemProps {
   item: MarketplaceItemType;
@@ -30,6 +31,15 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation(['marketplace']);
+  
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
   
   const { collectionItem, seller, status } = item;
   
@@ -38,7 +48,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
     console.error('Missing collection item or banknote data in MarketplaceItem', item);
     return (
       <Card className={cn("ottoman-card overflow-hidden p-4 text-center", className)}>
-        <p>Item data unavailable</p>
+        <p>{tWithFallback('status.noItems', 'No Items Found')}</p>
       </Card>
     );
   }
@@ -66,11 +76,11 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
     console.log('Getting status badge for status:', status);
     switch (status) {
       case "Available":
-        return <Badge variant="primary">Available</Badge>;
+        return <Badge variant="primary">{tWithFallback('item.status.available', 'Available')}</Badge>;
       case "Reserved":
-        return <Badge variant="secondary">Reserved</Badge>;
+        return <Badge variant="secondary">{tWithFallback('item.status.reserved', 'Reserved')}</Badge>;
       case "Sold":
-        return <Badge variant="destructive">Sold</Badge>;
+        return <Badge variant="destructive">{tWithFallback('item.status.sold', 'Sold')}</Badge>;
       default:
         return null;
     }
@@ -157,7 +167,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           
           {seller && (
             <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs text-ottoman-400">Seller:</span>
+              <span className="text-xs text-ottoman-400">{tWithFallback('item.seller', 'Seller')}:</span>
               <div className="flex items-center gap-1">
                 <span className="text-sm text-ottoman-200">{seller.username}</span>
                 <Badge variant="user" rank={sellerRank} role={seller.role} className="ml-1" />

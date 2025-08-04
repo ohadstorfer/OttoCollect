@@ -1,0 +1,70 @@
+{
+  "sidebar": {
+    "catalogues": "Catalogues",
+    "myCollection": "My Collection",
+    "marketplace": "Marketplace",
+    "forum": "Forum",
+    "blog": "Blog",
+    "messages": "Messages",
+    "community": "Community",
+    "settings": "Settings",
+    "adminDashboard": "Admin Dashboard",
+    "switchToLightMode": "Switch to Light Mode",
+    "switchToDarkMode": "Switch to Dark Mode",
+    "signOut": "Sign Out"
+  },
+  "navigation": {
+    "home": "Home",
+    "profile": "Profile",
+    "catalog": "Catalog",
+    "marketplace": "Marketplace",
+    "forum": "Forum",
+    "blog": "Blog",
+    "messaging": "Messages",
+    "community": "Community",
+    "settings": "Settings",
+    "admin": "Admin"
+  },
+  "actions": {
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "update": "Update",
+    "create": "Create",
+    "add": "Add",
+    "remove": "Remove"
+  },
+  "status": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "updating": "Updating...",
+    "deleting": "Deleting...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning"
+  },
+  "user": {
+    "profile": "Profile",
+    "username": "Username",
+    "email": "Email",
+    "rank": "Rank",
+    "role": "Role",
+    "avatar": "Avatar",
+    "bio": "Bio",
+    "location": "Location",
+    "joinDate": "Join Date",
+    "lastSeen": "Last Seen"
+  },
+  "collection": {
+    "title": "Collection",
+    "items": "Items",
+    "total": "Total",
+    "categories": "Categories",
+    "countries": "Countries",
+    "series": "Series",
+    "types": "Types",
+    "conditions": "Conditions",
+    "grades": "Grades"
+  }
+} 

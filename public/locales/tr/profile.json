@@ -1,0 +1,70 @@
+{
+  "sidebar": {
+    "catalogues": "Kataloglar",
+    "myCollection": "Koleksiyonum",
+    "marketplace": "Pazar Yeri",
+    "forum": "Forum",
+    "blog": "Blog",
+    "messages": "Mesajlar",
+    "community": "Topluluk",
+    "settings": "Ayarlar",
+    "adminDashboard": "Yönetici Paneli",
+    "switchToLightMode": "Açık Moda Geç",
+    "switchToDarkMode": "Koyu Moda Geç",
+    "signOut": "Çıkış Yap"
+  },
+  "navigation": {
+    "home": "Ana Sayfa",
+    "profile": "Profil",
+    "catalog": "Katalog",
+    "marketplace": "Pazar Yeri",
+    "forum": "Forum",
+    "blog": "Blog",
+    "messaging": "Mesajlar",
+    "community": "Topluluk",
+    "settings": "Ayarlar",
+    "admin": "Yönetici"
+  },
+  "actions": {
+    "edit": "Düzenle",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "update": "Güncelle",
+    "create": "Oluştur",
+    "add": "Ekle",
+    "remove": "Kaldır"
+  },
+  "status": {
+    "loading": "Yükleniyor...",
+    "saving": "Kaydediliyor...",
+    "updating": "Güncelleniyor...",
+    "deleting": "Siliniyor...",
+    "success": "Başarılı",
+    "error": "Hata",
+    "warning": "Uyarı"
+  },
+  "user": {
+    "profile": "Profil",
+    "username": "Kullanıcı Adı",
+    "email": "E-posta",
+    "rank": "Rütbe",
+    "role": "Rol",
+    "avatar": "Avatar",
+    "bio": "Biyografi",
+    "location": "Konum",
+    "joinDate": "Katılım Tarihi",
+    "lastSeen": "Son Görülme"
+  },
+  "collection": {
+    "title": "Koleksiyon",
+    "items": "Öğeler",
+    "total": "Toplam",
+    "categories": "Kategoriler",
+    "countries": "Ülkeler",
+    "series": "Seriler",
+    "types": "Türler",
+    "conditions": "Durumlar",
+    "grades": "Dereceler"
+  }
+} 
