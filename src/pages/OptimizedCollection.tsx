@@ -263,6 +263,7 @@ const OptimizedCollection = () => {
           } : null}
           onBackToCountries={handleBackToCountries}
           user={user}
+          collectionItems={collectionItems}
         />
         
         <div className="mt-6">

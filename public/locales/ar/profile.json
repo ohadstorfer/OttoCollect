@@ -66,5 +66,26 @@
     "types": "الأنواع",
     "conditions": "الحالات",
     "grades": "الدرجات"
+  },
+  "print": {
+    "printCollection": "طباعة المجموعة",
+    "collectionReport": "تقرير المجموعة",
+    "collector": "الجامع",
+    "rank": "الرتبة",
+    "country": "البلد",
+    "date": "التاريخ",
+    "collectionSummary": "ملخص المجموعة",
+    "totalItems": "إجمالي العناصر",
+    "countries": "البلدان",
+    "totalValue": "القيمة الإجمالية",
+    "catalog": "الفهرس",
+    "extPick": "رقم بيك الممتد",
+    "condition": "الحالة",
+    "grade": "الدرجة",
+    "purchasePrice": "سعر الشراء",
+    "purchaseDate": "تاريخ الشراء",
+    "notes": "ملاحظات",
+    "front": "الوجه",
+    "back": "الظهر"
   }
 } 

@@ -66,5 +66,26 @@
     "types": "Türler",
     "conditions": "Durumlar",
     "grades": "Dereceler"
+  },
+  "print": {
+    "printCollection": "Koleksiyonu Yazdır",
+    "collectionReport": "Koleksiyon Raporu",
+    "collector": "Koleksiyoncu",
+    "rank": "Rütbe",
+    "country": "Ülke",
+    "date": "Tarih",
+    "collectionSummary": "Koleksiyon Özeti",
+    "totalItems": "Toplam Öğe",
+    "countries": "Ülkeler",
+    "totalValue": "Toplam Değer",
+    "catalog": "Katalog",
+    "extPick": "Genişletilmiş Pick",
+    "condition": "Durum",
+    "grade": "Derece",
+    "purchasePrice": "Satın Alma Fiyatı",
+    "purchaseDate": "Satın Alma Tarihi",
+    "notes": "Notlar",
+    "front": "Ön",
+    "back": "Arka"
   }
 } 

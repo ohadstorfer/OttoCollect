@@ -766,6 +766,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         isOwner={isOwner}
         profileUser={profileData}
         onBackToCountries={onBackToCountries}
+        collectionItems={collectionItems}
       />
 
       {/* Conditionally render content based on activeTab */}

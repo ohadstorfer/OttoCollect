@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { BaseBanknoteFilterProfile } from "./BaseBanknoteFilterProfile";
+import { CollectionItem } from "@/types";
 
 export interface BanknoteFilterCollectionProps {
   countryId: string;
@@ -34,6 +35,7 @@ export interface BanknoteFilterCollectionProps {
     rank?: string;
   };
   onBackToCountries?: () => void;
+  collectionItems?: CollectionItem[];
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -52,7 +54,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   onTabChange,
   isOwner = false,
   profileUser,
-  onBackToCountries
+  onBackToCountries,
+  collectionItems
 }) => {
   const { toast } = useToast();
   const { user: authUser } = useAuth();
@@ -459,6 +462,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         countryName={countryName}
         profileUser={profileUser}
         onBackToCountries={onBackToCountries}
+        collectionItems={collectionItems}
       />
     </div>
   );

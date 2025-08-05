@@ -325,6 +325,7 @@ const Collection = () => {
           profileUser={profileUser}
           onBackToCountries={handleBackToCountries}
           user={user}
+          collectionItems={collectionItems}
         />
         
         <div className="mt-6">

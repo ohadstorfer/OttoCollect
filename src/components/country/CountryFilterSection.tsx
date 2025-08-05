@@ -2,6 +2,7 @@ import React, { useCallback, memo } from "react";
 import { BanknoteFilterCatalog } from "@/components/filter/BanknoteFilterCatalog";
 import { BanknoteFilterCollection } from "@/components/filter/BanknoteFilterCollection";
 import { DynamicFilterState } from "@/types/filter";
+import { CollectionItem } from "@/types";
 
 interface CountryFilterSectionProps {
   countryId: string;
@@ -26,6 +27,7 @@ interface CountryFilterSectionProps {
     rank?: string;
   };
   onBackToCountries?: () => void;
+  collectionItems?: CollectionItem[];
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -46,7 +48,8 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   onTabChange,
   isOwner = false,
   profileUser,
-  onBackToCountries
+  onBackToCountries,
+  collectionItems
 }) => {
   // Memoize handleFilterChange to prevent it from causing re-renders
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
@@ -71,6 +74,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
         isOwner={isOwner}
         profileUser={profileUser}
         onBackToCountries={onBackToCountries}
+        collectionItems={collectionItems}
       />
     );
   }

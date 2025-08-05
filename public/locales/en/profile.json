@@ -66,5 +66,26 @@
     "types": "Types",
     "conditions": "Conditions",
     "grades": "Grades"
+  },
+  "print": {
+    "printCollection": "Print Collection",
+    "collectionReport": "Collection Report",
+    "collector": "Collector",
+    "rank": "Rank",
+    "country": "Country",
+    "date": "Date",
+    "collectionSummary": "Collection Summary",
+    "totalItems": "Total Items",
+    "countries": "Countries",
+    "totalValue": "Total Value",
+    "catalog": "Catalog",
+    "extPick": "Ext. Pick",
+    "condition": "Condition",
+    "grade": "Grade",
+    "purchasePrice": "Purchase Price",
+    "purchaseDate": "Purchase Date",
+    "notes": "Notes",
+    "front": "Front",
+    "back": "Back"
   }
 } 

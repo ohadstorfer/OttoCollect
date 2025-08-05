@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,8 @@ import {
   Save,
   Layers,
   ArrowLeft,
-  ArrowUpDown
+  ArrowUpDown,
+  Printer
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
@@ -28,6 +29,9 @@ import {
 } from "@/components/ui/sheet";
 import { withHighlight } from "./withHighlight";
 import { AddUnlistedBanknoteDialog } from '@/components/collection/AddUnlistedBanknoteDialog';
+import { usePrintCollection } from '@/hooks/usePrintCollection';
+import { useTranslation } from 'react-i18next';
+import { CollectionItem } from '@/types';
 
 
 export type FilterOption = {
@@ -65,6 +69,8 @@ export type BaseBanknoteFilterProps = {
     role?: string;
   };
   onBackToCountries?: () => void;
+  collectionItems?: CollectionItem[];
+  onPrint?: () => void;
 };
 
 export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
@@ -87,13 +93,25 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   userId,
   countryName,
   profileUser,
-  onBackToCountries
+  onBackToCountries,
+  collectionItems,
+  onPrint
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { t } = useTranslation(['profile']);
+  const { printCollection, isPrinting } = usePrintCollection();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
+
   const [search, setSearch] = useState(currentFilters.search || "");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
@@ -321,6 +339,17 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     if (onSaveFilters) onSaveFilters();
   };
 
+  // Print handler
+  const handlePrint = async () => {
+    if (collectionItems && collectionItems.length > 0 && profileUser) {
+      await printCollection(collectionItems, {
+        username: profileUser.username,
+        rank: profileUser.rank,
+        role: profileUser.role
+      }, countryName);
+    }
+  };
+
   return (
     <div className={cn(
       "w-full space-y-1.5 sm:space-y-0",
@@ -432,6 +461,19 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                     title="Group similar banknotes"
                   >
                     <Layers className="h-4 w-4" />
+                  </Button>
+                )}
+
+                {/* Print button for collection owners */}
+                {isOwner && activeTab === 'collection' && collectionItems && collectionItems.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handlePrint}
+                    disabled={isPrinting}
+                    title={tWithFallback('print.printCollection', 'Print Collection')}
+                  >
+                    <Printer className="h-4 w-4" />
                   </Button>
                 )}
               </div>
