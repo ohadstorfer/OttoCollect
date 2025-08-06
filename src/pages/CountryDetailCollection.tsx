@@ -768,6 +768,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         collectionItems={collectionItems}
         sortedCollectionItems={sortedCollectionItemsWithData}
         sortedSaleItems={sortedSaleItemsWithData}
+        sortedMissingItems={sortedMissingItems}
+        sortedWishlistItems={sortedWishlistItems}
       />
 
       {/* Conditionally render content based on activeTab */}

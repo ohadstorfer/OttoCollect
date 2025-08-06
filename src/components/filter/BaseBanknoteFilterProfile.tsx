@@ -75,6 +75,8 @@ export type BaseBanknoteFilterProps = {
   collectionItems?: CollectionItem[];
   sortedCollectionItems?: CollectionItem[];
   sortedSaleItems?: CollectionItem[];
+  sortedMissingItems?: CollectionItem[];
+  sortedWishlistItems?: CollectionItem[];
   onPrint?: () => void;
 };
 
@@ -102,6 +104,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   collectionItems,
   sortedCollectionItems,
   sortedSaleItems,
+  sortedMissingItems,
+  sortedWishlistItems,
   onPrint
 }) => {
   const isMobile = useIsMobile();
@@ -372,8 +376,10 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
         itemsToExport = sortedSaleItems || [];
         break;
       case 'wishlist':
+        itemsToExport = sortedWishlistItems || [];
+        break;
       case 'missing':
-        itemsToExport = collectionItems || [];
+        itemsToExport = sortedMissingItems || [];
         break;
       default:
         itemsToExport = collectionItems || [];
