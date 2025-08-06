@@ -34,6 +34,26 @@ function joinArrayValues(arr: string[] | undefined | null): string {
   return arr.filter(Boolean).join(', ');
 }
 
+// Helper function to format signatures (handle pipe-separated values)
+function formatSignatures(signatures: string | string[] | undefined | null): string {
+  if (!signatures) return '';
+  
+  if (typeof signatures === 'string') {
+    // Handle pipe-separated signatures like "L. Couper|p. Ezechiel|A.J.Harding"
+    return signatures.split('|').map(sig => sig.trim()).filter(Boolean).join(', ');
+  }
+  
+  if (Array.isArray(signatures)) {
+    // Handle array of signatures
+    return signatures
+      .map(sig => typeof sig === 'string' ? sig.split('|').map(s => s.trim()).join(', ') : sig)
+      .filter(Boolean)
+      .join(', ');
+  }
+  
+  return '';
+}
+
 // Check if any collection item has data for a specific field
 function hasDataForField(items: CollectionItem[], fieldGetter: (item: CollectionItem) => string): boolean {
   return items.some(item => {
@@ -91,13 +111,13 @@ function getColumnDefinitions(): CSVColumn[] {
       key: 'signatures_front',
       header: 'Signatures Front',
       required: false,
-      getValue: (item) => joinArrayValues(item.banknote?.signaturesFrontUrls) || item.banknote?.signaturesFront || ''
+      getValue: (item) => formatSignatures(item.banknote?.signaturesFront)
     },
     {
       key: 'signatures_back',
       header: 'Signatures Back',
       required: false,
-      getValue: (item) => joinArrayValues(item.banknote?.signaturesBackUrls) || item.banknote?.signaturesBack || ''
+      getValue: (item) => formatSignatures(item.banknote?.signaturesBack)
     },
     {
       key: 'seal_names',
