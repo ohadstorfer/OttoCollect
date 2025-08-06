@@ -31,8 +31,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   groupMode = false,
   userCollection // <-- ADDED
 }) => {
-  // Log on receiving props
-  console.log("[BanknoteGroups] userCollection prop received. Length:", userCollection?.length);
+
 
   const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
   const [selectedGroup, setSelectedGroup] = useState<BanknoteGroupData | null>(null);

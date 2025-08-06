@@ -62,7 +62,7 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
           <CardContent className="p-0">
             <div className="w-full">
               {imageUrl ? (
-                <AspectRatio ratio={4 / 2}>
+                <AspectRatio ratio={4 / 3}>
                   <img
                     src={imageUrl}
                     alt={`Banknote ${displayBanknote.extendedPickNumber}`}
@@ -70,7 +70,7 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
                   />
                 </AspectRatio>
               ) : (
-                <AspectRatio ratio={4 / 2}>
+                <AspectRatio ratio={4 / 3}>
                   <img
                     src={'/placeholder.svg'}
                     className="w-full h-full object-cover"
