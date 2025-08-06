@@ -36,6 +36,8 @@ export interface BanknoteFilterCollectionProps {
   };
   onBackToCountries?: () => void;
   collectionItems?: CollectionItem[];
+  sortedCollectionItems?: CollectionItem[];
+  sortedSaleItems?: CollectionItem[];
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -55,7 +57,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   isOwner = false,
   profileUser,
   onBackToCountries,
-  collectionItems
+  collectionItems,
+  sortedCollectionItems,
+  sortedSaleItems
 }) => {
   const { toast } = useToast();
   const { user: authUser } = useAuth();
@@ -463,6 +467,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         profileUser={profileUser}
         onBackToCountries={onBackToCountries}
         collectionItems={collectionItems}
+        sortedCollectionItems={sortedCollectionItems}
+        sortedSaleItems={sortedSaleItems}
       />
     </div>
   );

@@ -766,6 +766,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         profileUser={profileData}
         onBackToCountries={onBackToCountries}
         collectionItems={collectionItems}
+        sortedCollectionItems={sortedCollectionItemsWithData}
+        sortedSaleItems={sortedSaleItemsWithData}
       />
 
       {/* Conditionally render content based on activeTab */}

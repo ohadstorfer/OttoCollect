@@ -14,6 +14,7 @@ export interface CSVExportOptions {
   userId: string;
   countryName?: string;
   collectionItems: CollectionItem[];
+  sortedItems?: CollectionItem[]; // Add sorted items parameter
   missingItems?: DetailedBanknote[];
   wishlistItems?: any[];
 }
@@ -167,7 +168,10 @@ function getColumnDefinitions(): CSVColumn[] {
 }
 
 export async function generateExcel(options: CSVExportOptions): Promise<ArrayBuffer> {
-  const { activeTab, collectionItems } = options;
+  const { activeTab, collectionItems, sortedItems } = options;
+  
+  // Use sorted items if provided, otherwise fall back to original collection items
+  const itemsToExport = sortedItems || collectionItems;
   
   // Get all column definitions
   const allColumns = getColumnDefinitions();
@@ -181,7 +185,7 @@ export async function generateExcel(options: CSVExportOptions): Promise<ArrayBuf
       columnsToInclude.push(column);
     } else {
       // For optional columns, only include if data exists
-      if (hasDataForField(collectionItems, column.getValue)) {
+      if (hasDataForField(itemsToExport, column.getValue)) {
         columnsToInclude.push(column);
       }
     }
@@ -195,7 +199,7 @@ export async function generateExcel(options: CSVExportOptions): Promise<ArrayBuf
   data.push(headers);
   
   // Add data rows
-  collectionItems.forEach(item => {
+  itemsToExport.forEach(item => {
     const groupValue = getGroupValue(activeTab);
     const rowData = [groupValue];
     

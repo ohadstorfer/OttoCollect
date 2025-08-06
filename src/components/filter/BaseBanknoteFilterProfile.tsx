@@ -73,6 +73,8 @@ export type BaseBanknoteFilterProps = {
   };
   onBackToCountries?: () => void;
   collectionItems?: CollectionItem[];
+  sortedCollectionItems?: CollectionItem[];
+  sortedSaleItems?: CollectionItem[];
   onPrint?: () => void;
 };
 
@@ -98,6 +100,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   profileUser,
   onBackToCountries,
   collectionItems,
+  sortedCollectionItems,
+  sortedSaleItems,
   onPrint
 }) => {
   const isMobile = useIsMobile();
@@ -357,7 +361,25 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
   // Excel Export handler
   const handleExportExcel = async () => {
-    if (!collectionItems || collectionItems.length === 0 || !profileUser) {
+    // Determine which items to export based on active tab
+    let itemsToExport: CollectionItem[] = [];
+    
+    switch (activeTab) {
+      case 'collection':
+        itemsToExport = sortedCollectionItems || collectionItems || [];
+        break;
+      case 'sale':
+        itemsToExport = sortedSaleItems || [];
+        break;
+      case 'wishlist':
+      case 'missing':
+        itemsToExport = collectionItems || [];
+        break;
+      default:
+        itemsToExport = collectionItems || [];
+    }
+
+    if (!itemsToExport || itemsToExport.length === 0 || !profileUser) {
       toast({
         title: "No data to export",
         description: "There are no items to export.",
@@ -372,7 +394,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
         activeTab,
         userId: profileUser.id,
         countryName,
-        collectionItems
+        collectionItems: collectionItems || [],
+        sortedItems: itemsToExport
       });
 
       const filename = generateFilename(activeTab, profileUser.username, countryName);
@@ -380,7 +403,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
       toast({
         title: "Export successful",
-        description: `${collectionItems.length} items exported to Excel.`
+        description: `${itemsToExport.length} items exported to Excel.`
       });
     } catch (error) {
       console.error('Error exporting Excel:', error);
