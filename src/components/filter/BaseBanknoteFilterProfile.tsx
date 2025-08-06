@@ -511,17 +511,15 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 {/* Print and Export buttons for collection owners */}
                 {isOwner && collectionItems && collectionItems.length > 0 && (
                   <>
-                    {activeTab === 'collection' && (
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handlePrint}
-                        disabled={isPrinting}
-                        title={tWithFallback('print.printCollection', 'Print Collection')}
-                      >
-                        <Printer className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handlePrint}
+                      disabled={isPrinting}
+                      title={tWithFallback('print.printCollection', 'Print Collection')}
+                    >
+                      <Printer className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="outline"
                       size="icon"
