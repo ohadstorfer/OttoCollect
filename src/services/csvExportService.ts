@@ -1,5 +1,6 @@
 import { CollectionItem, DetailedBanknote } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
+import * as XLSX from 'xlsx';
 
 export interface CSVColumn {
   key: string;
@@ -165,8 +166,8 @@ function getColumnDefinitions(): CSVColumn[] {
   ];
 }
 
-export async function generateCSV(options: CSVExportOptions): Promise<string> {
-  const { activeTab, collectionItems, countryName } = options;
+export async function generateExcel(options: CSVExportOptions): Promise<ArrayBuffer> {
+  const { activeTab, collectionItems } = options;
   
   // Get all column definitions
   const allColumns = getColumnDefinitions();
@@ -186,12 +187,12 @@ export async function generateCSV(options: CSVExportOptions): Promise<string> {
     }
   });
   
-  // Build CSV content
+  // Prepare data for Excel
   const headers = ['Group', ...columnsToInclude.map(col => col.header)];
-  const csvRows: string[] = [];
+  const data: any[][] = [];
   
   // Add header row
-  csvRows.push(headers.map(escapeCSVValue).join(','));
+  data.push(headers);
   
   // Add data rows
   collectionItems.forEach(item => {
@@ -200,14 +201,21 @@ export async function generateCSV(options: CSVExportOptions): Promise<string> {
     
     columnsToInclude.forEach(column => {
       const value = column.getValue(item);
-      rowData.push(escapeCSVValue(value));
+      rowData.push(value || ''); // No need to escape for Excel
     });
     
-    csvRows.push(rowData.join(','));
+    data.push(rowData);
   });
   
-  // Add UTF-8 BOM for proper Excel handling
-  return '\uFEFF' + csvRows.join('\n');
+  // Create workbook and worksheet
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.aoa_to_sheet(data);
+  
+  // Add worksheet to workbook
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Collection');
+  
+  // Generate Excel file buffer
+  return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 }
 
 function getGroupValue(activeTab: string): string {
@@ -225,8 +233,10 @@ function getGroupValue(activeTab: string): string {
   }
 }
 
-export function downloadCSV(csvContent: string, filename: string): void {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+export function downloadExcel(excelBuffer: ArrayBuffer, filename: string): void {
+  const blob = new Blob([excelBuffer], { 
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+  });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -246,5 +256,5 @@ export function generateFilename(
   const tabName = getGroupValue(activeTab).replace(/\s+/g, '_');
   const country = countryName ? `_${countryName.replace(/\s+/g, '_')}` : '';
   
-  return `${username}_${tabName}${country}_${timestamp}.csv`;
+  return `${username}_${tabName}${country}_${timestamp}.xlsx`;
 }

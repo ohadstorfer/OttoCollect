@@ -33,7 +33,7 @@ import { AddUnlistedBanknoteDialog } from '@/components/collection/AddUnlistedBa
 import { usePrintCollection } from '@/hooks/usePrintCollection';
 import { useTranslation } from 'react-i18next';
 import { CollectionItem } from '@/types';
-import { generateCSV, downloadCSV, generateFilename } from '@/services/csvExportService';
+import { generateExcel, downloadExcel, generateFilename } from '@/services/csvExportService';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -355,8 +355,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     }
   };
 
-  // CSV Export handler
-  const handleExportCSV = async () => {
+  // Excel Export handler
+  const handleExportExcel = async () => {
     if (!collectionItems || collectionItems.length === 0 || !profileUser) {
       toast({
         title: "No data to export",
@@ -368,7 +368,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
     setIsExporting(true);
     try {
-      const csvContent = await generateCSV({
+      const excelBuffer = await generateExcel({
         activeTab,
         userId: profileUser.id,
         countryName,
@@ -376,14 +376,14 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       });
 
       const filename = generateFilename(activeTab, profileUser.username, countryName);
-      downloadCSV(csvContent, filename);
+      downloadExcel(excelBuffer, filename);
 
       toast({
         title: "Export successful",
-        description: `${collectionItems.length} items exported to CSV.`
+        description: `${collectionItems.length} items exported to Excel.`
       });
     } catch (error) {
-      console.error('Error exporting CSV:', error);
+      console.error('Error exporting Excel:', error);
       toast({
         title: "Export failed",
         description: "Failed to export data. Please try again.",
@@ -523,7 +523,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={handleExportCSV}
+                      onClick={handleExportExcel}
                       disabled={isExporting}
                       title="Export to Excel"
                     >
