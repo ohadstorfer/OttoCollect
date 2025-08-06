@@ -365,54 +365,24 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
   // Excel Export handler
   const handleExportExcel = async () => {
-    // Get the actual filtered data that's being rendered on screen
+    // Determine which items to export based on active tab
     let itemsToExport: CollectionItem[] = [];
-    
-    // Apply search and filter criteria to get the exact data being displayed
-    const applyFilters = (items: CollectionItem[]) => {
-      return items.filter(item => {
-        // Search filter
-        if (search.trim()) {
-          const searchLower = search.toLowerCase();
-          const matchesSearch = 
-            item.banknote?.extendedPickNumber?.toLowerCase().includes(searchLower) ||
-            item.banknote?.denomination?.toLowerCase().includes(searchLower) ||
-            item.banknote?.type?.toLowerCase().includes(searchLower) ||
-            item.banknote?.category?.toLowerCase().includes(searchLower) ||
-            item.condition?.toLowerCase().includes(searchLower) ||
-            item.prefix?.toLowerCase().includes(searchLower);
-          if (!matchesSearch) return false;
-        }
-        
-        // Category filter
-        if (selectedCategories.length > 0 && item.banknote?.category) {
-          if (!selectedCategories.includes(item.banknote.category)) return false;
-        }
-        
-        // Type filter
-        if (selectedTypes.length > 0 && item.banknote?.type) {
-          if (!selectedTypes.includes(item.banknote.type)) return false;
-        }
-        
-        return true;
-      });
-    };
     
     switch (activeTab) {
       case 'collection':
-        itemsToExport = applyFilters(sortedCollectionItems || collectionItems || []);
+        itemsToExport = sortedCollectionItems || collectionItems || [];
         break;
       case 'sale':
-        itemsToExport = applyFilters(sortedSaleItems || []);
+        itemsToExport = sortedSaleItems || [];
         break;
       case 'wishlist':
-        itemsToExport = applyFilters(sortedWishlistItems || []);
+        itemsToExport = sortedWishlistItems || [];
         break;
       case 'missing':
-        itemsToExport = applyFilters(sortedMissingItems || []);
+        itemsToExport = sortedMissingItems || [];
         break;
       default:
-        itemsToExport = applyFilters(collectionItems || []);
+        itemsToExport = collectionItems || [];
     }
 
     if (!itemsToExport || itemsToExport.length === 0 || !profileUser) {
