@@ -96,93 +96,90 @@ export function normalizeBanknoteData(data: any, source: 'detailed' | 'unlisted'
 
 // --- Optimized fetchUserCollection with JOIN-based batch queries ---
 
-export async function fetchUserCollection(userId: string): Promise<CollectionItem[]> {
+export const fetchUserCollection = async (userId: string): Promise<CollectionItem[]> => {
   try {
-    console.log(`[fetchUserCollection] Fetching collection for user: ${userId}`);
-
-    // Single optimized query to fetch all collection items
-    const { data: collectionItems, error: collectionError } = await supabase
+    const { data, error } = await supabase
       .from('collection_items')
       .select(`
         *,
         enhanced_detailed_banknotes(*),
         unlisted_banknotes(*)
       `)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
 
-    if (collectionError) {
-      console.error("[fetchUserCollection] Error fetching collection items:", collectionError);
-      return [];
+    if (error) {
+      console.error('Error fetching user collection:', error);
+      throw error;
     }
 
+    if (!data) return [];
+
+    // Process collection items similar to optimized service
     const enrichedItems: CollectionItem[] = [];
 
-    // Process both detailed and unlisted banknotes
-    if (collectionItems) {
-      for (const item of collectionItems) {
-        let banknote;
+    for (const item of data) {
+      let banknote: DetailedBanknote | null = null;
 
-        if (item.is_unlisted_banknote) {
-          // Process unlisted banknote
-          const unlistedData = item.unlisted_banknotes;
-          if (unlistedData) {
-            // Set default category if not provided
-            if (!unlistedData.category) {
-              unlistedData.category = 'Unlisted Banknotes';
-            }
-            banknote = normalizeBanknoteData(unlistedData, "unlisted");
+      if (item.is_unlisted_banknote) {
+        // Process unlisted banknote
+        const unlistedData = item.unlisted_banknotes;
+        if (unlistedData) {
+          // Set default category if not provided
+          if (!unlistedData.category) {
+            unlistedData.category = 'Unlisted Banknotes';
           }
-        } else {
-          // Process detailed banknote
-          const banknoteData = item.enhanced_detailed_banknotes;
-          if (banknoteData) {
-            banknote = normalizeBanknoteData(mapBanknoteFromDatabase(banknoteData), "detailed");
-          }
+          banknote = normalizeBanknoteData(unlistedData, "unlisted");
         }
+      } else {
+        // Process detailed banknote
+        const banknoteData = item.enhanced_detailed_banknotes;
+        if (banknoteData) {
+          banknote = normalizeBanknoteData(mapBanknoteFromDatabase(banknoteData), "detailed");
+        }
+      }
 
-        if (banknote) {
-          enrichedItems.push({
-            id: item.id,
-            userId: item.user_id,
-            banknoteId: item.is_unlisted_banknote ? item.unlisted_banknotes_id : item.banknote_id,
-            banknote_id: item.is_unlisted_banknote ? item.unlisted_banknotes_id : item.banknote_id,
-            user_id: item.user_id,
-            banknote,
-            condition: item.condition,
-            grade_by: item.grade_by,
-            grade: item.grade,
-            grade_condition_description: item.grade_condition_description,
-            salePrice: item.sale_price,
-            isForSale: item.is_for_sale,
-            is_for_sale: item.is_for_sale,
-            publicNote: item.public_note,
-            privateNote: item.private_note,
-            purchasePrice: item.purchase_price,
-            purchaseDate: item.purchase_date,
-            location: item.location,
-            obverseImage: item.obverse_image,
-            reverseImage: item.reverse_image,
-            obverse_image_watermarked: item.obverse_image_watermarked,
-            reverse_image_watermarked: item.reverse_image_watermarked,
-            obverse_image_thumbnail: item.obverse_image_thumbnail,
-            reverse_image_thumbnail: item.reverse_image_thumbnail,
-            orderIndex: item.order_index,
-            order_index: item.order_index,
-            createdAt: item.created_at,
-            created_at: item.created_at,
-            updatedAt: item.updated_at,
-            updated_at: item.updated_at,
-            is_unlisted_banknote: item.is_unlisted_banknote,
-            unlisted_banknotes_id: item.unlisted_banknotes_id,
-            hide_images: item.hide_images || false,
-            type: item.type,
-            prefix: item.prefix
-          } as CollectionItem);
-        }
+      if (banknote) {
+        enrichedItems.push({
+          id: item.id,
+          userId: item.user_id,
+          banknoteId: item.is_unlisted_banknote ? item.unlisted_banknotes_id : item.banknote_id,
+          banknote_id: item.is_unlisted_banknote ? item.unlisted_banknotes_id : item.banknote_id,
+          user_id: item.user_id,
+          banknote,
+          condition: item.condition,
+          grade_by: item.grade_by,
+          grade: item.grade,
+          grade_condition_description: item.grade_condition_description,
+          salePrice: item.sale_price,
+          isForSale: item.is_for_sale,
+          is_for_sale: item.is_for_sale,
+          publicNote: item.public_note,
+          privateNote: item.private_note,
+          purchasePrice: item.purchase_price,
+          purchaseDate: item.purchase_date,
+          location: item.location,
+          obverseImage: item.obverse_image,
+          reverseImage: item.reverse_image,
+          obverse_image_watermarked: item.obverse_image_watermarked,
+          reverse_image_watermarked: item.reverse_image_watermarked,
+          obverse_image_thumbnail: item.obverse_image_thumbnail,
+          reverse_image_thumbnail: item.reverse_image_thumbnail,
+          orderIndex: item.order_index,
+          order_index: item.order_index,
+          createdAt: item.created_at,
+          created_at: item.created_at,
+          updatedAt: item.updated_at,
+          updated_at: item.updated_at,
+          is_unlisted_banknote: item.is_unlisted_banknote,
+          unlisted_banknotes_id: item.unlisted_banknotes_id,
+          hide_images: item.hide_images || false,
+          type: item.type,
+          prefix: item.prefix
+        } as CollectionItem);
       }
     }
 
-    console.log(`[fetchUserCollection] Successfully fetched ${enrichedItems.length} items with optimized JOIN query`);
     return enrichedItems;
   } catch (error) {
     console.error("[fetchUserCollection] Error:", error);
@@ -196,23 +193,22 @@ export async function fetchUserCollectionItems(userId: string): Promise<Collecti
 }
 
 // --- Update fetchUserCollectionByCountry: use optimized query with country filtering ---
-export async function fetchUserCollectionByCountry(userId: string, countryId: string): Promise<CollectionItem[]> {
+export const fetchUserCollectionByCountry = async (userId: string, countryId: string, countryName?: string): Promise<CollectionItem[]> => {
   try {
-    console.log(`[fetchUserCollectionByCountry] Fetching collection for user: ${userId} and country: ${countryId}`);
+    // Get country name first if not provided
+    if (!countryName && countryId) {
+      const { data: countryData, error: countryError } = await supabase
+        .from('countries')
+        .select('name')
+        .eq('id', countryId)
+        .single();
 
-    // Get country name first
-    const { data: countryData, error: countryError } = await supabase
-      .from('countries')
-      .select('name')
-      .eq('id', countryId)
-      .single();
-
-    if (countryError || !countryData) {
-      console.error(`[fetchUserCollectionByCountry] Country not found for ID: ${countryId}`, countryError);
-      return [];
+      if (countryError || !countryData) {
+        console.error(`Country not found for ID: ${countryId}`, countryError);
+        return [];
+      }
+      countryName = countryData.name;
     }
-
-    const countryName = countryData.name;
 
     // Optimized query: filter by country at database level using JOIN
     const { data: collectionItems, error: collectionError } = await supabase
@@ -226,7 +222,7 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
       .eq('enhanced_detailed_banknotes.country', countryName);
 
     if (collectionError) {
-      console.error("[fetchUserCollectionByCountry] Error fetching collection items:", collectionError);
+      console.error("Error fetching collection items:", collectionError);
       return [];
     }
 
@@ -242,7 +238,7 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
       .eq('unlisted_banknotes.country', countryName);
 
     if (unlistedError) {
-      console.error("[fetchUserCollectionByCountry] Error fetching unlisted items:", unlistedError);
+      console.error("Error fetching unlisted items:", unlistedError);
     }
 
     const enrichedItems: CollectionItem[] = [];
@@ -346,7 +342,6 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
       }
     }
 
-    console.log(`[fetchUserCollectionByCountry] Successfully fetched ${enrichedItems.length} items for country ${countryName}`);
     return enrichedItems;
   } catch (error) {
     console.error("[fetchUserCollectionByCountry] Error:", error);
@@ -362,73 +357,35 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
  */
 
 
-export async function fetchBanknoteCategoriesAndTypes(items: CollectionItem[]): Promise<{
-  categories: { id: string; name: string; count: number }[];
-  types: { id: string; name: string; count: number }[];
-}> {
-  try {
-    console.log("[fetchBanknoteCategoriesAndTypes] Processing collection items:", items.length);
-    
-    // Extract unique categories and types from collection items
-    const categoriesMap = new Map<string, { id: string; name: string; count: number }>();
-    const typesMap = new Map<string, { id: string; name: string; count: number }>();
-    
-    // Process each item to count categories and types
-    items.forEach(item => {
-      if (item.banknote?.category) {
-        const categoryName = item.banknote.category;
-        // Generate a deterministic UUID-like ID based on the category name
-        // This ensures the same name always gets the same ID
-        const categoryId = generateStableIdFromName(categoryName);
-        
-        if (categoriesMap.has(categoryName)) {
-          const category = categoriesMap.get(categoryName)!;
-          category.count++;
-          categoriesMap.set(categoryName, category);
-        } else {
-          categoriesMap.set(categoryName, {
-            id: categoryId,
-            name: categoryName,
-            count: 1
-          });
-        }
-      }
-      
-      if (item.banknote?.type) {
-        const typeName = item.banknote.type;
-        // Generate a deterministic UUID-like ID based on the type name
-        const typeId = generateStableIdFromName(typeName);
-        
-        if (typesMap.has(typeName)) {
-          const type = typesMap.get(typeName)!;
-          type.count++;
-          typesMap.set(typeName, type);
-        } else {
-          typesMap.set(typeName, {
-            id: typeId,
-            name: typeName,
-            count: 1
-          });
-        }
-      }
-    });
-    
-    // Convert maps to arrays and sort by count (descending)
-    const categories = Array.from(categoriesMap.values())
-      .sort((a, b) => b.count - a.count);
-    
-    const types = Array.from(typesMap.values())
-      .sort((a, b) => b.count - a.count);
-    
-    console.log("[fetchBanknoteCategoriesAndTypes] Generated categories:", categories);
-    console.log("[fetchBanknoteCategoriesAndTypes] Generated types:", types);
-    
-    return { categories, types };
-  } catch (error) {
-    console.error("Error extracting categories and types:", error);
-    return { categories: [], types: [] };
-  }
-}
+export const fetchBanknoteCategoriesAndTypes = async (items: CollectionItem[]) => {
+  // Extract unique categories and types from collection items
+  const categoriesSet = new Set<string>();
+  const typesSet = new Set<string>();
+
+  items.forEach(item => {
+    if (item.banknote?.category) {
+      categoriesSet.add(item.banknote.category);
+    }
+    if (item.banknote?.type) {
+      typesSet.add(item.banknote.type);
+    }
+  });
+
+  // Convert to arrays with counts
+  const categories = Array.from(categoriesSet).map(name => ({
+    id: name,
+    name,
+    count: items.filter(item => item.banknote?.category === name).length
+  }));
+
+  const types = Array.from(typesSet).map(name => ({
+    id: name,
+    name,
+    count: items.filter(item => item.banknote?.type === name).length
+  }));
+
+  return { categories, types };
+};
 
 /**
  * Generates a stable ID based on a string name

@@ -492,21 +492,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const finalMissingBanknotes = missingBanknotes;
 
   // 1. Map missing banknotes to CollectionItem structure
-  console.log("[MissingItems] Initial missingBanknotes:", finalMissingBanknotes);
   const missingCollectionItems = finalMissingBanknotes.map(banknote => {
-    // Debug: log the banknote fields
-    console.log("[MissingItems] Banknote fields:", {
-      id: banknote.id,
-      sultanName: banknote.sultanName,
-      sultan_name: (banknote as any).sultan_name,
-      denomination: banknote.denomination,
-      face_value: (banknote as any).face_value,
-      extendedPickNumber: banknote.extendedPickNumber,
-      extended_pick_number: (banknote as any).extended_pick_number,
-      catalogId: banknote.catalogId,
-      allFields: Object.keys(banknote)
-    });
-
     // Get image URLs from the banknote
     const obverseImage = banknote.imageUrls?.[0] || '';
     const reverseImage = banknote.imageUrls?.[1] || '';
@@ -547,27 +533,11 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       updatedAt: banknote.updatedAt
     };
 
-    console.log("[MissingItems] Final mapped item:", {
-      id: banknote.id,
-      sultanName: banknote.sultanName || (banknote as any).sultan_name || '',
-      denomination: banknote.denomination || (banknote as any).face_value || '',
-      extendedPickNumber: banknote.extendedPickNumber || (banknote as any).extended_pick_number || ''
-    });
-
     return mappedItem;
   });
-  console.log("[MissingItems] Mapped missingCollectionItems:", missingCollectionItems);
-  console.log("[MissingItems] Current filters:", filters);
-
+  
   // Filter missingCollectionItems before sorting/grouping
   const filteredMissingCollectionItems = useMemo(() => {
-    console.log("[MissingItems] Starting filter with items:", missingCollectionItems.length);
-    console.log("[MissingItems] Filter criteria:", {
-      search: filters.search,
-      categories: filters.categories,
-      types: filters.types
-    });
-
     // Create a map of category names to IDs
     const categoryNameToId = (categoryDefs || []).reduce((acc, cat) => {
       acc[cat.name] = cat.id;
@@ -580,9 +550,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       return acc;
     }, {} as Record<string, string>);
 
-    console.log("[MissingItems] Category name to ID mapping:", categoryNameToId);
-    console.log("[MissingItems] Type name to ID mapping:", typeNameToId);
-
     const filtered = missingCollectionItems.filter(item => {
       // Search filter
       if (filters.search) {
@@ -594,17 +561,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           (item.category && item.category.toLowerCase().includes(searchLower)) ||
           (item.type && item.type.toLowerCase().includes(searchLower));
         
-        if (!matches) {
-          console.log("[MissingItems] Item filtered out by search:", {
-            id: item.id,
-            denomination: item.denomination,
-            sultanName: item.sultanName,
-            extendedPickNumber: item.extendedPickNumber,
-            category: item.category,
-            type: item.type
-          });
-          return false;
-        }
+        if (!matches) return false;
       }
 
       // Categories filter - only apply if categories are selected and we have category mappings
@@ -612,26 +569,11 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         // Get the category ID for this item's category name
         const itemCategoryId = categoryNameToId[item.category];
         
-        if (!itemCategoryId) {
-          console.log("[MissingItems] No category ID found for category name:", {
-            itemId: item.id,
-            categoryName: item.category,
-            availableCategories: Object.keys(categoryNameToId)
-          });
-          return false;
-        }
+        if (!itemCategoryId) return false;
 
         const categoryMatch = filters.categories.includes(itemCategoryId);
         
-        if (!categoryMatch) {
-          console.log("[MissingItems] Category mismatch:", {
-            itemId: item.id,
-            itemCategory: item.category,
-            itemCategoryId,
-            selectedCategories: filters.categories
-          });
-          return false;
-        }
+        if (!categoryMatch) return false;
       }
 
       // Types filter - only apply if types are selected and we have type mappings
@@ -639,44 +581,15 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         // Get the type ID for this item's type name
         const itemTypeId = typeNameToId[item.type];
         
-        if (!itemTypeId) {
-          console.log("[MissingItems] No type ID found for type name:", {
-            itemId: item.id,
-            typeName: item.type,
-            availableTypes: Object.keys(typeNameToId)
-          });
-          return false;
-        }
+        if (!itemTypeId) return false;
 
         const typeMatch = filters.types.includes(itemTypeId);
         
-        if (!typeMatch) {
-          console.log("[MissingItems] Type mismatch:", {
-            itemId: item.id,
-            itemType: item.type,
-            itemTypeId,
-            selectedTypes: filters.types
-          });
-          return false;
-        }
+        if (!typeMatch) return false;
       }
 
       return true;
     });
-
-    console.log("[MissingItems] Filtered items count:", filtered.length);
-    if (filtered.length === 0) {
-      console.log("[MissingItems] Sample of items that were filtered out:", 
-        missingCollectionItems.slice(0, 3).map(item => ({
-          id: item.id,
-          category: item.category,
-          categoryId: categoryNameToId[item.category],
-          type: item.type,
-          typeId: typeNameToId[item.type],
-          denomination: item.denomination
-        }))
-      );
-    }
 
     return filtered;
   }, [missingCollectionItems, filters, categoryDefs, typeDefs]);
@@ -688,18 +601,14 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     currencies,
     sortFields: missingSortFields
   });
-  console.log("[MissingItems] Sorted missing items:", sortedMissingItems);
   const groupedMissingItems = useBanknoteGroups(
     sortedMissingItems,
     missingSortFields,
     categoryOrder
   );
-  console.log("[MissingItems] Grouped missing items:", groupedMissingItems);
 
   // Map wishlist items to collection-like structure (similar to missing items)
   const wishlistCollectionItems = useMemo(() => {
-    console.log("[WishlistItems] Processing", wishlistItems.length, "wishlist items");
-    
     return wishlistItems.map(item => {
       const banknote = item.detailed_banknotes;
       
@@ -707,19 +616,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         console.error("[WishlistItems] No banknote data found for item:", item);
         return null;
       }
-      
-      // Debug: log the banknote fields
-      console.log("[WishlistItems] Banknote fields:", {
-        id: banknote.id,
-        sultanName: banknote.sultanName,
-        sultan_name: banknote.sultan_name,
-        denomination: banknote.denomination,
-        face_value: banknote.face_value,
-        extendedPickNumber: banknote.extendedPickNumber,
-        extended_pick_number: banknote.extended_pick_number,
-        catalogId: banknote.catalogId,
-        allFields: Object.keys(banknote)
-      });
       
       // Get image URLs from banknote data
       const obverseImage = banknote.imageUrls && banknote.imageUrls.length > 0 
@@ -765,13 +661,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         createdAt: banknote.createdAt,
         updatedAt: banknote.updatedAt
       };
-      
-      console.log("[WishlistItems] Final mapped item:", {
-        id: mappedItem.id,
-        sultanName: mappedItem.sultanName,
-        denomination: mappedItem.denomination,
-        extendedPickNumber: mappedItem.extendedPickNumber
-      });
       
       return mappedItem;
     }).filter(Boolean);
@@ -829,44 +718,17 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   // Sorting and grouping - ensure default sort is applied
   const wishlistSortFields = filters.sort.length > 0 ? filters.sort : ['extPick'];
   
-  console.log("[WishlistItems] About to sort with fields:", wishlistSortFields);
-  console.log("[WishlistItems] Sample items before sorting:", filteredWishlistCollectionItems.slice(0, 2).map(item => ({
-    id: item.id,
-    sultanName: item.sultanName,
-    denomination: item.denomination,
-    extendedPickNumber: item.extendedPickNumber
-  })));
-  
   const sortedWishlistItems = useBanknoteSorting({
     banknotes: filteredWishlistCollectionItems,
     currencies,
     sortFields: wishlistSortFields
   });
   
-  console.log("[WishlistItems] Sample items after sorting:", sortedWishlistItems.slice(0, 2).map(item => ({
-    id: item.id,
-    sultanName: item.sultanName,
-    denomination: item.denomination,
-    extendedPickNumber: item.extendedPickNumber
-  })));
-  
   const groupedWishlistItems = useBanknoteGroups(
     sortedWishlistItems,
     wishlistSortFields,
     categoryOrder
   );
-  
-  console.log("[WishlistItems] Sample grouped items:", groupedWishlistItems.slice(0, 1).map(group => ({
-    key: group.key,
-    label: group.label,
-    itemCount: group.items.length,
-    sampleItem: group.items[0] ? {
-      id: group.items[0].id,
-      sultanName: group.items[0].sultanName,
-      denomination: group.items[0].denomination,
-      extendedPickNumber: group.items[0].extendedPickNumber
-    } : null
-  })));
 
   // On mount, restore tab from sessionStorage if available
   useEffect(() => {

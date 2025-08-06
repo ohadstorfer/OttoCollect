@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardStack } from "@/components/ui/card-stack";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { LayoutList } from "lucide-react";
+import { Layers, LayoutList } from "lucide-react";
 import { CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
@@ -60,7 +60,7 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
                 <h4 className="font-bold"><span>{denomination}</span></h4>
               <div className="pt-2 pr-1 flex items-center text-sm">
                 <span>{count}</span>
-                <LayoutList className="h-4 w-4 mr-1" />
+                <Layers className="h-4 w-4 mr-1" />
               </div>
             </div>
 
@@ -174,7 +174,7 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="mr-2">
-                  <LayoutList className="w-3 h-3 mr-1" />
+                  <Layers className="w-3 h-3 mr-1" />
                   {count}
                 </Badge>
               </div>
