@@ -335,10 +335,12 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     collectionItemId: item.id
   }));
 
+  // Apply default 'extPick' sort for collection items when no sort is selected
+  const collectionSortFields = filters.sort.length > 0 ? filters.sort : ['extPick'];
   const sortedCollectionItems = useBanknoteSorting({
     banknotes: collectionItemsForSorting,
     currencies,
-    sortFields: filters.sort
+    sortFields: collectionSortFields
   });
 
   // Transform the sorted detailed banknotes back to collection items using the stored collectionItemId
@@ -354,7 +356,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 
   const groupedItems = useBanknoteGroups(
     sortedCollectionItems, 
-    filters.sort, 
+    collectionSortFields, 
     categoryOrder
   );
 
@@ -401,10 +403,12 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     collectionItemId: item.id
   }));
 
+  // Apply default 'extPick' sort for sale items when no sort is selected
+  const saleSortFields = filters.sort.length > 0 ? filters.sort : ['extPick'];
   const sortedSaleItems = useBanknoteSorting({
     banknotes: saleItemsForSorting,
     currencies,
-    sortFields: filters.sort
+    sortFields: saleSortFields
   });
 
   const sortedSaleItemsWithData = sortedSaleItems.map(sortedBanknote => {
@@ -418,7 +422,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 
   const groupedSaleItems = useBanknoteGroups(
     sortedSaleItems,
-    filters.sort,
+    saleSortFields,
     categoryOrder
   );
 
