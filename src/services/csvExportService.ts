@@ -5,7 +5,6 @@ export interface CSVColumn {
   key: string;
   header: string;
   required: boolean;
-  noEscape?: boolean;
   getValue: (item: CollectionItem) => string;
 }
 
@@ -19,12 +18,9 @@ export interface CSVExportOptions {
 }
 
 // Helper function to escape CSV values
-function escapeCSVValue(value: string | undefined | null, noEscape: boolean = false): string {
+function escapeCSVValue(value: string | undefined | null): string {
   if (!value) return '';
   const stringValue = String(value);
-  
-  // If noEscape is true, return the value as-is (for signatures)
-  if (noEscape) return stringValue;
   
   // Escape quotes and wrap in quotes if contains comma, quote, or newline
   if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
@@ -116,14 +112,12 @@ function getColumnDefinitions(): CSVColumn[] {
       key: 'signatures_front',
       header: 'Signatures Front',
       required: false,
-      noEscape: true,
       getValue: (item) => formatSignatures(item.banknote?.signaturesFront)
     },
     {
       key: 'signatures_back',
       header: 'Signatures Back',
       required: false,
-      noEscape: true,
       getValue: (item) => formatSignatures(item.banknote?.signaturesBack)
     },
     {
@@ -206,7 +200,7 @@ export async function generateCSV(options: CSVExportOptions): Promise<string> {
     
     columnsToInclude.forEach(column => {
       const value = column.getValue(item);
-      rowData.push(escapeCSVValue(value, column.noEscape));
+      rowData.push(escapeCSVValue(value));
     });
     
     csvRows.push(rowData.join(','));
