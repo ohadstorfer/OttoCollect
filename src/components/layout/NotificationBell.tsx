@@ -75,17 +75,21 @@ export function NotificationBell() {
     <Button
       variant="ghost"
       size="icon"
-      className="rounded-full"
+      className="relative rounded-full" // <-- add relative here
       aria-label="Open notifications"
     >
-      <Bell className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />
+      <Bell
+        className={`h-5 w-5 ${
+          theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'
+        }`}
+      />
       {unreadCount > 0 && (
         <Badge
-        variant="destructive"
-        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-      >
-        {unreadCount > 99 ? '99+' : unreadCount}
-      </Badge>
+          variant="destructive"
+          className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+        >
+          {unreadCount > 99 ? '99+' : unreadCount}
+        </Badge>
       )}
     </Button>
   );

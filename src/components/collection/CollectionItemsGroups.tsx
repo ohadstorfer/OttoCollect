@@ -5,6 +5,8 @@ import CollectionCardUnlisted from './CollectionCardUnlisted';
 import { CollectionItemCardGroup } from './CollectionItemCardGroup';
 import { CollectionItemGroupDialog } from './CollectionItemGroupDialog';
 import BanknoteDetailCardWishList from '@/components/banknotes/BanknoteDetailCardWishList';
+import { BanknoteDetailCardGroupWishList } from '@/components/banknotes/BanknoteDetailCardGroupWishList';
+import { BanknoteDetailCardGroupDialogWishList } from '@/components/banknotes/BanknoteDetailCardGroupDialogWishList';
 import { cn } from '@/lib/utils';
 import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
 import { BanknoteGroupData } from '@/utils/banknoteGrouping';
@@ -46,6 +48,26 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
   isOwner
 }) => {
   console.log("CollectionItemsGroups - isOwner:", isOwner);
+
+  // Add debug logging for groupMode
+  console.log("[CollectionItemsGroups] Props:", {
+    groupMode,
+    groupsCount: groups.length,
+    viewMode,
+    isOwner
+  });
+
+  groups.forEach((group, index) => {
+    console.log(`[CollectionItemsGroups] Group ${index}:`, {
+      category: group.category,
+      itemCount: group.items.length,
+      hasWishlistItems: group.items.some((item: any) => item.isWishlist),
+      sampleItem: group.items[0] ? {
+        id: group.items[0].id,
+        isWishlist: (group.items[0] as any).isWishlist
+      } : null
+    });
+  });
   const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
   const [selectedGroup, setSelectedGroup] = useState<{
     baseNumber: string;
@@ -53,6 +75,14 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
     count: number;
   } | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  
+  // Wishlist group dialog state
+  const [selectedWishlistGroup, setSelectedWishlistGroup] = useState<{
+    baseNumber: string;
+    items: any[];
+    count: number;
+  } | null>(null);
+  const [wishlistDialogOpen, setWishlistDialogOpen] = useState(false);
   
   const {
     dialogState,
@@ -82,7 +112,11 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
       for (const category of groups) {
         if (groupMode) {
           // In group mode, we need to check mixed items
-          const mixedItems = getCollectionItemGroups(category.items);
+          const hasWishlistItems = category.items.some((item: any) => item.isWishlist);
+          const mixedItems = hasWishlistItems 
+            ? getWishlistItemGroups(category.items)  // Use dedicated wishlist grouping
+            : getCollectionItemGroups(category.items); // Use collection grouping
+          
           for (const item of mixedItems) {
             if (item.type === 'group' && item.group && item.group.baseNumber === storedBaseNumber) {
               foundGroup = item.group;
@@ -137,8 +171,112 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
   };
 
   const handleCloseDialog = () => {
+    setSelectedGroup(null);
     setDialogOpen(false);
     saveDialogState(null); // Clear dialog state when closed
+  };
+
+  // Wishlist group handlers
+  const handleWishlistGroupClick = (group: { baseNumber: string; items: any[]; count: number }) => {
+    console.log("[WishlistGroup] Group clicked:", group);
+    setSelectedWishlistGroup(group);
+    setWishlistDialogOpen(true);
+  };
+
+  const handleCloseWishlistDialog = () => {
+    setSelectedWishlistGroup(null);
+    setWishlistDialogOpen(false);
+  };
+
+  // Function to get wishlist item groups (dedicated for wishlist items)
+  const getWishlistItemGroups = (items: any[]): Array<{ type: 'single' | 'group'; collectionItem?: any; group?: { baseNumber: string; items: any[]; count: number } }> => {
+    console.log("[getWishlistItemGroups] Input:", {
+      itemCount: items.length,
+      groupMode,
+      sampleItems: items.slice(0, 2).map(item => ({
+        id: item.id,
+        extended_pick_number: item.extended_pick_number,
+        face_value: item.face_value,
+        gregorian_year: item.gregorian_year
+      }))
+    });
+
+    if (!groupMode || items.length === 0) {
+      console.log("[getWishlistItemGroups] Not grouping - returning single items");
+      return items.map(item => ({
+        type: 'single',
+        collectionItem: item
+      }));
+    }
+
+    // Group by base pick number
+    const groupMap = new Map<string, any[]>();
+    const result: Array<{ type: 'single' | 'group'; collectionItem?: any; group?: { baseNumber: string; items: any[]; count: number } }> = [];
+    
+    items.forEach(item => {
+      const extendedPickNumber = item.extended_pick_number; // Use the exact field name from wishlist card
+      console.log("[getWishlistItemGroups] Processing item:", {
+        id: item.id,
+        extended_pick_number: extendedPickNumber,
+        face_value: item.face_value
+      });
+      
+      if (!extendedPickNumber) {
+        console.log("[getWishlistItemGroups] No pick number found for item:", item.id);
+        // Still add items without pick numbers as single items
+        result.push({
+          type: 'single',
+          collectionItem: item
+        });
+        return;
+      }
+      
+      // Get base pick number (without letters, just the numeric part)
+      const basePickNumber = extendedPickNumber.replace(/([A-Za-z].*$)/g, '');
+      console.log("[getWishlistItemGroups] Base pick number:", basePickNumber, "from", extendedPickNumber);
+      
+      if (!groupMap.has(basePickNumber)) {
+        groupMap.set(basePickNumber, []);
+      }
+      groupMap.get(basePickNumber)!.push(item);
+    });
+    
+    console.log("[getWishlistItemGroups] Group map:", Array.from(groupMap.entries()).map(([key, items]) => ({
+      baseNumber: key,
+      count: items.length
+    })));
+    
+    // Convert the map to array of group items
+    groupMap.forEach((groupItems, baseNumber) => {
+      if (groupItems.length > 1) {
+        console.log("[getWishlistItemGroups] Creating group:", baseNumber, "with", groupItems.length, "items");
+        result.push({
+          type: 'group',
+          group: {
+            baseNumber,
+            items: groupItems,
+            count: groupItems.length
+          }
+        });
+      } else {
+        console.log("[getWishlistItemGroups] Creating single item:", baseNumber);
+        result.push({
+          type: 'single',
+          collectionItem: groupItems[0]
+        });
+      }
+    });
+    
+    console.log("[getWishlistItemGroups] Final result:", {
+      resultCount: result.length,
+      result: result.map(item => ({
+        type: item.type,
+        id: item.collectionItem?.id || item.group?.baseNumber,
+        count: item.group?.count
+      }))
+    });
+    
+    return result;
   };
 
   // Function to get collection item groups similar to getMixedBanknoteItems
@@ -161,7 +299,44 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
         return;
       }
 
-      if (!item.banknote || !item.banknote.extendedPickNumber) return;
+      // Debug wishlist items
+      if ((item as any).isWishlist) {
+        console.log("[getCollectionItemGroups] Wishlist item:", {
+          id: item.id,
+          hasItemBanknote: !!item.banknote,
+          itemBanknoteExtPick: item.banknote?.extendedPickNumber,
+          topLevelExtendedPick: (item as any).extendedPickNumber,
+          topLevel_extended_pick_number: (item as any).extended_pick_number,
+          face_value: (item as any).face_value,
+          gregorian_year: (item as any).gregorian_year,
+          allKeys: Object.keys(item)
+        });
+      }
+
+      if (!item.banknote || !item.banknote.extendedPickNumber) {
+        // For wishlist items, check if extended_pick_number is at top level (matching BanknoteDetailCardWishList)
+        if ((item as any).isWishlist && (item as any).extended_pick_number) {
+          console.log("[getCollectionItemGroups] Using top-level extended_pick_number for wishlist item");
+          const basePickNumber = (item as any).extended_pick_number.replace(/([A-Za-z].*$)/g, '');
+          
+          if (!groupMap.has(basePickNumber)) {
+            groupMap.set(basePickNumber, []);
+          }
+          
+          groupMap.get(basePickNumber)?.push(item);
+          return;
+        }
+        
+        console.log("[getCollectionItemGroups] Skipping item - no extendedPickNumber:", {
+          id: item.id,
+          isWishlist: (item as any).isWishlist,
+          hasBanknote: !!item.banknote,
+          banknoteExtPick: item.banknote?.extendedPickNumber,
+          topLevelExtendedPick: (item as any).extendedPickNumber,
+          topLevelExtended_pick_number: (item as any).extended_pick_number
+        });
+        return;
+      }
       
       // Get base pick number (without letters, just the numeric part)
       const basePickNumber = item.banknote.extendedPickNumber.replace(/([A-Za-z].*$)/g, '');
@@ -239,7 +414,17 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                       {groupMode ? (
                         // Combined mode: sultan groups + collection item groups
                         (() => {
-                          const mixedItems = getCollectionItemGroups(sultanGroup.items);
+                          const hasWishlistItems = sultanGroup.items.some((item: any) => item.isWishlist);
+                          const mixedItems = hasWishlistItems 
+                            ? getWishlistItemGroups(sultanGroup.items)  // Use dedicated wishlist grouping
+                            : getCollectionItemGroups(sultanGroup.items); // Use collection grouping
+                          
+                          console.log("[SultanGroupMode] Processing sultan group:", {
+                            sultan: sultanGroup.sultan,
+                            itemCount: sultanGroup.items.length,
+                            hasWishlistItems,
+                            mixedItemsCount: mixedItems.length
+                          });
                           
                           return mixedItems.map((item, index) => {
                             if (item.type === 'single' && item.collectionItem) {
@@ -256,6 +441,16 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                                       onUpdate={onUpdate}
                                       viewMode={viewMode}
                                       isOwner={isOwner}
+                                    />
+                                  ) : (item.collectionItem as any).isWishlist ? (
+                                    <BanknoteDetailCardWishList
+                                      banknote={item.collectionItem.banknote || item.collectionItem}
+                                      viewMode={viewMode}
+                                      countryId={countryId}
+                                      wishlistItemId={(item.collectionItem as any).wishlistItemId}
+                                      source="catalog"
+                                      onDeleted={() => onUpdate()}
+                                      refetchWishlist={() => onUpdate()}
                                     />
                                   ) : (
                                   <CollectionItemCard
@@ -275,11 +470,30 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                                     viewMode === 'grid' ? "self-start" : "w-full !px-0"
                                   )}
                                 >
-                                  <CollectionItemCardGroup
-                                    group={item.group}
-                                    onClick={handleGroupClick}
-                                    viewMode={viewMode}
-                                  />
+                                  {item.group.items.some((groupItem: any) => groupItem.isWishlist) ? (
+                                    <>
+                                      {console.log("[SultanGroupMode] Rendering wishlist group card:", {
+                                        baseNumber: item.group.baseNumber,
+                                        itemCount: item.group.count,
+                                        sampleItem: item.group.items[0] ? {
+                                          id: item.group.items[0].id,
+                                          face_value: item.group.items[0].face_value,
+                                          extended_pick_number: item.group.items[0].extended_pick_number
+                                        } : null
+                                      })}
+                                      <BanknoteDetailCardGroupWishList
+                                        group={item.group}
+                                        onClick={handleWishlistGroupClick}
+                                        viewMode={viewMode}
+                                      />
+                                    </>
+                                  ) : (
+                                    <CollectionItemCardGroup
+                                      group={item.group}
+                                      onClick={handleGroupClick}
+                                      viewMode={viewMode}
+                                    />
+                                  )}
                                 </div>
                               );
                             }
@@ -334,7 +548,35 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                 {groupMode ? (
                   // Group mode display
                   (() => {
-                    const mixedItems = getCollectionItemGroups(group.items);
+                    console.log("[GroupMode] Processing group:", group.category, {
+                      itemCount: group.items.length,
+                      hasWishlistItems: group.items.some((item: any) => item.isWishlist),
+                      firstItem: group.items[0] ? {
+                        id: group.items[0].id,
+                        isWishlist: (group.items[0] as any).isWishlist,
+                        extendedPickNumber: (group.items[0] as any).extendedPickNumber,
+                        extended_pick_number: (group.items[0] as any).extended_pick_number
+                      } : null
+                    });
+                    
+                    // Check if this group contains wishlist items
+                    const hasWishlistItems = group.items.some((item: any) => item.isWishlist);
+                    
+                    const mixedItems = hasWishlistItems 
+                      ? getWishlistItemGroups(group.items)  // Use dedicated wishlist grouping
+                      : getCollectionItemGroups(group.items); // Use collection grouping
+                    
+                    console.log("[GroupMode] Mixed items result:", {
+                      hasWishlistItems,
+                      originalCount: group.items.length,
+                      mixedItemsCount: mixedItems.length,
+                      mixedItems: mixedItems.map(item => ({
+                        type: item.type,
+                        id: item.collectionItem?.id || item.group?.baseNumber,
+                        baseNumber: item.group?.baseNumber,
+                        count: item.group?.count
+                      }))
+                    });
                     
                     return mixedItems.map((item, index) => {
                       if (item.type === 'single' && item.collectionItem) {
@@ -374,17 +616,39 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                           </div>
                         );
                       } else if (item.type === 'group' && item.group) {
+                        // Check if this group contains wishlist items
+                        const groupHasWishlistItems = item.group.items.some((groupItem: any) => groupItem.isWishlist);
+                        
                         return (
                           <div key={`group-${group.category}-${item.group.baseNumber}`} 
                             className={cn(
                               viewMode === 'grid' ? "self-start" : "w-full !px-0"
                             )}
                           >
-                            <CollectionItemCardGroup
-                              group={item.group}
-                              onClick={handleGroupClick}
-                              viewMode={viewMode}
-                            />
+                            {groupHasWishlistItems ? (
+                              <>
+                                {console.log("[MainGroupMode] Rendering wishlist group card:", {
+                                  baseNumber: item.group.baseNumber,
+                                  itemCount: item.group.count,
+                                  sampleItem: item.group.items[0] ? {
+                                    id: item.group.items[0].id,
+                                    face_value: item.group.items[0].face_value,
+                                    extended_pick_number: item.group.items[0].extended_pick_number
+                                  } : null
+                                })}
+                                <BanknoteDetailCardGroupWishList
+                                  group={item.group}
+                                  onClick={handleWishlistGroupClick}
+                                  viewMode={viewMode}
+                                />
+                              </>
+                            ) : (
+                              <CollectionItemCardGroup
+                                group={item.group}
+                                onClick={handleGroupClick}
+                                viewMode={viewMode}
+                              />
+                            )}
                           </div>
                         );
                       }
@@ -445,6 +709,18 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
           countryId={countryId}
           onUpdate={onUpdate}
           isOwner={isOwner}
+        />
+      )}
+      
+      {selectedWishlistGroup && (
+        <BanknoteDetailCardGroupDialogWishList
+          isOpen={wishlistDialogOpen}
+          onClose={handleCloseWishlistDialog}
+          groupBaseNumber={selectedWishlistGroup.baseNumber}
+          wishlistItems={selectedWishlistGroup.items}
+          viewMode={viewMode}
+          countryId={countryId}
+          onUpdate={onUpdate}
         />
       )}
     </div>

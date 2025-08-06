@@ -284,42 +284,14 @@ const BanknoteDetailCardWishList = ({
 
   // IMAGE: fully shown, dynamic height
   const renderBanknoteImage = () => {
-    // Check if we have both front and back images
-    const hasBackImage = backImage !== '/placeholder.svg';
-    
     if (displayImage && displayImage !== '/placeholder.svg') {
-      if (hasBackImage) {
-        // Show both front and back images side by side
-        return (
-          <div className="flex gap-2 p-2">
-            {/* Front image */}
-            <div className="flex-1">
-              <img
-                src={displayImage}
-                alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Front`}
-                className="object-contain w-full h-auto max-h-60"
-              />
-            </div>
-            {/* Back image */}
-            <div className="flex-1">
-              <img
-                src={backImage}
-                alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Back`}
-                className="object-contain w-full h-auto max-h-60"
-              />
-            </div>
-          </div>
-        );
-      } else {
-        // Show only front image
-        return (
-          <img
-            src={displayImage}
-            alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
-            className="object-contain w-full h-auto max-h-60"
-          />
-        );
-      }
+      return (
+        <img
+          src={displayImage}
+          alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
+          className="object-contain w-full h-auto max-h-60"
+        />
+      );
     } else {
       return (
         <AspectRatio ratio={4 / 2}>
