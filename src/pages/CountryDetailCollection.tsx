@@ -100,7 +100,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     wishlistItems,
     missingBanknotes,
     loading: collectionDataLoading,
-    error: collectionDataError
+    error: collectionDataError,
+    refresh
   } = useCollectionData({
     countryId: countryId || '',
     userId: effectiveUserId || '',
@@ -493,11 +494,24 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   // 1. Map missing banknotes to CollectionItem structure
   console.log("[MissingItems] Initial missingBanknotes:", finalMissingBanknotes);
   const missingCollectionItems = finalMissingBanknotes.map(banknote => {
+    // Debug: log the banknote fields
+    console.log("[MissingItems] Banknote fields:", {
+      id: banknote.id,
+      sultanName: banknote.sultanName,
+      sultan_name: (banknote as any).sultan_name,
+      denomination: banknote.denomination,
+      face_value: (banknote as any).face_value,
+      extendedPickNumber: banknote.extendedPickNumber,
+      extended_pick_number: (banknote as any).extended_pick_number,
+      catalogId: banknote.catalogId,
+      allFields: Object.keys(banknote)
+    });
+
     // Get image URLs from the banknote
     const obverseImage = banknote.imageUrls?.[0] || '';
     const reverseImage = banknote.imageUrls?.[1] || '';
 
-    return {
+    const mappedItem = {
       ...banknote, // spread all fields to top level for grouping/sorting
       id: banknote.id,
       userId: '',
@@ -506,6 +520,10 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       isForSale: false,
       is_unlisted_banknote: false,
       isMissing: true,
+      // Ensure correct field names for sorting (map from database fields to expected fields)
+      sultanName: banknote.sultanName || (banknote as any).sultan_name || '',
+      denomination: banknote.denomination || (banknote as any).face_value || '',
+      extendedPickNumber: banknote.extendedPickNumber || (banknote as any).extended_pick_number || '',
       // Add image fields with correct mapping
       obverseImage,
       reverseImage,
@@ -528,6 +546,15 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       createdAt: banknote.createdAt,
       updatedAt: banknote.updatedAt
     };
+
+    console.log("[MissingItems] Final mapped item:", {
+      id: banknote.id,
+      sultanName: banknote.sultanName || (banknote as any).sultan_name || '',
+      denomination: banknote.denomination || (banknote as any).face_value || '',
+      extendedPickNumber: banknote.extendedPickNumber || (banknote as any).extended_pick_number || ''
+    });
+
+    return mappedItem;
   });
   console.log("[MissingItems] Mapped missingCollectionItems:", missingCollectionItems);
   console.log("[MissingItems] Current filters:", filters);
@@ -654,31 +681,105 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     return filtered;
   }, [missingCollectionItems, filters, categoryDefs, typeDefs]);
 
-  // 2. Use the same sorting and grouping hooks for missing items
+  // 2. Use the same sorting and grouping hooks for missing items - ensure default sort is applied
+  const missingSortFields = filters.sort.length > 0 ? filters.sort : ['extPick'];
   const sortedMissingItems = useBanknoteSorting({
     banknotes: filteredMissingCollectionItems,
     currencies,
-    sortFields: filters.sort
+    sortFields: missingSortFields
   });
   console.log("[MissingItems] Sorted missing items:", sortedMissingItems);
   const groupedMissingItems = useBanknoteGroups(
     sortedMissingItems,
-    filters.sort,
+    missingSortFields,
     categoryOrder
   );
   console.log("[MissingItems] Grouped missing items:", groupedMissingItems);
 
-  // Map wishlist items to collection-like structure
-  const wishlistCollectionItems = useMemo(() => wishlistItems.map(item => ({
-    ...item.detailed_banknotes,
-    id: item.id, // wishlist item id
-    wishlistItemId: item.id,
-    banknote: item.detailed_banknotes,
-    isWishlist: true,
-  })), [wishlistItems]);
+  // Map wishlist items to collection-like structure (similar to missing items)
+  const wishlistCollectionItems = useMemo(() => {
+    console.log("[WishlistItems] Processing", wishlistItems.length, "wishlist items");
+    
+    return wishlistItems.map(item => {
+      const banknote = item.detailed_banknotes;
+      
+      if (!banknote) {
+        console.error("[WishlistItems] No banknote data found for item:", item);
+        return null;
+      }
+      
+      // Debug: log the banknote fields
+      console.log("[WishlistItems] Banknote fields:", {
+        id: banknote.id,
+        sultanName: banknote.sultanName,
+        sultan_name: banknote.sultan_name,
+        denomination: banknote.denomination,
+        face_value: banknote.face_value,
+        extendedPickNumber: banknote.extendedPickNumber,
+        extended_pick_number: banknote.extended_pick_number,
+        catalogId: banknote.catalogId,
+        allFields: Object.keys(banknote)
+      });
+      
+      // Get image URLs from banknote data
+      const obverseImage = banknote.imageUrls && banknote.imageUrls.length > 0 
+        ? banknote.imageUrls[0] 
+        : "/placeholder.svg";
+      const reverseImage = banknote.imageUrls && banknote.imageUrls.length > 1 
+        ? banknote.imageUrls[1] 
+        : "/placeholder.svg";
+
+      const mappedItem = {
+        ...banknote, // spread all fields to top level for grouping/sorting
+        id: item.id, // wishlist item id
+        userId: '',
+        banknoteId: banknote.id,
+        banknote, // keep the full object for the card
+        wishlistItemId: item.id,
+        isForSale: false,
+        is_unlisted_banknote: false,
+        isWishlist: true,
+        // Ensure correct field names for sorting (map from database fields to expected fields)
+        sultanName: banknote.sultanName || (banknote as any).sultan_name || '',
+        denomination: banknote.denomination || (banknote as any).face_value || '',
+        extendedPickNumber: banknote.extendedPickNumber || (banknote as any).extended_pick_number || '',
+        // Add image fields with correct mapping
+        obverseImage,
+        reverseImage,
+        obverse_image_watermarked: null,
+        reverse_image_watermarked: null,
+        obverse_image_thumbnail: obverseImage,
+        reverse_image_thumbnail: reverseImage,
+        hide_images: false,
+        // Add other fields that might be needed
+        condition: null,
+        grade: null,
+        grade_by: null,
+        grade_condition_description: null,
+        publicNote: null,
+        privateNote: null,
+        purchasePrice: null,
+        purchaseDate: null,
+        location: null,
+        orderIndex: null,
+        createdAt: banknote.createdAt,
+        updatedAt: banknote.updatedAt
+      };
+      
+      console.log("[WishlistItems] Final mapped item:", {
+        id: mappedItem.id,
+        sultanName: mappedItem.sultanName,
+        denomination: mappedItem.denomination,
+        extendedPickNumber: mappedItem.extendedPickNumber
+      });
+      
+      return mappedItem;
+    }).filter(Boolean);
+  }, [wishlistItems]);
 
   // Filtering logic (same as missing items)
   const filteredWishlistCollectionItems = useMemo(() => {
+
     // Create a map of category names to IDs
     const categoryNameToId = (categoryDefs || []).reduce((acc, cat) => {
       acc[cat.name] = cat.id;
@@ -691,7 +792,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       return acc;
     }, {} as Record<string, string>);
 
-    return wishlistCollectionItems.filter(item => {
+    const filtered = wishlistCollectionItems.filter(item => {
+
       // Search filter
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
@@ -703,33 +805,68 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           (item.type && item.type.toLowerCase().includes(searchLower));
         if (!matches) return false;
       }
+      
       // Categories filter
       if (filters.categories && filters.categories.length > 0 && Object.keys(categoryNameToId).length > 0) {
         const itemCategoryId = categoryNameToId[item.category];
         if (!itemCategoryId) return false;
         if (!filters.categories.includes(itemCategoryId)) return false;
       }
+
       // Types filter
       if (filters.types && filters.types.length > 0 && Object.keys(typeNameToId).length > 0) {
         const itemTypeId = typeNameToId[item.type];
         if (!itemTypeId) return false;
         if (!filters.types.includes(itemTypeId)) return false;
       }
+
       return true;
     });
+
+    return filtered;
   }, [wishlistCollectionItems, filters, categoryDefs, typeDefs]);
 
-  // Sorting and grouping
+  // Sorting and grouping - ensure default sort is applied
+  const wishlistSortFields = filters.sort.length > 0 ? filters.sort : ['extPick'];
+  
+  console.log("[WishlistItems] About to sort with fields:", wishlistSortFields);
+  console.log("[WishlistItems] Sample items before sorting:", filteredWishlistCollectionItems.slice(0, 2).map(item => ({
+    id: item.id,
+    sultanName: item.sultanName,
+    denomination: item.denomination,
+    extendedPickNumber: item.extendedPickNumber
+  })));
+  
   const sortedWishlistItems = useBanknoteSorting({
     banknotes: filteredWishlistCollectionItems,
     currencies,
-    sortFields: filters.sort
+    sortFields: wishlistSortFields
   });
+  
+  console.log("[WishlistItems] Sample items after sorting:", sortedWishlistItems.slice(0, 2).map(item => ({
+    id: item.id,
+    sultanName: item.sultanName,
+    denomination: item.denomination,
+    extendedPickNumber: item.extendedPickNumber
+  })));
+  
   const groupedWishlistItems = useBanknoteGroups(
     sortedWishlistItems,
-    filters.sort,
+    wishlistSortFields,
     categoryOrder
   );
+  
+  console.log("[WishlistItems] Sample grouped items:", groupedWishlistItems.slice(0, 1).map(group => ({
+    key: group.key,
+    label: group.label,
+    itemCount: group.items.length,
+    sampleItem: group.items[0] ? {
+      id: group.items[0].id,
+      sultanName: group.items[0].sultanName,
+      denomination: group.items[0].denomination,
+      extendedPickNumber: group.items[0].extendedPickNumber
+    } : null
+  })));
 
   // On mount, restore tab from sessionStorage if available
   useEffect(() => {
@@ -786,7 +923,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       {activeTab === 'missing' && (
         <CollectionItemsDisplay
           groups={groupedMissingItems}
-          showSultanGroups={filters.sort.includes('sultan')}
+          showSultanGroups={missingSortFields.includes('sultan')}
           viewMode={viewMode}
           countryId={countryId}
           isLoading={isLoading}
@@ -797,37 +934,17 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         />
       )}
       {activeTab === 'wishlist' && (
-        <div className="mt-6">
-          {collectionDataLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
-            </div>
-          ) : groupedWishlistItems.length === 0 ? (
-            <div className="text-center py-8">
-              <h3 className="text-xl font-medium mb-4"><span>No wishlist items found</span></h3>
-              <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
-            </div>
-          ) : (
-            <div className={viewMode === 'grid' 
-              ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-start'
-              : 'space-y-2'
-            }>
-              {groupedWishlistItems.flatMap(group =>
-                group.items.map(item => (
-                  <BanknoteDetailCardWishList
-                    key={item.wishlistItemId || item.id}
-                    banknote={item.banknote}
-                    wishlistItemId={item.wishlistItemId}
-                    source="catalog"
-                    viewMode={viewMode}
-                    countryId={countryId}
-                    userCollection={collectionItems}
-                  />
-                ))
-              )}
-            </div>
-          )}
-        </div>
+        <CollectionItemsDisplay
+          groups={groupedWishlistItems}
+          showSultanGroups={wishlistSortFields.includes('sultan')}
+          viewMode={viewMode}
+          countryId={countryId}
+          isLoading={collectionDataLoading}
+          groupMode={groupMode}
+          isOwner={isOwner}
+          activeTab={activeTab}
+          countryName={effectiveCountryName}
+        />
       )}
       {activeTab === 'sale' && (
         <CollectionItemsDisplay

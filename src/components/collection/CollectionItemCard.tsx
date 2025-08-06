@@ -227,7 +227,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
                   {item?.banknote?.year || "Unknown Year"}
                 </div>
               </div>
-              {isOwner && (
+              {isOwner && !(item as any).isMissing && (
                 <div className="flex gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
                   <Button variant="outline" size="icon" className="h-7 w-7" onClick={handleEditClick} title="Edit">
                     <Pencil className="h-3.5 w-3.5" />

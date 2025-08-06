@@ -81,14 +81,14 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
           <CardContent className="p-0">
             <div className="w-full">
                 {shouldHideImages || !imageUrl || imageUrl === '/placeholder.svg' ? (
-                <AspectRatio ratio={4 / 2}>
+                <AspectRatio ratio={4 / 3}>
                   <img
                     src={'/placeholder.svg'}
                     className="w-full h-full object-cover"
                   />
                 </AspectRatio>
               ) : (
-                <AspectRatio ratio={4 / 2}>
+                <AspectRatio ratio={4 / 3}>
                   <img
                       src={imageUrl}
                       alt={`Collection Item ${displayItem.banknote?.extendedPickNumber || ''}`}

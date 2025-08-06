@@ -4,6 +4,7 @@ import CollectionItemCard from './CollectionItemCard';
 import CollectionCardUnlisted from './CollectionCardUnlisted';
 import { CollectionItemCardGroup } from './CollectionItemCardGroup';
 import { CollectionItemGroupDialog } from './CollectionItemGroupDialog';
+import BanknoteDetailCardWishList from '@/components/banknotes/BanknoteDetailCardWishList';
 import { cn } from '@/lib/utils';
 import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
 import { BanknoteGroupData } from '@/utils/banknoteGrouping';
@@ -293,13 +294,25 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                               viewMode === 'grid' ? "self-start" : "w-full !px-0"
                             )}
                           >
-                            <CollectionItemCard
-                              item={item}
-                              onEdit={() => {}}
-                              onUpdate={onUpdate}
-                              viewMode={viewMode}
-                              isOwner={isOwner}
-                            />
+                            {(item as any).isWishlist ? (
+                              <BanknoteDetailCardWishList
+                                banknote={item.banknote || item}
+                                viewMode={viewMode}
+                                countryId={countryId}
+                                wishlistItemId={(item as any).wishlistItemId}
+                                source="catalog"
+                                onDeleted={() => onUpdate()}
+                                refetchWishlist={() => onUpdate()}
+                              />
+                            ) : (
+                              <CollectionItemCard
+                                item={item}
+                                onEdit={() => {}}
+                                onUpdate={onUpdate}
+                                viewMode={viewMode}
+                                isOwner={isOwner}
+                              />
+                            )}
                           </div>
                         ))
                       )}
@@ -338,6 +351,16 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                                 onUpdate={onUpdate}
                                 viewMode={viewMode}
                                 isOwner={isOwner}
+                              />
+                            ) : (item.collectionItem as any).isWishlist ? (
+                              <BanknoteDetailCardWishList
+                                banknote={item.collectionItem.banknote || item.collectionItem}
+                                viewMode={viewMode}
+                                countryId={countryId}
+                                wishlistItemId={(item.collectionItem as any).wishlistItemId}
+                                source="catalog"
+                                onDeleted={() => onUpdate()}
+                                refetchWishlist={() => onUpdate()}
                               />
                             ) : (
                             <CollectionItemCard
@@ -383,6 +406,16 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                           onUpdate={onUpdate}
                           viewMode={viewMode}
                           isOwner={isOwner}
+                        />
+                      ) : (item as any).isWishlist ? (
+                        <BanknoteDetailCardWishList
+                          banknote={item.banknote || item}
+                          viewMode={viewMode}
+                          countryId={countryId}
+                          wishlistItemId={(item as any).wishlistItemId}
+                          source="catalog"
+                          onDeleted={() => onUpdate()}
+                          refetchWishlist={() => onUpdate()}
                         />
                       ) : (
                       <CollectionItemCard
