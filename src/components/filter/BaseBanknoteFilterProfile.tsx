@@ -14,7 +14,8 @@ import {
   Layers,
   ArrowLeft,
   ArrowUpDown,
-  Printer
+  Printer,
+  FileSpreadsheet
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
@@ -32,6 +33,8 @@ import { AddUnlistedBanknoteDialog } from '@/components/collection/AddUnlistedBa
 import { usePrintCollection } from '@/hooks/usePrintCollection';
 import { useTranslation } from 'react-i18next';
 import { CollectionItem } from '@/types';
+import { generateCSV, downloadCSV, generateFilename } from '@/services/csvExportService';
+import { useToast } from '@/hooks/use-toast';
 
 
 export type FilterOption = {
@@ -103,6 +106,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const { printCollection, isPrinting } = usePrintCollection();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const { toast } = useToast();
   
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
@@ -350,6 +355,45 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     }
   };
 
+  // CSV Export handler
+  const handleExportCSV = async () => {
+    if (!collectionItems || collectionItems.length === 0 || !profileUser) {
+      toast({
+        title: "No data to export",
+        description: "There are no items to export.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const csvContent = await generateCSV({
+        activeTab,
+        userId: profileUser.id,
+        countryName,
+        collectionItems
+      });
+
+      const filename = generateFilename(activeTab, profileUser.username, countryName);
+      downloadCSV(csvContent, filename);
+
+      toast({
+        title: "Export successful",
+        description: `${collectionItems.length} items exported to CSV.`
+      });
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast({
+        title: "Export failed",
+        description: "Failed to export data. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className={cn(
       "w-full space-y-1.5 sm:space-y-0",
@@ -464,17 +508,30 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   </Button>
                 )}
 
-                {/* Print button for collection owners */}
-                {isOwner && activeTab === 'collection' && collectionItems && collectionItems.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handlePrint}
-                    disabled={isPrinting}
-                    title={tWithFallback('print.printCollection', 'Print Collection')}
-                  >
-                    <Printer className="h-4 w-4" />
-                  </Button>
+                {/* Print and Export buttons for collection owners */}
+                {isOwner && collectionItems && collectionItems.length > 0 && (
+                  <>
+                    {activeTab === 'collection' && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handlePrint}
+                        disabled={isPrinting}
+                        title={tWithFallback('print.printCollection', 'Print Collection')}
+                      >
+                        <Printer className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleExportCSV}
+                      disabled={isExporting}
+                      title="Export to Excel"
+                    >
+                      <FileSpreadsheet className="h-4 w-4" />
+                    </Button>
+                  </>
                 )}
               </div>
 
