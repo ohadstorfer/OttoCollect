@@ -95,19 +95,8 @@ const LazyCollectionDisplay: React.FC<LazyCollectionDisplayProps> = ({
         </div>
       )}
 
-      {/* No more items indicator */}
-      {!hasMore && visibleItems.length > 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          All items loaded
-        </div>
-      )}
+     
 
-      {/* Empty state */}
-      {!isLoading && visibleItems.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No collection items found</p>
-        </div>
-      )}
     </div>
   );
 };
