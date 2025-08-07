@@ -78,6 +78,9 @@ export type BaseBanknoteFilterProps = {
   sortedMissingItems?: CollectionItem[];
   sortedWishlistItems?: CollectionItem[];
   onPrint?: () => void;
+  currencies?: any[];
+  categoryOrder?: any[];
+  getFlattenedItemsForExport?: (activeTab: string) => CollectionItem[];
 };
 
 export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
@@ -106,7 +109,10 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   sortedSaleItems,
   sortedMissingItems,
   sortedWishlistItems,
-  onPrint
+  onPrint,
+  currencies = [],
+  categoryOrder = [],
+  getFlattenedItemsForExport
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -365,25 +371,10 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
   // Excel Export handler
   const handleExportExcel = async () => {
-    // Determine which items to export based on active tab
-    let itemsToExport: CollectionItem[] = [];
-    
-    switch (activeTab) {
-      case 'collection':
-        itemsToExport = sortedCollectionItems || collectionItems || [];
-        break;
-      case 'sale':
-        itemsToExport = sortedSaleItems || [];
-        break;
-      case 'wishlist':
-        itemsToExport = sortedWishlistItems || [];
-        break;
-      case 'missing':
-        itemsToExport = sortedMissingItems || [];
-        break;
-      default:
-        itemsToExport = collectionItems || [];
-    }
+    // Get the sorted items in the exact order they appear on the page
+    const itemsToExport: CollectionItem[] = getFlattenedItemsForExport 
+      ? getFlattenedItemsForExport(activeTab)
+      : [];
 
     if (!itemsToExport || itemsToExport.length === 0 || !profileUser) {
       toast({

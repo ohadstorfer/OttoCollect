@@ -100,13 +100,13 @@ export const Footer = () => {
                 </Link>
                 <Link to="/privacy" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
                   {t('footer.privacyPolicy')}
-                </Link>
+            </Link>
                 <Link to="/terms" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
                   {t('footer.termsOfService')}
-                </Link>
+            </Link>
                 <Link to="/about-us" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
                   {t('footer.aboutUs')}
-                </Link>
+            </Link>
               </nav>
             </div>
           </div>

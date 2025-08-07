@@ -40,6 +40,9 @@ export interface BanknoteFilterCollectionProps {
   sortedSaleItems?: CollectionItem[];
   sortedMissingItems?: CollectionItem[];
   sortedWishlistItems?: CollectionItem[];
+  currencies?: any[];
+  categoryOrder?: any[];
+  getFlattenedItemsForExport?: (activeTab: string) => CollectionItem[];
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -63,7 +66,10 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   sortedCollectionItems,
   sortedSaleItems,
   sortedMissingItems,
-  sortedWishlistItems
+  sortedWishlistItems,
+  currencies = [],
+  categoryOrder = [],
+  getFlattenedItemsForExport
 }) => {
   const { toast } = useToast();
   const { user: authUser } = useAuth();
@@ -475,6 +481,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         sortedSaleItems={sortedSaleItems}
         sortedMissingItems={sortedMissingItems}
         sortedWishlistItems={sortedWishlistItems}
+        currencies={currencies}
+        categoryOrder={categoryOrder}
+        getFlattenedItemsForExport={getFlattenedItemsForExport}
       />
     </div>
   );

@@ -14,9 +14,13 @@ export interface CSVExportOptions {
   userId: string;
   countryName?: string;
   collectionItems: CollectionItem[];
-  sortedItems?: CollectionItem[]; // Add sorted items parameter
+  sortedItems?: CollectionItem[]; // This should be the properly sorted items from the page
   missingItems?: DetailedBanknote[];
   wishlistItems?: any[];
+  // Add the same parameters used in CountryDetailCollection for consistent sorting
+  currencies?: any[];
+  sortFields?: string[];
+  categoryOrder?: string[];
 }
 
 // Helper function to escape CSV values
@@ -72,7 +76,15 @@ function getColumnDefinitions(): CSVColumn[] {
       key: 'extended_pick_number',
       header: 'Extended Pick Number',
       required: true,
-      getValue: (item) => item.banknote?.extendedPickNumber || ''
+      getValue: (item) => {
+        // Try multiple possible field names for extended pick number
+        const extendedPick = item.banknote?.extendedPickNumber || 
+                           (item as any).extendedPickNumber ||
+                           (item as any).extended_pick_number ||
+                           '';
+        
+        return extendedPick;
+      }
     },
     {
       key: 'turk_catalog_number',
@@ -189,8 +201,10 @@ function getColumnDefinitions(): CSVColumn[] {
 export async function generateExcel(options: CSVExportOptions): Promise<ArrayBuffer> {
   const { activeTab, collectionItems, sortedItems } = options;
   
-  // Use sorted items if provided, otherwise fall back to original collection items
-  const itemsToExport = sortedItems || collectionItems;
+  // Use sorted items directly - they should already be properly sorted from CountryDetailCollection.tsx
+  const itemsToExport: CollectionItem[] = sortedItems && sortedItems.length > 0 
+    ? sortedItems 
+    : (collectionItems || []);
   
   // Get all column definitions
   const allColumns = getColumnDefinitions();

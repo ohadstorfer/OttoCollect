@@ -18,6 +18,7 @@ import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterColl
 import { useCollectionData } from '@/hooks/use-collection-data';
 import { cn } from "@/lib/utils";
 import { statisticsService } from "@/services/statisticsService";
+import { CollectionItem } from "@/types";
 
 interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
@@ -351,7 +352,16 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       console.error("Could not find original collection item for ID:", (sortedBanknote as any).collectionItemId);
       return null;
     }
-    return originalItem;
+    
+    // Create a new item that preserves the sorted banknote's extendedPickNumber
+    return {
+      ...originalItem,
+      banknote: {
+        ...originalItem.banknote,
+        // Preserve the extendedPickNumber from the sorted banknote
+        extendedPickNumber: (sortedBanknote as any).extendedPickNumber || originalItem.banknote?.extendedPickNumber
+      }
+    };
   }).filter(Boolean) as any[]; // Filter out any null values
 
   const groupedItems = useBanknoteGroups(
@@ -417,7 +427,16 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       console.error("Could not find original sale item for ID:", (sortedBanknote as any).collectionItemId);
       return null;
     }
-    return originalItem;
+    
+    // Create a new item that preserves the sorted banknote's extendedPickNumber
+    return {
+      ...originalItem,
+      banknote: {
+        ...originalItem.banknote,
+        // Preserve the extendedPickNumber from the sorted banknote
+        extendedPickNumber: (sortedBanknote as any).extendedPickNumber || originalItem.banknote?.extendedPickNumber
+      }
+    };
   }).filter(Boolean) as any[];
 
   const groupedSaleItems = useBanknoteGroups(
@@ -734,6 +753,81 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     categoryOrder
   );
 
+  // Function to get items in the exact order they appear on the page
+  const getRenderedItemsForExport = useCallback((activeTab: string) => {
+    switch (activeTab) {
+      case 'collection': {
+        const flattenedItems: CollectionItem[] = [];
+        
+        // Process each group in order
+        groupedCollectionItems.forEach(group => {
+          if (group.sultanGroups && group.sultanGroups.length > 0) {
+            // If there are sultan groups, add items from each sultan group in order
+            group.sultanGroups.forEach(sultanGroup => {
+              flattenedItems.push(...sultanGroup.items);
+            });
+          } else {
+            // If no sultan groups, add items directly from the group
+            flattenedItems.push(...group.items);
+          }
+        });
+        
+        return flattenedItems;
+      }
+        
+      case 'sale': {
+        const flattenedItems: CollectionItem[] = [];
+        
+        groupedSaleCollectionItems.forEach(group => {
+          if (group.sultanGroups && group.sultanGroups.length > 0) {
+            group.sultanGroups.forEach(sultanGroup => {
+              flattenedItems.push(...sultanGroup.items);
+            });
+          } else {
+            flattenedItems.push(...group.items);
+          }
+        });
+        
+        return flattenedItems;
+      }
+        
+      case 'missing': {
+        const flattenedItems: CollectionItem[] = [];
+        
+        groupedMissingItems.forEach(group => {
+          if (group.sultanGroups && group.sultanGroups.length > 0) {
+            group.sultanGroups.forEach(sultanGroup => {
+              flattenedItems.push(...sultanGroup.items);
+            });
+          } else {
+            flattenedItems.push(...group.items);
+          }
+        });
+        
+        return flattenedItems;
+      }
+        
+      case 'wishlist': {
+        const flattenedItems: CollectionItem[] = [];
+        
+        groupedWishlistItems.forEach(group => {
+          if (group.sultanGroups && group.sultanGroups.length > 0) {
+            group.sultanGroups.forEach(sultanGroup => {
+              flattenedItems.push(...sultanGroup.items);
+            });
+          } else {
+            flattenedItems.push(...group.items);
+          }
+        });
+        
+        return flattenedItems;
+      }
+        
+      default:
+        return [];
+    }
+  }, [groupedCollectionItems, groupedSaleCollectionItems, groupedMissingItems, groupedWishlistItems]);
+
   // On mount, restore tab from sessionStorage if available
   useEffect(() => {
     const savedTab = sessionStorage.getItem('countryDetailActiveTab');
@@ -774,6 +868,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         sortedSaleItems={sortedSaleItemsWithData}
         sortedMissingItems={sortedMissingItems}
         sortedWishlistItems={sortedWishlistItems}
+        getFlattenedItemsForExport={getRenderedItemsForExport}
       />
 
       {/* Conditionally render content based on activeTab */}
