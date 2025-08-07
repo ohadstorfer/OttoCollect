@@ -90,13 +90,13 @@ function getColumnDefinitions(): CSVColumn[] {
       key: 'turk_catalog_number',
       header: 'Turk Catalog Number',
       required: false,
-      getValue: (item) => item.banknote?.turkCatalogNumber || ''
+      getValue: (item) => item.banknote?.turkCatalogNumber || (item as any).turkCatalogNumber || ''
     },
     {
       key: 'face_value',
       header: 'Face Value',
       required: true,
-      getValue: (item) => item.banknote?.denomination || ''
+      getValue: (item) => item.banknote?.denomination || (item as any).denomination || ''
     },
     {
       key: 'condition',
@@ -133,61 +133,61 @@ function getColumnDefinitions(): CSVColumn[] {
       key: 'islamic_year',
       header: 'Islamic Year',
       required: true,
-      getValue: (item) => item.banknote?.islamicYear || ''
+      getValue: (item) => item.banknote?.islamicYear || (item as any).islamicYear || (item as any).islamic_year || ''
     },
     {
       key: 'gregorian_year',
       header: 'Gregorian Year',
       required: true,
-      getValue: (item) => item.banknote?.gregorianYear || item.banknote?.year || ''
+      getValue: (item) => item.banknote?.gregorianYear || item.banknote?.year || (item as any).gregorianYear || (item as any).gregorian_year || (item as any).year || ''
     },
     {
       key: 'signatures_front',
       header: 'Signatures Front',
       required: false,
-      getValue: (item) => formatSignatures(item.banknote?.signaturesFront)
+      getValue: (item) => formatSignatures(item.banknote?.signaturesFront || (item as any).signaturesFront)
     },
     {
       key: 'signatures_back',
       header: 'Signatures Back',
       required: false,
-      getValue: (item) => formatSignatures(item.banknote?.signaturesBack)
+      getValue: (item) => formatSignatures(item.banknote?.signaturesBack || (item as any).signaturesBack)
     },
     {
       key: 'seal_names',
       header: 'Seal Names',
       required: false,
-      getValue: (item) => item.banknote?.sealNames || ''
+      getValue: (item) => item.banknote?.sealNames || (item as any).sealNames || ''
     },
     {
       key: 'watermark',
       header: 'Watermark',
       required: true,
-      getValue: (item) => item.banknote?.watermark || ''
+      getValue: (item) => item.banknote?.watermark || (item as any).watermark || ''
     },
     {
       key: 'sultan_name',
       header: 'Sultan Name',
       required: false,
-      getValue: (item) => item.banknote?.sultanName || ''
+      getValue: (item) => item.banknote?.sultanName || (item as any).sultanName || ''
     },
     {
       key: 'type',
       header: 'Type',
       required: true,
-      getValue: (item) => item.banknote?.type || ''
+      getValue: (item) => item.banknote?.type || (item as any).type || ''
     },
     {
       key: 'category',
       header: 'Category',
       required: true,
-      getValue: (item) => item.banknote?.category || ''
+      getValue: (item) => item.banknote?.category || (item as any).category || ''
     },
     {
       key: 'additional_info',
       header: 'Additional Info',
       required: true,
-      getValue: (item) => item.banknote?.securityElement || ''
+      getValue: (item) => item.banknote?.securityElement || (item as any).securityElement || ''
     },
     {
       key: 'public_note',
