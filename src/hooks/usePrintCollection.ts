@@ -10,7 +10,7 @@ interface UserInfo {
 export const usePrintCollection = () => {
     const [isPrinting, setIsPrinting] = useState(false);
 
-    const generatePrintContent = (collectionItems: CollectionItem[], userInfo: UserInfo, countryName?: string) => {
+    const generatePrintContent = (collectionItems: CollectionItem[], userInfo: UserInfo, countryName?: string, activeTab?: string) => {
         const printStyles = `
       <style>
         * {
@@ -33,7 +33,6 @@ export const usePrintCollection = () => {
             color-adjust: exact;
           }
           
-          /* Hide browser headers and footers */
           @page :first {
             margin-top: 0;
           }
@@ -48,12 +47,12 @@ export const usePrintCollection = () => {
           
           body {
             font-family: 'Arial', sans-serif;
-            font-size: 11pt;
-            line-height: 1.3;
+            font-size: 9pt;
+            line-height: 1.2;
             color: black;
             background: white;
             margin: 0;
-            padding: 1.5cm;
+            padding: 1cm;
             min-height: 100vh;
             width: 100%;
             -webkit-print-color-adjust: exact;
@@ -70,115 +69,97 @@ export const usePrintCollection = () => {
           
           .print-header {
             text-align: center;
-            margin-bottom: 1.5cm;
+            margin-bottom: 0.8cm;
             border-bottom: 2px solid #333;
-            padding-bottom: 0.5cm;
+            padding-bottom: 0.3cm;
           }
           
           .print-header h1 {
-            font-size: 20pt;
+            font-size: 16pt;
             font-weight: bold;
-            margin-bottom: 0.3cm;
+            margin-bottom: 0.2cm;
             color: #333;
           }
           
           .total-amount {
-            font-size: 16pt;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 0.5cm;
-            text-align: center;
-          }
-          
-          .user-info {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            justify-content: center;
-            font-size: 10pt;
-            margin-bottom: 0.3cm;
-            flex-wrap: wrap;
-          }
-          
-          .user-info p {
-            margin: 0;
-            padding: 0.1cm 0;
-          }
-          
-          .print-summary {
-            margin-bottom: 1cm;
-            padding: 0.5cm;
-            border: 1px solid #ccc;
-            background: #f8f8f8;
-            border-radius: 4px;
-          }
-          
-          .print-summary h2 {
-            font-size: 14pt;
-            margin-bottom: 0.3cm;
-            color: #333;
-          }
-          
-          .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5cm;
-            margin-top: 0.3cm;
-          }
-          
-          .summary-item {
-            text-align: center;
-            padding: 0.2cm;
-            background: white;
-            border-radius: 3px;
-            border: 1px solid #ddd;
-          }
-          
-          .summary-label {
-            font-size: 9pt;
-            color: #666;
-            margin-bottom: 0.1cm;
-          }
-          
-          .summary-value {
             font-size: 12pt;
             font-weight: bold;
             color: #333;
+            margin-bottom: 0.3cm;
+            text-align: center;
           }
           
-          .collection-list {
+          .sultan-group {
+            margin-bottom: 0.5cm;
             page-break-inside: avoid;
-            min-height: calc(100vh - 8cm);
           }
           
-          .collection-row {
+          .sultan-header {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.3cm;
+            padding: 0.2cm;
+            background: #f0f0f0;
+            border-left: 3px solid #333;
+          }
+          
+          .banknote-row {
             display: flex;
-            gap: 0.5cm;
-            margin-bottom: 0.4cm;
+            flex-direction: column;
+            gap: 0.3cm;
+            margin-bottom: 0.5cm;
             page-break-inside: avoid;
+            border: 1px solid #ddd;
+            padding: 0.3cm;
+            background: white;
+            min-height: 4cm;
           }
           
-          .collection-item {
-            flex: 1;
-            padding: 0.3cm;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: white;
+          .fields-row {
+            display: flex;
+            gap: 0.2cm;
+            align-items: center;
+            flex-wrap: wrap;
+          }
+          
+          .field-item {
             display: flex;
             align-items: center;
-            gap: 0.3cm;
-            min-height: 2.5cm;
+            gap: 0.1cm;
+            font-size: 8pt;
           }
           
-          .item-images {
+          .field-label {
+            font-weight: bold;
+            color: #333;
+            min-width: 0.8cm;
+          }
+          
+          .field-value {
+            padding: 0.05cm 0.1cm;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: white;
+            min-width: 0.8cm;
+            text-align: center;
+          }
+          
+          .field-value.rarity {
+            background: #ffebee;
+            color: #c62828;
+            border-color: #ef9a9a;
+            font-weight: bold;
+          }
+          
+          .images-row {
             display: flex;
-            gap: 0.15cm;
-            flex-shrink: 0;
+            gap: 0.2cm;
+            align-items: flex-start;
+            flex-wrap: wrap;
           }
           
-          .item-image {
-            width: 2.2cm;
-            height: 1.4cm;
+          .image-container {
             border: 1px solid #ccc;
             border-radius: 3px;
             overflow: hidden;
@@ -186,89 +167,60 @@ export const usePrintCollection = () => {
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
           }
           
-          .item-image img {
+          .image-container img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
           }
           
-          .item-image.placeholder {
+          .image-container.placeholder {
             background: #f0f0f0;
             color: #999;
-            font-size: 8pt;
+            font-size: 6pt;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .image-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 5pt;
+            padding: 0.03cm;
             text-align: center;
           }
           
-          .item-content {
-            flex: 1;
-            min-width: 0;
-          }
-          
-          .item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.2cm;
-          }
-          
-          .item-details {
+          .notes-row {
             display: flex;
             flex-direction: column;
             gap: 0.1cm;
-          }
-          
-          .item-denomination {
-            font-weight: bold;
-            font-size: 11pt;
-            color: #333;
-          }
-          
-          .item-year {
-            font-size: 10pt;
+            font-size: 7pt;
             color: #666;
           }
           
-          .item-badges {
+          .note-field {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.15cm;
-            margin-top: 0.1cm;
+            gap: 0.1cm;
+            align-items: center;
           }
           
-          .item-badge {
-            font-size: 8pt;
-            padding: 0.1cm 0.2cm;
-            border-radius: 3px;
-            border: 1px solid #ccc;
-            background: #f8f8f8;
-            color: #333;
-            white-space: nowrap;
+          .note-label {
+            font-weight: bold;
+            min-width: 1.5cm;
           }
           
-          .item-badge.condition {
-            background: #e8f5e8;
-            color: #2d5a2d;
-            border-color: #c3e6c3;
-          }
-          
-          .item-badge.grade {
-            background: #e8f4fd;
-            color: #1e3a8a;
-            border-color: #bfdbfe;
-          }
-          
-          .item-badge.catalog {
-            background: #fef3c7;
-            color: #92400e;
-            border-color: #fde68a;
-          }
-          
-          .item-badge.sale {
-            background: #dbeafe;
-            color: #1e40af;
-            border-color: #93c5fd;
+          .note-value {
+            flex: 1;
+            border-bottom: 1px solid #ccc;
+            min-height: 0.3cm;
           }
           
           .page-break {
@@ -280,7 +232,7 @@ export const usePrintCollection = () => {
           }
           
           @media print {
-            .collection-row:nth-child(15n) {
+            .banknote-row:nth-child(8n) {
               page-break-after: always;
             }
           }
@@ -290,8 +242,8 @@ export const usePrintCollection = () => {
         @media screen {
           body {
             font-family: 'Arial', sans-serif;
-            font-size: 11pt;
-            line-height: 1.3;
+            font-size: 9pt;
+            line-height: 1.2;
             color: black;
             background: white;
             margin: 0;
@@ -306,84 +258,190 @@ export const usePrintCollection = () => {
             background: white;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             min-height: 29.7cm;
-            padding: 1.5cm;
+            padding: 1cm;
           }
         }
       </style>
     `;
 
-        const formatPrice = (price?: number) => {
-            if (!price) return '';
-            return `$${price.toFixed(2)}`;
+        const getImageUrl = (item: CollectionItem, imageType: 'front' | 'back' | 'watermark' | 'tugra') => {
+            switch (imageType) {
+                case 'front':
+                    return item.obverseImage || (item.banknote.imageUrls && item.banknote.imageUrls[0]) || null;
+                case 'back':
+                    return item.reverseImage || (item.banknote.imageUrls && item.banknote.imageUrls[1]) || null;
+                case 'watermark':
+                    return item.banknote.watermarkUrl || null;
+                case 'tugra':
+                    return item.banknote.tughraUrl || null;
+                default:
+                    return null;
+            }
         };
 
-        const getConditionColor = (condition?: string) => {
-            const colors: Record<string, string> = {
-                'UNC': 'condition',
-                'AU': 'condition',
-                'XF': 'condition',
-                'VF': 'condition',
-                'F': 'condition',
-                'VG': 'condition',
-                'G': 'condition',
-                'Fair': 'condition',
-                'Poor': 'condition'
-            };
-            return colors[condition || ''] || '';
+        const getSignatureImages = (item: CollectionItem) => {
+            const frontSignatures = item.banknote.signaturesFrontUrls || [];
+            const backSignatures = item.banknote.signaturesBackUrls || [];
+            return [...frontSignatures, ...backSignatures].slice(0, 2); // Limit to 2 signature images
         };
 
-        const totalValue = collectionItems.reduce((sum, item) => sum + (item.purchasePrice || 0), 0);
-        const uniqueCountries = new Set(collectionItems.map(item => item.banknote.country)).size;
+        const generateBanknoteRow = (item: CollectionItem) => {
+            const frontImage = getImageUrl(item, 'front');
+            const backImage = getImageUrl(item, 'back');
+            const watermarkImage = getImageUrl(item, 'watermark');
+            const tugraImage = getImageUrl(item, 'tugra');
+            const signatureImages = getSignatureImages(item);
 
-        // Group items into pairs for 2 per row
-        const itemPairs = [];
-        for (let i = 0; i < collectionItems.length; i += 2) {
-            itemPairs.push(collectionItems.slice(i, i + 2));
+            // Generate fields row - only show fields that have values (no labels)
+            const fields = [];
+            
+            if (item.banknote.extendedPickNumber) {
+                fields.push(`<span class="field-value">${item.banknote.extendedPickNumber}</span>`);
+            }
+            
+            if (item.banknote.turkCatalogNumber) {
+                fields.push(`<span class="field-value">${item.banknote.turkCatalogNumber}</span>`);
+            }
+            
+            if (item.banknote.rarity) {
+                fields.push(`<span class="field-value rarity">${item.banknote.rarity}</span>`);
+            }
+            
+            if (item.banknote.denomination) {
+                fields.push(`<span class="field-value">${item.banknote.denomination}</span>`);
+            }
+            
+            if (item.condition || item.grade) {
+                const conditionText = item.condition && !item.grade ? item.condition : '';
+                const gradeText = item.grade ? `${item.grade_by ? `${item.grade_by} ` : ''}${item.grade}` : '';
+                fields.push(`<span class="field-value">${conditionText} ${gradeText}</span>`);
+            }
+            
+            if (item.prefix) {
+                fields.push(`<span class="field-value">${item.prefix}</span>`);
+            }
+            
+            if (item.banknote.islamicYear) {
+                fields.push(`<span class="field-value">${item.banknote.islamicYear}</span>`);
+            }
+            
+            if (item.banknote.gregorianYear || item.banknote.year) {
+                fields.push(`<span class="field-value">${item.banknote.gregorianYear || item.banknote.year}</span>`);
+            }
+            
+            if (item.banknote.sultanName) {
+                fields.push(`<span class="field-value">${item.banknote.sultanName}</span>`);
+            }
+
+            // Generate images row - only show images that exist
+            const images = [];
+            
+            if (frontImage) {
+                images.push(`
+                  <div class="image-container" style="width: 2.5cm; height: 1.5cm;">
+                    <img src="${frontImage}" alt="Front" />
+                    <div class="image-label">Front picture</div>
+                  </div>
+                `);
+            }
+            
+            if (backImage) {
+                images.push(`
+                  <div class="image-container" style="width: 2.5cm; height: 1.5cm;">
+                    <img src="${backImage}" alt="Back" />
+                    <div class="image-label">Back picture</div>
+                  </div>
+                `);
+            }
+            
+            signatureImages.forEach((sig, index) => {
+                images.push(`
+                  <div class="image-container" style="width: 1.2cm; height: 0.8cm;">
+                    <img src="${sig}" alt="Signature ${index + 1}" />
+                    <div class="image-label">Signature ${index === 0 ? 'front' : 'back'}</div>
+                  </div>
+                `);
+            });
+            
+            if (watermarkImage) {
+                images.push(`
+                  <div class="image-container" style="width: 1.5cm; height: 1.5cm;">
+                    <img src="${watermarkImage}" alt="Watermark" />
+                    <div class="image-label">Watermark picture</div>
+                  </div>
+                `);
+            }
+            
+            if (tugraImage) {
+                images.push(`
+                  <div class="image-container" style="width: 1.2cm; height: 1.2cm;">
+                    <img src="${tugraImage}" alt="Tugra" />
+                    <div class="image-label">Togra picture</div>
+                  </div>
+                `);
+            }
+
+            // Generate notes row - only show notes that exist
+            const notes = [];
+            
+            if (item.publicNote) {
+                notes.push(`
+                  <div class="note-field">
+                    <span class="note-label">Public note:</span>
+                    <span class="note-value">${item.publicNote}</span>
+                  </div>
+                `);
+            }
+            
+            if (item.banknote.securityElement) {
+                notes.push(`
+                  <div class="note-field">
+                    <span class="note-value">${item.banknote.securityElement}</span>
+                  </div>
+                `);
+            }
+
+            return `
+        <div class="banknote-row">
+          ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
+          ${images.length > 0 ? `<div class="images-row">${images.join('')}</div>` : ''}
+          ${notes.length > 0 ? `<div class="notes-row">${notes.join('')}</div>` : ''}
+        </div>
+      `;
+        };
+
+        // Group items by sultan if sorting by sultan
+        const isSortedBySultan = activeTab === 'collection' && collectionItems.some(item => 
+            item.banknote?.sultanName && item.banknote.sultanName !== ''
+        );
+
+        let banknotesHtml = '';
+        
+        if (isSortedBySultan) {
+            // Group by sultan
+            const sultanGroups = new Map<string, CollectionItem[]>();
+            
+            collectionItems.forEach(item => {
+                const sultan = item.banknote?.sultanName || 'Unknown';
+                if (!sultanGroups.has(sultan)) {
+                    sultanGroups.set(sultan, []);
+                }
+                sultanGroups.get(sultan)!.push(item);
+            });
+            
+            // Generate HTML with sultan headers
+            sultanGroups.forEach((items, sultan) => {
+                banknotesHtml += `
+                  <div class="sultan-group">
+                    <div class="sultan-header">${sultan}</div>
+                    ${items.map(item => generateBanknoteRow(item)).join('')}
+                  </div>
+                `;
+            });
+        } else {
+            // No sultan grouping, just list all items
+            banknotesHtml = collectionItems.map(item => generateBanknoteRow(item)).join('');
         }
-
-        const generateItemHtml = (item: CollectionItem) => {
-            const frontImage = item.obverseImage || (item.banknote.imageUrls && item.banknote.imageUrls[0]) || null;
-            const backImage = item.reverseImage || null;
-
-            return `
-        <div class="collection-item">
-          <div class="item-images">
-            <div class="item-image ${!frontImage ? 'placeholder' : ''}">
-              ${frontImage ? `<img src="${frontImage}" alt="Front" />` : ''}
-            </div>
-            <div class="item-image ${!backImage ? 'placeholder' : ''}">
-              ${backImage ? `<img src="${backImage}" alt="Back" />` : ''}
-            </div>
-          </div>
-          <div class="item-content">
-            <div class="item-header">
-              <div class="item-details">
-                ${item.banknote.denomination ? `<div class="item-denomination">${item.banknote.denomination}</div>` : ''}
-                ${item.banknote.year ? `<div class="item-year">${item.banknote.year}</div>` : ''}
-              </div>
-            </div>
-            <div class="item-badges">
-              ${item.banknote.extendedPickNumber ? `<span class="item-badge catalog">${item.banknote.extendedPickNumber}</span>` : ''}
-              ${item.banknote.turkCatalogNumber ? `<span class="item-badge catalog">${item.banknote.turkCatalogNumber}</span>` : ''}
-              ${item.condition && !item.grade ? `<span class="item-badge ${getConditionColor(item.condition)}">${item.condition}</span>` : ''}
-              ${item.grade ? `<span class="item-badge grade">${item.grade_by ? `${item.grade_by} ` : ''}${item.grade}</span>` : ''}
-            </div>
-          </div>
-        </div>
-      `;
-        };
-
-        const rowsHtml = itemPairs.map(pair => {
-            const firstItem = generateItemHtml(pair[0]);
-            const secondItem = pair[1] ? generateItemHtml(pair[1]) : '<div class="collection-item" style="visibility: hidden;"></div>';
-
-            return `
-        <div class="collection-row">
-          ${firstItem}
-          ${secondItem}
-        </div>
-      `;
-        }).join('');
 
         return `
       <!DOCTYPE html>
@@ -399,26 +457,23 @@ export const usePrintCollection = () => {
             <div class="print-header">
                 <h1>${userInfo.username}'s ${countryName || ''} Collection</h1>
                 <div class="total-amount">
-  ${collectionItems.length} ${collectionItems.length === 1 ? 'banknote' : 'banknotes'}
-  </div>
-                  
-              </div>
-              
-              
-              
-              <div class="collection-list">
-                ${rowsHtml}
-              </div>
+                  ${collectionItems.length} ${collectionItems.length === 1 ? 'banknote' : 'banknotes'}
+                </div>
             </div>
+            
+            <div class="collection-list">
+              ${banknotesHtml}
+            </div>
+          </div>
         </body>
       </html>
     `;
     };
 
-    const printCollection = async (collectionItems: CollectionItem[], userInfo: UserInfo, countryName?: string) => {
+    const printCollection = async (collectionItems: CollectionItem[], userInfo: UserInfo, countryName?: string, activeTab?: string) => {
         setIsPrinting(true);
         try {
-            const printContent = generatePrintContent(collectionItems, userInfo, countryName);
+            const printContent = generatePrintContent(collectionItems, userInfo, countryName, activeTab);
             
             const printWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
             if (printWindow) {

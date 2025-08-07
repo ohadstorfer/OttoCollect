@@ -378,7 +378,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       username: profileUser.username,
       rank: profileUser.rank,
       role: profileUser.role
-    }, countryName);
+    }, countryName, activeTab);
   };
 
   // Excel Export handler
