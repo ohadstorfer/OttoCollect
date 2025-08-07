@@ -156,7 +156,7 @@ export const usePrintCollection = () => {
           .other-images-notes-column {
             display: flex;
             flex-direction: column;
-            gap: 0.2cm;
+            gap: 0.1cm;
             flex: 1;
           }
           
@@ -216,9 +216,10 @@ export const usePrintCollection = () => {
           .notes-row {
             display: flex;
             flex-direction: column;
-            gap: 0.1cm;
+            gap: 0.05cm;
             font-size: 7pt;
             color: #666;
+            margin-top: auto;
           }
           
           .note-field {
@@ -362,7 +363,7 @@ export const usePrintCollection = () => {
             
             signatureImages.forEach((sig, index) => {
                 otherImages.push(`
-                  <div class="image-container" style="width: 1.2cm; height: 0.8cm;">
+                  <div class="image-container" style="width: 1.8cm; height: 2cm;">
                     <img src="${sig}" alt="Signature ${index + 1}" />
                     <div class="image-label">Signature ${index === 0 ? 'front' : 'back'}</div>
                   </div>
@@ -371,7 +372,7 @@ export const usePrintCollection = () => {
             
             if (watermarkImage) {
                 otherImages.push(`
-                  <div class="image-container" style="width: 1.5cm; height: 1.5cm;">
+                  <div class="image-container" style="width: 2cm; height: 2cm;">
                     <img src="${watermarkImage}" alt="Watermark" />
                     <div class="image-label">Watermark picture</div>
                   </div>
@@ -380,7 +381,7 @@ export const usePrintCollection = () => {
             
             if (tugraImage) {
                 otherImages.push(`
-                  <div class="image-container" style="width: 1.2cm; height: 1.2cm;">
+                  <div class="image-container" style="width: 1.8cm; height: 2cm;">
                     <img src="${tugraImage}" alt="Tugra" />
                     <div class="image-label">Togra picture</div>
                   </div>
@@ -440,7 +441,7 @@ export const usePrintCollection = () => {
                 
                 if (frontImage) {
                     allImages.push(`
-                      <div class="image-container" style="width: 2.5cm; height: 1.5cm;">
+                      <div class="image-container" style="width: 2.5cm; height: 2cm;">
                         <img src="${frontImage}" alt="Front" />
                         <div class="image-label">Front picture</div>
                       </div>
@@ -449,7 +450,7 @@ export const usePrintCollection = () => {
                 
                 if (backImage) {
                     allImages.push(`
-                      <div class="image-container" style="width: 2.5cm; height: 1.5cm;">
+                      <div class="image-container" style="width: 2.5cm; height: 2cm;">
                         <img src="${backImage}" alt="Back" />
                         <div class="image-label">Back picture</div>
                       </div>
