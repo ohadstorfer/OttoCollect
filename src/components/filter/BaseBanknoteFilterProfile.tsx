@@ -360,13 +360,25 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
   // Print handler
   const handlePrint = async () => {
-    if (collectionItems && collectionItems.length > 0 && profileUser) {
-      await printCollection(collectionItems, {
-        username: profileUser.username,
-        rank: profileUser.rank,
-        role: profileUser.role
-      }, countryName);
+    // Get the sorted items in the exact order they appear on the page
+    const itemsToPrint: CollectionItem[] = getFlattenedItemsForExport 
+      ? getFlattenedItemsForExport(activeTab)
+      : [];
+
+    if (!itemsToPrint || itemsToPrint.length === 0 || !profileUser) {
+      toast({
+        title: "No data to print",
+        description: "There are no items to print.",
+        variant: "destructive"
+      });
+      return;
     }
+
+    await printCollection(itemsToPrint, {
+      username: profileUser.username,
+      rank: profileUser.rank,
+      role: profileUser.role
+    }, countryName);
   };
 
   // Excel Export handler
