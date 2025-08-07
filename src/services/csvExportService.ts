@@ -90,7 +90,26 @@ function getColumnDefinitions(): CSVColumn[] {
       key: 'condition',
       header: 'Condition',
       required: true,
-      getValue: (item) => item.condition || ''
+      getValue: (item) => {
+        // Only return condition if item doesn't have grade
+        return (item.condition && !item.grade) ? item.condition : '';
+      }
+    },
+    {
+      key: 'grade',
+      header: 'Grade',
+      required: true,
+      getValue: (item) => {
+        // Only return grade if item has grade
+        if (!item.grade) return '';
+        
+        let gradeValue = '';
+        if (item.grade_by) gradeValue += `${item.grade_by} `;
+        gradeValue += item.grade;
+        if (item.grade_condition_description) gradeValue += ` - ${item.grade_condition_description}`;
+        
+        return gradeValue;
+      }
     },
     {
       key: 'prefix',
