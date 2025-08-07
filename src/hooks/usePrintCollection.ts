@@ -123,19 +123,6 @@ export const usePrintCollection = () => {
             flex-wrap: wrap;
           }
           
-          .field-item {
-            display: flex;
-            align-items: center;
-            gap: 0.1cm;
-            font-size: 8pt;
-          }
-          
-          .field-label {
-            font-weight: bold;
-            color: #333;
-            min-width: 0.8cm;
-          }
-          
           .field-value {
             padding: 0.05cm 0.1cm;
             border: 1px solid #ddd;
@@ -143,6 +130,7 @@ export const usePrintCollection = () => {
             background: white;
             min-width: 0.8cm;
             text-align: center;
+            font-size: 8pt;
           }
           
           .field-value.rarity {
@@ -150,6 +138,33 @@ export const usePrintCollection = () => {
             color: #c62828;
             border-color: #ef9a9a;
             font-weight: bold;
+          }
+          
+          .images-notes-container {
+            display: flex;
+            gap: 0.3cm;
+            align-items: flex-start;
+          }
+          
+          .main-images-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2cm;
+            flex-shrink: 0;
+          }
+          
+          .other-images-notes-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2cm;
+            flex: 1;
+          }
+          
+          .other-images-row {
+            display: flex;
+            gap: 0.2cm;
+            align-items: flex-start;
+            flex-wrap: wrap;
           }
           
           .images-row {
@@ -285,6 +300,15 @@ export const usePrintCollection = () => {
             return [...frontSignatures, ...backSignatures].slice(0, 2); // Limit to 2 signature images
         };
 
+        // Helper function to determine if images are horizontal (you can adjust this logic)
+        const areImagesHorizontal = (item: CollectionItem) => {
+            // For now, we'll assume images are horizontal if they exist
+            // In a real implementation, you might check image dimensions or have a flag
+            const frontImage = getImageUrl(item, 'front');
+            const backImage = getImageUrl(item, 'back');
+            return frontImage && backImage; // Simplified logic - adjust as needed
+        };
+
         const generateBanknoteRow = (item: CollectionItem) => {
             const frontImage = getImageUrl(item, 'front');
             const backImage = getImageUrl(item, 'back');
@@ -333,29 +357,11 @@ export const usePrintCollection = () => {
                 fields.push(`<span class="field-value">${item.banknote.sultanName}</span>`);
             }
 
-            // Generate images row - only show images that exist
-            const images = [];
-            
-            if (frontImage) {
-                images.push(`
-                  <div class="image-container" style="width: 2.5cm; height: 1.5cm;">
-                    <img src="${frontImage}" alt="Front" />
-                    <div class="image-label">Front picture</div>
-                  </div>
-                `);
-            }
-            
-            if (backImage) {
-                images.push(`
-                  <div class="image-container" style="width: 2.5cm; height: 1.5cm;">
-                    <img src="${backImage}" alt="Back" />
-                    <div class="image-label">Back picture</div>
-                  </div>
-                `);
-            }
+            // Generate other images (signatures, watermark, tugra)
+            const otherImages = [];
             
             signatureImages.forEach((sig, index) => {
-                images.push(`
+                otherImages.push(`
                   <div class="image-container" style="width: 1.2cm; height: 0.8cm;">
                     <img src="${sig}" alt="Signature ${index + 1}" />
                     <div class="image-label">Signature ${index === 0 ? 'front' : 'back'}</div>
@@ -364,7 +370,7 @@ export const usePrintCollection = () => {
             });
             
             if (watermarkImage) {
-                images.push(`
+                otherImages.push(`
                   <div class="image-container" style="width: 1.5cm; height: 1.5cm;">
                     <img src="${watermarkImage}" alt="Watermark" />
                     <div class="image-label">Watermark picture</div>
@@ -373,7 +379,7 @@ export const usePrintCollection = () => {
             }
             
             if (tugraImage) {
-                images.push(`
+                otherImages.push(`
                   <div class="image-container" style="width: 1.2cm; height: 1.2cm;">
                     <img src="${tugraImage}" alt="Tugra" />
                     <div class="image-label">Togra picture</div>
@@ -381,7 +387,7 @@ export const usePrintCollection = () => {
                 `);
             }
 
-            // Generate notes row - only show notes that exist
+            // Generate notes
             const notes = [];
             
             if (item.publicNote) {
@@ -401,13 +407,65 @@ export const usePrintCollection = () => {
                 `);
             }
 
-            return `
-        <div class="banknote-row">
-          ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
-          ${images.length > 0 ? `<div class="images-row">${images.join('')}</div>` : ''}
-          ${notes.length > 0 ? `<div class="notes-row">${notes.join('')}</div>` : ''}
-        </div>
-      `;
+            const isHorizontal = areImagesHorizontal(item);
+
+            if (isHorizontal && frontImage && backImage) {
+                // Horizontal layout: main images on left, other images and notes on right
+                return `
+          <div class="banknote-row">
+            ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
+            <div class="images-notes-container">
+              <div class="main-images-column">
+                <div style="display: flex; gap: 0.2cm;">
+                  <div class="image-container" style="width: 2.5cm; height: 3cm;">
+                    <img src="${frontImage}" alt="Front" />
+                    <div class="image-label">Front picture</div>
+                  </div>
+                  <div class="image-container" style="width: 2.5cm; height: 3cm;">
+                    <img src="${backImage}" alt="Back" />
+                    <div class="image-label">Back picture</div>
+                  </div>
+                </div>
+              </div>
+              <div class="other-images-notes-column">
+                ${otherImages.length > 0 ? `<div class="other-images-row">${otherImages.join('')}</div>` : ''}
+                ${notes.length > 0 ? `<div class="notes-row">${notes.join('')}</div>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+            } else {
+                // Vertical layout: all images in one row, notes below
+                const allImages = [];
+                
+                if (frontImage) {
+                    allImages.push(`
+                      <div class="image-container" style="width: 2.5cm; height: 1.5cm;">
+                        <img src="${frontImage}" alt="Front" />
+                        <div class="image-label">Front picture</div>
+                      </div>
+                    `);
+                }
+                
+                if (backImage) {
+                    allImages.push(`
+                      <div class="image-container" style="width: 2.5cm; height: 1.5cm;">
+                        <img src="${backImage}" alt="Back" />
+                        <div class="image-label">Back picture</div>
+                      </div>
+                    `);
+                }
+                
+                allImages.push(...otherImages);
+
+                return `
+          <div class="banknote-row">
+            ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
+            ${allImages.length > 0 ? `<div class="images-row">${allImages.join('')}</div>` : ''}
+            ${notes.length > 0 ? `<div class="notes-row">${notes.join('')}</div>` : ''}
+          </div>
+        `;
+            }
         };
 
         // Group items by sultan if sorting by sultan
