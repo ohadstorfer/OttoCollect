@@ -247,11 +247,11 @@ export const usePrintCollection = () => {
         }
         
         .note-value {
-  flex: 1;
-  border-bottom: 1px solid #ccc;
-  min-height: 0.3cm;
-  padding-bottom: 6px; 
-}
+          flex: 1;
+          border-bottom: 1px solid #ccc;
+          min-height: 0.3cm;
+          padding-bottom: 6px; 
+        }
         
         .page-break {
           page-break-before: always;
@@ -513,7 +513,7 @@ export const usePrintCollection = () => {
           </div>
         `;
             } else {
-                // Vertical layout: images on left, notes on right side (50% width) at bottom
+                // Vertical layout: all images in one row, notes at bottom
                 const allImages = [];
                 
                 if (frontImage) {
@@ -553,11 +553,10 @@ export const usePrintCollection = () => {
           <div class="banknote-row" style="display: flex; flex-direction: column; min-height: 6cm;">
             ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
             <div class="images-notes-container" style="flex: 1; display: flex; gap: 0.3cm;">
-              <div class="images-row" style="width: 50%; flex: 1;">
+              <div class="images-row" style="flex: 1;">
                 ${allImages.join('')}
-                 ${notes.length > 0 ? `<div class="notes-row" style="width: 50%; text-align: left; margin-bottom: 0.2cm;">${notes.join('')}</div>` : ''}
               </div>
-             
+              ${notes.length > 0 ? `<div class="notes-row" style="width: 30%; text-align: left; margin-top: auto; padding-top: 0.2cm;">${notes.join('')}</div>` : ''}
             </div>
           </div>
         `;
