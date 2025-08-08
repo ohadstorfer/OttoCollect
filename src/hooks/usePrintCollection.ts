@@ -191,8 +191,12 @@ export const usePrintCollection = () => {
           background: rgba(0,0,0,0.7);
           color: white;
           font-size: 5pt;
-          padding: 0.03cm;
+          padding: 0;
           text-align: center;
+          display: table-cell;
+          vertical-align: middle;
+          height: 0.5cm;
+          line-height: 1;
         }
         
         .notes-row {
