@@ -305,9 +305,9 @@ export const usePrintCollection = () => {
             const frontImage = getImageUrl(item, 'front');
             const backImage = getImageUrl(item, 'back');
             
-            if (!frontImage || !backImage) {
-                return false;
-            }
+            // if (!frontImage || !backImage) {
+            //     return false;
+            // }
             
             // Check image dimensions to determine orientation
             const checkImageOrientation = (imageUrl: string): Promise<boolean> => {
@@ -330,7 +330,7 @@ export const usePrintCollection = () => {
                 const backIsHorizontal = await checkImageOrientation(backImage);
                 
                 // If both images are horizontal, use horizontal layout
-                return frontIsHorizontal && backIsHorizontal;
+                return frontIsHorizontal || backIsHorizontal;
             } catch (error) {
                 // Default to vertical layout if there's an error
                 return false;
@@ -436,7 +436,7 @@ export const usePrintCollection = () => {
                 notes.push(`
                   <div class="note-field">
                     <span class="note-label">Public note:</span>
-                    <span >${item.publicNote}</span>
+                    <span class="note-value">${item.publicNote}</span>
                   </div>
                 `);
             }
@@ -444,14 +444,15 @@ export const usePrintCollection = () => {
             if (item.banknote.securityElement) {
                 notes.push(`
                   <div class="note-field">
-                    <span >${item.banknote.securityElement}</span>
+                    <span class="note-label">Security Element:</span>
+                    <span class="note-value">${item.banknote.securityElement}</span>
                   </div>
                 `);
             }
 
             const isHorizontal = await areImagesHorizontal(item);
 
-            if (isHorizontal && frontImage && backImage) {
+            if (isHorizontal && (frontImage || backImage)) {
                 // Horizontal layout: main images on left, other images and notes on right
                 return `
           <div class="banknote-row">
@@ -477,7 +478,7 @@ export const usePrintCollection = () => {
           </div>
         `;
             } else {
-                // Vertical layout: all images in one row, notes below
+                // Vertical layout: images on left, notes on right side (50% width) at bottom
                 const allImages = [];
                 
                 if (frontImage) {
@@ -502,15 +503,13 @@ export const usePrintCollection = () => {
                 allImages.push(...otherImages);
                 
                 return `
-          <div class="banknote-row">
+          <div class="banknote-row" style="display: flex; flex-direction: column; min-height: 6cm;">
             ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
-            <div class="images-notes-container">
-              <div style="display: flex; gap: 0.3cm; align-items: flex-start;">
-                <div class="images-row" style="flex: 1;">
-                  ${allImages.join('')}
-                </div>
-                ${notes.length > 0 ? `<div class="notes-row" style="width: 30%;">${notes.join('')}</div>` : ''}
+            <div class="images-notes-container" style="flex: 1; display: flex; gap: 0.3cm;">
+              <div class="images-row" style="width: 50%; flex: 1;">
+                ${allImages.join('')}
               </div>
+              ${notes.length > 0 ? `<div class="notes-row" style="width: 50%; text-align: left; margin-top: auto; padding-top: 0.2cm;">${notes.join('')}</div>` : ''}
             </div>
           </div>
         `;
