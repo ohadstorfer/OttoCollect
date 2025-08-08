@@ -29,7 +29,7 @@ export const usePrintCollection = () => {
           color: black;
           background: white;
           margin: 0;
-          padding: 1cm;
+          padding: 0.7cm;
           min-height: 100vh;
           width: 100%;
           -webkit-print-color-adjust: exact;
@@ -108,9 +108,8 @@ export const usePrintCollection = () => {
           min-width: 0.8cm;
           text-align: center;
           font-size: 8pt;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          display: table-cell;
+          vertical-align: middle;
           height: 0.6cm;
           line-height: 1;
           margin: 0;
