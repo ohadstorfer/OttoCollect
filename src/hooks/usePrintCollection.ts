@@ -108,6 +108,10 @@ export const usePrintCollection = () => {
           min-width: 0.8cm;
           text-align: center;
           font-size: 8pt;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 0.6cm;
         }
         
         .field-value.rarity {
