@@ -532,23 +532,48 @@ export const usePrintCollection = () => {
     const printCollection = async (collectionItems: CollectionItem[], userInfo: UserInfo, countryName?: string, activeTab?: string) => {
         setIsPrinting(true);
         try {
-            const printContent = generatePrintContent(collectionItems, userInfo, countryName, activeTab);
-            
-            const printWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-            if (printWindow) {
-                printWindow.document.write(printContent);
-                printWindow.document.close();
-                
-                // Focus the window and wait for content to load
-                printWindow.focus();
-                
-                // Wait for images to load before printing
-                setTimeout(() => {
-                    printWindow.print();
-                }, 1500);
-            }
+            const html = generatePrintContent(collectionItems, userInfo, countryName, activeTab);
+
+            // Create a hidden iframe to render the HTML with its styles
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+
+            const doc = iframe.contentDocument || iframe.contentWindow?.document;
+            if (!doc) throw new Error('Failed to initialize print frame');
+
+            doc.open();
+            doc.write(html);
+            doc.close();
+
+            // Give the browser a moment to lay out and load images
+            await new Promise((resolve) => setTimeout(resolve, 800));
+
+            const html2pdfModule = await import('html2pdf.js');
+            const html2pdf: any = (html2pdfModule as any).default || (html2pdfModule as any);
+
+            const filenameBase = `${userInfo.username}${countryName ? `-${countryName}` : ''}-collection`.replace(/\s+/g, '-');
+
+            await html2pdf()
+              .set({
+                margin: [0, 0, 0, 0],
+                filename: `${filenameBase}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['css', 'legacy'] },
+              })
+              .from(doc.body)
+              .save();
+
+            document.body.removeChild(iframe);
         } catch (error) {
-            console.error('Print failed:', error);
+            console.error('PDF generation failed:', error);
         } finally {
             setIsPrinting(false);
         }
