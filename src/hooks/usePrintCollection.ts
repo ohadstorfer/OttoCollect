@@ -37,8 +37,8 @@ export const usePrintCollection = () => {
         }
         
         .print-container {
-          max-width: none;
-          margin: 0;
+          max-width: 190mm;
+          margin: 0 auto;
           padding: 0;
           min-height: 100vh;
           width: 100%;
