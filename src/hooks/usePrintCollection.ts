@@ -10,7 +10,7 @@ interface UserInfo {
 export const usePrintCollection = () => {
     const [isPrinting, setIsPrinting] = useState(false);
 
-    const generatePrintContent = (collectionItems: CollectionItem[], userInfo: UserInfo, countryName?: string, activeTab?: string) => {
+    const generatePrintContent = async (collectionItems: CollectionItem[], userInfo: UserInfo, countryName?: string, activeTab?: string) => {
         const printStyles = `
       <style>
         * {
@@ -147,6 +147,31 @@ export const usePrintCollection = () => {
           gap: 0.2cm;
           align-items: flex-start;
           flex-wrap: wrap;
+          max-height: 4cm;
+          overflow: hidden;
+          width: 100%;
+        }
+        
+        /* CSS Grid only for horizontal layout */
+        .images-notes-container .other-images-notes-column .other-images-row {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.2cm;
+        }
+        
+        .other-images-row .image-container {
+          height: 2cm;
+          width: 100%;
+        }
+        
+        .other-images-row .image-container img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+        
+        .other-images-row .image-container .image-label {
+          width: 100% !important;
         }
         
         .images-row {
@@ -154,13 +179,15 @@ export const usePrintCollection = () => {
           gap: 0.2cm;
           align-items: flex-start;
           flex-wrap: wrap;
+          max-height: 4cm;
+          overflow: hidden;
         }
         
         .image-container {
           border: 1px solid #ccc;
           border-radius: 3px;
           overflow: hidden;
-          background: #f0f0f0;
+          background: transparent;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -274,16 +301,43 @@ export const usePrintCollection = () => {
             return [...frontSignatures, ...backSignatures].slice(0, 2); // Limit to 2 signature images
         };
 
-        // Helper function to determine if images are horizontal (you can adjust this logic)
-        const areImagesHorizontal = (item: CollectionItem) => {
-            // For now, we'll assume images are horizontal if they exist
-            // In a real implementation, you might check image dimensions or have a flag
+        const areImagesHorizontal = async (item: CollectionItem) => {
             const frontImage = getImageUrl(item, 'front');
             const backImage = getImageUrl(item, 'back');
-            return frontImage && backImage; // Simplified logic - adjust as needed
+            
+            if (!frontImage || !backImage) {
+                return false;
+            }
+            
+            // Check image dimensions to determine orientation
+            const checkImageOrientation = (imageUrl: string): Promise<boolean> => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        // If width > height, it's horizontal
+                        resolve(img.width > img.height);
+                    };
+                    img.onerror = () => {
+                        // Default to vertical if image fails to load
+                        resolve(false);
+                    };
+                    img.src = imageUrl;
+                });
+            };
+            
+            try {
+                const frontIsHorizontal = await checkImageOrientation(frontImage);
+                const backIsHorizontal = await checkImageOrientation(backImage);
+                
+                // If both images are horizontal, use horizontal layout
+                return frontIsHorizontal && backIsHorizontal;
+            } catch (error) {
+                // Default to vertical layout if there's an error
+                return false;
+            }
         };
 
-        const generateBanknoteRow = (item: CollectionItem) => {
+        const generateBanknoteRow = async (item: CollectionItem) => {
             const frontImage = getImageUrl(item, 'front');
             const backImage = getImageUrl(item, 'back');
             const watermarkImage = getImageUrl(item, 'watermark');
@@ -334,9 +388,23 @@ export const usePrintCollection = () => {
             // Generate other images (signatures, watermark, tugra)
             const otherImages = [];
             
+            // Calculate total number of other images for dynamic sizing
+            const totalOtherImages = signatureImages.length + (watermarkImage ? 1 : 0) + (tugraImage ? 1 : 0);
+            
+            // Calculate grid layout based on number of images - maintain reliable sizing
+            let imageHeight = '2cm';
+            let imageWidth = 'auto';
+            let minWidth = '1.8cm';
+            
+            if (totalOtherImages >= 4) {
+                // For 4+ images, reduce height to fit more content when breaking to new row
+                imageHeight = '1.5cm';
+                minWidth = '1.5cm';
+            }
+            
             signatureImages.forEach((sig, index) => {
                 otherImages.push(`
-                  <div class="image-container" style="height: 2cm; width: auto; min-width: 1.8cm;">
+                  <div class="image-container" style="height: ${imageHeight};">
                     <img src="${sig}" alt="Signature ${index + 1}" />
                     <div class="image-label">Signature ${index === 0 ? 'front' : 'back'}</div>
                   </div>
@@ -345,7 +413,7 @@ export const usePrintCollection = () => {
             
             if (watermarkImage) {
                 otherImages.push(`
-                  <div class="image-container" style="height: 2cm; width: auto; min-width: 2cm;">
+                  <div class="image-container" style="height: ${imageHeight};">
                     <img src="${watermarkImage}" alt="Watermark" />
                     <div class="image-label">Watermark picture</div>
                   </div>
@@ -354,7 +422,7 @@ export const usePrintCollection = () => {
             
             if (tugraImage) {
                 otherImages.push(`
-                  <div class="image-container" style="height: 2cm; width: auto; min-width: 1.8cm;">
+                  <div class="image-container" style="height: ${imageHeight};">
                     <img src="${tugraImage}" alt="Tugra" />
                     <div class="image-label">Togra picture</div>
                   </div>
@@ -368,7 +436,7 @@ export const usePrintCollection = () => {
                 notes.push(`
                   <div class="note-field">
                     <span class="note-label">Public note:</span>
-                    <span class="note-value">${item.publicNote}</span>
+                    <span >${item.publicNote}</span>
                   </div>
                 `);
             }
@@ -376,12 +444,12 @@ export const usePrintCollection = () => {
             if (item.banknote.securityElement) {
                 notes.push(`
                   <div class="note-field">
-                    <span class="note-value">${item.banknote.securityElement}</span>
+                    <span >${item.banknote.securityElement}</span>
                   </div>
                 `);
             }
 
-            const isHorizontal = areImagesHorizontal(item);
+            const isHorizontal = await areImagesHorizontal(item);
 
             if (isHorizontal && frontImage && backImage) {
                 // Horizontal layout: main images on left, other images and notes on right
@@ -389,21 +457,21 @@ export const usePrintCollection = () => {
           <div class="banknote-row">
             ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
             <div class="images-notes-container">
-              <div class="main-images-column">
+              <div class="main-images-column" style="width: 50%; flex-shrink: 0;">
                 <div style="display: flex; gap: 0.2cm;">
-                  <div class="image-container" style="height: 3cm; width: auto; min-width: 2.5cm;">
+                  <div class="image-container" style="height: 3cm; width: auto; min-width: 2.5cm; flex: 1;">
                     <img src="${frontImage}" alt="Front" />
                     <div class="image-label">Front picture</div>
                   </div>
-                  <div class="image-container" style="height: 3cm; width: auto; min-width: 2.5cm;">
+                  <div class="image-container" style="height: 3cm; width: auto; min-width: 2.5cm; flex: 1;">
                     <img src="${backImage}" alt="Back" />
                     <div class="image-label">Back picture</div>
                   </div>
                 </div>
-              </div>
-              <div class="other-images-notes-column">
-                ${otherImages.length > 0 ? `<div class="other-images-row">${otherImages.join('')}</div>` : ''}
                 ${notes.length > 0 ? `<div class="notes-row">${notes.join('')}</div>` : ''}
+              </div>
+              <div class="other-images-notes-column" style="width: 50%;">
+                ${otherImages.length > 0 ? `<div class="other-images-row">${otherImages.join('')}</div>` : ''}
               </div>
             </div>
           </div>
@@ -414,7 +482,7 @@ export const usePrintCollection = () => {
                 
                 if (frontImage) {
                     allImages.push(`
-                      <div class="image-container" style="height: 2cm; width: auto; min-width: 2.5cm;">
+                      <div class="image-container" style="height: 4cm; width: auto; background: transparent;">
                         <img src="${frontImage}" alt="Front" />
                         <div class="image-label">Front picture</div>
                       </div>
@@ -423,30 +491,37 @@ export const usePrintCollection = () => {
                 
                 if (backImage) {
                     allImages.push(`
-                      <div class="image-container" style="height: 2cm; width: auto; min-width: 2.5cm;">
+                      <div class="image-container" style="height: 4cm; width: auto; background: transparent;">
                         <img src="${backImage}" alt="Back" />
                         <div class="image-label">Back picture</div>
                       </div>
                     `);
                 }
                 
+                // Add other images
                 allImages.push(...otherImages);
-
+                
                 return `
           <div class="banknote-row">
             ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
-            ${allImages.length > 0 ? `<div class="images-row">${allImages.join('')}</div>` : ''}
-            ${notes.length > 0 ? `<div class="notes-row">${notes.join('')}</div>` : ''}
+            <div class="images-notes-container">
+              <div style="display: flex; gap: 0.3cm; align-items: flex-start;">
+                <div class="images-row" style="flex: 1;">
+                  ${allImages.join('')}
+                </div>
+                ${notes.length > 0 ? `<div class="notes-row" style="width: 30%;">${notes.join('')}</div>` : ''}
+              </div>
+            </div>
           </div>
         `;
             }
         };
-
+        
         // Group items by sultan if sorting by sultan
         const isSortedBySultan = activeTab === 'collection' && collectionItems.some(item => 
             item.banknote?.sultanName && item.banknote.sultanName !== ''
         );
-
+        
         let banknotesHtml = '';
         
         if (isSortedBySultan) {
@@ -462,19 +537,21 @@ export const usePrintCollection = () => {
             });
             
             // Generate HTML with sultan headers
-            sultanGroups.forEach((items, sultan) => {
+            for (const [sultan, items] of sultanGroups) {
+                const sultanBanknotes = await Promise.all(items.map(item => generateBanknoteRow(item)));
                 banknotesHtml += `
                   <div class="sultan-group">
                     <div class="sultan-header">${sultan}</div>
-                    ${items.map(item => generateBanknoteRow(item)).join('')}
+                    ${sultanBanknotes.join('')}
                   </div>
                 `;
-            });
+            }
         } else {
             // No sultan grouping, just list all items
-            banknotesHtml = collectionItems.map(item => generateBanknoteRow(item)).join('');
+            const banknoteRows = await Promise.all(collectionItems.map(item => generateBanknoteRow(item)));
+            banknotesHtml = banknoteRows.join('');
         }
-
+        
         return `
       <!DOCTYPE html>
       <html>
@@ -501,18 +578,18 @@ export const usePrintCollection = () => {
       </html>
     `;
     };
-
+    
     const printCollection = async (collectionItems: CollectionItem[], userInfo: UserInfo, countryName?: string, activeTab?: string) => {
         setIsPrinting(true);
         try {
-            const html = generatePrintContent(collectionItems, userInfo, countryName, activeTab);
-
+            const html = await generatePrintContent(collectionItems, userInfo, countryName, activeTab);
+            
             // Use html2pdf directly from HTML string to ensure our custom print layout is preserved
             const html2pdfModule = await import('html2pdf.js');
             const html2pdf: any = (html2pdfModule as any).default || (html2pdfModule as any);
-
+            
             const filenameBase = `${userInfo.username}${countryName ? `-${countryName}` : ''}-collection`.replace(/\s+/g, '-');
-
+            
             await html2pdf()
               .set({
                 margin: [0, 0, 0, 0],
@@ -530,6 +607,6 @@ export const usePrintCollection = () => {
             setIsPrinting(false);
         }
     };
-
+    
     return { printCollection, isPrinting };
-}; 
+};
