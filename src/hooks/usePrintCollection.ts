@@ -247,10 +247,11 @@ export const usePrintCollection = () => {
         }
         
         .note-value {
-          flex: 1;
-          border-bottom: 1px solid #ccc;
-          min-height: 0.3cm;
-        }
+  flex: 1;
+  border-bottom: 1px solid #ccc;
+  min-height: 0.3cm;
+  padding-bottom: 6px; 
+}
         
         .page-break {
           page-break-before: always;
@@ -301,33 +302,42 @@ export const usePrintCollection = () => {
             return [...frontSignatures, ...backSignatures].slice(0, 2); // Limit to 2 signature images
         };
 
-        const areImagesHorizontal = async (item: CollectionItem) => {
-            const frontImage = getImageUrl(item, 'front');
-            const backImage = getImageUrl(item, 'back');
-            
-            // if (!frontImage || !backImage) {
-            //     return false;
-            // }
-            
-            // Check image dimensions to determine orientation
-            const checkImageOrientation = (imageUrl: string): Promise<boolean> => {
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        // If width > height, it's horizontal
-                        resolve(img.width > img.height);
-                    };
-                    img.onerror = () => {
-                        // Default to vertical if image fails to load
-                        resolve(false);
-                    };
-                    img.src = imageUrl;
-                });
-            };
-            
+        const areImagesHorizontal = async (item: any) => {
             try {
-                const frontIsHorizontal = await checkImageOrientation(frontImage);
-                const backIsHorizontal = await checkImageOrientation(backImage);
+                const frontImage = getImageUrl(item, 'front');
+                const backImage = getImageUrl(item, 'back');
+                
+                // If no images exist, treat as horizontal layout
+                if (!frontImage && !backImage) {
+                    return true;
+                }
+                
+                // Check image dimensions to determine orientation
+                const checkImageOrientation = async (imageUrl: string): Promise<boolean> => {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            // If width > height, it's horizontal
+                            resolve(img.width > img.height);
+                        };
+                        img.onerror = () => {
+                            // Default to vertical if image fails to load
+                            resolve(false);
+                        };
+                        img.src = imageUrl;
+                    });
+                };
+                
+                let frontIsHorizontal = false;
+                let backIsHorizontal = false;
+                
+                if (frontImage) {
+                    frontIsHorizontal = await checkImageOrientation(frontImage);
+                }
+                
+                if (backImage) {
+                    backIsHorizontal = await checkImageOrientation(backImage);
+                }
                 
                 // If both images are horizontal, use horizontal layout
                 return frontIsHorizontal || backIsHorizontal;
@@ -444,7 +454,7 @@ export const usePrintCollection = () => {
             if (item.banknote.securityElement) {
                 notes.push(`
                   <div class="note-field">
-                    <span class="note-label">Security Element:</span>
+                    
                     <span class="note-value">${item.banknote.securityElement}</span>
                   </div>
                 `);
@@ -452,22 +462,47 @@ export const usePrintCollection = () => {
 
             const isHorizontal = await areImagesHorizontal(item);
 
-            if (isHorizontal && (frontImage || backImage)) {
+            if (isHorizontal) {
                 // Horizontal layout: main images on left, other images and notes on right
+                const mainImages = [];
+                
+                if (frontImage) {
+                    mainImages.push(`
+                      <div class="image-container" style="flex: 1;">
+                        <img src="${frontImage}" alt="Front" />
+                        <div class="image-label">Front picture</div>
+                      </div>
+                    `);
+                } else {
+                    mainImages.push(`
+                      <div class="image-container placeholder" style="flex: 1; height: 3cm; min-width: 2.5cm; background: white; border: 1px solid #ccc;">
+                        <div class="image-label">Front picture</div>
+                      </div>
+                    `);
+                }
+                
+                if (backImage) {
+                    mainImages.push(`
+                      <div class="image-container" style="flex: 1;">
+                        <img src="${backImage}" alt="Back" />
+                        <div class="image-label">Back picture</div>
+                      </div>
+                    `);
+                } else {
+                    mainImages.push(`
+                      <div class="image-container placeholder" style="flex: 1; height: 3cm; min-width: 2.5cm; background: white; border: 1px solid #ccc;">
+                        <div class="image-label">Back picture</div>
+                      </div>
+                    `);
+                }
+                
                 return `
           <div class="banknote-row">
             ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
             <div class="images-notes-container">
               <div class="main-images-column" style="width: 50%; flex-shrink: 0;">
                 <div style="display: flex; gap: 0.2cm;">
-                  <div class="image-container" style="height: 3cm; width: auto; min-width: 2.5cm; flex: 1;">
-                    <img src="${frontImage}" alt="Front" />
-                    <div class="image-label">Front picture</div>
-                  </div>
-                  <div class="image-container" style="height: 3cm; width: auto; min-width: 2.5cm; flex: 1;">
-                    <img src="${backImage}" alt="Back" />
-                    <div class="image-label">Back picture</div>
-                  </div>
+                  ${mainImages.join('')}
                 </div>
                 ${notes.length > 0 ? `<div class="notes-row">${notes.join('')}</div>` : ''}
               </div>
@@ -488,12 +523,24 @@ export const usePrintCollection = () => {
                         <div class="image-label">Front picture</div>
                       </div>
                     `);
+                } else {
+                    allImages.push(`
+                      <div class="image-container placeholder" style="height: 4cm; width: auto; background: white; border: 1px solid #ccc;">
+                        <div class="image-label">Front picture</div>
+                      </div>
+                    `);
                 }
                 
                 if (backImage) {
                     allImages.push(`
                       <div class="image-container" style="height: 4cm; width: auto; background: transparent;">
                         <img src="${backImage}" alt="Back" />
+                        <div class="image-label">Back picture</div>
+                      </div>
+                    `);
+                } else {
+                    allImages.push(`
+                      <div class="image-container placeholder" style="height: 4cm; width: auto; background: white; border: 1px solid #ccc;">
                         <div class="image-label">Back picture</div>
                       </div>
                     `);
@@ -508,8 +555,9 @@ export const usePrintCollection = () => {
             <div class="images-notes-container" style="flex: 1; display: flex; gap: 0.3cm;">
               <div class="images-row" style="width: 50%; flex: 1;">
                 ${allImages.join('')}
+                 ${notes.length > 0 ? `<div class="notes-row" style="width: 50%; text-align: left; margin-bottom: 0.2cm;">${notes.join('')}</div>` : ''}
               </div>
-              ${notes.length > 0 ? `<div class="notes-row" style="width: 50%; text-align: left; margin-top: auto; padding-top: 0.2cm;">${notes.join('')}</div>` : ''}
+             
             </div>
           </div>
         `;
