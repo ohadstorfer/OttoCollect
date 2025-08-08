@@ -101,7 +101,7 @@ export const usePrintCollection = () => {
         }
         
         .field-value {
-          padding: 0.05cm 0.1cm;
+          padding: 0;
           border: 1px solid #ddd;
           border-radius: 3px;
           background: white;
@@ -112,6 +112,8 @@ export const usePrintCollection = () => {
           align-items: center;
           justify-content: center;
           height: 0.6cm;
+          line-height: 1;
+          margin: 0;
         }
         
         .field-value.rarity {
