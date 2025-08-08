@@ -23,258 +23,222 @@ export const usePrintCollection = () => {
           height: 100%;
           width: 100%;
           overflow-x: hidden;
+          font-family: 'Arial', sans-serif;
+          font-size: 9pt;
+          line-height: 1.2;
+          color: black;
+          background: white;
+          margin: 0;
+          padding: 1cm;
+          min-height: 100vh;
+          width: 100%;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
+        }
+        
+        .print-container {
+          max-width: none;
+          margin: 0;
+          padding: 0;
+          min-height: 100vh;
+          width: 100%;
+        }
+        
+        .print-header {
+          text-align: center;
+          margin-bottom: 0.8cm;
+          border-bottom: 2px solid #333;
+          padding-bottom: 0.3cm;
+        }
+        
+        .print-header h1 {
+          font-size: 16pt;
+          font-weight: bold;
+          margin-bottom: 0.2cm;
+          color: #333;
+        }
+        
+        .total-amount {
+          font-size: 12pt;
+          font-weight: bold;
+          color: #333;
+          margin-bottom: 0.3cm;
+          text-align: center;
+        }
+        
+        .sultan-group {
+          margin-bottom: 0.5cm;
+          page-break-inside: avoid;
+        }
+        
+        .sultan-header {
+          font-size: 11pt;
+          font-weight: bold;
+          color: #333;
+          margin-bottom: 0.3cm;
+          padding: 0.2cm;
+          background: #f0f0f0;
+          border-left: 3px solid #333;
+        }
+        
+        .banknote-row {
+          display: flex;
+          flex-direction: column;
+          gap: 0.3cm;
+          margin-bottom: 0.5cm;
+          page-break-inside: avoid;
+          border: 1px solid #ddd;
+          padding: 0.3cm;
+          background: white;
+          min-height: 4cm;
+        }
+        
+        .fields-row {
+          display: flex;
+          gap: 0.2cm;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+        
+        .field-value {
+          padding: 0.05cm 0.1cm;
+          border: 1px solid #ddd;
+          border-radius: 3px;
+          background: white;
+          min-width: 0.8cm;
+          text-align: center;
+          font-size: 8pt;
+        }
+        
+        .field-value.rarity {
+          background: #ffebee;
+          color: #c62828;
+          border-color: #ef9a9a;
+          font-weight: bold;
+        }
+        
+        .images-notes-container {
+          display: flex;
+          gap: 0.3cm;
+          align-items: flex-start;
+        }
+        
+        .main-images-column {
+          display: flex;
+          flex-direction: column;
+          gap: 0.2cm;
+          flex-shrink: 0;
+        }
+        
+        .other-images-notes-column {
+          display: flex;
+          flex-direction: column;
+          gap: 0.1cm;
+          flex: 1;
+        }
+        
+        .other-images-row {
+          display: flex;
+          gap: 0.2cm;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+        
+        .images-row {
+          display: flex;
+          gap: 0.2cm;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+        
+        .image-container {
+          border: 1px solid #ccc;
+          border-radius: 3px;
+          overflow: hidden;
+          background: #f0f0f0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        }
+        
+        .image-container img {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+        }
+        
+        .image-container.placeholder {
+          background: #f0f0f0;
+          color: #999;
+          font-size: 6pt;
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .image-label {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(0,0,0,0.7);
+          color: white;
+          font-size: 5pt;
+          padding: 0.03cm;
+          text-align: center;
+        }
+        
+        .notes-row {
+          display: flex;
+          flex-direction: column;
+          gap: 0.05cm;
+          font-size: 7pt;
+          color: #666;
+          margin-top: auto;
+        }
+        
+        .note-field {
+          display: flex;
+          gap: 0.1cm;
+          align-items: center;
+        }
+        
+        .note-label {
+          font-weight: bold;
+          min-width: 1.5cm;
+        }
+        
+        .note-value {
+          flex: 1;
+          border-bottom: 1px solid #ccc;
+          min-height: 0.3cm;
+        }
+        
+        .page-break {
+          page-break-before: always;
+        }
+        
+        .no-print {
+          display: none !important;
+        }
+        
+        .banknote-row:nth-child(8n) {
+          page-break-after: always;
+        }
+        
+        @page {
+          size: A4;
+          margin: 0;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
         }
         
         @media print {
-          @page {
-            size: A4;
-            margin: 0;
+          * {
             -webkit-print-color-adjust: exact;
             color-adjust: exact;
-          }
-          
-          @page :first {
-            margin-top: 0;
-          }
-          
-          @page :left {
-            margin-left: 0;
-          }
-          
-          @page :right {
-            margin-right: 0;
-          }
-          
-          body {
-            font-family: 'Arial', sans-serif;
-            font-size: 9pt;
-            line-height: 1.2;
-            color: black;
-            background: white;
-            margin: 0;
-            padding: 1cm;
-            min-height: 100vh;
-            width: 100%;
-            -webkit-print-color-adjust: exact;
-            color-adjust: exact;
-          }
-          
-          .print-container {
-            max-width: none;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            width: 100%;
-          }
-          
-          .print-header {
-            text-align: center;
-            margin-bottom: 0.8cm;
-            border-bottom: 2px solid #333;
-            padding-bottom: 0.3cm;
-          }
-          
-          .print-header h1 {
-            font-size: 16pt;
-            font-weight: bold;
-            margin-bottom: 0.2cm;
-            color: #333;
-          }
-          
-          .total-amount {
-            font-size: 12pt;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 0.3cm;
-            text-align: center;
-          }
-          
-          .sultan-group {
-            margin-bottom: 0.5cm;
-            page-break-inside: avoid;
-          }
-          
-          .sultan-header {
-            font-size: 11pt;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 0.3cm;
-            padding: 0.2cm;
-            background: #f0f0f0;
-            border-left: 3px solid #333;
-          }
-          
-          .banknote-row {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3cm;
-            margin-bottom: 0.5cm;
-            page-break-inside: avoid;
-            border: 1px solid #ddd;
-            padding: 0.3cm;
-            background: white;
-            min-height: 4cm;
-          }
-          
-          .fields-row {
-            display: flex;
-            gap: 0.2cm;
-            align-items: center;
-            flex-wrap: wrap;
-          }
-          
-          .field-value {
-            padding: 0.05cm 0.1cm;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            background: white;
-            min-width: 0.8cm;
-            text-align: center;
-            font-size: 8pt;
-          }
-          
-          .field-value.rarity {
-            background: #ffebee;
-            color: #c62828;
-            border-color: #ef9a9a;
-            font-weight: bold;
-          }
-          
-          .images-notes-container {
-            display: flex;
-            gap: 0.3cm;
-            align-items: flex-start;
-          }
-          
-          .main-images-column {
-            display: flex;
-            flex-direction: column;
-            gap: 0.2cm;
-            flex-shrink: 0;
-          }
-          
-          .other-images-notes-column {
-            display: flex;
-            flex-direction: column;
-            gap: 0.1cm;
-            flex: 1;
-          }
-          
-          .other-images-row {
-            display: flex;
-            gap: 0.2cm;
-            align-items: flex-start;
-            flex-wrap: wrap;
-          }
-          
-          .images-row {
-            display: flex;
-            gap: 0.2cm;
-            align-items: flex-start;
-            flex-wrap: wrap;
-          }
-          
-          .image-container {
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            overflow: hidden;
-            background: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-          }
-          
-          .image-container img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-          }
-          
-          .image-container.placeholder {
-            background: #f0f0f0;
-            color: #999;
-            font-size: 6pt;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          
-          .image-label {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            font-size: 5pt;
-            padding: 0.03cm;
-            text-align: center;
-          }
-          
-          .notes-row {
-            display: flex;
-            flex-direction: column;
-            gap: 0.05cm;
-            font-size: 7pt;
-            color: #666;
-            margin-top: auto;
-          }
-          
-          .note-field {
-            display: flex;
-            gap: 0.1cm;
-            align-items: center;
-          }
-          
-          .note-label {
-            font-weight: bold;
-            min-width: 1.5cm;
-          }
-          
-          .note-value {
-            flex: 1;
-            border-bottom: 1px solid #ccc;
-            min-height: 0.3cm;
-          }
-          
-          .page-break {
-            page-break-before: always;
-          }
-          
-          .no-print {
-            display: none !important;
-          }
-          
-          @media print {
-            .banknote-row:nth-child(8n) {
-              page-break-after: always;
-            }
-          }
-        }
-        
-        /* Screen styles for preview */
-        @media screen {
-          body {
-            font-family: 'Arial', sans-serif;
-            font-size: 9pt;
-            line-height: 1.2;
-            color: black;
-            background: white;
-            margin: 0;
-            padding: 1cm;
-            min-height: 100vh;
-            width: 100%;
-          }
-          
-          .print-container {
-            max-width: 21cm;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            min-height: 29.7cm;
-            padding: 1cm;
           }
         }
       </style>
