@@ -541,7 +541,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 )}
 
                 {/* Print and Export buttons for collection owners */}
-                {isOwner && collectionItems && collectionItems.length > 0 && (
+                {/* {isOwner && collectionItems && collectionItems.length > 0 && ( */}
+                  { collectionItems && collectionItems.length > 0 && (
                   <>
                     <Button
                       variant="outline"

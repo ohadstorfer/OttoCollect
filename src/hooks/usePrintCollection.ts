@@ -37,7 +37,7 @@ export const usePrintCollection = () => {
         }
         
         .print-container {
-          max-width: 190mm;
+          max-width: 185mm;
           margin: 0 auto;
           padding: 0;
           min-height: 100vh;
@@ -69,6 +69,7 @@ export const usePrintCollection = () => {
         .sultan-group {
           margin-bottom: 0.5cm;
           page-break-inside: avoid;
+          break-inside: avoid;
         }
         
         .sultan-header {
@@ -79,6 +80,10 @@ export const usePrintCollection = () => {
           padding: 0.2cm;
           background: #f0f0f0;
           border-left: 3px solid #333;
+          page-break-after: avoid;
+          break-after: avoid;
+          page-break-inside: avoid;
+          break-inside: avoid;
         }
         
         .banknote-row {
@@ -86,11 +91,27 @@ export const usePrintCollection = () => {
           flex-direction: column;
           gap: 0.3cm;
           margin-bottom: 0.5cm;
-          page-break-inside: avoid;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+          page-break-before: auto;
+          break-before: auto;
           border: 1px solid #ddd;
           padding: 0.3cm;
           background: white;
           min-height: 4cm;
+          overflow: visible;
+          position: relative;
+        }
+        
+        .banknote-container {
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+          page-break-before: auto;
+          page-break-after: auto;
+          display: block;
+          position: relative;
+          margin-bottom: 0.3cm;
+          min-height: 6cm;
         }
         
         .fields-row {
@@ -98,6 +119,8 @@ export const usePrintCollection = () => {
           gap: 0.2cm;
           align-items: center;
           flex-wrap: wrap;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
         }
         
         .field-value {
@@ -164,10 +187,13 @@ export const usePrintCollection = () => {
           width: 100%;
         }
         
-        .other-images-row .image-container img {
+        .other-images-row         .image-container img {
           width: 100%;
           height: 100%;
           object-fit: contain;
+          image-rendering: optimizeQuality;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
         }
         
         .other-images-row .image-container .image-label {
@@ -181,6 +207,8 @@ export const usePrintCollection = () => {
           flex-wrap: wrap;
           max-height: 4cm;
           overflow: hidden;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
         }
         
         .image-container {
@@ -233,6 +261,8 @@ export const usePrintCollection = () => {
           font-size: 7pt;
           color: #666;
           margin-top: auto;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
         }
         
         .note-field {
@@ -261,6 +291,8 @@ export const usePrintCollection = () => {
           display: none !important;
         }
         
+
+        
         .banknote-row:nth-child(8n) {
           page-break-after: always;
         }
@@ -270,6 +302,12 @@ export const usePrintCollection = () => {
           margin: 0;
           -webkit-print-color-adjust: exact;
           color-adjust: exact;
+          orphans: 1;
+          widows: 1;
+        }
+        
+        * {
+          box-sizing: border-box;
         }
         
         @media print {
@@ -281,16 +319,24 @@ export const usePrintCollection = () => {
       </style>
     `;
 
-        const getImageUrl = (item: CollectionItem, imageType: 'front' | 'back' | 'watermark' | 'tugra') => {
-            switch (imageType) {
-                case 'front':
-                    return item.obverseImage || (item.banknote.imageUrls && item.banknote.imageUrls[0]) || null;
-                case 'back':
-                    return item.reverseImage || (item.banknote.imageUrls && item.banknote.imageUrls[1]) || null;
+        const getImageUrl = (item: any, type: 'front' | 'back') => {
+            const imageField = type === 'front' ? 'obverseImage' : 'reverseImage';
+            const thumbnailField = type === 'front' ? 'obverseImageThumbnail' : 'reverseImageThumbnail';
+            
+            // Use thumbnail if available, otherwise fall back to original
+            return item.banknote?.[thumbnailField] || 
+                   item.banknote?.[imageField] || 
+                   item[thumbnailField] || 
+                   item[imageField] || 
+                   null;
+        };
+
+        const getOtherImageUrl = (item: any, type: 'watermark' | 'tugra') => {
+            switch (type) {
                 case 'watermark':
-                    return item.banknote.watermarkUrl || null;
+                    return item.banknote?.watermarkUrl || null;
                 case 'tugra':
-                    return item.banknote.tughraUrl || null;
+                    return item.banknote?.tughraUrl || null;
                 default:
                     return null;
             }
@@ -316,6 +362,7 @@ export const usePrintCollection = () => {
                 const checkImageOrientation = async (imageUrl: string): Promise<boolean> => {
                     return new Promise((resolve) => {
                         const img = new Image();
+                        img.crossOrigin = 'anonymous';
                         img.onload = () => {
                             // If width > height, it's horizontal
                             resolve(img.width > img.height);
@@ -350,8 +397,8 @@ export const usePrintCollection = () => {
         const generateBanknoteRow = async (item: CollectionItem) => {
             const frontImage = getImageUrl(item, 'front');
             const backImage = getImageUrl(item, 'back');
-            const watermarkImage = getImageUrl(item, 'watermark');
-            const tugraImage = getImageUrl(item, 'tugra');
+            const watermarkImage = getOtherImageUrl(item, 'watermark');
+            const tugraImage = getOtherImageUrl(item, 'tugra');
             const signatureImages = getSignatureImages(item);
 
             // Generate fields row - only show fields that have values (no labels)
@@ -470,13 +517,11 @@ export const usePrintCollection = () => {
                     mainImages.push(`
                       <div class="image-container" style="flex: 1;">
                         <img src="${frontImage}" alt="Front" />
-                        <div class="image-label">Front picture</div>
                       </div>
                     `);
                 } else {
                     mainImages.push(`
                       <div class="image-container placeholder" style="flex: 1; height: 3cm; min-width: 2.5cm; background: white; border: 1px solid #ccc;">
-                        <div class="image-label">Front picture</div>
                       </div>
                     `);
                 }
@@ -485,29 +530,29 @@ export const usePrintCollection = () => {
                     mainImages.push(`
                       <div class="image-container" style="flex: 1;">
                         <img src="${backImage}" alt="Back" />
-                        <div class="image-label">Back picture</div>
                       </div>
                     `);
                 } else {
                     mainImages.push(`
                       <div class="image-container placeholder" style="flex: 1; height: 3cm; min-width: 2.5cm; background: white; border: 1px solid #ccc;">
-                        <div class="image-label">Back picture</div>
                       </div>
                     `);
                 }
                 
                 return `
-          <div class="banknote-row">
-            ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
-            <div class="images-notes-container">
-              <div class="main-images-column" style="width: 50%; flex-shrink: 0;">
-                <div style="display: flex; gap: 0.2cm;">
-                  ${mainImages.join('')}
+          <div class="banknote-container">
+            <div class="banknote-row">
+              ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
+              <div class="images-notes-container">
+                <div class="main-images-column" style="width: 50%; flex-shrink: 0;">
+                  <div style="display: flex; gap: 0.2cm;">
+                    ${mainImages.join('')}
+                  </div>
+                  ${notes.length > 0 ? `<div class="notes-row">${notes.join('')}</div>` : ''}
                 </div>
-                ${notes.length > 0 ? `<div class="notes-row">${notes.join('')}</div>` : ''}
-              </div>
-              <div class="other-images-notes-column" style="width: 50%;">
-                ${otherImages.length > 0 ? `<div class="other-images-row">${otherImages.join('')}</div>` : ''}
+                <div class="other-images-notes-column" style="width: 50%;">
+                  ${otherImages.length > 0 ? `<div class="other-images-row">${otherImages.join('')}</div>` : ''}
+                </div>
               </div>
             </div>
           </div>
@@ -520,13 +565,11 @@ export const usePrintCollection = () => {
                     allImages.push(`
                       <div class="image-container" style="height: 4cm; width: auto; background: transparent;">
                         <img src="${frontImage}" alt="Front" />
-                        <div class="image-label">Front picture</div>
                       </div>
                     `);
                 } else {
                     allImages.push(`
                       <div class="image-container placeholder" style="height: 4cm; width: auto; background: white; border: 1px solid #ccc;">
-                        <div class="image-label">Front picture</div>
                       </div>
                     `);
                 }
@@ -535,13 +578,11 @@ export const usePrintCollection = () => {
                     allImages.push(`
                       <div class="image-container" style="height: 4cm; width: auto; background: transparent;">
                         <img src="${backImage}" alt="Back" />
-                        <div class="image-label">Back picture</div>
                       </div>
                     `);
                 } else {
                     allImages.push(`
                       <div class="image-container placeholder" style="height: 4cm; width: auto; background: white; border: 1px solid #ccc;">
-                        <div class="image-label">Back picture</div>
                       </div>
                     `);
                 }
@@ -550,13 +591,15 @@ export const usePrintCollection = () => {
                 allImages.push(...otherImages);
                 
                 return `
-          <div class="banknote-row" style="display: flex; flex-direction: column; min-height: 6cm;">
-            ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
-            <div class="images-notes-container" style="flex: 1; display: flex; gap: 0.3cm;">
-              <div class="images-row" style="flex: 1;">
-                ${allImages.join('')}
+          <div class="banknote-container">
+            <div class="banknote-row" style="display: flex; flex-direction: column; min-height: 6cm;">
+              ${fields.length > 0 ? `<div class="fields-row">${fields.join('')}</div>` : ''}
+              <div class="images-notes-container" style="flex: 1; display: flex; gap: 0.3cm;">
+                <div class="images-row" style="flex: 1;">
+                  ${allImages.join('')}
+                </div>
+                ${notes.length > 0 ? `<div class="notes-row" style="width: 30%; text-align: left; margin-top: auto; padding-top: 0.2cm;">${notes.join('')}</div>` : ''}
               </div>
-              ${notes.length > 0 ? `<div class="notes-row" style="width: 30%; text-align: left; margin-top: auto; padding-top: 0.2cm;">${notes.join('')}</div>` : ''}
             </div>
           </div>
         `;
@@ -638,12 +681,23 @@ export const usePrintCollection = () => {
             
             await html2pdf()
               .set({
-                margin: [0, 0, 0, 0],
+                margin: [5, 5, 5, 5],
                 filename: `${filenameBase}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['css', 'legacy'] },
+                image: { type: 'jpeg', quality: 0.8 },
+                html2canvas: { 
+                    scale: 1.2, 
+                    useCORS: true, 
+                    allowTaint: true, 
+                    logging: false
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait'
+                },
+                pagebreak: { 
+                    mode: ['css', 'legacy']
+                },
               })
               .from(html)
               .save();
