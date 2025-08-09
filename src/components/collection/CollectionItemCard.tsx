@@ -349,7 +349,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             )}
             {(item.banknote.signaturesFront || item.banknote.signaturesBack) && (
               <p className="text-xs text-muted-foreground">
-                Signatures: {item.banknote.signaturesFront} {item.banknote.signaturesBack}
+                Signatures: 
+                {item.banknote.signaturesFront}
+                {item.banknote.signaturesFront && item.banknote.signaturesBack && ", "}
+                {item.banknote.signaturesBack}
               </p>
             )}
             {item.banknote.sealNames && (

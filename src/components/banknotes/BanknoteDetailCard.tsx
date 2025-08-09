@@ -563,9 +563,12 @@ const BanknoteDetailCard = ({
             )}
             {(banknote.signaturesFront || banknote.signaturesBack) && (
               <p className="text-xs text-muted-foreground">
-                Signatures: {banknote.signaturesFront} {banknote.signaturesBack}
+                Signatures: {banknote.signaturesFront}
+                {banknote.signaturesFront && banknote.signaturesBack && ", "}
+                {banknote.signaturesBack} 
               </p>
             )}
+
             {banknote.sealNames && (
               <p className="text-xs text-muted-foreground">
                 Seals: {banknote.sealNames}
