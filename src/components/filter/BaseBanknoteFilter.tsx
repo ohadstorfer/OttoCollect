@@ -72,6 +72,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const navigate = useNavigate();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
   
   const [search, setSearch] = useState(currentFilters.search || "");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
@@ -116,6 +117,15 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     setSelectedTypes(currentFilters.types || []);
     setSelectedSort(currentFilters.sort || []);
   }, [currentFilters]);
+
+  // Monitor viewMode and groupMode prop changes for debugging
+  useEffect(() => {
+    console.log("BaseBanknoteFilter: viewMode prop changed to:", viewMode);
+  }, [viewMode]);
+
+  useEffect(() => {
+    console.log("BaseBanknoteFilter: groupMode prop changed to:", groupMode);
+  }, [groupMode]);
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
@@ -238,15 +248,26 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   };
 
   const toggleViewMode = () => {
-    if (onViewModeChange) {
+    if (onViewModeChange && !isToggling) {
+      setIsToggling(true);
       const newMode = viewMode === 'grid' ? 'list' : 'grid';
+      console.log('BaseBanknoteFilter: Toggling view mode from', viewMode, 'to', newMode);
       onViewModeChange(newMode);
+      
+      // Reset toggle state after a short delay
+      setTimeout(() => setIsToggling(false), 300);
     }
   };
 
   const toggleGroupMode = () => {
-    if (onGroupModeChange) {
-      onGroupModeChange(!groupMode);
+    if (onGroupModeChange && !isToggling) {
+      setIsToggling(true);
+      const newGroupMode = !groupMode;
+      console.log('BaseBanknoteFilter: Toggling group mode from', groupMode, 'to', newGroupMode);
+      onGroupModeChange(newGroupMode);
+      
+      // Reset toggle state after a short delay
+      setTimeout(() => setIsToggling(false), 300);
     }
   };
 
@@ -328,6 +349,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 variant="outline"
                 size="icon"
                 onClick={toggleViewMode}
+                disabled={isLoading || isToggling}
                 title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
               >
                 {viewMode === 'grid' ? (
@@ -343,6 +365,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 variant={groupMode ? "default" : "outline"}
                 size="icon"
                 onClick={toggleGroupMode}
+                disabled={isLoading || isToggling}
                 aria-label={`Toggle group mode ${groupMode ? 'off' : 'on'}`}
                 title="Group similar banknotes"
               >

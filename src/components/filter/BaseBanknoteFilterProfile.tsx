@@ -136,6 +136,10 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
   const [selectedSort, setSelectedSort] = useState<string[]>(currentFilters.sort || []);
   
+  // Local state for immediate UI updates
+  const [localViewMode, setLocalViewMode] = useState(viewMode);
+  const [localGroupMode, setLocalGroupMode] = useState(groupMode);
+  
   const isLocalChange = useRef(false);
   const prevFiltersRef = useRef<DynamicFilterState | null>(null);
 
@@ -191,6 +195,17 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     setSelectedTypes(currentFilters.types || []);
     setSelectedSort(currentFilters.sort || []);
   }, [currentFilters]);
+
+  // Sync local state with props
+  useEffect(() => {
+    setLocalViewMode(viewMode);
+    console.log("BaseBanknoteFilterProfile: viewMode prop changed to:", viewMode);
+  }, [viewMode]);
+
+  useEffect(() => {
+    setLocalGroupMode(groupMode);
+    console.log("BaseBanknoteFilterProfile: groupMode prop changed to:", groupMode);
+  }, [groupMode]);
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
@@ -314,14 +329,19 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
   const toggleViewMode = () => {
     if (onViewModeChange) {
-      const newMode = viewMode === 'grid' ? 'list' : 'grid';
+      const newMode = localViewMode === 'grid' ? 'list' : 'grid';
+      console.log('BaseBanknoteFilterProfile: Toggling view mode from', localViewMode, 'to', newMode);
+      setLocalViewMode(newMode); // Immediate local update
       onViewModeChange(newMode);
     }
   };
 
   const toggleGroupMode = () => {
     if (onGroupModeChange) {
-      onGroupModeChange(!groupMode);
+      const newGroupMode = !localGroupMode;
+      console.log('BaseBanknoteFilterProfile: Toggling group mode from', localGroupMode, 'to', newGroupMode);
+      setLocalGroupMode(newGroupMode); // Immediate local update
+      onGroupModeChange(newGroupMode);
     }
   };
 
@@ -518,9 +538,10 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       variant="outline"
                       size="icon"
                       onClick={toggleViewMode}
-                      title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+                      disabled={isLoading}
+                      title={`Switch to ${localViewMode === 'grid' ? 'list' : 'grid'} view`}
                     >
-                      {viewMode === 'grid' ? (
+                      {localViewMode === 'grid' ? (
                         <LayoutList className="h-4 w-4" />
                       ) : (
                         <LayoutGrid className="h-4 w-4" />
@@ -530,10 +551,11 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 
                 {onGroupModeChange && (
                   <Button
-                    variant={groupMode ? "default" : "outline"}
+                    variant={localGroupMode ? "default" : "outline"}
                     size="icon"
                     onClick={toggleGroupMode}
-                    aria-label={`Toggle group mode ${groupMode ? 'off' : 'on'}`}
+                    disabled={isLoading}
+                    aria-label={`Toggle group mode ${localGroupMode ? 'off' : 'on'}`}
                     title="Group similar banknotes"
                   >
                     <Layers className="h-4 w-4" />
@@ -541,8 +563,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 )}
 
                 {/* Print and Export buttons for collection owners */}
-                {/* {isOwner && collectionItems && collectionItems.length > 0 && ( */}
-                  { collectionItems && collectionItems.length > 0 && (
+                {isOwner && collectionItems && collectionItems.length > 0 && (
+                  // { collectionItems && collectionItems.length > 0 && (
                   <>
                     <Button
                       variant="outline"
