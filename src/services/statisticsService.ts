@@ -280,8 +280,35 @@ export const statisticsService = {
     if (error) console.error('Error tracking blog post view:', error);
   },
 
-  // Track guest session
+  // Track guest session with activity threshold
   async trackGuestSession() {
+    // Only track if user has been browsing for a meaningful amount of time
+    // and has shown genuine engagement (page views, interactions)
+    const sessionStartTime = sessionStorage.getItem('session_start_time');
+    const pageViewCount = parseInt(sessionStorage.getItem('page_view_count') || '0');
+    const currentTime = Date.now();
+    
+    // Set session start time if not exists
+    if (!sessionStartTime) {
+      sessionStorage.setItem('session_start_time', currentTime.toString());
+      sessionStorage.setItem('page_view_count', '1');
+      return; // Don't track on first page load
+    }
+    
+    // Increment page view count
+    sessionStorage.setItem('page_view_count', (pageViewCount + 1).toString());
+    
+    // Only track as genuine guest after meaningful engagement:
+    // - At least 30 seconds of browsing time
+    // - At least 2 page views or interactions
+    const browsingTime = currentTime - parseInt(sessionStartTime);
+    const minBrowsingTime = 30 * 1000; // 30 seconds
+    const minPageViews = 2;
+    
+    if (browsingTime < minBrowsingTime || pageViewCount < minPageViews) {
+      return; // Not enough engagement yet
+    }
+    
     // Generate a unique session ID for this browser session
     let sessionId = sessionStorage.getItem('guest_session_id');
     if (!sessionId) {

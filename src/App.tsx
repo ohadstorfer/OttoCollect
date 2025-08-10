@@ -1,5 +1,5 @@
 
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { HelmetProvider } from 'react-helmet-async';
@@ -75,6 +75,7 @@ function App() {
   const { i18n } = useTranslation();
   const { theme } = useTheme();
   const { user } = useAuth();
+  const location = useLocation();
   
   // Auto-scroll to top on route changes
   useScrollToTop();
@@ -91,12 +92,12 @@ function App() {
     };
   }, [i18n]);
 
-  // Track guest sessions for non-authenticated users
+  // Track guest sessions for non-authenticated users with page view tracking
   useEffect(() => {
     if (!user) {
       statisticsService.trackGuestSession();
     }
-  }, [user]);
+  }, [user, location.pathname]); // Track on route changes for better page view counting
 
   return (
     <LanguageProvider>
