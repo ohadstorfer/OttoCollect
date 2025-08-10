@@ -50,7 +50,8 @@ export const BadgesDialog = ({
   badgeCategories,
   isLoading = false
 }: BadgesDialogProps) => {
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(); // Mobile detection hook
+  console.log('BadgesDialog: isMobile =', isMobile);
 
   const content = (
     <ScrollArea className="flex-1 px-1">
