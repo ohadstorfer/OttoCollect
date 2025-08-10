@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import UserProfileLink from '@/components/common/UserProfileLink';
 import { Users, UserPlus, User, MessageCircle } from 'lucide-react';
 import { SendMessage } from '@/components/messages/SendMessage';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from "@/context/ThemeContext";
 import BadgesDialog from '../badges/BadgesDialog';
 import BadgeDisplay, { BadgeInfo } from '../badges/BadgeDisplay';
@@ -20,6 +20,7 @@ interface FollowStatsProps {
   profileId: string;
   isOwnProfile: boolean;
   username: string;
+  showBadges?: boolean;
 }
 
 const UserProfileWrapper = ({ 
@@ -48,15 +49,27 @@ const UserProfileWrapper = ({
   );
 };
 
-export function FollowStats({ profileId, isOwnProfile, username }: FollowStatsProps) {
+export function FollowStats({ profileId, isOwnProfile, username, showBadges = false }: FollowStatsProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showFollowersDialog, setShowFollowersDialog] = useState(false);
   const [showFollowingDialog, setShowFollowingDialog] = useState(false);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
-  const [showBadgesDialog, setShowBadgesDialog] = useState(false);
+  const [showBadgesDialog, setShowBadgesDialog] = useState(showBadges);
+
+  // Update dialog state when showBadges prop changes and clear URL parameter
+  React.useEffect(() => {
+    if (showBadges) {
+      setShowBadgesDialog(true);
+      // Clear the showBadges parameter from URL
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('showBadges');
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [showBadges, searchParams, setSearchParams]);
 
   // Use React Query for badge data
   const { data: highestBadge, isLoading: badgeLoading } = useQuery({

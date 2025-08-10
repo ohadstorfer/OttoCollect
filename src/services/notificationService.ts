@@ -111,21 +111,9 @@ export const notificationService = {
         return `/blog/${notification.reference_id}`;
       case 'badge_earned':
       case 'badge_achievement':
-        console.log('Badge notification - checking for blog_post_id:', notification.reference_data?.blog_post_id);
-        console.log('Badge notification - checking for reference_id:', notification.reference_id);
-        // For badge notifications, check for blog post ID in reference_data
-        if (notification.reference_data?.blog_post_id) {
-          console.log('Navigating to blog post:', `/blog/${notification.reference_data.blog_post_id}`);
-          return `/blog/${notification.reference_data.blog_post_id}`;
-        }
-        // Also check reference_id as fallback
-        if (notification.reference_id) {
-          console.log('Navigating to blog post (fallback):', `/blog/${notification.reference_id}`);
-          return `/blog/${notification.reference_id}`;
-        }
-        // Fallback to user profile if no blog post ID
-        console.log('Navigating to profile (fallback):', `/profile/${notification.reference_data?.recipient_username}`);
-        return `/profile/${notification.reference_data?.recipient_username}`;
+        // For badge notifications, navigate to user profile with badges parameter
+        const username = notification.reference_data?.recipient_username;
+        return username ? `/profile/${username}?showBadges=true` : '/';
       default:
         return '/';
     }
