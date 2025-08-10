@@ -16,9 +16,10 @@ interface ProfileHeaderProps {
   profile: User;
   isEditingProfile?: boolean;
   onEditProfileClick?: () => void;
+  showBadges?: boolean;
 }
 
-export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }: ProfileHeaderProps) {
+export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick, showBadges = false }: ProfileHeaderProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -131,6 +132,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                   profileId={profile.id}
                   isOwnProfile={!!isOwnProfile}
                   username={profile.username}
+                  showBadges={showBadges}
                 />
               </div>
             </div>
@@ -234,6 +236,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick }:
                 profileId={profile.id}
                 isOwnProfile={!!isOwnProfile}
                 username={profile.username}
+                showBadges={showBadges}
               />
             </div>
           </div>

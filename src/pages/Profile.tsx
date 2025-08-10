@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -14,12 +14,16 @@ import { fetchCountryByName, fetchCountryById } from '@/services/countryService'
 const Profile: React.FC = () => {
   const { username: routeUsername, country: routeCountry } = useParams<{ username?: string; country?: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user: authUser } = useAuth();
   const [selectedCountry, setSelectedCountry] = React.useState<string | null>(null);
   const [showCountryDetail, setShowCountryDetail] = React.useState(false);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
   const [isLoadingCountry, setIsLoadingCountry] = React.useState(false);
   const { theme } = useTheme();
+
+  // Check if we should show badges dialog from URL parameter
+  const showBadges = searchParams.get('showBadges') === 'true';
 
   const username = routeUsername || authUser?.username;
 
@@ -178,6 +182,7 @@ const Profile: React.FC = () => {
           profile={profile} 
           isEditingProfile={isEditingProfile} 
           onEditProfileClick={() => setIsEditingProfile(true)}
+          showBadges={showBadges}
         />
         
       </div>
