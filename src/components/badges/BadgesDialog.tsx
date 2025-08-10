@@ -110,13 +110,62 @@ export const BadgesDialog = ({
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="max-h-[85vh] flex flex-col">
-          <DrawerHeader className="px-4 py-3 border-b">
+          <DrawerHeader className="px-4 py-3 border-b flex-shrink-0">
             <DrawerTitle className="text-lg font-semibold text-center">
               <span>Achievements</span>
             </DrawerTitle>
           </DrawerHeader>
-          <div className="flex-1 overflow-hidden px-4 pb-6">
-            {content}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full px-4 pb-6">
+              <div className="grid grid-cols-1 gap-3 py-4">
+                {isLoading ? (
+                  // Loading skeleton - show 4 ghost category cards
+                  <>
+                    <GhostCategoryCard />
+                    <GhostCategoryCard />
+                    <GhostCategoryCard />
+                    <GhostCategoryCard />
+                  </>
+                ) : (
+                  // Actual content
+                  badgeCategories.map((category) => {
+                    const progress = category.nextThreshold 
+                      ? (category.currentValue / category.nextThreshold) * 100
+                      : 100;
+                      
+                    return (
+                      <Card key={category.name} className="p-3 space-y-2">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-sm font-medium"><span>{category.name}</span></h3>
+                          <span className="text-xs text-muted-foreground">
+                            {category.currentValue} / {category.nextThreshold || 'Max'}
+                          </span>
+                        </div>
+                        
+                        <Progress value={progress} className="h-1" />
+                        
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {category.badges.length > 0 ? (
+                            category.badges.map((badge) => (
+                              <BadgeDisplay
+                                key={badge.id}
+                                badge={badge}
+                                size="sm"
+                                showStage={true}
+                              />
+                            ))
+                          ) : (
+                            <span className="text-xs text-muted-foreground py-2">
+                              No badges earned yet
+                            </span>
+                          )}
+                        </div>
+                      </Card>
+                    );
+                  })
+                )}
+              </div>
+            </ScrollArea>
           </div>
         </DrawerContent>
       </Drawer>
