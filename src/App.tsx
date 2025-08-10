@@ -45,6 +45,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { Router } from "react-router-dom";
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import '@/i18n/config';  // Import this at the top
 import AboutUs from "./pages/AboutUs";
 import Blog from "./pages/Blog";
@@ -74,6 +75,9 @@ function App() {
   const { i18n } = useTranslation();
   const { theme } = useTheme();
   const { user } = useAuth();
+  
+  // Auto-scroll to top on route changes
+  useScrollToTop();
 
   useEffect(() => {
     // Force a re-render when language changes

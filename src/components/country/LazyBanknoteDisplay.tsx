@@ -94,12 +94,7 @@ const LazyBanknoteDisplay: React.FC<LazyBanknoteDisplayProps> = ({
         </div>
       )}
 
-      {/* No more items indicator */}
-      {!hasMore && visibleItems.length > 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          All banknotes loaded
-        </div>
-      )}
+      
 
       {/* Empty state */}
       {!isLoading && visibleItems.length === 0 && (
