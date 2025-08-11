@@ -43,6 +43,7 @@ export const useOptimizedBanknoteGroups = ({
       map.set(normalizedKey, category.order);
     });
     console.log(`  Final category order map:`, map);
+    console.log(`  Specific check for "first kaime em. 1-6   (1840-1850)":`, map.get("first kaime em. 1-6   (1840-1850)"));
     return map;
   }, [categoryOrder]);
 
