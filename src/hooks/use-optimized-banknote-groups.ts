@@ -3,9 +3,8 @@ import { DetailedBanknote } from '@/types';
 import { getMixedBanknoteItems, getMixedBanknoteItemsBySultan, MixedBanknoteItem } from '@/utils/banknoteGrouping';
 
 interface CategoryDefinition {
-  id: string;
   name: string;
-  display_order: number;
+  order: number;
 }
 
 export interface BanknoteGroupedData {
@@ -37,9 +36,12 @@ export const useOptimizedBanknoteGroups = ({
   // Memoize category order map for O(1) lookups
   const categoryOrderMap = useMemo(() => {
     const map = new Map<string, number>();
+    console.log(`\n📋 [useOptimizedBanknoteGroups Debug] Category order data:`, categoryOrder);
     categoryOrder.forEach(category => {
-      map.set(category.name.toLowerCase(), category.display_order);
+      console.log(`  Mapping category: "${category.name}" -> order: ${category.order}`);
+      map.set(category.name.toLowerCase(), category.order);
     });
+    console.log(`  Final category order map:`, map);
     return map;
   }, [categoryOrder]);
 
@@ -101,9 +103,14 @@ export const useOptimizedBanknoteGroups = ({
     });
 
     // Sort groups by category order
+    console.log(`\n🔄 [OptimizedBanknoteGroups Debug] Before sorting - categories:`, 
+      processedGroups.map(g => `"${g.category}" (${g.items.length} items)`));
+    
     processedGroups.sort((a, b) => {
       const aOrder = categoryOrderMap.get(a.categoryId) || 999;
       const bOrder = categoryOrderMap.get(b.categoryId) || 999;
+      
+      console.log(`  Comparing categories: "${a.category}" (order: ${aOrder}) vs "${b.category}" (order: ${bOrder})`);
       
       if (aOrder !== bOrder) {
         return aOrder - bOrder;
@@ -112,6 +119,9 @@ export const useOptimizedBanknoteGroups = ({
       // Fallback to alphabetical if same order
       return a.category.localeCompare(b.category);
     });
+    
+    console.log(`\n✅ [OptimizedBanknoteGroups Debug] After sorting - final order:`, 
+      processedGroups.map((g, i) => `${i + 1}. "${g.category}" (${g.items.length} items)`));
 
     // Log final sultan group order for each category
     console.log(`\n✅ [OptimizedBanknoteGroups] Final result:`);
