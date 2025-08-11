@@ -128,31 +128,9 @@ export const useOptimizedBanknoteGroups = ({
       }
     });
 
-    // Sort groups by category order
-    console.log(`\n🔄 [OptimizedBanknoteGroups Debug] Before sorting - categories:`, 
+    // Data comes pre-sorted from database by display_order, no need to sort
+    console.log(`\n✅ [OptimizedBanknoteGroups Debug] Using database order - categories:`, 
       processedGroups.map(g => `"${g.category}" (${g.items.length} items)`));
-    
-    // TEMPORARILY DISABLE SORTING TO TEST IF DATA COMES IN CORRECT ORDER
-    console.log(`\n⚠️  [TESTING] Skipping sort to test if data comes in correct order`);
-    
-    // processedGroups.sort((a, b) => {
-    //   // Debug the actual values
-    //   console.log(`🔍 [Sorting Debug] Category A: "${a.category}", CategoryId: "${a.categoryId}"`);
-    //   console.log(`🔍 [Sorting Debug] Category B: "${b.category}", CategoryId: "${b.categoryId}"`);
-      
-    //   // Use the already normalized categoryId
-    //   const aOrder = categoryOrderMap.get(a.categoryId) || 999;
-    //   const bOrder = categoryOrderMap.get(b.categoryId) || 999;
-      
-    //   console.log(`  Comparing categories: "${a.category}" (categoryId: "${a.categoryId}") (order: ${aOrder}) vs "${b.category}" (categoryId: "${b.categoryId}") (order: ${bOrder})`);
-      
-    //   if (aOrder !== bOrder) {
-    //     return aOrder - bOrder;
-    //   }
-      
-    //   // Fallback to alphabetical if same order
-    //   return a.category.localeCompare(b.category);
-    // });
     
     console.log(`\n✅ [OptimizedBanknoteGroups Debug] After sorting - final order:`, 
       processedGroups.map((g, i) => `${i + 1}. "${g.category}" (${g.items.length} items)`));
