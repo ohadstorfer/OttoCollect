@@ -69,10 +69,13 @@ export const useCountryData = ({
         setCountryId(countryData.id);
 
         const categories = await fetchCategoriesByCountryId(countryData.id);
+        console.log("CountryDetail: Raw categories from database:", categories);
+        
         const orderMap = categories.map((cat: CategoryDefinition) => ({
           name: cat.name,
           order: cat.display_order
         }));
+        console.log("CountryDetail: Mapped category order:", orderMap);
         setCategoryOrder(orderMap);
 
         const { data: currencyRows, error: currencyError } = await supabase

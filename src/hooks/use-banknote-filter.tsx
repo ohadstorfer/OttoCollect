@@ -253,9 +253,10 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     
     console.log(`Found ${categoryMap.size} categories in filtered items`);
     
-    // Add all categories in alphabetical order
+    // Add all categories in database order (no sorting to respect display_order)
+    // This ensures consistent category ordering across all users regardless of their filter preferences
+    // User preferences only affect item sorting within categories, not category order itself
     Array.from(categoryMap.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
       .forEach(([category, categoryItems]) => {
         if (!categoryItems || categoryItems.length === 0) return;
           
@@ -319,6 +320,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       });
     
     console.log(`Grouping complete: ${groups.length} groups created`);
+    console.log(`Categories displayed in database order (display_order) for consistent user experience`);
     return groups;
   }, [filteredItems, filters.sort, getBanknote]);
 

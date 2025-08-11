@@ -284,6 +284,8 @@ export const useDynamicFilter = <T extends FilterableItem>({
     });
     
     // Convert groups object to array - use database order (no sorting)
+    // This ensures consistent category ordering across all users regardless of their filter preferences
+    // User preferences only affect item sorting within categories, not category order itself
     return Object.values(groups)
       .map(group => ({
         ...group,

@@ -33,16 +33,25 @@ export const useOptimizedBanknoteGroups = ({
   countryId,
   sultanOrderMap
 }: GroupingOptions): BanknoteGroupedData[] => {
+  console.log("🚨 [DEBUG] useOptimizedBanknoteGroups called with categoryOrder:", categoryOrder);
+  console.log("🚨 [DEBUG] This is a test to see if the file is being updated!");
   // Memoize category order map for O(1) lookups
   const categoryOrderMap = useMemo(() => {
     const map = new Map<string, number>();
     console.log(`\n📋 [useOptimizedBanknoteGroups Debug] Category order data:`, categoryOrder);
-    categoryOrder.forEach(category => {
+    console.log(`  Category order array length:`, categoryOrder.length);
+    console.log(`  Category order array type:`, typeof categoryOrder);
+    console.log(`  Category order array:`, JSON.stringify(categoryOrder, null, 2));
+    
+    categoryOrder.forEach((category, index) => {
       const normalizedKey = category.name.toLowerCase().trim();
-      console.log(`  Mapping category: "${category.name}" -> normalized key: "${normalizedKey}" -> order: ${category.order}`);
+      console.log(`  [${index}] Mapping category: "${category.name}" -> normalized key: "${normalizedKey}" -> order: ${category.order}`);
       map.set(normalizedKey, category.order);
     });
+    
     console.log(`  Final category order map:`, map);
+    console.log(`  Map size:`, map.size);
+    console.log(`  All map entries:`, Array.from(map.entries()));
     console.log(`  Specific check for "first kaime em. 1-6   (1840-1850)":`, map.get("first kaime em. 1-6   (1840-1850)"));
     return map;
   }, [categoryOrder]);
@@ -128,18 +137,60 @@ export const useOptimizedBanknoteGroups = ({
       }
     });
 
-    // Data comes pre-sorted from database by display_order, no need to sort
-    console.log(`\n✅ [OptimizedBanknoteGroups Debug] Using database order - categories:`, 
-      processedGroups.map(g => `"${g.category}" (${g.items.length} items)`));
+    // Sort categories by their defined order from categoryOrder parameter
+    console.log(`\n🔄 [Category Sorting Debug] Starting category sorting...`);
+    console.log(`  Processed groups before sorting:`, processedGroups.map(g => g.category));
+    console.log(`  Category order map keys:`, Array.from(categoryOrderMap.keys()));
     
-    console.log(`\n✅ [OptimizedBanknoteGroups Debug] After sorting - final order:`, 
-      processedGroups.map((g, i) => `${i + 1}. "${g.category}" (${g.items.length} items)`));
+    // Test: Hardcoded sort to verify sorting logic works
+    console.log(`\n🧪 [Test Sort] Testing with hardcoded order...`);
+    const testOrder = [
+      "First Kaime Em. 1-6   (1840-1850)",
+      "First Kaime Em. 7-14   (1851-1861)", 
+      "War 1293 Banknotes  (1876-1877)",
+      "World War 1. Banknotes  (1915-1918)",
+      "Imperial Ottoman Bank",
+      "Stamp Currency  (1917-1919)"
+    ];
+    
+    const testSorted = processedGroups.sort((a, b) => {
+      const aIndex = testOrder.indexOf(a.category);
+      const bIndex = testOrder.indexOf(b.category);
+      const aOrder = aIndex === -1 ? 999 : aIndex;
+      const bOrder = bIndex === -1 ? 999 : bIndex;
+      
+      console.log(`🧪 [Test Sort] "${a.category}" (index: ${aIndex}) vs "${b.category}" (index: ${bIndex}) -> ${aOrder - bOrder}`);
+      return aOrder - bOrder;
+    });
+    
+    console.log(`🧪 [Test Sort] Test sorted result:`, testSorted.map(g => g.category));
+    
+    // Now try the real sorting
+    const sortedGroups = processedGroups.sort((a, b) => {
+      const aKey = a.category.toLowerCase().trim();
+      const bKey = b.category.toLowerCase().trim();
+      const aOrder = categoryOrderMap.get(aKey) ?? Number.MAX_SAFE_INTEGER;
+      const bOrder = categoryOrderMap.get(bKey) ?? Number.MAX_SAFE_INTEGER;
+      
+      console.log(`\n🔄 [Category Sorting Debug] Comparing categories:`);
+      console.log(`  Category A: "${a.category}" -> Key: "${aKey}" -> Order: ${aOrder}`);
+      console.log(`  Category B: "${b.category}" -> Key: "${bKey}" -> Order: ${bOrder}`);
+      console.log(`  Comparison result: ${aOrder - bOrder}`);
+      
+      return aOrder - bOrder;
+    });
+    
+    console.log(`\n✅ [OptimizedBanknoteGroups Debug] Categories after explicit sorting:`, 
+      sortedGroups.map((g, i) => `${i + 1}. "${g.category}" (order: ${categoryOrderMap.get(g.category.toLowerCase().trim()) ?? 'undefined'})`));
+    
+    console.log(`\n✅ [OptimizedBanknoteGroups Debug] Final sorted order:`, 
+      sortedGroups.map((g, i) => `${i + 1}. "${g.category}" (${g.items.length} items)`));
 
     // Log final sultan group order for each category
     console.log(`\n✅ [OptimizedBanknoteGroups] Final result:`);
     console.log(`  Total categories: ${processedGroups.length}`);
     
-    processedGroups.forEach((group, groupIndex) => {
+    sortedGroups.forEach((group, groupIndex) => {
       if (group.sultanGroups && group.sultanGroups.length > 0) {
         console.log(`\n📋 [OptimizedBanknoteGroups] Category ${groupIndex + 1}: "${group.category}"`);
         console.log(`  Sultan groups in final order:`);
@@ -149,6 +200,6 @@ export const useOptimizedBanknoteGroups = ({
       }
     });
 
-    return processedGroups;
+    return sortedGroups;
   }, [banknotes, sortFields, categoryOrderMap, sultanOrderMap]);
 };

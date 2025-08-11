@@ -110,6 +110,17 @@ const CountryDetail = () => {
     }
   }, [banknotes]);
 
+  // Debug: Log categoryOrder before passing to grouping hook
+  useEffect(() => {
+    if (categoryOrder && categoryOrder.length > 0) {
+      console.log(`\n🌍 [CountryDetail Debug] Category order data:`, categoryOrder);
+      console.log(`  Category order length:`, categoryOrder.length);
+      console.log(`  Category order structure:`, JSON.stringify(categoryOrder, null, 2));
+    } else {
+      console.log(`\n🌍 [CountryDetail Debug] Category order is empty or undefined:`, categoryOrder);
+    }
+  }, [categoryOrder]);
+
   const groupedItems = useOptimizedBanknoteGroups({
     banknotes: sortedBanknotes,
     sortFields: filters.sort,

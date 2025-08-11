@@ -48,9 +48,21 @@ export const useBanknoteGroups = (
   
     const groupArray = Array.from(categoryMap.values());
   
-    // Data comes pre-sorted from database by display_order, no need to sort
-    console.log(`\n✅ [useBanknoteGroups Debug] Using database order - categories:`, 
-      groupArray.map(g => `"${g.category}" (${g.items.length} items)`));
+    // Sort categories by their defined order from categoryOrder parameter
+    const sortedGroups = groupArray.sort((a, b) => {
+      const aOrder = categoryOrder.find(cat => cat.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
+      const bOrder = categoryOrder.find(cat => cat.name === b.category)?.order ?? Number.MAX_SAFE_INTEGER;
+      
+      console.log(`\n🔄 [Category Sorting Debug] Comparing categories:`);
+      console.log(`  Category A: "${a.category}" -> Order: ${aOrder}`);
+      console.log(`  Category B: "${b.category}" -> Order: ${bOrder}`);
+      console.log(`  Comparison result: ${aOrder - bOrder}`);
+      
+      return aOrder - bOrder;
+    });
+    
+    console.log(`\n✅ [useBanknoteGroups Debug] Categories after explicit sorting:`, 
+      sortedGroups.map((g, i) => `${i + 1}. "${g.category}" (order: ${categoryOrder.find(cat => cat.name === g.category)?.order ?? 'undefined'})`));
   
   if (showSultanGroups) {
     groupArray.forEach(group => {
@@ -107,6 +119,6 @@ export const useBanknoteGroups = (
     });
   }
   
-    return groupArray;
+    return sortedGroups;
   }, [banknotes, sortFields, categoryOrder, sultanOrderMap]);
 };

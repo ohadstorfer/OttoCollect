@@ -82,10 +82,10 @@ const Catalog = () => {
         
         <div className="container mx-auto px-4 relative z-10">
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-center dark:text-parchment-500 text-ottoman-900 fade-bottom">
-          <span>{t('catalog.title')}</span>
+          <span>{t('title')}</span>
           </h1>
           <p className="mt-4 text-center dark:text-ottoman-300 text-ottoman-700 max-w-4xl mx-auto fade-bottom">
-          {t('catalog.subtitle')}
+          {t('subtitle')}
           </p>
         </div>
       </section>
