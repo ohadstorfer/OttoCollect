@@ -2,9 +2,10 @@ import { useMemo } from 'react';
 import { DetailedBanknote } from '@/types';
 import { getMixedBanknoteItems, getMixedBanknoteItemsBySultan, MixedBanknoteItem } from '@/utils/banknoteGrouping';
 
-interface CategoryOrderItem {
+interface CategoryDefinition {
+  id: string;
   name: string;
-  order: number;
+  display_order: number;
 }
 
 export interface BanknoteGroupedData {
@@ -20,7 +21,7 @@ interface BanknoteGroup extends BanknoteGroupedData {}
 interface GroupingOptions {
   banknotes: DetailedBanknote[];
   sortFields: string[];
-  categoryOrder: CategoryOrderItem[];
+  categoryOrder: CategoryDefinition[];
   countryId?: string;
   sultanOrderMap?: Map<string, number>;
 }
@@ -37,10 +38,8 @@ export const useOptimizedBanknoteGroups = ({
   const categoryOrderMap = useMemo(() => {
     const map = new Map<string, number>();
     categoryOrder.forEach(category => {
-      map.set(category.name.toLowerCase(), category.order);
+      map.set(category.name.toLowerCase(), category.display_order);
     });
-    console.log(`\n📋 [Category Order Debug] Category order map:`, 
-      Array.from(map.entries()).map(([name, order]) => `"${name}": ${order}`));
     return map;
   }, [categoryOrder]);
 
