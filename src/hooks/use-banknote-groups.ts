@@ -1,7 +1,7 @@
 
 import { useMemo } from "react";
 import { DetailedBanknote } from "@/types";
-import { getSultanOrderMap } from "@/services/sultanOrderService";
+import { getSultanOrderMap, getSultanOrder } from "@/services/sultanOrderService";
 
 interface CategoryOrder {
   name: string;
@@ -60,6 +60,8 @@ export const useBanknoteGroups = (
   
   if (showSultanGroups) {
     groupArray.forEach(group => {
+      console.log(`\n🔍 [Sultan Grouping Debug] Processing category: "${group.category}"`);
+      
       const sultanMap = new Map();
 
       group.items.forEach(banknote => {
@@ -70,19 +72,25 @@ export const useBanknoteGroups = (
         sultanMap.get(sultan).push(banknote);
       });
 
+      console.log(`📊 [Sultan Grouping Debug] Found sultans in category "${group.category}":`, 
+        Array.from(sultanMap.keys()));
+
       group.sultanGroups = Array.from(sultanMap.entries())
         .map(([sultan, items]) => ({ sultan, items }))
         .sort((a, b) => {
+          console.log(`\n🔄 [Sultan Sorting Debug] Comparing sultans in category "${group.category}":`);
+          console.log(`  Sultan A: "${a.sultan}" (${a.items.length} items)`);
+          console.log(`  Sultan B: "${b.sultan}" (${b.items.length} items)`);
+          
           // Use database-driven order if available, fallback to default order
           if (sultanOrderMap) {
-            const orderA = sultanOrderMap.get(a.sultan) ?? Number.MAX_SAFE_INTEGER;
-            const orderB = sultanOrderMap.get(b.sultan) ?? Number.MAX_SAFE_INTEGER;
+            const orderA = getSultanOrder(a.sultan, sultanOrderMap);
+            const orderB = getSultanOrder(b.sultan, sultanOrderMap);
             
-            // Debug logging
-            console.log(`[Sultan Order Debug] Category: "${group.category}"`);
-            console.log(`  Sultan: "${a.sultan}" -> Order: ${orderA} (from database: ${sultanOrderMap.has(a.sultan)})`);
-            console.log(`  Sultan: "${b.sultan}" -> Order: ${orderB} (from database: ${sultanOrderMap.has(b.sultan)})`);
-            console.log(`  Comparison result: ${orderA - orderB}`);
+            console.log(`  📋 Database Order:`);
+            console.log(`    "${a.sultan}" -> Order: ${orderA} (using helper function)`);
+            console.log(`    "${b.sultan}" -> Order: ${orderB} (using helper function)`);
+            console.log(`    Comparison result: ${orderA - orderB}`);
             
             return orderA - orderB;
           }
@@ -91,16 +99,17 @@ export const useBanknoteGroups = (
           const indexA = defaultSultanOrder.findIndex(name => name.toLowerCase() === a.sultan.toLowerCase());
           const indexB = defaultSultanOrder.findIndex(name => name.toLowerCase() === b.sultan.toLowerCase());
           
-          console.log(`[Sultan Order Debug - Fallback] Category: "${group.category}"`);
-          console.log(`  Sultan: "${a.sultan}" -> Default index: ${indexA}`);
-          console.log(`  Sultan: "${b.sultan}" -> Default index: ${indexB}`);
+          console.log(`  📋 Default Order (fallback):`);
+          console.log(`    "${a.sultan}" -> Default index: ${indexA}`);
+          console.log(`    "${b.sultan}" -> Default index: ${indexB}`);
+          console.log(`    Comparison result: ${(indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB)}`);
           
           return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
         });
 
       // Final order debug log
-      console.log(`[Final Sultan Order] Category: "${group.category}" - Sultans in order:`, 
-        group.sultanGroups.map(sg => sg.sultan));
+      console.log(`\n✅ [Final Sultan Order] Category: "${group.category}" - Final sultan order:`, 
+        group.sultanGroups.map((sg, index) => `${index + 1}. ${sg.sultan} (${sg.items.length} items)`));
     });
   }
   

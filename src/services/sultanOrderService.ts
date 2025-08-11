@@ -77,12 +77,54 @@ export const deleteSultanOrder = async (id: string): Promise<void> => {
 };
 
 export const getSultanOrderMap = async (countryId: string): Promise<Map<string, number>> => {
+  console.log(`\n🗄️ [SultanOrderService Debug] Fetching sultan order for country ID: ${countryId}`);
+  
   const sultans = await fetchSultanOrdersByCountryId(countryId);
+  console.log(`📋 [SultanOrderService Debug] Raw sultan data from database:`, sultans);
+  
   const orderMap = new Map<string, number>();
   
   sultans.forEach(sultan => {
+    // Store with original case for exact matches
     orderMap.set(sultan.name, sultan.display_order);
+    console.log(`  📝 [SultanOrderService Debug] Added to map: "${sultan.name}" -> ${sultan.display_order}`);
+    
+    // Also store with common case variations for flexible matching
+    const variations = [
+      sultan.name.toLowerCase(), // "abdulmecid", "abdulaziz"
+      sultan.name.replace(/([A-Z])/g, (match, letter) => letter.toLowerCase()), // "abdulmecid", "abdulaziz"
+      sultan.name.replace(/([a-z])([A-Z])/g, '$1$2'.toLowerCase()) // Handle camelCase like "AbdulMecid" -> "abdulmecid"
+    ];
+    
+    variations.forEach(variation => {
+      if (variation !== sultan.name && !orderMap.has(variation)) {
+        orderMap.set(variation, sultan.display_order);
+        console.log(`  📝 [SultanOrderService Debug] Added variation: "${variation}" -> ${sultan.display_order}`);
+      }
+    });
   });
   
+  console.log(`✅ [SultanOrderService Debug] Final sultan order map with variations:`, 
+    Array.from(orderMap.entries()).map(([name, order]) => `"${name}": ${order}`));
+  
   return orderMap;
+};
+
+// Helper function to get sultan order with case-insensitive fallback
+export const getSultanOrder = (sultanName: string, sultanOrderMap: Map<string, number>): number => {
+  // Try exact match first
+  if (sultanOrderMap.has(sultanName)) {
+    return sultanOrderMap.get(sultanName)!;
+  }
+  
+  // Try case-insensitive match
+  for (const [dbName, order] of sultanOrderMap.entries()) {
+    if (dbName.toLowerCase() === sultanName.toLowerCase()) {
+      console.log(`🔄 [SultanOrderService Debug] Case-insensitive match: "${sultanName}" -> "${dbName}" (order: ${order})`);
+      return order;
+    }
+  }
+  
+  // Not found
+  return Number.MAX_SAFE_INTEGER;
 };

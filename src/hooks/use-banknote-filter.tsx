@@ -1,10 +1,12 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Banknote, BanknoteFilterState } from "@/types";
+import { Banknote } from "@/types";
+import { DynamicFilterState } from "@/types/filter";
 
 interface UseBanknoteFilterProps<T> {
   items: T[];
-  initialFilters?: Partial<BanknoteFilterState>;
+  initialFilters?: Partial<DynamicFilterState>;
+  sultanOrderMap?: Map<string, number>;
 }
 
 interface GroupItem<T> {
@@ -15,8 +17,8 @@ interface GroupItem<T> {
 
 interface UseBanknoteFilterResult<T> {
   filteredItems: T[];
-  filters: BanknoteFilterState;
-  setFilters: (filters: Partial<BanknoteFilterState>) => void;
+  filters: DynamicFilterState;
+  setFilters: (filters: Partial<DynamicFilterState>) => void;
   availableCategories: { id: string; name: string; count: number }[];
   availableTypes: { id: string; name: string; count: number }[];
   groupedItems: GroupItem<T>[];
@@ -25,12 +27,13 @@ interface UseBanknoteFilterResult<T> {
 export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>({
   items,
   initialFilters = {},
+  sultanOrderMap,
 }: UseBanknoteFilterProps<T>): UseBanknoteFilterResult<T> => {
   console.log("### useBanknoteFilter INITIALIZED ###");
   console.log(`Input items count: ${items?.length || 0}`);
   console.log("Initial filters:", initialFilters);
 
-  const [filters, setFilters] = useState<BanknoteFilterState>({
+  const [filters, setFilters] = useState<DynamicFilterState>({
     search: initialFilters.search || "",
     categories: initialFilters.categories || [],
     types: initialFilters.types || [],
@@ -280,7 +283,29 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           // Create sultan groups
           const sultanGroups = Array.from(sultanMap.entries())
             .map(([sultan, items]) => ({ sultan, items }))
-            .sort((a, b) => a.sultan.localeCompare(b.sultan));
+            .sort((a, b) => {
+              console.log(`\n🔄 [useBanknoteFilter Debug] Comparing sultans in category "${category}":`);
+              console.log(`  Sultan A: "${a.sultan}" (${a.items.length} items)`);
+              console.log(`  Sultan B: "${b.sultan}" (${b.items.length} items)`);
+              
+              // Use database-driven order if available, fallback to alphabetical
+              if (sultanOrderMap) {
+                const orderA = sultanOrderMap.get(a.sultan) ?? Number.MAX_SAFE_INTEGER;
+                const orderB = sultanOrderMap.get(b.sultan) ?? Number.MAX_SAFE_INTEGER;
+                
+                console.log(`  📋 Database Order:`);
+                console.log(`    "${a.sultan}" -> Order: ${orderA} (exists in DB: ${sultanOrderMap.has(a.sultan)})`);
+                console.log(`    "${b.sultan}" -> Order: ${orderB} (exists in DB: ${sultanOrderMap.has(b.sultan)})`);
+                console.log(`    Comparison result: ${orderA - orderB}`);
+                
+                return orderA - orderB;
+              }
+              
+              // Fallback to alphabetical sorting
+              const alphaResult = a.sultan.localeCompare(b.sultan);
+              console.log(`  📋 Alphabetical fallback: ${alphaResult}`);
+              return alphaResult;
+            });
           
           console.log(`Category ${category} has ${sultanGroups.length} sultans`);
           sultanGroups.forEach(sg => {
@@ -406,7 +431,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
   }, [items, getBanknote, normalizeType]);
 
   // Handle filter changes - memoize to prevent unnecessary re-renders
-  const handleFilterChange = useCallback((newFilters: Partial<BanknoteFilterState>) => {
+  const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     console.log("### FILTER CHANGED ###");
     console.log("Old filters:", filters);
     console.log("New filters:", newFilters);

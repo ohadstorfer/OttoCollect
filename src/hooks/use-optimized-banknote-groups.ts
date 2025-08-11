@@ -47,9 +47,11 @@ export const useOptimizedBanknoteGroups = ({
   return useMemo(() => {
     const showSultanGroups = sortFields.includes('sultan');
     
-    console.log(`[useOptimizedBanknoteGroups Debug] Sultan order map:`, sultanOrderMap);
-    console.log(`[useOptimizedBanknoteGroups Debug] Show sultan groups:`, showSultanGroups);
-    console.log(`[useOptimizedBanknoteGroups Debug] Country ID:`, countryId);
+    console.log(`\n🚀 [useOptimizedBanknoteGroups Debug] Starting grouping process:`);
+    console.log(`  Sultan order map:`, sultanOrderMap);
+    console.log(`  Show sultan groups:`, showSultanGroups);
+    console.log(`  Country ID:`, countryId);
+    console.log(`  Total banknotes:`, banknotes.length);
     
     if (!banknotes.length) {
       return [];
@@ -109,6 +111,20 @@ export const useOptimizedBanknoteGroups = ({
       
       // Fallback to alphabetical if same order
       return a.category.localeCompare(b.category);
+    });
+
+    // Log final sultan group order for each category
+    console.log(`\n✅ [OptimizedBanknoteGroups] Final result:`);
+    console.log(`  Total categories: ${processedGroups.length}`);
+    
+    processedGroups.forEach((group, groupIndex) => {
+      if (group.sultanGroups && group.sultanGroups.length > 0) {
+        console.log(`\n📋 [OptimizedBanknoteGroups] Category ${groupIndex + 1}: "${group.category}"`);
+        console.log(`  Sultan groups in final order:`);
+        group.sultanGroups.forEach((sultanGroup, sultanIndex) => {
+          console.log(`    ${sultanIndex + 1}. ${sultanGroup.sultan} (${sultanGroup.items.length} items)`);
+        });
+      }
     });
 
     return processedGroups;

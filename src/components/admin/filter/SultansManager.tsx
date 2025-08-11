@@ -203,7 +203,7 @@ export function SultansManager({ countryId }: SultansManagerProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Manage Sultans</CardTitle>
+        <CardTitle> <span>Manage Sultans</span></CardTitle>
         <Button onClick={openAddDialog} disabled={loading}>
           <Plus className="w-4 h-4 mr-2" />
           Add Sultan
@@ -281,7 +281,7 @@ export function SultansManager({ countryId }: SultansManagerProps) {
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Sultan</DialogTitle>
+              <DialogTitle> <span>Add New Sultan</span></DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -319,7 +319,7 @@ export function SultansManager({ countryId }: SultansManagerProps) {
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Sultan</DialogTitle>
+              <DialogTitle> <span>Edit Sultan</span></DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -357,7 +357,7 @@ export function SultansManager({ countryId }: SultansManagerProps) {
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Sultan</AlertDialogTitle>
+              <AlertDialogTitle> <span>Delete Sultan</span></AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to delete "{currentSultan?.name}"? This action cannot be undone.
               </AlertDialogDescription>

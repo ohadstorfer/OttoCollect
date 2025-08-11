@@ -76,7 +76,17 @@ const CountryDetail = () => {
   // Fetch sultan order map when country changes
   useEffect(() => {
     if (countryId) {
-      getSultanOrderMap(countryId).then(setSultanOrderMap).catch(() => setSultanOrderMap(new Map()));
+      console.log(`\n🌍 [CountryDetail Debug] Fetching sultan order map for country ID: ${countryId}`);
+      getSultanOrderMap(countryId)
+        .then(map => {
+          console.log(`✅ [CountryDetail Debug] Successfully fetched sultan order map:`, 
+            Array.from(map.entries()).map(([name, order]) => `"${name}": ${order}`));
+          setSultanOrderMap(map);
+        })
+        .catch(error => {
+          console.error(`❌ [CountryDetail Debug] Failed to fetch sultan order map:`, error);
+          setSultanOrderMap(new Map());
+        });
     }
   }, [countryId]);
 
@@ -90,6 +100,15 @@ const CountryDetail = () => {
     currencies,
     sortFields: filters.sort
   });
+
+  // Debug: Log all unique sultan names in banknotes
+  useEffect(() => {
+    if (banknotes.length > 0) {
+      const uniqueSultans = new Set(banknotes.map(b => b.sultanName).filter(Boolean));
+      console.log(`\n📊 [CountryDetail Debug] Unique sultan names found in banknotes:`, 
+        Array.from(uniqueSultans));
+    }
+  }, [banknotes]);
 
   const groupedItems = useOptimizedBanknoteGroups({
     banknotes: sortedBanknotes,

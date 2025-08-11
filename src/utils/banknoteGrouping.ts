@@ -1,5 +1,6 @@
 
 import { DetailedBanknote } from "@/types";
+import { getSultanOrder } from "@/services/sultanOrderService";
 
 interface BanknoteGroup {
   baseNumber: string;
@@ -167,6 +168,8 @@ export const getMixedBanknoteItemsBySultan = (
   banknotes: DetailedBanknote[],
   sultanOrderMap?: Map<string, number>
 ): { sultan: string; items: MixedBanknoteItem[] }[] => {
+  console.log(`\n🔧 [getMixedBanknoteItemsBySultan Debug] Processing ${banknotes.length} banknotes`);
+  
   // First, group banknotes by sultan
   const sultanMap = new Map<string, DetailedBanknote[]>();
   
@@ -177,6 +180,8 @@ export const getMixedBanknoteItemsBySultan = (
     }
     sultanMap.get(sultan)?.push(banknote);
   });
+  
+  console.log(`📊 [getMixedBanknoteItemsBySultan Debug] Found sultans:`, Array.from(sultanMap.keys()));
   
   // Then, for each sultan group, apply the getMixedBanknoteItems function
   const result: { sultan: string; items: MixedBanknoteItem[] }[] = [];
@@ -191,18 +196,37 @@ export const getMixedBanknoteItemsBySultan = (
     });
   });
   
+  console.log(`🔄 [getMixedBanknoteItemsBySultan Debug] Before sorting - sultans:`, 
+    result.map(r => r.sultan));
+  
   // Sort by sultan order if available, otherwise alphabetically
   result.sort((a, b) => {
+    console.log(`\n🔄 [getMixedBanknoteItemsBySultan Debug] Comparing sultans:`);
+    console.log(`  Sultan A: "${a.sultan}" (${a.items.length} items)`);
+    console.log(`  Sultan B: "${b.sultan}" (${a.items.length} items)`);
+    
     if (sultanOrderMap) {
-      const aOrder = sultanOrderMap.get(a.sultan) ?? 999;
-      const bOrder = sultanOrderMap.get(b.sultan) ?? 999;
+      const aOrder = getSultanOrder(a.sultan, sultanOrderMap);
+      const bOrder = getSultanOrder(b.sultan, sultanOrderMap);
+      
+      console.log(`  📋 Database Order:`);
+      console.log(`    "${a.sultan}" -> Order: ${aOrder} (using helper function)`);
+      console.log(`    "${b.sultan}" -> Order: ${bOrder} (using helper function)`);
+      console.log(`    Comparison result: ${aOrder - bOrder}`);
+      
       if (aOrder !== bOrder) {
         return aOrder - bOrder;
       }
     }
+    
     // Fallback to alphabetical sorting
-    return a.sultan.localeCompare(b.sultan);
+    const alphaResult = a.sultan.localeCompare(b.sultan);
+    console.log(`  📋 Alphabetical fallback: ${alphaResult}`);
+    return alphaResult;
   });
+  
+  console.log(`✅ [getMixedBanknoteItemsBySultan Debug] After sorting - final order:`, 
+    result.map((r, index) => `${index + 1}. ${r.sultan} (${r.items.length} items)`));
   
   return result;
 };
