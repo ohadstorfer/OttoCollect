@@ -9,6 +9,7 @@ import { useCountryData } from "@/hooks/use-country-data";
 import { useBanknoteFetching } from "@/hooks/use-banknote-fetching";
 import { useOptimizedBanknoteSorting } from "@/hooks/use-optimized-banknote-sorting";
 import { useOptimizedBanknoteGroups } from "@/hooks/use-optimized-banknote-groups";
+import { getSultanOrderMap } from "@/services/sultanOrderService";
 import { CollectionItem, fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
@@ -30,6 +31,7 @@ const CountryDetail = () => {
   
   // Add preferences loading state
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [sultanOrderMap, setSultanOrderMap] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     const fetchCollection = async () => {
@@ -71,6 +73,13 @@ const CountryDetail = () => {
     navigate 
   });
 
+  // Fetch sultan order map when country changes
+  useEffect(() => {
+    if (countryId) {
+      getSultanOrderMap(countryId).then(setSultanOrderMap).catch(() => setSultanOrderMap(new Map()));
+    }
+  }, [countryId]);
+
   const { banknotes, loading: banknotesLoading } = useBanknoteFetching({
     countryId,
     filters
@@ -83,9 +92,11 @@ const CountryDetail = () => {
   });
 
   const groupedItems = useOptimizedBanknoteGroups({
-    banknotes: sortedBanknotes, 
-    sortFields: filters.sort, 
-    categoryOrder
+    banknotes: sortedBanknotes,
+    sortFields: filters.sort,
+    categoryOrder,
+    countryId,
+    sultanOrderMap
   });
 
   // Extract banknote IDs for wishlist context

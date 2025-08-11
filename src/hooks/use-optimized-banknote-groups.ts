@@ -22,13 +22,17 @@ interface GroupingOptions {
   banknotes: DetailedBanknote[];
   sortFields: string[];
   categoryOrder: CategoryDefinition[];
+  countryId?: string;
+  sultanOrderMap?: Map<string, number>;
 }
 
 // Optimized grouping with smart memoization
 export const useOptimizedBanknoteGroups = ({ 
   banknotes, 
   sortFields, 
-  categoryOrder 
+  categoryOrder,
+  countryId,
+  sultanOrderMap
 }: GroupingOptions): BanknoteGroupedData[] => {
   // Memoize category order map for O(1) lookups
   const categoryOrderMap = useMemo(() => {
@@ -41,11 +45,15 @@ export const useOptimizedBanknoteGroups = ({
 
   // Memoize the grouping logic
   return useMemo(() => {
+    const showSultanGroups = sortFields.includes('sultan');
+    
+    console.log(`[useOptimizedBanknoteGroups Debug] Sultan order map:`, sultanOrderMap);
+    console.log(`[useOptimizedBanknoteGroups Debug] Show sultan groups:`, showSultanGroups);
+    console.log(`[useOptimizedBanknoteGroups Debug] Country ID:`, countryId);
+    
     if (!banknotes.length) {
       return [];
     }
-
-    const showSultanGroups = sortFields.includes('sultan');
     const groupsMap = new Map<string, BanknoteGroup>();
 
     // Group banknotes by category
@@ -104,5 +112,5 @@ export const useOptimizedBanknoteGroups = ({
     });
 
     return processedGroups;
-  }, [banknotes, sortFields, categoryOrderMap]);
+  }, [banknotes, sortFields, categoryOrderMap, sultanOrderMap]);
 };
