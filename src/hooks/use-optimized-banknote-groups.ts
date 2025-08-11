@@ -78,7 +78,7 @@ export const useOptimizedBanknoteGroups = ({
     const processedGroups = Array.from(groupsMap.values()).map(group => {
       if (showSultanGroups) {
         // Generate sultan groups with mixed items
-        const sultanGroups = getMixedBanknoteItemsBySultan(group.items);
+        const sultanGroups = getMixedBanknoteItemsBySultan(group.items, sultanOrderMap);
         return {
           ...group,
           sultanGroups: sultanGroups.map(sultanGroup => ({

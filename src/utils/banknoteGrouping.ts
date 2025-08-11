@@ -164,7 +164,8 @@ export const getMixedBanknoteItems = (banknotes: DetailedBanknote[]): MixedBankn
  * This function combines both sultan grouping and banknote grouping by extended pick number.
  */
 export const getMixedBanknoteItemsBySultan = (
-  banknotes: DetailedBanknote[]
+  banknotes: DetailedBanknote[],
+  sultanOrderMap?: Map<string, number>
 ): { sultan: string; items: MixedBanknoteItem[] }[] => {
   // First, group banknotes by sultan
   const sultanMap = new Map<string, DetailedBanknote[]>();
@@ -190,8 +191,18 @@ export const getMixedBanknoteItemsBySultan = (
     });
   });
   
-  // Sort by sultan name
-  result.sort((a, b) => a.sultan.localeCompare(b.sultan));
+  // Sort by sultan order if available, otherwise alphabetically
+  result.sort((a, b) => {
+    if (sultanOrderMap) {
+      const aOrder = sultanOrderMap.get(a.sultan) ?? 999;
+      const bOrder = sultanOrderMap.get(b.sultan) ?? 999;
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+    }
+    // Fallback to alphabetical sorting
+    return a.sultan.localeCompare(b.sultan);
+  });
   
   return result;
 };
