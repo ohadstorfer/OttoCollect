@@ -1,6 +1,6 @@
 {
   "nav": {
-    "catalog": "Katalog",
+    "catalog": "Kataloglar",
     "myCollection": "Koleksiyonum",
     "marketplace": "Pazar",
     "forum": "Forum",
@@ -16,7 +16,7 @@
   },
   "breadcrumb": {
     "home": "Ana Sayfa",
-    "catalog": "Katalog",
+    "catalog": "Kataloglar",
     "collection": "Koleksiyon",
     "marketplace": "Pazar",
     "forum": "Forum",

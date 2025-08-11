@@ -1,6 +1,6 @@
 {
   "nav": {
-    "catalog": "Catalogue",
+    "catalog": "Catalogues",
     "myCollection": "My Collection",
     "marketplace": "Marketplace",
     "forum": "Forum",
@@ -18,7 +18,7 @@
     "description": "The premier platform for Ottoman Empire and successor states banknote collectors, numismatists, and historians.",
     "quickLinks": "Quick Links",
     "home": "Home",
-    "catalog": "Catalogue",
+    "catalog": "Catalogues",
     "marketplace": "Marketplace",
     "myCollection": "My Collection",
     "blog": "Blog",
@@ -40,7 +40,7 @@
     "collector": "Collector",
     "collection": "Collection",
     "catalog": "Catalog",
-    "catalogue": "Catalogue",
+    "catalogue": "Catalogues",
     "condition": "Condition",
     "grade": "Grade",
     "grading": "Grading",

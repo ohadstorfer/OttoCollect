@@ -87,7 +87,7 @@ const ProfileCollection: React.FC<ProfileCollectionProps> = ({
           <Button asChild>
             <Link to="/catalog">
               <Plus className="mr-2 h-4 w-4" />
-              Browse Catalog
+              Browse Catalogues
             </Link>
           </Button>
         )}

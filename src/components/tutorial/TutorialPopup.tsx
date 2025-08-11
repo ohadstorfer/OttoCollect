@@ -54,7 +54,7 @@ export const TutorialPopup = () => {
     suggestPicture: { 
       icon: '🖼️', 
       color: 'bg-gradient-to-r from-orange-500 to-red-500',
-      name: 'How to Suggest a Picture from Your Collection to the Main Catalogue'
+      name: 'How to Suggest a Picture from Your Collection to the Main Catalogues'
     }
   };
 

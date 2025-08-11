@@ -318,12 +318,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
     {/* Mobile title */}
     <h3 className="text-xl font-semibold border-primary block sm:hidden">
-      <span>{countryName} catalogue</span>
+      <span>{countryName} catalogues</span>
     </h3>
 
     {/* Desktop title */}
     <h3 className="text-xl font-semibold border-primary hidden sm:block">
-      <span>{countryName}'s Historical Banknote Catalogue</span>
+      <span>{countryName}'s Historical Banknote Catalogues</span>
     </h3>
   </div>
 )}

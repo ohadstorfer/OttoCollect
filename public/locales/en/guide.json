@@ -6,8 +6,8 @@
       "icon": "🧾",
       "steps": {
         "step1": {
-          "title": "Go to the Catalogue",
-          "description": "From the top menu, click on \"Catalogue\"."
+          "title": "Go to the Catalogues",
+          "description": "From the top menu, click on \"Catalogues\"."
         },
         "step2": {
           "title": "Choose a Country", 
@@ -79,7 +79,7 @@
       }
     },
     "suggestPicture": {
-      "title": "How to Suggest a Picture from Your Collection to the Main Catalogue",
+      "title": "How to Suggest a Picture from Your Collection to the Main Catalogues",
       "icon": "🖼️",
       "steps": {
         "step1": {
@@ -87,8 +87,8 @@
           "description": "Navigate to the banknote page in your collection that contains the photo you want to suggest."
         },
         "step2": {
-          "title": "Click \"Suggest to Catalogue\"",
-          "description": "Above your uploaded banknote image, click the \"Suggest to Catalogue\" button. This submits your image for review by an administrator."
+          "title": "Click \"Suggest to Catalogues\"",
+          "description": "Above your uploaded banknote image, click the \"Suggest to Catalogues\" button. This submits your image for review by an administrator."
         },
         "step3": {
           "title": "Wait for Review",
@@ -96,12 +96,12 @@
         },
         "step4": {
           "title": "Edit and Re-Suggest if Needed",
-          "description": "If you edit or change the image later, the system will allow you to suggest it again for catalogue inclusion."
+          "description": "If you edit or change the image later, the system will allow you to suggest it again for catalogues inclusion."
         }
       },
       "note": {
         "title": "Best Picture Wins",
-        "description": "Only the best-quality images are selected for the main catalogue. Admins may choose another user's photo if it's better suited."
+        "description": "Only the best-quality images are selected for the main catalogues. Admins may choose another user's photo if it's better suited."
       }
     }
   },
@@ -113,7 +113,7 @@
       "skipText": "Skip Introduction"
     },
     "firstCatalogueVisit": {
-      "title": "Explore the Catalogue 📚",
+      "title": "Explore the Catalogues 📚",
       "description": "Browse through our comprehensive collection of Ottoman Empire and successor country banknotes. Click the \"+\" icon on any banknote to add it to your collection!",
       "action": "Got it!",
       "skipText": "Skip Tutorial"

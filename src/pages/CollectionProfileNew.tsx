@@ -180,8 +180,8 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
             ) : filteredCollection.length === 0 ? (
               <div className="text-center py-8">
                 <h3 className="text-xl font-medium mb-4"> <span> Your collection is empty </span> </h3>
-                <p className="text-muted-foreground mb-6">Start adding banknotes to your collection by browsing the catalog.</p>
-                <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+                <p className="text-muted-foreground mb-6">Start adding banknotes to your collection by browsing the catalogues.</p>
+                <Button onClick={handleBrowseCatalog}>Browse Catalogues</Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
@@ -221,8 +221,8 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
             ) : filteredWishlist.length === 0 ? (
               <div className="text-center py-8">
                 <h3 className="text-xl font-medium mb-4"> <span> Your wishlist is empty </span> </h3>
-                <p className="text-muted-foreground mb-6">Add banknotes to your wishlist while browsing the catalog.</p>
-                <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+                <p className="text-muted-foreground mb-6">Add banknotes to your wishlist while browsing the catalogues.</p>
+                <Button onClick={handleBrowseCatalog}>Browse Catalogues</Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">
@@ -293,8 +293,8 @@ const CollectionProfileNew = ({ userId, isCurrentUser }: CollectionProfileNewPro
             ) : filteredMissing.length === 0 ? (
               <div className="text-center py-8">
                 <h3 className="text-xl font-medium mb-4"> <span> You have all available banknotes in your collection! </span> </h3>
-                <p className="text-muted-foreground mb-6">Congratulations! You've collected everything in our catalog.</p>
-                <Button onClick={handleBrowseCatalog}>Browse Catalog</Button>
+                <p className="text-muted-foreground mb-6">Congratulations! You've collected everything in our catalogues.</p>
+                <Button onClick={handleBrowseCatalog}>Browse Catalogues</Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in mt-6">

@@ -236,7 +236,7 @@ const AboutUs: React.FC = () => {
                                         <span>Catalogues</span>
                                     </h3>
                                     <p className="text-ottoman-600 dark:text-ottoman-300">
-                                        Browse comprehensive catalogue of ottoman and it's successor countries banknotes
+                                        Browse comprehensive catalogues of Ottoman and its successor countries/authorities banknotes
                                     </p>
                                 </div>
 
@@ -304,7 +304,7 @@ const AboutUs: React.FC = () => {
                                     className="bg-white text-ottoman-600 hover:bg-ottoman-50"
                                 >
                                     <BookOpen className="h-5 w-5 mr-2" />
-                                    Explore Catalog
+                                    Explore Catalogues
                                 </Button>
                                 {!user && (
                                     <Button

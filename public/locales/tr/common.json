@@ -1,6 +1,6 @@
 {
   "nav": {
-    "catalog": "Katalog",
+    "catalog": "Kataloglar",
     "myCollection": "Koleksiyonum",
     "marketplace": "Pazar",
     "forum": "Forum",
@@ -18,7 +18,7 @@
     "description": "Osmanlı İmparatorluğu ve halefi devletlerin banknot koleksiyoncuları, nümismatlar ve tarihçiler için önde gelen platform.",
     "quickLinks": "Hızlı Bağlantılar",
     "home": "Ana Sayfa",
-    "catalog": "Katalog",
+    "catalog": "Kataloglar",
     "marketplace": "Pazar",
     "myCollection": "Koleksiyonum",
     "blog": "Blog",
@@ -40,7 +40,7 @@
     "collector": "Koleksiyoncu",
     "collection": "Koleksiyon",
     "catalog": "Katalog",
-    "catalogue": "Katalog",
+    "catalogue": "Kataloglar",
     "condition": "Durum",
     "grade": "Not",
     "grading": "Notlandırma",

@@ -123,7 +123,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           </p>
           {isOwner && (
             <Button asChild>
-              <a href={`/catalog/${countryName}`}>Browse Catalog</a>
+              <a href={`/catalog/${countryName}`}>Browse Catalogues</a>
             </Button>
           )}
         </Card>

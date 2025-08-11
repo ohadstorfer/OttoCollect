@@ -11,8 +11,10 @@ import { useAuth } from "@/context/AuthContext"; // <-- FIXED HERE
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import SEOHead from "@/components/seo/SEOHead";
 import { SEO_CONFIG } from "@/config/seoConfig";
+import { useTranslation } from 'react-i18next';
 
 const Catalog = () => {
+  const { t } = useTranslation(['catalog']);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -80,10 +82,10 @@ const Catalog = () => {
         
         <div className="container mx-auto px-4 relative z-10">
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-center dark:text-parchment-500 text-ottoman-900 fade-bottom">
-          <span>Ottoman Banknote Catalogue</span>
+          <span>{t('catalog.title')}</span>
           </h1>
-          <p className="mt-4 text-center dark:text-ottoman-300 text-ottoman-700 max-w-2xl mx-auto fade-bottom">
-          Explore these notable Ottoman Empire banknotes from our extensive catalogue
+          <p className="mt-4 text-center dark:text-ottoman-300 text-ottoman-700 max-w-4xl mx-auto fade-bottom">
+          {t('catalog.subtitle')}
           </p>
         </div>
       </section>

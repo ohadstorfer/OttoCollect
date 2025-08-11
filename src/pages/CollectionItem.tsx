@@ -495,14 +495,14 @@ export default function CollectionItem() {
                               ? "Image Suggestion Pending"
                               : isSubmittingImages
                                 ? "Submitting..."
-                                : "Suggest Images to Catalogue"}
+                                : "Suggest Images to Catalogues"}
                           </Button>
                         )}
                       </div>
                       {/* Show message when user can re-suggest after image change */}
                       {  imageChangedAfterApproval&& (
                         <div className="text-sm text-muted-foreground text-center px-3 py-1">
-                          You have updated your images. You can suggest them to the catalogue again.
+                          You have updated your images. You can suggest them to the catalogues again.
                         </div>
                       )}
                     </div>

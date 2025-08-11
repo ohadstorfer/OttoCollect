@@ -3,15 +3,15 @@
     "title": "OttoCollect",
     "subtitle": "Discover the Legacy of Ottoman empire and it's successor countries Banknotes",
     "description": "Explore, collect, and trade historical banknotes from across regions and eras. Join our community of passionate collectors.",
-    "exploreButton": "Explore Catalogue",
+    "exploreButton": "Explore Catalogues",
     "joinButton": "Join Community"
   },
   "features": {
-    "title": "Comprehensive Platform for Collectors",
+    "title": "Complete Platform for Collectors",
     "subtitle": "Everything you need to manage, showcase, and grow your Ottoman and its successor countries banknotes collection",
     "catalogues": {
       "title": "Catalogues",
-      "description": "Browse comprehensive catalogue of Ottoman and its successor countries banknotes with detailed information"
+      "description": "Browse comprehensive catalogues of Ottoman and its successor countries/authorities banknotes with detailed information"
     },
     "collection": {
       "title": "Collection Management",

@@ -168,7 +168,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                       onClick={() => navigate('/catalog')}
                       className="flex items-center gap-2"
                     >
-                      <span>Browse Catalog</span>
+                      <span>Browse Catalogues</span>
                     </Button>
                     <Button 
                       variant="outline"

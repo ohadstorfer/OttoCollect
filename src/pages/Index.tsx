@@ -298,10 +298,10 @@ const Index = () => {
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto mb-20 reveal fade-bottom">
-            <h2 className={`text-4xl md:text-5xl font-serif font-bold mb-6 ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+          <h2  className={`text-3xl md:text-4xl font-serif font-bold mb-6 text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'}`}>
               <span>{t('home.features.title')}</span>
             </h2>
-            <p className={`text-xl leading-relaxed ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+            <p className={`text-center text-xl leading-relaxed ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
               {t('home.features.subtitle')}
             </p>
           </div>
@@ -573,10 +573,10 @@ const Index = () => {
         </div>
 
         <div className="container mx-auto px-4 text-center reveal fade-bottom ">
-          <h2 className={`text-3xl md:text-4xl lg:text-5xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-6`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+          <h2 className={`text-3xl md:text-4xl lg:text-5xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} mb-6`}>
             <span>{t('home.callToAction.title')}</span>
           </h2>
-          <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'} max-w-2xl mx-auto mb-10`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+          <p className={`text-lg ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-200'} max-w-4xl mx-auto mb-10`}>
             {t('home.callToAction.description')}
           </p>
 
