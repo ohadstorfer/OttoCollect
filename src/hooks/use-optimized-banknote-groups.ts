@@ -38,8 +38,9 @@ export const useOptimizedBanknoteGroups = ({
     const map = new Map<string, number>();
     console.log(`\n📋 [useOptimizedBanknoteGroups Debug] Category order data:`, categoryOrder);
     categoryOrder.forEach(category => {
-      console.log(`  Mapping category: "${category.name}" -> order: ${category.order}`);
-      map.set(category.name.toLowerCase(), category.order);
+      const normalizedKey = category.name.toLowerCase().trim();
+      console.log(`  Mapping category: "${category.name}" -> normalized key: "${normalizedKey}" -> order: ${category.order}`);
+      map.set(normalizedKey, category.order);
     });
     console.log(`  Final category order map:`, map);
     return map;
@@ -60,11 +61,17 @@ export const useOptimizedBanknoteGroups = ({
     }
     const groupsMap = new Map<string, BanknoteGroup>();
 
+    // Debug: Log unique categories found in banknotes
+    const uniqueCategories = [...new Set(banknotes.map(b => b.category || 'Uncategorized'))];
+    console.log(`\n📊 [OptimizedBanknoteGroups Debug] Unique categories in banknotes:`, uniqueCategories);
+    
     // Group banknotes by category
     banknotes.forEach(banknote => {
       const category = banknote.category || 'Uncategorized';
-      const categoryKey = category.toLowerCase();
+      const categoryKey = category.toLowerCase().trim();
 
+      console.log(`  Banknote category: "${category}" -> key: "${categoryKey}"`);
+      
       if (!groupsMap.has(categoryKey)) {
         groupsMap.set(categoryKey, {
           category,
