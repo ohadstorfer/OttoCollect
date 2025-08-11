@@ -48,15 +48,9 @@ export const useBanknoteGroups = (
   
     const groupArray = Array.from(categoryMap.values());
   
-    if (categoryOrder.length > 0) {
-      groupArray.sort((a, b) => {
-        const orderA = categoryOrder.find(c => c.name === a.category)?.order ?? Number.MAX_SAFE_INTEGER;
-        const orderB = categoryOrder.find(c => c.name === b.category)?.order ?? Number.MAX_SAFE_INTEGER;
-        return orderA - orderB;
-      });
-    } else {
-      groupArray.sort((a, b) => a.category.localeCompare(b.category));
-    }
+    // Data comes pre-sorted from database by display_order, no need to sort
+    console.log(`\n✅ [useBanknoteGroups Debug] Using database order - categories:`, 
+      groupArray.map(g => `"${g.category}" (${g.items.length} items)`));
   
   if (showSultanGroups) {
     groupArray.forEach(group => {
