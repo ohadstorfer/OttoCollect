@@ -133,10 +133,14 @@ export const useOptimizedBanknoteGroups = ({
       processedGroups.map(g => `"${g.category}" (${g.items.length} items)`));
     
     processedGroups.sort((a, b) => {
-      const aOrder = categoryOrderMap.get(a.categoryId) || 999;
-      const bOrder = categoryOrderMap.get(b.categoryId) || 999;
+      // Ensure we use the same normalization as when building the map
+      const aKey = a.category.toLowerCase().trim();
+      const bKey = b.category.toLowerCase().trim();
       
-      console.log(`  Comparing categories: "${a.category}" (order: ${aOrder}) vs "${b.category}" (order: ${bOrder})`);
+      const aOrder = categoryOrderMap.get(aKey) || 999;
+      const bOrder = categoryOrderMap.get(bKey) || 999;
+      
+      console.log(`  Comparing categories: "${a.category}" (key: "${aKey}") (order: ${aOrder}) vs "${b.category}" (key: "${bKey}") (order: ${bOrder})`);
       
       if (aOrder !== bOrder) {
         return aOrder - bOrder;
