@@ -7,6 +7,7 @@ import { useCountryData } from "@/hooks/use-country-data";
 import { useCollectionItemsFetching } from "@/hooks/use-collection-items-fetching";
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
+import { getSultanOrderMap } from "@/services/sultanOrderService";
 import { useAuth } from "@/context/AuthContext";
 import { CollectionItemsDisplay } from "@/components/country/CollectionItemsDisplay";
 import CountryDetailMissingItems from "@/pages/CountryDetailMissingItems";
@@ -45,6 +46,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [sultanOrderMap, setSultanOrderMap] = useState<Map<string, number>>(new Map());
   const [isFullyLoaded, setIsFullyLoaded] = useState(false);
   const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
   
@@ -86,6 +88,13 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     navigate(`/profile/${userId || user?.id}`);
     }
   }, [effectiveCountryName, countryId, userId, user?.id, navigate, profileView]);
+
+  // Fetch sultan order map when country changes
+  useEffect(() => {
+    if (countryId) {
+      getSultanOrderMap(countryId).then(setSultanOrderMap).catch(() => setSultanOrderMap(new Map()));
+    }
+  }, [countryId]);
   
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: "",
@@ -367,7 +376,9 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const groupedItems = useBanknoteGroups(
     sortedCollectionItems, 
     collectionSortFields, 
-    categoryOrder
+    categoryOrder,
+    countryId,
+    sultanOrderMap
   );
 
   // Convert grouped banknotes to grouped collection items
@@ -442,7 +453,9 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const groupedSaleItems = useBanknoteGroups(
     sortedSaleItems,
     saleSortFields,
-    categoryOrder
+    categoryOrder,
+    countryId,
+    sultanOrderMap
   );
 
   const groupedSaleCollectionItems = groupedSaleItems.map(group => {
@@ -627,7 +640,9 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const groupedMissingItems = useBanknoteGroups(
     sortedMissingItems,
     missingSortFields,
-    categoryOrder
+    categoryOrder,
+    countryId,
+    sultanOrderMap
   );
 
   // Map wishlist items to collection-like structure (similar to missing items)
@@ -750,7 +765,9 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const groupedWishlistItems = useBanknoteGroups(
     sortedWishlistItems,
     wishlistSortFields,
-    categoryOrder
+    categoryOrder,
+    countryId,
+    sultanOrderMap
   );
 
   // Function to get items in the exact order they appear on the page
