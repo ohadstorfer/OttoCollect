@@ -1,6 +1,7 @@
 
 import { useMemo } from "react";
 import { DetailedBanknote } from "@/types";
+import { getSultanOrderMap } from "@/services/sultanOrderService";
 
 interface CategoryOrder {
   name: string;
@@ -10,13 +11,15 @@ interface CategoryOrder {
 export const useBanknoteGroups = (
   banknotes: DetailedBanknote[],
   sortFields: string[],
-  categoryOrder: CategoryOrder[]
+  categoryOrder: CategoryOrder[],
+  countryId?: string,
+  sultanOrderMap?: Map<string, number>
 ) => {
   return useMemo(() => {
     const categoryMap = new Map();
     const showSultanGroups = sortFields.includes('sultan');
   
-    const sultanOrder = [
+    const defaultSultanOrder = [
       "AbdulMecid",
       "AbdulAziz",
       "Murad",
@@ -66,13 +69,21 @@ export const useBanknoteGroups = (
         group.sultanGroups = Array.from(sultanMap.entries())
           .map(([sultan, items]) => ({ sultan, items }))
           .sort((a, b) => {
-            const indexA = sultanOrder.findIndex(name => name.toLowerCase() === a.sultan.toLowerCase());
-            const indexB = sultanOrder.findIndex(name => name.toLowerCase() === b.sultan.toLowerCase());
+            // Use database-driven order if available, fallback to default order
+            if (sultanOrderMap) {
+              const orderA = sultanOrderMap.get(a.sultan) ?? Number.MAX_SAFE_INTEGER;
+              const orderB = sultanOrderMap.get(b.sultan) ?? Number.MAX_SAFE_INTEGER;
+              return orderA - orderB;
+            }
+            
+            // Fallback to default order
+            const indexA = defaultSultanOrder.findIndex(name => name.toLowerCase() === a.sultan.toLowerCase());
+            const indexB = defaultSultanOrder.findIndex(name => name.toLowerCase() === b.sultan.toLowerCase());
             return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
           });
       });
     }
   
     return groupArray;
-  }, [banknotes, sortFields, categoryOrder]);
+  }, [banknotes, sortFields, categoryOrder, sultanOrderMap]);
 };

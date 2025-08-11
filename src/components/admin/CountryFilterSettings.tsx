@@ -11,6 +11,8 @@ import CategoriesManager from "./filter/CategoriesManager";
 import TypesManager from "./filter/TypesManager";
 import SortOptionsManager from "./filter/SortOptionsManager";
 import CurrenciesManager from "./filter/CurrenciesManager";
+import SultansManager from "./filter/SultansManager";
+import { fetchSortOptionsByCountryId } from "@/services/countryService";
 
 interface Country {
   id: string;
@@ -27,6 +29,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
   const [countries, setCountries] = useState<Country[]>([]);
   const [selectedCountryId, setSelectedCountryId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("categories");
+  const [hasSultanSort, setHasSultanSort] = useState<boolean>(false);
   
   useEffect(() => {
     const loadCountries = async () => {
@@ -55,6 +58,23 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
     
     loadCountries();
   }, [initialCountryId, isCountryAdmin, selectedCountryId]);
+
+  useEffect(() => {
+    const checkSultanSort = async () => {
+      if (selectedCountryId) {
+        try {
+          const sortOptions = await fetchSortOptionsByCountryId(selectedCountryId);
+          const hasSultan = sortOptions.some(option => option.field_name === 'sultan');
+          setHasSultanSort(hasSultan);
+        } catch (error) {
+          console.error('Error checking sultan sort option:', error);
+          setHasSultanSort(false);
+        }
+      }
+    };
+
+    checkSultanSort();
+  }, [selectedCountryId]);
   
   const handleCountryChange = (value: string) => {
     setSelectedCountryId(value);
@@ -87,7 +107,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
 
       {selectedCountryId && (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 mb-6">
+          <TabsList className={`grid ${hasSultanSort ? 'grid-cols-5' : 'grid-cols-4'} mb-6`}>
             <TabsTrigger value="categories">
               Categories
             </TabsTrigger>
@@ -100,6 +120,11 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             <TabsTrigger value="currencies">
               Currencies
             </TabsTrigger>
+            {hasSultanSort && (
+              <TabsTrigger value="sultans">
+                Sultans
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="categories">
@@ -154,7 +179,21 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
               </CardContent>
             </Card>
           </TabsContent>
-          
+
+          {hasSultanSort && (
+            <TabsContent value="sultans">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    <span>Sultans for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SultansManager countryId={selectedCountryId} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
           
         </Tabs>
       )}
