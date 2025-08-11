@@ -283,15 +283,15 @@ export const useDynamicFilter = <T extends FilterableItem>({
       }
     });
     
-    // Convert groups object to array and sort by category name
+    // Convert groups object to array - use database order (no sorting)
     return Object.values(groups)
       .map(group => ({
         ...group,
         sultanGroups: group.sultanGroups && group.sultanGroups.length > 0 ? 
           [...group.sultanGroups].sort((a, b) => a.sultan.localeCompare(b.sultan)) : 
           undefined
-      }))
-      .sort((a, b) => a.category.localeCompare(b.category));
+      }));
+    // Removed category sorting to respect database display_order
   }, [filteredItems]);
   
   return {
