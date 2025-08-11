@@ -71,8 +71,26 @@ export const useOptimizedBanknoteGroups = ({
       const category = banknote.category || 'Uncategorized';
       const categoryKey = category.toLowerCase().trim();
 
-      console.log(`  Banknote category: "${category}" -> key: "${categoryKey}"`);
-      
+      // Special debugging for the problematic category
+      if (category.includes("First Kaime Em. 1-6")) {
+        console.log(`🔍 [Debug] Processing category: "${category}"`);
+        console.log(`🔍 [Debug] Category key: "${categoryKey}"`);
+        console.log(`🔍 [Debug] Category key length: ${categoryKey.length}`);
+        console.log(`🔍 [Debug] Category key char codes:`, [...categoryKey].map(c => c.charCodeAt(0)));
+        console.log(`🔍 [Debug] Map has key:`, categoryOrderMap.has(categoryKey));
+        console.log(`🔍 [Debug] Map value:`, categoryOrderMap.get(categoryKey));
+        console.log(`🔍 [Debug] All map keys:`, [...categoryOrderMap.keys()]);
+        
+        // Check each map key to see which one might match
+        for (const [mapKey, mapValue] of categoryOrderMap.entries()) {
+          if (mapKey.includes("first kaime em. 1-6")) {
+            console.log(`🔍 [Debug] Found potential match in map: "${mapKey}" -> ${mapValue}`);
+            console.log(`🔍 [Debug] Map key length: ${mapKey.length}`);
+            console.log(`🔍 [Debug] Map key char codes:`, [...mapKey].map(c => c.charCodeAt(0)));
+            console.log(`🔍 [Debug] Keys equal:`, mapKey === categoryKey);
+          }
+        }
+      }
       if (!groupsMap.has(categoryKey)) {
         groupsMap.set(categoryKey, {
           category,
