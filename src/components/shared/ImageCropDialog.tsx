@@ -153,47 +153,49 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
       setLoading(true);
       const image = imgRef.current;
 
-      // Create a canvas to handle all transformations
-      const tempCanvas = document.createElement('canvas');
-      const tempCtx = tempCanvas.getContext('2d', {
-        willReadFrequently: false
-      });
+      // Get the actual display dimensions of the image in the crop component
+      const displayRect = image.getBoundingClientRect();
+      const displayWidth = image.offsetWidth;
+      const displayHeight = image.offsetHeight;
 
-      if (!tempCtx) {
+      // Calculate the transform matrix for the display
+      const centerX = displayWidth / 2;
+      const centerY = displayHeight / 2;
+
+      // Create transformation matrix
+      const cos = Math.cos((rotation * Math.PI) / 180);
+      const sin = Math.sin((rotation * Math.PI) / 180);
+
+      // Calculate transformed dimensions for the output canvas
+      const transformedWidth = Math.abs(displayWidth * cos) + Math.abs(displayHeight * sin);
+      const transformedHeight = Math.abs(displayWidth * sin) + Math.abs(displayHeight * cos);
+
+      // Create a canvas with the same display size as what user sees
+      const displayCanvas = document.createElement('canvas');
+      displayCanvas.width = transformedWidth * scale;
+      displayCanvas.height = transformedHeight * scale;
+      const displayCtx = displayCanvas.getContext('2d');
+
+      if (!displayCtx) {
         throw new Error('No 2d context');
       }
 
-      // Calculate the final canvas size based on rotation
-      let canvasWidth = image.naturalWidth;
-      let canvasHeight = image.naturalHeight;
+      // Enable high quality rendering
+      displayCtx.imageSmoothingEnabled = true;
+      displayCtx.imageSmoothingQuality = 'high';
 
-      if (rotation % 180 !== 0) {
-        // Swap dimensions for 90° and 270° rotations
-        canvasWidth = image.naturalHeight;
-        canvasHeight = image.naturalWidth;
-      }
+      // Apply the same transformations as shown in the preview
+      displayCtx.save();
+      displayCtx.translate(displayCanvas.width / 2, displayCanvas.height / 2);
+      displayCtx.rotate((rotation * Math.PI) / 180);
+      displayCtx.scale(scale, scale);
 
-      tempCanvas.width = canvasWidth;
-      tempCanvas.height = canvasHeight;
+      // Calculate the scale factor from display to natural size
+      const scaleX = image.naturalWidth / displayWidth;
+      const scaleY = image.naturalHeight / displayHeight;
 
-      // Enable high quality image scaling
-      tempCtx.imageSmoothingEnabled = true;
-      tempCtx.imageSmoothingQuality = 'high';
-
-      // Apply transformations in the correct order
-      tempCtx.save();
-      
-      // Move to center of canvas
-      tempCtx.translate(canvasWidth / 2, canvasHeight / 2);
-      
-      // Apply rotation
-      tempCtx.rotate((rotation * Math.PI) / 180);
-      
-      // Apply scale
-      tempCtx.scale(scale, scale);
-      
-      // Draw the image centered
-      tempCtx.drawImage(
+      // Draw the image at natural resolution
+      displayCtx.drawImage(
         image,
         -image.naturalWidth / 2,
         -image.naturalHeight / 2,
@@ -201,23 +203,15 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
         image.naturalHeight
       );
       
-      tempCtx.restore();
+      displayCtx.restore();
 
-      // Now calculate the crop area on the transformed canvas
-      const displayWidth = image.width;
-      const displayHeight = image.height;
-      
-      // Scale factors from display size to canvas size
-      const scaleFactorX = canvasWidth / displayWidth;
-      const scaleFactorY = canvasHeight / displayHeight;
+      // Calculate crop area in the transformed canvas coordinates
+      const cropX = (crop.x / 100) * displayCanvas.width;
+      const cropY = (crop.y / 100) * displayCanvas.height;
+      const cropWidth = (crop.width / 100) * displayCanvas.width;
+      const cropHeight = (crop.height / 100) * displayCanvas.height;
 
-      // Calculate crop area in canvas coordinates
-      const cropX = (crop.x / 100) * canvasWidth;
-      const cropY = (crop.y / 100) * canvasHeight;
-      const cropWidth = (crop.width / 100) * canvasWidth;
-      const cropHeight = (crop.height / 100) * canvasHeight;
-
-      // Create final output canvas
+      // Create final output canvas with the cropped area
       const outputCanvas = document.createElement('canvas');
       const outputCtx = outputCanvas.getContext('2d');
 
@@ -232,9 +226,9 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
       outputCtx.imageSmoothingEnabled = true;
       outputCtx.imageSmoothingQuality = 'high';
 
-      // Draw the cropped area from the transformed canvas
+      // Draw the cropped area
       outputCtx.drawImage(
-        tempCanvas,
+        displayCanvas,
         cropX,
         cropY,
         cropWidth,
@@ -256,7 +250,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
             }
           },
           'image/jpeg',
-          0.95 // High quality but not maximum to balance file size
+          0.95
         );
       });
 
