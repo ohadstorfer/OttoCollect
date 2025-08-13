@@ -123,11 +123,14 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     const file = e.target.files?.[0];
     if (!file || !authUser) return;
     
-    // Check file type
-    if (!file.type.startsWith('image/')) {
+    // Check file type (including HEIC)
+    const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || 
+                   file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+    
+    if (!file.type.startsWith('image/') && !isHeic) {
       toast({
         title: "Invalid file type",
-        description: "Please select an image file",
+        description: "Please select an image file (JPEG, PNG, or HEIC)",
         variant: "destructive",
       });
       return;
@@ -141,6 +144,14 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         variant: "destructive",
       });
       return;
+    }
+    
+    // Show info for HEIC files
+    if (isHeic) {
+      toast({
+        title: "HEIC file detected",
+        description: "Converting HEIC to JPEG format...",
+      });
     }
     
     setIsLoading(true);
