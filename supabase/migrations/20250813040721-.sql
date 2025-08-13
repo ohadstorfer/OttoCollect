@@ -1,0 +1,3 @@
+-- Configure database settings for edge function calls
+ALTER DATABASE postgres SET "app.supabase_url" TO 'https://psnzolounfwgvkupepxb.supabase.co';
+ALTER DATABASE postgres SET "app.supabase_anon_key" TO 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzbnpvbG91bmZ3Z3ZrdXBlcHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NTk0NTksImV4cCI6MjA1OTQzNTQ1OX0.iIE3DilRwCum5BZiVa-W3nLCAV2EEwzd2h8XDvNdhF8';
