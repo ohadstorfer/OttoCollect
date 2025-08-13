@@ -61,6 +61,7 @@ import { TutorialPopup } from '@/components/tutorial/TutorialPopup';
 import { TutorialTriggers } from '@/components/tutorial/TutorialTriggers';
 import { TutorialDebug } from '@/components/tutorial/TutorialDebug';
 import { statisticsService } from '@/services/statisticsService';
+import TestCleanup from "./pages/TestCleanup";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -153,6 +154,7 @@ function App() {
                       <Route path="/terms" element={<TermsOfService />} />
                       <Route path="/terms-of-service" element={<TermsOfService />} />
                       <Route path="/guide" element={<Guide />} />
+                      <Route path="/test-cleanup" element={<TestCleanup />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </main>
