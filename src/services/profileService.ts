@@ -161,9 +161,9 @@ export async function uploadAvatar(
     const fileExt = convertedFile.name.split('.').pop();
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
-    // Upload the file to Supabase storage using existing bucket
+    // Upload the file to Supabase storage using profile_pictures bucket
     const { error: uploadError, data } = await supabase.storage
-      .from('banknote_images')
+      .from('profile_pictures')
       .upload(fileName, convertedFile, {
         cacheControl: '3600',
         upsert: false
@@ -177,7 +177,7 @@ export async function uploadAvatar(
 
     // Get the public URL
     const { data: urlData } = supabase.storage
-      .from('banknote_images')
+      .from('profile_pictures')
       .getPublicUrl(fileName);
 
     const avatarUrl = urlData.publicUrl;
