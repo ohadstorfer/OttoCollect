@@ -1,63 +1,39 @@
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole, UserRank } from "@/types";
 import { toast } from "sonner";
+import heic2any from 'heic2any';
 
 // Helper function to convert HEIC files to JPEG
 async function convertHeicToJpeg(file: File): Promise<File> {
   // Check if the file is HEIC
   if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
-    console.log('Converting HEIC file to JPEG...');
+    console.log('Converting HEIC file to JPEG using heic2any...');
     
     try {
-      // Create a canvas to convert the image
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
-
-      // Create an image element
-      const img = new Image();
-      
-      // Convert HEIC to blob URL
-      const blob = new Blob([file], { type: 'image/heic' });
-      const url = URL.createObjectURL(blob);
-      
-      return new Promise((resolve, reject) => {
-        img.onload = () => {
-          // Set canvas dimensions
-          canvas.width = img.width;
-          canvas.height = img.height;
-          
-          // Draw the image
-          ctx.drawImage(img, 0, 0);
-          
-          // Convert to JPEG blob
-          canvas.toBlob((blob) => {
-            if (blob) {
-              // Create a new file with JPEG extension
-              const jpegFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
-                type: 'image/jpeg',
-                lastModified: Date.now()
-              });
-              
-              // Clean up
-              URL.revokeObjectURL(url);
-              resolve(jpegFile);
-            } else {
-              reject(new Error('Failed to convert HEIC to JPEG'));
-            }
-          }, 'image/jpeg', 0.9);
-        };
-        
-        img.onerror = () => {
-          URL.revokeObjectURL(url);
-          reject(new Error('Failed to load HEIC image'));
-        };
-        
-        img.src = url;
+      // Convert HEIC to JPEG using heic2any library
+      const convertedBlob = await heic2any({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: 1
       });
+      
+      // Create a new file with JPEG extension
+      const jpegFile = new File([convertedBlob as Blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
+        type: 'image/jpeg',
+        lastModified: Date.now()
+      });
+      
+      console.log('HEIC conversion successful:', {
+        originalName: file.name,
+        convertedName: jpegFile.name,
+        originalSize: file.size,
+        convertedSize: jpegFile.size
+      });
+      
+      return jpegFile;
     } catch (error) {
       console.error('Error converting HEIC:', error);
-      throw new Error('Failed to convert HEIC image. Please use a JPEG or PNG file.');
+      throw new Error('Failed to convert HEIC image. Please try a JPEG or PNG file instead.');
     }
   }
   
@@ -165,16 +141,29 @@ export async function uploadAvatar(
   file: File
 ): Promise<string | null> {
   try {
+    console.log('🔍 [profileService] uploadAvatar called with:', {
+      userId,
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size
+    });
+    
     // Convert HEIC files to JPEG
+    console.log('🔄 [profileService] Starting HEIC conversion...');
     const convertedFile = await convertHeicToJpeg(file);
+    console.log('✅ [profileService] HEIC conversion completed:', {
+      originalName: file.name,
+      convertedName: convertedFile.name,
+      convertedType: convertedFile.type
+    });
 
     // Create a unique file name
     const fileExt = convertedFile.name.split('.').pop();
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
-    // Upload the file to Supabase storage
+    // Upload the file to Supabase storage using existing bucket
     const { error: uploadError, data } = await supabase.storage
-      .from('profile_pictures')
+      .from('banknote_images')
       .upload(fileName, convertedFile, {
         cacheControl: '3600',
         upsert: false
@@ -188,7 +177,7 @@ export async function uploadAvatar(
 
     // Get the public URL
     const { data: urlData } = supabase.storage
-      .from('profile_pictures')
+      .from('banknote_images')
       .getPublicUrl(fileName);
 
     const avatarUrl = urlData.publicUrl;
@@ -204,6 +193,8 @@ export async function uploadAvatar(
       toast.error("Failed to update avatar");
       return null;
     }
+
+    console.log('✅ [profileService] Avatar URL updated successfully in database');
 
     return avatarUrl;
   } catch (error) {

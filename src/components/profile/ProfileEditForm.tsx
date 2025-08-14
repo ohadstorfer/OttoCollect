@@ -123,17 +123,41 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     const file = e.target.files?.[0];
     if (!file || !authUser) return;
     
-    // Check file type (including HEIC)
+    console.log('🔍 [ProfileEditForm] File selected:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified
+    });
+    
+    // Check file type
     const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || 
                    file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
     
+    console.log('🔍 [ProfileEditForm] File type check:', {
+      isHeic,
+      fileType: file.type,
+      fileName: file.name,
+      startsWithImage: file.type.startsWith('image/')
+    });
+    
     if (!file.type.startsWith('image/') && !isHeic) {
+      console.log('❌ [ProfileEditForm] File type rejected');
       toast({
         title: "Invalid file type",
         description: "Please select an image file (JPEG, PNG, or HEIC)",
         variant: "destructive",
       });
       return;
+    }
+    
+    // Show info for HEIC files
+    if (isHeic) {
+      console.log('✅ [ProfileEditForm] HEIC file detected, showing conversion message');
+      toast({
+        title: "HEIC file detected",
+        description: "Converting HEIC to JPEG format...",
+      });
     }
     
     // Check file size
@@ -146,17 +170,12 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
       return;
     }
     
-    // Show info for HEIC files
-    if (isHeic) {
-      toast({
-        title: "HEIC file detected",
-        description: "Converting HEIC to JPEG format...",
-      });
-    }
-    
     setIsLoading(true);
     
+    console.log('🚀 [ProfileEditForm] Starting upload process...');
+    
     try {
+      console.log('📤 [ProfileEditForm] Calling uploadAvatar function...');
       const newAvatarUrl = await uploadAvatar(authUser.id, file);
       
       if (newAvatarUrl) {
@@ -173,9 +192,13 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
       }
     } catch (error) {
       console.error("Error uploading profile picture:", error);
+      
+      // Show specific error message for HEIC files
+      const errorMessage = error instanceof Error ? error.message : "Failed to upload profile picture";
+      
       toast({
         title: "Upload failed",
-        description: "Failed to upload profile picture",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
