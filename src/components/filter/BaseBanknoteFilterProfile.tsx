@@ -14,9 +14,9 @@ import {
   Layers,
   ArrowLeft,
   ArrowUpDown,
-  Printer,
-  FileSpreadsheet
+  Printer
 } from "lucide-react";
+import { BsFileEarmarkExcel } from "react-icons/bs";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
 import { DynamicFilterState } from "@/types/filter";
@@ -582,7 +582,15 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       disabled={isExporting}
                       title="Export to Excel"
                     >
-                      <FileSpreadsheet className="h-4 w-4" />
+                      <BsFileEarmarkExcel 
+                        className="h-4 w-4" 
+                        style={{ 
+                          strokeWidth: '0.1px', 
+                          fill: 'currentColor',
+                          fontWeight: 'bold',
+                          filter: 'drop-shadow(0 0 0.3px currentColor)'
+                        }} 
+                      />
                     </Button>
                   </>
                 )}
