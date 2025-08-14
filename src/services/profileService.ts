@@ -1,6 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole, UserRank } from "@/types";
-import { toast } from "sonner";
 import heic2any from 'heic2any';
 
 // Helper function to convert HEIC files to JPEG
@@ -122,15 +121,12 @@ export async function updateUserProfile(
 
     if (error) {
       console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
       return false;
     }
 
-    toast.success("Profile updated successfully");
     return true;
   } catch (error) {
     console.error("Error in updateUserProfile:", error);
-    toast.error("Failed to update profile");
     return false;
   }
 }
@@ -171,7 +167,6 @@ export async function uploadAvatar(
 
     if (uploadError) {
       console.error("Error uploading avatar:", uploadError);
-      toast.error("Failed to upload avatar");
       return null;
     }
 
@@ -190,7 +185,6 @@ export async function uploadAvatar(
 
     if (updateError) {
       console.error("Error updating avatar URL:", updateError);
-      toast.error("Failed to update avatar");
       return null;
     }
 
@@ -199,7 +193,6 @@ export async function uploadAvatar(
     return avatarUrl;
   } catch (error) {
     console.error("Error in uploadAvatar:", error);
-    toast.error("Failed to upload avatar");
     return null;
   }
 }
@@ -248,15 +241,14 @@ export async function deleteUserById(userId: string): Promise<boolean> {
     if (!res.ok) {
       const txt = await res.text();
       console.error("Failed to delete Auth user:", txt);
-      toast.error('Deleted profile row, but failed to delete authentication user.');
+      console.error('Deleted profile row, but failed to delete authentication user.');
       return false;
     }
 
-    toast.success('User removed and blocked successfully');
+    console.log('User removed and blocked successfully');
     return true;
   } catch (error) {
     console.error('Error in deleteUserById:', error);
-    toast.error('Failed to remove and block user');
     return false;
   }
 }
