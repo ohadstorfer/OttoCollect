@@ -512,7 +512,9 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
             ))}
            
           </div>
-          <div >
+
+          {/* action buttons div */}
+          <div className="sm:ml-auto">
             <div className="flex flex-col sm:flex-row gap-1 lg:gap-2">
               <div className="flex gap-1 lg:gap-2 items-center">
                 <div className="relative flex-1 ">
