@@ -7,7 +7,7 @@
     "myPosts": "مشاركاتي"
   },
   "search": {
-    "placeholder": "البحث...",
+    "placeholder": "بحث...",
     "noResults": "لم يتم العثور على مشاركات أو إعلانات تطابق بحثك.",
     "noPostsYet": "لا توجد مشاركات في المنتدى بعد. كن أول من ينشئ مشاركة!"
   },
@@ -16,7 +16,7 @@
     "announcement": "إعلان",
     "createPost": "إنشاء مشاركة",
     "createAnnouncement": "إنشاء إعلان",
-    "createFirstPost": "إنشاء أول مشاركة لك",
+    "createFirstPost": "أنشئ مشاركتك الأولى",
     "reply": "رد",
     "edit": "تعديل",
     "save": "حفظ",
@@ -36,9 +36,9 @@
     "publishing": "جاري النشر..."
   },
   "limits": {
-    "dailyLimitWarning": "لقد وصلت إلى الحد اليومي المحدد وهو 6 أنشطة في المنتدى (مشاركات + تعليقات).",
+    "dailyLimitWarning": "لقد وصلت للحد اليومي من 6 أنشطة في المنتدى (مشاركات + تعليقات).",
     "dailyActivity": "النشاط اليومي في المنتدى: {{count}}/6 (مشاركات + تعليقات)",
-    "accessDenied": "فقط المشرفون المتميزون يمكنهم إنشاء إعلانات."
+    "accessDenied": "فقط المشرفون المميزون يمكنهم إنشاء إعلانات."
   },
   "content": {
     "announcements": "الإعلانات",
@@ -90,16 +90,16 @@
     "contentLabel": "المحتوى",
     "imagesLabel": "الصور (اختياري)",
     "titlePlaceholder": "أضف عنواناً وصفياً لمشاركتك",
-    "contentPlaceholder": "شارك أفكارك أو أسئلتك أو رؤيتك...",
+    "contentPlaceholder": "شارك أفكارك، أسئلتك، أو رؤيتك...",
     "commentPlaceholder": "اكتب تعليقك...",
     "replyPlaceholder": "رد على {{username}}...",
     "publishPost": "نشر المشاركة",
     "publishAnnouncement": "نشر الإعلان"
   },
   "comments": {
-    "showReplies": "إظهار {{count}} {{count, plural, one {رد} other {ردود}}}",
+    "showReplies": "عرض {{count}} {{count, plural, one {رد} other {ردود}}}",
     "hideReplies": "إخفاء {{count}} {{count, plural, one {رد} other {ردود}}}",
-    "emptyComment": "لا يمكن أن يكون التعليق فارغاً",
-    "emptyReply": "لا يمكن أن يكون الرد فارغاً"
+    "emptyComment": "التعليق لا يمكن أن يكون فارغاً",
+    "emptyReply": "الرد لا يمكن أن يكون فارغاً"
   }
 } 

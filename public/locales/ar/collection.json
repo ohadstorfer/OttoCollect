@@ -5,7 +5,7 @@
   "editItem": "تحرير العنصر",
   "deleteItem": "حذف العنصر",
   "totalItems": "{{count}} عنصر",
-  "totalItems_plural": "{{count}} عنصر",
+  "totalItems_plural": "{{count}} عناصر",
   "totalValue": "القيمة الإجمالية: {{value}}",
   "filters": {
     "ownedOnly": "المملوكة فقط",

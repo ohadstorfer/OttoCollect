@@ -16,30 +16,30 @@
   },
   "breadcrumb": {
     "home": "الرئيسية",
-    "catalog": "الفهارس",
+    "catalog": "الفهرس",
     "collection": "المجموعة",
     "marketplace": "السوق",
     "forum": "المنتدى",
     "profile": "الملف الشخصي",
     "admin": "الإدارة",
-    "banknote": "ورقة نقدية",
+    "banknote": "الورقة النقدية",
     "country": "البلد"
   },
   "buttons": {
-    "back": "عودة",
+    "back": "رجوع",
     "next": "التالي",
     "previous": "السابق",
     "save": "حفظ",
     "cancel": "إلغاء",
     "close": "إغلاق",
-    "edit": "تحرير",
+    "edit": "تعديل",
     "delete": "حذف",
     "add": "إضافة",
     "remove": "إزالة",
     "search": "بحث",
-    "filter": "فلترة",
+    "filter": "تصفية",
     "sort": "ترتيب",
     "view": "عرض",
     "upload": "رفع"
   }
-}
+} 

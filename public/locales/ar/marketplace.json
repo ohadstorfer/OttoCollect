@@ -1,8 +1,8 @@
 {
   "title": "السوق",
-  "subtitle": "تصفح واشترِ الأوراق النقدية العثمانية وعملات الدول الخلف/السلطات من هواة الجمع الآخرين",
+  "subtitle": "تصفح واشترِ الأوراق النقدية العثمانية والدول التي خلفتها من هواة الجمع الآخرين",
   "description": "اشترِ وابِع الأوراق النقدية الأصيلة في سوق آمن مع بائعين موثقين",
-  
+
   "filters": {
     "title": "المرشحات والترتيب",
     "search": "البحث في الأوراق النقدية...",
@@ -31,11 +31,11 @@
     "refresh": "تحديث",
     "myListings": "إعلاناتي",
     "listForSale": "عرض للبيع",
-    "editListing": "تحرير الإعلان",
+    "editListing": "تعديل الإعلان",
     "removeListing": "إزالة من البيع",
-    "contactSeller": "اتصل بالبائع",
+    "contactSeller": "تواصل مع البائع",
     "makeOffer": "تقديم عرض",
-    "buyNow": "اشتر الآن",
+    "buyNow": "اشترِ الآن",
     "addToWishlist": "أضف إلى قائمة الأماني",
     "removeFromWishlist": "إزالة من قائمة الأماني"
   },
@@ -46,7 +46,7 @@
     "grade": "الدرجة",
     "seller": "البائع",
     "location": "الموقع",
-    "listedDate": "تاريخ الإدراج",
+    "listedDate": "تاريخ الإعلان",
     "pickNumber": "رقم بيك",
     "extendedPickNumber": "رقم بيك الموسع",
     "denomination": "الفئة",
@@ -70,14 +70,14 @@
       "available": "متاح",
       "reserved": "محجوز",
       "sold": "مباع",
-      "pending": "قيد الانتظار"
+      "pending": "في الانتظار"
     }
   },
 
   "listing": {
     "form": {
       "title": "عرض ورقة نقدية للبيع",
-      "editTitle": "تحرير الإعلان",
+      "editTitle": "تعديل الإعلان",
       "price": "سعر البيع",
       "pricePlaceholder": "أدخل السعر بالدولار الأمريكي",
       "condition": "الحالة",
@@ -86,7 +86,7 @@
       "gradeNumber": "رقم الدرجة",
       "gradeLetters": "حروف الدرجة",
       "description": "الوصف",
-      "descriptionPlaceholder": "صف حالة الورقة النقدية وتاريخها أو أي ميزات بارزة...",
+      "descriptionPlaceholder": "صف حالة الورقة النقدية، تاريخها، أو أي ميزات بارزة...",
       "publicNotes": "ملاحظات عامة",
       "publicNotesPlaceholder": "ملاحظات مرئية للمشترين...",
       "privateNotes": "ملاحظات خاصة",
@@ -104,12 +104,12 @@
       "priceRequired": "السعر مطلوب",
       "pricePositive": "يجب أن يكون السعر موجباً",
       "descriptionRequired": "الوصف مطلوب",
-      "imagesRequired": "مطلوب على الأقل صورة واحدة"
+      "imagesRequired": "مطلوب صورة واحدة على الأقل"
     }
   },
 
   "messaging": {
-    "contactSeller": "اتصل بالبائع",
+    "contactSeller": "تواصل مع البائع",
     "sendMessage": "إرسال رسالة",
     "messagePlaceholder": "اكتب رسالتك للبائع...",
     "subject": "الموضوع",
@@ -123,7 +123,7 @@
   "status": {
     "loading": "جاري تحميل عناصر السوق...",
     "noItems": "لم يتم العثور على عناصر",
-    "noItemsDescription": "لا توجد حالياً عناصر متاحة في السوق",
+    "noItemsDescription": "لا توجد عناصر متاحة حالياً في السوق",
     "noItemsFiltered": "لا توجد عناصر تطابق المرشحات الحالية. حاول تعديل معاييرك.",
     "error": "خطأ في تحميل عناصر السوق",
     "errorDescription": "فشل في تحميل عناصر السوق. يرجى المحاولة مرة أخرى لاحقاً.",

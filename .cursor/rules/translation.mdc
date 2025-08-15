@@ -1,0 +1,23 @@
+---
+alwaysApply: true
+---
+
+Whenever creating translations from English to Arabic or Turkish, use human, natural-sounding language that fits the context of banknote collection and common website terms.
+
+Accuracy first: Preserve the meaning of the original English sentence without word-for-word literal translations.
+
+Banknote terminology: Use correct, domain-specific terms for coins, notes, currencies, denominations, and collection categories as used by experienced collectors in the target language.
+
+Website basics: Translate navigation, buttons, and UI terms in a way that matches common conventions in Arabic/Turkish websites.
+
+Tone: Keep the tone friendly, clear, and professional. Avoid slang unless explicitly part of the original.
+
+Readability: Ensure the result sounds like it was written by a native speaker, not machine-translated.
+
+Example:
+
+EN: "Add banknote to your collection"
+
+AR: "أضف الورقة النقدية إلى مجموعتك"
+
+TR: "Banknotu koleksiyonuna ekle"

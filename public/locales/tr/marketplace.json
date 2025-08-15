@@ -1,12 +1,12 @@
 {
   "title": "Pazar",
-  "subtitle": "Diğer koleksiyonculardan Osmanlı banknotlarını ve halef ülkelerin/otoritelerin banknotlarını gözden geçirin ve satın alın",
+  "subtitle": "Diğer koleksiyonculardan Osmanlı banknotlarını ve halefi devletlerin banknotlarını gözden geçirin ve satın alın",
   "description": "Doğrulanmış satıcılarla güvenli bir pazarda otantik banknotları satın alın ve satın",
-  
+
   "filters": {
     "title": "Filtreler ve Sıralama",
     "search": "Banknotları ara...",
-    "searchPlaceholder": "Pick numarası, nominal değer, ülke ile ara...",
+    "searchPlaceholder": "Pick numarası, değer, ülke ile ara...",
     "categories": "Kategoriler",
     "types": "Türler",
     "countries": "Ülkeler",
@@ -22,7 +22,7 @@
       "dateOld": "Tarih: En Eski Önce",
       "pickNumber": "Pick Numarası",
       "extPick": "Genişletilmiş Pick Numarası",
-      "denomination": "Nominal Değer",
+      "denomination": "Değer",
       "condition": "Durum"
     }
   },
@@ -49,7 +49,7 @@
     "listedDate": "İlan Tarihi",
     "pickNumber": "Pick Numarası",
     "extendedPickNumber": "Genişletilmiş Pick Numarası",
-    "denomination": "Nominal Değer",
+    "denomination": "Değer",
     "faceValue": "Yüz Değeri",
     "country": "Ülke",
     "series": "Seri",

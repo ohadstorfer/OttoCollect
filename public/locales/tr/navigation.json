@@ -16,7 +16,7 @@
   },
   "breadcrumb": {
     "home": "Ana Sayfa",
-    "catalog": "Kataloglar",
+    "catalog": "Katalog",
     "collection": "Koleksiyon",
     "marketplace": "Pazar",
     "forum": "Forum",
@@ -42,4 +42,4 @@
     "view": "Görüntüle",
     "upload": "Yükle"
   }
-}
+} 
