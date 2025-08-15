@@ -145,6 +145,16 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
         suggestion.reverse_image_thumbnail = processedImages.thumbnail;
       }
 
+      // Process the cleanup queue after successful image update
+      try {
+        const { processImageCleanupQueue } = await import('@/services/imageCleanupService');
+        const result = await processImageCleanupQueue();
+        console.log('Cleanup queue processed after image crop update:', result);
+      } catch (cleanupError) {
+        console.warn('Failed to process cleanup queue after image crop update:', cleanupError);
+        // Don't throw error as this is a background cleanup operation
+      }
+
       toast.success('Image updated successfully');
     } catch (error) {
       console.error('Error saving cropped image:', error);
@@ -582,6 +592,16 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       }
       
       console.log('Successfully updated banknote images:', updateData);
+      
+      // Process the cleanup queue after successful image update
+      try {
+        const { processImageCleanupQueue } = await import('@/services/imageCleanupService');
+        const result = await processImageCleanupQueue();
+        console.log('Cleanup queue processed after image suggestion approval:', result);
+      } catch (cleanupError) {
+        console.warn('Failed to process cleanup queue after image suggestion approval:', cleanupError);
+        // Don't throw error as this is a background cleanup operation
+      }
       
       // Update the suggestion status to approved
       const { error: suggestionError } = await supabase

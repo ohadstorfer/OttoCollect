@@ -665,6 +665,16 @@ export async function updateCollectionItemImages(
       console.error("Error updating collection item images:", error);
       throw error;
     }
+
+    // Process the cleanup queue after successful image update
+    try {
+      const { processImageCleanupQueue } = await import('@/services/imageCleanupService');
+      const result = await processImageCleanupQueue();
+      console.log('Cleanup queue processed after image update:', result);
+    } catch (cleanupError) {
+      console.warn('Failed to process cleanup queue after image update:', cleanupError);
+      // Don't throw error as this is a background cleanup operation
+    }
     
     return true;
   } catch (error) {
