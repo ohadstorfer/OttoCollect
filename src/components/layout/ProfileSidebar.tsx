@@ -21,6 +21,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
   const { theme, toggleTheme } = useTheme();
   const { t, i18n: i18nInstance } = useTranslation(['profile']);
   const isAdmin = user?.role === 'Super Admin' || user?.role?.includes('Admin');
+  const isSuperAdmin = user?.role === 'Super Admin';
 
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
@@ -131,14 +132,16 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
             {tWithFallback('sidebar.messages', 'Messages')}
           </Button>
 
+          {isSuperAdmin && (
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={() => handleNavigation('/community')}
+            onClick={() => handleNavigation('/members')}
           >
             <Users className="mr-2 h-4 w-4" />
-            {tWithFallback('sidebar.community', 'Community')}
+            {tWithFallback('sidebar.allUsers', 'All Users')}
           </Button>
+          )}
 
           <div className="border-t pt-2 mt-4">
             <Button

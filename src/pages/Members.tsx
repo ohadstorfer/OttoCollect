@@ -90,7 +90,7 @@ export default function Members() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Community Members</h1>
+      <h1 className="page-title"> <span>All Users</span></h1>
       
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
