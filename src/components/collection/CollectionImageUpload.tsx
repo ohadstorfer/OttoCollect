@@ -63,12 +63,15 @@ export default function CollectionImageUpload({
     try {
       const imageUrl = await uploadCollectionImage(file);
 
+      // Handle both string and object responses from uploadCollectionImage
+      const finalImageUrl = typeof imageUrl === 'string' ? imageUrl : imageUrl.original;
+      
       if (type === 'obverse') {
-        onObverseImageChange?.(imageUrl);
+        onObverseImageChange?.(finalImageUrl);
       } else if (type === 'reverse') {
-        onReverseImageChange?.(imageUrl);
+        onReverseImageChange?.(finalImageUrl);
       } else if (type === 'personal') {
-        const newPersonalImages = [...personalImages, imageUrl];
+        const newPersonalImages = [...personalImages, finalImageUrl];
         setPersonalImages(newPersonalImages);
         onPersonalImagesChange?.(newPersonalImages);
       }

@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -2072,10 +2072,10 @@ export type Database = {
       award_historical_badges: {
         Args: Record<PropertyKey, never>
         Returns: {
-          user_id: string
-          username: string
           badges_awarded: number
           details: string
+          user_id: string
+          username: string
         }[]
       }
       award_historical_badges_for_user: {
@@ -2086,7 +2086,7 @@ export type Database = {
         }[]
       }
       award_points_and_update_rank: {
-        Args: { user_id_param: string; points_to_add: number }
+        Args: { points_to_add: number; user_id_param: string }
         Returns: undefined
       }
       calculate_user_rank: {
@@ -2096,38 +2096,38 @@ export type Database = {
       catalog_banknotes_sorted_by_country: {
         Args: { country_id: string }
         Returns: {
-          id: string
-          country: string
-          extended_pick_number: string
-          pick_number: string
-          turk_catalog_number: string
-          face_value: string
-          islamic_year: string
-          gregorian_year: string
-          signatures_front: string
-          signatures_back: string
-          signature_pictures: string[]
-          seal_names: string
-          seal_pictures: string[]
-          watermark_picture: string
-          other_element_pictures: string[]
-          front_picture: string
           back_picture: string
-          sultan_name: string
-          tughra_picture: string
-          printer: string
-          type: string
-          category: string
-          rarity: string
-          security_element: string
-          colors: string
-          serial_numbering: string
           banknote_description: string
+          category: string
+          colors: string
+          country: string
+          created_at: string
+          extended_pick_number: string
+          face_value: string
+          front_picture: string
+          gregorian_year: string
           historical_description: string
+          id: string
           is_approved: boolean
           is_pending: boolean
-          created_at: string
+          islamic_year: string
+          other_element_pictures: string[]
+          pick_number: string
+          printer: string
+          rarity: string
+          seal_names: string
+          seal_pictures: string[]
+          security_element: string
+          serial_numbering: string
+          signature_pictures: string[]
+          signatures_back: string
+          signatures_front: string
+          sultan_name: string
+          tughra_picture: string
+          turk_catalog_number: string
+          type: string
           updated_at: string
+          watermark_picture: string
         }[]
       }
       check_and_award_badges_for_user: {
@@ -2135,30 +2135,30 @@ export type Database = {
         Returns: undefined
       }
       collection_items_sorted_by_country: {
-        Args: { user_id_param: string; country_id: string }
+        Args: { country_id: string; user_id_param: string }
         Returns: {
-          id: string
-          user_id: string
           banknote_id: string
-          is_unlisted_banknote: boolean
-          unlisted_banknotes_id: string
-          sale_price: number
-          is_for_sale: boolean
-          purchase_price: number
-          purchase_date: string
-          order_index: number
-          created_at: string
-          updated_at: string
           condition: string
-          public_note: string
-          private_note: string
+          created_at: string
+          id: string
+          is_for_sale: boolean
+          is_unlisted_banknote: boolean
           location: string
           obverse_image: string
+          order_index: number
+          private_note: string
+          public_note: string
+          purchase_date: string
+          purchase_price: number
           reverse_image: string
+          sale_price: number
+          unlisted_banknotes_id: string
+          updated_at: string
+          user_id: string
         }[]
       }
       create_badge_notifications: {
-        Args: { target_user_id: string; new_badge_ids: string[] }
+        Args: { new_badge_ids: string[]; target_user_id: string }
         Returns: undefined
       }
       extract_numeric_value: {
@@ -2251,11 +2251,11 @@ export type Database = {
       get_user_highest_badges: {
         Args: { user_id_param: string }
         Returns: {
+          category: string
+          icon_url: string
           id: string
           name: string
           stage: string
-          category: string
-          icon_url: string
           threshold_value: number
         }[]
       }
@@ -2268,7 +2268,7 @@ export type Database = {
         Returns: number
       }
       is_country_admin: {
-        Args: { user_uuid: string; country_uuid: string }
+        Args: { country_uuid: string; user_uuid: string }
         Returns: boolean
       }
       is_following: {
@@ -2284,7 +2284,7 @@ export type Database = {
         Returns: boolean
       }
       mark_notifications_as_read: {
-        Args: { user_id_param: string; notification_ids?: string[] }
+        Args: { notification_ids?: string[]; user_id_param: string }
         Returns: undefined
       }
       parse_extended_pick_number: {
