@@ -1230,27 +1230,41 @@ export async function updateUnlistedBanknoteWithCollectionItem(
       throw banknoteError;
     }
 
-    // Update collection item
-    const { error: collectionError } = await supabase
-      .from('collection_items')
-      .update({
-        condition: params.condition,
-        grade_by: params.grade_by,
-        grade: params.grade,
-        grade_condition_description: params.grade_condition_description,
-        public_note: params.public_note,
-        private_note: params.private_note,
-        purchase_price: params.purchase_price,
-        purchase_date: params.purchase_date,
-        location: params.location,
-        is_for_sale: params.is_for_sale,
-        sale_price: params.sale_price,
-        obverse_image: params.obverse_image,
-        reverse_image: params.reverse_image,
-        type: params.type,
-        prefix: params.prefix
-      })
-      .eq('id', collectionItemId);
+    // Update collection item using image management service
+    const updates = {
+      condition: params.condition,
+      grade_by: params.grade_by,
+      grade: params.grade,
+      grade_condition_description: params.grade_condition_description,
+      public_note: params.public_note,
+      private_note: params.private_note,
+      purchase_price: params.purchase_price,
+      purchase_date: params.purchase_date,
+      location: params.location,
+      is_for_sale: params.is_for_sale,
+      sale_price: params.sale_price,
+      obverse_image: params.obverse_image,
+      reverse_image: params.reverse_image,
+      type: params.type,
+      prefix: params.prefix
+    };
+
+    // Use image management service if images are being updated
+    if (params.obverse_image || params.reverse_image) {
+      const { updateCollectionItemImages } = await import('@/services/imageManagementService');
+      await updateCollectionItemImages(collectionItemId, updates, existingItem, existingItem.banknote_id);
+    } else {
+      // No image updates, just update normally
+      const { error: collectionError } = await supabase
+        .from('collection_items')
+        .update(updates)
+        .eq('id', collectionItemId);
+
+      if (collectionError) {
+        console.error('Error updating collection item:', collectionError);
+        throw collectionError;
+      }
+    }
 
     if (collectionError) {
       console.error('Error updating collection item:', collectionError);
