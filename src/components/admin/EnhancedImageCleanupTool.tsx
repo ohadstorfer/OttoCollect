@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { runImageCleanup } from '@/services/imageCleanupService';
+import { processImageCleanupQueue } from '@/services/imageQueueService';
 import { toast } from 'sonner';
 
 export function EnhancedImageCleanupTool() {
@@ -30,6 +31,25 @@ export function EnhancedImageCleanupTool() {
     }
   };
 
+  const handleProcessQueue = async () => {
+    try {
+      setIsRunning(true);
+      
+      const data = await processImageCleanupQueue();
+      
+      if (data.success) {
+        toast.success(`Queue processed! Processed ${data.processed || 0} items with ${data.errors || 0} errors.`);
+      } else {
+        toast.error('Queue processing failed');
+      }
+    } catch (error) {
+      console.error('Error processing queue:', error);
+      toast.error('Failed to process queue');
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   const imageTypes = [
     { category: 'Banknotes', types: ['front_picture', 'back_picture', 'front_picture_watermarked', 'back_picture_watermarked', 'front_picture_thumbnail', 'back_picture_thumbnail'] },
     { category: 'Stamps', types: ['signature_pictures', 'seal_pictures', 'other_element_pictures', 'watermark_picture', 'tughra_picture'] },
@@ -49,14 +69,28 @@ export function EnhancedImageCleanupTool() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button 
-            onClick={handleRunCleanup} 
-            disabled={isRunning}
-            className="w-full"
-            size="lg"
-          >
-            {isRunning ? 'Running Enhanced Cleanup...' : 'Run Enhanced Image Cleanup'}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleRunCleanup} 
+              disabled={isRunning}
+              variant="outline"
+              className="flex-1"
+            >
+              {isRunning ? 'Running Cleanup...' : 'Scan for Orphaned Images'}
+            </Button>
+            <Button 
+              onClick={handleProcessQueue} 
+              disabled={isRunning}
+              variant="default"
+              className="flex-1"
+            >
+              {isRunning ? 'Processing Queue...' : 'Process Deletion Queue'}
+            </Button>
+          </div>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p><strong>Scan:</strong> Find orphaned images in storage that are no longer referenced in database</p>
+            <p><strong>Process Queue:</strong> Delete images queued by database triggers when records are updated</p>
+          </div>
           
           {result && (
             <div className="mt-4 p-4 bg-muted rounded-lg">

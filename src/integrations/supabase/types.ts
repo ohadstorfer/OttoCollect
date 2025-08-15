@@ -1088,6 +1088,42 @@ export type Database = {
         }
         Relationships: []
       }
+      image_cleanup_queue: {
+        Row: {
+          banknote_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          image_url: string
+          processed: boolean | null
+          processed_at: string | null
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          banknote_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          image_url: string
+          processed?: boolean | null
+          processed_at?: string | null
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          banknote_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          image_url?: string
+          processed?: boolean | null
+          processed_at?: string | null
+          record_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       image_suggestions: {
         Row: {
           banknote_id: string
