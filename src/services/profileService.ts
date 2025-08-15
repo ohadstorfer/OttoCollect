@@ -177,13 +177,19 @@ export async function uploadAvatar(
 
     const avatarUrl = urlData.publicUrl;
 
-    // Update the user's profile with the new avatar URL
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ avatar_url: avatarUrl })
-      .eq("id", userId);
-
-    if (updateError) {
+    // Update the user's profile with the new avatar URL using our image management service
+    const { updateProfileAvatar } = await import('./imageManagementService');
+    
+    try {
+      // Get current avatar to clean up old one
+      const { data: currentProfile } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", userId)
+        .single();
+      
+      await updateProfileAvatar(userId, currentProfile?.avatar_url || null, avatarUrl);
+    } catch (updateError) {
       console.error("Error updating avatar URL:", updateError);
       return null;
     }

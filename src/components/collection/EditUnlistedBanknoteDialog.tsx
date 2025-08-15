@@ -428,12 +428,27 @@ export default function EditUnlistedBanknoteDialog({
         dimensions: values.dimensions
       } as UnlistedBanknoteUpdateParams);
 
-      // Update the collection item with watermarked and thumbnail images
+      // Update the collection item with watermarked and thumbnail images using the image management service
       if (obverseProcessedImages || reverseProcessedImages) {
+        const { updateCollectionItemImages } = await import('@/services/imageManagementService');
+        
+        const updates: any = {};
+        if (obverseProcessedImages) {
+          updates.obverse_image = obverseProcessedImages.original;
+          updates.obverse_image_watermarked = obverseProcessedImages.watermarked;
+          updates.obverse_image_thumbnail = obverseProcessedImages.thumbnail;
+        }
+        if (reverseProcessedImages) {
+          updates.reverse_image = reverseProcessedImages.original;
+          updates.reverse_image_watermarked = reverseProcessedImages.watermarked;
+          updates.reverse_image_thumbnail = reverseProcessedImages.thumbnail;
+        }
+        
         await updateCollectionItemImages(
           collectionItem.id,
-          obverseProcessedImages,
-          reverseProcessedImages
+          updates,
+          collectionItem,
+          collectionItem.banknote?.id
         );
       }
 

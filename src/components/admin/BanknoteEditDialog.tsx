@@ -472,11 +472,11 @@ const BanknoteEditDialog = ({
             updatedAt: data.updated_at || new Date().toISOString(),
             signaturesFront: data.signatures_front?.join(', ') || '',
             signaturesBack: data.signatures_back?.join(', ') || '',
-            signaturesFrontUrls: data.signatures_front_urls || [],
-            signaturesBackUrls: data.signatures_back_urls || [],
-            sealPictureUrls: data.seal_picture_urls || [],
-            watermarkUrl: data.watermark_picture_url || '',
-            tughraUrl: data.tughra_picture_url || ''
+            signaturesFrontUrls: data.signature_pictures || [],
+            signaturesBackUrls: data.signature_pictures || [],
+            sealPictureUrls: data.seal_pictures || [],
+            watermarkUrl: data.watermark_picture || '',
+            tughraUrl: data.tughra_picture || ''
           };
           
           onCreate(newBanknote);
