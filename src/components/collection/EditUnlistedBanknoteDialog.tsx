@@ -530,9 +530,13 @@ export default function EditUnlistedBanknoteDialog({
                               <SelectContent>
                                 <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
                                 <SelectItem value="AU">AU - About Uncirculated</SelectItem>
+                                <SelectItem value="XF/AU">XF/AU - Very Fine/About UNC</SelectItem>
                                 <SelectItem value="XF">XF - Extremely Fine</SelectItem>
+                                <SelectItem value="VF/XF">VF/XF - Very Fine/Extra Fine</SelectItem>
                                 <SelectItem value="VF">VF - Very Fine</SelectItem>
+                                <SelectItem value="F/VF">F/VF - Fine/Very Fine</SelectItem>
                                 <SelectItem value="F">F - Fine</SelectItem>
+                                <SelectItem value="VG/F">VG/F - Very Good/Fine</SelectItem>
                                 <SelectItem value="VG">VG - Very Good</SelectItem>
                                 <SelectItem value="G">G - Good</SelectItem>
                                 <SelectItem value="FR">FR - Fair</SelectItem>
