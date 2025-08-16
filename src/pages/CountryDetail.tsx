@@ -43,10 +43,8 @@ const CountryDetail = () => {
       try {
         const collection = await fetchUserCollection(user.id);
         setUserCollection(collection);
-        console.log(`[CountryDetail] Loaded userCollection for user ${user.id}, count: ${collection.length}`);
       } catch (e) {
         setUserCollection([]);
-        console.log("[CountryDetail] Failed to fetch userCollection", e);
       }
     }
     fetchCollection();
@@ -76,15 +74,11 @@ const CountryDetail = () => {
   // Fetch sultan order map when country changes
   useEffect(() => {
     if (countryId) {
-      console.log(`\n🌍 [CountryDetail Debug] Fetching sultan order map for country ID: ${countryId}`);
       getSultanOrderMap(countryId)
         .then(map => {
-          console.log(`✅ [CountryDetail Debug] Successfully fetched sultan order map:`, 
-            Array.from(map.entries()).map(([name, order]) => `"${name}": ${order}`));
           setSultanOrderMap(map);
         })
         .catch(error => {
-          console.error(`❌ [CountryDetail Debug] Failed to fetch sultan order map:`, error);
           setSultanOrderMap(new Map());
         });
     }
@@ -101,25 +95,9 @@ const CountryDetail = () => {
     sortFields: filters.sort
   });
 
-  // Debug: Log all unique sultan names in banknotes
-  useEffect(() => {
-    if (banknotes.length > 0) {
-      const uniqueSultans = new Set(banknotes.map(b => b.sultanName).filter(Boolean));
-      console.log(`\n📊 [CountryDetail Debug] Unique sultan names found in banknotes:`, 
-        Array.from(uniqueSultans));
-    }
-  }, [banknotes]);
 
-  // Debug: Log categoryOrder before passing to grouping hook
-  useEffect(() => {
-    if (categoryOrder && categoryOrder.length > 0) {
-      console.log(`\n🌍 [CountryDetail Debug] Category order data:`, categoryOrder);
-      console.log(`  Category order length:`, categoryOrder.length);
-      console.log(`  Category order structure:`, JSON.stringify(categoryOrder, null, 2));
-    } else {
-      console.log(`\n🌍 [CountryDetail Debug] Category order is empty or undefined:`, categoryOrder);
-    }
-  }, [categoryOrder]);
+
+  
 
   const groupedItems = useOptimizedBanknoteGroups({
     banknotes: sortedBanknotes,
@@ -177,6 +155,7 @@ const CountryDetail = () => {
             isLoading={isLoading}
             groupMode={groupMode}
             userCollection={userCollection}
+            filters={filters}
           />
         </div>
       </div>

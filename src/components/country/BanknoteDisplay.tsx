@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { DetailedBanknote, CollectionItem } from "@/types";
+import { DynamicFilterState } from "@/types/filter";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import LazyBanknoteDisplay from "./LazyBanknoteDisplay";
-
 
 interface BanknoteDisplayProps {
   groups: {
@@ -16,6 +16,7 @@ interface BanknoteDisplayProps {
   isLoading: boolean;
   groupMode: boolean;
   userCollection: CollectionItem[];
+  filters?: DynamicFilterState; // Add filters prop
 }
 
 export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
@@ -26,6 +27,7 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
   isLoading,
   groupMode,
   userCollection,
+  filters, // Destructure filters prop
 }) => {
   // Add state for forcing re-renders
   const [forceUpdate, setForceUpdate] = useState(0);
@@ -61,6 +63,9 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
   });
   console.log("[BanknoteDisplay] Received userCollection, count:", userCollection?.length);
 
+  // Check if user is currently searching
+  const isSearching = filters?.search && filters.search.trim() !== "";
+
   return (
     <div className="mt-6" key={`banknote-display-${forceUpdate}`}>
       {isLoading ? (
@@ -69,8 +74,24 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
         </div>
       ) : groups.length === 0 ? (
         <div className="text-center py-8">
-          <h3 className="text-xl font-medium mb-4"><span>No banknotes found</span></h3>
-          <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+          {isSearching ? (
+            // Show search-specific message when user is searching
+            <>
+              <h3 className="text-xl font-medium mb-4"><span className="text-red-600">!!</span><span> No banknotes found</span></h3>
+              <p className="text-muted-foreground">Try adjusting your search criteria.</p>
+            </>
+          ) : (
+            // Show filter guidance message when no search is active
+            <>
+              <h3 className="text-xl font-medium mb-4">
+                <span className="text-red-600">!!</span><span> Go to Filter in the toolbar</span>
+              </h3>
+              <p className="text-muted-foreground">
+                Add categories or select <strong>All categories</strong> to view the entire catalog. 
+                Check that: <strong>Issue note</strong> type is selected or select <strong>All types</strong>.
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <>

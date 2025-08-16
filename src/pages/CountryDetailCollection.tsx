@@ -902,6 +902,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           isOwner={isOwner}
           activeTab={activeTab}
           countryName={effectiveCountryName}
+          filters={filters}
         />
       )}
       {activeTab === 'missing' && (
@@ -915,6 +916,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           isOwner={isOwner}
           activeTab={activeTab}
           countryName={effectiveCountryName}
+          filters={filters}
         />
       )}
       {activeTab === 'wishlist' && (
@@ -928,6 +930,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           isOwner={isOwner}
           activeTab={activeTab}
           countryName={effectiveCountryName}
+          filters={filters}
         />
       )}
       {activeTab === 'sale' && (
@@ -941,6 +944,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           isOwner={isOwner}
           activeTab={activeTab}
           countryName={effectiveCountryName}
+          filters={filters}
         />
       )}
     </div>

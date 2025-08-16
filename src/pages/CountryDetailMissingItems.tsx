@@ -149,6 +149,7 @@ const CountryDetailMissingItems: React.FC<CountryDetailMissingItemsProps> = ({
           isLoading={isLoading}
           groupMode={groupMode}
           userCollection={displayUserCollection}
+          filters={filters}
         />
       {/* </div> */}
     </div>
