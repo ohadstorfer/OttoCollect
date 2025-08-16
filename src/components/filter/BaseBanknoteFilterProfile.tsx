@@ -602,6 +602,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
               </Button>
             )}
 
+
             {/* Filter and Sort buttons */}
             <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
               <SheetTrigger asChild>
