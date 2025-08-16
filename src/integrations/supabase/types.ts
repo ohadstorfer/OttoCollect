@@ -2125,6 +2125,13 @@ export type Database = {
         Args: { points_to_add: number; user_id_param: string }
         Returns: undefined
       }
+      backfill_user_filter_preferences: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          preferences_created: number
+          users_processed: number
+        }[]
+      }
       calculate_user_rank: {
         Args: { user_points: number; user_role: string }
         Returns: string
@@ -2195,6 +2202,14 @@ export type Database = {
       }
       create_badge_notifications: {
         Args: { new_badge_ids: string[]; target_user_id: string }
+        Returns: undefined
+      }
+      create_complete_user_filter_preferences: {
+        Args: { country_id_param: string; user_id_param: string }
+        Returns: undefined
+      }
+      create_user_filter_preferences_for_all_countries: {
+        Args: { user_id_param: string }
         Returns: undefined
       }
       extract_numeric_value: {
