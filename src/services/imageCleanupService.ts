@@ -26,27 +26,73 @@ export async function processImageCleanupQueue(): Promise<{
   details: string[];
 }> {
   try {
-    console.log('Processing image cleanup queue via edge function...');
+    console.log('Processing image cleanup queue...');
+    
+    // Get unprocessed items from the queue
+    const { data: queueItems, error: fetchError } = await supabase
+      .from('image_cleanup_queue')
+      .select('*')
+      .eq('processed', false)
+      .order('created_at', { ascending: true })
+      .limit(10); // Process in batches
 
-    const { data, error } = await supabase.functions.invoke('delete-old-image', {
-      body: { processQueue: true }
-    });
-
-    if (error) {
-      console.error('Edge function error processing cleanup queue:', error);
-      throw error;
+    if (fetchError) {
+      console.error('Error fetching cleanup queue:', fetchError);
+      throw fetchError;
     }
 
-    // Normalize response shape for existing callers
-    const processed = data?.processed ?? 0;
-    const errors = data?.errors ?? 0;
-    const details: string[] = [
-      ...(data?.details?.processedItems?.map((i: any) => `Deleted: ${i.filePath}`) || []),
-      ...(data?.details?.errors?.map((e: any) => `Error: ${e.itemId} - ${e.error}`) || [])
-    ];
+    if (!queueItems || queueItems.length === 0) {
+      console.log('No items in cleanup queue');
+      return { processed: 0, errors: 0, details: ['No items to process'] };
+    }
 
-    console.log(`Cleanup queue processed. Processed: ${processed}, Errors: ${errors}`);
+    console.log(`Processing ${queueItems.length} items from cleanup queue`);
+
+    let processed = 0;
+    let errors = 0;
+    const details: string[] = [];
+
+    for (const item of queueItems) {
+      try {
+        console.log(`Processing item ${item.id}: ${item.image_url}`);
+        
+        // Check if image is still in use (for collection items)
+        if (item.table_name === 'collection_items' && item.banknote_id) {
+          const isStillUsed = await checkIfImageStillUsed(item.image_url, item.banknote_id);
+          if (isStillUsed) {
+            console.log(`Image ${item.image_url} is still in use, skipping deletion`);
+            await markQueueItemProcessed(item.id, 'Image still in use by banknote');
+            processed++;
+            details.push(`Skipped: ${item.image_url} (still in use)`);
+            continue;
+          }
+        }
+
+        // Delete the image from storage
+        const deleteSuccess = await deleteImageFromStorage(item.image_url);
+        
+        if (deleteSuccess) {
+          await markQueueItemProcessed(item.id, null);
+          processed++;
+          details.push(`Deleted: ${item.image_url}`);
+          console.log(`Successfully deleted image: ${item.image_url}`);
+        } else {
+          await markQueueItemProcessed(item.id, 'Failed to delete from storage');
+          errors++;
+          details.push(`Failed: ${item.image_url}`);
+          console.error(`Failed to delete image: ${item.image_url}`);
+        }
+      } catch (error) {
+        console.error(`Error processing item ${item.id}:`, error);
+        await markQueueItemProcessed(item.id, `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        errors++;
+        details.push(`Error: ${item.image_url} - ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    console.log(`Cleanup queue processing complete. Processed: ${processed}, Errors: ${errors}`);
     return { processed, errors, details };
+
   } catch (error) {
     console.error('Error in processImageCleanupQueue:', error);
     throw error;
@@ -196,22 +242,4 @@ export async function cleanupOldQueueItems(): Promise<number> {
     console.error('Error in cleanupOldQueueItems:', error);
     throw error;
   }
-}
-
-// Minimal stub for EnhancedImageCleanupTool compatibility
-export async function runImageCleanup(): Promise<any> {
-  // No-op scan; implement real orphan scan if needed
-  return {
-    success: true,
-    summary: {
-      totalDbImages: 0,
-      totalDbReferences: 0,
-      totalStorageFiles: 0,
-      orphanedFiles: 0,
-      deletedFiles: 0,
-      errors: 0
-    },
-    orphanedFilesList: [],
-    errors: []
-  };
 }

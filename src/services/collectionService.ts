@@ -668,7 +668,7 @@ export async function updateCollectionItemImages(
 
     // Process the cleanup queue after successful image update
     try {
-      const { processImageCleanupQueue } = await import('@/services/imageQueueService');
+      const { processImageCleanupQueue } = await import('@/services/imageCleanupService');
       const result = await processImageCleanupQueue();
       console.log('Cleanup queue processed after image update:', result);
     } catch (cleanupError) {

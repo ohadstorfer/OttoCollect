@@ -147,7 +147,7 @@ const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
 
       // Process the cleanup queue after successful image update
       try {
-        const { processImageCleanupQueue } = await import('@/services/imageQueueService');
+        const { processImageCleanupQueue } = await import('@/services/imageCleanupService');
         const result = await processImageCleanupQueue();
         console.log('Cleanup queue processed after image crop update:', result);
       } catch (cleanupError) {
@@ -595,7 +595,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
       
       // Process the cleanup queue after successful image update
       try {
-        const { processImageCleanupQueue } = await import('@/services/imageQueueService');
+        const { processImageCleanupQueue } = await import('@/services/imageCleanupService');
         const result = await processImageCleanupQueue();
         console.log('Cleanup queue processed after image suggestion approval:', result);
       } catch (cleanupError) {
