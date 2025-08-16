@@ -126,7 +126,7 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
         description: "Type updated successfully",
       });
       // Refresh the types list
-      fetchTypes();
+      loadTypes();
     } catch (error) {
       console.error('Error updating type:', error);
       toast({

@@ -617,7 +617,6 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                     </SheetHeader>
                     <div className="space-y-6 py-4 overflow-y-auto">
                       <div>
-                        <h4 className="font-medium mb-3">Categories</h4>
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
                             <Checkbox
@@ -645,7 +644,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                         </div>
                       </div>
                       {/* <div>
-                        <h4 className="font-medium mb-3">Types</h4>
+                        <h4 className="font-medium mb-3"><span> Types </span></h4>
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
                             <Checkbox

@@ -84,9 +84,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
     <div>
       {!disableCountrySelect && (
         <div className="mb-6">
-          <Label htmlFor="country-select" className="text-lg font-medium mb-2 block">
-            Select Country
-          </Label>
+          
           <Select 
             value={selectedCountryId}
             onValueChange={handleCountryChange}

@@ -20,7 +20,7 @@ const Admin = () => {
   const [isCountryAdmin, setIsCountryAdmin] = useState<boolean>(false);
   const [countryAdminName, setCountryAdminName] = useState<string>("");
   const [countryId, setCountryId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<string>('statistics');
+  const [activeTab, setActiveTab] = useState<string>('users');
   const [loading, setLoading] = useState<boolean>(true);
   
   useEffect(() => {
@@ -194,7 +194,7 @@ const Admin = () => {
           <TabsContent value="users">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif">User Management</CardTitle>
+                <CardTitle className="text-xl font-serif"><span>User Management</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <UserManagement isSuperAdmin={isSuperAdmin} />
@@ -205,7 +205,7 @@ const Admin = () => {
           <TabsContent value="banknotes">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif">Banknotes Management</CardTitle>
+                <CardTitle className="text-xl font-serif"><span>Banknotes Management</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <BanknotesManagement />
@@ -216,7 +216,7 @@ const Admin = () => {
           <TabsContent value="suggestions">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif">Image Suggestions</CardTitle>
+                <CardTitle className="text-xl font-serif"><span>Image Suggestions</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageSuggestions />
@@ -227,7 +227,7 @@ const Admin = () => {
           <TabsContent value="stamps">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif">Stamps</CardTitle>
+                <CardTitle className="text-xl font-serif"><span>Stamps</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampsManagement />
@@ -242,7 +242,7 @@ const Admin = () => {
           <TabsContent value="filter-settings">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif">Country Filter Settings</CardTitle>
+                <CardTitle className="text-xl font-serif"><span>Country Filter Settings</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <CountryFilterSettings />
