@@ -130,14 +130,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     setSelectedSort(currentFilters.sort || []);
   }, [currentFilters]);
 
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      console.log("BaseBanknoteFilter: Debounced search with value:", value);
-      handleFilterChange({ search: value });
-    }, 300),
-    [onFilterChange]
-  );
-
   const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
     console.log("BaseBanknoteFilter: Local filter change:", changes);
     
@@ -169,6 +161,14 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       isLocalChange.current = false;
     }, 200);
   };
+
+  const debouncedSearch = useCallback(
+    debounce((value: string) => {
+      console.log("BaseBanknoteFilter: Debounced search with value:", value);
+      handleFilterChange({ search: value });
+    }, 100), // Reduced debounce time
+    [handleFilterChange] // Changed dependency to handleFilterChange
+  );
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     console.log("BaseBanknoteFilter: Category change:", { categoryId, checked });
@@ -246,8 +246,20 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     console.log("BaseBanknoteFilter: Search input change:", value);
+    
+    // Update local state immediately
     setSearch(value);
-    debouncedSearch(value);
+    
+    // Cancel any pending debounced searches
+    debouncedSearch.cancel();
+    
+    // Trigger search immediately for empty or single character
+    if (value.length <= 1) {
+      handleFilterChange({ search: value });
+    } else {
+      // Use debounced search for longer queries
+      debouncedSearch(value);
+    }
   };
 
   const toggleViewMode = () => {
