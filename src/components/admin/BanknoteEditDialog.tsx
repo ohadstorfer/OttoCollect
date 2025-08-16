@@ -338,11 +338,58 @@ const BanknoteEditDialog = ({
     }
   };
 
-  const handleOtherElementImagesChange = (imageFiles: any[]) => {
-    setFormData(prev => ({
-      ...prev,
-      other_element_files: imageFiles
-    }));
+  const handleOtherElementImagesChange = async (imageFiles: any[]) => {
+    // If an image was removed, find which one and delete it
+    const currentFiles = formData.other_element_files || [];
+    const removedFiles = currentFiles.filter(currentFile => 
+      !imageFiles.some(newFile => newFile.previewUrl === currentFile.previewUrl)
+    );
+
+    // Keep track of successfully deleted URLs to update other_element_pictures
+    const deletedUrls = new Set();
+
+    // Delete removed files
+    for (const removedFile of removedFiles) {
+      if (removedFile.isExisting && removedFile.previewUrl) {
+        try {
+          // Delete from storage
+          const imageUrl = new URL(removedFile.previewUrl);
+          const pathArray = imageUrl.pathname.split('/');
+          const fileName = pathArray[pathArray.length - 1];
+          const { error: storageError } = await supabase.storage
+            .from('banknote_images')
+            .remove([`other_elements/${fileName}`]);
+          
+          if (storageError) throw storageError;
+
+          // Add to set of deleted URLs
+          deletedUrls.add(removedFile.previewUrl);
+          toast.success('Image deleted successfully');
+        } catch (error) {
+          console.error('Error deleting other element image:', error);
+          toast.error('Failed to delete image');
+        }
+      }
+    }
+
+    // Update local state for both files and URLs
+    setFormData(prev => {
+      // Filter out deleted URLs from other_element_pictures
+      const updatedPictures = (prev.other_element_pictures || [])
+        .filter(url => !deletedUrls.has(url));
+
+      console.log('Updating other_element_pictures:', {
+        before: prev.other_element_pictures,
+        after: updatedPictures,
+        deletedUrls: Array.from(deletedUrls)
+      });
+
+      return {
+        ...prev,
+        other_element_files: imageFiles,
+        other_element_pictures: updatedPictures
+      };
+    });
   };
 
   const uploadOtherElementImages = async (imageFiles: any[]): Promise<string[]> => {
@@ -384,18 +431,81 @@ const BanknoteEditDialog = ({
     return uploadedUrls;
   };
   
-  const handleStampChange = (type: StampType, value: string) => {
+  const handleStampChange = async (type: StampType, value: string) => {
     if (value === 'none') {
-      if (type === 'signatures_front' || type === 'signatures_back' || type === 'seal') {
-        setFormData(prev => ({
-          ...prev,
-          [type]: []
-        }));
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          [`${type}_picture`]: ''
-        }));
+      try {
+        if (type === 'signatures_front' || type === 'signatures_back' || type === 'seal') {
+          // For array fields, clear the array
+          const fieldName = type === 'seal' ? 'seal_pictures' : type;
+          const oldValues = formData[fieldName] || [];
+
+          // Delete each image from storage
+          for (const oldValue of oldValues) {
+            if (oldValue) {
+              const imageUrl = new URL(oldValue);
+              const pathArray = imageUrl.pathname.split('/');
+              const fileName = pathArray[pathArray.length - 1];
+              const { error: storageError } = await supabase.storage
+                .from('banknotes')
+                .remove([fileName]);
+              
+              if (storageError) throw storageError;
+            }
+          }
+
+          // Update database
+          if (banknote?.id) {
+            const { error: dbError } = await supabase
+              .from('detailed_banknotes')
+              .update({ [fieldName]: [] })
+              .eq('id', banknote.id);
+            
+            if (dbError) throw dbError;
+          }
+
+          // Update local state
+          setFormData(prev => ({
+            ...prev,
+            [fieldName]: []
+          }));
+        } else {
+          // For single fields (watermark, tughra)
+          const fieldName = `${type}_picture`;
+          const oldValue = formData[fieldName];
+
+          if (oldValue) {
+            // Delete from storage
+            const imageUrl = new URL(oldValue);
+            const pathArray = imageUrl.pathname.split('/');
+            const fileName = pathArray[pathArray.length - 1];
+            const { error: storageError } = await supabase.storage
+              .from('banknotes')
+              .remove([fileName]);
+            
+            if (storageError) throw storageError;
+
+            // Update database
+            if (banknote?.id) {
+              const { error: dbError } = await supabase
+                .from('detailed_banknotes')
+                .update({ [fieldName]: null })
+                .eq('id', banknote.id);
+              
+              if (dbError) throw dbError;
+            }
+
+            // Update local state
+            setFormData(prev => ({
+              ...prev,
+              [fieldName]: ''
+            }));
+          }
+        }
+
+        toast.success(`${type} image(s) deleted successfully`);
+      } catch (error) {
+        console.error(`Error deleting ${type} image:`, error);
+        toast.error(`Failed to delete ${type} image`);
       }
       return;
     }
@@ -433,13 +543,66 @@ const BanknoteEditDialog = ({
       // Upload other element images if any
       const otherElementUrls = await uploadOtherElementImages(formData.other_element_files || []);
       
-      // Prepare the data to save - remove other_element_files as it doesn't exist in DB
+      // Prepare the data to save - handle all image fields properly
       const { other_element_files, ...dataToSave } = formData;
+
+      // Ensure all image fields are properly set to null if empty
       const finalData = {
         ...dataToSave,
-        other_element_pictures: otherElementUrls.length > 0 ? otherElementUrls : (formData.other_element_pictures || [])
+        // Handle front image fields
+        front_picture: dataToSave.front_picture || null,
+        front_picture_watermarked: dataToSave.front_picture_watermarked || null,
+        front_picture_thumbnail: dataToSave.front_picture_thumbnail || null,
+        
+        // Handle back image fields
+        back_picture: dataToSave.back_picture || null,
+        back_picture_watermarked: dataToSave.back_picture_watermarked || null,
+        back_picture_thumbnail: dataToSave.back_picture_thumbnail || null,
+        
+        // Handle stamp fields
+        watermark_picture: dataToSave.watermark_picture || null,
+        tughra_picture: dataToSave.tughra_picture || null,
+        
+        // Handle array fields - ensure they're always arrays
+        signatures_front: Array.isArray(dataToSave.signatures_front) ? dataToSave.signatures_front : [],
+        signatures_back: Array.isArray(dataToSave.signatures_back) ? dataToSave.signatures_back : [],
+        seal_pictures: Array.isArray(dataToSave.seal_pictures) ? dataToSave.seal_pictures : [],
+        
+        // Handle other element pictures
+        other_element_pictures: otherElementUrls.length > 0 ? otherElementUrls : (dataToSave.other_element_pictures || [])
       };
       
+      // Debug log the final data being saved
+      console.log('Current form data before save:', {
+        formData: {
+          other_element_files: formData.other_element_files,
+          other_element_pictures: formData.other_element_pictures
+        }
+      });
+      
+      console.log('Final data being saved:', {
+        imageFields: {
+          front: {
+            picture: finalData.front_picture,
+            watermarked: finalData.front_picture_watermarked,
+            thumbnail: finalData.front_picture_thumbnail
+          },
+          back: {
+            picture: finalData.back_picture,
+            watermarked: finalData.back_picture_watermarked,
+            thumbnail: finalData.back_picture_thumbnail
+          },
+          stamps: {
+            watermark: finalData.watermark_picture,
+            tughra: finalData.tughra_picture,
+            signatures_front: finalData.signatures_front,
+            signatures_back: finalData.signatures_back,
+            seal_pictures: finalData.seal_pictures
+          },
+          other_element_pictures: finalData.other_element_pictures
+        }
+      });
+
       if (isNew) {
         // Create new banknote
         const { data, error } = await supabase
@@ -769,13 +932,51 @@ const BanknoteEditDialog = ({
             </TabsContent>
             
             <TabsContent value="images" className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+                              <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <Label>Front Image</Label>
                   <SimpleImageUpload 
                     image={formData.front_picture} 
                     side="front"
                     onImageUploaded={handleFrontImageUploaded}
+                    onImageDeleted={async () => {
+                      try {
+                        // Delete from storage
+                        const imageUrl = new URL(formData.front_picture);
+                        const pathArray = imageUrl.pathname.split('/');
+                        const fileName = pathArray[pathArray.length - 1];
+                        const { error: storageError } = await supabase.storage
+                          .from('banknotes')
+                          .remove([fileName]);
+                        
+                        if (storageError) throw storageError;
+
+                        // Update database
+                        const { error: dbError } = await supabase
+                          .from('detailed_banknotes')
+                          .update({ 
+                            front_picture: null,
+                            front_picture_watermarked: null,
+                            front_picture_thumbnail: null
+                          })
+                          .eq('id', banknote?.id);
+                        
+                        if (dbError) throw dbError;
+
+                        // Update local state
+                        setFormData(prev => ({
+                          ...prev,
+                          front_picture: '',
+                          front_picture_watermarked: '',
+                          front_picture_thumbnail: ''
+                        }));
+
+                        toast.success('Front image deleted successfully');
+                      } catch (error) {
+                        console.error('Error deleting front image:', error);
+                        toast.error('Failed to delete front image');
+                      }
+                    }}
                   />
                 </div>
                 
@@ -785,6 +986,44 @@ const BanknoteEditDialog = ({
                     image={formData.back_picture} 
                     side="back"
                     onImageUploaded={handleBackImageUploaded}
+                    onImageDeleted={async () => {
+                      try {
+                        // Delete from storage
+                        const imageUrl = new URL(formData.back_picture);
+                        const pathArray = imageUrl.pathname.split('/');
+                        const fileName = pathArray[pathArray.length - 1];
+                        const { error: storageError } = await supabase.storage
+                          .from('banknotes')
+                          .remove([fileName]);
+                        
+                        if (storageError) throw storageError;
+
+                        // Update database
+                        const { error: dbError } = await supabase
+                          .from('detailed_banknotes')
+                          .update({ 
+                            back_picture: null,
+                            back_picture_watermarked: null,
+                            back_picture_thumbnail: null
+                          })
+                          .eq('id', banknote?.id);
+                        
+                        if (dbError) throw dbError;
+
+                        // Update local state
+                        setFormData(prev => ({
+                          ...prev,
+                          back_picture: '',
+                          back_picture_watermarked: '',
+                          back_picture_thumbnail: ''
+                        }));
+
+                        toast.success('Back image deleted successfully');
+                      } catch (error) {
+                        console.error('Error deleting back image:', error);
+                        toast.error('Failed to delete back image');
+                      }
+                    }}
                   />
                 </div>
               </div>

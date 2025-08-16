@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon, Crop } from 'lucide-react';
+import { Image as ImageIcon, Crop, Trash2 } from 'lucide-react';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
 
 interface SimpleImageUploadProps {
   image: string;
   side: 'front' | 'back' | 'other';
   onImageUploaded: (file: File) => void;
+  onImageDeleted?: () => Promise<void>;
 }
 
 const SimpleImageUpload: React.FC<SimpleImageUploadProps> = ({
   image,
   side,
-  onImageUploaded
+  onImageUploaded,
+  onImageDeleted
 }) => {
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -68,15 +70,32 @@ const SimpleImageUpload: React.FC<SimpleImageUploadProps> = ({
 
       <div className="absolute bottom-2 right-2 flex gap-2">
         {image && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="bg-white/80 hover:bg-white"
-            onClick={handleCropClick}
-          >
-            <Crop className="h-4 w-4" />
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="bg-white/80 hover:bg-white"
+              onClick={handleCropClick}
+            >
+              <Crop className="h-4 w-4" />
+            </Button>
+            {onImageDeleted && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="bg-white/80 hover:bg-white text-destructive hover:text-destructive"
+                onClick={async () => {
+                  if (onImageDeleted) {
+                    await onImageDeleted();
+                  }
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </>
         )}
         <Button
           type="button"
