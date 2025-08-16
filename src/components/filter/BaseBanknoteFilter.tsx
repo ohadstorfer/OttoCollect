@@ -72,7 +72,10 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const navigate = useNavigate();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
-  const [isToggling, setIsToggling] = useState(false);
+  
+  // Local state for immediate UI updates
+  const [localViewMode, setLocalViewMode] = useState(viewMode);
+  const [localGroupMode, setLocalGroupMode] = useState(groupMode);
   
   const [search, setSearch] = useState(currentFilters.search || "");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
@@ -82,7 +85,16 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const isLocalChange = useRef(false);
   const prevFiltersRef = useRef<DynamicFilterState | null>(null);
 
+  // Sync local state with props
+  useEffect(() => {
+    setLocalViewMode(viewMode);
+    console.log("BaseBanknoteFilter: viewMode prop changed to:", viewMode);
+  }, [viewMode]);
 
+  useEffect(() => {
+    setLocalGroupMode(groupMode);
+    console.log("BaseBanknoteFilter: groupMode prop changed to:", groupMode);
+  }, [groupMode]);
 
   useEffect(() => {
     if (isLocalChange.current) {
@@ -117,15 +129,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     setSelectedTypes(currentFilters.types || []);
     setSelectedSort(currentFilters.sort || []);
   }, [currentFilters]);
-
-  // Monitor viewMode and groupMode prop changes for debugging
-  useEffect(() => {
-    console.log("BaseBanknoteFilter: viewMode prop changed to:", viewMode);
-  }, [viewMode]);
-
-  useEffect(() => {
-    console.log("BaseBanknoteFilter: groupMode prop changed to:", groupMode);
-  }, [groupMode]);
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
@@ -248,26 +251,20 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   };
 
   const toggleViewMode = () => {
-    if (onViewModeChange && !isToggling) {
-      setIsToggling(true);
-      const newMode = viewMode === 'grid' ? 'list' : 'grid';
-      console.log('BaseBanknoteFilter: Toggling view mode from', viewMode, 'to', newMode);
+    if (onViewModeChange) {
+      const newMode = localViewMode === 'grid' ? 'list' : 'grid';
+      console.log('BaseBanknoteFilter: Toggling view mode from', localViewMode, 'to', newMode);
+      setLocalViewMode(newMode); // Immediate local update
       onViewModeChange(newMode);
-      
-      // Reset toggle state after a short delay
-      setTimeout(() => setIsToggling(false), 300);
     }
   };
 
   const toggleGroupMode = () => {
-    if (onGroupModeChange && !isToggling) {
-      setIsToggling(true);
-      const newGroupMode = !groupMode;
-      console.log('BaseBanknoteFilter: Toggling group mode from', groupMode, 'to', newGroupMode);
+    if (onGroupModeChange) {
+      const newGroupMode = !localGroupMode;
+      console.log('BaseBanknoteFilter: Toggling group mode from', localGroupMode, 'to', newGroupMode);
+      setLocalGroupMode(newGroupMode); // Immediate local update
       onGroupModeChange(newGroupMode);
-      
-      // Reset toggle state after a short delay
-      setTimeout(() => setIsToggling(false), 300);
     }
   };
 
@@ -349,10 +346,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 variant="outline"
                 size="icon"
                 onClick={toggleViewMode}
-                disabled={isLoading || isToggling}
-                title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+                disabled={isLoading}
+                title={`Switch to ${localViewMode === 'grid' ? 'list' : 'grid'} view`}
+                className="touch-manipulation active:scale-95 transition-transform"
               >
-                {viewMode === 'grid' ? (
+                {localViewMode === 'grid' ? (
                   <LayoutList className="h-4 w-4" />
                 ) : (
                   <LayoutGrid className="h-4 w-4" />
@@ -362,12 +360,13 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
             
             {onGroupModeChange && (
               <Button
-                variant={groupMode ? "default" : "outline"}
+                variant={localGroupMode ? "default" : "outline"}
                 size="icon"
                 onClick={toggleGroupMode}
-                disabled={isLoading || isToggling}
-                aria-label={`Toggle group mode ${groupMode ? 'off' : 'on'}`}
+                disabled={isLoading}
+                aria-label={`Toggle group mode ${localGroupMode ? 'off' : 'on'}`}
                 title="Group similar banknotes"
+                className="touch-manipulation active:scale-95 transition-transform"
               >
                 <Layers className="h-4 w-4" />
               </Button>

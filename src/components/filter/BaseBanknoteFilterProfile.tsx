@@ -542,6 +542,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       onClick={toggleViewMode}
                       disabled={isLoading}
                       title={`Switch to ${localViewMode === 'grid' ? 'list' : 'grid'} view`}
+                      className="touch-manipulation active:scale-95 transition-transform"
                     >
                       {localViewMode === 'grid' ? (
                         <LayoutList className="h-4 w-4" />
@@ -559,6 +560,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                     disabled={isLoading}
                     aria-label={`Toggle group mode ${localGroupMode ? 'off' : 'on'}`}
                     title="Group similar banknotes"
+                    className="touch-manipulation active:scale-95 transition-transform"
                   >
                     <Layers className="h-4 w-4" />
                   </Button>
@@ -574,6 +576,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       onClick={handlePrint}
                       disabled={isPrinting}
                       title={tWithFallback('print.printCollection', 'Print Collection')}
+                      className="touch-manipulation active:scale-95 transition-transform"
                     >
                       <Printer className="h-4 w-4" />
                     </Button>
@@ -583,6 +586,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       onClick={handleExportExcel}
                       disabled={isExporting}
                       title="Export to Excel"
+                      className="touch-manipulation active:scale-95 transition-transform"
                     >
                       <BsFileEarmarkExcel 
                         className="h-4 w-4" 
