@@ -3,6 +3,7 @@ import { DetailedBanknote, CollectionItem } from "@/types";
 import { BanknoteGroups } from "@/components/banknotes/BanknoteGroups";
 import LazyBanknoteDisplay from "./LazyBanknoteDisplay";
 
+
 interface BanknoteDisplayProps {
   groups: {
     category: string;
