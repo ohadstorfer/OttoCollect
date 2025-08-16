@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { fetchCountryByName, fetchCategoriesByCountryId, fetchUserFilterPreferences } from "@/services/countryService";
@@ -135,15 +135,13 @@ export const useCountryData = ({
     loadCountryData();
   }, [countryName, navigate, toast, user]); // Removed onGroupModeChange from dependencies
 
-  const handleGroupModeChange = (mode: boolean) => {
-    // Prevent re-renders if the mode hasn't changed
-    if (mode === groupMode) return;
-    
+  const handleGroupModeChange = useCallback((mode: boolean) => {
     // Set a flag to indicate we're changing modes
     isGroupModeChanging.current = true;
     
-    console.log("CountryDetail: Group mode changed to", mode);
+    console.log("useCountryData: handleGroupModeChange called with mode:", mode, "current groupMode:", groupMode);
     setGroupMode(mode);
+    console.log("useCountryData: groupMode state updated to:", mode);
     
     // Store in session storage as a fallback for non-logged in users
     // (logged-in users' preferences are saved via BanknoteFilterCatalog)
@@ -159,7 +157,7 @@ export const useCountryData = ({
     setTimeout(() => {
       isGroupModeChanging.current = false;
     }, 100);
-  };
+  }, [groupMode, countryId, user]);
 
   return {
     countryId,

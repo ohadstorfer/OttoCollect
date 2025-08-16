@@ -139,9 +139,11 @@ const CountryDetail = () => {
     }));
   }, []);
 
-  const handleViewModeChange = (mode: 'grid' | 'list') => {
+  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
+    console.log('CountryDetail: handleViewModeChange called with mode:', mode, 'current viewMode:', viewMode);
     setViewMode(mode);
-  };
+    console.log('CountryDetail: viewMode state updated to:', mode);
+  }, [viewMode]);
 
   // Handle preferences loaded callback
   const handlePreferencesLoaded = useCallback(() => {

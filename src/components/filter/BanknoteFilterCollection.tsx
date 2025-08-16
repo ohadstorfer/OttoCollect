@@ -45,7 +45,30 @@ export interface BanknoteFilterCollectionProps {
   getFlattenedItemsForExport?: (activeTab: string) => CollectionItem[];
 }
 
-// Use React.memo to prevent unnecessary re-renders
+// Custom comparison function to ensure re-renders when viewMode or groupMode change
+const areEqual = (prevProps: BanknoteFilterCollectionProps, nextProps: BanknoteFilterCollectionProps) => {
+  // Always re-render if viewMode or groupMode change
+  if (prevProps.viewMode !== nextProps.viewMode || prevProps.groupMode !== nextProps.groupMode) {
+    console.log('BanknoteFilterCollection: Re-rendering due to viewMode or groupMode change', {
+      prevViewMode: prevProps.viewMode,
+      nextViewMode: nextProps.viewMode,
+      prevGroupMode: prevProps.groupMode,
+      nextGroupMode: nextProps.groupMode
+    });
+    return false;
+  }
+  
+  // Re-render if other important props change
+  if (prevProps.countryId !== nextProps.countryId || 
+      prevProps.activeTab !== nextProps.activeTab ||
+      prevProps.isLoading !== nextProps.isLoading) {
+    return false;
+  }
+  
+  return true;
+};
+
+// Use React.memo with custom comparison to ensure re-renders when viewMode or groupMode change
 export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> = memo(({
   countryId,
   countryName,
@@ -364,9 +387,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       return;
     }
     
-    // If the mode is the same as the current one, don't do anything
-    if (mode === viewMode) return;
-    
     setViewMode(mode);
     if (onViewModeChange) {
       onViewModeChange(mode);
@@ -409,9 +429,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       ignoreNextGroupModeChange.current = false;
       return;
     }
-    
-    // If the mode is the same as the current one, don't do anything
-    if (mode === groupMode) return;
     
     // Save group mode preference if user is logged in
     if (authUser?.id) {
@@ -487,7 +504,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       />
     </div>
   );
-});
+}, areEqual);
 
 // Add a display name for the memoized component
 BanknoteFilterCollection.displayName = 'BanknoteFilterCollection';

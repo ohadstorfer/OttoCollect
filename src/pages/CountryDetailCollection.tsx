@@ -494,9 +494,11 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     setPreferencesLoaded(true);
   }, []);
 
-  const handleViewModeChange = (mode: 'grid' | 'list') => {
+  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
+    console.log('CountryDetailCollection: handleViewModeChange called with mode:', mode, 'current viewMode:', viewMode);
     setViewMode(mode);
-  };
+    console.log('CountryDetailCollection: viewMode state updated to:', mode);
+  }, [viewMode]);
 
   const isLoading = countryLoading || collectionDataLoading;
 

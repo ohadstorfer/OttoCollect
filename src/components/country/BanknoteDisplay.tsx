@@ -26,6 +26,8 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
   groupMode,
   userCollection,
 }) => {
+  // Debug logging for props
+  console.log("[BanknoteDisplay] Received props:", { viewMode, groupMode, groupsCount: groups.length });
   // Add a log for received userCollection
   console.log("[BanknoteDisplay] Received userCollection, count:", userCollection?.length);
 

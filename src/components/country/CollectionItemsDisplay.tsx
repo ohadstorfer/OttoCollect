@@ -31,6 +31,9 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
   activeTab,
   countryName
 }) => {
+  // Debug logging for props
+  console.log('CollectionItemsDisplay: Received props:', { viewMode, groupMode, activeTab, groupsCount: groups.length });
+  
   // Function to update collection items after changes
   const handleUpdate = async () => {
     // In a real implementation, we would call a function from props

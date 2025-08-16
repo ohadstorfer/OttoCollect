@@ -331,8 +331,19 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     if (onViewModeChange) {
       const newMode = localViewMode === 'grid' ? 'list' : 'grid';
       console.log('BaseBanknoteFilterProfile: Toggling view mode from', localViewMode, 'to', newMode);
-      setLocalViewMode(newMode); // Immediate local update
+      
+      // Force immediate local state update
+      setLocalViewMode(newMode);
+      
+      // Call parent callback immediately
       onViewModeChange(newMode);
+      
+      // Force a re-render by updating local state again if needed
+      requestAnimationFrame(() => {
+        if (localViewMode !== newMode) {
+          setLocalViewMode(newMode);
+        }
+      });
     }
   };
 
@@ -340,8 +351,19 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     if (onGroupModeChange) {
       const newGroupMode = !localGroupMode;
       console.log('BaseBanknoteFilterProfile: Toggling group mode from', localGroupMode, 'to', newGroupMode);
-      setLocalGroupMode(newGroupMode); // Immediate local update
+      
+      // Force immediate local state update
+      setLocalGroupMode(newGroupMode);
+      
+      // Call parent callback immediately
       onGroupModeChange(newGroupMode);
+      
+      // Force a re-render by updating local state again if needed
+      requestAnimationFrame(() => {
+        if (localGroupMode !== newGroupMode) {
+          setLocalGroupMode(newGroupMode);
+        }
+      });
     }
   };
 

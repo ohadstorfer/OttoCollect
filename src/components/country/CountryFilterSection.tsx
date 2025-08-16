@@ -30,7 +30,30 @@ interface CountryFilterSectionProps {
   collectionItems?: CollectionItem[];
 }
 
-// Use React.memo to prevent unnecessary re-renders
+// Custom comparison function to ensure re-renders when viewMode or groupMode change
+const areEqual = (prevProps: CountryFilterSectionProps, nextProps: CountryFilterSectionProps) => {
+  // Always re-render if viewMode or groupMode change
+  if (prevProps.viewMode !== nextProps.viewMode || prevProps.groupMode !== nextProps.groupMode) {
+    console.log('CountryFilterSection: Re-rendering due to viewMode or groupMode change', {
+      prevViewMode: prevProps.viewMode,
+      nextViewMode: nextProps.viewMode,
+      prevGroupMode: prevProps.groupMode,
+      nextGroupMode: nextProps.groupMode
+    });
+    return false;
+  }
+  
+  // Re-render if other important props change
+  if (prevProps.countryId !== nextProps.countryId || 
+      prevProps.isLoading !== nextProps.isLoading ||
+      prevProps.source !== nextProps.source) {
+    return false;
+  }
+  
+  return true;
+};
+
+// Use React.memo with custom comparison to ensure re-renders when viewMode or groupMode change
 export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   countryId,
   countryName,
@@ -92,7 +115,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
       onPreferencesLoaded={onPreferencesLoaded}
     />
   ) : null;
-});
+}, areEqual);
 
 // Add a display name for the memoized component
 CountryFilterSection.displayName = 'CountryFilterSection';

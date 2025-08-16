@@ -25,7 +25,29 @@ interface BanknoteFilterCatalogProps {
   onPreferencesLoaded?: () => void;
 }
 
-// Use React.memo to prevent unnecessary re-renders
+// Custom comparison function to ensure re-renders when viewMode or groupMode change
+const areEqual = (prevProps: BanknoteFilterCatalogProps, nextProps: BanknoteFilterCatalogProps) => {
+  // Always re-render if viewMode or groupMode change
+  if (prevProps.viewMode !== nextProps.viewMode || prevProps.groupMode !== nextProps.groupMode) {
+    console.log('BanknoteFilterCatalog: Re-rendering due to viewMode or groupMode change', {
+      prevViewMode: prevProps.viewMode,
+      nextViewMode: nextProps.viewMode,
+      prevGroupMode: prevProps.groupMode,
+      nextGroupMode: nextProps.groupMode
+    });
+    return false;
+  }
+  
+  // Re-render if other important props change
+  if (prevProps.countryId !== nextProps.countryId || 
+      prevProps.isLoading !== nextProps.isLoading) {
+    return false;
+  }
+  
+  return true;
+};
+
+// Use React.memo with custom comparison to ensure re-renders when viewMode or groupMode change
 export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(({
   countryId,
   countryName,
@@ -308,9 +330,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
       return;
     }
     
-    // If the mode is the same as the current one, don't do anything
-    if (mode === viewMode) return;
-    
     setViewMode(mode);
     if (onViewModeChange) {
       onViewModeChange(mode);
@@ -353,9 +372,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
       ignoreNextGroupModeChange.current = false;
       return;
     }
-    
-    // If the mode is the same as the current one, don't do anything
-    if (mode === groupMode) return;
     
     // Save group mode preference if user is logged in
     if (user?.id) {
@@ -418,7 +434,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
       />
     </div>
   );
-});
+}, areEqual);
 
 // Add a display name for the memoized component
 BanknoteFilterCatalog.displayName = 'BanknoteFilterCatalog';
