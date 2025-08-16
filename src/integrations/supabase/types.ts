@@ -2128,7 +2128,7 @@ export type Database = {
       backfill_user_filter_preferences: {
         Args: Record<PropertyKey, never>
         Returns: {
-          preferences_created: number
+          preferences_upserted: number
           users_processed: number
         }[]
       }
