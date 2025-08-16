@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { 
-  Search, 
-  Filter, 
-  LayoutGrid, 
-  LayoutList, 
+import {
+  Search,
+  Filter,
+  LayoutGrid,
+  LayoutList,
   Save,
   Layers,
   ArrowLeft,
@@ -122,7 +122,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
-  
+
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
     return (key: string, fallback: string) => {
@@ -135,11 +135,11 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
   const [selectedSort, setSelectedSort] = useState<string[]>(currentFilters.sort || []);
-  
+
   // Local state for immediate UI updates
   const [localViewMode, setLocalViewMode] = useState(viewMode);
   const [localGroupMode, setLocalGroupMode] = useState(groupMode);
-  
+
   const isLocalChange = useRef(false);
   const prevFiltersRef = useRef<DynamicFilterState | null>(null);
 
@@ -147,16 +147,16 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const activeTab = (typeof propActiveTab === 'string' ? propActiveTab : internalActiveTab) as 'collection' | 'wishlist' | 'missing' | 'sale';
   const onTabChange = propOnTabChange || setInternalActiveTab;
 
-  const tabList: { key: 'collection' | 'wishlist' | 'missing'| 'sale'; label: string;  }[] = [
-    { key: 'collection', label: 'Collection'},
+  const tabList: { key: 'collection' | 'wishlist' | 'missing' | 'sale'; label: string; }[] = [
+    { key: 'collection', label: 'Collection' },
     { key: 'wishlist', label: 'Wishlist' },
-    { key: 'missing', label: 'Missing'},
-    { key: 'sale', label: 'Sale'},
+    { key: 'missing', label: 'Missing' },
+    { key: 'sale', label: 'Sale' },
   ];
 
-  console.log("BaseBanknoteFilter: Render with props", { 
-    categories: categories.length, 
-    types: types.length, 
+  console.log("BaseBanknoteFilter: Render with props", {
+    categories: categories.length,
+    types: types.length,
     sortOptions: sortOptions.length,
     currentFilters,
     localState: { search, selectedCategories, selectedTypes, selectedSort }
@@ -167,21 +167,21 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       console.log("BaseBanknoteFilter: Skipping sync due to local changes being applied");
       return;
     }
-    
+
     const currentFilterStr = JSON.stringify({
       search: currentFilters.search,
       categories: currentFilters.categories,
       types: currentFilters.types,
       sort: currentFilters.sort
     });
-    
+
     const prevFiltersStr = prevFiltersRef.current ? JSON.stringify({
       search: prevFiltersRef.current.search,
       categories: prevFiltersRef.current.categories,
       types: prevFiltersRef.current.types,
       sort: prevFiltersRef.current.sort
     }) : null;
-    
+
     if (prevFiltersStr === currentFilterStr) {
       console.log("BaseBanknoteFilter: Skipping sync, no changes detected");
       return;
@@ -189,7 +189,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
     console.log("BaseBanknoteFilter: Syncing local state with currentFilters", currentFilters);
     prevFiltersRef.current = { ...currentFilters };
-    
+
     setSearch(currentFilters.search || "");
     setSelectedCategories(currentFilters.categories || []);
     setSelectedTypes(currentFilters.types || []);
@@ -209,14 +209,14 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
   const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
     console.log("BaseBanknoteFilter: Local filter change:", changes);
-    
+
     isLocalChange.current = true;
-    
+
     if (changes.search !== undefined) setSearch(changes.search);
     if (changes.categories !== undefined) setSelectedCategories(changes.categories);
     if (changes.types !== undefined) setSelectedTypes(changes.types);
     if (changes.sort !== undefined) setSelectedSort(changes.sort);
-    
+
     const newFilters = {
       search: changes.search !== undefined ? changes.search : search,
       categories: changes.categories !== undefined ? changes.categories : selectedCategories,
@@ -224,7 +224,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       sort: changes.sort !== undefined ? changes.sort : selectedSort,
       country_id: currentFilters.country_id
     };
-    
+
     prevFiltersRef.current = { ...newFilters };
     onFilterChange(newFilters);
 
@@ -233,7 +233,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       console.log("BaseBanknoteFilter: Auto-saving filter preferences");
       onSaveFilters();
     }
-    
+
     setTimeout(() => {
       isLocalChange.current = false;
     }, 200);
@@ -249,26 +249,26 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     console.log("BaseBanknoteFilter: Category change:", { categoryId, checked });
-    
+
     let newCategories: string[];
-    
+
     if (categoryId === "all") {
       newCategories = checked ? categories.map(c => c.id) : [];
     } else {
-      newCategories = checked 
+      newCategories = checked
         ? [...selectedCategories, categoryId]
         : selectedCategories.filter(id => id !== categoryId);
     }
-    
+
     console.log("BaseBanknoteFilter: New categories:", newCategories);
     handleFilterChange({ categories: newCategories });
   };
 
   const handleTypeChange = (typeId: string, checked: boolean) => {
     console.log("BaseBanknoteFilter: Type change:", { typeId, checked });
-    
+
     let newTypes: string[];
-    
+
     if (typeId === "all") {
       newTypes = checked ? types.map(t => t.id) : [];
     } else {
@@ -276,26 +276,26 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
         ? [...selectedTypes, typeId]
         : selectedTypes.filter(id => id !== typeId);
     }
-    
+
     console.log("BaseBanknoteFilter: New types:", newTypes);
     handleFilterChange({ types: newTypes });
   };
 
   const handleSortChange = (sortId: string, checked: boolean) => {
     console.log("BaseBanknoteFilter: Sort change:", { sortId, checked });
-    
+
     const sortOption = sortOptions.find(option => option.id === sortId);
     if (!sortOption || !sortOption.fieldName) return;
-    
+
     const fieldName = sortOption.fieldName;
-    
+
     const requiredSortFields = sortOptions
       .filter(option => option.isRequired)
       .map(option => option.fieldName)
       .filter(Boolean) as string[];
-    
+
     let newSort: string[];
-    
+
     if (checked) {
       if (!selectedSort.includes(fieldName)) {
         newSort = [...selectedSort, fieldName];
@@ -309,13 +309,13 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
         newSort = [...selectedSort];
       }
     }
-    
+
     requiredSortFields.forEach(reqField => {
       if (!newSort.includes(reqField)) {
         newSort.push(reqField);
       }
     });
-    
+
     console.log("BaseBanknoteFilter: New sort:", newSort);
     handleFilterChange({ sort: newSort });
   };
@@ -323,13 +323,13 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     console.log("BaseBanknoteFilter: Search input change:", value);
-    
+
     // Update local state immediately
     setSearch(value);
-    
+
     // Cancel any pending debounced searches
     debouncedSearch.cancel();
-    
+
     // Trigger search immediately for empty or single character
     if (value.length <= 1) {
       handleFilterChange({ search: value });
@@ -343,18 +343,18 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     if (onViewModeChange) {
       const newMode = localViewMode === 'grid' ? 'list' : 'grid';
       console.log('BaseBanknoteFilterProfile: Toggling view mode from', localViewMode, 'to', newMode);
-      
+
       // Force immediate local state update
       setLocalViewMode(newMode);
-      
+
       // Call parent callback immediately
       onViewModeChange(newMode);
-      
+
       // Dispatch custom event for view mode change
-      window.dispatchEvent(new CustomEvent('viewModeChange', { 
-        detail: { mode: newMode } 
+      window.dispatchEvent(new CustomEvent('viewModeChange', {
+        detail: { mode: newMode }
       }));
-      
+
       // Force a re-render by updating local state again if needed
       requestAnimationFrame(() => {
         if (localViewMode !== newMode) {
@@ -368,18 +368,18 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     if (onGroupModeChange) {
       const newGroupMode = !localGroupMode;
       console.log('BaseBanknoteFilterProfile: Toggling group mode from', localGroupMode, 'to', newGroupMode);
-      
+
       // Force immediate local state update
       setLocalGroupMode(newGroupMode);
-      
+
       // Call parent callback immediately
       onGroupModeChange(newGroupMode);
-      
+
       // Dispatch custom event for group mode change
-      window.dispatchEvent(new CustomEvent('groupModeChange', { 
-        detail: { mode: newGroupMode } 
+      window.dispatchEvent(new CustomEvent('groupModeChange', {
+        detail: { mode: newGroupMode }
       }));
-      
+
       // Force a re-render by updating local state again if needed
       requestAnimationFrame(() => {
         if (localGroupMode !== newGroupMode) {
@@ -401,20 +401,20 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
   const handleSaveClick = () => {
     applyFilters();
-    
+
     if (onSaveFilters) {
       console.log("BaseBanknoteFilter: Calling onSaveFilters");
       onSaveFilters();
     }
-    
+
     setIsCategorySheetOpen(false);
     setIsSortSheetOpen(false);
   };
 
-  const allCategoriesSelected = categories.length > 0 && 
+  const allCategoriesSelected = categories.length > 0 &&
     categories.every(category => selectedCategories.includes(category.id));
-    
-  const allTypesSelected = types.length > 0 && 
+
+  const allTypesSelected = types.length > 0 &&
     types.every(type => selectedTypes.includes(type.id));
 
   // Handler for after unlisted banknote is added
@@ -425,7 +425,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   // Print handler
   const handlePrint = async () => {
     // Get the sorted items in the exact order they appear on the page
-    const itemsToPrint: CollectionItem[] = getFlattenedItemsForExport 
+    const itemsToPrint: CollectionItem[] = getFlattenedItemsForExport
       ? getFlattenedItemsForExport(activeTab)
       : [];
 
@@ -448,7 +448,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   // Excel Export handler
   const handleExportExcel = async () => {
     // Get the sorted items in the exact order they appear on the page
-    const itemsToExport: CollectionItem[] = getFlattenedItemsForExport 
+    const itemsToExport: CollectionItem[] = getFlattenedItemsForExport
       ? getFlattenedItemsForExport(activeTab)
       : [];
 
@@ -511,22 +511,22 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 </Button>
               )}
               {profileUser.avatarUrl ? (
-                <img 
-                  src={profileUser.avatarUrl} 
+                <img
+                  src={profileUser.avatarUrl}
                   alt={profileUser.username}
                   className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
                 />
-                              ) : (
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-ottoman-600 to-ottoman-800 flex items-center justify-center text-parchment-100 text-sm sm:text-xl font-semibold uppercase">
-                    {profileUser?.username?.charAt(0) || "?"}
-                  </div>
-                )}
+              ) : (
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-ottoman-600 to-ottoman-800 flex items-center justify-center text-parchment-100 text-sm sm:text-xl font-semibold uppercase">
+                  {profileUser?.username?.charAt(0) || "?"}
+                </div>
+              )}
               <span className="font-medium min-w-0 shrink">{profileUser.username}</span>
               {!isMobile && profileUser.rank && (
                 <Badge variant="user" rank={profileUser.rank} role={profileUser.role} showIcon className="shrink-0 ml-1 sm:ml-2" />
               )}
             </div>
-            
+
             {countryName && activeTab && (
               <div className="flex items-center min-w-0 shrink">
                 <span className="text-muted-foreground px-1 sm:px-3">/</span>
@@ -536,7 +536,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-0 gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-1 gap-2">
+          {/* Tabs */}
           <div className="flex flex-row justify-center sm:justify-start gap-1 lg:gap-2 sm:mr-3 lg:mr-6 bg-[#e7e1db] rounded-lg p-1">
             {tabList.map(tab => (
               <button
@@ -554,11 +555,209 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 <span >{tab.label}</span>
               </button>
             ))}
-           
           </div>
 
-          {/* action buttons div */}
-          <div className="sm:ml-auto">
+          {/* Main Controls - Left aligned to the right of tabs */}
+          <div className="hidden sm:flex items-center gap-2">
+            {/* Search bar */}
+            <div className="relative max-w-auto [@media(min-width:1300px)]:ml-12">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search banknotes..."
+                value={search}
+                onChange={handleSearchChange}
+                className="pl-10"
+              />
+            </div>
+
+                        {/* View and Group buttons */}
+            {onViewModeChange && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleViewMode}
+                disabled={isLoading}
+                title={`Switch to ${localViewMode === 'grid' ? 'list' : 'grid'} view`}
+                className="touch-manipulation active:scale-95 transition-transform h-9 w-9"
+              >
+                {localViewMode === 'grid' ? (
+                  <LayoutList className="h-4 w-4" />
+                ) : (
+                  <LayoutGrid className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+            
+            {onGroupModeChange && (
+              <Button
+                variant={localGroupMode ? "default" : "outline"}
+                size="icon"
+                onClick={toggleGroupMode}
+                disabled={isLoading}
+                aria-label={`Toggle group mode ${localGroupMode ? 'off' : 'on'}`}
+                title="Group similar banknotes"
+                className="touch-manipulation active:scale-95 transition-transform h-9 w-9"
+              >
+                <Layers className="h-4 w-4" />
+              </Button>
+            )}
+
+            {/* Filter and Sort buttons */}
+            <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-center h-9 w-9 2xl:w-auto 2xl:px-3"
+                  disabled={isLoading}
+                >
+                  <Filter className="h-4 w-4" />
+                  <span className="hidden 2xl:inline ml-2">Filter</span>
+                </Button>
+              </SheetTrigger>
+
+              <SheetContent side="left" className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
+                <SheetHeader>
+                  <SheetTitle> <span> Categories </span></SheetTitle>
+                </SheetHeader>
+                <div className="space-y-6 py-4 overflow-y-auto">
+                  <div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="all-categories"
+                          checked={allCategoriesSelected}
+                          onCheckedChange={(checked) => handleCategoryChange("all", !!checked)}
+                        />
+                        <label htmlFor="all-categories" className="text-sm">All Categories</label>
+                      </div>
+                      {categories.map(category => (
+                        <div key={category.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`category-${category.id}`}
+                            checked={selectedCategories.includes(category.id)}
+                            onCheckedChange={(checked) => handleCategoryChange(category.id, !!checked)}
+                          />
+                          <label htmlFor={`category-${category.id}`} className="text-sm flex justify-between w-full">
+                            <span>{withHighlight(category.name, search)}</span>
+                            {category.count !== undefined && (
+                              <span className="text-muted-foreground">({category.count})</span>
+                            )}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <SheetClose asChild>
+                    <Button
+                      className="w-full"
+                      onClick={() => setIsCategorySheetOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </SheetClose>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <Sheet open={isSortSheetOpen} onOpenChange={setIsSortSheetOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-center h-9 w-9 2xl:w-auto 2xl:px-3"
+                  disabled={isLoading}
+                >
+                  <ArrowUpDown className="h-4 w-4" />
+                  <span className="hidden 2xl:inline ml-2">Sort</span>
+                </Button>
+              </SheetTrigger>
+
+              <SheetContent side="right" className="w-full sm:max-w-md">
+                <SheetHeader>
+                  <SheetTitle> <span> Sort Options </span> </SheetTitle>
+                </SheetHeader>
+                <div className="py-4 space-y-2">
+                  {sortOptions.map(option => {
+                    const isFieldChecked = selectedSort.includes(option.fieldName || "");
+                    return (
+                      <div key={option.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`sort-${option.id}`}
+                          checked={isFieldChecked}
+                          disabled={option.isRequired}
+                          onCheckedChange={(checked) => handleSortChange(option.id, !!checked)}
+                        />
+                        <label
+                          htmlFor={`sort-${option.id}`}
+                          className={cn(
+                            "text-sm",
+                            option.isRequired && "opacity-50"
+                          )}
+                        >
+                          {option.name} {option.isRequired && "(Always)"}
+                        </label>
+                      </div>
+                    );
+                  })}
+                  <SheetClose asChild className="mt-4">
+                    <Button
+                      className="w-full mt-4"
+                      onClick={() => setIsSortSheetOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </SheetClose>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* Right-aligned buttons */}
+          <div className="hidden sm:flex items-center gap-2 ml-auto">
+            {/* AddUnlistedBanknoteDialog button for owners */}
+            {isOwner && (
+              <AddUnlistedBanknoteDialog
+                countryName={countryName || ''}
+                onCreated={onAddUnlistedBanknote}
+              />
+            )}
+
+            {/* Print and Export buttons for collection owners */}
+            {isOwner && collectionItems && collectionItems.length > 0 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handlePrint}
+                  disabled={isPrinting}
+                  title={tWithFallback('print.printCollection', 'Print Collection')}
+                  className="touch-manipulation active:scale-95 transition-transform"
+                >
+                  <Printer className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleExportExcel}
+                  disabled={isExporting}
+                  title="Export to Excel"
+                  className="touch-manipulation active:scale-95 transition-transform"
+                >
+                  <BsFileEarmarkExcel
+                    className="h-4 w-4"
+                    style={{
+                      strokeWidth: '0.1px',
+                      fill: 'currentColor',
+                      fontWeight: 'bold',
+                      filter: 'drop-shadow(0 0 0.3px currentColor)'
+                    }}
+                  />
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Layout - Keep original structure */}
+          <div className="sm:hidden">
             <div className="flex flex-col sm:flex-row gap-1 lg:gap-2">
               <div className="flex gap-1 lg:gap-2 items-center">
                 <div className="relative flex-1 ">
@@ -612,7 +811,6 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
                 {/* Print and Export buttons for collection owners */}
                 {isOwner && collectionItems && collectionItems.length > 0 && (
-                  // { collectionItems && collectionItems.length > 0 && (
                   <>
                     <Button
                       variant="outline"
@@ -646,6 +844,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 )}
               </div>
 
+              {/* Filter and Sort buttons on separate row for mobile */}
               <div className="flex gap-1 lg:gap-2">
                 <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
                   <SheetTrigger asChild>
@@ -659,7 +858,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                     </Button>
                   </SheetTrigger>
                   
-                  <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
+                  <SheetContent side="bottom" className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
                     <SheetHeader>
                       <SheetTitle> <span> Categories </span></SheetTitle>
                     </SheetHeader>
@@ -691,34 +890,6 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                           ))}
                         </div>
                       </div>
-                      {/* <div>
-                        <h4 className="font-medium mb-3"><span> Types </span></h4>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="all-types"
-                              checked={allTypesSelected}
-                              onCheckedChange={(checked) => handleTypeChange("all", !!checked)}
-                            />
-                            <label htmlFor="all-types" className="text-sm">All Types</label>
-                          </div>
-                          {types.map(type => (
-                            <div key={type.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`type-${type.id}`}
-                                checked={selectedTypes.includes(type.id)}
-                                onCheckedChange={(checked) => handleTypeChange(type.id, !!checked)}
-                              />
-                              <label htmlFor={`type-${type.id}`} className="text-sm flex justify-between w-full">
-                                <span>{withHighlight(type.name, search)}</span>
-                                {type.count !== undefined && (
-                                  <span className="text-muted-foreground">({type.count})</span>
-                                )}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div> */}
                       <SheetClose asChild>
                         <Button 
                           className="w-full"
@@ -743,7 +914,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                     </Button>
                   </SheetTrigger>
                   
-                  <SheetContent side={isMobile ? "bottom" : "right"} className="w-full sm:max-w-md">
+                  <SheetContent side="bottom" className="w-full sm:max-w-md">
                     <SheetHeader>
                       <SheetTitle> <span> Sort Options </span> </SheetTitle>
                     </SheetHeader>
