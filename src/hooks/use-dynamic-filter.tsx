@@ -225,12 +225,18 @@ export const useDynamicFilter = <T extends FilterableItem>({
       if (filters.categories && filters.categories.length > 0) {
         const categoryId = (item as any).banknote?.category || (item as any).category;
         if (categoryId && !filters.categories.includes(categoryId)) return false;
+      } else {
+        // If categories array is empty, treat as "all categories selected" (no filtering)
+        console.log("useDynamicFilter: Categories array is empty - treating as 'all categories selected'");
       }
       
       // Filter by types
       if (filters.types && filters.types.length > 0) {
         const typeId = (item as any).banknote?.type || (item as any).type;
         if (typeId && !filters.types.includes(typeId)) return false;
+      } else {
+        // If types array is empty, treat as "all types selected" (no filtering)
+        console.log("useDynamicFilter: Types array is empty - treating as 'all types selected'");
       }
       
       return true;

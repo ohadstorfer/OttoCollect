@@ -30,7 +30,7 @@ export const useBanknoteFetching = ({
   } = useBanknoteQuery({
     countryId,
     filters,
-    enabled: !!countryId && !!filters.categories?.length,
+    enabled: !!countryId, // Remove the categories length check - empty array means "all selected"
   });
 
   // Handle errors with toast notifications

@@ -53,7 +53,7 @@ export const useBanknoteQuery = ({
       };
       return fetchBanknotesByCountryId(countryId, filterParams);
     },
-    enabled: enabled && !!countryId && !!filters.categories?.length,
+    enabled: enabled && !!countryId, // Remove the categories length check - empty array means "all selected"
     staleTime: 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
@@ -110,7 +110,7 @@ export const useBanknoteData = (
         };
         return fetchBanknotesByCountryId(countryId, filterParams);
       },
-      enabled: !!countryId && !!filters.categories?.length,
+      enabled: !!countryId, // Remove the categories length check - empty array means "all selected"
       staleTime: 60 * 1000,
     },
     // Only include user collection query if userId is provided
