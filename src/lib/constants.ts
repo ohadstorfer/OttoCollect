@@ -26,11 +26,16 @@ export const USER_RANK_POINTS: Partial<Record<UserRank, number>> = {
 export const BANKNOTE_CONDITIONS: Record<BanknoteCondition, string> = {
   'UNC': 'Uncirculated',
   'AU': 'About Uncirculated',
+  'XF/AU': 'Very Fine/About UNC',
   'XF': 'Extremely Fine',
+  'VF/XF': 'Very Fine/Extra Fine',
   'VF': 'Very Fine',
+  'F/VF': 'Fine/Very Fine',
   'F': 'Fine',
+  'VG/F': 'Very Good/Fine',
   'VG': 'Very Good',
   'G': 'Good',
+  'FR': 'Fair',
   'Fair': 'Fair',
   'Poor': 'Poor'
 };

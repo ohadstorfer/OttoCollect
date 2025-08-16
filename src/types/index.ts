@@ -120,11 +120,16 @@ export interface CountryData {
 export type BanknoteCondition = 
   | 'UNC' 
   | 'AU' 
+  | 'XF/AU'
   | 'XF' 
+  | 'VF/XF'
   | 'VF' 
+  | 'F/VF'
   | 'F' 
+  | 'VG/F'
   | 'VG' 
   | 'G' 
+  | 'FR'
   | 'Fair' 
   | 'Poor';
 

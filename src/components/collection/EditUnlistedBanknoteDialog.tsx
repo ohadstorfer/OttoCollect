@@ -34,7 +34,7 @@ import SimpleImageUpload from './SimpleImageUpload';
 const formSchema = z.object({
   // CollectionItem fields
   useGrading: z.boolean().default(false),
-  condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const).nullable(),
+  condition: z.enum(['UNC', 'AU', 'XF/AU', 'XF', 'VF/XF', 'VF', 'F/VF', 'F', 'VG/F', 'VG', 'G', 'FR'] as const).nullable(),
   gradeBy: z.string().max(8, { message: "Maximum 8 characters allowed" }).optional(),
   gradeNumber: z.union([
     z.coerce.number().min(1).max(70),

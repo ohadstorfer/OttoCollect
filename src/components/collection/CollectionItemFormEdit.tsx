@@ -51,7 +51,7 @@ export interface CollectionItemFormProps {
 const formSchema = z.object({
   banknoteId: z.string().min(1, { message: "Banknote must be selected" }),
   useGrading: z.boolean().default(false),
-  condition: z.enum(['UNC', 'AU', 'XF', 'VF', 'F', 'VG', 'G', 'FR'] as const).nullable(),
+  condition: z.enum(['UNC', 'AU', 'XF/AU', 'XF', 'VF/XF', 'VF', 'F/VF', 'F', 'VG/F', 'VG', 'G', 'FR'] as const).nullable(),
   gradeBy: z.string().max(8, { message: "Maximum 8 characters allowed" }).optional(),
   gradeNumber: z.union([
     z.coerce.number().min(1).max(70),
@@ -138,7 +138,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
     defaultValues: {
       banknoteId: currentItem?.banknoteId || '',
       useGrading: !!currentItem?.grade,
-      condition: currentItem?.condition as 'UNC' | 'AU' | 'XF' | 'VF' | 'F' | 'VG' | 'G' | 'FR' | undefined,
+      condition: currentItem?.condition as 'UNC' | 'AU' | 'XF/AU' | 'XF' | 'VF/XF' | 'VF' | 'F/VF' | 'F' | 'VG/F' | 'VG' | 'G' | 'FR' | undefined,
       gradeBy: currentItem?.grade_by || '',
       gradeNumber: currentItem?.grade ? parseInt(currentItem.grade.split(' ')[0]) : undefined,
       gradeLetters: currentItem?.grade ? currentItem.grade.split(' ')[1] : '',
