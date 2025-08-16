@@ -36,6 +36,25 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
   const [selectedGroup, setSelectedGroup] = useState<BanknoteGroupData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Add effect to force re-render when groupMode changes
+  useEffect(() => {
+    console.log("[BanknoteGroups] groupMode changed to:", groupMode);
+    setForceUpdate(prev => prev + 1);
+  }, [groupMode]);
+
+  useEffect(() => {
+    const handleGroupModeChange = (event: CustomEvent) => {
+      console.log("[BanknoteGroups] Received groupModeChange event:", event.detail.mode);
+      setForceUpdate(prev => prev + 1);
+    };
+
+    window.addEventListener('groupModeChange', handleGroupModeChange as EventListener);
+    return () => {
+      window.removeEventListener('groupModeChange', handleGroupModeChange as EventListener);
+    };
+  }, []);
   
   const {
     dialogState,
@@ -126,9 +145,9 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   }
 
   return (
-    <div ref={containerRef} className="space-y-8 w-full">
+    <div ref={containerRef} className="space-y-8 w-full" key={`group-container-${forceUpdate}`}>
       {groups.map((group, groupIndex) => (
-        <div key={`group-${groupIndex}`} className="space-y-4 w-full">
+        <div key={`group-${groupIndex}-${forceUpdate}`} className="space-y-4 w-full">
           <div className="sticky top-[200px] sm:top-[150px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:mx-0 px-6 md:px-0">
             <h2 className="text-xl font-bold"><span>{group.category}</span></h2>
           </div>
@@ -138,7 +157,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
               // Sultan groups display
               group.sultanGroups && group.sultanGroups.length > 0 ? (
                 group.sultanGroups.map((sultanGroup, sultanIndex) => (
-                  <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4 w-full">
+                  <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}-${forceUpdate}`} className="space-y-4 w-full">
                     <div className="sticky top-[245px] sm:top-[195px] z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-full md:mx-0 px-6 md:px-0">
                       <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary">
                         <span>{sultanGroup.sultan}</span>
@@ -163,7 +182,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                           return mixedItems.map((item, index) => {
                             if (item.type === 'single') {
                               return (
-                                <div key={`single-${sultanGroup.sultan}-${item.banknote.id || index}`} className={cn(
+                                <div key={`single-${sultanGroup.sultan}-${item.banknote.id || index}-${forceUpdate}`} className={cn(
                                   viewMode === 'grid' ? "self-start" : "w-full"
                                 )}>
                                   <BanknoteDetailCard
@@ -178,7 +197,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                               );
                             } else {
                               return (
-                                <div key={`group-${sultanGroup.sultan}-${item.group.baseNumber}`} className={cn(
+                                <div key={`group-${sultanGroup.sultan}-${item.group.baseNumber}-${forceUpdate}`} className={cn(
                                   viewMode === 'grid' ? "self-start" : "w-full"
                                 )}>
                                   <BanknoteCardGroup
@@ -193,7 +212,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                         })()
                       ) : (
                         sultanGroup.items.map((banknote, index) => (
-                          <div key={`banknote-${group.category}-${sultanGroup.sultan}-${index}`} className={cn(
+                          <div key={`banknote-${group.category}-${sultanGroup.sultan}-${index}-${forceUpdate}`} className={cn(
                             viewMode === 'grid' ? "self-start" : "w-full"
                           )}>
                             <BanknoteDetailCard
@@ -233,7 +252,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                     return mixedItems.map((item, index) => {
                       if (item.type === 'single') {
                         return (
-                          <div key={`single-${group.category}-${item.banknote.id || index}`} className={cn(
+                          <div key={`single-${group.category}-${item.banknote.id || index}-${forceUpdate}`} className={cn(
                             viewMode === 'grid' ? "self-start" : "w-full"
                           )}>
                             <BanknoteDetailCard
@@ -248,7 +267,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                         );
                       } else {
                         return (
-                          <div key={`group-${group.category}-${item.group.baseNumber}`} className={cn(
+                          <div key={`group-${group.category}-${item.group.baseNumber}-${forceUpdate}`} className={cn(
                             viewMode === 'grid' ? "self-start" : "w-full"
                           )}>
                             <BanknoteCardGroup
@@ -263,7 +282,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                   })()
                 ) : (
                   group.items.map((banknote, index) => (
-                    <div key={`banknote-${group.category}-${index}`} className={cn(
+                    <div key={`banknote-${group.category}-${index}-${forceUpdate}`} className={cn(
                       viewMode === 'grid' ? "self-start" : "w-full"
                     )}>
                       <BanknoteDetailCard

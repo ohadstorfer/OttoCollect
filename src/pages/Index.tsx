@@ -252,7 +252,7 @@ const Index = () => {
 
           </div>
 
-          <h3 className={`mb-1 text-2xl sm:text-2xl lg:text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight line-clamp-2`}>
+          <h3 className={`mb-1 text-2xl sm:text-2xl lg:text-3xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} leading-tight`}>
             <span>
               {t('home.hero.subtitle')}
             </span>

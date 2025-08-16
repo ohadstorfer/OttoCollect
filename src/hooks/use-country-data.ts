@@ -136,15 +136,18 @@ export const useCountryData = ({
   }, [countryName, navigate, toast, user]); // Removed onGroupModeChange from dependencies
 
   const handleGroupModeChange = useCallback((mode: boolean) => {
-    // Set a flag to indicate we're changing modes
-    isGroupModeChanging.current = true;
-    
     console.log("useCountryData: handleGroupModeChange called with mode:", mode, "current groupMode:", groupMode);
+    
+    // Update state immediately
     setGroupMode(mode);
-    console.log("useCountryData: groupMode state updated to:", mode);
+    
+    // Force a synchronous update by using a state update function
+    setGroupMode(currentMode => {
+      console.log("useCountryData: Forcing groupMode update from", currentMode, "to", mode);
+      return mode;
+    });
     
     // Store in session storage as a fallback for non-logged in users
-    // (logged-in users' preferences are saved via BanknoteFilterCatalog)
     if (!user) {
       try {
         sessionStorage.setItem(`groupMode-${countryId}`, JSON.stringify(mode));
@@ -153,11 +156,9 @@ export const useCountryData = ({
       }
     }
     
-    // Reset the flag after a short delay
-    setTimeout(() => {
-      isGroupModeChanging.current = false;
-    }, 100);
-  }, [groupMode, countryId, user]);
+    // Notify any subscribers that the mode has changed
+    window.dispatchEvent(new CustomEvent('groupModeChange', { detail: { mode } }));
+  }, [countryId, user]);
 
   return {
     countryId,

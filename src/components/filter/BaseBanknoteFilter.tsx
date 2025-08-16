@@ -261,6 +261,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       // Call parent callback immediately
       onViewModeChange(newMode);
       
+      // Dispatch custom event for view mode change
+      window.dispatchEvent(new CustomEvent('viewModeChange', { 
+        detail: { mode: newMode } 
+      }));
+      
       // Force a re-render by updating local state again if needed
       requestAnimationFrame(() => {
         if (localViewMode !== newMode) {
@@ -280,6 +285,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       
       // Call parent callback immediately
       onGroupModeChange(newGroupMode);
+      
+      // Dispatch custom event for group mode change
+      window.dispatchEvent(new CustomEvent('groupModeChange', { 
+        detail: { mode: newGroupMode } 
+      }));
       
       // Force a re-render by updating local state again if needed
       requestAnimationFrame(() => {
