@@ -229,12 +229,12 @@ export async function cleanupOldQueueItems(): Promise<number> {
       .eq('processed', true)
       .lt('processed_at', thirtyDaysAgo.toISOString())
       .select('id');
-
+    
     if (error) {
       console.error('Error cleaning up old queue items:', error);
       throw error;
     }
-
+    
     const deletedCount = data?.length || 0;
     console.log(`Cleaned up ${deletedCount} old processed queue items`);
     return deletedCount;
