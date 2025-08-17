@@ -31,18 +31,46 @@ export const useOptimizedBanknoteSorting = ({
 
   // Memoized parsing functions for better performance
   const parseExtendedPickNumber = useMemo(() => {
-    const cache = new Map<string, { base: number; letter: string; suffix: number }>();
+    const cache = new Map<string, { base: number; letters: string; suffix: number; sortKey: string }>();
     
     return (pickNumber: string) => {
       if (cache.has(pickNumber)) {
         return cache.get(pickNumber)!;
       }
       
-      const match = pickNumber.match(/^(\d+)([A-Za-z]?)(\d*)$/);
+      // Enhanced regex to handle complex formats like 31As, 32Aas, 21a1, etc.
+      // First capture the number, then all letters, then any trailing number
+      const match = pickNumber.match(/^(\d+)([A-Za-z]*)(\d*)$/);
+      
+      if (match) {
+        const base = parseInt(match[1], 10);
+        const letters = match[2] || '';
+        const suffix = match[3] ? parseInt(match[3], 10) : 0;
+        
+        // Create a sort key that properly orders complex pick numbers
+        // Convert letters to lowercase for consistent sorting
+        const normalizedLetters = letters.toLowerCase();
+        
+        // Create a sort key: base number + padded letters + suffix
+        const sortKey = `${base.toString().padStart(6, '0')}-${normalizedLetters.padEnd(5, 'z')}-${suffix.toString().padStart(6, '0')}`;
+        
+        const result = {
+          base,
+          letters: normalizedLetters,
+          suffix,
+          sortKey
+        };
+        
+        cache.set(pickNumber, result);
+        return result;
+      }
+      
+      // Fallback for invalid formats
       const result = {
-        base: match ? parseInt(match[1], 10) : 0,
-        letter: match ? match[2] : '',
-        suffix: match && match[3] ? parseInt(match[3], 10) : 0
+        base: 0,
+        letters: '',
+        suffix: 0,
+        sortKey: '000000-zzzzz-000000'
       };
       
       cache.set(pickNumber, result);
@@ -94,13 +122,8 @@ export const useOptimizedBanknoteSorting = ({
             const aExtPick = parseExtendedPickNumber(a.extendedPickNumber || '');
             const bExtPick = parseExtendedPickNumber(b.extendedPickNumber || '');
             
-            comparison = aExtPick.base - bExtPick.base;
-            if (comparison === 0) {
-              comparison = aExtPick.letter.localeCompare(bExtPick.letter);
-            }
-            if (comparison === 0) {
-              comparison = aExtPick.suffix - bExtPick.suffix;
-            }
+            // Use the sort key for proper ordering of complex pick numbers
+            comparison = aExtPick.sortKey.localeCompare(bExtPick.sortKey);
             break;
           }
           
