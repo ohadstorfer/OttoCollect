@@ -1,0 +1,126 @@
+{
+  "title": "Blog",
+  "subtitle": "Banknotlar ve toplama hakkında bilgileri keşfedin",
+  "tabs": {
+    "allPosts": "Tüm Yazılar",
+    "myPosts": "Yazılarım"
+  },
+  "search": {
+    "placeholder": "Blog yazılarında ara...",
+    "noResults": "Aramanızla eşleşen blog yazısı bulunamadı.",
+    "noPostsYet": "Henüz blog yazısı yok. İlk yazıyı oluşturan siz olun!"
+  },
+  "actions": {
+    "post": "Yazı",
+    "createPost": "Yazı Oluştur",
+    "createFirstPost": "İlk Yazınızı Oluşturun",
+    "reply": "Yanıtla",
+    "edit": "Düzenle",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "publish": "Yayınla",
+    "postComment": "Yorum Yayınla",
+    "postReply": "Yanıt Yayınla",
+    "back": "Blog'a Dön"
+  },
+  "status": {
+    "loading": "Blog yazıları yükleniyor...",
+    "loadingMyPosts": "Yazılarınız yükleniyor...",
+    "noMyPosts": "Henüz hiç blog yazısı oluşturmadınız.",
+    "saving": "Kaydediliyor...",
+    "posting": "Yayınlanıyor...",
+    "publishing": "Yayınlanıyor...",
+    "deleting": "Siliniyor...",
+    "dailyLimitReached": "Günlük Limit Doldu"
+  },
+  "limits": {
+    "dailyLimitWarning": "Blog aktiviteleri için günlük 3 yazı + yorum limitine ulaştınız.",
+    "dailyActivity": "Günlük blog aktivitesi: {{count}}/3 (yazı + yorum)",
+    "accessDenied": "Sadece Yöneticiler blog yazısı oluşturabilir."
+  },
+  "content": {
+    "posts": "Yazılar",
+    "comments": "Yorumlar",
+    "replies": "Yanıtlar",
+    "views": "Görüntülemeler",
+    "likes": "Beğeniler",
+    "created": "Oluşturuldu",
+    "updated": "Güncellendi",
+    "author": "Yazar",
+    "title": "Başlık",
+    "content": "İçerik",
+    "excerpt": "Özet",
+    "category": "Kategori",
+    "tags": "Etiketler",
+    "edited": "düzenlendi",
+    "unknown": "Bilinmiyor"
+  },
+  "moderation": {
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "report": "Bildir",
+    "pin": "Sabitle",
+    "unpin": "Sabitlemeyi Kaldır",
+    "lock": "Kilitle",
+    "unlock": "Kilidi Aç"
+  },
+  "notifications": {
+    "postCreated": "Blog yazısı başarıyla oluşturuldu",
+    "postUpdated": "Blog yazısı başarıyla güncellendi",
+    "postDeleted": "Blog yazısı başarıyla silindi",
+    "commentAdded": "Yorum başarıyla eklendi",
+    "commentUpdated": "Yorum başarıyla güncellendi",
+    "replyAdded": "Yanıt başarıyla eklendi",
+    "error": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "failedToAddComment": "Yorum eklenemedi. Lütfen tekrar deneyin.",
+    "failedToCreatePost": "Blog yazısı oluşturulamadı. Lütfen tekrar deneyin.",
+    "unexpectedError": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin."
+  },
+  "forms": {
+    "createNewPost": "Yeni Blog Yazısı Oluştur",
+    "titleLabel": "Başlık",
+    "contentLabel": "İçerik",
+    "excerptLabel": "Özet (İsteğe Bağlı)",
+    "imagesLabel": "Resimler (İsteğe Bağlı)",
+    "titlePlaceholder": "Blog yazınız için açıklayıcı bir başlık ekleyin",
+    "contentPlaceholder": "Blog yazınızın içeriğini yazın...",
+    "excerptPlaceholder": "Kısa bir özet yazın...",
+    "commentPlaceholder": "Yorumunuzu yazın...",
+    "replyPlaceholder": "{{username}} kullanıcısına yanıt verin...",
+    "publishPost": "Blog Yazısını Yayınla"
+  },
+  "post": {
+    "backToBlog": "Blog'a Dön",
+    "publishedOn": "Yayınlandığı tarih",
+    "lastUpdated": "Son güncelleme",
+    "by": "tarafından",
+    "comments": "Yorumlar",
+    "noComments": "Henüz yorum yok. İlk yorumu yapan siz olun!",
+    "leaveComment": "Yorum bırakın",
+    "editPost": "Yazıyı düzenle",
+    "deletePost": "Yazıyı Sil",
+    "confirmDelete": "Bu blog yazısını silmek istediğinizden emin misiniz?",
+    "deleteDescription": "Bu işlem geri alınamaz. Blog yazısı ve tüm yorumları kalıcı olarak silinecektir.",
+    "notFound": "Yazı bulunamadı",
+    "notFoundDescription": "Aradığınız yazı mevcut değil veya kaldırılmış.",
+    "blockedFromCommenting": "Blog yazılarına yorum yapmaktan engellendiniz",
+    "loginToComment": "Yorum eklemek için lütfen giriş yapın."
+  },
+  "comments": {
+    "showReplies": "{{count}} {{count, plural, one {yanıtı} other {yanıtı}}} göster",
+    "hideReplies": "{{count}} {{count, plural, one {yanıtı} other {yanıtı}}} gizle",
+    "emptyComment": "Yorum boş olamaz",
+    "emptyReply": "Yanıt boş olamaz",
+    "addComment": "Yorumunuzu ekleyin...",
+    "editComment": "Yorumu düzenle",
+    "deleteComment": "Yorumu Sil",
+    "replyToComment": "Yoruma yanıt ver",
+    "confirmDeleteComment": "Bu yorumu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+  },
+  "profile": {
+    "actions": "Kullanıcı Profil İşlemleri",
+    "goToProfile": "Profile Git",
+    "blocking": "Engelleniyor...",
+    "blockFromForum": "Forumdan Engelle"
+  }
+} 

@@ -101,5 +101,16 @@
     "hideReplies": "Hide {{count}} {{count, plural, one {reply} other {replies}}}",
     "emptyComment": "Comment cannot be empty",
     "emptyReply": "Reply cannot be empty"
+  },
+  "post": {
+    "noComments": "No comments yet. Be the first to comment!",
+    "loginToComment": "Please log in to add a comment."
+  },
+  "profile": {
+    "actions": "User Profile Actions",
+    "goToProfile": "Go to Profile",
+    "blocking": "Blocking...",
+    "blockFromForum": "Block from Forum",
+    "chooseAction": "Choose an action for this user:"
   }
 } 

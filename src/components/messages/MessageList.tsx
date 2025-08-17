@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from "@/components/ui/card";
+import { MessageSquare, Calendar, User } from 'lucide-react';
+import { Conversation, Message } from '@/types/message';
+import { useAuth } from '@/context/AuthContext';
+import { useDateLocale } from '@/lib/dateUtils';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
 import { getInitials } from '@/lib/utils';
 import { Link } from 'react-router-dom';
-import { Conversation } from '@/types/message';
 
 interface MessageListProps {
   conversations: Conversation[];
@@ -22,6 +26,10 @@ export function MessageList({
   onSelectConversation 
 }: MessageListProps) {
   
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { formatRelativeTime } = useDateLocale();
+
   if (isLoading && conversations.length === 0) {
     return (
       <div className="p-4 space-y-4">
@@ -101,7 +109,7 @@ export function MessageList({
                       {conversation.otherUser.username}
                     </span>
                     <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                      {formatDistanceToNow(new Date(conversation.lastMessage.createdAt), { addSuffix: true })}
+                      {formatRelativeTime(new Date(conversation.lastMessage.createdAt))}
                     </span>
                   </div>
                   

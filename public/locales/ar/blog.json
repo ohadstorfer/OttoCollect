@@ -1,0 +1,126 @@
+{
+  "title": "المدونة",
+  "subtitle": "اكتشف رؤى حول الأوراق النقدية والجمع",
+  "tabs": {
+    "allPosts": "جميع المقالات",
+    "myPosts": "مقالاتي"
+  },
+  "search": {
+    "placeholder": "البحث في مقالات المدونة...",
+    "noResults": "لم يتم العثور على مقالات تطابق بحثك.",
+    "noPostsYet": "لا توجد مقالات بعد. كن أول من ينشئ مقالة!"
+  },
+  "actions": {
+    "post": "نشر",
+    "createPost": "إنشاء مقالة",
+    "createFirstPost": "أنشئ مقالتك الأولى",
+    "reply": "رد",
+    "edit": "تعديل",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "publish": "نشر",
+    "postComment": "نشر تعليق",
+    "postReply": "نشر رد",
+    "back": "العودة إلى المدونة"
+  },
+  "status": {
+    "loading": "جاري تحميل مقالات المدونة...",
+    "loadingMyPosts": "جاري تحميل مقالاتك...",
+    "noMyPosts": "لم تنشئ أي مقالات بعد.",
+    "saving": "جاري الحفظ...",
+    "posting": "جاري النشر...",
+    "publishing": "جاري النشر...",
+    "deleting": "جاري الحذف...",
+    "dailyLimitReached": "تم الوصول للحد اليومي"
+  },
+  "limits": {
+    "dailyLimitWarning": "لقد وصلت للحد اليومي من 3 أنشطة في المدونة (مقالات + تعليقات).",
+    "dailyActivity": "النشاط اليومي في المدونة: {{count}}/3 (مقالات + تعليقات)",
+    "accessDenied": "فقط المشرفون يمكنهم إنشاء مقالات."
+  },
+  "content": {
+    "posts": "المقالات",
+    "comments": "التعليقات",
+    "replies": "الردود",
+    "views": "المشاهدات",
+    "likes": "الإعجابات",
+    "created": "تم الإنشاء",
+    "updated": "تم التحديث",
+    "author": "الكاتب",
+    "title": "العنوان",
+    "content": "المحتوى",
+    "excerpt": "الملخص",
+    "category": "الفئة",
+    "tags": "العلامات",
+    "edited": "تم التعديل",
+    "unknown": "غير معروف"
+  },
+  "moderation": {
+    "edit": "تعديل",
+    "delete": "حذف",
+    "report": "إبلاغ",
+    "pin": "تثبيت",
+    "unpin": "إلغاء التثبيت",
+    "lock": "قفل",
+    "unlock": "إلغاء القفل"
+  },
+  "notifications": {
+    "postCreated": "تم إنشاء مقالة المدونة بنجاح",
+    "postUpdated": "تم تحديث مقالة المدونة بنجاح",
+    "postDeleted": "تم حذف مقالة المدونة بنجاح",
+    "commentAdded": "تم إضافة التعليق بنجاح",
+    "commentUpdated": "تم تحديث التعليق بنجاح",
+    "replyAdded": "تم إضافة الرد بنجاح",
+    "error": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "failedToAddComment": "فشل في إضافة التعليق. يرجى المحاولة مرة أخرى.",
+    "failedToCreatePost": "فشل في إنشاء مقالة المدونة. يرجى المحاولة مرة أخرى.",
+    "unexpectedError": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+  },
+  "forms": {
+    "createNewPost": "إنشاء مقالة مدونة جديدة",
+    "titleLabel": "العنوان",
+    "contentLabel": "المحتوى",
+    "excerptLabel": "الملخص (اختياري)",
+    "imagesLabel": "الصور (اختياري)",
+    "titlePlaceholder": "أضف عنواناً وصفياً لمقالتك",
+    "contentPlaceholder": "اكتب محتوى مقالتك...",
+    "excerptPlaceholder": "اكتب ملخصاً موجزاً...",
+    "commentPlaceholder": "اكتب تعليقك...",
+    "replyPlaceholder": "رد على {{username}}...",
+    "publishPost": "نشر مقالة المدونة"
+  },
+  "post": {
+    "backToBlog": "العودة إلى المدونة",
+    "publishedOn": "نُشر في",
+    "lastUpdated": "آخر تحديث",
+    "by": "بواسطة",
+    "comments": "التعليقات",
+    "noComments": "لا توجد تعليقات بعد. كن أول من يعلق!",
+    "leaveComment": "اترك تعليقاً",
+    "editPost": "تعديل المقالة",
+    "deletePost": "حذف المقالة",
+    "confirmDelete": "هل أنت متأكد من أنك تريد حذف هذه المقالة؟",
+    "deleteDescription": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف المقالة وتعليقاتها نهائياً.",
+    "notFound": "المقالة غير موجودة",
+    "notFoundDescription": "المقالة التي تبحث عنها غير موجودة أو تم حذفها.",
+    "blockedFromCommenting": "تم حظرك من التعليق على مقالات المدونة",
+    "loginToComment": "يرجى تسجيل الدخول لإضافة تعليق."
+  },
+  "comments": {
+    "showReplies": "عرض {{count}} {{count, plural, one {رد} other {ردود}}}",
+    "hideReplies": "إخفاء {{count}} {{count, plural, one {رد} other {ردود}}}",
+    "emptyComment": "التعليق لا يمكن أن يكون فارغاً",
+    "emptyReply": "الرد لا يمكن أن يكون فارغاً",
+    "addComment": "أضف تعليقك...",
+    "editComment": "تعديل التعليق",
+    "deleteComment": "حذف التعليق",
+    "replyToComment": "رد على التعليق",
+    "confirmDeleteComment": "هل أنت متأكد من أنك تريد حذف هذا التعليق؟ لا يمكن التراجع عن هذا الإجراء."
+  },
+  "profile": {
+    "actions": "إجراءات الملف الشخصي",
+    "goToProfile": "الذهاب إلى الملف الشخصي",
+    "blocking": "جاري الحظر...",
+    "blockFromForum": "حظر من المنتدى"
+  }
+} 

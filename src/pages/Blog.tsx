@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from "@/lib/utils";
 import SEOHead from '@/components/seo/SEOHead';
 import { SEO_CONFIG } from '@/config/seoConfig';
+import { useTranslation } from 'react-i18next';
 
 interface Author {
   id: string;
@@ -28,6 +29,7 @@ interface BlogPostWithAuthor extends Omit<BlogPost, 'author'> {
 const Blog = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation(['blog']);
   const [posts, setPosts] = useState<BlogPostWithAuthor[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<BlogPostWithAuthor[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,6 +37,14 @@ const Blog = () => {
   const { theme } = useTheme();
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   // Check if user is admin
   const isAdmin = user ? user.role === 'Super Admin' || user.role?.includes('Admin') : false;
@@ -126,12 +136,12 @@ const Blog = () => {
         <div className="container mx-auto px-4 relative z-10 flex items-center justify-center">
           
           <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
-            <span>Blog</span>
+            <span>{tWithFallback('title', 'Blog')}</span>
           </h1>
           
         </div>
         <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
-          Discover insights, stories, and knowledge about banknote collecting
+          {tWithFallback('subtitle', 'Discover insights, stories, and knowledge about banknote collecting')}
           </p>
       </section>
 
@@ -145,7 +155,7 @@ const Blog = () => {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search..."
+                  placeholder={tWithFallback('search.placeholder', 'Search blog posts...')}
                   className="pl-8 text-sm"
                   value={searchTerm}
                   onChange={handleSearch}
@@ -160,13 +170,13 @@ const Blog = () => {
                   variant="outline"
                 >
                   <PenSquare className="h-4 w-4" />
-                  <span className="hidden sm:inline-block sm:ml-2">Post</span>
+                  <span className="hidden sm:inline-block sm:ml-2">{tWithFallback('actions.post', 'Post')}</span>
                 </Button>
               )}
 
               {user && hasReachedDailyLimit && (
                 <div className="text-yellow-600 text-xs sm:text-sm">
-                  Daily Limit Reached
+                  {tWithFallback('status.dailyLimitReached', 'Daily Limit Reached')}
                 </div>
               )}
             </div>
@@ -176,7 +186,7 @@ const Blog = () => {
               <div className="mt-4 text-center">
                   <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 max-w-md mx-auto">
                     <p className="text-red-600 dark:text-red-400 text-sm">
-                      You have reached your daily limit of 6 blog activities (posts + comments).
+                      {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 3 blog activities (posts + comments).')}
                     </p>
                   </div>
               </div>
@@ -185,7 +195,7 @@ const Blog = () => {
             <TabsContent value="all" className="mt-8">
               {loading ? (
                 <div className="text-center py-10 mb-20 ">
-                  <p>Loading blog posts...</p>
+                  <p>{tWithFallback('status.loading', 'Loading blog posts...')}</p>
                 </div>
               ) : (
                 <>
@@ -205,9 +215,9 @@ const Blog = () => {
                   ) : (
                     <div className="text-center py-10">
                       {searchTerm ? (
-                        <p>No posts found matching your search.</p>
+                        <p>{tWithFallback('search.noResults', 'No blog posts found matching your search.')}</p>
                       ) : (
-                        <p>No blog posts yet. Be the first to create one!</p>
+                        <p>{tWithFallback('search.noPostsYet', 'No blog posts yet. Be the first to create one!')}</p>
                       )}
                     </div>
                   )}
@@ -218,7 +228,7 @@ const Blog = () => {
               <TabsContent value="my-posts" className="mt-8">
                 {loading ? (
                   <div className="text-center py-10">
-                    <p>Loading your posts...</p>
+                    <p>{tWithFallback('status.loadingMyPosts', 'Loading your posts...')}</p>
                   </div>
                 ) : (
                   <>
@@ -239,14 +249,14 @@ const Blog = () => {
                       </div>
                     ) : (
                       <div className="text-center py-10">
-                        <p>You haven't created any posts yet.</p>
+                        <p>{tWithFallback('status.noMyPosts', 'You haven\'t created any blog posts yet.')}</p>
                         {isAdmin && (
                           <Button
                             onClick={handleCreatePost}
                             variant="outline"
                             className="mt-4"
                           >
-                            Create Your First Post
+                            {tWithFallback('actions.createFirstPost', 'Create Your First Post')}
                           </Button>
                         )}
                       </div>

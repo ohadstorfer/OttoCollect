@@ -101,5 +101,16 @@
     "hideReplies": "إخفاء {{count}} {{count, plural, one {رد} other {ردود}}}",
     "emptyComment": "التعليق لا يمكن أن يكون فارغاً",
     "emptyReply": "الرد لا يمكن أن يكون فارغاً"
+  },
+  "post": {
+    "noComments": "لا توجد تعليقات بعد. كن أول من يعلق!",
+    "loginToComment": "يرجى تسجيل الدخول لإضافة تعليق."
+  },
+  "profile": {
+    "actions": "إجراءات الملف الشخصي",
+    "goToProfile": "الذهاب إلى الملف الشخصي",
+    "blocking": "جاري الحظر...",
+    "blockFromForum": "حظر من المنتدى",
+    "chooseAction": "اختر إجراءاً لهذا المستخدم:"
   }
 } 

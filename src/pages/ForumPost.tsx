@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ForumPost as ForumPostType, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
-import { formatDistanceToNow } from 'date-fns';
 import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment, checkUserDailyForumLimit, fetchCommentsByPostId } from "@/services/forumService";
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
@@ -16,6 +15,8 @@ import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
 import { ArrowLeft, Trash2, Edit2, Ban, MessageSquare, Reply } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useTranslation } from 'react-i18next';
+import { useDateLocale } from '@/lib/dateUtils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,7 +110,7 @@ const renderComment = (
                 {comment.author?.username || 'Anonymous'}
               </span>
               <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-              <span className="text-xs text-muted-foreground flex-shrink-0">{formatDistanceToNow(new Date(comment.created_at || comment.createdAt), { addSuffix: true })}</span>
+              <span className="text-xs text-muted-foreground flex-shrink-0">{formatRelativeTime(comment.created_at || comment.createdAt)}</span>
               {comment.isEdited && (
                 <>
                   <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
@@ -263,6 +264,8 @@ const renderComment = (
 const ForumPostPage = () => {
   const { id: postId } = useParams();
   const { user } = useAuth();
+  const { t } = useTranslation(['forum']);
+  const { formatRelativeTime } = useDateLocale();
   const [post, setPost] = useState<ForumPostType | null>(null);
   const [comments, setComments] = useState<ForumComment[]>([]);
   const [commentContent, setCommentContent] = useState('');
@@ -285,6 +288,14 @@ const ForumPostPage = () => {
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   useEffect(() => {
     if (postId) {
@@ -364,7 +375,7 @@ const ForumPostPage = () => {
     if (isLimitedRank) {
       const { hasReachedLimit } = await checkUserDailyForumLimit(user.id);
       if (hasReachedLimit) {
-        toast.error("You have reached your daily limit of 6 forum activities (posts + comments).");
+        toast.error(tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).'));
         return;
       }
     }
@@ -523,7 +534,7 @@ const ForumPostPage = () => {
     if (isLimitedRank) {
       const { hasReachedLimit } = await checkUserDailyForumLimit(user.id);
       if (hasReachedLimit) {
-        toast.error("You have reached your daily limit of 6 forum activities (posts + comments).");
+        toast.error(tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).'));
         return;
       }
     }
@@ -663,9 +674,7 @@ const ForumPostPage = () => {
 
   const authorRank = getRankAsUserRank(post.author?.rank || 'Newbie Collector');
 
-  const formattedDate = formatDistanceToNow(new Date(post.createdAt), {
-    addSuffix: true,
-  });
+  const formattedDate = formatRelativeTime(post.createdAt);
 
   const onAddComment = (comment: ForumComment) => {
     if (!post) return;
@@ -800,7 +809,7 @@ const ForumPostPage = () => {
                   <div className="mb-4">
                     <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
                       <p className="text-red-600 dark:text-red-400 text-sm">
-                        You have reached your daily limit of 6 forum activities (posts + comments).
+                        {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).')}
                       </p>
                     </div>
                   </div>
@@ -818,7 +827,7 @@ const ForumPostPage = () => {
                       <Textarea
                         value={commentContent}
                         onChange={(e) => setCommentContent(e.target.value)}
-                        placeholder="Add your comment..."
+                        placeholder={tWithFallback('forms.commentPlaceholder', 'Write your comment...')}
                         className="resize-none min-h-[80px] text-sm"
                         disabled={hasReachedDailyLimit}
                       />
@@ -828,7 +837,7 @@ const ForumPostPage = () => {
                           disabled={isSubmitting || commentContent.trim() === '' || hasReachedDailyLimit}
                           size="sm"
                         >
-                          {isSubmitting ? 'Posting...' : 'Post Comment'}
+                          {isSubmitting ? tWithFallback('status.posting', 'Posting...') : tWithFallback('actions.postComment', 'Post Comment')}
                         </Button>
                       </div>
                     </div>
@@ -839,7 +848,7 @@ const ForumPostPage = () => {
           ) : (
             <div className="bg-muted/50 p-4 rounded-md border text-center mb-4">
               <p className="text-muted-foreground text-sm">
-                Please log in to add a comment.
+                {tWithFallback('post.loginToComment', 'Please log in to add a comment.')}
               </p>
             </div>
           )}
@@ -874,7 +883,7 @@ const ForumPostPage = () => {
               )
             ) : (
               <div className="bg-muted/50 p-8 rounded-md border text-center">
-                <p className="text-muted-foreground text-sm">No comments yet. Be the first to contribute!</p>
+                <p className="text-muted-foreground text-sm">{tWithFallback('post.noComments', 'No comments yet. Be the first to comment!')}</p>
               </div>
             )}
           </div>
@@ -885,7 +894,7 @@ const ForumPostPage = () => {
       <AlertDialog open={showProfileActionDialog} onOpenChange={setShowProfileActionDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>User Profile Actions</AlertDialogTitle>
+            <AlertDialogTitle>{tWithFallback('profile.actions', 'User Profile Actions')}</AlertDialogTitle>
           </AlertDialogHeader>
           <div className="flex flex-col gap-2">
             <Button
@@ -895,7 +904,7 @@ const ForumPostPage = () => {
                 setShowProfileActionDialog(false);
               }}
             >
-              Go to Profile
+              {tWithFallback('profile.goToProfile', 'Go to Profile')}
             </Button>
             <Button
               variant="destructive"

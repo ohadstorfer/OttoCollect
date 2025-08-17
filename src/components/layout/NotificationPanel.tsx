@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Notification, notificationService } from '@/services/notificationService';
 import { Separator } from '@/components/ui/separator';
 import { BadgeDisplay } from '@/components/badges/BadgeDisplay';
+import { useDateLocale } from '@/lib/dateUtils';
 
 interface NotificationPanelProps {
   open: boolean;
@@ -30,6 +31,7 @@ export function NotificationPanel({
 }: NotificationPanelProps) {
   const navigate = useNavigate();
   const wasOpenRef = useRef(false);
+  const { formatRelativeTime } = useDateLocale();
 
   // Mark notifications as read only when panel is explicitly closed after being opened
   useEffect(() => {
@@ -134,7 +136,7 @@ export function NotificationPanel({
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+            {formatRelativeTime(new Date(notification.created_at))}
           </p>
         </div>
         {!notification.is_read && (

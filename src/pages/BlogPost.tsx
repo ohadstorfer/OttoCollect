@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { BlogPost as BlogPostType, BlogComment } from "@/types/blog";
 import { useAuth } from "@/context/AuthContext";
-import { formatDistanceToNow } from 'date-fns';
 import { addBlogComment, fetchBlogPostById, deleteBlogPost, updateBlogComment, checkUserDailyBlogLimit } from "@/services/blogService";
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
@@ -16,6 +15,8 @@ import { UserRank } from '@/types';
 import { ArrowLeft, Trash2, Edit2, Ban } from 'lucide-react';
 import { statisticsService } from "@/services/statisticsService";
 import { useTheme } from 'next-themes';
+import { useTranslation } from 'react-i18next';
+import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +58,8 @@ const renderTextWithLinks = (text: string) => {
 const BlogPostPage = () => {
   const { id: postId } = useParams();
   const { user } = useAuth();
+  const { t } = useTranslation(['blog']);
+  const { formatRelativeTime } = useDateLocale();
   const [post, setPost] = useState<BlogPostType | null>(null);
   const [comments, setComments] = useState<BlogComment[]>([]);
   const [commentContent, setCommentContent] = useState('');
@@ -76,6 +79,14 @@ const BlogPostPage = () => {
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   useEffect(() => {
     if (postId) {
@@ -310,8 +321,8 @@ const BlogPostPage = () => {
     return (
       <div className="page-container">
         <div className="text-center py-20">
-          <h2 className="text-2xl font-semibold mb-2"><span>Post not found</span></h2>
-          <p className="text-muted-foreground">The post you're looking for doesn't exist or has been removed.</p>
+          <h2 className="text-2xl font-semibold mb-2"><span>{tWithFallback('post.notFound', 'Post not found')}</span></h2>
+          <p className="text-muted-foreground">{tWithFallback('post.notFoundDescription', 'The post you\'re looking for doesn\'t exist or has been removed.')}</p>
         </div>
       </div>
     );
@@ -346,9 +357,7 @@ const BlogPostPage = () => {
 
   const authorRank = getRankAsUserRank(post.author?.rank || 'Newbie Collector');
 
-  const formattedDate = formatDistanceToNow(new Date(post.createdAt || post.created_at), {
-    addSuffix: true,
-  });
+  const formattedDate = formatRelativeTime(post.createdAt || post.created_at);
 
   const onAddComment = (comment: BlogComment) => {
     if (!post) return;
@@ -390,18 +399,18 @@ const BlogPostPage = () => {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                  <AlertDialogTitle>{tWithFallback('post.deletePost', 'Delete Post')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete this post? This action cannot be undone.
+                    {tWithFallback('post.confirmDelete', 'Are you sure you want to delete this blog post?')} {tWithFallback('post.deleteDescription', 'This action cannot be undone. This will permanently delete the blog post and all its comments.')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{tWithFallback('actions.cancel', 'Cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeletePost}
                     className="bg-red-600 hover:bg-red-700"
                   >
-                    Delete
+                    {tWithFallback('moderation.delete', 'Delete')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -453,13 +462,13 @@ const BlogPostPage = () => {
         </div>
 
         <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <h2 className="text-xl font-semibold mb-4"><span>Comments • {post.commentCount || 0}</span></h2>
+          <h2 className="text-xl font-semibold mb-4"><span>{tWithFallback('post.comments', 'Comments')} • {post.commentCount || 0}</span></h2>
 
           {user ? (
             isUserBlocked ? (
               <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800 text-center mb-6">
                 <p className="text-red-600 dark:text-red-400">
-                  You have been blocked from commenting on blog posts
+                  {tWithFallback('post.blockedFromCommenting', 'You have been blocked from commenting on blog posts')}
                 </p>
               </div>
             ) : (
@@ -469,7 +478,7 @@ const BlogPostPage = () => {
                 <div className="mb-4">
                     <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
                       <p className="text-red-600 dark:text-red-400 text-sm">
-                        You have reached your daily limit of 6 blog activities (posts + comments).
+                        {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 3 blog activities (posts + comments).')}
                       </p>
                     </div>
                 </div>
@@ -486,7 +495,7 @@ const BlogPostPage = () => {
                   <Textarea
                     value={commentContent}
                     onChange={(e) => setCommentContent(e.target.value)}
-                    placeholder="Add your comment..."
+                    placeholder={tWithFallback('comments.addComment', 'Add your comment...')}
                     className="resize-none min-h-[100px]"
                     disabled={hasReachedDailyLimit}
                   />
@@ -495,7 +504,7 @@ const BlogPostPage = () => {
                       onClick={handleAddComment}
                       disabled={isSubmitting || commentContent.trim() === '' || hasReachedDailyLimit}
                     >
-                      {isSubmitting ? 'Posting...' : 'Post Comment'}
+                      {isSubmitting ? tWithFallback('status.posting', 'Posting...') : tWithFallback('actions.postComment', 'Post Comment')}
                     </Button>
                   </div>
                 </div>
@@ -505,7 +514,7 @@ const BlogPostPage = () => {
           ) : (
             <div className="bg-parchment-10/30 p-4 rounded-md border border-ottoman-100 text-center mb-6">
               <p className="text-muted-foreground">
-                Please log in to add a comment.
+                {tWithFallback('post.loginToComment', 'Please log in to add a comment.')}
               </p>
             </div>
           )}
@@ -555,21 +564,21 @@ const BlogPostPage = () => {
                             disabled={isSubmitting}
                           />
                           <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={cancelEditing}
-                              disabled={isSubmitting}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => handleEditComment(comment.id, editedContent)}
-                              disabled={isSubmitting || editedContent.trim() === ''}
-                            >
-                              Save
-                            </Button>
+                                                          <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={cancelEditing}
+                                disabled={isSubmitting}
+                              >
+                                {tWithFallback('actions.cancel', 'Cancel')}
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleEditComment(comment.id, editedContent)}
+                                disabled={isSubmitting || editedContent.trim() === ''}
+                              >
+                                {tWithFallback('actions.save', 'Save')}
+                              </Button>
                           </div>
                         </div>
                       ) : (
@@ -603,18 +612,18 @@ const BlogPostPage = () => {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+                                    <AlertDialogTitle>{tWithFallback('comments.deleteComment', 'Delete Comment')}</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Are you sure you want to delete this comment? This action cannot be undone.
+                                      {tWithFallback('comments.confirmDeleteComment', 'Are you sure you want to delete this comment? This action cannot be undone.')}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogCancel>{tWithFallback('actions.cancel', 'Cancel')}</AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() => onDeleteComment(comment.id)}
                                       className="bg-red-600 hover:bg-red-700"
                                     >
-                                      Delete
+                                      {tWithFallback('moderation.delete', 'Delete')}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -630,7 +639,7 @@ const BlogPostPage = () => {
             )
               : (
                 <div className="bg-parchment-10/20 p-8 rounded-md border border-ottoman-100/50 text-center">
-                  <p className="text-muted-foreground">No comments yet. Be the first to contribute!</p>
+                  <p className="text-muted-foreground">{tWithFallback('post.noComments', 'No comments yet. Be the first to comment!')}</p>
               </div>
             )}
           </div>
@@ -641,7 +650,7 @@ const BlogPostPage = () => {
       <AlertDialog open={showProfileActionDialog} onOpenChange={setShowProfileActionDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>User Profile Actions</AlertDialogTitle>
+            <AlertDialogTitle>{tWithFallback('profile.actions', 'User Profile Actions')}</AlertDialogTitle>
 
           </AlertDialogHeader>
           <div className="flex flex-col gap-2">
@@ -652,7 +661,7 @@ const BlogPostPage = () => {
                 setShowProfileActionDialog(false);
               }}
             >
-              Go to Profile
+              {tWithFallback('profile.goToProfile', 'Go to Profile')}
             </Button>
             <Button
               variant="destructive"
@@ -660,11 +669,11 @@ const BlogPostPage = () => {
               disabled={isBlockingUser}
             >
               <Ban className="h-4 w-4 mr-2" />
-              {isBlockingUser ? 'Blocking...' : 'Block from Forum'}
+              {isBlockingUser ? tWithFallback('profile.blocking', 'Blocking...') : tWithFallback('profile.blockFromForum', 'Block from Forum')}
             </Button>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tWithFallback('actions.cancel', 'Cancel')}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

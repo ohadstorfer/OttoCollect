@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -10,11 +10,13 @@ import { createBlogPost, checkUserDailyBlogLimit } from '@/services/blogService'
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function CreatePostForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation(['blog']);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [mainImage, setMainImage] = useState<string>('');
@@ -24,6 +26,14 @@ export function CreatePostForm() {
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   useEffect(() => {
     const checkDailyLimit = async () => {
@@ -53,8 +63,8 @@ export function CreatePostForm() {
       const { hasReachedLimit: limitReached } = await checkUserDailyBlogLimit(user.id);
       if (limitReached) {
         toast({
-          title: "Daily limit reached",
-          description: "You have reached your daily limit of 6 blog activities (posts + comments).",
+          title: tWithFallback('status.dailyLimitReached', 'Daily limit reached'),
+          description: tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 3 blog activities (posts + comments).'),
           variant: "destructive",
         });
         return;
@@ -69,23 +79,23 @@ export function CreatePostForm() {
       
       if (newPost) {
         toast({
-          title: "Success",
-          description: "Your blog post has been published successfully.",
+          title: tWithFallback('notifications.postCreated', 'Success'),
+          description: tWithFallback('notifications.postCreated', 'Your blog post has been published successfully.'),
         });
         navigate(`/blog/${newPost.id}`);
       } else {
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to create blog post. Please try again.",
+          title: tWithFallback('notifications.error', 'Error'),
+          description: tWithFallback('notifications.failedToCreatePost', 'Failed to create blog post. Please try again.'),
         });
       }
     } catch (error) {
       console.error("Error creating blog post:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: tWithFallback('notifications.error', 'Error'),
+        description: tWithFallback('notifications.unexpectedError', 'An unexpected error occurred. Please try again.'),
       });
     } finally {
       setIsSubmitting(false);
@@ -99,7 +109,7 @@ export function CreatePostForm() {
           {isLimitedRank && hasReachedLimit && (
             <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800">
               <p className="text-red-600 dark:text-red-400">
-                You have reached your daily limit of 6 blog activities (posts + comments).
+                {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 3 blog activities (posts + comments).')}
               </p>
             </div>
           )}
@@ -107,18 +117,18 @@ export function CreatePostForm() {
           {isLimitedRank && !hasReachedLimit && (
             <div className="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-md border border-yellow-200 dark:border-yellow-800">
               <p className="text-yellow-600 dark:text-yellow-400">
-                Daily blog activity: {dailyCount}/6 (posts + comments)
+                {tWithFallback('limits.dailyActivity', 'Daily blog activity: {{count}}/3 (posts + comments)', { count: dailyCount })}
               </p>
             </div>
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{tWithFallback('forms.titleLabel', 'Title')}</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Add a descriptive title for your blog post"
+              placeholder={tWithFallback('forms.titlePlaceholder', 'Add a descriptive title for your blog post')}
               required
               maxLength={100}
               disabled={hasReachedLimit}
@@ -126,12 +136,12 @@ export function CreatePostForm() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
+            <Label htmlFor="content">{tWithFallback('forms.contentLabel', 'Content')}</Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share your thoughts, insights, or knowledge..."
+              placeholder={tWithFallback('forms.contentPlaceholder', 'Write your blog post content...')}
               required
               className="min-h-[200px]"
               disabled={hasReachedLimit}
@@ -139,7 +149,7 @@ export function CreatePostForm() {
           </div>
           
           <div className="space-y-2">
-            <Label>Main Image (Optional)</Label>
+            <Label>{tWithFallback('forms.imagesLabel', 'Images (Optional)')}</Label>
             <ImageUploader 
               image={mainImage} 
               onChange={setMainImage}
@@ -156,20 +166,20 @@ export function CreatePostForm() {
             onClick={() => navigate('/blog')}
             disabled={isSubmitting}
           >
-            Cancel
+            {tWithFallback('actions.cancel', 'Cancel')}
           </Button>
           <Button 
             type="submit"
             disabled={isSubmitting || !title.trim() || !content.trim() || hasReachedLimit}
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Publishing...
-              </>
-            ) : (
-              'Publish Post'
-            )}
+                          {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {tWithFallback('status.publishing', 'Publishing...')}
+                </>
+              ) : (
+                tWithFallback('forms.publishPost', 'Publish Blog Post')
+              )}
           </Button>
         </CardFooter>
       </Card>

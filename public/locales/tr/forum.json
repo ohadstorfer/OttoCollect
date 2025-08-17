@@ -101,5 +101,16 @@
     "hideReplies": "{{count}} {{count, plural, one {yanıtı} other {yanıtı}}} gizle",
     "emptyComment": "Yorum boş olamaz",
     "emptyReply": "Yanıt boş olamaz"
+  },
+  "post": {
+    "noComments": "Henüz yorum yok. İlk yorumu yapan siz olun!",
+    "loginToComment": "Yorum eklemek için lütfen giriş yapın."
+  },
+  "profile": {
+    "actions": "Kullanıcı Profil İşlemleri",
+    "goToProfile": "Profile Git",
+    "blocking": "Engelleniyor...",
+    "blockFromForum": "Forumdan Engelle",
+    "chooseAction": "Bu kullanıcı için bir işlem seçin:"
   }
 } 

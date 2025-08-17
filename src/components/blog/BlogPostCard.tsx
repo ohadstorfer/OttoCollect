@@ -2,11 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { MessageSquare, Calendar, User } from 'lucide-react';
-import { format } from 'date-fns';
 import { BlogPost } from '@/types/blog';
 import UserProfileLink from '@/components/common/UserProfileLink';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from '@/lib/utils';
+import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
 
 interface BlogPostCardProps {
   post: BlogPost;
@@ -14,6 +14,7 @@ interface BlogPostCardProps {
 
 const BlogPostCard = ({ post }: BlogPostCardProps) => {
   const navigate = useNavigate();
+  const { formatDate } = useDateLocale();
 
   const handlePostClick = () => {
     navigate(`/blog/${post.id}`);
@@ -72,7 +73,7 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
           <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink-0">
             <div className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
-              {format(new Date(post.createdAt || post.created_at), 'PP')}
+              {formatDate(post.createdAt || post.created_at, DATE_FORMATS.DATE_ONLY)}
             </div>
             <div className="flex items-center">
               <MessageSquare className="h-3 w-3 mr-1" />

@@ -6,24 +6,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ForumPost as ForumPostType, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
-import { formatDistanceToNow } from 'date-fns';
-import {
-  fetchForumAnnouncementById,
-  fetchAnnouncementComments,
-  addForumAnnouncementComment,
-  updateForumAnnouncementComment,
-  deleteForumAnnouncementComment,
-  deleteForumAnnouncement,
-  checkUserDailyForumLimit
-} from '@/services/forumService';
+import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment, checkUserDailyForumLimit, fetchCommentsByPostId } from "@/services/forumService";
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
-import ForumCommentComponent from "@/components/forum/ForumComment";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
-import { ArrowLeft, Trash2, Edit2, Ban, MessageSquare, Megaphone, Reply } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit2, Ban, Megaphone } from 'lucide-react';
+import { statisticsService } from "@/services/statisticsService";
 import { useTheme } from 'next-themes';
+import { useTranslation } from 'react-i18next';
+import { useDateLocale } from '@/lib/dateUtils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -117,7 +110,7 @@ const renderComment = (
                 {comment.author?.username || 'Anonymous'}
               </span>
               <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-              <span className="text-xs text-muted-foreground flex-shrink-0">{formatDistanceToNow(new Date(comment.created_at || comment.createdAt), { addSuffix: true })}</span>
+              <span className="text-xs text-muted-foreground flex-shrink-0">{formatRelativeTime(comment.created_at || comment.createdAt)}</span>
               {comment.isEdited && (
                 <>
                   <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
@@ -271,6 +264,8 @@ const renderComment = (
 const ForumPostAnnouncementsPage = () => {
   const { id: postId } = useParams();
   const { user } = useAuth();
+  const { t } = useTranslation(['forum']);
+  const { formatRelativeTime } = useDateLocale();
   const [post, setPost] = useState<ForumPostType | null>(null);
   const [comments, setComments] = useState<ForumComment[]>([]);
   const [commentContent, setCommentContent] = useState('');
@@ -293,6 +288,14 @@ const ForumPostAnnouncementsPage = () => {
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   useEffect(() => {
     if (postId) {
@@ -340,11 +343,11 @@ const ForumPostAnnouncementsPage = () => {
   const loadPost = async (postId: string) => {
     setIsLoading(true);
     try {
-      const announcement = await fetchForumAnnouncementById(postId);
+      const announcement = await fetchForumPostById(postId);
       if (announcement) {
         setPost(announcement);
         // Load comments with nested structure
-        const nestedComments = await fetchAnnouncementComments(postId);
+        const nestedComments = await fetchCommentsByPostId(postId);
         setComments(nestedComments);
       }
     } catch (error) {
@@ -358,7 +361,7 @@ const ForumPostAnnouncementsPage = () => {
   const refreshComments = async () => {
     if (!post) return;
     try {
-      const nestedComments = await fetchAnnouncementComments(post.id);
+      const nestedComments = await fetchCommentsByPostId(post.id);
       setComments(nestedComments);
     } catch (error) {
       console.error('Error refreshing comments:', error);
@@ -372,14 +375,14 @@ const ForumPostAnnouncementsPage = () => {
     if (isLimitedRank) {
       const { hasReachedLimit } = await checkUserDailyForumLimit(user.id);
       if (hasReachedLimit) {
-        toast.error("You have reached your daily limit of 6 forum activities (posts + comments).");
+        toast.error(tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).'));
         return;
       }
     }
 
     setIsSubmitting(true);
     try {
-      const newComment = await addForumAnnouncementComment(post.id, commentContent);
+      const newComment = await addForumComment(post.id, commentContent);
 
       if (newComment) {
         onAddComment(newComment);
@@ -436,7 +439,7 @@ const ForumPostAnnouncementsPage = () => {
 
     setIsDeleting(true);
     try {
-      const success = await deleteForumAnnouncement(post.id);
+      const success = await deleteForumPost(post.id);
 
       if (success) {
         toast.success("Announcement deleted successfully");
@@ -461,7 +464,7 @@ const ForumPostAnnouncementsPage = () => {
 
     setIsSubmitting(true);
     try {
-      const updatedComment = await updateForumAnnouncementComment(commentId, newContent);
+      const updatedComment = await updateForumComment(commentId, newContent);
 
       if (updatedComment) {
         // Update the nested comment structure properly
@@ -526,14 +529,14 @@ const ForumPostAnnouncementsPage = () => {
     if (isLimitedRank) {
       const { hasReachedLimit } = await checkUserDailyForumLimit(user.id);
       if (hasReachedLimit) {
-        toast.error("You have reached your daily limit of 6 forum activities (posts + comments).");
+        toast.error(tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).'));
         return;
       }
     }
 
     setIsSubmittingReply(true);
     try {
-      const newReply = await addForumAnnouncementComment(post.id, replyContent.trim(), commentId);
+      const newReply = await addForumComment(post.id, replyContent.trim(), commentId);
 
       if (newReply) {
         // Add the new reply to the nested structure immediately
@@ -666,9 +669,7 @@ const ForumPostAnnouncementsPage = () => {
 
   const authorRank = getRankAsUserRank(post.author?.rank || 'Newbie Collector');
 
-  const formattedDate = formatDistanceToNow(new Date(post.createdAt), {
-    addSuffix: true,
-  });
+  const formattedDate = formatRelativeTime(post.createdAt);
 
   const onAddComment = (comment: ForumComment) => {
     if (!post) return;
@@ -808,7 +809,7 @@ const ForumPostAnnouncementsPage = () => {
                   <div className="mb-4">
                     <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
                       <p className="text-red-600 dark:text-red-400 text-sm">
-                        You have reached your daily limit of 6 forum activities (posts + comments).
+                        {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).')}
                       </p>
                     </div>
                   </div>
@@ -826,7 +827,7 @@ const ForumPostAnnouncementsPage = () => {
                       <Textarea
                         value={commentContent}
                         onChange={(e) => setCommentContent(e.target.value)}
-                        placeholder="Add your comment..."
+                        placeholder={tWithFallback('forms.commentPlaceholder', 'Write your comment...')}
                         className="resize-none min-h-[80px] text-sm"
                         disabled={hasReachedDailyLimit}
                       />
@@ -836,7 +837,7 @@ const ForumPostAnnouncementsPage = () => {
                           disabled={isSubmitting || commentContent.trim() === '' || hasReachedDailyLimit}
                           size="sm"
                         >
-                          {isSubmitting ? 'Adding...' : 'Add Comment'}
+                          {isSubmitting ? tWithFallback('status.posting', 'Adding...') : tWithFallback('actions.postComment', 'Add Comment')}
                         </Button>
                       </div>
                     </div>
@@ -857,7 +858,7 @@ const ForumPostAnnouncementsPage = () => {
             {comments.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No comments yet. Be the first to comment!</p>
+                <p>{tWithFallback('post.noComments', 'No comments yet. Be the first to comment!')}</p>
               </div>
             ) : (
               comments.map((comment) => 
@@ -894,9 +895,9 @@ const ForumPostAnnouncementsPage = () => {
           <AlertDialog open={showProfileActionDialog} onOpenChange={setShowProfileActionDialog}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>User Management</AlertDialogTitle>
+                <AlertDialogTitle>{tWithFallback('profile.actions', 'User Profile Actions')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Choose an action for this user:
+                  {tWithFallback('profile.chooseAction', 'Choose an action for this user:')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <div className="flex flex-col gap-2">

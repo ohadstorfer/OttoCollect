@@ -8,8 +8,8 @@ import { toast } from 'sonner';
 import UserProfileLink from '@/components/common/UserProfileLink';
 import RankBadge from '@/components/common/RankBadge';
 import { ForumComment as ForumCommentType } from '@/types/forum';
-import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import { useDateLocale } from '@/lib/dateUtils';
 
 interface Author {
   id: string;
@@ -34,6 +34,7 @@ export default function ForumComment({
 }: ForumCommentProps) {
   const { user } = useAuth();
   const { t } = useTranslation(['forum']);
+  const { formatRelativeTime } = useDateLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [isSaving, setIsSaving] = useState(false);
@@ -140,7 +141,7 @@ export default function ForumComment({
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0">
             <span>
-              {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+              {formatRelativeTime(comment.createdAt)}
               {comment.isEdited && <span className="ml-1 italic">({tWithFallback('content.edited', 'edited')})</span>}
             </span>
             {canEdit && !isEditing && (

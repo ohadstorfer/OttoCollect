@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { DollarSign, Calendar, Tag, User, ChevronLeft, ChevronRight } from "lucide-react";
-import { format, isValid, parseISO } from 'date-fns';
-import { formatDistanceToNow } from 'date-fns';
+
+
 import { MarketplaceItem } from '@/types';
 import { cn } from '@/lib/utils';
+import { useDateLocale } from '@/lib/dateUtils';
 
 interface MarketplaceHighlightsProps {
   items: MarketplaceItem[];
@@ -16,28 +17,17 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
 
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { formatRelativeTime } = useDateLocale();
   
-  // Function to safely format dates
-  const safeFormatDate = (dateString: string) => {
-    try {
-      // Parse the ISO string to a Date object first
-      const date = parseISO(dateString);
-      // Check if the resulting date is valid before formatting
-      if (isValid(date)) {
-        return format(date, 'MMM d, yyyy');
-      }
-      return 'Unknown date';
-    } catch (error) {
-      console.error('Error formatting date:', dateString, error);
-      return 'Unknown date';
-    }
-  };
 
-  const displayDate = (dateString: string | Date): string => {
-    if (dateString instanceof Date) {
-      return formatDistanceToNow(dateString, { addSuffix: true });
+
+  const formatTimeAgo = (dateString: string) => {
+    try {
+      return formatRelativeTime(dateString);
+    } catch (error) {
+      // Fallback to original format if there's an error
+      return formatRelativeTime(new Date(dateString));
     }
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   };
 
   const nextItem = () => {
@@ -133,10 +123,10 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
                   <Tag className="h-3 w-3 mr-1" />
                   {item.collectionItem.condition}
                 </div>
-                <div className="flex items-center">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {safeFormatDate(item.createdAt)}
-                </div>
+                                 <div className="flex items-center">
+                   <Calendar className="h-3 w-3 mr-1" />
+                   {formatTimeAgo(item.createdAt)}
+                 </div>
               </div>
               
               {/* Description or note if available */}
@@ -214,7 +204,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
                 </div>
                 <div className="flex items-center">
                   <Calendar className="h-3 w-3 mr-1" />
-                  {safeFormatDate(currentItem.createdAt)}
+                  {formatTimeAgo(currentItem.createdAt)}
                 </div>
               </div>
               

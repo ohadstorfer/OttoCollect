@@ -2,11 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Calendar, User } from 'lucide-react';
-import { format } from 'date-fns';
 import { ForumPost } from '@/types';
 import UserProfileLink from '@/components/common/UserProfileLink';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from '@/lib/utils';
+import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
 
 interface Author {
   id: string;
@@ -50,6 +50,7 @@ const renderTextWithLinks = (text: string) => {
 
 const ForumPostCard = ({ post }: ForumPostCardProps) => {
   const navigate = useNavigate();
+  const { formatDate } = useDateLocale();
 
   const handlePostClick = () => {
     navigate(`/community/forum/${post.id}`);
@@ -76,7 +77,7 @@ const ForumPostCard = ({ post }: ForumPostCardProps) => {
               />
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {format(new Date(post.created_at), 'MMM d, yyyy')}
+                {formatDate(post.created_at, DATE_FORMATS.SHORT)}
               </div>
             </div>
           </div>

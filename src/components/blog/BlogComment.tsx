@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Edit2, Save, X } from 'lucide-react';
@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import UserProfileLink from '@/components/common/UserProfileLink';
 import RankBadge from '@/components/common/RankBadge';
+import { useTranslation } from 'react-i18next';
 
 interface Author {
   id: string;
@@ -34,6 +35,16 @@ export default function BlogComment({
   onCommentUpdate
 }: BlogCommentProps) {
   const { user } = useAuth();
+  const { t } = useTranslation(['blog']);
+  
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
+  
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(content);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,7 +53,7 @@ export default function BlogComment({
 
   const handleSave = async () => {
     if (!editContent.trim()) {
-      toast.error('Comment cannot be empty');
+      toast.error(tWithFallback('comments.emptyComment', 'Comment cannot be empty'));
       return;
     }
 
@@ -52,7 +63,7 @@ export default function BlogComment({
       if (success) {
         setIsEditing(false);
         onCommentUpdate?.();
-        toast.success('Comment updated successfully');
+        toast.success(tWithFallback('notifications.commentUpdated', 'Comment updated successfully'));
       }
     } catch (error) {
       console.error('Error updating comment:', error);
@@ -81,7 +92,7 @@ export default function BlogComment({
           <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
             {new Date(createdAt).toLocaleDateString()}
-            {isEdited && <span className="ml-1">(edited)</span>}
+            {isEdited && <span className="ml-1">({tWithFallback('content.edited', 'edited')})</span>}
           </span>
           {canEdit && !isEditing && (
             <Button
