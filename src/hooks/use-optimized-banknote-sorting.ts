@@ -1,16 +1,9 @@
 import { useMemo } from 'react';
-import { DetailedBanknote } from '@/types';
-
-interface CurrencyDefinition {
-  id: string;
-  name: string;
-  symbol: string;
-  display_order: number;
-}
+import { DetailedBanknote, Currency } from '@/types';
 
 interface SortingOptions {
   banknotes: DetailedBanknote[];
-  currencies: CurrencyDefinition[];
+  currencies: Currency[];
   sortFields: string[];
 }
 

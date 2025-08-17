@@ -94,6 +94,7 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
           viewMode={viewMode}
           isLoading={isLoading}
           groupMode={groupMode}
+          countryId={countryId}
           onUpdate={handleUpdate}
           isOwner={isOwner}
         />

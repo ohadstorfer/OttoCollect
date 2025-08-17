@@ -20,6 +20,8 @@ import { useCollectionData } from '@/hooks/use-collection-data';
 import { cn } from "@/lib/utils";
 import { statisticsService } from "@/services/statisticsService";
 import { CollectionItem } from "@/types";
+import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
+import { Button } from "@/components/ui/button";
 
 interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
@@ -68,6 +70,35 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     countryName: effectiveCountryName, 
     navigate 
   });
+
+  // Enhanced scroll restoration for collections
+  const containerRef = useScrollRestoration(countryId || '', countryLoading, false);
+  
+  // Debug state for scroll restoration
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+
+  // Function to collect debug logs from scroll restoration
+  const collectDebugLogs = useCallback(() => {
+    if (containerRef.current) {
+      const scrollLogs = (containerRef.current as any).getScrollRestorationLogs?.() || [];
+      const lazyLogs = (containerRef.current as any).getLazyCollectionDebugLogs?.() || [];
+      setDebugLogs([...scrollLogs, ...lazyLogs]);
+    }
+  }, [containerRef]);
+
+  // Toggle debug panel
+  const toggleDebugPanel = useCallback(() => {
+    setShowDebugPanel(prev => !prev);
+    if (!showDebugPanel) {
+      collectDebugLogs();
+    }
+  }, [showDebugPanel, collectDebugLogs]);
+
+  // Refresh debug logs
+  const refreshDebugLogs = useCallback(() => {
+    collectDebugLogs();
+  }, [collectDebugLogs]);
   
   // Then use countryId in handleProfileNavigation after it's defined
   const handleProfileNavigation = useCallback(() => {
@@ -134,14 +165,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     }
   }, [countryLoading, collectionDataLoading, showLoadingIndicator]);
   
-  // Scroll position management for smooth loading
-  useEffect(() => {
-    // Keep page at top during loading
-    if (!isFullyLoaded) {
-      window.scrollTo(0, 0);
-    }
-  }, [isFullyLoaded]);
-
   // Determine when the component is fully loaded
   useEffect(() => {
     const isLoaded = !countryLoading && !collectionDataLoading && countryId && effectiveCountryName;
@@ -150,26 +173,11 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       const timer = setTimeout(() => {
         setIsFullyLoaded(true);
         console.log('[CountryDetailCollection] Component fully loaded');
-        
-        // Restore scroll position if available and we're not in profile view
-        if (!profileView) {
-          const savedScrollY = sessionStorage.getItem('scrollY');
-          if (savedScrollY) {
-            const scrollY = parseInt(savedScrollY, 10);
-            if (!isNaN(scrollY)) {
-              // Smooth scroll to the saved position
-              window.scrollTo({
-                top: scrollY,
-                behavior: 'smooth'
-              });
-            }
-          }
-        }
       }, 100);
       
       return () => clearTimeout(timer);
     }
-  }, [countryLoading, collectionDataLoading, countryId, effectiveCountryName, isFullyLoaded, profileView]);
+  }, [countryLoading, collectionDataLoading, countryId, effectiveCountryName, isFullyLoaded]);
 
   // Track collection view when page is loaded
   useEffect(() => {
@@ -179,17 +187,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     }
   }, [countryId, effectiveUserId, user?.id, isFullyLoaded]);
   
-  useEffect(() => {
-    const handleScroll = () => {
-      // Only save scroll position when fully loaded
-      if (isFullyLoaded) {
-      sessionStorage.setItem('scrollY', window.scrollY.toString());
-      }
-    };
-  
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isFullyLoaded]);
+
 
   // Add hooks for categories and types
   const { categories: categoryDefs, loading: categoriesLoading } = useCountryCategoryDefs(effectiveCountryName);
@@ -862,7 +860,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   };
 
   return (
-    <div className={cn(
+    <div ref={containerRef} className={cn(
       "bg-card border rounded-lg p-1 sm:p-6 -mb-11 ",
        "w-[96%] sm:w-[92%] mx-auto"
     )}>

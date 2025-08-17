@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,13 @@ const CountryDetail = () => {
   // Add preferences loading state
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [sultanOrderMap, setSultanOrderMap] = useState<Map<string, number>>(new Map());
+  
+  // Track scroll restoration state
+  const scrollRestorationState = useRef({
+    attempted: false,
+    lastCountryId: '',
+    lastScrollY: 0
+  });
 
   useEffect(() => {
     const fetchCollection = async () => {
@@ -52,7 +59,13 @@ const CountryDetail = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      sessionStorage.setItem('scrollY', window.scrollY.toString());
+      const currentScrollY = window.scrollY;
+      
+      // Only save if scroll position changed significantly (more than 50px)
+      if (Math.abs(currentScrollY - scrollRestorationState.current.lastScrollY) > 50) {
+        sessionStorage.setItem('scrollY', currentScrollY.toString());
+        scrollRestorationState.current.lastScrollY = currentScrollY;
+      }
     };
   
     window.addEventListener('scroll', handleScroll);
@@ -70,6 +83,35 @@ const CountryDetail = () => {
     countryName: country || "", 
     navigate 
   });
+
+  // Enhanced scroll restoration coordination
+  useEffect(() => {
+    if (countryId && countryId !== scrollRestorationState.current.lastCountryId) {
+      console.log(`[CountryDetail] Country changed to: ${countryId}`);
+      
+      // Reset scroll restoration state for new country
+      scrollRestorationState.current.attempted = false;
+      scrollRestorationState.current.lastCountryId = countryId;
+      
+      // Add specific debugging for Jordan
+      if (countryId === 'cecd8325-a13c-430f-994c-12e82663b7fb') {
+        console.log(`[CountryDetail] Jordan detected, checking scroll restoration state`);
+        
+        // Check if we have saved scroll data for Jordan
+        const savedScrollData = sessionStorage.getItem(`scroll-${countryId}`);
+        if (savedScrollData) {
+          try {
+            const parsedData = JSON.parse(savedScrollData);
+            console.log(`[CountryDetail] Found saved scroll data for Jordan:`, parsedData);
+          } catch (error) {
+            console.error(`[CountryDetail] Error parsing Jordan scroll data:`, error);
+          }
+        } else {
+          console.log(`[CountryDetail] No saved scroll data found for Jordan`);
+        }
+      }
+    }
+  }, [countryId]);
 
   // Fetch sultan order map when country changes
   useEffect(() => {
@@ -94,10 +136,6 @@ const CountryDetail = () => {
     currencies,
     sortFields: filters.sort
   });
-
-
-
-  
 
   const groupedItems = useOptimizedBanknoteGroups({
     banknotes: sortedBanknotes,
