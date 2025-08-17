@@ -19,14 +19,10 @@ export const BanknoteImage: React.FC<BanknoteImageProps> = ({
   fallback = DEFAULT_IMAGE_URL,
   onClick
 }) => {
-  console.log("BanknoteImage - Received imageUrl:", {
-    imageUrl,
-    type: imageUrl ? (typeof imageUrl === 'string' ? 'string' : Array.isArray(imageUrl) ? 'array' : 'other') : 'null/undefined'
-  });
+
   
   const safeImageUrl = getFirstImageUrl(imageUrl, fallback);
   
-  console.log("BanknoteImage - Using safeImageUrl:", safeImageUrl);
   
   return (
     <img

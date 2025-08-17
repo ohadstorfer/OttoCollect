@@ -70,14 +70,10 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   // Helper function to get the banknote title
   function getBanknoteTitle() {
     if (!item?.banknote) {
-      console.log("getBanknoteTitle: Missing banknote object");
       return "Unknown Banknote";
     }
 
-    console.log("getBanknoteTitle: Working with banknote", {
-      denomination: item.banknote.denomination,
-      year: item.banknote.year
-    });
+
 
     let title = '';
 
