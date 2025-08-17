@@ -120,8 +120,6 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const { printCollection, isPrinting } = usePrintCollection();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
-  const [isMobileCategorySheetOpen, setIsMobileCategorySheetOpen] = useState(false);
-  const [isMobileSortSheetOpen, setIsMobileSortSheetOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
@@ -409,11 +407,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       onSaveFilters();
     }
 
-    // Close all sheets
     setIsCategorySheetOpen(false);
     setIsSortSheetOpen(false);
-    setIsMobileCategorySheetOpen(false);
-    setIsMobileSortSheetOpen(false);
   };
 
   const allCategoriesSelected = categories.length > 0 &&
@@ -852,7 +847,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
               {/* Filter and Sort buttons on separate row for mobile */}
               <div className="flex gap-1 lg:gap-2">
-                <Sheet open={isMobileCategorySheetOpen} onOpenChange={setIsMobileCategorySheetOpen}>
+                <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
                   <SheetTrigger asChild>
                     <Button 
                       variant="outline" 
@@ -873,20 +868,20 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
                             <Checkbox
-                              id="mobile-all-categories"
+                              id="all-categories"
                               checked={allCategoriesSelected}
                               onCheckedChange={(checked) => handleCategoryChange("all", !!checked)}
                             />
-                            <label htmlFor="mobile-all-categories" className="text-sm">All Categories</label>
+                            <label htmlFor="all-categories" className="text-sm">All Categories</label>
                           </div>
                           {categories.map(category => (
                             <div key={category.id} className="flex items-center space-x-2">
                               <Checkbox
-                                id={`mobile-category-${category.id}`}
+                                id={`category-${category.id}`}
                                 checked={selectedCategories.includes(category.id)}
                                 onCheckedChange={(checked) => handleCategoryChange(category.id, !!checked)}
                               />
-                              <label htmlFor={`mobile-category-${category.id}`} className="text-sm flex justify-between w-full">
+                              <label htmlFor={`category-${category.id}`} className="text-sm flex justify-between w-full">
                                 <span>{withHighlight(category.name, search)}</span>
                                 {category.count !== undefined && (
                                   <span className="text-muted-foreground">({category.count})</span>
@@ -899,7 +894,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       <SheetClose asChild>
                         <Button 
                           className="w-full"
-                          onClick={() => setIsMobileCategorySheetOpen(false)}
+                          onClick={() => setIsCategorySheetOpen(false)}
                         >
                           Close
                         </Button>
@@ -908,7 +903,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   </SheetContent>
                 </Sheet>
 
-                <Sheet open={isMobileSortSheetOpen} onOpenChange={setIsMobileSortSheetOpen}>
+                <Sheet open={isSortSheetOpen} onOpenChange={setIsSortSheetOpen}>
                   <SheetTrigger asChild>
                     <Button 
                       variant="outline" 
@@ -930,13 +925,13 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                         return (
                           <div key={option.id} className="flex items-center space-x-2">
                             <Checkbox
-                              id={`mobile-sort-${option.id}`}
+                              id={`sort-${option.id}`}
                               checked={isFieldChecked}
                               disabled={option.isRequired}
                               onCheckedChange={(checked) => handleSortChange(option.id, !!checked)}
                             />
                             <label 
-                              htmlFor={`mobile-sort-${option.id}`} 
+                              htmlFor={`sort-${option.id}`} 
                               className={cn(
                                 "text-sm",
                                 option.isRequired && "opacity-50"
@@ -950,7 +945,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       <SheetClose asChild className="mt-4">
                         <Button 
                           className="w-full mt-4"
-                          onClick={() => setIsMobileSortSheetOpen(false)}
+                          onClick={() => setIsSortSheetOpen(false)}
                         >
                           Close
                         </Button>
