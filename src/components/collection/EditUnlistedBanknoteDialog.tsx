@@ -30,6 +30,7 @@ import MultipleImageUpload from '@/components/admin/MultipleImageUpload';
 import { uploadStampImage } from '@/services/stampsService';
 import { ImageFile } from '@/types/stamps';
 import SimpleImageUpload from './SimpleImageUpload';
+import { useTranslation } from 'react-i18next';
 
 const formSchema = z.object({
   // CollectionItem fields
@@ -128,6 +129,19 @@ export default function EditUnlistedBanknoteDialog({
   onUpdate,
   collectionItem
 }: EditUnlistedBanknoteDialogProps) {
+  const { t, i18n } = useTranslation(['collection']);
+
+  // Don't render until i18n is initialized
+  if (!i18n.isInitialized) {
+    console.log('i18n not initialized, showing loading...');
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent>
+          <div>Loading translations...</div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -249,8 +263,8 @@ export default function EditUnlistedBanknoteDialog({
     } catch (error) {
       console.error('Error saving cropped image:', error);
       toast({
-        title: "Error",
-        description: "Failed to save cropped image",
+        title: t('error'),
+        description: t('failedToSaveCroppedImage'),
         variant: "destructive",
       });
     } finally {
@@ -274,8 +288,8 @@ export default function EditUnlistedBanknoteDialog({
     } catch (error) {
       console.error('Error uploading tughra image:', error);
       toast({
-        title: "Error",
-        description: "Failed to upload tughra image",
+        title: t('error'),
+        description: t('failedToUploadTughraImage'),
         variant: "destructive",
       });
     }
@@ -289,8 +303,8 @@ export default function EditUnlistedBanknoteDialog({
     } catch (error) {
       console.error('Error uploading watermark image:', error);
       toast({
-        title: "Error",
-        description: "Failed to upload watermark image",
+        title: t('error'),
+        description: t('failedToUploadWatermarkImage'),
         variant: "destructive",
       });
     }
@@ -319,8 +333,8 @@ export default function EditUnlistedBanknoteDialog({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user?.id) {
       toast({
-        title: "Error",
-        description: "You must be logged in to edit a banknote",
+        title: t('authenticationError'),
+        description: t('mustBeLoggedIn'),
         variant: "destructive",
       });
       return;
@@ -447,8 +461,8 @@ export default function EditUnlistedBanknoteDialog({
       }
 
       toast({
-        title: "Success",
-        description: "Banknote updated successfully",
+        title: t('success'),
+        description: t('banknoteUpdatedSuccess'),
       });
 
       await onUpdate();
@@ -456,8 +470,8 @@ export default function EditUnlistedBanknoteDialog({
     } catch (error) {
       console.error('Error updating banknote:', error);
       toast({
-        title: "Error",
-        description: "Failed to update banknote",
+        title: t('error'),
+        description: t('failedToUpdateBanknote'),
         variant: "destructive",
       });
     } finally {
@@ -469,7 +483,7 @@ export default function EditUnlistedBanknoteDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="mt-4">
-          <DialogTitle> <span> Edit Unlisted Banknote </span> </DialogTitle>
+          <DialogTitle> <span> {t('editUnlistedBanknote')} </span> </DialogTitle>
         </DialogHeader>
         <Card>
           <CardContent className="pt-6">
@@ -478,14 +492,14 @@ export default function EditUnlistedBanknoteDialog({
                 {/* Section: Public Details */}
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-7">
-                    <h3 className="text-lg font-medium"> <span> Public Details </span> </h3>
-                    <span className="text-sm text-muted-foreground">Visible to everyone</span>
+                    <h3 className="text-lg font-medium"> <span> {t('publicDetails')} </span> </h3>
+                    <span className="text-sm text-muted-foreground">{t('visibleToEveryone')}</span>
                   </div>
 
                   {/* Condition/Grading Toggle Row */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <FormLabel>Condition</FormLabel>
+                      <FormLabel>{t('condition')}</FormLabel>
                       <FormField
                         control={form.control}
                         name="useGrading"
@@ -507,7 +521,7 @@ export default function EditUnlistedBanknoteDialog({
                           </FormItem>
                         )}
                       />
-                      <FormLabel>Grading</FormLabel>
+                      <FormLabel>{t('grading')}</FormLabel>
                     </div>
                   </div>
 
@@ -518,14 +532,14 @@ export default function EditUnlistedBanknoteDialog({
                       name="condition"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Condition</FormLabel>
+                          <FormLabel>{t('condition')}</FormLabel>
                           <FormControl>
                             <Select
                               onValueChange={field.onChange}
                               value={field.value || undefined}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Select condition" />
+                                <SelectValue placeholder={t('selectCondition')} />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="UNC">UNC - Uncirculated</SelectItem>
@@ -544,7 +558,7 @@ export default function EditUnlistedBanknoteDialog({
                             </Select>
                           </FormControl>
                           <FormDescription>
-                            Select the condition of your banknote.
+                            {t('selectConditionDescription')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -557,16 +571,16 @@ export default function EditUnlistedBanknoteDialog({
                         name="gradeBy"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Grading By</FormLabel>
+                            <FormLabel>{t('gradingBy')}</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
                                 maxLength={8}
-                                placeholder="e.g. PMG"
+                                placeholder={t('gradingByPlaceholder')}
                               />
                             </FormControl>
                             <FormDescription>
-                              Enter the grading company or authority (max 8 characters)
+                              {t('gradingByDescription')}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -577,7 +591,7 @@ export default function EditUnlistedBanknoteDialog({
                         name="gradeNumber"
                         render={({ field: { onChange, ...field } }) => (
                           <FormItem>
-                            <FormLabel>Grade</FormLabel>
+                            <FormLabel>{t('grade')}</FormLabel>
                             <FormControl>
                               <Input
                                 type="text"
@@ -592,7 +606,7 @@ export default function EditUnlistedBanknoteDialog({
                               />
                             </FormControl>
                             <FormDescription>
-                              Enter a numeric grade between 1 and 70
+                              {t('gradeDescription')}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -603,16 +617,16 @@ export default function EditUnlistedBanknoteDialog({
                         name="gradeLetters"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Grade Letters</FormLabel>
+                            <FormLabel>{t('gradeLetters')}</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
                                 maxLength={3}
-                                placeholder="e.g. EPQ"
+                                placeholder={t('gradeLettersPlaceholder')}
                               />
                             </FormControl>
                             <FormDescription>
-                              Enter up to 3 letters for additional grade information
+                              {t('gradeLettersDescription')}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -628,9 +642,9 @@ export default function EditUnlistedBanknoteDialog({
                       name="faceValueInt"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Face Value (Number)</FormLabel>
+                          <FormLabel>{t('faceValueNumber')}</FormLabel>
                           <FormControl>
-                            <Input type="number" {...field} placeholder="Enter value" />
+                            <Input type="number" {...field} placeholder={t('faceValuePlaceholder')} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -641,14 +655,14 @@ export default function EditUnlistedBanknoteDialog({
                       name="faceValueCurrency"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Currency</FormLabel>
+                          <FormLabel>{t('currency')}</FormLabel>
                           <FormControl>
                             <Select
                               onValueChange={field.onChange}
                               value={field.value}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder={loadingCurrencies ? "Loading..." : "Select currency"} />
+                                <SelectValue placeholder={loadingCurrencies ? t('loading') : t('selectCurrency')} />
                               </SelectTrigger>
                               <SelectContent>
                                 {currencies.map((currency) => (
@@ -670,12 +684,12 @@ export default function EditUnlistedBanknoteDialog({
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name</FormLabel>
+                          <FormLabel>{t('name')}</FormLabel>
                           <FormControl>
                             <Input maxLength={30} {...field} />
                           </FormControl>
                           <FormDescription>
-                            For example: Check
+                            {t('nameDescription')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -690,14 +704,14 @@ export default function EditUnlistedBanknoteDialog({
                       name="categoryId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Category</FormLabel>
+                          <FormLabel>{t('category')}</FormLabel>
                           <FormControl>
                             <Select
                               onValueChange={field.onChange}
                               value={field.value}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder={loadingCategories ? "Loading..." : "Select category"} />
+                                <SelectValue placeholder={loadingCategories ? t('loading') : t('selectCategory')} />
                               </SelectTrigger>
                               <SelectContent>
                                 {categories.map((cat) => (
@@ -707,7 +721,7 @@ export default function EditUnlistedBanknoteDialog({
                             </Select>
                           </FormControl>
                           <FormDescription>
-                            Default to Unlisted Banknotes.
+                            {t('categoryDescription')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -718,14 +732,14 @@ export default function EditUnlistedBanknoteDialog({
                       name="typeId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Type</FormLabel>
+                          <FormLabel>{t('type')}</FormLabel>
                           <FormControl>
                             <Select
                               onValueChange={field.onChange}
                               value={field.value}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder={loadingTypes ? "Loading..." : "Select type"} />
+                                <SelectValue placeholder={loadingTypes ? t('loading') : t('selectType')} />
                               </SelectTrigger>
                               <SelectContent>
                                 {types.map((type) => (
@@ -743,9 +757,9 @@ export default function EditUnlistedBanknoteDialog({
                       name="prefix"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Prefix</FormLabel>
+                          <FormLabel>{t('prefix')}</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Enter prefix" />
+                            <Input {...field} placeholder={t('prefixPlaceholder')} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -757,7 +771,7 @@ export default function EditUnlistedBanknoteDialog({
                   <Collapsible>
                     <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                       <ChevronDown className="h-4 w-4" />
-                      Extra Fields
+                      {t('extraFields')}
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-4 mt-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -766,7 +780,7 @@ export default function EditUnlistedBanknoteDialog({
                           name="gregorian_year"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Gregorian Year</FormLabel>
+                              <FormLabel>{t('gregorianYear')}</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -779,7 +793,7 @@ export default function EditUnlistedBanknoteDialog({
                           name="islamic_year"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Islamic Year</FormLabel>
+                              <FormLabel>{t('islamicYear')}</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -794,7 +808,7 @@ export default function EditUnlistedBanknoteDialog({
                           name="sultan_name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Sultan Name</FormLabel>
+                              <FormLabel>{t('sultanName')}</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -807,7 +821,7 @@ export default function EditUnlistedBanknoteDialog({
                           name="printer"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Printer</FormLabel>
+                              <FormLabel>{t('printer')}</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -821,7 +835,7 @@ export default function EditUnlistedBanknoteDialog({
                         name="rarity"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Rarity</FormLabel>
+                            <FormLabel>{t('rarity')}</FormLabel>
                             <FormControl>
                               <Input {...field} />
                             </FormControl>
@@ -834,12 +848,12 @@ export default function EditUnlistedBanknoteDialog({
                         name="dimensions"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Dimensions</FormLabel>
+                            <FormLabel>{t('dimensions')}</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="e.g. 156 x 67 mm" />
+                              <Input {...field} placeholder={t('dimensionsPlaceholder')} />
                             </FormControl>
                             <FormDescription>
-                              Enter the banknote dimensions in millimeters
+                              {t('dimensionsDescription')}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -855,15 +869,15 @@ export default function EditUnlistedBanknoteDialog({
                   name="publicNote"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Public Note</FormLabel>
+                      <FormLabel>{t('publicNote')}</FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
-                          placeholder="Add a note visible to other collectors"
+                          placeholder={t('publicNotePlaceholder')}
                         />
                       </FormControl>
                       <FormDescription>
-                        This note will be visible to other users.
+                        {t('publicNoteDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -877,7 +891,7 @@ export default function EditUnlistedBanknoteDialog({
                     name="front_image_file"
                     render={({ field: { value, onChange, ...field } }) => (
                       <FormItem>
-                        <FormLabel>Front Image</FormLabel>
+                        <FormLabel>{t('frontImage')}</FormLabel>
                         <FormControl>
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-4">
@@ -908,7 +922,7 @@ export default function EditUnlistedBanknoteDialog({
                                       size="sm"
                                       onClick={() => handleCropClick(obverseImagePreview, 'obverse')}
                                     >
-                                      Edit Image
+                                      {t('editImage')}
                                     </Button>
                                     <Button
                                       type="button"
@@ -916,7 +930,7 @@ export default function EditUnlistedBanknoteDialog({
                                       size="sm"
                                       onClick={() => obverseInputRef.current?.click()}
                                     >
-                                      Change Image
+                                      {t('changeImage')}
                                     </Button>
                                   </>
                                 )}
@@ -927,7 +941,7 @@ export default function EditUnlistedBanknoteDialog({
                                     size="sm"
                                     onClick={() => obverseInputRef.current?.click()}
                                   >
-                                    Upload Image
+                                    {t('uploadImage')}
                                   </Button>
                                 )}
                               </div>
@@ -943,7 +957,7 @@ export default function EditUnlistedBanknoteDialog({
                     name="reverse_image_file"
                     render={({ field: { value, onChange, ...field } }) => (
                       <FormItem>
-                        <FormLabel>Back Image</FormLabel>
+                        <FormLabel>{t('backImage')}</FormLabel>
                         <FormControl>
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-4">
@@ -974,7 +988,7 @@ export default function EditUnlistedBanknoteDialog({
                                       size="sm"
                                       onClick={() => handleCropClick(reverseImagePreview, 'reverse')}
                                     >
-                                      Edit Image
+                                      {t('editImage')}
                                     </Button>
                                     <Button
                                       type="button"
@@ -982,7 +996,7 @@ export default function EditUnlistedBanknoteDialog({
                                       size="sm"
                                       onClick={() => reverseInputRef.current?.click()}
                                     >
-                                      Change Image
+                                      {t('changeImage')}
                                     </Button>
                                   </>
                                 )}
@@ -993,7 +1007,7 @@ export default function EditUnlistedBanknoteDialog({
                                     size="sm"
                                     onClick={() => reverseInputRef.current?.click()}
                                   >
-                                    Upload Image
+                                    {t('uploadImage')}
                                   </Button>
                                 )}
                               </div>
@@ -1009,8 +1023,8 @@ export default function EditUnlistedBanknoteDialog({
                 {/* Section: Additional Images */}
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-7">
-                    <h3 className="text-lg font-medium"> <span> Additional Images </span> </h3>
-                    <span className="text-sm text-muted-foreground">Stamp and detail images</span>
+                    <h3 className="text-lg font-medium"> <span> {t('additionalImages')} </span> </h3>
+                    <span className="text-sm text-muted-foreground">{t('stampAndDetailImages')}</span>
                   </div>
 
                   {/* Special Features */}
@@ -1018,7 +1032,7 @@ export default function EditUnlistedBanknoteDialog({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Tughra */}
                       <div>
-                        <Label htmlFor="tughraImage">Tughra Image</Label>
+                        <Label htmlFor="tughraImage">{t('tughraImage')}</Label>
                         <div className="mt-2 flex items-center gap-4">
                           <div
                             onClick={() => tughraImageUrl && openImageViewer(tughraImageUrl)}
@@ -1049,7 +1063,7 @@ export default function EditUnlistedBanknoteDialog({
                                   size="sm"
                                   onClick={() => handleCropClick(tughraImageUrl, 'tughra')}
                                 >
-                                  Edit Image
+                                  {t('editImage')}
                                 </Button>
                                 <Button
                                   type="button"
@@ -1057,7 +1071,7 @@ export default function EditUnlistedBanknoteDialog({
                                   size="sm"
                                   onClick={() => document.getElementById('tughraImage')?.click()}
                                 >
-                                  Change Image
+                                  {t('changeImage')}
                                 </Button>
                               </>
                             ) : (
@@ -1067,7 +1081,7 @@ export default function EditUnlistedBanknoteDialog({
                                 size="sm"
                                 onClick={() => document.getElementById('tughraImage')?.click()}
                               >
-                                Upload Image
+                                {t('uploadImage')}
                               </Button>
                             )}
                           </div>
@@ -1076,7 +1090,7 @@ export default function EditUnlistedBanknoteDialog({
 
                       {/* Watermark */}
                       <div>
-                        <Label htmlFor="watermarkImage">Watermark Image</Label>
+                        <Label htmlFor="watermarkImage">{t('watermarkImage')}</Label>
                         <div className="mt-2 flex items-center gap-4">
                           <div
                             onClick={() => watermarkImageUrl && openImageViewer(watermarkImageUrl)}
@@ -1107,7 +1121,7 @@ export default function EditUnlistedBanknoteDialog({
                                   size="sm"
                                   onClick={() => handleCropClick(watermarkImageUrl, 'watermark')}
                                 >
-                                  Edit Image
+                                  {t('editImage')}
                                 </Button>
                                 <Button
                                   type="button"
@@ -1115,7 +1129,7 @@ export default function EditUnlistedBanknoteDialog({
                                   size="sm"
                                   onClick={() => document.getElementById('watermarkImage')?.click()}
                                 >
-                                  Change Image
+                                  {t('changeImage')}
                                 </Button>
                               </>
                             ) : (
@@ -1125,7 +1139,7 @@ export default function EditUnlistedBanknoteDialog({
                                 size="sm"
                                 onClick={() => document.getElementById('watermarkImage')?.click()}
                               >
-                                Upload Image
+                                {t('uploadImage')}
                               </Button>
                             )}
                           </div>
@@ -1141,7 +1155,7 @@ export default function EditUnlistedBanknoteDialog({
                         <MultipleImageUpload
                           images={form.watch('signatures_front_files') || []}
                           onImagesChange={handleSignaturesFrontImagesChange}
-                          label="Front Signatures"
+                          label={t('frontSignatures')}
                           maxImages={10}
                         />
                       </div>
@@ -1149,7 +1163,7 @@ export default function EditUnlistedBanknoteDialog({
                         <MultipleImageUpload
                           images={form.watch('signatures_back_files') || []}
                           onImagesChange={handleSignaturesBackImagesChange}
-                          label="Back Signatures"
+                          label={t('backSignatures')}
                           maxImages={10}
                         />
                       </div>
@@ -1160,7 +1174,7 @@ export default function EditUnlistedBanknoteDialog({
                         <MultipleImageUpload
                           images={form.watch('seal_files') || []}
                           onImagesChange={handleSealImagesChange}
-                          label="Seals"
+                          label={t('seals')}
                           maxImages={10}
                         />
                       </div>
@@ -1168,7 +1182,7 @@ export default function EditUnlistedBanknoteDialog({
                         <MultipleImageUpload
                           images={form.watch('signature_files') || []}
                           onImagesChange={handleSignatureImagesChange}
-                          label="Other Signatures"
+                          label={t('otherSignatures')}
                           maxImages={10}
                         />
                       </div>
@@ -1178,7 +1192,7 @@ export default function EditUnlistedBanknoteDialog({
                       <MultipleImageUpload
                         images={form.watch('other_element_files') || []}
                         onImagesChange={handleOtherElementImagesChange}
-                        label="Other Images"
+                        label={t('otherImages')}
                         maxImages={10}
                       />
                     </div>
@@ -1187,8 +1201,8 @@ export default function EditUnlistedBanknoteDialog({
 
                 {/* Private Section */}
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-medium"> <span> Private Details </span> </h3>
-                  <span className="text-sm text-muted-foreground">Only visible to you</span>
+                  <h3 className="text-lg font-medium"> <span> {t('privateDetails')} </span> </h3>
+                  <span className="text-sm text-muted-foreground">{t('onlyVisibleToYou')}</span>
                 </div>
 
                 {/* Private Note */}
@@ -1197,15 +1211,15 @@ export default function EditUnlistedBanknoteDialog({
                   name="privateNote"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Private Note</FormLabel>
+                      <FormLabel>{t('privateNote')}</FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
-                          placeholder="Add a private note for your reference"
+                          placeholder={t('privateNotePlaceholder')}
                         />
                       </FormControl>
                       <FormDescription>
-                        This note will only be visible to you.
+                        {t('privateNoteDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -1218,7 +1232,7 @@ export default function EditUnlistedBanknoteDialog({
                   name="purchaseDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Purchase Date</FormLabel>
+                      <FormLabel>{t('purchaseDate')}</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -1229,7 +1243,7 @@ export default function EditUnlistedBanknoteDialog({
                               {field.value ? (
                                 format(field.value, "PPP")
                               ) : (
-                                <span>Pick a date</span>
+                                <span>{t('pickADate')}</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -1248,7 +1262,7 @@ export default function EditUnlistedBanknoteDialog({
                         </PopoverContent>
                       </Popover>
                       <FormDescription>
-                        When did you acquire this banknote?
+                        {t('purchaseDateDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -1261,7 +1275,7 @@ export default function EditUnlistedBanknoteDialog({
                   name="purchasePrice"
                   render={({ field: { onChange, ...field } }) => (
                     <FormItem>
-                      <FormLabel>Purchase Price</FormLabel>
+                      <FormLabel>{t('purchasePrice')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
@@ -1278,7 +1292,7 @@ export default function EditUnlistedBanknoteDialog({
                         </div>
                       </FormControl>
                       <FormDescription>
-                        How much did you pay for this banknote?
+                        {t('purchasePriceDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -1291,56 +1305,56 @@ export default function EditUnlistedBanknoteDialog({
                   name="location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Item Status</FormLabel>
+                      <FormLabel>{t('itemStatus')}</FormLabel>
                       <FormControl>
                         <div className="space-y-4">
                           <Select
                             onValueChange={(value) => {
-                              if (value !== 'Other') {
+                              if (value !== t('other')) {
                                 field.onChange(value);
                               } else {
                                 field.onChange('');
                               }
                             }}
                             value={field.value === '' || ![
-                              'In my collection',
-                              'At Grading',
-                              'At the Auction house',
-                              'In Transit',
-                              'To be collected',
-                              'Other'
-                            ].includes(field.value) ? 'Other' : field.value || 'In my collection'}
+                              t('inMyCollection'),
+                              t('atGrading'),
+                              t('atTheAuctionHouse'),
+                              t('inTransit'),
+                              t('toBeCollected'),
+                              t('other')
+                            ].includes(field.value) ? t('other') : field.value || t('inMyCollection')}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
+                              <SelectValue placeholder={t('selectStatus')} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="In my collection">In my collection</SelectItem>
-                              <SelectItem value="At Grading">At Grading</SelectItem>
-                              <SelectItem value="At the Auction house">At the Auction house</SelectItem>
-                              <SelectItem value="In Transit">In Transit</SelectItem>
-                              <SelectItem value="To be collected">To be collected</SelectItem>
-                              <SelectItem value="Other">Other</SelectItem>
+                              <SelectItem value={t('inMyCollection')}>{t('inMyCollection')}</SelectItem>
+                              <SelectItem value={t('atGrading')}>{t('atGrading')}</SelectItem>
+                              <SelectItem value={t('atTheAuctionHouse')}>{t('atTheAuctionHouse')}</SelectItem>
+                              <SelectItem value={t('inTransit')}>{t('inTransit')}</SelectItem>
+                              <SelectItem value={t('toBeCollected')}>{t('toBeCollected')}</SelectItem>
+                              <SelectItem value={t('other')}>{t('other')}</SelectItem>
                             </SelectContent>
                           </Select>
                           {(field.value === '' || ![
-                            'In my collection',
-                            'At Grading',
-                            'At the Auction house',
-                            'In Transit',
-                            'To be collected',
-                            'Other'
+                            t('inMyCollection'),
+                            t('atGrading'),
+                            t('atTheAuctionHouse'),
+                            t('inTransit'),
+                            t('toBeCollected'),
+                            t('other')
                           ].includes(field.value)) && (
                             <Input
                               {...field}
-                              placeholder="Enter custom status"
+                              placeholder={t('enterCustomStatus')}
                               className="mt-2"
                             />
                           )}
                         </div>
                       </FormControl>
                       <FormDescription>
-                        For example: In my collection, At grading
+                        {t('itemStatusDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -1354,11 +1368,11 @@ export default function EditUnlistedBanknoteDialog({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">For Sale</FormLabel>
+                        <FormLabel className="text-base">{t('forSale')}</FormLabel>
                         <FormDescription>
                           {isLimitedRank 
-                            ? "Your rank is not sufficient to list items for sale. Upgrade your rank to unlock this feature."
-                            : "Make this banknote available for sale in the marketplace"}
+                            ? t('rankInsufficient')
+                            : t('forSaleDescription')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -1380,7 +1394,7 @@ export default function EditUnlistedBanknoteDialog({
                     name="salePrice"
                     render={({ field: { onChange, ...field } }) => (
                       <FormItem>
-                        <FormLabel>Sale Price</FormLabel>
+                        <FormLabel>{t('salePrice')}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
@@ -1405,10 +1419,10 @@ export default function EditUnlistedBanknoteDialog({
                 {/* Save/Cancel Buttons */}
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={onClose}>
-                    Cancel
+                    {t('cancel')}
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Updating...' : 'Update Banknote'}
+                    {isSubmitting ? t('updating') : t('updateBanknote')}
                   </Button>
                 </div>
               </form>

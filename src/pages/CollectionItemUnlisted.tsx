@@ -372,10 +372,11 @@ export default function CollectionItemUnlisted() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>
+                                <AlertDialogTitle><span>
                                   {collectionItem?.hide_images 
                                     ? "Make Images Public" 
                                     : "Make Images Private"}
+                                </span>
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
                                   {collectionItem?.hide_images
@@ -475,7 +476,7 @@ export default function CollectionItemUnlisted() {
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                      <AlertDialogTitle><span>Delete Image</span></AlertDialogTitle>
                                       <AlertDialogDescription>
                                         Are you sure you want to delete this image? This action cannot be undone.
                                       </AlertDialogDescription>
@@ -530,7 +531,7 @@ export default function CollectionItemUnlisted() {
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-xl m-0">
-                    {isOwner ? "My Collection Copy" : "Collection Copy"}
+                    <span>{isOwner ? "My Collection Copy" : "Collection Copy"}</span>
                   </CardTitle>
                   {isOwner && (
                     <div className="flex items-center gap-1">
@@ -598,7 +599,7 @@ export default function CollectionItemUnlisted() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent onClick={e => e.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Collection Item</AlertDialogTitle>
+            <AlertDialogTitle><span>Delete Collection Item</span></AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this item from your collection? This action cannot be undone.
             </AlertDialogDescription>

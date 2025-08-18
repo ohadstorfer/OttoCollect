@@ -715,13 +715,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
           {/* Right-aligned buttons */}
           <div className="hidden sm:flex items-center gap-2 ml-auto">
-            {/* AddUnlistedBanknoteDialog button for owners */}
-            {isOwner && (
-              <AddUnlistedBanknoteDialog
-                countryName={countryName || ''}
-                onCreated={onAddUnlistedBanknote}
-              />
-            )}
+            
 
             {/* Print and Export buttons for collection owners */}
             {isOwner && collectionItems && collectionItems.length > 0 && (
@@ -754,8 +748,16 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                     }}
                   />
                 </Button>
+
+ {/* AddUnlistedBanknoteDialog button for owners */}
+                <AddUnlistedBanknoteDialog
+                countryName={countryName || ''}
+                onCreated={onAddUnlistedBanknote}
+              />
+
               </>
             )}
+
           </div>
 
           {/* Mobile Layout - Keep original structure */}
