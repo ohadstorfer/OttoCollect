@@ -2049,6 +2049,96 @@ export type Database = {
           watermark_picture: string | null
           watermark_picture_url: string | null
         }
+        Insert: {
+          authority_name?: never
+          back_picture?: string | null
+          back_picture_thumbnail?: string | null
+          back_picture_watermarked?: string | null
+          banknote_description?: string | null
+          category?: string | null
+          colors?: string | null
+          country?: string | null
+          created_at?: string | null
+          dimensions?: string | null
+          extended_pick_number?: string | null
+          face_value?: string | null
+          front_picture?: string | null
+          front_picture_thumbnail?: string | null
+          front_picture_watermarked?: string | null
+          gregorian_year?: string | null
+          historical_description?: string | null
+          id?: string | null
+          is_approved?: boolean | null
+          is_pending?: boolean | null
+          islamic_year?: string | null
+          other_element_pictures?: string[] | null
+          pick_number?: string | null
+          printer?: string | null
+          rarity?: string | null
+          seal_names?: string | null
+          seal_picture_urls?: never
+          seal_pictures?: string[] | null
+          security_element?: string | null
+          serial_numbering?: string | null
+          signature_pictures?: string[] | null
+          signatures_back?: string[] | null
+          signatures_back_urls?: never
+          signatures_front?: string[] | null
+          signatures_front_urls?: never
+          sultan_name?: string | null
+          tughra_picture?: string | null
+          tughra_picture_url?: never
+          turk_catalog_number?: string | null
+          type?: string | null
+          updated_at?: string | null
+          watermark_picture?: string | null
+          watermark_picture_url?: never
+        }
+        Update: {
+          authority_name?: never
+          back_picture?: string | null
+          back_picture_thumbnail?: string | null
+          back_picture_watermarked?: string | null
+          banknote_description?: string | null
+          category?: string | null
+          colors?: string | null
+          country?: string | null
+          created_at?: string | null
+          dimensions?: string | null
+          extended_pick_number?: string | null
+          face_value?: string | null
+          front_picture?: string | null
+          front_picture_thumbnail?: string | null
+          front_picture_watermarked?: string | null
+          gregorian_year?: string | null
+          historical_description?: string | null
+          id?: string | null
+          is_approved?: boolean | null
+          is_pending?: boolean | null
+          islamic_year?: string | null
+          other_element_pictures?: string[] | null
+          pick_number?: string | null
+          printer?: string | null
+          rarity?: string | null
+          seal_names?: string | null
+          seal_picture_urls?: never
+          seal_pictures?: string[] | null
+          security_element?: string | null
+          serial_numbering?: string | null
+          signature_pictures?: string[] | null
+          signatures_back?: string[] | null
+          signatures_back_urls?: never
+          signatures_front?: string[] | null
+          signatures_front_urls?: never
+          sultan_name?: string | null
+          tughra_picture?: string | null
+          tughra_picture_url?: never
+          turk_catalog_number?: string | null
+          type?: string | null
+          updated_at?: string | null
+          watermark_picture?: string | null
+          watermark_picture_url?: never
+        }
         Relationships: []
       }
       user_collection_view: {
