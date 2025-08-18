@@ -63,12 +63,7 @@ export const useScrollRestoration = (
         timestamp: currentTime
       };
 
-      debugLog('Saving scroll position', {
-        scrollY: window.scrollY,
-        documentHeight: document.documentElement.scrollHeight,
-        windowHeight: window.innerHeight,
-        maxScrollY: document.documentElement.scrollHeight - window.innerHeight
-      });
+
 
       sessionStorage.setItem(`scroll-${countryId}`, JSON.stringify(scrollData));
     }, 100);
@@ -91,20 +86,7 @@ export const useScrollRestoration = (
         
         // Check if scroll data is still relevant (within last 10 minutes)
         const isRelevant = Date.now() - timestamp < 10 * 60 * 1000;
-        
-        if (isRelevant && scrollY > 0) {
-          debugLog('Found saved scroll position, but waiting for content to load before setting', {
-            targetScrollY: scrollY,
-            currentScrollY: window.scrollY,
-            documentHeight: document.documentElement.scrollHeight,
-            windowHeight: window.innerHeight,
-            maxScrollY: document.documentElement.scrollHeight - window.innerHeight
-          });
-          
-          // Don't set initial scroll position here - wait for content to be loaded
-          // This prevents the scroll position from being clamped to a low value
-          // due to insufficient content height
-        }
+
       } catch (error) {
         console.error('Error checking saved scroll data:', error);
       }
@@ -128,21 +110,11 @@ export const useScrollRestoration = (
       const isRelevant = Date.now() - timestamp < 10 * 60 * 1000;
       
       if (!isRelevant) {
-        debugLog('Scroll data is stale, clearing', {
-          age: Date.now() - timestamp,
-          maxAge: 10 * 60 * 1000
-        });
+        
         sessionStorage.removeItem(`scroll-${countryId}`);
         return;
       }
 
-      debugLog('Starting scroll restoration', {
-        targetScrollY: scrollY,
-        currentScrollY: window.scrollY,
-        documentHeight: document.documentElement.scrollHeight,
-        windowHeight: window.innerHeight,
-        maxScrollY: document.documentElement.scrollHeight - window.innerHeight
-      });
 
       // Set restoration flag to prevent scroll events
       isRestoringRef.current = true;
@@ -157,28 +129,13 @@ export const useScrollRestoration = (
           
           // Ensure we don't scroll beyond available content
           const targetScrollY = Math.min(scrollY, maxScrollY);
-          
-          debugLog(`Scroll restoration attempt ${attemptNumber}`, {
-            documentHeight,
-            targetScrollY: scrollY,
-            adjustedTargetScrollY: targetScrollY,
-            maxScrollY,
-            currentScrollY: window.scrollY,
-            windowHeight
-          });
-
+ 
           // Check if we have enough content height to reach the target position
           // Use a larger buffer to ensure we have enough content for accurate scroll restoration
           const requiredHeight = targetScrollY + windowHeight * 1.2;
           
           if (documentHeight < requiredHeight) {
-            debugLog(`Not enough content height for scroll restoration`, {
-              documentHeight,
-              requiredHeight,
-              targetScrollY,
-              windowHeight,
-              buffer: windowHeight * 1.2
-            });
+
             
             // If we haven't exceeded max attempts, retry after a very short delay
             if (attemptNumber < maxRestorationAttempts) {
@@ -186,10 +143,7 @@ export const useScrollRestoration = (
                 attemptScrollRestoration(attemptNumber + 1);
               }, 200); // Very short delay for fast restoration
             } else {
-              debugLog(`Max attempts reached, scrolling to available position`, {
-                maxScrollY,
-                targetScrollY: scrollY
-              });
+
               // Scroll to the maximum available position
               window.scrollTo({ top: maxScrollY, behavior: 'instant' });
               restoredRef.current = true;
@@ -200,12 +154,7 @@ export const useScrollRestoration = (
 
           // Use requestAnimationFrame to ensure DOM is updated
           requestAnimationFrame(() => {
-            debugLog(`Setting scroll position via requestAnimationFrame`, {
-              targetScrollY,
-              currentScrollY: window.scrollY,
-              documentHeight,
-              maxScrollY
-            });
+            
             
             // Set scroll position immediately without animation
             window.scrollTo({ top: targetScrollY, behavior: 'instant' });
@@ -223,20 +172,11 @@ export const useScrollRestoration = (
               const actualScrollY = window.scrollY;
               const scrollDifference = Math.abs(actualScrollY - targetScrollY);
               
-              debugLog(`Scroll restoration verification`, {
-                attemptNumber,
-                targetScrollY,
-                actualScrollY,
-                scrollDifference,
-                success: scrollDifference < 100
-              });
+              
               
               // If scroll position is significantly off and we haven't exceeded max attempts, retry
               if (scrollDifference > 100 && attemptNumber < maxRestorationAttempts) {
-                debugLog(`Scroll position off by ${scrollDifference}px, retrying`, {
-                  attemptNumber,
-                  maxAttempts: maxRestorationAttempts
-                });
+               
                 
                 setTimeout(() => {
                   attemptScrollRestoration(attemptNumber + 1);
@@ -245,13 +185,7 @@ export const useScrollRestoration = (
                 restoredRef.current = true;
                 isRestoringRef.current = false; // Clear restoration flag
                 initialScrollSet.current = true; // Mark initial scroll as set
-                debugLog(`Scroll restoration completed`, {
-                  attemptNumber,
-                  finalScrollY: actualScrollY,
-                  targetScrollY,
-                  difference: scrollDifference,
-                  success: scrollDifference < 100
-                });
+                
               }
             }, 25); // Ultra-fast verification
           });
@@ -275,11 +209,7 @@ export const useScrollRestoration = (
 
   // Reset restoration flag when country changes
   useEffect(() => {
-    debugLog('Country changed, resetting scroll restoration state', {
-      countryId,
-      previousRestored: restoredRef.current,
-      previousInitialScrollSet: initialScrollSet.current
-    });
+    
     
     restoredRef.current = false;
     lastSaveTime.current = 0;

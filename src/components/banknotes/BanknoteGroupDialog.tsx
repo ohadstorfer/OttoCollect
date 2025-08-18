@@ -11,6 +11,7 @@ import { X } from "lucide-react";
 import BanknoteDetailCard from "./BanknoteDetailCard";
 import { DetailedBanknote } from "@/types";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 export interface BanknoteGroupDialogProps {
   isOpen: boolean;
@@ -31,6 +32,14 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
   countryId,
   sultanName
 }) => {
+  const { t } = useTranslation(['catalog']);
+  
+  // Helper function for translations with fallback
+  const tWithFallback = (key: string, fallback: string) => {
+    const translation = t(key);
+    return translation === key ? fallback : translation;
+  };
+
   // Safety check for empty banknotes array
   if (!banknotes || banknotes.length === 0) {
     return null;
@@ -44,10 +53,10 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
       <DialogContent className="max-w-5xl w-[90vw] max-h-[85vh] overflow-y-auto">
       <DialogHeader className="sticky top-0 z-10 bg-background flex flex-row items-center justify-between border-b">
           <div className="flex flex-col">
-            <DialogTitle><span>Banknote Group: {groupBaseNumber}</span></DialogTitle>
+            <DialogTitle><span>{tWithFallback('banknoteGroup', 'Banknote Group')}: {groupBaseNumber}</span></DialogTitle>
             {displaySultan && (
               <div className="text-sm text-muted-foreground mt-1">
-                Sultan: {displaySultan}
+                {tWithFallback('sultan', 'Sultan')}: {displaySultan}
               </div>
             )}
           </div>

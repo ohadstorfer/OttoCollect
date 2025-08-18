@@ -6,6 +6,7 @@ import { Layers, LayoutList } from "lucide-react";
 import { CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
+import { useTranslation } from 'react-i18next';
 
 export interface CollectionItemCardGroupProps {
   group: {
@@ -30,7 +31,14 @@ export const CollectionItemCardGroup: React.FC<CollectionItemCardGroupProps> = (
   isOwner = false,
   viewMode = 'grid'
 }) => {
+  const { t } = useTranslation(['collection']);
   const { baseNumber, items, count } = group;
+
+  // Helper function for translations with fallback
+  const tWithFallback = (key: string, fallback: string) => {
+    const translation = t(key);
+    return translation === key ? fallback : translation;
+  };
 
   // Find the first item with a valid front image
   const displayItem = items.find(item => 

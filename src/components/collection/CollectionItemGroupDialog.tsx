@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import CollectionItemCard from "./CollectionItemCard";
 import { CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 export interface CollectionItemGroupDialogProps {
   isOpen: boolean;
@@ -35,6 +36,14 @@ export const CollectionItemGroupDialog: React.FC<CollectionItemGroupDialogProps>
   onUpdate,
   isOwner
 }) => {
+  const { t } = useTranslation(['collection']);
+  
+  // Helper function for translations with fallback
+  const tWithFallback = (key: string, fallback: string) => {
+    const translation = t(key);
+    return translation === key ? fallback : translation;
+  };
+
   // Safety check for empty collectionItems array
   if (!collectionItems || collectionItems.length === 0) {
     return null;
@@ -48,10 +57,10 @@ export const CollectionItemGroupDialog: React.FC<CollectionItemGroupDialogProps>
       <DialogContent className="max-w-5xl w-[90vw] max-h-[85vh] overflow-y-auto">
         <DialogHeader className="sticky top-0 z-10 bg-background flex flex-row items-center justify-between border-b">
           <div className="flex flex-col">
-            <DialogTitle> <span> Collection Group: {groupBaseNumber} </span></DialogTitle>
+            <DialogTitle> <span> {tWithFallback('collectionGroup', 'Collection Group')}: {groupBaseNumber} </span></DialogTitle>
             {displaySultan && (
               <div className="text-sm text-muted-foreground mt-1">
-                Sultan: {displaySultan}
+                {tWithFallback('sultan', 'Sultan')}: {displaySultan}
               </div>
             )}
           </div>

@@ -67,5 +67,7 @@
     "watermarkPicture": "Watermark Picture",
     "tughraPicture": "Tughra Picture",
     "otherPictures": "Other Pictures"
-  }
+  },
+  "banknoteGroup": "Banknote Group",
+  "sultan": "Sultan"
 }

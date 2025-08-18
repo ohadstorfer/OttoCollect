@@ -7,6 +7,7 @@ import { DetailedBanknote } from "@/types";
 import { BanknoteGroupData } from "@/utils/banknoteGrouping";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
+import { useTranslation } from 'react-i18next';
 
 export interface BanknoteCardGroupProps {
   group: BanknoteGroupData;
@@ -21,7 +22,14 @@ export const BanknoteCardGroup: React.FC<BanknoteCardGroupProps> = ({
   className,
   viewMode = 'grid'
 }) => {
+  const { t } = useTranslation(['catalog']);
   const { baseNumber, items, count } = group;
+
+  // Helper function for translations with fallback
+  const tWithFallback = (key: string, fallback: string) => {
+    const translation = t(key);
+    return translation === key ? fallback : translation;
+  };
 
   // Find the first banknote with a valid image
   const displayBanknote = items.find(banknote => 

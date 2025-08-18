@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { removeFromCollection } from '@/services/collectionService';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,11 +41,18 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
   isOwner = false,
   viewMode = 'grid',
 }) => {
+  const { t } = useTranslation(['collection']);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+
+  // Helper function for translations with fallback
+  const tWithFallback = (key: string, fallback: string) => {
+    const translation = t(key);
+    return translation === key ? fallback : translation;
+  };
 
   // Add detailed logging for debugging
   console.log("CollectionItemCard - Rendering with item:", {
@@ -86,7 +94,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
   function getBanknoteTitle() {
     if (!item?.banknote) {
       console.log("getBanknoteTitle: Missing banknote object");
-      return "Unknown Banknote";
+      return tWithFallback('unknownBanknote', 'Unknown Banknote');
     }
 
     console.log("getBanknoteTitle: Working with banknote", {
@@ -107,7 +115,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
 
     if (!title) {
       console.log("getBanknoteTitle: Empty title generated");
-      return "Unknown Banknote";
+      return tWithFallback('unknownBanknote', 'Unknown Banknote');
     }
 
     return title;
@@ -132,8 +140,8 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
       const success = await removeFromCollection(item.id);
       if (success) {
         toast({
-          title: "Success",
-          description: "Item removed from collection",
+          title: tWithFallback('success', 'Success'),
+          description: tWithFallback('itemRemovedFromCollection', 'Item removed from collection'),
         });
         await onUpdate();
       } else {
@@ -142,8 +150,8 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
     } catch (error) {
       console.error("Error removing item:", error);
       toast({
-        title: "Error",
-        description: "Failed to remove item from collection",
+        title: tWithFallback('error', 'Error'),
+        description: tWithFallback('failedToRemoveItemFromCollection', 'Failed to remove item from collection'),
         variant: "destructive",
       });
     } finally {
@@ -223,21 +231,21 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
               <div>
                 {item?.banknote?.denomination && (
                 <div className="font-small text-sm">
-                  {item?.banknote?.denomination || "Unknown Denomination"}
+                  {item?.banknote?.denomination || tWithFallback('unknownDenomination', 'Unknown Denomination')}
                 </div>
                 )}
                 {item?.banknote?.year && (
                   <div className="text-sm text-muted-foreground">
-                    {item?.banknote?.year || "Unknown Year"}
+                    {item?.banknote?.year || tWithFallback('unknownYear', 'Unknown Year')}
                   </div>
                 )}
               </div>
               {isOwner && (
                 <div className="flex gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
-                  <Button title="Edit" variant="outline" size="icon" className="h-7 w-7" onClick={handleEditClick}>
+                  <Button title={tWithFallback('edit', 'Edit')} variant="outline" size="icon" className="h-7 w-7" onClick={handleEditClick}>
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button title="Remove from your collection" variant="outline" size="icon" className="h-7 w-7" onClick={handleDeleteClick}>
+                  <Button title={tWithFallback('removeFromYourCollection', 'Remove from your collection')} variant="outline" size="icon" className="h-7 w-7" onClick={handleDeleteClick}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -246,18 +254,18 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
 
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm mb-1">
               {item?.condition && !item?.grade && (
-                <Badge title={"Condition"} variant="secondary" className={`text-[10px] px-1.5 py-0.5 h-auto leading-tight ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'} shrink-0`}>
+                <Badge title={tWithFallback('condition', 'Condition')} variant="secondary" className={`text-[10px] px-1.5 py-0.5 h-auto leading-tight ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'} shrink-0`}>
                   {item.condition}
                 </Badge>
               )}
               {item?.grade && (
-                <Badge title={"Grade"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-emerald-100 text-emerald-800 border border-gray-300 shrink-0">
+                <Badge title={tWithFallback('grade', 'Grade')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-emerald-100 text-emerald-800 border border-gray-300 shrink-0">
                   {item.grade_by && `${item.grade_by} `}{item.grade}
                 </Badge>
               )}
               {item?.isForSale && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-blue-100 text-blue-800 border border-gray-300 shrink-0">
-                  For Sale: {formatPrice(item.salePrice)}
+                  {tWithFallback('forSale', 'For Sale')}: {formatPrice(item.salePrice)}
                 </Badge>
               )}
             </div>
@@ -280,18 +288,18 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
               <h4 className="font-bold"><span>{item.banknote.denomination}</span></h4>
 
               {item?.condition && !item?.grade && (
-                <span title={"Condition"} className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
+                <span title={tWithFallback('condition', 'Condition')} className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
                   {item.condition}
                 </span>
               )}
               {item?.grade && (
-                <span title={"Grade"} className="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-800">
+                <span title={tWithFallback('grade', 'Grade')} className="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-800">
                   {item.grade_by && `${item.grade_by} `}{item.grade}
                 </span>
               )}
             </div>
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm pt-2">
-              <h6 className="font-bold text-sm"><span>Unlisted Banknote</span></h6>
+              <h6 className="font-bold text-sm"><span>{tWithFallback('unlistedBanknote', 'Unlisted Banknote')}</span></h6>
 
             </div>
           </div>
@@ -318,7 +326,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
         <div className="p-3 bg-background border-t">
 
           {(item.banknote as any).name && (
-            <p title={"Name"} className="text-sm text-muted-foreground">
+            <p title={tWithFallback('name', 'Name')} className="text-sm text-muted-foreground">
               {(item.banknote as any).name}
             </p>
           )}
@@ -331,7 +339,7 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
           )} */}
           {item?.isForSale && (
             <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
-              For Sale: {formatPrice(item.salePrice)}
+              {tWithFallback('forSale', 'For Sale')}: {formatPrice(item.salePrice)}
             </span>
           )}
         </div>
@@ -339,20 +347,19 @@ const CollectionCardUnlisted: React.FC<CollectionItemCardProps> = ({
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent onClick={e => e.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove from Collection</AlertDialogTitle>
+            <AlertDialogTitle>{tWithFallback('removeFromCollection', 'Remove from Collection')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove this banknote from your collection?
-              This action cannot be undone.
+              {tWithFallback('removeFromCollectionConfirmation', 'Are you sure you want to remove this banknote from your collection? This action cannot be undone.')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tWithFallback('cancel', 'Cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
               disabled={isDeleting}
             >
-              {isDeleting ? 'Removing...' : 'Remove'}
+              {isDeleting ? tWithFallback('removing', 'Removing...') : tWithFallback('remove', 'Remove')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

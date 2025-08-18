@@ -24,6 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getInitials } from "@/lib/utils";
 import UserProfileLink from "@/components/common/UserProfileLink";
 import { useWishlist } from "@/context/WishlistContext";
+import { useTranslation } from 'react-i18next';
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -44,6 +45,7 @@ const BanknoteDetailCard = ({
   fromGroup = false,
   userCollection = [],
 }: BanknoteDetailCardProps) => {
+  const { t } = useTranslation(['collection', 'catalog']);
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
@@ -51,6 +53,12 @@ const BanknoteDetailCard = ({
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
   const { triggerEditBanknoteGuide } = useTutorial();
+
+  // Helper function for translations with fallback
+  const tWithFallback = (key: string, fallback: string) => {
+    const translation = t(key);
+    return translation === key ? fallback : translation;
+  };
 
   // Use wishlist context instead of individual API calls
   const { isWishlistItem, getWishlistItemId, addToWishlistMap, removeFromWishlistMap } = useWishlist();
@@ -122,8 +130,8 @@ const BanknoteDetailCard = ({
     e.stopPropagation();
     if (!user || !user.id) {
       toast({
-        title: "Login required",
-        description: "You must be logged in to add banknotes to your collection.",
+        title: tWithFallback('loginRequired', 'Login required'),
+        description: tWithFallback('mustBeLoggedInToAddBanknotes', 'You must be logged in to add banknotes to your collection.'),
         variant: "destructive",
       });
       return;
@@ -137,8 +145,8 @@ const BanknoteDetailCard = ({
       if (res) {
         setHasJustBeenAdded(true);  // Optimistically update UI
         toast({
-          title: "Added to your collection!",
-          description: "This banknote was added. Visit your collection to edit its details.",
+          title: tWithFallback('addedToYourCollection', 'Added to your collection!'),
+          description: tWithFallback('banknoteAddedVisitCollection', 'This banknote was added. Visit your collection to edit its details.'),
           className: "justify-center items-center w-full",
           duration: 3000,
         });
@@ -149,8 +157,8 @@ const BanknoteDetailCard = ({
       }
     } catch (err: any) {
       toast({
-        title: "Error",
-        description: "Failed to add this banknote to your collection.",
+        title: tWithFallback('error', 'Error'),
+        description: tWithFallback('failedToAddBanknoteToCollection', 'Failed to add this banknote to your collection.'),
         variant: "destructive",
         duration: 3500,
       });
@@ -184,8 +192,8 @@ const BanknoteDetailCard = ({
   const handleUpdateSuccess = () => {
     setIsAddDialogOpen(false);
     toast({
-      title: "Success",
-      description: "Banknote added to your collection",
+      title: tWithFallback('success', 'Success'),
+      description: tWithFallback('banknoteAddedToCollection', 'Banknote added to your collection'),
       duration: 2500,
       className: "justify-center items-center w-full",
     });
@@ -205,8 +213,8 @@ const BanknoteDetailCard = ({
         if (success) {
           removeFromWishlistMap(banknote.id);
           toast({
-            title: "Removed from wishlist",
-            description: "The banknote has been removed from your wishlist.",
+            title: tWithFallback('removedFromWishlist', 'Removed from wishlist'),
+            description: tWithFallback('banknoteRemovedFromWishlist', 'The banknote has been removed from your wishlist.'),
             duration: 2000,
           });
         }
@@ -220,8 +228,8 @@ const BanknoteDetailCard = ({
             addToWishlistMap(banknote.id, newItem);
           }
           toast({
-            title: "Added to wishlist",
-            description: "The banknote has been added to your wishlist.",
+            title: tWithFallback('addedToWishlist', 'Added to wishlist'),
+            description: tWithFallback('banknoteAddedToWishlist', 'The banknote has been added to your wishlist.'),
             duration: 2000,
           });
         }
@@ -229,8 +237,8 @@ const BanknoteDetailCard = ({
     } catch (error) {
       console.error('Error updating wishlist:', error);
       toast({
-        title: "Error",
-        description: "Failed to update wishlist. Please try again.",
+        title: tWithFallback('error', 'Error'),
+        description: tWithFallback('failedToUpdateWishlist', 'Failed to update wishlist. Please try again.'),
         variant: "destructive",
       });
     }
@@ -271,10 +279,9 @@ const BanknoteDetailCard = ({
         }}
       >
         <div className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-6 py-4 flex flex-col items-center">
-          <div className="font-semibold text-center text-base mb-1">Already in your collection</div>
+          <div className="font-semibold text-center text-base mb-1">{tWithFallback('alreadyInYourCollection', 'Already in your collection')}</div>
           <div className="text-muted-foreground text-center text-sm mb-3">
-            You already have a copy of this banknote in your collection.<br />
-            Do you want to add <strong>another copy</strong> of it?
+            {tWithFallback('alreadyHaveCopyAddAnother', 'You already have a copy of this banknote in your collection. Do you want to add another copy of it?')}
           </div>
           <div className="flex gap-4 justify-center w-full mt-2">
             <button
@@ -283,14 +290,14 @@ const BanknoteDetailCard = ({
               onClick={handleOwnershipToastYes}
               autoFocus
             >
-              Yes
+              {tWithFallback('yes', 'Yes')}
             </button>
             <button
               type="button"
               className="bg-muted text-muted-foreground border border-gray-300 hover:bg-gray-200 rounded py-2 px-6 font-medium transition-colors focus:outline-none"
               onClick={handleOwnershipToastCancel}
             >
-              Cancel
+              {tWithFallback('cancel', 'Cancel')}
             </button>
           </div>
         </div>
@@ -394,13 +401,13 @@ const BanknoteDetailCard = ({
                       size="icon"
                       className={cn(wishlistButtonClass, "h-7 w-7")}
                       onClick={handleWishlistClick}
-                      title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                      title={isInWishlist ? tWithFallback('removeFromWishlist', 'Remove from wishlist') : tWithFallback('addToWishlist', 'Add to wishlist')}
                     >
                       <Heart className={cn("h-3.5 w-3.5", isInWishlist ? "fill-current" : "")} />
                     </Button>
                     {shouldShowCheck ? (
                       <Button
-                        title="You already own this banknote"
+                        title={tWithFallback('youAlreadyOwnThisBanknote', 'You already own this banknote')}
                         variant="ghost"
                         size="icon"
                         className={cn(checkButtonClass, "flex-shrink-0 h-7 w-7")}
@@ -410,7 +417,7 @@ const BanknoteDetailCard = ({
                       </Button>
                     ) : (
                       <Button
-                        title="Add to your collection"
+                        title={tWithFallback('addToYourCollection', 'Add to your collection')}
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 flex-shrink-0"
@@ -427,7 +434,7 @@ const BanknoteDetailCard = ({
                         e.stopPropagation();
                         setShowCollectorsDialog(true);
                       }}
-                      title={`On ${collectorsData?.total_count || 0} Collections`}
+                      title={tWithFallback('onCollections', `On ${collectorsData?.total_count || 0} Collections`)}
                     >
                       <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-3.5 w-3.5" /></span>
                     </Button>
@@ -437,18 +444,18 @@ const BanknoteDetailCard = ({
 
               <div className="p-0.5 gap-0.5 sm:gap-1.5 flex flex-wrap items-center text-sm mb-1 overflow-hidden">
                 {banknote.extendedPickNumber && (
-                  <Badge title={"Extended Pick Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  <Badge title={tWithFallback('extendedPickNumber', 'Extended Pick Number')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.extendedPickNumber}
                   </Badge>
                 )}
                 {banknote.turkCatalogNumber && (
-                  <Badge title={"Turkish Catalog Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  <Badge title={tWithFallback('turkishCatalogNumber', 'Turkish Catalog Number')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.turkCatalogNumber}
                   </Badge>
                 )}
                 {banknote.rarity && (
                   <Badge
-                    title={"Rarity"}
+                    title={tWithFallback('rarity', 'Rarity')}
                     variant="secondary"
                     className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
                   >
@@ -485,7 +492,7 @@ const BanknoteDetailCard = ({
                     e.stopPropagation();
                     setShowCollectorsDialog(true);
                   }}
-                  title={`On ${collectorsData?.total_count || 0} Collections`}
+                  title={tWithFallback('onCollections', `On ${collectorsData?.total_count || 0} Collections`)}
                 >
                   <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-4 w-4" /></span>
                 </Button>
@@ -494,13 +501,13 @@ const BanknoteDetailCard = ({
                   size="icon"
                   className={wishlistButtonClass}
                   onClick={handleWishlistClick}
-                  title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                  title={isInWishlist ? tWithFallback('removeFromWishlist', 'Remove from wishlist') : tWithFallback('addToWishlist', 'Add to wishlist')}
                 >
                   <Heart className={cn("h-4 w-4", isInWishlist ? "fill-current" : "")} />
                 </Button>
                 {shouldShowCheck ? (
                   <Button
-                    title="You already own this banknote"
+                    title={tWithFallback('youAlreadyOwnThisBanknote', 'You already own this banknote')}
                     variant="secondary"
                     size="icon"
                     className={checkButtonClass}
@@ -511,7 +518,7 @@ const BanknoteDetailCard = ({
                   </Button>
                 ) : (
                   <Button
-                    title="Add to your collection"
+                    title={tWithFallback('addToYourCollection', 'Add to your collection')}
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 shrink-0"
@@ -524,23 +531,23 @@ const BanknoteDetailCard = ({
             </div>
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
               {banknote.extendedPickNumber && (
-                <Badge title={"Extended Pick Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={tWithFallback('extendedPickNumber', 'Extended Pick Number')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.extendedPickNumber}
                 </Badge>
               )}
               {banknote.turkCatalogNumber && (
-                <Badge title={"Turkish Catalog Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={tWithFallback('turkishCatalogNumber', 'Turkish Catalog Number')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.turkCatalogNumber}
                 </Badge>
               )}
               {banknote.year && (
-                <Badge title={"Year"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={tWithFallback('year', 'Year')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.year}
                 </Badge>
               )}
               {banknote.rarity && (
                 <Badge
-                  title={"Rarity"}
+                  title={tWithFallback('rarity', 'Rarity')}
                   variant="secondary"
                   className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
                 >
@@ -558,12 +565,12 @@ const BanknoteDetailCard = ({
           <div className="p-3 bg-background border-t">
             {banknote?.sultanName && (
               <p className="text-xs text-muted-foreground">
-                {banknote.authorityName || "Authority"}: {banknote.sultanName}
+                {banknote.authorityName || tWithFallback('authority', 'Authority')}: {banknote.sultanName}
               </p>
             )}
             {(banknote.signaturesFront || banknote.signaturesBack) && (
               <p className="text-xs text-muted-foreground">
-                Signatures: {banknote.signaturesFront}
+                {tWithFallback('signatures', 'Signatures')}: {banknote.signaturesFront}
                 {banknote.signaturesFront && banknote.signaturesBack && ", "}
                 {banknote.signaturesBack} 
               </p>
@@ -571,7 +578,7 @@ const BanknoteDetailCard = ({
 
             {banknote.sealNames && (
               <p className="text-xs text-muted-foreground">
-                Seals: {banknote.sealNames}
+                {tWithFallback('seals', 'Seals')}: {banknote.sealNames}
               </p>
             )}
             {banknote.securityElement && (
@@ -589,7 +596,7 @@ const BanknoteDetailCard = ({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 mt-2">
               <BookCopy className="h-5 w-5" />
-              <span>Collectors ({collectorsData?.total_count || 0})</span>
+              <span>{tWithFallback('collectors', 'Collectors')} ({collectorsData?.total_count || 0})</span>
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-1">
@@ -599,7 +606,7 @@ const BanknoteDetailCard = ({
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : collectorsData?.collectors.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No collectors yet</p>
+                <p className="text-center text-muted-foreground py-8">{tWithFallback('noCollectorsYet', 'No collectors yet')}</p>
               ) : (
                 collectorsData?.collectors.map((collector) => (
                   <div key={collector.id} className="flex items-center justify-between">
@@ -633,18 +640,18 @@ const BanknoteDetailCard = ({
       <AuthRequiredDialog
         open={showAuthDialog}
         onOpenChange={setShowAuthDialog}
-        title="Join Our Community"
-        description="Get full access to our extensive Ottoman banknote catalog and collection features."
+        title={tWithFallback('joinOurCommunity', 'Join Our Community')}
+        description={tWithFallback('getFullAccess', 'Get full access to our extensive Ottoman banknote catalog and collection features.')}
         features={[
           {
             icon: <Eye className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
-            title: "View Detailed Information",
-            description: "Access complete banknote details, high-resolution images, and historical data"
+            title: tWithFallback('viewDetailedInformation', 'View Detailed Information'),
+            description: tWithFallback('accessCompleteDetails', 'Access complete banknote details, high-resolution images, and historical data')
           },
           {
             icon: <Plus className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
-            title: "Build Your Collection",
-            description: "Create and manage your personal banknote collection"
+            title: tWithFallback('buildYourCollection', 'Build Your Collection'),
+            description: tWithFallback('createAndManageCollection', 'Create and manage your personal banknote collection')
           }
         ]}
       />
