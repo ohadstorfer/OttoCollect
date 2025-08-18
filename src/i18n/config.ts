@@ -32,7 +32,7 @@ i18n
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
     },
-    ns: ['common', 'navigation', 'auth', 'catalog', 'collection', 'marketplace', 'forum', 'profile', 'pages', 'guide'],
+    ns: ['common', 'navigation', 'auth', 'catalog', 'collection', 'marketplace', 'forum', 'profile', 'pages', 'guide', 'filter', 'blog'],
     defaultNS: 'common',
   });
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { withHighlight } from "./withHighlight";
+import { useTranslation } from "react-i18next";
 
 export type FilterOption = {
   id: string;
@@ -70,6 +71,15 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { t } = useTranslation(['filter']);
+  
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   
@@ -359,12 +369,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
     {/* Mobile title */}
     <h3 className="text-xl font-semibold border-primary block sm:hidden">
-      <span>{countryName} catalogues</span>
+      <span>{countryName} {tWithFallback('country.catalogues', 'catalogues')}</span>
     </h3>
 
     {/* Desktop title */}
     <h3 className="text-xl font-semibold border-primary hidden sm:block">
-      <span>{countryName}'s Historical Banknote Catalogues</span>
+      <span>{countryName}'s {tWithFallback('country.historicalBanknoteCatalogues', 'Historical Banknote Catalogues')}</span>
     </h3>
   </div>
 )}
@@ -375,12 +385,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
         <div className="flex w-full sm:w-auto gap-2">
           <div className="relative flex-1 sm:w-[300px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search banknotes..."
-              value={search}
-              onChange={handleSearchChange}
-              className="pl-10"
-            />
+                    <Input
+          placeholder={tWithFallback('search.placeholder', 'Search banknotes...')}
+          value={search}
+          onChange={handleSearchChange}
+          className="pl-10"
+        />
           </div>
 
           {/* View and Group buttons */}
@@ -391,7 +401,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 size="icon"
                 onClick={toggleViewMode}
                 disabled={isLoading}
-                title={`Switch to ${localViewMode === 'grid' ? 'list' : 'grid'} view`}
+                title={localViewMode === 'grid' ? tWithFallback('viewMode.switchToList', 'Switch to list view') : tWithFallback('viewMode.switchToGrid', 'Switch to grid view')}
                 className="touch-manipulation active:scale-95 transition-transform"
               >
                 {localViewMode === 'grid' ? (
@@ -408,8 +418,8 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 size="icon"
                 onClick={toggleGroupMode}
                 disabled={isLoading}
-                aria-label={`Toggle group mode ${localGroupMode ? 'off' : 'on'}`}
-                title="Group similar banknotes"
+                aria-label={`${tWithFallback('groupMode.toggleGroupMode', 'Group similar banknotes')} ${localGroupMode ? tWithFallback('groupMode.toggleOff', 'off') : tWithFallback('groupMode.toggleOn', 'on')}`}
+                title={tWithFallback('groupMode.toggleGroupMode', 'Group similar banknotes')}
                 className="touch-manipulation active:scale-95 transition-transform"
               >
                 <Layers className="h-4 w-4" />
@@ -428,17 +438,17 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 disabled={isLoading}
               >
                 <Filter className="h-4 w-4" />
-                <span>Filter</span>
+                <span>{tWithFallback('filters.title', 'Filter')}</span>
               </Button>
             </SheetTrigger>
             
             <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
               <SheetHeader>
-                <SheetTitle><span>Categories & Types</span></SheetTitle>
+                <SheetTitle><span>{tWithFallback('categories.categoryAndTypes', 'Categories & Types')}</span></SheetTitle>
               </SheetHeader>
               <div className="space-y-6 py-4 overflow-y-auto">
-                <div>
-                  <h4 className="font-medium mb-3"><span>Categories</span></h4>
+                              <div>
+                <h4 className="font-medium mb-3"><span>{tWithFallback('categories.title', 'Categories')}</span></h4>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -446,7 +456,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                         checked={allCategoriesSelected}
                         onCheckedChange={(checked) => handleCategoryChange("all", !!checked)}
                       />
-                      <label htmlFor="all-categories" className="text-sm">All Categories</label>
+                      <label htmlFor="all-categories" className="text-sm">{tWithFallback('categories.allCategories', 'All Categories')}</label>
                     </div>
                     {categories.map(category => (
                       <div key={category.id} className="flex items-center space-x-2">
@@ -465,8 +475,8 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                     ))}
                   </div>
                 </div>
-                <div>
-                  <h4 className="font-medium mb-3"><span>Types</span></h4>
+                              <div>
+                <h4 className="font-medium mb-3"><span>{tWithFallback('categories.types', 'Types')}</span></h4>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -474,7 +484,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                         checked={allTypesSelected}
                         onCheckedChange={(checked) => handleTypeChange("all", !!checked)}
                       />
-                      <label htmlFor="all-types" className="text-sm">All Types</label>
+                      <label htmlFor="all-types" className="text-sm">{tWithFallback('categories.allTypes', 'All Types')}</label>
                     </div>
                     {types.map(type => (
                       <div key={type.id} className="flex items-center space-x-2">
@@ -498,7 +508,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                     className="w-full"
                     onClick={() => setIsCategorySheetOpen(false)}
                   >
-                    Close
+                    {tWithFallback('actions.close', 'Close')}
                   </Button>
                 </SheetClose>
               </div>
@@ -513,13 +523,13 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 disabled={isLoading}
               >
                 <ArrowUpDown className="h-4 w-4" />
-                <span>Sort</span>
+                <span>{tWithFallback('sort.title', 'Sort')}</span>
               </Button>
             </SheetTrigger>
             
             <SheetContent side={isMobile ? "bottom" : "right"} className="w-full sm:max-w-md">
               <SheetHeader>
-                <SheetTitle> <span> Sort Options </span> </SheetTitle>
+                <SheetTitle> <span>{tWithFallback('sort.sortOptions', 'Sort Options')}</span> </SheetTitle>
               </SheetHeader>
               <div className="py-4 space-y-2">
                 {sortOptions.map(option => {
@@ -539,7 +549,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                           option.isRequired && "opacity-50"
                         )}
                       >
-                        {option.name} {option.isRequired && "(Always)"}
+                        {option.name} {option.isRequired && `(${tWithFallback('sort.always', 'Always')})`}
                       </label>
                     </div>
                   );
@@ -549,7 +559,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                     className="w-full mt-4"
                     onClick={() => setIsSortSheetOpen(false)}
                   >
-                    Close
+                    {tWithFallback('actions.close', 'Close')}
                   </Button>
                 </SheetClose>
               </div>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { withHighlight } from "./withHighlight";
+import { useTranslation } from "react-i18next";
 
 export type FilterCategory = {
   id: string;
@@ -39,25 +40,19 @@ const normalizeType = (type: string): string => {
   
   const lowerType = type.toLowerCase();
   
-  if (lowerType.includes("issued") || lowerType === "issue") return "issued notes";
-  if (lowerType.includes("specimen")) return "specimens";
-  if (lowerType.includes("cancelled") || lowerType.includes("annule")) return "cancelled & annule";
-  if (lowerType.includes("trial")) return "trial note";
-  if (lowerType.includes("error")) return "error banknote";
-  if (lowerType.includes("counterfeit")) return "counterfeit banknote";
-  if (lowerType.includes("emergency")) return "emergency note";
-  if (lowerType.includes("check") || lowerType.includes("bond")) return "check & bond notes";
+  if (lowerType.includes("issued") || lowerType === "issue") return tWithFallback('types.issuedNotes', 'issued notes');
+  if (lowerType.includes("specimen")) return tWithFallback('types.specimens', 'specimens');
+  if (lowerType.includes("cancelled") || lowerType.includes("annule")) return tWithFallback('types.cancelledAnnule', 'cancelled & annule');
+  if (lowerType.includes("trial")) return tWithFallback('types.trialNote', 'trial note');
+  if (lowerType.includes("error")) return tWithFallback('types.errorBanknote', 'error banknote');
+  if (lowerType.includes("counterfeit")) return tWithFallback('types.counterfeitBanknote', 'counterfeit banknote');
+  if (lowerType.includes("emergency")) return tWithFallback('types.emergencyNote', 'emergency note');
+  if (lowerType.includes("check") || lowerType.includes("bond")) return tWithFallback('types.checkBondNotes', 'check & bond notes');
   
   return lowerType;
 };
 
-// Define default constants here instead of importing them
-const DEFAULT_SORT_OPTIONS = [
-  { id: "extPick", name: "Catalog Number", required: true },
-  { id: "sultan", name: "Sultan" },
-  { id: "faceValue", name: "Face Value" },
-  { id: "newest", name: "Newest First" }
-];
+
 
 export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   categories,
@@ -69,6 +64,23 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   currentFilters = {}
 }) => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation(['filter']);
+  
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
+  
+  // Define sort options with translations
+  const sortOptions = useMemo(() => [
+    { id: "extPick", name: tWithFallback('sort.catalogNumber', 'Catalog Number'), required: true },
+    { id: "sultan", name: tWithFallback('sort.sultan', 'Sultan') },
+    { id: "faceValue", name: tWithFallback('sort.faceValue', 'Face Value') },
+    { id: "newest", name: tWithFallback('sort.newestFirst', 'Newest First') }
+  ], [tWithFallback]);
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [search, setSearch] = useState(currentFilters.search || "");
@@ -78,7 +90,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   );
   
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
-    currentFilters.types || (availableTypes.length > 0 ? ["issued notes" , "Other notes"] : [])
+    currentFilters.types || (availableTypes.length > 0 ? [tWithFallback('types.issuedNotes', 'issued notes') , tWithFallback('types.otherNotes', 'Other notes')] : [])
   );
   
   const [selectedSort, setSelectedSort] = useState<string[]>(
@@ -106,7 +118,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     }
     
     if (availableTypes.length > 0 && selectedTypes.length === 0) {
-      const newTypes = ["issued notes" , "Other notes"];
+      const newTypes = [tWithFallback('types.issuedNotes', 'issued notes') , tWithFallback('types.otherNotes', 'Other notes')];
       setSelectedTypes(newTypes);
       handleFilterChange({ types: newTypes });
     }
@@ -195,7 +207,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
-          placeholder="Search banknotes..."
+          placeholder={tWithFallback('search.placeholder', 'Search banknotes...')}
           value={search}
           onChange={handleSearchChange}
           className="pl-10"
@@ -214,17 +226,17 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
             >
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
-                <span>{isMobile ? "Types" : "Category & Types"}</span>
+                <span>{isMobile ? tWithFallback('categories.types', 'Types') : tWithFallback('categories.categoryAndTypes', 'Category & Types')}</span>
               </div>
             </Button>
           </SheetTrigger>
           <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
             <SheetHeader>
-              <SheetTitle>Categories & Types</SheetTitle>
+              <SheetTitle>{tWithFallback('categories.categoryAndTypes', 'Categories & Types')}</SheetTitle>
             </SheetHeader>
             <div className="space-y-6 py-4 overflow-y-auto">
               <div>
-                <h4 className="font-medium mb-3"><span>Categories</span></h4>
+                <h4 className="font-medium mb-3"><span>{tWithFallback('categories.title', 'Categories')}</span></h4>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -232,7 +244,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                       checked={allCategoriesSelected}
                       onCheckedChange={(checked) => handleCategoryChange("all", !!checked)}
                     />
-                    <label htmlFor="all-categories" className="text-sm">All Categories</label>
+                    <label htmlFor="all-categories" className="text-sm">{tWithFallback('categories.allCategories', 'All Categories')}</label>
                   </div>
                   {categories.map(category => {
                     const isChecked = caseInsensitiveIncludes(selectedCategories, category.id);
@@ -255,7 +267,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                 </div>
               </div>
               <div>
-                <h4 className="font-medium mb-3"><span>Types</span></h4>
+                <h4 className="font-medium mb-3"><span>{tWithFallback('categories.types', 'Types')}</span></h4>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -263,7 +275,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                       checked={allTypesSelected}
                       onCheckedChange={(checked) => handleTypeChange("all", !!checked)}
                     />
-                    <label htmlFor="all-types" className="text-sm">All Types</label>
+                    <label htmlFor="all-types" className="text-sm">{tWithFallback('categories.allTypes', 'All Types')}</label>
                   </div>
                   {availableTypes.map(type => {
                     const isChecked = caseInsensitiveIncludes(selectedTypes, type.id);
@@ -292,7 +304,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                     // Apply filters on close
                   }}
                 >
-                  Apply Filters
+                  {tWithFallback('filters.applyFilters', 'Apply Filters')}
                 </Button>
               </SheetClose>
             </div>
@@ -310,16 +322,16 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
             >
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
-                <span>Sort</span>
+                <span>{tWithFallback('sort.title', 'Sort')}</span>
               </div>
             </Button>
           </SheetTrigger>
           <SheetContent side={isMobile ? "bottom" : "right"} className="w-full sm:max-w-md">
             <SheetHeader>
-              <SheetTitle>Sort Options</SheetTitle>
+              <SheetTitle>{tWithFallback('sort.sortOptions', 'Sort Options')}</SheetTitle>
             </SheetHeader>
             <div className="py-4 space-y-2">
-              {DEFAULT_SORT_OPTIONS.map(option => (
+              {sortOptions.map(option => (
                 <div key={option.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`sort-${option.id}`}
@@ -334,7 +346,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                       option.required && "opacity-50"
                     )}
                   >
-                    {option.name} {option.required && "(Always)"}
+                    {option.name} {option.required && `(${tWithFallback('sort.always', 'Always')})`}
                   </label>
                 </div>
               ))}
@@ -345,7 +357,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
                     // Apply sort on close
                   }}
                 >
-                  Apply Sort
+                  {tWithFallback('sort.applySort', 'Apply Sort')}
                 </Button>
               </SheetClose>
             </div>

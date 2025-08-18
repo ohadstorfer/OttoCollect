@@ -37,7 +37,9 @@
     "makeOffer": "تقديم عرض",
     "buyNow": "اشترِ الآن",
     "addToWishlist": "أضف إلى قائمة الأماني",
-    "removeFromWishlist": "إزالة من قائمة الأماني"
+    "removeFromWishlist": "إزالة من قائمة الأماني",
+    "back": "رجوع",
+    "backToMarketplace": "العودة إلى السوق"
   },
 
   "item": {
@@ -62,10 +64,17 @@
     "images": "الصور",
     "obverse": "الوجه",
     "reverse": "الظهر",
+    "obverseFront": "الوجه (الأمامي)",
+    "reverseBack": "الظهر (الخلفي)",
     "watermark": "العلامة المائية",
     "serialNumber": "الرقم التسلسلي",
     "printer": "المطبعة",
     "colors": "الألوان",
+    "noImagesAvailable": "لا توجد صور متاحة",
+    "banknoteDetails": "تفاصيل الورقة النقدية",
+    "detailedInformation": "معلومات مفصلة حول هذه الورقة النقدية",
+    "sellersNote": "ملاحظة البائع",
+    "unlistedBanknote": "ورقة نقدية غير مدرجة",
     "status": {
       "available": "متاح",
       "reserved": "محجوز",
@@ -128,7 +137,10 @@
     "error": "خطأ في تحميل عناصر السوق",
     "errorDescription": "فشل في تحميل عناصر السوق. يرجى المحاولة مرة أخرى لاحقاً.",
     "tryAgain": "حاول مرة أخرى",
-    "refreshing": "جاري التحديث..."
+    "refreshing": "جاري التحديث...",
+    "itemNotFound": "العنصر غير موجود أو لم يعد متاحاً",
+    "failedToLoadItem": "فشل في تحميل عنصر السوق",
+    "couldNotLoadDetails": "تعذر تحميل تفاصيل عنصر السوق"
   },
 
   "pricing": {

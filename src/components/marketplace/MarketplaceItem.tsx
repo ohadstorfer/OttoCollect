@@ -26,7 +26,7 @@ interface MarketplaceItemProps {
 }
 
 const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
-  console.log('Rendering MarketplaceItem component with item:', item.id);
+  
   const [isHovering, setIsHovering] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const navigate = useNavigate();
@@ -53,8 +53,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
     );
   }
   
-  console.log('Banknote data:', collectionItem.banknote);
-  console.log('Seller data:', seller);
+ 
   
   const { banknote, condition, salePrice, publicNote } = collectionItem;
   
@@ -63,7 +62,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
       setShowAuthDialog(true);
       return;
     }
-    console.log(`Navigating to marketplace item detail: ${item.id}`);
+    
     navigate(`/marketplace/${item.id}`);
   };
   
@@ -73,7 +72,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   };
   
   const getStatusBadge = () => {
-    console.log('Getting status badge for status:', status);
+    
     switch (status) {
       case "Available":
         return <Badge variant="primary">{tWithFallback('item.status.available', 'Available')}</Badge>;
@@ -96,7 +95,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         ? (typeof banknote.imageUrls === 'string' ? banknote.imageUrls : banknote.imageUrls[0])
         : '/placeholder.svg');
   
-  console.log('Display image:', displayImage);
+ 
   
   return (
     <>

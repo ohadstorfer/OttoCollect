@@ -38,5 +38,34 @@
     "condition": "الحالة",
     "year": "السنة",
     "denomination": "الفئة"
+  },
+  "details": {
+    "extendedPickNumber": "رقم بيك الموسع",
+    "pickNumber": "رقم بيك",
+    "turkCatalogNumber": "رقم كتالوج تورك",
+    "faceValue": "القيمة الاسمية",
+    "country": "البلد",
+    "islamicYear": "السنة الهجرية",
+    "gregorianYear": "السنة الميلادية",
+    "sultanName": "اسم السلطان",
+    "printer": "المطبعة",
+    "type": "النوع",
+    "category": "الفئة",
+    "rarity": "الندرة",
+    "securityElement": "عنصر الأمان",
+    "colors": "الألوان",
+    "serialNumbering": "الترقيم التسلسلي",
+    "banknoteDescription": "وصف الورقة النقدية",
+    "historicalDescription": "الوصف التاريخي",
+    "dimensions": "الأبعاد",
+    "frontSignatures": "التوقيعات الأمامية",
+    "backSignatures": "التوقيعات الخلفية",
+    "sealNames": "أسماء الأختام",
+    "frontSignaturePictures": "صور التوقيعات الأمامية",
+    "backSignaturePictures": "صور التوقيعات الخلفية",
+    "sealPictures": "صور الأختام",
+    "watermarkPicture": "صورة العلامة المائية",
+    "tughraPicture": "صورة الطغراء",
+    "otherPictures": "صور أخرى"
   }
-}
+} 

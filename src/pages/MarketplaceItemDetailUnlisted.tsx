@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageSquare, AlertCircle, User } from "lucide-react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, AlertCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getMarketplaceItemById } from "@/services/marketplaceService";
 import { MarketplaceItem, UserRank } from "@/types";
@@ -13,10 +13,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ContactSeller } from "@/components/messages/ContactSeller";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
-import { BanknoteProvider } from "@/context/BanknoteContext";
+import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 
 const MarketplaceItemDetailUnlisted = () => {
-  console.log('Rendering MarketplaceItemDetail component');
+  console.log('Rendering MarketplaceItemDetailUnlisted component');
   const { id } = useParams<{ id: string }>();
   console.log('MarketplaceItemDetail ID from params:', id);
 
@@ -27,6 +28,15 @@ const MarketplaceItemDetailUnlisted = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation(['marketplace']);
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -44,7 +54,7 @@ const MarketplaceItemDetailUnlisted = () => {
 
         if (!fetchedItem) {
           console.error('Item not found or no longer available');
-          setError("Item not found or no longer available");
+          setError(tWithFallback('status.itemNotFound', 'Item not found or no longer available'));
           return;
         }
 
@@ -53,10 +63,10 @@ const MarketplaceItemDetailUnlisted = () => {
 
       } catch (err) {
         console.error("Error fetching marketplace item:", err);
-        setError("Failed to load marketplace item");
+        setError(tWithFallback('status.failedToLoadItem', 'Failed to load marketplace item'));
         toast({
-          title: "Error",
-          description: "Could not load the marketplace item details",
+          title: tWithFallback('status.error', 'Error'),
+          description: tWithFallback('status.couldNotLoadDetails', 'Could not load the marketplace item details'),
           variant: "destructive"
         });
       } finally {
@@ -87,15 +97,15 @@ const MarketplaceItemDetailUnlisted = () => {
       <div className="container py-8">
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle> <span> Error </span> </AlertTitle>
+          <AlertTitle>{tWithFallback('status.error', 'Error')}</AlertTitle>
           <AlertDescription>
-            {error || "Item not found or no longer available"}
+            {error || tWithFallback('status.itemNotFound', 'Item not found or no longer available')}
           </AlertDescription>
         </Alert>
 
         <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Marketplace
+          {tWithFallback('actions.backToMarketplace', 'Back to Marketplace')}
         </Button>
       </div>
     );
@@ -115,7 +125,7 @@ const MarketplaceItemDetailUnlisted = () => {
       <div className="flex items-center gap-2 mb-1">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          {tWithFallback('actions.back', 'Back')}
         </Button>
       </div>
 
@@ -130,10 +140,10 @@ const MarketplaceItemDetailUnlisted = () => {
         {/* Left column: Images */}
         <div>
           <Tabs defaultValue="obverse" className="mb-6">
-            <TabsList className="mb-4">
-              <TabsTrigger value="obverse">Obverse (Front)</TabsTrigger>
-              <TabsTrigger value="reverse">Reverse (Back)</TabsTrigger>
-            </TabsList>
+                         <TabsList className="mb-4">
+               <TabsTrigger value="obverse">{tWithFallback('item.obverseFront', 'Obverse (Front)')}</TabsTrigger>
+               <TabsTrigger value="reverse">{tWithFallback('item.reverseBack', 'Reverse (Back)')}</TabsTrigger>
+             </TabsList>
 
             <TabsContent value="obverse">
               <div className="aspect-[4/3] overflow-hidden rounded-lg border">
@@ -196,9 +206,9 @@ const MarketplaceItemDetailUnlisted = () => {
                 <span> {banknote.denomination} </span>
               </h2>
 
-              <h2 className="text-2xl font-serif font-bold text-parchment-500 mb-2">
-                <span> Unlisted Banknote </span>
-              </h2>
+                             <h2 className="text-2xl font-serif font-bold text-parchment-500 mb-2">
+                 <span>{tWithFallback('item.unlistedBanknote', 'Unlisted Banknote')}</span>
+               </h2>
 
               <div className="flex items-center gap-2 mb-4">
                 <p className="text-lg text-ottoman-300">
@@ -232,36 +242,36 @@ const MarketplaceItemDetailUnlisted = () => {
 
               </div>
 
-              {publicNote && (
-                <div className="mt-4">
-                  <p className="text-sm text-ottoman-400">Seller's Note</p>
-                  <p className="mt-1 text-ottoman-200 p-3 bg-ottoman-900/20 rounded-md">
-                    {publicNote}
-                  </p>
-                </div>
-              )}
+                             {publicNote && (
+                 <div className="mt-4">
+                   <p className="text-sm text-ottoman-400">{tWithFallback('item.sellersNote', 'Seller\'s Note')}</p>
+                   <p className="mt-1 text-ottoman-200 p-3 bg-ottoman-900/20 rounded-md">
+                     {publicNote}
+                   </p>
+                 </div>
+               )}
             </CardContent>
           </Card>
 
-          {/* Banknote Details */}
-          <Card className="border-t-4 border-t-primary shadow-md">
-            <CardHeader className="border-b bg-muted/20">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl m-0">
-                  <span> Banknote Details </span>
-                </CardTitle>
-              </div>
-              <CardDescription>
-                Detailed information about this banknote
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6">
-              <BanknoteCatalogDetailMinimized 
-                banknote={banknote} 
-                onImageClick={(url) => setSelectedImage(url)} 
-              />
-            </CardContent>
-          </Card>
+                     {/* Banknote Details */}
+           <Card className="border-t-4 border-t-primary shadow-md">
+             <CardHeader className="border-b bg-muted/20">
+               <div className="flex justify-between items-center">
+                 <CardTitle className="text-xl m-0">
+                   <span>{tWithFallback('item.banknoteDetails', 'Banknote Details')}</span>
+                 </CardTitle>
+               </div>
+               <CardDescription>
+                 {tWithFallback('item.detailedInformation', 'Detailed information about this banknote')}
+               </CardDescription>
+             </CardHeader>
+             <CardContent className="p-6">
+               <BanknoteCatalogDetailMinimized 
+                 banknote={banknote} 
+                 onImageClick={(url) => setSelectedImage(url)} 
+               />
+             </CardContent>
+           </Card>
         </div>
       </div>
     </div>

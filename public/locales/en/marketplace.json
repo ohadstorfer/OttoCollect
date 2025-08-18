@@ -37,7 +37,9 @@
     "makeOffer": "Make Offer",
     "buyNow": "Buy Now",
     "addToWishlist": "Add to Wishlist",
-    "removeFromWishlist": "Remove from Wishlist"
+    "removeFromWishlist": "Remove from Wishlist",
+    "back": "Back",
+    "backToMarketplace": "Back to Marketplace"
   },
 
   "item": {
@@ -61,10 +63,17 @@
     "images": "Images",
     "obverse": "Obverse",
     "reverse": "Reverse",
+    "obverseFront": "Obverse (Front)",
+    "reverseBack": "Reverse (Back)",
     "watermark": "Watermark",
     "serialNumber": "Serial Number",
     "printer": "Printer",
     "colors": "Colors",
+    "noImagesAvailable": "No images available",
+    "banknoteDetails": "Banknote Details",
+    "detailedInformation": "Detailed information about this banknote",
+    "sellersNote": "Seller's Note",
+    "unlistedBanknote": "Unlisted Banknote",
     "status": {
       "available": "Available",
       "reserved": "Reserved",
@@ -127,7 +136,10 @@
     "error": "Error loading marketplace items",
     "errorDescription": "Failed to load marketplace items. Please try again later.",
     "tryAgain": "Try Again",
-    "refreshing": "Refreshing..."
+    "refreshing": "Refreshing...",
+    "itemNotFound": "Item not found or no longer available",
+    "failedToLoadItem": "Failed to load marketplace item",
+    "couldNotLoadDetails": "Could not load the marketplace item details"
   },
 
   "pricing": {

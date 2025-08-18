@@ -6,6 +6,7 @@
     "forum": "المنتدى",
     "blog": "المدونة",
     "messages": "الرسائل",
+    "allUsers": "جميع المستخدمين",
     "community": "المجتمع",
     "settings": "الإعدادات",
     "adminDashboard": "لوحة الإدارة",
@@ -66,6 +67,12 @@
     "types": "الأنواع",
     "conditions": "الحالات",
     "grades": "الدرجات"
+  },
+  "tabs": {
+    "collection": "المجموعة",
+    "wishlist": "قائمة الأمنيات",
+    "missing": "المفقود",
+    "sale": "البيع"
   },
   "print": {
     "printCollection": "طباعة المجموعة",

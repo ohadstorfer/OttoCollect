@@ -20,6 +20,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, 
 import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
 import ImagePreview from "@/components/shared/ImagePreview";
+import { useTranslation } from 'react-i18next';
 
 
 interface LabelValuePairProps {
@@ -44,6 +45,8 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 };
 
 export default function CollectionItem() {
+  const { t } = useTranslation(['collection']);
+  
   // All hooks first!
   const [imageOrientations, setImageOrientations] = useState<Record<number, 'vertical' | 'horizontal'>>({});
   const [itemOwnerRole, setItemOwnerRole] = useState<string | null>(null);
@@ -229,11 +232,11 @@ export default function CollectionItem() {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4"> <span> Error Loading Collection Item </span> </h2>
+          <h2 className="text-2xl font-serif mb-4"> <span> {t('item.errorLoading')} </span> </h2>
           <p className="mb-6 text-muted-foreground">
-            We couldn't load the collection item details. Please try again later.
+            {t('item.couldNotLoad')}
           </p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
+          <Button onClick={() => navigate(-1)}>{t('item.goBack')}</Button>
         </div>
       </div>
     );
@@ -259,7 +262,7 @@ export default function CollectionItem() {
 
   const handleUpdateSuccess = async (updatedItem?: CollectionItemType, hasImageChanged?: boolean) => {
     setIsEditDialogOpen(false);
-    toast("Collection item updated successfully");
+    toast(t('item.collectionItemUpdatedSuccess'));
     
     // If images were changed, delete existing suggestions and reset suggestion status
     if (hasImageChanged && collectionItem?.id && user?.id) {
@@ -302,13 +305,13 @@ export default function CollectionItem() {
         reverseImage: collectionItem.reverseImage
       });
 
-      toast("Your images have been submitted for catalog consideration");
+      toast(t('item.imagesSubmittedForCatalog'));
       setHasPendingSuggestion(true);
       setSuggestionStatus('pending');
       setImageChangedAfterApproval(false); // Reset the flag
     } catch (error) {
       console.error("Error suggesting images:", error);
-      toast("Failed to submit images. Please try again later.");
+      toast(t('item.failedToSubmitImages'));
     } finally {
       setIsSubmittingImages(false);
     }
@@ -320,14 +323,14 @@ export default function CollectionItem() {
     try {
       const { removeFromCollection } = await import("@/services/collectionService");
       await removeFromCollection(collectionItem.id);
-      toast("Collection item deleted successfully");
+      toast(t('item.collectionItemDeletedSuccess'));
       // Slight delay for better UX
       setTimeout(() => {
         navigate(-1);
       }, 600);
     } catch (error) {
       console.error("Error deleting collection item:", error);
-      toast("Failed to delete item. Please try again.");
+      toast(t('item.failedToDeleteItem'));
     } finally {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);
@@ -348,12 +351,12 @@ export default function CollectionItem() {
 
       if (error) throw error;
 
-      toast.success('Image deleted successfully');
+      toast.success(t('item.imageDeletedSuccess'));
       await refetch();
       setImageToDelete(null);
     } catch (error) {
       console.error('Error deleting image:', error);
-      toast.error('Failed to delete image');
+      toast.error(t('item.failedToDeleteImage'));
     } finally {
       setIsDeletingImage(false);
     }
@@ -377,13 +380,13 @@ export default function CollectionItem() {
         hide_images: newHideImages
       });
       
-      toast(newHideImages ? "Images are now private" : "Images are now visible to all users");
+      toast(newHideImages ? t('item.imagesPrivate') : t('item.imagesPublic'));
       
       // Force refetch to update the UI
       await refetch();
     } catch (error) {
       console.error("Error updating image visibility:", error);
-      toast("Failed to update image visibility");
+      toast(t('item.failedToUpdateImageVisibility'));
     } finally {
       setIsTogglingVisibility(false);
       setShowVisibilityDialog(false);
@@ -457,7 +460,7 @@ export default function CollectionItem() {
                           <div className="w-full flex items-center justify-center gap-2 py-1.5">
                             <Star className="h-5 w-5 fill-gold-500 text-gold-500" />
                             <span className="font-medium text-gold-600">
-                              Catalogue Image
+                              {t('item.catalogueImage')}
                             </span>
                           </div>
                       </div>
@@ -477,10 +480,10 @@ export default function CollectionItem() {
                               disabled={isSubmittingImages}
                             >
                               <ImagePlus className="h-4 w-4" />
-                              Try Again
+                              {t('item.tryAgain')}
                             </Button>
                             <span className="text-sm text-red-600 font-medium px-2">
-                              Request rejected
+                              {t('item.requestRejected')}
                             </span>
                           </div>
                         ) : (
@@ -492,17 +495,17 @@ export default function CollectionItem() {
                           >
                             <ImagePlus className="h-4 w-4" />
                             {hasPendingSuggestion
-                              ? "Image Suggestion Pending"
+                              ? t('item.imageSuggestionPending')
                               : isSubmittingImages
-                                ? "Submitting..."
-                                : "Suggest Images to Catalogues"}
+                                ? t('item.submitting')
+                                : t('item.suggestImagesToCatalogues')}
                           </Button>
                         )}
                       </div>
                       {/* Show message when user can re-suggest after image change */}
                       {  imageChangedAfterApproval&& (
                         <div className="text-sm text-muted-foreground text-center px-3 py-1">
-                          You have updated your images. You can suggest them to the catalogues again.
+                          {t('item.imagesUpdatedMessage')}
                         </div>
                       )}
                     </div>
@@ -510,7 +513,7 @@ export default function CollectionItem() {
 
                   {shouldHideImages ? (
                     <div className="p-6 text-center bg-muted rounded-md">
-                      <p className="text-muted-foreground">Private images, only visible to the owner.</p>
+                      <p className="text-muted-foreground">{t('item.privateImages')}</p>
                     </div>
                   ) : displayImages.length > 0 ? (
                     <div className="relative">
@@ -518,7 +521,7 @@ export default function CollectionItem() {
                         <div className="absolute top-2 left-2 z-10">
                           {isShowingPrivateAsAdmin ? (
                             <div className="bg-white/90 rounded-sm px-2 py-1 shadow-sm border">
-                              <p className="text-xs text-muted-foreground">Private images, visible to admins</p>
+                              <p className="text-xs text-muted-foreground">{t('item.privateImagesAdmin')}</p>
                             </div>
                           ) : (
                           <AlertDialog open={showVisibilityDialog} onOpenChange={setShowVisibilityDialog}>
@@ -531,12 +534,12 @@ export default function CollectionItem() {
                                 {Boolean(collectionItem?.hide_images) ? (
                                   <>
                                     <EyeOff className="h-3 w-3" />
-                                    <span>Private images, only visible to you</span>
+                                    <span>{t('item.imagesVisibleToYou')}</span>
                                   </>
                                 ) : (
                                   <>
                                     <Eye className="h-3 w-3" />
-                                    <span>Images visible to all users</span>
+                                    <span>{t('item.imagesVisibleToAll')}</span>
                                   </>
                                 )}
                               </Button>
@@ -545,26 +548,26 @@ export default function CollectionItem() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>
                                   {collectionItem?.hide_images 
-                                    ? "Make Images Public" 
-                                    : "Make Images Private"}
+                                    ? t('item.makeImagesPublic') 
+                                    : t('item.makeImagesPrivate')}
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
                                   {collectionItem?.hide_images
-                                    ? "This will make your images visible to all users. Are you sure you want to continue?"
-                                    : "This will make your images private and only visible to you. Are you sure you want to continue?"}
+                                    ? t('item.makeImagesPublicConfirm')
+                                    : t('item.makeImagesPrivateConfirm')}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel disabled={isTogglingVisibility}>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel disabled={isTogglingVisibility}>{t('item.cancel')}</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={handleToggleImageVisibility}
                                   disabled={isTogglingVisibility}
                                 >
                                   {isTogglingVisibility 
-                                    ? "Updating..." 
+                                    ? t('item.updating') 
                                     : collectionItem?.hide_images
-                                      ? "Make Public"
-                                      : "Make Private"}
+                                      ? t('item.makePublic')
+                                      : t('item.makePrivate')}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -598,13 +601,13 @@ export default function CollectionItem() {
                                           </AlertDialogTrigger>
                                           <AlertDialogContent>
                                             <AlertDialogHeader>
-                                              <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                              <AlertDialogTitle>{t('item.deleteImage')}</AlertDialogTitle>
                                               <AlertDialogDescription>
-                                                Are you sure you want to delete this image? This action cannot be undone.
+                                                {t('item.deleteImageConfirm')}
                                               </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
-                                              <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                              <AlertDialogCancel disabled={isDeletingImage}>{t('item.cancel')}</AlertDialogCancel>
                                               <AlertDialogAction
                                                 onClick={() => {
                                                   setImageToDelete(index === 0 ? 'obverse' : 'reverse');
@@ -613,7 +616,7 @@ export default function CollectionItem() {
                                                 className="bg-red-600 hover:bg-red-700"
                                                 disabled={isDeletingImage}
                                               >
-                                                {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                                {isDeletingImage ? t('item.deleting') : t('item.delete')}
                                               </AlertDialogAction>
                                             </AlertDialogFooter>
                                           </AlertDialogContent>
@@ -656,13 +659,13 @@ export default function CollectionItem() {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                    <AlertDialogTitle>{t('item.deleteImage')}</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Are you sure you want to delete this image? This action cannot be undone.
+                                      {t('item.deleteImageConfirm')}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                    <AlertDialogCancel disabled={isDeletingImage}>{t('item.cancel')}</AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() => {
                                         setImageToDelete(index === 0 ? 'obverse' : 'reverse');
@@ -671,7 +674,7 @@ export default function CollectionItem() {
                                       className="bg-red-600 hover:bg-red-700"
                                       disabled={isDeletingImage}
                                     >
-                                      {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                      {isDeletingImage ? t('item.deleting') : t('item.delete')}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -712,13 +715,13 @@ export default function CollectionItem() {
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>Delete Image</AlertDialogTitle>
+                                      <AlertDialogTitle>{t('item.deleteImage')}</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        Are you sure you want to delete this image? This action cannot be undone.
+                                        {t('item.deleteImageConfirm')}
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                      <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                      <AlertDialogCancel disabled={isDeletingImage}>{t('item.cancel')}</AlertDialogCancel>
                                       <AlertDialogAction
                                         onClick={() => {
                                           setImageToDelete(index === 0 ? 'obverse' : 'reverse');
@@ -727,7 +730,7 @@ export default function CollectionItem() {
                                         className="bg-red-600 hover:bg-red-700"
                                         disabled={isDeletingImage}
                                       >
-                                        {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                        {isDeletingImage ? t('item.deleting') : t('item.delete')}
                                       </AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
@@ -751,7 +754,7 @@ export default function CollectionItem() {
                     </div>
                   ) : (
                     <div className="p-6 text-center bg-muted rounded-md">
-                      <p className="text-muted-foreground">No images available</p>
+                      <p className="text-muted-foreground">{t('item.noImagesAvailable')}</p>
                     </div>
                   )}
                 </div>
@@ -764,7 +767,7 @@ export default function CollectionItem() {
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-xl m-0">
-                    <span> {isOwner ? "My Collection Copy" : "Collection Copy"} </span>
+                    <span> {isOwner ? t('item.myCollectionCopy') : t('item.collectionCopy')} </span>
                   </CardTitle>
                   {isOwner && (
                     <div className="flex items-center gap-1">
@@ -774,13 +777,13 @@ export default function CollectionItem() {
                         className="flex items-center gap-1 text-red-600 hover:bg-red-100"
                         onClick={() => setIsDeleteDialogOpen(true)}
                         disabled={isDeleting || isEditDialogOpen}
-                        title="Delete Collection Item"
+                        title={t('item.deleteCollectionItem')}
                       >
                         <Trash className="w-4 h-4" />
-                        <span className="sr-only">Delete</span>
+                        <span className="sr-only">{t('item.delete')}</span>
                       </Button>
                       <Button
-                        title="Edit Collection Item"
+                        title={t('item.editCollectionItem')}
                         variant="ghost"
                         size="sm"
                         className="flex items-center gap-1"
@@ -794,8 +797,8 @@ export default function CollectionItem() {
                 </div>
                 <CardDescription>
                   {isOwner
-                    ? "Details about your personal copy of this banknote"
-                    : "Information about this collector's copy of the banknote"}
+                    ? t('item.detailsAboutCopy')
+                    : t('item.informationAboutCopy')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
@@ -809,7 +812,7 @@ export default function CollectionItem() {
 
         <div className="flex justify-between items-center">
           <Button variant="outline" onClick={() => navigate(-1)}>
-            Back
+            {t('item.back')}
           </Button>
         </div>
       </div>
@@ -835,19 +838,19 @@ export default function CollectionItem() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent onClick={e => e.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Collection Item</AlertDialogTitle>
+            <AlertDialogTitle>{t('item.deleteCollectionItemConfirm')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this item from your collection? This action cannot be undone.
+              {t('item.deleteCollectionItemDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>{t('item.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
               onClick={handleDeleteCollectionItem}
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? t('item.deletingItem') : t('item.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

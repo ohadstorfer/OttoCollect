@@ -6,6 +6,7 @@
     "forum": "Forum",
     "blog": "Blog",
     "messages": "Mesajlar",
+    "allUsers": "Tüm Kullanıcılar",
     "community": "Topluluk",
     "settings": "Ayarlar",
     "adminDashboard": "Yönetici Paneli",
@@ -66,6 +67,12 @@
     "types": "Türler",
     "conditions": "Durumlar",
     "grades": "Dereceler"
+  },
+  "tabs": {
+    "collection": "Koleksiyon",
+    "wishlist": "İstek Listesi",
+    "missing": "Eksik",
+    "sale": "Satış"
   },
   "print": {
     "printCollection": "Koleksiyonu Yazdır",

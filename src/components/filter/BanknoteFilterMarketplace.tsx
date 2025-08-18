@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 // Create marketplace preferences key constant to avoid typos
 const MARKETPLACE_PREFERENCES_KEY = 'marketplace-filters';
@@ -33,6 +34,15 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation(['filter']);
+  
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
   const [categories, setCategories] = useState<FilterOption[]>([]);
   const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
@@ -45,13 +55,13 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     setSortOptions([
       {
         id: "faceValue",
-        name: "Face Value",
+        name: tWithFallback('sort.faceValue', 'Face Value'),
         fieldName: "faceValue",
         isRequired: false
       },
       {
         id: "extPick",
-        name: "Extended Pick",
+        name: tWithFallback('sort.catalogNumber', 'Catalog Number'),
         fieldName: "extPick",
         isRequired: true
       }
@@ -177,27 +187,27 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
           name: type.name,
         }));
         
-        // Create fixed sort options for marketplace
-        const sortOptions = [
-          {
-            id: "faceValue",
-            name: "Face Value",
-            fieldName: "faceValue",
-            isRequired: false
-          },
-          {
-            id: "extPick",
-            name: "Extended Pick",
-            fieldName: "extPick",
-            isRequired: true
-          },
-          {
-            id: "country",
-            name: "Country",
-            fieldName: "country",
-            isRequired: false
-          }
-        ];
+                 // Create fixed sort options for marketplace
+         const sortOptions = [
+           {
+             id: "faceValue",
+             name: tWithFallback('sort.faceValue', 'Face Value'),
+             fieldName: "faceValue",
+             isRequired: false
+           },
+           {
+             id: "extPick",
+             name: tWithFallback('sort.catalogNumber', 'Catalog Number'),
+             fieldName: "extPick",
+             isRequired: true
+           },
+           {
+             id: "country",
+             name: tWithFallback('sort.country', 'Country'),
+             fieldName: "country",
+             isRequired: false
+           }
+         ];
         
         setCategories(mappedCategories);
         setTypes(mappedTypes);
@@ -212,8 +222,8 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
       } catch (error) {
         console.error("Error loading filter options:", error);
         toast({
-          title: "Error",
-          description: "Failed to load filter options.",
+          title: tWithFallback('errors.failedToLoadPreferences', 'Error'),
+          description: tWithFallback('errors.failedToLoadPreferences', 'Failed to load filter options.'),
           variant: "destructive",
         });
       } finally {

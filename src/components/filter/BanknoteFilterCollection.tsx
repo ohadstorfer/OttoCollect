@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo } from "react";
+import React, { useState, useEffect, useRef, memo, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { BaseBanknoteFilterProfile } from "./BaseBanknoteFilterProfile";
 import { CollectionItem } from "@/types";
+import { useTranslation } from "react-i18next";
 
 export interface BanknoteFilterCollectionProps {
   countryId: string;
@@ -96,6 +97,15 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
 }) => {
   const { toast } = useToast();
   const { user: authUser } = useAuth();
+  const { t } = useTranslation(['filter']);
+  
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
   const [categories, setCategories] = useState<FilterOption[]>([]);
   const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
@@ -174,18 +184,18 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         
         if (!hasFaceValueOption) {
           mappedSortOptions.push({
-            id: "facevalue-default",
-            name: "Face Value",
-            fieldName: "faceValue",
+                    id: "facevalue-default",
+        name: tWithFallback('sort.faceValue', 'Face Value'),
+        fieldName: "faceValue",
             isRequired: false
           });
         }
         
         if (!hasPickOption) {
           mappedSortOptions.push({
-            id: "extpick-default",
-            name: "Catalog Number",
-            fieldName: "extPick",
+                    id: "extpick-default",
+        name: tWithFallback('sort.catalogNumber', 'Catalog Number'),
+        fieldName: "extPick",
             isRequired: true
           });
         }

@@ -38,5 +38,34 @@
     "condition": "Durum",
     "year": "Yıl",
     "denomination": "Değer"
+  },
+  "details": {
+    "extendedPickNumber": "Genişletilmiş Pick Numarası",
+    "pickNumber": "Pick Numarası",
+    "turkCatalogNumber": "Türk Katalog Numarası",
+    "faceValue": "Nominal Değer",
+    "country": "Ülke",
+    "islamicYear": "Hicri Yıl",
+    "gregorianYear": "Miladi Yıl",
+    "sultanName": "Sultan Adı",
+    "printer": "Matbaa",
+    "type": "Tür",
+    "category": "Kategori",
+    "rarity": "Nadirlik",
+    "securityElement": "Güvenlik Unsuru",
+    "colors": "Renkler",
+    "serialNumbering": "Seri Numaralandırma",
+    "banknoteDescription": "Banknot Açıklaması",
+    "historicalDescription": "Tarihi Açıklama",
+    "dimensions": "Boyutlar",
+    "frontSignatures": "Ön İmzalar",
+    "backSignatures": "Arka İmzalar",
+    "sealNames": "Mühür İsimleri",
+    "frontSignaturePictures": "Ön İmza Resimleri",
+    "backSignaturePictures": "Arka İmza Resimleri",
+    "sealPictures": "Mühür Resimleri",
+    "watermarkPicture": "Filigran Resmi",
+    "tughraPicture": "Tuğra Resmi",
+    "otherPictures": "Diğer Resimler"
   }
-}
+} 

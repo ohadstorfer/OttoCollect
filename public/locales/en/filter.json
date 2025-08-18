@@ -1,0 +1,94 @@
+{
+  "search": {
+    "placeholder": "Search banknotes...",
+    "title": "Search"
+  },
+  
+  "categories": {
+    "title": "Categories",
+    "allCategories": "All Categories",
+    "categoryAndTypes": "Category & Types",
+    "types": "Types",
+    "allTypes": "All Types",
+    "unlistedBanknotes": "Unlisted Banknotes"
+  },
+  
+  "sort": {
+    "title": "Sort",
+    "sortOptions": "Sort Options",
+    "applySort": "Apply Sort",
+    "catalogNumber": "Catalog Number",
+    "sultan": "Sultan",
+    "faceValue": "Face Value",
+    "newestFirst": "Newest First",
+    "always": "Always",
+    "country": "Country"
+  },
+  
+  "filters": {
+    "title": "Filters",
+    "applyFilters": "Apply Filters",
+    "clearFilters": "Clear Filters",
+    "savePreferences": "Save Filter Preferences"
+  },
+  
+  "types": {
+    "issuedNotes": "issued notes",
+    "specimens": "specimens",
+    "cancelledAnnule": "cancelled & annule",
+    "trialNote": "trial note",
+    "errorBanknote": "error banknote",
+    "counterfeitBanknote": "counterfeit banknote",
+    "emergencyNote": "emergency note",
+    "checkBondNotes": "check & bond notes",
+    "otherNotes": "Other notes"
+  },
+  
+  "viewMode": {
+    "grid": "Grid",
+    "list": "List",
+    "viewMode": "View Mode",
+    "switchToGrid": "Switch to grid view",
+    "switchToList": "Switch to list view"
+  },
+  
+  "groupMode": {
+    "groupMode": "Group Mode",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "toggleGroupMode": "Group similar banknotes",
+    "toggleOn": "Toggle group mode on",
+    "toggleOff": "Toggle group mode off"
+  },
+  
+  "country": {
+    "catalogues": "catalogues",
+    "historicalBanknoteCatalogues": "Historical Banknote Catalogues"
+  },
+  
+  "loading": {
+    "loadingFilters": "Loading filters...",
+    "loadingPreferences": "Loading preferences..."
+  },
+  
+  "errors": {
+    "failedToLoadPreferences": "Failed to load user preferences",
+    "failedToSavePreferences": "Failed to save user preferences"
+  },
+  
+  "success": {
+    "preferencesSaved": "Filter preferences saved successfully"
+  },
+  
+  "actions": {
+    "close": "Close"
+  },
+  
+  "export": {
+    "exportToExcel": "Export to Excel"
+  },
+  
+  "print": {
+    "printCollection": "Print Collection"
+  }
+} 

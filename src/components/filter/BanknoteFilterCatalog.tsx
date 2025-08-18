@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo } from "react";
+import React, { useState, useEffect, useRef, memo, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
@@ -11,6 +11,7 @@ import {
 } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface BanknoteFilterCatalogProps {
   countryId: string;
@@ -62,6 +63,15 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation(['filter']);
+  
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
   const [categories, setCategories] = useState<FilterOption[]>([]);
   const [types, setTypes] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
@@ -96,7 +106,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         ]);
         
         const mappedCategories = categoriesData
-          .filter(cat => cat.name !== "Unlisted Banknotes")
+          .filter(cat => cat.name !== tWithFallback('categories.unlistedBanknotes', 'Unlisted Banknotes'))
           .map(cat => ({
             id: cat.id,
             name: cat.name,
@@ -127,18 +137,18 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         
         if (!hasFaceValueOption) {
           mappedSortOptions.push({
-            id: "facevalue-default",
-            name: "Face Value",
-            fieldName: "faceValue",
+                    id: "facevalue-default",
+        name: tWithFallback('sort.faceValue', 'Face Value'),
+        fieldName: "faceValue",
             isRequired: false
           });
         }
         
         if (!hasPickOption) {
           mappedSortOptions.push({
-            id: "extpick-default",
-            name: "Catalog Number",
-            fieldName: "extPick",
+                    id: "extpick-default",
+        name: tWithFallback('sort.catalogNumber', 'Catalog Number'),
+        fieldName: "extPick",
             isRequired: true
           });
         }
@@ -250,8 +260,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
       } catch (error) {
         console.error("Error loading filter options:", error);
         toast({
-          title: "Error",
-          description: "Failed to load filter options.",
+          title: tWithFallback('errors.failedToLoadPreferences', 'Error'),
+          description: tWithFallback('errors.failedToLoadPreferences', 'Failed to load filter options.'),
           variant: "destructive",
         });
         

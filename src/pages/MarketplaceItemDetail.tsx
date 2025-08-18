@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquare, AlertCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { ContactSeller } from "@/components/messages/ContactSeller";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import ImagePreview from "@/components/shared/ImagePreview";
+import { useTranslation } from "react-i18next";
 
 const MarketplaceItemDetail = () => {
   console.log('Rendering MarketplaceItemDetail component');
@@ -29,6 +30,15 @@ const MarketplaceItemDetail = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation(['marketplace']);
+
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
 
   // Image orientation detection function
   const getImageOrientation = (imageUrl: string): Promise<'vertical' | 'horizontal'> => {
@@ -84,7 +94,7 @@ const MarketplaceItemDetail = () => {
 
         if (!fetchedItem) {
           console.error('Item not found or no longer available');
-          setError("Item not found or no longer available");
+          setError(tWithFallback('status.itemNotFound', 'Item not found or no longer available'));
           return;
         }
 
@@ -93,10 +103,10 @@ const MarketplaceItemDetail = () => {
 
       } catch (err) {
         console.error("Error fetching marketplace item:", err);
-        setError("Failed to load marketplace item");
+        setError(tWithFallback('status.failedToLoadItem', 'Failed to load marketplace item'));
         toast({
-          title: "Error",
-          description: "Could not load the marketplace item details",
+          title: tWithFallback('status.error', 'Error'),
+          description: tWithFallback('status.couldNotLoadDetails', 'Could not load the marketplace item details'),
           variant: "destructive"
         });
       } finally {
@@ -127,15 +137,15 @@ const MarketplaceItemDetail = () => {
       <div className="container py-8">
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle>{tWithFallback('status.error', 'Error')}</AlertTitle>
           <AlertDescription>
-            {error || "Item not found or no longer available"}
+            {error || tWithFallback('status.itemNotFound', 'Item not found or no longer available')}
           </AlertDescription>
         </Alert>
 
         <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Marketplace
+          {tWithFallback('actions.backToMarketplace', 'Back to Marketplace')}
         </Button>
       </div>
     );
@@ -165,7 +175,7 @@ const MarketplaceItemDetail = () => {
       <div className="flex items-center gap-2 mb-1">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          {tWithFallback('actions.back', 'Back')}
         </Button>
       </div>
 
@@ -253,11 +263,11 @@ const MarketplaceItemDetail = () => {
                       ))
                     )}
                   </div>
-                ) : (
-                  <div className="p-6 text-center bg-muted rounded-md">
-                    <p className="text-muted-foreground">No images available</p>
-                  </div>
-                )}
+                                 ) : (
+                   <div className="p-6 text-center bg-muted rounded-md">
+                     <p className="text-muted-foreground">{tWithFallback('item.noImagesAvailable', 'No images available')}</p>
+                   </div>
+                 )}
               </div>
             </CardContent>
           </Card>
@@ -352,14 +362,14 @@ const MarketplaceItemDetail = () => {
           {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
           <Card className="border-t-4 border-t-primary shadow-md">
             <CardHeader className="border-b bg-muted/20">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl m-0">
-                  <span> Banknote Details </span>
-                </CardTitle>
-              </div>
-              <CardDescription>
-                Detailed information about this banknote
-              </CardDescription>
+                             <div className="flex justify-between items-center">
+                 <CardTitle className="text-xl m-0">
+                   <span>{tWithFallback('item.banknoteDetails', 'Banknote Details')}</span>
+                 </CardTitle>
+               </div>
+               <CardDescription>
+                 {tWithFallback('item.detailedInformation', 'Detailed information about this banknote')}
+               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <BanknoteCatalogDetailMinimized 

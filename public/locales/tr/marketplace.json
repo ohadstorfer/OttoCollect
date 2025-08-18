@@ -37,7 +37,9 @@
     "makeOffer": "Teklif Ver",
     "buyNow": "Şimdi Satın Al",
     "addToWishlist": "İstek Listesine Ekle",
-    "removeFromWishlist": "İstek Listesinden Kaldır"
+    "removeFromWishlist": "İstek Listesinden Kaldır",
+    "back": "Geri",
+    "backToMarketplace": "Pazara Geri Dön"
   },
 
   "item": {
@@ -62,10 +64,17 @@
     "images": "Resimler",
     "obverse": "Ön Yüz",
     "reverse": "Arka Yüz",
+    "obverseFront": "Ön Yüz (Ön)",
+    "reverseBack": "Arka Yüz (Arka)",
     "watermark": "Filigran",
     "serialNumber": "Seri Numarası",
     "printer": "Matbaa",
     "colors": "Renkler",
+    "noImagesAvailable": "Resim mevcut değil",
+    "banknoteDetails": "Banknot Detayları",
+    "detailedInformation": "Bu banknot hakkında detaylı bilgi",
+    "sellersNote": "Satıcının Notu",
+    "unlistedBanknote": "Listelenmemiş Banknot",
     "status": {
       "available": "Mevcut",
       "reserved": "Rezerve",
@@ -123,12 +132,15 @@
   "status": {
     "loading": "Pazar öğeleri yükleniyor...",
     "noItems": "Öğe Bulunamadı",
-    "noItemsDescription": "Şu anda pazarda hiçbir öğe mevcut değil",
-    "noItemsFiltered": "Mevcut filtrelerinize uyan öğe yok. Kriterlerinizi ayarlamayı deneyin.",
-    "error": "Pazar öğeleri yüklenirken hata",
+    "noItemsDescription": "Pazarda şu anda hiçbir öğe mevcut değil",
+    "noItemsFiltered": "Mevcut filtrelerinizle eşleşen öğe yok. Kriterlerinizi ayarlamayı deneyin.",
+    "error": "Pazar öğeleri yüklenirken hata oluştu",
     "errorDescription": "Pazar öğeleri yüklenemedi. Lütfen daha sonra tekrar deneyin.",
     "tryAgain": "Tekrar Dene",
-    "refreshing": "Yenileniyor..."
+    "refreshing": "Yenileniyor...",
+    "itemNotFound": "Öğe bulunamadı veya artık mevcut değil",
+    "failedToLoadItem": "Pazar öğesi yüklenemedi",
+    "couldNotLoadDetails": "Pazar öğesi detayları yüklenemedi"
   },
 
   "pricing": {

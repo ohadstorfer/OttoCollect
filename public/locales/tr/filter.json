@@ -1,0 +1,92 @@
+{
+  "search": {
+    "placeholder": "Banknotları ara...",
+    "title": "Ara"
+  },
+  
+  "categories": {
+    "title": "Kategoriler",
+    "allCategories": "Tüm Kategoriler",
+    "categoryAndTypes": "Kategori ve Türler",
+    "types": "Türler",
+    "allTypes": "Tüm Türler",
+    "unlistedBanknotes": "Listelenmemiş Banknotlar"
+  },
+  
+  "sort": {
+    "title": "Sırala",
+    "sortOptions": "Sıralama Seçenekleri",
+    "applySort": "Sıralamayı Uygula",
+    "catalogNumber": "Katalog Numarası",
+    "sultan": "Sultan",
+    "faceValue": "Yüz Değeri",
+    "newestFirst": "En Yeni Önce",
+    "always": "Her Zaman",
+    "country": "Ülke"
+  },
+  
+  "filters": {
+    "title": "Filtreler",
+    "applyFilters": "Filtreleri Uygula",
+    "clearFilters": "Filtreleri Temizle",
+    "savePreferences": "Filtre Tercihlerini Kaydet"
+  },
+  
+  "types": {
+    "issuedNotes": "tedavül edilen banknotlar",
+    "specimens": "numuneler",
+    "cancelledAnnule": "iptal edilmiş ve geçersiz",
+    "trialNote": "deneme banknotu",
+    "errorBanknote": "hatalı banknot",
+    "counterfeitBanknote": "sahte banknot",
+    "emergencyNote": "acil durum banknotu",
+    "checkBondNotes": "çek ve tahvil banknotları",
+    "otherNotes": "Diğer banknotlar"
+  },
+  
+  "viewMode": {
+    "grid": "Izgara",
+    "list": "Liste",
+    "viewMode": "Görünüm Modu",
+    "switchToGrid": "Izgara görünümüne geç",
+    "switchToList": "Liste görünümüne geç"
+  },
+  
+  "groupMode": {
+    "groupMode": "Grup Modu",
+    "enabled": "Etkin",
+    "disabled": "Devre Dışı",
+    "toggleGroupMode": "Benzer banknotları grupla"
+  },
+  
+  "country": {
+    "catalogues": "kataloglar",
+    "historicalBanknoteCatalogues": "Tarihi Banknot Katalogları"
+  },
+  
+  "loading": {
+    "loadingFilters": "Filtreler yükleniyor...",
+    "loadingPreferences": "Tercihler yükleniyor..."
+  },
+  
+  "errors": {
+    "failedToLoadPreferences": "Kullanıcı tercihleri yüklenemedi",
+    "failedToSavePreferences": "Kullanıcı tercihleri kaydedilemedi"
+  },
+  
+  "success": {
+    "preferencesSaved": "Filtre tercihleri başarıyla kaydedildi"
+  },
+  
+  "actions": {
+    "close": "Kapat"
+  },
+  
+  "export": {
+    "exportToExcel": "Excel'e Aktar"
+  },
+  
+  "print": {
+    "printCollection": "Koleksiyonu Yazdır"
+  }
+} 

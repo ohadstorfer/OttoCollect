@@ -6,6 +6,7 @@
     "forum": "Forum",
     "blog": "Blog",
     "messages": "Messages",
+    "allUsers": "All Users",
     "community": "Community",
     "settings": "Settings",
     "adminDashboard": "Admin Dashboard",
@@ -66,6 +67,12 @@
     "types": "Types",
     "conditions": "Conditions",
     "grades": "Grades"
+  },
+  "tabs": {
+    "collection": "Collection",
+    "wishlist": "Wishlist",
+    "missing": "Missing",
+    "sale": "Sale"
   },
   "print": {
     "printCollection": "Print Collection",

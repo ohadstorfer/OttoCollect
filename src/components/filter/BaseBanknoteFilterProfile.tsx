@@ -116,7 +116,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const { t } = useTranslation(['profile']);
+  const { t: tFilter } = useTranslation(['filter']);
+  const { t: tProfile } = useTranslation(['profile']);
   const { printCollection, isPrinting } = usePrintCollection();
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
@@ -126,10 +127,10 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
     return (key: string, fallback: string) => {
-      const translation = t(key);
+      const translation = tFilter(key);
       return translation === key ? fallback : translation;
     };
-  }, [t]);
+  }, [tFilter]);
 
   const [search, setSearch] = useState(currentFilters.search || "");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
@@ -148,10 +149,10 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const onTabChange = propOnTabChange || setInternalActiveTab;
 
   const tabList: { key: 'collection' | 'wishlist' | 'missing' | 'sale'; label: string; }[] = [
-    { key: 'collection', label: 'Collection' },
-    { key: 'wishlist', label: 'Wishlist' },
-    { key: 'missing', label: 'Missing' },
-    { key: 'sale', label: 'Sale' },
+    { key: 'collection', label: tProfile('tabs.collection', 'Collection') },
+    { key: 'wishlist', label: tProfile('tabs.wishlist', 'Wishlist') },
+    { key: 'missing', label: tProfile('tabs.missing', 'Missing') },
+    { key: 'sale', label: tProfile('tabs.sale', 'Sale') },
   ];
 
   console.log("BaseBanknoteFilter: Render with props", {
@@ -562,12 +563,12 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
             {/* Search bar */}
             <div className="relative max-w-auto [@media(min-width:1300px)]:ml-12">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search banknotes..."
-                value={search}
-                onChange={handleSearchChange}
-                className="pl-10"
-              />
+                      <Input
+          placeholder={tWithFallback('search.placeholder', 'Search banknotes...')}
+          value={search}
+          onChange={handleSearchChange}
+          className="pl-10"
+        />
             </div>
 
                         {/* View and Group buttons */}
@@ -577,7 +578,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 size="icon"
                 onClick={toggleViewMode}
                 disabled={isLoading}
-                title={`Switch to ${localViewMode === 'grid' ? 'list' : 'grid'} view`}
+                                      title={localViewMode === 'grid' ? tWithFallback('viewMode.switchToList', 'Switch to list view') : tWithFallback('viewMode.switchToGrid', 'Switch to grid view')}
                 className="touch-manipulation active:scale-95 transition-transform h-9 w-9"
               >
                 {localViewMode === 'grid' ? (
@@ -594,8 +595,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 size="icon"
                 onClick={toggleGroupMode}
                 disabled={isLoading}
-                aria-label={`Toggle group mode ${localGroupMode ? 'off' : 'on'}`}
-                title="Group similar banknotes"
+                aria-label={`${tWithFallback('groupMode.toggleGroupMode', 'Group similar banknotes')} ${localGroupMode ? tWithFallback('groupMode.toggleOff', 'off') : tWithFallback('groupMode.toggleOn', 'on')}`}
+                title={tWithFallback('groupMode.toggleGroupMode', 'Group similar banknotes')}
                 className="touch-manipulation active:scale-95 transition-transform h-9 w-9"
               >
                 <Layers className="h-4 w-4" />
@@ -612,7 +613,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   disabled={isLoading}
                 >
                   <Filter className="h-4 w-4" />
-                  <span className="hidden 2xl:inline ml-2">Filter</span>
+                  <span className="hidden 2xl:inline ml-2">{tWithFallback('filters.title', 'Filter')}</span>
                 </Button>
               </SheetTrigger>
 
@@ -629,7 +630,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                           checked={allCategoriesSelected}
                           onCheckedChange={(checked) => handleCategoryChange("all", !!checked)}
                         />
-                        <label htmlFor="all-categories" className="text-sm">All Categories</label>
+                        <label htmlFor="all-categories" className="text-sm">{tWithFallback('categories.allCategories', 'All Categories')}</label>
                       </div>
                       {categories.map(category => (
                         <div key={category.id} className="flex items-center space-x-2">
@@ -653,7 +654,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       className="w-full"
                       onClick={() => setIsCategorySheetOpen(false)}
                     >
-                      Close
+                      {tWithFallback('actions.close', 'Close')}
                     </Button>
                   </SheetClose>
                 </div>
@@ -668,13 +669,13 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   disabled={isLoading}
                 >
                   <ArrowUpDown className="h-4 w-4" />
-                  <span className="hidden 2xl:inline ml-2">Sort</span>
+                  <span className="hidden 2xl:inline ml-2">{tWithFallback('sort.title', 'Sort')}</span>
                 </Button>
               </SheetTrigger>
 
               <SheetContent side="right" className="w-full sm:max-w-md">
                 <SheetHeader>
-                  <SheetTitle> <span> Sort Options </span> </SheetTitle>
+                  <SheetTitle> <span>{tWithFallback('sort.sortOptions', 'Sort Options')}</span> </SheetTitle>
                 </SheetHeader>
                 <div className="py-4 space-y-2">
                   {sortOptions.map(option => {
@@ -694,7 +695,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                             option.isRequired && "opacity-50"
                           )}
                         >
-                          {option.name} {option.isRequired && "(Always)"}
+                          {option.name} {option.isRequired && `(${tWithFallback('sort.always', 'Always')})`}
                         </label>
                       </div>
                     );
@@ -704,7 +705,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       className="w-full mt-4"
                       onClick={() => setIsSortSheetOpen(false)}
                     >
-                      Close
+                      {tWithFallback('actions.close', 'Close')}
                     </Button>
                   </SheetClose>
                 </div>
@@ -740,7 +741,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   size="icon"
                   onClick={handleExportExcel}
                   disabled={isExporting}
-                  title="Export to Excel"
+                  title={tWithFallback('export.exportToExcel', 'Export to Excel')}
                   className="touch-manipulation active:scale-95 transition-transform"
                 >
                   <BsFileEarmarkExcel
@@ -764,7 +765,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 <div className="relative flex-1 ">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    placeholder="Search"
+                    placeholder={tWithFallback('search.title', 'Search')}
                     value={search}
                     onChange={handleSearchChange}
                     className="pl-10"
@@ -785,7 +786,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       size="icon"
                       onClick={toggleViewMode}
                       disabled={isLoading}
-                      title={`Switch to ${localViewMode === 'grid' ? 'list' : 'grid'} view`}
+                      title={localViewMode === 'grid' ? tWithFallback('viewMode.switchToList', 'Switch to list view') : tWithFallback('viewMode.switchToGrid', 'Switch to grid view')}
                       className="touch-manipulation active:scale-95 transition-transform"
                     >
                       {localViewMode === 'grid' ? (
@@ -802,8 +803,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                     size="icon"
                     onClick={toggleGroupMode}
                     disabled={isLoading}
-                    aria-label={`Toggle group mode ${localGroupMode ? 'off' : 'on'}`}
-                    title="Group similar banknotes"
+                    aria-label={`${tWithFallback('groupMode.toggleGroupMode', 'Group similar banknotes')} ${localGroupMode ? tWithFallback('groupMode.toggleOff', 'off') : tWithFallback('groupMode.toggleOn', 'on')}`}
+                    title={tWithFallback('groupMode.toggleGroupMode', 'Group similar banknotes')}
                     className="touch-manipulation active:scale-95 transition-transform"
                   >
                     <Layers className="h-4 w-4" />
@@ -828,7 +829,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       size="icon"
                       onClick={handleExportExcel}
                       disabled={isExporting}
-                      title="Export to Excel"
+                      title={tWithFallback('export.exportToExcel', 'Export to Excel')}
                       className="touch-manipulation active:scale-95 transition-transform"
                     >
                       <BsFileEarmarkExcel 
@@ -855,13 +856,13 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       disabled={isLoading}
                     >
                       <Filter className="h-4 w-4 sm:hidden lg:block" />
-                      <span>Filter</span>
+                      <span>{tWithFallback('filters.title', 'Filter')}</span>
                     </Button>
                   </SheetTrigger>
                   
                   <SheetContent side="bottom" className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
                     <SheetHeader>
-                      <SheetTitle> <span> Categories </span></SheetTitle>
+                      <SheetTitle> <span>{tWithFallback('categories.title', 'Categories')}</span></SheetTitle>
                     </SheetHeader>
                     <div className="space-y-6 py-4 overflow-y-auto">
                       <div>
@@ -872,7 +873,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                               checked={allCategoriesSelected}
                               onCheckedChange={(checked) => handleCategoryChange("all", !!checked)}
                             />
-                            <label htmlFor="all-categories" className="text-sm">All Categories</label>
+                            <label htmlFor="all-categories" className="text-sm">{tWithFallback('categories.allCategories', 'All Categories')}</label>
                           </div>
                           {categories.map(category => (
                             <div key={category.id} className="flex items-center space-x-2">
@@ -896,7 +897,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                           className="w-full"
                           onClick={() => setIsCategorySheetOpen(false)}
                         >
-                          Close
+                          {tWithFallback('actions.close', 'Close')}
                         </Button>
                       </SheetClose>
                     </div>
@@ -911,13 +912,13 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       disabled={isLoading}
                     >
                       <ArrowUpDown className="h-4 w-4 sm:hidden lg:block" />
-                      <span>Sort</span>
+                      <span>{tWithFallback('sort.title', 'Sort')}</span>
                     </Button>
                   </SheetTrigger>
                   
                   <SheetContent side="bottom" className="w-full sm:max-w-md">
                     <SheetHeader>
-                      <SheetTitle> <span> Sort Options </span> </SheetTitle>
+                      <SheetTitle> <span>{tWithFallback('sort.sortOptions', 'Sort Options')}</span> </SheetTitle>
                     </SheetHeader>
                     <div className="py-4 space-y-2">
                       {sortOptions.map(option => {
@@ -937,7 +938,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                                 option.isRequired && "opacity-50"
                               )}
                             >
-                              {option.name} {option.isRequired && "(Always)"}
+                              {option.name} {option.isRequired && `(${tWithFallback('sort.always', 'Always')})`}
                             </label>
                           </div>
                         );
@@ -947,7 +948,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                           className="w-full mt-4"
                           onClick={() => setIsSortSheetOpen(false)}
                         >
-                          Close
+                          {tWithFallback('actions.close', 'Close')}
                         </Button>
                       </SheetClose>
                     </div>

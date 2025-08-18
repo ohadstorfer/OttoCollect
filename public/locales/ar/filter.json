@@ -1,0 +1,92 @@
+{
+  "search": {
+    "placeholder": "البحث في الأوراق النقدية...",
+    "title": "البحث"
+  },
+  
+  "categories": {
+    "title": "الفئات",
+    "allCategories": "جميع الفئات",
+    "categoryAndTypes": "الفئات والأنواع",
+    "types": "الأنواع",
+    "allTypes": "جميع الأنواع",
+    "unlistedBanknotes": "الأوراق النقدية غير المدرجة"
+  },
+  
+  "sort": {
+    "title": "الترتيب",
+    "sortOptions": "خيارات الترتيب",
+    "applySort": "تطبيق الترتيب",
+    "catalogNumber": "رقم الكتالوج",
+    "sultan": "السلطان",
+    "faceValue": "القيمة الاسمية",
+    "newestFirst": "الأحدث أولاً",
+    "always": "دائماً",
+    "country": "البلد"
+  },
+  
+  "filters": {
+    "title": "المرشحات",
+    "applyFilters": "تطبيق المرشحات",
+    "clearFilters": "مسح المرشحات",
+    "savePreferences": "حفظ تفضيلات المرشحات"
+  },
+  
+  "types": {
+    "issuedNotes": "أوراق نقدية صادرة",
+    "specimens": "نماذج",
+    "cancelledAnnule": "ملغاة ومبطلة",
+    "trialNote": "ورقة تجريبية",
+    "errorBanknote": "ورقة نقدية خاطئة",
+    "counterfeitBanknote": "ورقة نقدية مزيفة",
+    "emergencyNote": "ورقة طوارئ",
+    "checkBondNotes": "شيكات وسندات",
+    "otherNotes": "أوراق أخرى"
+  },
+  
+  "viewMode": {
+    "grid": "شبكة",
+    "list": "قائمة",
+    "viewMode": "وضع العرض",
+    "switchToGrid": "التبديل إلى عرض الشبكة",
+    "switchToList": "التبديل إلى عرض القائمة"
+  },
+  
+  "groupMode": {
+    "groupMode": "وضع التجميع",
+    "enabled": "مفعل",
+    "disabled": "معطل",
+    "toggleGroupMode": "تجميع الأوراق النقدية المتشابهة"
+  },
+  
+  "country": {
+    "catalogues": "فهارس",
+    "historicalBanknoteCatalogues": "فهارس الأوراق النقدية التاريخية"
+  },
+  
+  "loading": {
+    "loadingFilters": "جاري تحميل المرشحات...",
+    "loadingPreferences": "جاري تحميل التفضيلات..."
+  },
+  
+  "errors": {
+    "failedToLoadPreferences": "فشل في تحميل تفضيلات المستخدم",
+    "failedToSavePreferences": "فشل في حفظ تفضيلات المستخدم"
+  },
+  
+  "success": {
+    "preferencesSaved": "تم حفظ تفضيلات المرشحات بنجاح"
+  },
+  
+  "actions": {
+    "close": "إغلاق"
+  },
+  
+  "export": {
+    "exportToExcel": "تصدير إلى إكسل"
+  },
+  
+  "print": {
+    "printCollection": "طباعة المجموعة"
+  }
+} 
