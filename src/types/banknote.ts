@@ -101,9 +101,9 @@ export interface DetailedBanknote {
   sealNames?: string;
   signaturesFront?: string;
   signaturesBack?: string;
-  signaturesFrontUrls: string[];
-  signaturesBackUrls: string[];
-  sealPictureUrls: string[];
+  signaturesFrontUrls?: string[];
+  signaturesBackUrls?: string[];
+  sealPictureUrls?: string[];
   watermarkUrl?: string;
   tughraUrl?: string;
   otherElementPictures?: string[];
