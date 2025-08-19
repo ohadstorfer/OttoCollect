@@ -13,6 +13,7 @@ import { Notification, notificationService } from '@/services/notificationServic
 import { Separator } from '@/components/ui/separator';
 import { BadgeDisplay } from '@/components/badges/BadgeDisplay';
 import { useDateLocale } from '@/lib/dateUtils';
+import { useTranslation } from 'react-i18next';
 
 interface NotificationPanelProps {
   open: boolean;
@@ -32,6 +33,7 @@ export function NotificationPanel({
   const navigate = useNavigate();
   const wasOpenRef = useRef(false);
   const { formatRelativeTime } = useDateLocale();
+  const { t } = useTranslation(['notification']);
 
   // Mark notifications as read only when panel is explicitly closed after being opened
   useEffect(() => {
@@ -161,7 +163,7 @@ export function NotificationPanel({
         <div className="flex items-center justify-between border-b border-muted pb-2 mb-3">
           <div className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            <h2 className="text-lg font-semibold"> <span> Notifications </span> </h2>
+            <h2 className="text-lg font-semibold"> <span> {t('notifications')} </span> </h2>
           </div>
           {unreadNotifications.length > 0 && (
             <button
@@ -173,7 +175,7 @@ export function NotificationPanel({
               className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
             >
               <CheckCheck className="h-4 w-4" />
-              Mark all as read
+              {t('markAllAsRead')}
             </button>
           )}
         </div>
@@ -182,7 +184,7 @@ export function NotificationPanel({
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
               <Bell className="h-8 w-8 mb-2 opacity-50" />
-              <p>No notifications yet</p>
+              <p>{t('noNotifications')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -190,7 +192,7 @@ export function NotificationPanel({
               {unreadNotifications.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <h3 className="text-sm font-medium text-primary"> <span> New </span> </h3>
+                    <h3 className="text-sm font-medium text-primary"> <span> {t('new')} </span> </h3>
                     <div className="h-5 px-2 rounded-full bg-primary/10 text-primary text-xs font-medium flex items-center">
                       {unreadNotifications.length}
                     </div>
@@ -211,7 +213,7 @@ export function NotificationPanel({
               {/* Read notifications section */}
               {readNotifications.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3"> <span> Earlier </span> </h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3"> <span> {t('earlier')} </span> </h3>
                   <div className="space-y-2">
                     {readNotifications.map((notification) => (
                       <NotificationItem key={notification.id} notification={notification} />

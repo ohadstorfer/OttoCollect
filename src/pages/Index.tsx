@@ -29,20 +29,7 @@ const Index = () => {
   const { toast } = useToast();
   const { t } = useTranslation(['pages', 'navigation']);
   
-  // Debug: Check if translations are loading
-  console.log('Translation debug:', {
-    currentLanguage: i18n.language,
-    direction,
-    featuresTitle: t('home.features.title'),
-    regionsMiddleEast: t('home.regions.middleEast'),
-    callToActionTitle: t('home.callToAction.title'),
-    countriesHeader: t('home.countries.header'),
-    ottomanEmpire: t('home.countries.ottomanEmpire'),
-    namespaces: i18n.reportNamespaces.getUsedNamespaces(),
-    loadedNamespaces: i18n.reportNamespaces.getUsedNamespaces(),
-    hasResourceBundle: i18n.hasResourceBundle('ar', 'pages'),
-    store: i18n.store
-  });
+
   
   // Force reload translations if needed
   useEffect(() => {
@@ -67,7 +54,6 @@ const Index = () => {
 
   // Simple test for basic translations
   const testTranslation = t('home.hero.title');
-  console.log('Basic translation test:', testTranslation);
   
   // If basic translations aren't working, use hardcoded fallbacks
   const getTranslationOrFallback = (key: string, fallback: string) => {

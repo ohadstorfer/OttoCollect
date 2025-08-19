@@ -20,7 +20,7 @@ SELECT
       ARRAY(
         SELECT CASE 
           WHEN elem ~ '^https?://' THEN elem
-          ELSE 'https://znyyaoqzfzcsmuepxqfb.supabase.co/storage/v1/object/public/banknote-images/' || elem
+          ELSE 'https://psnzolounfwgvkupepxb.supabase.co/storage/v1/object/public/banknote-images/' || elem
         END
         FROM unnest(db.signatures_front) AS elem
       )
@@ -31,7 +31,7 @@ SELECT
       ARRAY(
         SELECT CASE 
           WHEN elem ~ '^https?://' THEN elem
-          ELSE 'https://znyyaoqzfzcsmuepxqfb.supabase.co/storage/v1/object/public/banknote-images/' || elem
+          ELSE 'https://psnzolounfwgvkupepxb.supabase.co/storage/v1/object/public/banknote-images/' || elem
         END
         FROM unnest(db.signatures_back) AS elem
       )
@@ -42,7 +42,7 @@ SELECT
       ARRAY(
         SELECT CASE 
           WHEN elem ~ '^https?://' THEN elem
-          ELSE 'https://znyyaoqzfzcsmuepxqfb.supabase.co/storage/v1/object/public/banknote-images/' || elem
+          ELSE 'https://psnzolounfwgvkupepxb.supabase.co/storage/v1/object/public/banknote-images/' || elem
         END
         FROM unnest(db.seal_pictures) AS elem
       )
@@ -52,7 +52,7 @@ SELECT
     WHEN db.tughra_picture IS NOT NULL AND db.tughra_picture != '' THEN
       CASE 
         WHEN db.tughra_picture ~ '^https?://' THEN db.tughra_picture
-        ELSE 'https://znyyaoqzfzcsmuepxqfb.supabase.co/storage/v1/object/public/banknote-images/' || db.tughra_picture
+        ELSE 'https://psnzolounfwgvkupepxb.supabase.co/storage/v1/object/public/banknote-images/' || db.tughra_picture
       END
     ELSE NULL
   END as tughra_picture_url,
@@ -60,7 +60,7 @@ SELECT
     WHEN db.watermark_picture IS NOT NULL AND db.watermark_picture != '' THEN
       CASE 
         WHEN db.watermark_picture ~ '^https?://' THEN db.watermark_picture
-        ELSE 'https://znyyaoqzfzcsmuepxqfb.supabase.co/storage/v1/object/public/banknote-images/' || db.watermark_picture
+        ELSE 'https://psnzolounfwgvkupepxb.supabase.co/storage/v1/object/public/banknote-images/' || db.watermark_picture
       END
     ELSE NULL
   END as watermark_picture_url

@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -15,6 +16,7 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { t } = useTranslation(['notification']);
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   useEffect(() => {
@@ -76,7 +78,7 @@ export function NotificationBell() {
       variant="ghost"
       size="icon"
       className="relative rounded-full" // <-- add relative here
-      aria-label="Open notifications"
+      aria-label={t('openNotifications')}
     >
       <Bell
         className={`h-5 w-5 ${
