@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Notification, notificationService, getTranslatedNotificationText } from '@/services/notificationService';
+import { Notification, notificationService } from '@/services/notificationService';
 import { Separator } from '@/components/ui/separator';
 import { BadgeDisplay } from '@/components/badges/BadgeDisplay';
 import { useDateLocale } from '@/lib/dateUtils';
@@ -36,6 +36,20 @@ export function NotificationPanel({
   const { formatRelativeTime } = useDateLocale();
   const { t } = useTranslation(['notification']);
   const { currentLanguage } = useLanguage();
+
+  // Helper function to get translated text based on current language
+  const getTranslatedText = (notification: Notification, field: 'title' | 'content'): string => {
+    if (currentLanguage === 'ar') {
+      return field === 'title' 
+        ? notification.title_ar || notification.title
+        : notification.content_ar || notification.content;
+    } else if (currentLanguage === 'tr') {
+      return field === 'title' 
+        ? notification.title_tr || notification.title
+        : notification.content_tr || notification.content;
+    }
+    return field === 'title' ? notification.title : notification.content;
+  };
 
   // Mark notifications as read only when panel is explicitly closed after being opened
   useEffect(() => {
@@ -96,8 +110,8 @@ export function NotificationPanel({
     const badgeData = isBadgeNotification ? notification.reference_data : null;
     
     // Get translated text based on current language
-    const translatedTitle = getTranslatedNotificationText(notification, 'title', currentLanguage);
-    const translatedContent = getTranslatedNotificationText(notification, 'content', currentLanguage);
+    const translatedTitle = getTranslatedText(notification, 'title');
+    const translatedContent = getTranslatedText(notification, 'content');
 
     return (
       <div

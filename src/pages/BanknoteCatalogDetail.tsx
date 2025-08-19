@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBanknoteDetail, getBanknoteCollectors } from "@/services/banknoteService";
 import { useAuth } from "@/context/AuthContext";
@@ -84,6 +85,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const id = propsId || paramsId;
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation(['catalog']);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showCollectorsDialog, setShowCollectorsDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -191,8 +193,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     setHasJustBeenAdded(true);
     // Show the notification toast as requested
     toast({
-      title: "Added to your collection!",
-      description: "This banknote was added. Visit your collection to edit its details.",
+      title: t('details.addedToCollection'),
+      description: t('details.addedToCollectionDescription'),
       className: "justify-center items-center w-full",
       duration: 3000,
     });
@@ -213,10 +215,10 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
         }}
       >
         <div className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-6 py-4 flex flex-col items-center">
-          <div className="font-semibold text-center text-base mb-1">Already in your collection</div>
+          <div className="font-semibold text-center text-base mb-1">{t('details.alreadyInCollection')}</div>
           <div className="text-muted-foreground text-center text-sm mb-3">
-            You already have a copy of this banknote in your collection.<br />
-            Do you want to add <strong>another copy</strong> of it?
+            {t('details.alreadyHaveCopy')}<br />
+            {t('details.addAnotherCopy')}
           </div>
           <div className="flex gap-4 justify-center w-full mt-2">
             <button
@@ -225,14 +227,14 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               onClick={handleOwnershipToastYes}
               autoFocus
             >
-              Yes
+              {t('details.yes')}
             </button>
             <button
               type="button"
               className="bg-muted text-muted-foreground border border-gray-300 hover:bg-gray-200 rounded py-2 px-6 font-medium transition-colors focus:outline-none"
               onClick={handleOwnershipToastCancel}
             >
-              Cancel
+              {t('details.cancel')}
             </button>
           </div>
         </div>
@@ -256,8 +258,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       queryClient.invalidateQueries({ queryKey: ["userCollection", user.id] });
     } catch (err) {
       toast({
-        title: "Error",
-        description: "Could not add to collection.",
+        title: t('details.error'),
+        description: t('details.couldNotAddToCollection'),
         variant: "destructive"
       });
     } finally {
@@ -274,23 +276,23 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       if (result) {
         setHasJustBeenWishlisted(true); // User feedback: instantly hide button
         toast({
-          title: "Added to wish list!",
-          description: "This banknote was added to your wish list.",
+          title: t('details.addedToWishlist'),
+          description: t('details.addedToWishlistDescription'),
           className: "justify-center items-center w-full",
           duration: 3000,
         });
       } else {
         toast({
-          title: "Already in wish list",
-          description: "This banknote is already in your wish list.",
+          title: t('details.alreadyInWishlist'),
+          description: t('details.alreadyInWishlistDescription'),
           className: "justify-center items-center w-full",
           duration: 3000,
         });
       }
     } catch (err) {
       toast({
-        title: "Error",
-        description: "Failed to add banknote to wish list.",
+        title: t('details.error'),
+        description: t('details.failedToAddToWishlist'),
         variant: "destructive",
         duration: 3500,
       });
@@ -321,8 +323,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
         if (success) {
           queryClient.invalidateQueries({ queryKey: ["wishlistStatus", user.id, banknote?.id] });
           toast({
-            title: "Removed from wishlist",
-            description: "The banknote has been removed from your wishlist.",
+            title: t('details.removedFromWishlist'),
+            description: t('details.removedFromWishlistDescription'),
             duration: 2000,
           });
         }
@@ -334,8 +336,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
           setHasJustBeenWishlisted(true);
           queryClient.invalidateQueries({ queryKey: ["wishlistStatus", user.id, banknote?.id] });
           toast({
-            title: "Added to wishlist",
-            description: "The banknote has been added to your wishlist.",
+            title: t('details.addedToWishlistShort'),
+            description: t('details.addedToWishlistShortDescription'),
             duration: 2000,
           });
         }
@@ -343,8 +345,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     } catch (error) {
       console.error('Error updating wishlist:', error);
       toast({
-        title: "Error",
-        description: "Failed to update wishlist. Please try again.",
+        title: t('details.error'),
+        description: t('details.failedToUpdateWishlist'),
         variant: "destructive",
       });
     }
@@ -377,12 +379,12 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4"><span>Error Loading Banknote</span></h2>
+          <h2 className="text-2xl font-serif mb-4"><span>{t('details.errorLoadingBanknote')}</span></h2>
           <p className="mb-6 text-muted-foreground">
-            We couldn't load the banknote details. Please try again later.
+            {t('details.couldNotLoadDetails')}
           </p>
           {!propsId && ( // Only show the back button when not in dialog mode
-            <Button onClick={() => navigate(-1)}>Go Back</Button>
+            <Button onClick={() => navigate(-1)}>{t('details.goBack')}</Button>
           )}
         </div>
       </div>
@@ -392,12 +394,12 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   if (user?.role !== 'Super Admin' && user?.role !== 'Admin' && banknote?.isPending) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
-        <h1 className="page-title"> <span> Banknote Details </span> </h1>
+        <h1 className="page-title"> <span> {t('details.banknoteDetails')} </span> </h1>
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4"><span>Pending Approval</span></h2>
+            <h2 className="text-2xl font-serif mb-4"><span>{t('details.pendingApproval')}</span></h2>
             <p className="mb-6 text-muted-foreground">
-              This banknote is pending administrator approval.
+              {t('details.pendingApprovalDescription')}
             </p>
           </div>
         </div>
@@ -409,17 +411,17 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   if (!user) {
     return (
       <div className="page-container">
-        <h1 className="page-title"> <span> Banknote Details </span> </h1>
+        <h1 className="page-title"> <span> {t('details.banknoteDetails')} </span> </h1>
 
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4"><span>Join the Community</span></h2>
+            <h2 className="text-2xl font-serif mb-4"><span>{t('details.joinCommunity')}</span></h2>
             <p className="mb-6 text-muted-foreground">
-              Please sign in to view the details of this banknote.
+              {t('details.signInToView')}
             </p>
             <Button onClick={() => navigate('/auth')}>
               <LogIn className="mr-2 h-4 w-4" />
-              Sign In
+              {t('details.signIn')}
             </Button>
           </div>
         </div>
@@ -435,7 +437,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   if (user?.role !== 'Super Admin' && user?.role !== 'Admin' && banknote?.isPending) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
-        <h1 className="page-title"> <span> Banknote Details </span> </h1>
+        <h1 className="page-title"> <span> {t('details.banknoteDetails')} </span> </h1>
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
             <h2 className="text-2xl font-serif mb-4"><span>Pending Approval</span></h2>
@@ -451,47 +453,47 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
 
   const detailGroups = [
     {
-      title: "Basic Information",
+      title: t('details.basicInformation'),
       icon: <Info className="h-5 w-5" />,
       fields: [
-        { label: "Extended Pick Number", value: banknote?.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Pick Number", value: banknote?.pickNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Turkish Catalog Number", value: banknote?.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: "Face Value", value: banknote?.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
-        { label: "Country", value: banknote?.country, icon: <Map className="h-4 w-4" /> },
-        { label: "Islamic Year", value: banknote?.islamicYear, icon: <Calendar className="h-4 w-4" /> },
-        { label: "Gregorian Year", value: banknote?.gregorianYear, icon: <Calendar className="h-4 w-4" /> },
-        { label: "Category", value: banknote?.category, icon: <Hash className="h-4 w-4" /> },
-        { label: "Type", value: banknote?.type, icon: <FileText className="h-4 w-4" /> },
-        { label: "Sultan Name", value: banknote?.sultanName, icon: <Users className="h-4 w-4" /> },
-        { label: "Rarity", value: banknote?.rarity, icon: <Star className="h-4 w-4" /> }
+        { label: t('details.extendedPickNumber'), value: banknote?.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: t('details.pickNumber'), value: banknote?.pickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: t('details.turkCatalogNumber'), value: banknote?.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: t('details.faceValue'), value: banknote?.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
+        { label: t('details.country'), value: banknote?.country, icon: <Map className="h-4 w-4" /> },
+        { label: t('details.islamicYear'), value: banknote?.islamicYear, icon: <Calendar className="h-4 w-4" /> },
+        { label: t('details.gregorianYear'), value: banknote?.gregorianYear, icon: <Calendar className="h-4 w-4" /> },
+        { label: t('details.category'), value: banknote?.category, icon: <Hash className="h-4 w-4" /> },
+        { label: t('details.type'), value: banknote?.type, icon: <FileText className="h-4 w-4" /> },
+        { label: t('details.sultanName'), value: banknote?.sultanName, icon: <Users className="h-4 w-4" /> },
+        { label: t('details.rarity'), value: banknote?.rarity, icon: <Star className="h-4 w-4" /> }
       ]
     },
     {
-      title: "Production Details",
+      title: t('details.productionDetails'),
       icon: <Building className="h-5 w-5" />,
       fields: [
-        { label: "Printer", value: banknote.printer, icon: <PenTool className="h-4 w-4" /> },
-        { label: "Colors", value: banknote.colors, icon: <PenTool className="h-4 w-4" /> },
-        { label: "Serial Numbering", value: banknote.serialNumbering, icon: <Hash className="h-4 w-4" /> }
+        { label: t('details.printer'), value: banknote.printer, icon: <PenTool className="h-4 w-4" /> },
+        { label: t('details.colors'), value: banknote.colors, icon: <PenTool className="h-4 w-4" /> },
+        { label: t('details.serialNumbering'), value: banknote.serialNumbering, icon: <Hash className="h-4 w-4" /> }
       ]
     },
     {
-      title: "Security Features",
+      title: t('details.securityFeatures'),
       icon: <Shield className="h-5 w-5" />,
       fields: [
-        { label: "Security Element", value: banknote.securityElement, icon: <Shield className="h-4 w-4" /> },
-        { label: "Seal Names", value: banknote.sealNames, icon: <Stamp className="h-4 w-4" /> },
-        { label: "Front Signatures", value: banknote.signaturesFront, icon: <Hash className="h-4 w-4" /> },
-        { label: "Back Signatures", value: banknote.signaturesBack, icon: <Hash className="h-4 w-4" /> }
+        { label: t('details.securityElement'), value: banknote.securityElement, icon: <Shield className="h-4 w-4" /> },
+        { label: t('details.sealNames'), value: banknote.sealNames, icon: <Stamp className="h-4 w-4" /> },
+        { label: t('details.frontSignatures'), value: banknote.signaturesFront, icon: <Hash className="h-4 w-4" /> },
+        { label: t('details.backSignatures'), value: banknote.signaturesBack, icon: <Hash className="h-4 w-4" /> }
       ]
     },
     {
-      title: "Descriptions",
+      title: t('details.descriptions'),
       icon: <FileText className="h-5 w-5" />,
       fields: [
-        { label: "Banknote Description", value: banknote.banknoteDescription, icon: <FileText className="h-4 w-4" /> },
-        { label: "Historical Description", value: banknote.historicalDescription, icon: <History className="h-4 w-4" /> }
+        { label: t('details.banknoteDescription'), value: banknote.banknoteDescription, icon: <FileText className="h-4 w-4" /> },
+        { label: t('details.historicalDescription'), value: banknote.historicalDescription, icon: <History className="h-4 w-4" /> }
       ]
     }
   ];
@@ -558,7 +560,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
                   <Image className="h-5 w-5 mr-2" />
-                  <span> Banknote Images </span>
+                  <span> {t('details.banknoteImages')} </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-2 pt-2 pb-2">
@@ -634,7 +636,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                       )
                   ) : (
                     <div className="col-span-2 p-6 text-center bg-muted rounded-md">
-                      <p className="text-muted-foreground">No images available</p>
+                      <p className="text-muted-foreground">{t('details.noImagesAvailable')}</p>
                     </div>
                   )}
 
@@ -642,12 +644,12 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                     <Sheet>
                       <SheetTrigger asChild>
                         <div className="relative aspect-[3/2] cursor-pointer bg-muted rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors">
-                          <span className="text-lg font-medium">+{imageUrls.length - 4} more</span>
+                          <span className="text-lg font-medium">{t('details.moreImages', { count: imageUrls.length - 4 })}</span>
                         </div>
                       </SheetTrigger>
                       <SheetContent className="w-[90%] sm:max-w-lg">
                         <SheetHeader>
-                          <SheetTitle>All Banknote Images</SheetTitle>
+                          <SheetTitle>{t('details.allBanknoteImages')}</SheetTitle>
                           <SheetDescription>
                             {banknote.country}, {banknote.denomination}, {banknote.year}
                           </SheetDescription>
@@ -682,7 +684,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-xl m-0">
-                    <span> Banknote Details </span>
+                    <span> {t('details.banknoteDetails')} </span>
                   </CardTitle>
                     <div className="flex gap-0">
                       <Button
@@ -731,7 +733,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                     </div>
                 </div>
                 <CardDescription>
-                  Detailed information about this banknote
+                  {t('details.detailedInformation')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6">
@@ -756,7 +758,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 mt-2">
                 <Layers className="h-5 w-5" />
-                <span>Collectors ({collectorsData?.total_count || 0})</span>
+                <span>{t('details.collectorsCount', { count: collectorsData?.total_count || 0 })}</span>
               </DialogTitle>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto px-1">
@@ -766,7 +768,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                   </div>
                 ) : collectorsData?.collectors.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No collectors yet</p>
+                  <p className="text-center text-muted-foreground py-8">{t('details.noCollectorsYet')}</p>
                 ) : (
                   collectorsData?.collectors.map((collector) => (
                     <div key={collector.id} className="flex items-center justify-between">

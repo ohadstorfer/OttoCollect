@@ -105,5 +105,54 @@
     "browseCatalog": "Katalogları Gözden Geçir",
     "visitMarketplace": "Pazar Yerini Ziyaret Et",
     "checkBackLater": "Koleksiyonlarının büyümesini görmek için daha sonra tekrar kontrol edin!"
+  },
+  "aboutUs": {
+    "title": "OttoCollect Hakkında",
+    "aboutProject": {
+      "title": "Proje Hakkında",
+      "description1": "Osmanlı Banknotları, Osmanlı İmparatorluğu banknotları ve bir zamanlar Osmanlı İmparatorluğu tarafından yönetilen topraklardan para birimlerinin koleksiyoncularına adanmış kapsamlı bir katalog ve koleksiyon yönetim aracıdır.",
+      "description2": "Misyonumuz, Osmanlı İmparatorluğu'nun nümizmatik tarihini belgelemek ve korumak, aynı zamanda Türkiye, Yunanistan, Ürdün, Lübnan, Suriye, İsrail, Kıbrıs, Arnavutluk, Karadağ ve daha fazlası dahil olmak üzere bu tarihi mirası paylaşan bölgelerdeki koleksiyonculardan oluşan bir topluluk oluşturmaktır.",
+      "description3": "Osmanlı banknotları hakkında ayrıntılı bilgilerin yanı sıra bir zamanlar Osmanlı yönetimi altındaki çeşitli ülkelerden banknotlar hakkında bilgi sağlıyoruz. Bu, platformumuzu genellikle kendi ülkelerinden koleksiyonları tamamladıktan sonra koleksiyonlarını Osmanlı para birimlerini içerecek şekilde genişleten koleksiyoncular için benzersiz bir şekilde değerli kılmaktadır.",
+      "description4": "Platformumuz, koleksiyoncuların kişisel koleksiyonlarını takip etmelerine, görüntüleri paylaşmalarına, tartışmalara katılmalarına ve dünya çapındaki meraklı arkadaşlarıyla bağlantı kurmalarına olanak tanır."
+    },
+    "founders": {
+      "title": "Kurucularımız",
+      "assaf": {
+        "name": "Assaf Unger",
+        "description": "Assaf 40 yılı aşkın süredir banknot topluyor ve Osmanlı İmparatorluğu ve Filistin banknotlarında önde gelen bir uzmandır. Bu platformu, bilgisini ve tutkusunu dünya çapındaki koleksiyoncu arkadaşlarıyla paylaşmak için kurdu."
+      },
+      "dror": {
+        "name": "Dror Korcharz",
+        "description1": "Dror, 40 yılı aşkın koleksiyon deneyimine sahip Osmanlı banknotları konusunda ünlü bir uzmandır. (IBA)'da aktif bir yönetim rolü üstlenir ve nümizmatik alanına önemli katkılarda bulunmuştur.",
+        "description2": "Osmanlı para birimi varyantları, mühürler ve tarihsel bağlam konusundaki uzman bilgisi, onu eskiden Osmanlı yönetimi altındaki birçok ülkedeki koleksiyoncular ve kurumlar için aranan bir danışman haline getirmiştir."
+      },
+      "viewCollection": "Koleksiyonu Görüntüle"
+    },
+    "platformFeatures": {
+      "title": "Koleksiyoncular için Kapsamlı Platform",
+      "subtitle": "Osmanlı ve halefi ülkelerin banknot koleksiyonunuzu yönetmek, sergilemek ve büyütmek için ihtiyacınız olan her şey",
+      "catalogues": {
+        "title": "Kataloglar",
+        "description": "Osmanlı ve halefi ülkeler/otoritelerinin banknotlarının kapsamlı kataloglarını inceleyin"
+      },
+      "collectionTools": {
+        "title": "Koleksiyon Araçları",
+        "description": "Koleksiyonunuzu, istek listenizi takip edin ve ayrıntılı bilgilerle eksik öğeleri görüntüleyin"
+      },
+      "marketplace": {
+        "title": "Pazar Yeri",
+        "description": "Entegre pazar yerimiz aracılığıyla topluluk içinde banknot alın ve satın"
+      },
+      "community": {
+        "title": "Topluluk",
+        "description": "Diğer kişisel koleksiyonları görüntüleyin. Dünya çapından diğer koleksiyoncularla bağlantı kurun, etkileşimde bulunun ve takip edin."
+      }
+    },
+    "callToAction": {
+      "title": "Topluluğumuza Katılın",
+      "description": "Osmanlı banknotlarını keşfetmeye başlayın ve dünya çapından koleksiyoncu arkadaşlarınızla bağlantı kurun.",
+      "exploreCatalogues": "Katalogları Keşfedin",
+      "joinCommunity": "Topluluğa Katılın"
+    }
   }
 } 

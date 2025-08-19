@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ const AboutUs: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { theme } = useTheme();
+    const { t } = useTranslation(['pages']);
     const skewedBgColor = theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-700';
 
 
@@ -63,7 +65,7 @@ const AboutUs: React.FC = () => {
                 {/* Header */}
                 <div className="text-center mb-12">
                     <h1 className="text-4xl md:text-5xl font-serif font-bold text-ottoman-900 dark:text-ottoman-100 mb-4">
-                        <span>About OttoCollect </span>
+                        <span>{t('aboutUs.title')} </span>
                     </h1>
                     <div className="w-24 h-1 bg-ottoman-600 mx-auto rounded-full"></div>
                 </div>
@@ -74,24 +76,24 @@ const AboutUs: React.FC = () => {
                         <CardContent className="p-8">
                             <h2 className="text-3xl font-serif font-bold text-ottoman-900 dark:text-ottoman-100 mb-6 flex items-center gap-3">
                                 <BookOpen className="h-8 w-8 text-ottoman-600" />
-                                <span>About the Project</span>
+                                <span>{t('aboutUs.aboutProject.title')}</span>
                             </h2>
 
                             <div className="space-y-6 text-lg leading-relaxed text-ottoman-800 dark:text-ottoman-200">
                                 <p>
-                                    Ottoman Banknotes is a comprehensive catalog and collection management tool dedicated to collectors of Ottoman Empire banknotes and currencies from territories once ruled by the Ottoman Empire.
+                                    {t('aboutUs.aboutProject.description1')}
                                 </p>
 
                                 <p>
-                                    Our mission is to document and preserve the numismatic history of the Ottoman Empire while building a community of collectors across regions that share this historical heritage, including Turkey, Greece, Jordan, Lebanon, Syria, Israel, Cyprus, Albania, Montenegro and more.
+                                    {t('aboutUs.aboutProject.description2')}
                                 </p>
 
                                 <p>
-                                    We provide detailed information on Ottoman banknotes as well as banknotes from various countries that were once under Ottoman rule. This makes our platform uniquely valuable to collectors who typically expand their collections to include Ottoman currencies after completing collections from their home countries.
+                                    {t('aboutUs.aboutProject.description3')}
                                 </p>
 
                                 <p>
-                                    Our platform allows collectors to track their personal collections, share images, participate in discussions, and connect with fellow enthusiasts around the world.
+                                    {t('aboutUs.aboutProject.description4')}
                                 </p>
                             </div>
                         </CardContent>
@@ -104,7 +106,7 @@ const AboutUs: React.FC = () => {
                         <CardContent className="p-8">
                             <h2 className="text-3xl font-serif font-bold text-ottoman-900 dark:text-ottoman-100 mb-8 flex items-center gap-3">
                                 <Users className="h-8 w-8 text-ottoman-600" />
-                                <span>Our Founders</span>
+                                <span>{t('aboutUs.founders.title')}</span>
                             </h2>
 
                             {foundersLoading ? (
@@ -136,7 +138,7 @@ const AboutUs: React.FC = () => {
                                             </div>
 
                                             <h3 className="text-xl font-bold text-ottoman-900 dark:text-ottoman-100 mb-2">
-                                                <span>Assaf Unger</span>
+                                                <span>{t('aboutUs.founders.assaf.name')}</span>
                                             </h3>
 
                                             {founders?.[0]?.rank && (
@@ -144,7 +146,7 @@ const AboutUs: React.FC = () => {
                                             )}
 
                                             <p className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed">
-                                                Assaf has been collecting banknotes for over 40 years and is a leading expert in Ottoman Empire and Palestinian banknotes. He founded this platform to share his knowledge and passion with fellow collectors worldwide.
+                                                {t('aboutUs.founders.assaf.description')}
                                             </p>
 
                                             <Button
@@ -152,7 +154,7 @@ const AboutUs: React.FC = () => {
                                                 className="group-hover:bg-ottoman-600 group-hover:text-white transition-colors duration-300"
                                             >
                                                 <BookOpen className="h-4 w-4 mr-2" />
-                                                View Collection
+                                                {t('aboutUs.founders.viewCollection')}
                                                 <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                                             </Button>
                                         </CardContent>
@@ -181,7 +183,7 @@ const AboutUs: React.FC = () => {
                                             </div>
 
                                             <h3 className="text-xl font-bold text-ottoman-900 dark:text-ottoman-100 mb-2">
-                                                <span>Dror Korcharz</span>
+                                                <span>{t('aboutUs.founders.dror.name')}</span>
                                             </h3>
 
                                             {founders?.[1]?.rank && (
@@ -190,10 +192,10 @@ const AboutUs: React.FC = () => {
 
                                             <div className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed space-y-3">
                                                 <p>
-                                                    Dror is a renowned expert on Ottoman banknotes with over 40 years of collecting experience. He holds an active management role in (IBA) and has contributed significantly to the field of numismatics.
+                                                    {t('aboutUs.founders.dror.description1')}
                                                 </p>
                                                 <p>
-                                                    His specialized knowledge of Ottoman currency variants, seals, and historical context has made him a sought-after consultant for collectors and institutions across multiple countries formerly under Ottoman rule.
+                                                    {t('aboutUs.founders.dror.description2')}
                                                 </p>
                                             </div>
 
@@ -202,7 +204,7 @@ const AboutUs: React.FC = () => {
                                                 className="group-hover:bg-ottoman-600 group-hover:text-white transition-colors duration-300"
                                             >
                                                 <BookOpen className="h-4 w-4 mr-2" />
-                                                View Collection
+                                                {t('aboutUs.founders.viewCollection')}
                                                 <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                                             </Button>
                                         </CardContent>
@@ -219,10 +221,10 @@ const AboutUs: React.FC = () => {
                         <CardContent className="p-8">
                             <div className="text-center max-w-3xl mx-auto mb-16">
                                 <h2 className="text-3xl md:text-4xl font-serif font-bold text-ottoman-900 dark:text-ottoman-100 mb-4">
-                                    <span>Comprehensive Platform for Collectors</span>
+                                    <span>{t('aboutUs.platformFeatures.title')}</span>
                                 </h2>
                                 <p className="text-lg text-ottoman-700 dark:text-ottoman-200">
-                                    Everything you need to manage, showcase, and grow your Ottoman and it's successor countries banknotes collection
+                                    {t('aboutUs.platformFeatures.subtitle')}
                                 </p>
                             </div>
 
@@ -233,10 +235,10 @@ const AboutUs: React.FC = () => {
                                         <Database className="h-6 w-6 text-white" />
                                     </div>
                                     <h3 className="text-xl font-serif font-semibold mb-2 text-ottoman-800 dark:text-ottoman-200">
-                                        <span>Catalogues</span>
+                                        <span>{t('aboutUs.platformFeatures.catalogues.title')}</span>
                                     </h3>
                                     <p className="text-ottoman-600 dark:text-ottoman-300">
-                                        Browse comprehensive catalogues of Ottoman and its successor countries/authorities banknotes
+                                        {t('aboutUs.platformFeatures.catalogues.description')}
                                     </p>
                                 </div>
 
@@ -247,10 +249,10 @@ const AboutUs: React.FC = () => {
                                         <BookOpen className="h-6 w-6 text-white" />
                                     </div>
                                     <h3 className="text-xl font-serif font-semibold mb-2 text-ottoman-800 dark:text-ottoman-200">
-                                        <span>Collection Tools</span>
+                                        <span>{t('aboutUs.platformFeatures.collectionTools.title')}</span>
                                     </h3>
                                     <p className="text-ottoman-600 dark:text-ottoman-300">
-                                        Track your collection, wishlist, and display missing items with detailed information
+                                        {t('aboutUs.platformFeatures.collectionTools.description')}
                                     </p>
                                 </div>
 
@@ -261,10 +263,10 @@ const AboutUs: React.FC = () => {
                                         <DollarSign className="h-6 w-6 text-white" />
                                     </div>
                                     <h3 className="text-xl font-serif font-semibold mb-2 text-ottoman-800 dark:text-ottoman-200">
-                                        <span>Marketplace</span>
+                                        <span>{t('aboutUs.platformFeatures.marketplace.title')}</span>
                                     </h3>
                                     <p className="text-ottoman-600 dark:text-ottoman-300">
-                                        Buy and sell banknotes within the community through our integrated marketplace
+                                        {t('aboutUs.platformFeatures.marketplace.description')}
                                     </p>
                                 </div>
 
@@ -275,10 +277,10 @@ const AboutUs: React.FC = () => {
                                         <Users className="h-6 w-6 text-white" />
                                     </div>
                                     <h3 className="text-xl font-serif font-semibold mb-2 text-ottoman-800 dark:text-ottoman-200">
-                                        <span>Community</span>
+                                        <span>{t('aboutUs.platformFeatures.community.title')}</span>
                                     </h3>
                                     <p className="text-ottoman-600 dark:text-ottoman-300">
-                                        View other personal collection. Connect interact and follow other collectors from around the world.
+                                        {t('aboutUs.platformFeatures.community.description')}
                                     </p>
                                 </div>
                             </div>
@@ -291,10 +293,10 @@ const AboutUs: React.FC = () => {
                     <Card className="bg-white/80 dark:bg-dark-800/80 backdrop-blur-sm border-ottoman-200 dark:border-ottoman-800">
                         <CardContent className="p-8">
                             <h2 className="text-3xl font-serif font-bold mb-4 text-ottoman-800 dark:text-white">
-                                <span>Join Our Community</span>
+                                <span>{t('aboutUs.callToAction.title')}</span>
                             </h2>
                             <p className="mb-6 text-lg text-ottoman-700 dark:text-ottoman-100">
-                                Start exploring Ottoman banknotes and connect with fellow collectors from around the world.
+                                {t('aboutUs.callToAction.description')}
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                 <Button
@@ -304,7 +306,7 @@ const AboutUs: React.FC = () => {
                                     className="bg-white text-ottoman-600 hover:bg-ottoman-50"
                                 >
                                     <BookOpen className="h-5 w-5 mr-2" />
-                                    Explore Catalogues
+                                    {t('aboutUs.callToAction.exploreCatalogues')}
                                 </Button>
                                 {!user && (
                                     <Button
@@ -314,7 +316,7 @@ const AboutUs: React.FC = () => {
                                         className="border-white text-white hover:bg-white hover:text-ottoman-600"
                                     >
                                         <Users className="h-5 w-5 mr-2" />
-                                        Join Community
+                                        {t('aboutUs.callToAction.joinCommunity')}
                                     </Button>
                                 )}
                             </div>

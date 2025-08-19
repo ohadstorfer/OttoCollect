@@ -105,5 +105,54 @@
     "browseCatalog": "Browse Catalogues",
     "visitMarketplace": "Visit Marketplace",
     "checkBackLater": "Check back later to see their collection grow!"
+  },
+  "aboutUs": {
+    "title": "About OttoCollect",
+    "aboutProject": {
+      "title": "About the Project",
+      "description1": "Ottoman Banknotes is a comprehensive catalog and collection management tool dedicated to collectors of Ottoman Empire banknotes and currencies from territories once ruled by the Ottoman Empire.",
+      "description2": "Our mission is to document and preserve the numismatic history of the Ottoman Empire while building a community of collectors across regions that share this historical heritage, including Turkey, Greece, Jordan, Lebanon, Syria, Israel, Cyprus, Albania, Montenegro and more.",
+      "description3": "We provide detailed information on Ottoman banknotes as well as banknotes from various countries that were once under Ottoman rule. This makes our platform uniquely valuable to collectors who typically expand their collections to include Ottoman currencies after completing collections from their home countries.",
+      "description4": "Our platform allows collectors to track their personal collections, share images, participate in discussions, and connect with fellow enthusiasts around the world."
+    },
+    "founders": {
+      "title": "Our Founders",
+      "assaf": {
+        "name": "Assaf Unger",
+        "description": "Assaf has been collecting banknotes for over 40 years and is a leading expert in Ottoman Empire and Palestinian banknotes. He founded this platform to share his knowledge and passion with fellow collectors worldwide."
+      },
+      "dror": {
+        "name": "Dror Korcharz",
+        "description1": "Dror is a renowned expert on Ottoman banknotes with over 40 years of collecting experience. He holds an active management role in (IBA) and has contributed significantly to the field of numismatics.",
+        "description2": "His specialized knowledge of Ottoman currency variants, seals, and historical context has made him a sought-after consultant for collectors and institutions across multiple countries formerly under Ottoman rule."
+      },
+      "viewCollection": "View Collection"
+    },
+    "platformFeatures": {
+      "title": "Comprehensive Platform for Collectors",
+      "subtitle": "Everything you need to manage, showcase, and grow your Ottoman and it's successor countries banknotes collection",
+      "catalogues": {
+        "title": "Catalogues",
+        "description": "Browse comprehensive catalogues of Ottoman and its successor countries/authorities banknotes"
+      },
+      "collectionTools": {
+        "title": "Collection Tools",
+        "description": "Track your collection, wishlist, and display missing items with detailed information"
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "description": "Buy and sell banknotes within the community through our integrated marketplace"
+      },
+      "community": {
+        "title": "Community",
+        "description": "View other personal collection. Connect interact and follow other collectors from around the world."
+      }
+    },
+    "callToAction": {
+      "title": "Join Our Community",
+      "description": "Start exploring Ottoman banknotes and connect with fellow collectors from around the world.",
+      "exploreCatalogues": "Explore Catalogues",
+      "joinCommunity": "Join Community"
+    }
   }
 } 
