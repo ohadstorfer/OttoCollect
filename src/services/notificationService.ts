@@ -6,7 +6,11 @@ export interface Notification {
   user_id: string;
   type: 'message' | 'forum_post' | 'collection_activity' | 'follow' | 'badge_earned' | 'badge_achievement' | 'blog_post';
   title: string;
+  title_ar?: string;
+  title_tr?: string;
   content: string;
+  content_ar?: string;
+  content_tr?: string;
   reference_id: string | null;
   reference_data: any;
   is_read: boolean;
@@ -14,15 +18,35 @@ export interface Notification {
   updated_at: string;
 }
 
+// Helper function to get translated notification text
+export const getTranslatedNotificationText = (
+  notification: Notification, 
+  field: 'title' | 'content', 
+  language: string
+): string => {
+  switch (language) {
+    case 'ar':
+      return field === 'title' 
+        ? notification.title_ar || notification.title
+        : notification.content_ar || notification.content;
+    case 'tr':
+      return field === 'title'
+        ? notification.title_tr || notification.title
+        : notification.content_tr || notification.content;
+    default:
+      return field === 'title' ? notification.title : notification.content;
+  }
+};
+
 export const notificationService = {
-  // Get all notifications for the current user
+  // Get all notifications for the current user with translations
   async getNotifications() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
       .from('notifications')
-      .select('*')
+      .select('id, user_id, type, title, title_ar, title_tr, content, content_ar, content_tr, reference_id, reference_data, is_read, created_at, updated_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 

@@ -9,11 +9,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Notification, notificationService } from '@/services/notificationService';
+import { Notification, notificationService, getTranslatedNotificationText } from '@/services/notificationService';
 import { Separator } from '@/components/ui/separator';
 import { BadgeDisplay } from '@/components/badges/BadgeDisplay';
 import { useDateLocale } from '@/lib/dateUtils';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface NotificationPanelProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function NotificationPanel({
   const wasOpenRef = useRef(false);
   const { formatRelativeTime } = useDateLocale();
   const { t } = useTranslation(['notification']);
+  const { currentLanguage } = useLanguage();
 
   // Mark notifications as read only when panel is explicitly closed after being opened
   useEffect(() => {
@@ -92,6 +94,10 @@ export function NotificationPanel({
     const IconComponent = getNotificationIcon(notification.type);
     const isBadgeNotification = notification.type === 'badge_earned' || notification.type === 'badge_achievement';
     const badgeData = isBadgeNotification ? notification.reference_data : null;
+    
+    // Get translated text based on current language
+    const translatedTitle = getTranslatedNotificationText(notification, 'title', currentLanguage);
+    const translatedContent = getTranslatedNotificationText(notification, 'content', currentLanguage);
 
     return (
       <div
@@ -117,12 +123,12 @@ export function NotificationPanel({
                 ? 'text-muted-foreground' 
                 : 'text-foreground'
             }`}>
-              {notification.title}
+              {translatedTitle}
             </p>
           </div>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-sm text-muted-foreground line-clamp-2">
-              {notification.content}
+              {translatedContent}
             </p>
             {isBadgeNotification && badgeData && (
               <BadgeDisplay

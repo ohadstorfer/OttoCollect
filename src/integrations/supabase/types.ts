@@ -1293,36 +1293,48 @@ export type Database = {
       notifications: {
         Row: {
           content: string
+          content_ar: string | null
+          content_tr: string | null
           created_at: string
           id: string
           is_read: boolean
           reference_data: Json | null
           reference_id: string | null
           title: string
+          title_ar: string | null
+          title_tr: string | null
           type: string
           updated_at: string
           user_id: string
         }
         Insert: {
           content: string
+          content_ar?: string | null
+          content_tr?: string | null
           created_at?: string
           id?: string
           is_read?: boolean
           reference_data?: Json | null
           reference_id?: string | null
           title: string
+          title_ar?: string | null
+          title_tr?: string | null
           type: string
           updated_at?: string
           user_id: string
         }
         Update: {
           content?: string
+          content_ar?: string | null
+          content_tr?: string | null
           created_at?: string
           id?: string
           is_read?: boolean
           reference_data?: Json | null
           reference_id?: string | null
           title?: string
+          title_ar?: string | null
+          title_tr?: string | null
           type?: string
           updated_at?: string
           user_id?: string
