@@ -72,59 +72,13 @@ const AuthForm = () => {
       }
 
       console.log('Attempting to login with Supabase...');
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password: loginPassword,
-      });
-
-      if (error) {
-        console.log('Login failed:', error.message);
-        throw error;
-      }
-
-      if (!data?.user) {
-        console.log('No user data returned from login');
-        throw new Error('Login failed - no user data returned');
-      }
-
-      console.log('Login successful, user:', data.user.id);
       await login(loginEmail, loginPassword);
       
-      // Only navigate if we have a user and no blocked notice
-      if (data.user && !blockedNotice) {
-        console.log('Login successful, navigating to home...');
+      console.log('Login successful, navigating to home...');
       navigate("/");
-      } else {
-        console.log('Login successful but not navigating - blocked notice:', blockedNotice);
-      }
     } catch (error: any) {
       console.error("Login error details:", error);
-      // Handle different error scenarios
-      if (error.message?.includes('Invalid login credentials')) {
-        toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: "Invalid email or password. Please try again.",
-        });
-      } else if (error.message?.includes('Email not confirmed')) {
-        toast({
-          variant: "destructive",
-          title: "Email Not Verified",
-          description: "Please verify your email address before logging in.",
-        });
-      } else if (error.message?.includes('Too many requests')) {
-        toast({
-          variant: "destructive",
-          title: "Too Many Attempts",
-          description: "Too many login attempts. Please try again later.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login Error",
-          description: "An error occurred during login. Please try again.",
-        });
-      }
+      // Error handling is now done in AuthContext
     } finally {
       setLoginLoading(false);
     }
@@ -133,6 +87,81 @@ const AuthForm = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setBlockedError(null);
+    
+    // Comprehensive frontend validation
+    if (!registerUsername.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Username Required",
+        description: "Please enter a username.",
+      });
+      return;
+    }
+    
+    if (registerUsername.length < 3) {
+      toast({
+        variant: "destructive",
+        title: "Username Too Short",
+        description: "Username must be at least 3 characters long.",
+      });
+      return;
+    }
+    
+    if (!registerEmail.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Email Required",
+        description: "Please enter your email address.",
+      });
+      return;
+    }
+    
+    if (!registerConfirmEmail.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Email Confirmation Required",
+        description: "Please confirm your email address.",
+      });
+      return;
+    }
+    
+    if (registerEmail !== registerConfirmEmail) {
+      setEmailsMatch(false);
+      toast({
+        variant: "destructive",
+        title: "Email Mismatch",
+        description: "Email addresses do not match. Please try again.",
+      });
+      return;
+    }
+    
+    if (!registerPassword) {
+      toast({
+        variant: "destructive",
+        title: "Password Required",
+        description: "Please enter a password.",
+      });
+      return;
+    }
+    
+    if (registerPassword.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long.",
+      });
+      return;
+    }
+    
+    if (!registerConfirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Password Confirmation Required",
+        description: "Please confirm your password.",
+      });
+      return;
+    }
+    
     if (registerPassword !== registerConfirmPassword) {
       setPasswordsMatch(false);
       toast({
@@ -142,12 +171,14 @@ const AuthForm = () => {
       });
       return;
     }
-    if (registerEmail !== registerConfirmEmail) {
-      setEmailsMatch(false);
+    
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(registerEmail)) {
       toast({
         variant: "destructive",
-        title: "Email Mismatch",
-        description: "Email addresses do not match. Please try again.",
+        title: "Invalid Email Format",
+        description: "Please enter a valid email address.",
       });
       return;
     }
@@ -168,76 +199,13 @@ const AuthForm = () => {
       }
 
       console.log('Attempting to register with Supabase...');
-      const { data, error } = await supabase.auth.signUp({
-        email: registerEmail,
-        password: registerPassword,
-        options: {
-          data: {
-            username: registerUsername,
-          },
-        },
-      });
-
-      if (error) {
-        console.log('Registration failed:', error.message);
-        throw error;
-      }
-
-      if (!data?.user) {
-        console.log('No user data returned from registration');
-        throw new Error('Registration failed - no user data returned');
-      }
-
-      console.log('Registration successful, user:', data.user.id);
       await register(registerUsername, registerEmail, registerPassword);
       
-      // Only navigate if we have a user
-      if (data.user) {
-        console.log('Registration successful, navigating to home...');
+      console.log('Registration successful, navigating to home...');
       navigate("/");
-      } else {
-        console.log('Registration successful but not navigating - no user data');
-      }
     } catch (error: any) {
       console.error("Register error details:", error);
-      // Handle different error scenarios
-      if (error.message?.includes('User already registered')) {
-        toast({
-          variant: "destructive",
-          title: "Account Exists",
-          description: "An account with this email already exists. Please try logging in instead.",
-        });
-      } else if (error.message?.includes('Username already taken')) {
-        toast({
-          variant: "destructive",
-          title: "Username Taken",
-          description: "This username is already taken. Please choose a different one.",
-        });
-      } else if (error.message?.includes('Password too weak')) {
-        toast({
-          variant: "destructive",
-          title: "Weak Password",
-          description: "Password is too weak. Please use a stronger password with at least 8 characters, including numbers and special characters.",
-        });
-      } else if (error.message?.includes('Invalid email')) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Email",
-          description: "Please enter a valid email address.",
-        });
-      } else if (error.message?.includes('Username too short')) {
-        toast({
-          variant: "destructive",
-          title: "Username Too Short",
-          description: "Username must be at least 3 characters long.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Registration Error",
-          description: "An error occurred during registration. Please try again.",
-        });
-      }
+      // Error handling is now done in AuthContext
     } finally {
       setRegisterLoading(false);
     }
