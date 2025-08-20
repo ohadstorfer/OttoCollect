@@ -94,5 +94,88 @@
     "notes": "ملاحظات",
     "front": "الوجه",
     "back": "الظهر"
+  },
+  "errors": {
+    "profileNotFound": "الملف الشخصي غير موجود",
+    "profileNotFoundDescription": "الملف الشخصي الذي تبحث عنه غير موجود.",
+    "goHome": "الذهاب للرئيسية"
+  },
+  "auth": {
+    "authenticationRequired": "مطلوب تسجيل الدخول",
+    "authenticationRequiredDescription": "لعرض ملف هذا الجامع ومجموعة الأوراق النقدية الخاصة به، يرجى تسجيل الدخول إلى حسابك. إذا لم يكن لديك حساب بعد، انضم إلى مجتمعنا لاستكشاف المجموعات والتواصل مع زملاء الجامعين.",
+    "logIn": "تسجيل الدخول"
+  },
+  "followStats": {
+    "follower": "متابع",
+    "followers": "المتابعون",
+    "following": "يتابع",
+    "badges": "الشارات",
+    "follow": "متابعة",
+    "message": "رسالة",
+    "noFollowersYet": "لا يوجد متابعون بعد",
+    "notFollowingAnyone": "لا يتابع أحداً بعد"
+  },
+  "about": {
+    "title": "حول",
+    "edit": "تعديل",
+    "noInfoSelf": "لم تقم بإضافة أي معلومات عن نفسك بعد.",
+    "noInfoOther": "لم يقم هذا المستخدم بإضافة أي معلومات عن نفسه بعد.",
+    "country": "البلد:",
+    "memberSince": "عضو منذ:"
+  },
+  "editForm": {
+    "authenticationRequired": "مطلوب المصادقة",
+    "mustBeLoggedIn": "يجب أن تكون مسجلاً للدخول لتحديث ملفك الشخصي",
+    "profileUpdatedSuccessfully": "تم تحديث الملف الشخصي بنجاح!",
+    "profileChangesSaved": "تم حفظ تغييرات ملفك الشخصي.",
+    "error": "خطأ",
+    "failedToUpdateProfile": "فشل في تحديث الملف الشخصي. يرجى المحاولة مرة أخرى.",
+    "invalidFileType": "نوع ملف غير صالح",
+    "selectImageFile": "يرجى اختيار ملف صورة (JPEG أو PNG أو HEIC)",
+    "heicFileDetected": "تم اكتشاف ملف HEIC",
+    "convertingHeicToJpeg": "جاري تحويل HEIC إلى تنسيق JPEG...",
+    "fileTooLarge": "الملف كبير جداً",
+    "profileImageSize": "يجب أن تكون صورة الملف الشخصي أقل من 5 ميجابايت",
+    "profilePictureUpdated": "تم تحديث صورة الملف الشخصي",
+    "profilePictureUpdatedDescription": "تم تحديث صورة ملفك الشخصي بنجاح",
+    "uploadFailed": "فشل في الرفع",
+    "added": "مُضاف",
+    "modified": "مُعدّل",
+    "connected": "متصل",
+    "changeProfilePicture": "تغيير صورة الملف الشخصي",
+    "username": "اسم المستخدم",
+    "about": "حول",
+    "aboutPlaceholder": "أخبرنا قليلاً عن نفسك وعن اهتماماتك في جمع الأوراق النقدية...",
+    "socialMediaLinks": "روابط وسائل التواصل الاجتماعي",
+    "facebook": "فيسبوك",
+    "instagram": "إنستغرام",
+    "twitter": "تويتر/إكس",
+    "linkedin": "لينكد إن",
+    "facebookPlaceholder": "https://facebook.com/your-profile",
+    "instagramPlaceholder": "https://instagram.com/your-profile",
+    "twitterPlaceholder": "https://twitter.com/your-profile",
+    "linkedinPlaceholder": "https://linkedin.com/in/your-profile",
+    "cancel": "إلغاء",
+    "saving": "جاري الحفظ...",
+    "saved": "تم الحفظ!",
+    "saveChanges": "حفظ التغييرات"
+  },
+  "countryTabs": {
+    "errorLoadingWishlist": "خطأ في تحميل قائمة الأمنيات",
+    "failedToLoadWishlistData": "فشل في تحميل بيانات قائمة الأمنيات.",
+    "noWishlistItems": "لا توجد عناصر في قائمة الأمنيات",
+    "noWishlistItemsSelf": "لم تقم بإضافة أي أوراق نقدية من هذا البلد إلى قائمة أمنياتك بعد.",
+    "noWishlistItemsOther": "هذا الجامع لا يملك أي أوراق نقدية من هذا البلد في قائمة أمنياته.",
+    "browseCatalogues": "تصفح الفهارس",
+    "wishlistItemsCount": "عناصر قائمة الأمنيات ({{count}})",
+    "collection": "المجموعة",
+    "wishList": "قائمة الأمنيات",
+    "missing": "المفقود",
+    "missingBanknotesCount": "الأوراق النقدية المفقودة ({{count}})"
+  },
+  "countrySelection": {
+    "myCollection": "مجموعتي",
+    "userCollection": "مجموعة {{username}}",
+    "browseCollectionByCountry": "تصفح مجموعة الأوراق النقدية حسب البلد"
   }
 } 

@@ -94,5 +94,88 @@
     "notes": "Notes",
     "front": "Front",
     "back": "Back"
+  },
+  "errors": {
+    "profileNotFound": "Profile Not Found",
+    "profileNotFoundDescription": "The profile you are looking for does not exist.",
+    "goHome": "Go Home"
+  },
+  "auth": {
+    "authenticationRequired": "Authentication Required",
+    "authenticationRequiredDescription": "To view this collector's profile and their banknote collection, please log in to your account. If you don't have an account yet, join our community to explore collections and connect with fellow collectors.",
+    "logIn": "Log In"
+  },
+  "followStats": {
+    "follower": "Follower",
+    "followers": "Followers",
+    "following": "Following",
+    "badges": "Badges",
+    "follow": "Follow",
+    "message": "Message",
+    "noFollowersYet": "No followers yet",
+    "notFollowingAnyone": "Not following anyone yet"
+  },
+  "about": {
+    "title": "About",
+    "edit": "Edit",
+    "noInfoSelf": "You haven't added any information about yourself yet.",
+    "noInfoOther": "This user hasn't added any information about themselves yet.",
+    "country": "Country:",
+    "memberSince": "Member since:"
+  },
+  "editForm": {
+    "authenticationRequired": "Authentication required",
+    "mustBeLoggedIn": "You must be logged in to update your profile",
+    "profileUpdatedSuccessfully": "Profile updated successfully!",
+    "profileChangesSaved": "Your profile changes have been saved.",
+    "error": "Error",
+    "failedToUpdateProfile": "Failed to update profile. Please try again.",
+    "invalidFileType": "Invalid file type",
+    "selectImageFile": "Please select an image file (JPEG, PNG, or HEIC)",
+    "heicFileDetected": "HEIC file detected",
+    "convertingHeicToJpeg": "Converting HEIC to JPEG format...",
+    "fileTooLarge": "File too large",
+    "profileImageSize": "Profile image must be less than 5MB",
+    "profilePictureUpdated": "Profile picture updated",
+    "profilePictureUpdatedDescription": "Your profile picture has been updated successfully",
+    "uploadFailed": "Upload failed",
+    "added": "Added",
+    "modified": "Modified",
+    "connected": "Connected",
+    "changeProfilePicture": "Change profile picture",
+    "username": "Username",
+    "about": "About",
+    "aboutPlaceholder": "Tell us a bit about yourself and your collection interests...",
+    "socialMediaLinks": "Social Media Links",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "twitter": "Twitter/X",
+    "linkedin": "LinkedIn",
+    "facebookPlaceholder": "https://facebook.com/your-profile",
+    "instagramPlaceholder": "https://instagram.com/your-profile",
+    "twitterPlaceholder": "https://twitter.com/your-profile",
+    "linkedinPlaceholder": "https://linkedin.com/in/your-profile",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "saved": "Saved!",
+    "saveChanges": "Save Changes"
+  },
+  "countryTabs": {
+    "errorLoadingWishlist": "Error loading wishlist",
+    "failedToLoadWishlistData": "Failed to load wishlist data.",
+    "noWishlistItems": "No Wishlist Items",
+    "noWishlistItemsSelf": "You haven't added any banknotes from this country to your wishlist yet.",
+    "noWishlistItemsOther": "This collector doesn't have any banknotes from this country in their wishlist.",
+    "browseCatalogues": "Browse Catalogues",
+    "wishlistItemsCount": "Wishlist Items ({{count}})",
+    "collection": "Collection",
+    "wishList": "Wish List",
+    "missing": "Missing",
+    "missingBanknotesCount": "Missing Banknotes ({{count}})"
+  },
+  "countrySelection": {
+    "myCollection": "My Collection",
+    "userCollection": "{{username}}'s Collection",
+    "browseCollectionByCountry": "Browse your banknote collection by country"
   }
 } 

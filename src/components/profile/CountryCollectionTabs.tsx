@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 import CountryDetailCollection from '@/pages/CountryDetailCollection';
 import CountryDetailMissingItems from '@/pages/CountryDetailMissingItems';
 import { useQuery } from '@tanstack/react-query';
@@ -32,6 +33,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const { user, logout } = useAuth();
+  const { t } = useTranslation(['profile']);
   
   // Fetch all banknotes for this country (for the "Missing" tab)
   const {
@@ -103,8 +105,8 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     if (wishlistError) {
       return (
         <div className="text-center py-8">
-          <h3 className="text-xl font-medium mb-4 text-red-500"><span>Error loading wishlist</span></h3>
-          <p className="text-muted-foreground mb-6">Failed to load wishlist data.</p>
+          <h3 className="text-xl font-medium mb-4 text-red-500"><span>{t('countryTabs.errorLoadingWishlist')}</span></h3>
+          <p className="text-muted-foreground mb-6">{t('countryTabs.failedToLoadWishlistData')}</p>
         </div>
       );
     }
@@ -115,15 +117,15 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     if (!validWishlist.length) {
       return (
         <Card className="p-8 text-center">
-          <h3 className="text-xl font-medium mb-4"><span>No Wishlist Items</span></h3>
+          <h3 className="text-xl font-medium mb-4"><span>{t('countryTabs.noWishlistItems')}</span></h3>
           <p className="text-muted-foreground mb-6">
             {isOwner 
-              ? "You haven't added any banknotes from this country to your wishlist yet." 
-              : "This collector doesn't have any banknotes from this country in their wishlist."}
+              ? t('countryTabs.noWishlistItemsSelf') 
+              : t('countryTabs.noWishlistItemsOther')}
           </p>
           {isOwner && (
             <Button asChild>
-              <a href={`/catalog/${countryName}`}>Browse Catalogues</a>
+              <a href={`/catalog/${countryName}`}>{t('countryTabs.browseCatalogues')}</a>
             </Button>
           )}
         </Card>
@@ -132,7 +134,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 
     return (
       <div className="page-container max-w-5xl mx-auto">
-        <h3 className="text-xl font-medium mb-4"><span>Wishlist Items ({validWishlist.length})</span></h3>
+        <h3 className="text-xl font-medium mb-4"><span>{t('countryTabs.wishlistItemsCount', { count: validWishlist.length })}</span></h3>
         <div className={viewMode === 'grid' 
           ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'
           : 'space-y-2'
@@ -164,9 +166,9 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
     <Tabs defaultValue="Collection" className="w-full">
       <div className=" pl-2 max-w-5xl mx-auto mt-2">
         <TabsList className="inline-flex ">
-          <TabsTrigger value="Collection">Collection</TabsTrigger>
-          <TabsTrigger value="wishlist">Wish List</TabsTrigger>
-          <TabsTrigger value="missing">Missing</TabsTrigger>
+          <TabsTrigger value="Collection">{t('countryTabs.collection')}</TabsTrigger>
+          <TabsTrigger value="wishlist">{t('countryTabs.wishList')}</TabsTrigger>
+          <TabsTrigger value="missing">{t('countryTabs.missing')}</TabsTrigger>
 
           {isOwner && (
             <AddUnlistedBanknoteDialog
@@ -194,7 +196,7 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 
       <TabsContent value="missing">
         {/* Pass missingBanknotes and userCollection to CountryDetailMissingItems */}
-        <h3 className="text-xl font-medium  page-container max-w-5xl mx-auto "><span>Missing Banknotes ({missingBanknotes.length})</span></h3>
+        <h3 className="text-xl font-medium  page-container max-w-5xl mx-auto "><span>{t('countryTabs.missingBanknotesCount', { count: missingBanknotes.length })}</span></h3>
         <CountryDetailMissingItems
           missingBanknotes={missingBanknotes}
           userCollection={userCollection || []}

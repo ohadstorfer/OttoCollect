@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useTranslation } from 'react-i18next';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
@@ -51,6 +52,7 @@ export const BadgesDialog = ({
   isLoading = false
 }: BadgesDialogProps) => {
   const isMobile = useIsMobile(); // Mobile detection hook
+  const { t } = useTranslation(['badges']);
   console.log('BadgesDialog: isMobile =', isMobile);
 
   const content = (
@@ -76,7 +78,7 @@ export const BadgesDialog = ({
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm sm:text-base font-medium"><span>{category.name}</span></h3>
                   <span className="text-xs text-muted-foreground">
-                    {category.currentValue} / {category.nextThreshold || 'Max'}
+                    {category.currentValue} / {category.nextThreshold || t('progress.max')}
                   </span>
                 </div>
                 
@@ -94,7 +96,7 @@ export const BadgesDialog = ({
                     ))
                   ) : (
                     <span className="text-xs text-muted-foreground py-2">
-                      No badges earned yet
+                      {t('status.noBadgesEarned')}
                     </span>
                   )}
                 </div>
@@ -112,7 +114,7 @@ export const BadgesDialog = ({
         <DrawerContent className="max-h-[85vh] flex flex-col">
           <DrawerHeader className="px-4 py-3 border-b flex-shrink-0">
             <DrawerTitle className="text-lg font-semibold text-center">
-              <span>Achievements</span>
+              <span>{t('dialog.title')}</span>
             </DrawerTitle>
           </DrawerHeader>
           <div className="flex-1 overflow-hidden">
@@ -138,7 +140,7 @@ export const BadgesDialog = ({
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="text-sm font-medium"><span>{category.name}</span></h3>
                           <span className="text-xs text-muted-foreground">
-                            {category.currentValue} / {category.nextThreshold || 'Max'}
+                            {category.currentValue} / {category.nextThreshold || t('progress.max')}
                           </span>
                         </div>
                         
@@ -156,7 +158,7 @@ export const BadgesDialog = ({
                             ))
                           ) : (
                             <span className="text-xs text-muted-foreground py-2">
-                              No badges earned yet
+                              {t('status.noBadgesEarned')}
                             </span>
                           )}
                         </div>
@@ -177,7 +179,7 @@ export const BadgesDialog = ({
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            <span>Achievements</span>
+            <span>{t('dialog.title')}</span>
           </DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-hidden">

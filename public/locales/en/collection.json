@@ -339,6 +339,7 @@
   },
   "details": {
     "publicDetails": "Public Details",
+    "extendedPickNumber": "Extended Pick Number",
     "pickNumber": "Pick Number",
     "turkCatalogNumber": "Turk Catalog Number",
     "denomination": "Denomination",

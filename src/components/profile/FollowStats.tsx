@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +54,7 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { t } = useTranslation(['profile']);
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFollowersDialog, setShowFollowersDialog] = useState(false);
@@ -168,7 +170,7 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
         >
           <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}>{stats.followersCount}</span>
           <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>
-            {stats.followersCount === 1 ? 'Follower' : 'Followers'}
+            {stats.followersCount === 1 ? t('followStats.follower') : t('followStats.followers')}
           </span>
         </button>
         
@@ -179,7 +181,7 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
           className="flex flex-col items-center hover:opacity-70 transition-opacity"
         >
           <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}>{stats.followingCount}</span>
-          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>Following</span>
+          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>{t('followStats.following')}</span>
         </button>
 
         {/* Badges Count */}
@@ -200,7 +202,7 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
               <span className={`font-bold text-lg ${theme === 'dark' ? 'text-gray-100' : ''}`}>0</span>
             )}
           </div>
-          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>Badges</span>
+          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>{t('followStats.badges')}</span>
         </button>
       </div>
 
@@ -217,12 +219,12 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
             {stats.isFollowing ? (
               <>
                 <User className="h-4 w-4 mr-2" />
-                Following
+                {t('followStats.following')}
               </>
             ) : (
               <>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Follow
+                {t('followStats.follow')}
               </>
             )}
           </Button>
@@ -234,7 +236,7 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
             size="sm"
           >
             <MessageCircle className="h-4 w-4 mr-2" />
-            Message
+            {t('followStats.message')}
           </Button>
         </div>
       )}
@@ -245,13 +247,13 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 mt-2">
               <Users className="h-5 w-5" />
-              <span>Followers</span>
+              <span>{t('followStats.followers')}</span>
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-1">
             <div className="space-y-3">
               {followers.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No followers yet</p>
+                <p className="text-center text-muted-foreground py-8">{t('followStats.noFollowersYet')}</p>
               ) : (
                 followers.map((follower) => (
                   <div key={follower.follower_id} className="flex items-center justify-between">
@@ -289,13 +291,13 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 mt-2">
               <Users className="h-5 w-5" />
-              <span>Following</span>
+              <span>{t('followStats.following')}</span>
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-1">
             <div className="space-y-3">
               {following.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">Not following anyone yet</p>
+                <p className="text-center text-muted-foreground py-8">{t('followStats.notFollowingAnyone')}</p>
               ) : (
                 following.map((follow) => (
                   <div key={follow.following_id} className="flex items-center justify-between">

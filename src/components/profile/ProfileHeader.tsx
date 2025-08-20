@@ -1,6 +1,7 @@
 
 import React from "react";
 import { User } from "@/types";
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Edit } from "lucide-react";
@@ -23,6 +24,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick, s
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { t } = useTranslation(['profile']);
   const isOwnProfile = user && profile && user.id === profile.id;
   const userRank = (profile?.rank || "Newbie");
 

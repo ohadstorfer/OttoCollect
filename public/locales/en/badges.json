@@ -1,0 +1,18 @@
+{
+  "dialog": {
+    "title": "Achievements"
+  },
+  "progress": {
+    "max": "Max"
+  },
+  "status": {
+    "noBadgesEarned": "No badges earned yet"
+  },
+  "stages": {
+    "stage1": "Stage 1",
+    "stage2": "Stage 2", 
+    "stage3": "Stage 3",
+    "stage4": "Stage 4",
+    "stage5": "Stage 5"
+  }
+}

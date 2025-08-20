@@ -338,6 +338,7 @@
     "saving": "جاري الحفظ..."
   },
   "details": {
+    "extendedPickNumber": "رقم بيك الموسع",
     "pickNumber": "رقم بيك",
     "turkCatalogNumber": "رقم كتالوج تورك",
     "denomination": "الفئة",

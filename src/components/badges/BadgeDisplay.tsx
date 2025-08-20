@@ -2,6 +2,7 @@
 import React from 'react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 export interface BadgeInfo {
   id: string;
@@ -63,6 +64,7 @@ export const BadgeDisplay = ({
   onClick 
 }: BadgeDisplayProps) => {
   const sizeConfig = sizesConfig[size];
+  const { t } = useTranslation(['badges']);
   
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
@@ -102,7 +104,7 @@ export const BadgeDisplay = ({
           )}
           {showStage && (
             <p className="text-xs text-muted-foreground capitalize">
-              {badge.stage}
+              {t(`stages.${badge.stage.toLowerCase().replace(' ', '')}`)}
             </p>
           )}
         </div>

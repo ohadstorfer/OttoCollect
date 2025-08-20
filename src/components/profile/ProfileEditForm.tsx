@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
   const navigate = useNavigate();
   const { user: authUser, updateUserState } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation(['profile']);
   const [username, setUsername] = useState(profile.username);
   const [about, setAbout] = useState(profile.about || '');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || '');
@@ -39,8 +41,8 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     
     if (!authUser) {
       toast({
-        title: "Authentication required",
-        description: "You must be logged in to update your profile",
+        title: t('editForm.authenticationRequired'),
+        description: t('editForm.mustBeLoggedIn'),
         variant: "destructive",
       });
       return;
@@ -74,8 +76,8 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
       
       // Show success toast
       toast({
-        title: "Profile updated successfully!",
-        description: "Your profile changes have been saved.",
+        title: t('editForm.profileUpdatedSuccessfully'),
+        description: t('editForm.profileChangesSaved'),
         className: "bg-green-50 border-green-200 text-green-800",
       });
       
@@ -89,8 +91,8 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     } catch (error) {
       console.error("Error updating profile:", error);
       toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
+        title: t('editForm.error'),
+        description: t('editForm.failedToUpdateProfile'),
         variant: "destructive",
       });
     } finally {
@@ -144,8 +146,8 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     if (!file.type.startsWith('image/') && !isHeic) {
       console.log('❌ [ProfileEditForm] File type rejected');
       toast({
-        title: "Invalid file type",
-        description: "Please select an image file (JPEG, PNG, or HEIC)",
+        title: t('editForm.invalidFileType'),
+        description: t('editForm.selectImageFile'),
         variant: "destructive",
       });
       return;
@@ -155,16 +157,16 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     if (isHeic) {
       console.log('✅ [ProfileEditForm] HEIC file detected, showing conversion message');
       toast({
-        title: "HEIC file detected",
-        description: "Converting HEIC to JPEG format...",
+        title: t('editForm.heicFileDetected'),
+        description: t('editForm.convertingHeicToJpeg'),
       });
     }
     
     // Check file size
     if (file.size > 5 * 1024 * 1024) { // 5MB
       toast({
-        title: "File too large",
-        description: "Profile image must be less than 5MB",
+        title: t('editForm.fileTooLarge'),
+        description: t('editForm.profileImageSize'),
         variant: "destructive",
       });
       return;
@@ -186,8 +188,8 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         });
         
         toast({
-          title: "Profile picture updated",
-          description: "Your profile picture has been updated successfully",
+          title: t('editForm.profilePictureUpdated'),
+          description: t('editForm.profilePictureUpdatedDescription'),
         });
       }
     } catch (error) {
@@ -197,7 +199,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
       const errorMessage = error instanceof Error ? error.message : "Failed to upload profile picture";
       
       toast({
-        title: "Upload failed",
+        title: t('editForm.uploadFailed'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -232,7 +234,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
             <div className="flex items-center gap-1">
               <Check className="h-3 w-3 text-green-600" />
               <span className="text-xs text-green-600 font-normal">
-                {isNewlyAdded ? 'Added' : isModified ? 'Modified' : 'Connected'}
+                {isNewlyAdded ? t('editForm.added') : isModified ? t('editForm.modified') : t('editForm.connected')}
               </span>
             </div>
           )}
@@ -300,7 +302,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
               disabled={isLoading}
             >
               <Upload className="mr-2 h-4 w-4" />
-              Change profile picture
+              {t('editForm.changeProfilePicture')}
             </Button>
             
             <input
@@ -314,57 +316,57 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
           
           <div className="space-y-4 flex-1">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">{t('editForm.username')}</Label>
               <Input
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
+                placeholder={t('editForm.username')}
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="about">About</Label>
+              <Label htmlFor="about">{t('editForm.about')}</Label>
               <Textarea
                 id="about"
                 value={about}
                 onChange={(e) => setAbout(e.target.value)}
-                placeholder="Tell us a bit about yourself and your collection interests..."
+                placeholder={t('editForm.aboutPlaceholder')}
                 className="min-h-[120px]"
               />
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-medium"> <span> Social Media Links </span> </h4>
+              <h4 className="font-medium"> <span>{t('editForm.socialMediaLinks')}</span> </h4>
               <div className="grid grid-cols-1 gap-4">
                 <SocialMediaInput
                   platform="facebook"
                   value={facebookUrl}
                   onChange={setFacebookUrl}
-                  placeholder="https://facebook.com/your-profile"
-                  label="Facebook"
+                  placeholder={t('editForm.facebookPlaceholder')}
+                  label={t('editForm.facebook')}
                 />
                 <SocialMediaInput
                   platform="instagram"
                   value={instagramUrl}
                   onChange={setInstagramUrl}
-                  placeholder="https://instagram.com/your-profile"
-                  label="Instagram"
+                  placeholder={t('editForm.instagramPlaceholder')}
+                  label={t('editForm.instagram')}
                 />
                 <SocialMediaInput
                   platform="twitter"
                   value={twitterUrl}
                   onChange={setTwitterUrl}
-                  placeholder="https://twitter.com/your-profile"
-                  label="Twitter/X"
+                  placeholder={t('editForm.twitterPlaceholder')}
+                  label={t('editForm.twitter')}
                 />
                 <SocialMediaInput
                   platform="linkedin"
                   value={linkedinUrl}
                   onChange={setLinkedinUrl}
-                  placeholder="https://linkedin.com/in/your-profile"
-                  label="LinkedIn"
+                  placeholder={t('editForm.linkedinPlaceholder')}
+                  label={t('editForm.linkedin')}
                 />
               </div>
             </div>
@@ -379,7 +381,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
           onClick={handleCancel}
           disabled={isLoading}
         >
-          Cancel
+          {t('editForm.cancel')}
         </Button>
         
         <Button 
@@ -390,15 +392,15 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
+              {t('editForm.saving')}
             </>
           ) : isSuccess ? (
             <>
               <Check className="mr-2 h-4 w-4" />
-              Saved!
+              {t('editForm.saved')}
             </>
           ) : (
-            "Save Changes"
+            t('editForm.saveChanges')
           )}
         </Button>
       </div>

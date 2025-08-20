@@ -119,8 +119,11 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const { t: tFilter } = useTranslation(['filter']);
   const { t: tProfile } = useTranslation(['profile']);
   const { printCollection, isPrinting } = usePrintCollection();
-  const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
-  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+  // Separate states for desktop and mobile sheets
+  const [isDesktopCategorySheetOpen, setIsDesktopCategorySheetOpen] = useState(false);
+  const [isDesktopSortSheetOpen, setIsDesktopSortSheetOpen] = useState(false);
+  const [isMobileCategorySheetOpen, setIsMobileCategorySheetOpen] = useState(false);
+  const [isMobileSortSheetOpen, setIsMobileSortSheetOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
@@ -408,8 +411,11 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       onSaveFilters();
     }
 
-    setIsCategorySheetOpen(false);
-    setIsSortSheetOpen(false);
+    // Close all sheets
+    setIsDesktopCategorySheetOpen(false);
+    setIsDesktopSortSheetOpen(false);
+    setIsMobileCategorySheetOpen(false);
+    setIsMobileSortSheetOpen(false);
   };
 
   const allCategoriesSelected = categories.length > 0 &&
@@ -605,7 +611,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
 
             {/* Filter and Sort buttons */}
-            <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
+            <Sheet open={isDesktopCategorySheetOpen} onOpenChange={setIsDesktopCategorySheetOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant="outline"
@@ -652,7 +658,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   <SheetClose asChild>
                     <Button
                       className="w-full"
-                      onClick={() => setIsCategorySheetOpen(false)}
+                      onClick={() => setIsDesktopCategorySheetOpen(false)}
                     >
                       {tWithFallback('actions.close', 'Close')}
                     </Button>
@@ -661,7 +667,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
               </SheetContent>
             </Sheet>
 
-            <Sheet open={isSortSheetOpen} onOpenChange={setIsSortSheetOpen}>
+            <Sheet open={isDesktopSortSheetOpen} onOpenChange={setIsDesktopSortSheetOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant="outline"
@@ -703,7 +709,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   <SheetClose asChild className="mt-4">
                     <Button
                       className="w-full mt-4"
-                      onClick={() => setIsSortSheetOpen(false)}
+                      onClick={() => setIsDesktopSortSheetOpen(false)}
                     >
                       {tWithFallback('actions.close', 'Close')}
                     </Button>
@@ -850,7 +856,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
               {/* Filter and Sort buttons on separate row for mobile */}
               <div className="flex gap-1 lg:gap-2">
-                <Sheet open={isCategorySheetOpen} onOpenChange={setIsCategorySheetOpen}>
+                <Sheet open={isMobileCategorySheetOpen} onOpenChange={setIsMobileCategorySheetOpen}>
                   <SheetTrigger asChild>
                     <Button 
                       variant="outline" 
@@ -897,7 +903,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       <SheetClose asChild>
                         <Button 
                           className="w-full"
-                          onClick={() => setIsCategorySheetOpen(false)}
+                          onClick={() => setIsMobileCategorySheetOpen(false)}
                         >
                           {tWithFallback('actions.close', 'Close')}
                         </Button>
@@ -906,7 +912,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                   </SheetContent>
                 </Sheet>
 
-                <Sheet open={isSortSheetOpen} onOpenChange={setIsSortSheetOpen}>
+                <Sheet open={isMobileSortSheetOpen} onOpenChange={setIsMobileSortSheetOpen}>
                   <SheetTrigger asChild>
                     <Button 
                       variant="outline" 
@@ -948,7 +954,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                       <SheetClose asChild className="mt-4">
                         <Button 
                           className="w-full mt-4"
-                          onClick={() => setIsSortSheetOpen(false)}
+                          onClick={() => setIsMobileSortSheetOpen(false)}
                         >
                           {tWithFallback('actions.close', 'Close')}
                         </Button>

@@ -3,6 +3,7 @@ import React from 'react';
 import { User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ProfileAboutProps {
   profile: User;
@@ -10,14 +11,16 @@ interface ProfileAboutProps {
 }
 
 export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
+  const { t } = useTranslation(['profile']);
+  
   return (
     <div className="ottoman-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-medium"><span>About</span></h3>
+        <h3 className="text-xl font-medium"><span>{t('about.title')}</span></h3>
         {onEditClick && (
           <Button variant="outline" size="sm" onClick={onEditClick}>
             <Edit className="h-4 w-4 mr-2" />
-            Edit
+            {t('about.edit')}
           </Button>
         )}
       </div>
@@ -30,8 +33,8 @@ export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
         ) : (
           <p className="text-muted-foreground italic">
             {onEditClick 
-              ? "You haven't added any information about yourself yet." 
-              : "This user hasn't added any information about themselves yet."
+              ? t('about.noInfoSelf') 
+              : t('about.noInfoOther')
             }
           </p>
         )}
@@ -39,7 +42,7 @@ export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
         {profile.country && (
           <div className="pt-4 border-t">
             <div className="flex">
-              <h4 className="font-medium w-32"><span>Country:</span></h4>
+              <h4 className="font-medium w-32"><span>{t('about.country')}</span></h4>
               <p>{profile.country}</p>
             </div>
           </div>
@@ -47,7 +50,7 @@ export function ProfileAbout({ profile, onEditClick }: ProfileAboutProps) {
         
         <div className="pt-4 border-t">
           <div className="flex">
-            <h4 className="font-medium w-32"><span>Member since:</span></h4>
+            <h4 className="font-medium w-32"><span>{t('about.memberSince')}</span></h4>
             <p>{new Date(profile.createdAt).toLocaleDateString()}</p>
           </div>
         </div>

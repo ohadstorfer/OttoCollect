@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -38,6 +39,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   profileView = true,
   profile
 }) => {
+  const { t } = useTranslation(['profile']);
   // State for country name (after lookup, if necessary)
   const [countryName, setCountryName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,8 +107,8 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   ) : (
     <CountrySelection 
       showHeader={false}
-      customTitle={`${isOwnProfile ? 'My' : `${userId}'s`} Collection`}
-      customDescription="Browse your banknote collection by country"
+      customTitle={`${isOwnProfile ? t('countrySelection.myCollection') : t('countrySelection.userCollection', { username: userId })}`}
+      customDescription={t('countrySelection.browseCollectionByCountry')}
       userId={userId}
       onCountrySelect={handleCountrySelect}
     />

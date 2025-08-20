@@ -94,5 +94,88 @@
     "notes": "Notlar",
     "front": "Ön",
     "back": "Arka"
+  },
+  "errors": {
+    "profileNotFound": "Profil Bulunamadı",
+    "profileNotFoundDescription": "Aradığınız profil mevcut değil.",
+    "goHome": "Ana Sayfaya Git"
+  },
+  "auth": {
+    "authenticationRequired": "Kimlik Doğrulama Gerekli",
+    "authenticationRequiredDescription": "Bu koleksiyoncunun profilini ve banknot koleksiyonunu görüntülemek için lütfen hesabınıza giriş yapın. Henüz bir hesabınız yoksa, koleksiyonları keşfetmek ve diğer koleksiyoncularla bağlantı kurmak için topluluğumuza katılın.",
+    "logIn": "Giriş Yap"
+  },
+  "followStats": {
+    "follower": "Takipçi",
+    "followers": "Takipçiler",
+    "following": "Takip Edilen",
+    "badges": "Rozetler",
+    "follow": "Takip Et",
+    "message": "Mesaj",
+    "noFollowersYet": "Henüz takipçi yok",
+    "notFollowingAnyone": "Henüz kimseyi takip etmiyor"
+  },
+  "about": {
+    "title": "Hakkında",
+    "edit": "Düzenle",
+    "noInfoSelf": "Henüz kendiniz hakkında bilgi eklemediniz.",
+    "noInfoOther": "Bu kullanıcı henüz kendisi hakkında bilgi eklememiş.",
+    "country": "Ülke:",
+    "memberSince": "Üyelik tarihi:"
+  },
+  "editForm": {
+    "authenticationRequired": "Kimlik doğrulama gerekli",
+    "mustBeLoggedIn": "Profilinizi güncellemek için giriş yapmış olmalısınız",
+    "profileUpdatedSuccessfully": "Profil başarıyla güncellendi!",
+    "profileChangesSaved": "Profil değişiklikleriniz kaydedildi.",
+    "error": "Hata",
+    "failedToUpdateProfile": "Profil güncellenemedi. Lütfen tekrar deneyin.",
+    "invalidFileType": "Geçersiz dosya türü",
+    "selectImageFile": "Lütfen bir resim dosyası seçin (JPEG, PNG veya HEIC)",
+    "heicFileDetected": "HEIC dosyası tespit edildi",
+    "convertingHeicToJpeg": "HEIC'den JPEG formatına dönüştürülüyor...",
+    "fileTooLarge": "Dosya çok büyük",
+    "profileImageSize": "Profil resmi 5MB'dan küçük olmalıdır",
+    "profilePictureUpdated": "Profil resmi güncellendi",
+    "profilePictureUpdatedDescription": "Profil resminiz başarıyla güncellendi",
+    "uploadFailed": "Yükleme başarısız",
+    "added": "Eklendi",
+    "modified": "Değiştirildi",
+    "connected": "Bağlandı",
+    "changeProfilePicture": "Profil resmini değiştir",
+    "username": "Kullanıcı Adı",
+    "about": "Hakkında",
+    "aboutPlaceholder": "Kendiniz ve banknot koleksiyon ilgileriniz hakkında biraz bilgi verin...",
+    "socialMediaLinks": "Sosyal Medya Bağlantıları",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "twitter": "Twitter/X",
+    "linkedin": "LinkedIn",
+    "facebookPlaceholder": "https://facebook.com/your-profile",
+    "instagramPlaceholder": "https://instagram.com/your-profile",
+    "twitterPlaceholder": "https://twitter.com/your-profile",
+    "linkedinPlaceholder": "https://linkedin.com/in/your-profile",
+    "cancel": "İptal",
+    "saving": "Kaydediliyor...",
+    "saved": "Kaydedildi!",
+    "saveChanges": "Değişiklikleri Kaydet"
+  },
+  "countryTabs": {
+    "errorLoadingWishlist": "İstek listesi yüklenirken hata",
+    "failedToLoadWishlistData": "İstek listesi verileri yüklenemedi.",
+    "noWishlistItems": "İstek Listesi Öğesi Yok",
+    "noWishlistItemsSelf": "Bu ülkeden henüz istek listenize banknot eklemediniz.",
+    "noWishlistItemsOther": "Bu koleksiyoncunun bu ülkeden istek listesinde banknotları yok.",
+    "browseCatalogues": "Katalogları Gözat",
+    "wishlistItemsCount": "İstek Listesi Öğeleri ({{count}})",
+    "collection": "Koleksiyon",
+    "wishList": "İstek Listesi",
+    "missing": "Eksik",
+    "missingBanknotesCount": "Eksik Banknotlar ({{count}})"
+  },
+  "countrySelection": {
+    "myCollection": "Koleksiyonum",
+    "userCollection": "{{username}}'ın Koleksiyonu",
+    "browseCollectionByCountry": "Banknot koleksiyonunuzu ülkeye göre göz atın"
   }
 } 

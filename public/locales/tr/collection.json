@@ -338,6 +338,7 @@
     "saving": "Kaydediliyor..."
   },
   "details": {
+    "extendedPickNumber": "Genişletilmiş Pick Numarası",
     "pickNumber": "Pick Numarası",
     "turkCatalogNumber": "Türk Katalog Numarası",
     "denomination": "Nominal Değer",
