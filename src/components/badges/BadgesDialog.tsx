@@ -78,7 +78,7 @@ export const BadgesDialog = ({
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm sm:text-base font-medium"><span>{category.name}</span></h3>
                   <span className="text-xs text-muted-foreground">
-                    {category.currentValue} / {category.nextThreshold || t('progress.max')}
+                    {category.currentValue} / {category.nextThreshold || t('progress.max', { defaultValue: 'Max' })}
                   </span>
                 </div>
                 
@@ -96,7 +96,7 @@ export const BadgesDialog = ({
                     ))
                   ) : (
                     <span className="text-xs text-muted-foreground py-2">
-                      {t('status.noBadgesEarned')}
+                      {t('status.noBadgesEarned', { defaultValue: 'No badges earned yet' })}
                     </span>
                   )}
                 </div>
@@ -114,7 +114,7 @@ export const BadgesDialog = ({
         <DrawerContent className="max-h-[85vh] flex flex-col">
           <DrawerHeader className="px-4 py-3 border-b flex-shrink-0">
             <DrawerTitle className="text-lg font-semibold text-center">
-              <span>{t('dialog.title')}</span>
+              <span>{t('dialog.title', { defaultValue: 'Achievements' })}</span>
             </DrawerTitle>
           </DrawerHeader>
           <div className="flex-1 overflow-hidden">
@@ -140,7 +140,7 @@ export const BadgesDialog = ({
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="text-sm font-medium"><span>{category.name}</span></h3>
                           <span className="text-xs text-muted-foreground">
-                            {category.currentValue} / {category.nextThreshold || t('progress.max')}
+                            {category.currentValue} / {category.nextThreshold || t('progress.max', { defaultValue: 'Max' })}
                           </span>
                         </div>
                         
@@ -158,7 +158,7 @@ export const BadgesDialog = ({
                             ))
                           ) : (
                             <span className="text-xs text-muted-foreground py-2">
-                              {t('status.noBadgesEarned')}
+                              {t('status.noBadgesEarned', { defaultValue: 'No badges earned yet' })}
                             </span>
                           )}
                         </div>
@@ -179,7 +179,7 @@ export const BadgesDialog = ({
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            <span>{t('dialog.title')}</span>
+            <span>{t('dialog.title', { defaultValue: 'Achievements' })}</span>
           </DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-hidden">

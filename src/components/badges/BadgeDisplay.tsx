@@ -74,9 +74,9 @@ export const BadgeDisplay = ({
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
-        <button
+        <div
           className={cn(
-            'rounded-full border-2 flex items-center justify-center transition-all duration-200',
+            'rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer',
             stageColors[badge.stage],
             sizeConfig.container,
             className
@@ -84,12 +84,20 @@ export const BadgeDisplay = ({
           onClick={onClick}
           onTouchStart={handleTouchStart}
           style={{ touchAction: 'none' }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && onClick) {
+              e.preventDefault();
+              onClick();
+            }
+          }}
         >
           <BadgeIcon 
             color={stageColors[badge.stage]} 
             className={cn('transition-transform duration-200', sizeConfig.icon)} 
           />
-        </button>
+        </div>
       </HoverCardTrigger>
       <HoverCardContent className="w-64 p-3">
         <div className="space-y-2">
@@ -104,7 +112,17 @@ export const BadgeDisplay = ({
           )}
           {showStage && (
             <p className="text-xs text-muted-foreground capitalize">
-              {t(`stages.${badge.stage.toLowerCase().replace(' ', '')}`)}
+              {(() => {
+                const stageMap: Record<string, string> = {
+                  'Stage 1': 'stage1',
+                  'Stage 2': 'stage2',
+                  'Stage 3': 'stage3',
+                  'Stage 4': 'stage4',
+                  'Stage 5': 'stage5'
+                };
+                const stageKey = stageMap[badge.stage];
+                return stageKey ? t(`stages.${stageKey}`, { defaultValue: badge.stage }) : badge.stage;
+              })()}
             </p>
           )}
         </div>
