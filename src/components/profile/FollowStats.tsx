@@ -10,7 +10,7 @@ import { getInitials } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import UserProfileLink from '@/components/common/UserProfileLink';
 import { Users, UserPlus, User, MessageCircle } from 'lucide-react';
-import { SendMessage } from '@/components/messages/SendMessage';
+
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from "@/context/ThemeContext";
 import BadgesDialog from '../badges/BadgesDialog';
@@ -59,7 +59,6 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFollowersDialog, setShowFollowersDialog] = useState(false);
   const [showFollowingDialog, setShowFollowingDialog] = useState(false);
-  const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showBadgesDialog, setShowBadgesDialog] = useState(showBadges);
 
   // Update dialog state when showBadges prop changes and clear URL parameter
@@ -95,13 +94,13 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
     enabled: !!profileId
   });
 
-  const { data: followers = [] } = useQuery({
+  const { data: followers = [], isLoading: followersLoading } = useQuery({
     queryKey: ['followers', profileId],
     queryFn: () => getFollowers(profileId),
     enabled: showFollowersDialog && !!profileId
   });
 
-  const { data: following = [] } = useQuery({
+  const { data: following = [], isLoading: followingLoading } = useQuery({
     queryKey: ['following', profileId],
     queryFn: () => getFollowing(profileId),
     enabled: showFollowingDialog && !!profileId
@@ -136,7 +135,7 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
       navigate('/auth');
       return;
     }
-    setShowMessageDialog(true);
+    navigate(`/messaging/${profileId}`);
   };
 
   if (isLoading || !stats) {
@@ -158,6 +157,21 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
       </div>
     );
   }
+
+  // Skeleton component for loading state
+  const FollowSkeleton = () => (
+    <div className="space-y-3">
+      {[...Array(5)].map((_, index) => (
+        <div key={index} className="flex items-center gap-3">
+          <div className="h-10 w-10 bg-gray-200 rounded-full animate-pulse"></div>
+          <div className="flex-1">
+            <div className="h-4 bg-gray-200 rounded animate-pulse mb-1" style={{ width: `${Math.random() * 40 + 60}%` }}></div>
+            <div className="h-3 bg-gray-200 rounded animate-pulse" style={{ width: `${Math.random() * 30 + 40}%` }}></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -251,11 +265,14 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-1">
-            <div className="space-y-3">
-              {followers.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">{t('followStats.noFollowersYet')}</p>
-              ) : (
-                followers.map((follower) => (
+            {followersLoading ? (
+              <FollowSkeleton />
+            ) : (
+              <div className="space-y-3">
+                {followers.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">{t('followStats.noFollowersYet')}</p>
+                ) : (
+                  followers.map((follower) => (
                   <div key={follower.follower_id} className="flex items-center justify-between">
                     <UserProfileWrapper
                       userId={follower.follower_id}
@@ -278,9 +295,10 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
                       </div>
                     </UserProfileWrapper>
                   </div>
-                ))
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -295,11 +313,14 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-1">
-            <div className="space-y-3">
-              {following.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">{t('followStats.notFollowingAnyone')}</p>
-              ) : (
-                following.map((follow) => (
+            {followingLoading ? (
+              <FollowSkeleton />
+            ) : (
+              <div className="space-y-3">
+                {following.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">{t('followStats.notFollowingAnyone')}</p>
+                ) : (
+                  following.map((follow) => (
                   <div key={follow.following_id} className="flex items-center justify-between">
                     <UserProfileWrapper
                       userId={follow.following_id}
@@ -322,23 +343,13 @@ export function FollowStats({ profileId, isOwnProfile, username, showBadges = fa
                       </div>
                     </UserProfileWrapper>
                   </div>
-                ))
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Message Dialog */}
-      {!isOwnProfile && user && (
-        <SendMessage
-          receiverId={profileId}
-          receiverName={username}
-          isOpen={showMessageDialog}
-          onOpenChange={setShowMessageDialog}
-        />
-      )}
-
 
       {/* Badges Dialog */}
       <BadgesDialog
