@@ -95,6 +95,7 @@ const Navbar = () => {
             ))}
           </div>
 
+
           {/* Right section (both desktop and mobile) */}
           <div className="flex items-center gap-3" style={{ gap: '0.75rem' }}>
             {/* <LanguageSelector /> */}
