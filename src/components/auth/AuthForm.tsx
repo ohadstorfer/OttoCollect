@@ -87,6 +87,81 @@ const AuthForm = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setBlockedError(null);
+    
+    // Comprehensive frontend validation
+    if (!registerUsername.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Username Required",
+        description: "Please enter a username.",
+      });
+      return;
+    }
+    
+    if (registerUsername.length < 3) {
+      toast({
+        variant: "destructive",
+        title: "Username Too Short",
+        description: "Username must be at least 3 characters long.",
+      });
+      return;
+    }
+    
+    if (!registerEmail.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Email Required",
+        description: "Please enter your email address.",
+      });
+      return;
+    }
+    
+    if (!registerConfirmEmail.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Email Confirmation Required",
+        description: "Please confirm your email address.",
+      });
+      return;
+    }
+    
+    if (registerEmail !== registerConfirmEmail) {
+      setEmailsMatch(false);
+      toast({
+        variant: "destructive",
+        title: "Email Mismatch",
+        description: "Email addresses do not match. Please try again.",
+      });
+      return;
+    }
+    
+    if (!registerPassword) {
+      toast({
+        variant: "destructive",
+        title: "Password Required",
+        description: "Please enter a password.",
+      });
+      return;
+    }
+    
+    if (registerPassword.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long.",
+      });
+      return;
+    }
+    
+    if (!registerConfirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Password Confirmation Required",
+        description: "Please confirm your password.",
+      });
+      return;
+    }
+    
     if (registerPassword !== registerConfirmPassword) {
       setPasswordsMatch(false);
       toast({
@@ -96,12 +171,14 @@ const AuthForm = () => {
       });
       return;
     }
-    if (registerEmail !== registerConfirmEmail) {
-      setEmailsMatch(false);
+    
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(registerEmail)) {
       toast({
         variant: "destructive",
-        title: "Email Mismatch",
-        description: "Email addresses do not match. Please try again.",
+        title: "Invalid Email Format",
+        description: "Please enter a valid email address.",
       });
       return;
     }

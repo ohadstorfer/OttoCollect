@@ -190,6 +190,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (username: string, email: string, password: string) => {
     setLoading(true);
+    
+    // Network connectivity check
+    if (!navigator.onLine) {
+      toast.error("No internet connection. Please check your network and try again.");
+      setLoading(false);
+      return;
+    }
+    
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -204,19 +212,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error("Registration error:", error);
-        // Handle specific Supabase auth errors
-        if (error.message?.includes('User already registered')) {
-          toast.error("An account with this email already exists. Please try logging in instead.");
-        } else if (error.message?.includes('Password should be at least')) {
-          toast.error("Password must be at least 6 characters long.");
-        } else if (error.message?.includes('Invalid email')) {
-          toast.error("Please enter a valid email address.");
+        // Handle specific Supabase auth errors with detailed messages
+        if (error.message?.includes('User already registered') || error.message?.includes('already been registered')) {
+          toast.error("An account with this email already exists. Please try logging in instead or use a different email address.");
+        } else if (error.message?.includes('Password should be at least') || error.message?.includes('password')) {
+          toast.error("Password must be at least 6 characters long and contain a mix of letters and numbers for security.");
+        } else if (error.message?.includes('Invalid email') || error.message?.includes('email')) {
+          toast.error("Please enter a valid email address (e.g., example@domain.com).");
         } else if (error.message?.includes('Signup is disabled')) {
-          toast.error("Registration is currently disabled. Please contact support.");
-        } else if (error.message?.includes('Email rate limit exceeded')) {
-          toast.error("Too many registration attempts. Please try again later.");
+          toast.error("Registration is currently disabled. Please contact support at support@ottocollect.com for assistance.");
+        } else if (error.message?.includes('Email rate limit exceeded') || error.message?.includes('rate limit')) {
+          toast.error("Too many registration attempts from this email. Please wait 5 minutes before trying again.");
+        } else if (error.message?.includes('fetch')) {
+          toast.error("Network error. Please check your internet connection and try again.");
+        } else if (error.message?.includes('timeout')) {
+          toast.error("Request timed out. Please try again in a moment.");
+        } else if (error.message?.includes('CORS')) {
+          toast.error("Configuration error. Please contact support if this persists.");
         } else {
-          toast.error(`Registration failed: ${error.message}`);
+          toast.error(`Registration failed: ${error.message}. Please contact support if this continues.`);
         }
         throw error;
       } else {
