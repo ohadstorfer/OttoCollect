@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getInitials } from '@/lib/utils';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface MessageListProps {
   conversations: Conversation[];
@@ -29,6 +30,7 @@ export function MessageList({
   const navigate = useNavigate();
   const { user } = useAuth();
   const { formatRelativeTime } = useDateLocale();
+  const { t } = useTranslation(['messaging']);
 
   if (isLoading && conversations.length === 0) {
     return (
@@ -50,9 +52,9 @@ export function MessageList({
   if (conversations.length === 0 && !isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-        <div className="text-muted-foreground mb-2">No conversations yet</div>
+        <div className="text-muted-foreground mb-2">{t('list.noConversations')}</div>
         <p className="text-sm text-muted-foreground">
-          Your messages with other collectors will appear here
+          {t('list.noConversationsDescription')}
         </p>
       </div>
     );
@@ -115,7 +117,7 @@ export function MessageList({
                   
                   <div className="flex items-center justify-between mt-1">
                     <p className="text-sm text-muted-foreground truncate max-w-[180px]">
-                      {conversation.lastMessage.senderId === conversation.otherUserId ? '' : 'You: '}
+                      {conversation.lastMessage.senderId === conversation.otherUserId ? '' : t('list.youPrefix') + ' '}
                       {conversation.lastMessage.content}
                     </p>
                     

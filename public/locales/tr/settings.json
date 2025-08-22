@@ -1,0 +1,51 @@
+{
+  "pageTitle": "Ayarlar",
+  "pageDescription": "Tercihlerinizi, gizliliğinizi ve hesap bilgilerinizi yönetin.",
+  "auth": {
+    "pleaseLoginToAccessSettings": "Ayarlara erişmek için lütfen giriş yapın."
+  },
+  "tabs": {
+    "profile": {
+      "label": "Profil",
+      "description": "Profil bilgilerinizi düzenleyin"
+    },
+    "password": {
+      "label": "Şifre",
+      "description": "Hesap şifrenizi değiştirin"
+    }
+  },
+  "profileSection": {
+    "title": "Profil Ayarları",
+    "description": "Kişisel bilgilerinizi ve tercihlerinizi güncelleyin"
+  },
+  "passwordSection": {
+    "title": "Şifre Ayarları",
+    "description": "Gelişmiş güvenlik için hesap şifrenizi değiştirin"
+  },
+  "changePassword": {
+    "title": "Şifre Değiştir",
+    "description": "Mevcut şifrenizi girin ve yeni bir tane seçin.",
+    "fields": {
+      "currentPassword": "Mevcut Şifre",
+      "newPassword": "Yeni Şifre",
+      "confirmNewPassword": "Yeni Şifreyi Onayla"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "Şifreler eşleşmiyor"
+    },
+    "errors": {
+      "fillAllFields": "Lütfen tüm alanları doldurun.",
+      "passwordsDoNotMatch": "Yeni şifreler eşleşmiyor.",
+      "sessionNotFound": "Kullanıcı oturumu bulunamadı.",
+      "incorrectCurrentPassword": "Mevcut şifre yanlış.",
+      "updateFailed": "Şifre güncelleme başarısız."
+    },
+    "success": {
+      "passwordUpdated": "Şifre başarıyla güncellendi!"
+    },
+    "buttons": {
+      "updating": "Güncelleniyor...",
+      "changePassword": "Şifre Değiştir"
+    }
+  }
+}

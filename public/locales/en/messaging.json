@@ -1,0 +1,67 @@
+{
+  "pageTitle": "Messages",
+  "pageDescription": "Chat with other collectors, discuss banknotes, and arrange trades or purchases.",
+  "auth": {
+    "signInToAccessMessages": "Sign In to Access Messages",
+    "signInDescription": "Please sign in to access your messages and chat with other collectors.",
+    "signIn": "Sign In"
+  },
+  "center": {
+    "title": "Messages",
+    "conversation": "Conversation"
+  },
+  "list": {
+    "noConversations": "No conversations yet",
+    "noConversationsDescription": "Your messages with other collectors will appear here",
+    "youPrefix": "You"
+  },
+  "panel": {
+    "dailyLimitReached": {
+      "title": "Daily Limit Reached",
+      "description": "You have reached your daily limit of 6 messages."
+    },
+    "failedToSend": {
+      "title": "Failed to Send",
+      "description": "Your message could not be sent. Please try again."
+    },
+    "signInToView": "Please sign in to view messages",
+    "selectConversation": "Select a conversation to view messages",
+    "noMessagesYet": "No messages yet. Start the conversation!",
+    "dailyLimitWarning": "You have reached your daily limit of 6 messages.",
+    "messageInputPlaceholder": "Enter your message..."
+  },
+  "contactSeller": {
+    "messageSent": {
+      "title": "Message Sent",
+      "description": "Your message has been sent to {{sellerName}}."
+    },
+    "error": {
+      "title": "Error",
+      "description": "Failed to send your message. Please try again."
+    },
+    "contactButton": "Contact Seller",
+    "dialogTitle": "Contact {{sellerName}}",
+    "dialogDescription": "Send a message about \"{{itemName}}\"",
+    "messagePlaceholder": "Write your message here...",
+    "cancel": "Cancel",
+    "sendMessage": "Send Message"
+  },
+  "sendMessage": {
+    "messageSent": {
+      "title": "Message Sent",
+      "description": "Your message has been sent to {{receiverName}}."
+    },
+    "error": {
+      "title": "Error",
+      "description": "Failed to send your message. Please try again."
+    },
+    "dialogTitle": "Send a message to {{receiverName}}",
+    "dialogDescription": "Your message will be private between you and {{receiverName}}.",
+    "messagePlaceholder": "Write your message here...",
+    "cancel": "Cancel",
+    "sendMessage": "Send Message"
+  },
+  "button": {
+    "messages": "Messages"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "pageTitle": "الرسائل",
+  "pageDescription": "دردش مع جامعي العملات الآخرين، ناقش الأوراق النقدية، ورتب الصفقات أو المشتريات.",
+  "auth": {
+    "signInToAccessMessages": "سجل الدخول للوصول إلى الرسائل",
+    "signInDescription": "يرجى تسجيل الدخول للوصول إلى رسائلك والدردشة مع جامعي العملات الآخرين.",
+    "signIn": "تسجيل الدخول"
+  },
+  "center": {
+    "title": "الرسائل",
+    "conversation": "محادثة"
+  },
+  "list": {
+    "noConversations": "لا توجد محادثات بعد",
+    "noConversationsDescription": "ستظهر رسائلك مع جامعي العملات الآخرين هنا",
+    "youPrefix": "أنت"
+  },
+  "panel": {
+    "dailyLimitReached": {
+      "title": "تم الوصول للحد اليومي",
+      "description": "لقد وصلت إلى الحد اليومي البالغ 6 رسائل."
+    },
+    "failedToSend": {
+      "title": "فشل في الإرسال",
+      "description": "تعذر إرسال رسالتك. يرجى المحاولة مرة أخرى."
+    },
+    "signInToView": "يرجى تسجيل الدخول لعرض الرسائل",
+    "selectConversation": "اختر محادثة لعرض الرسائل",
+    "noMessagesYet": "لا توجد رسائل بعد. ابدأ المحادثة!",
+    "dailyLimitWarning": "لقد وصلت إلى الحد اليومي البالغ 6 رسائل.",
+    "messageInputPlaceholder": "أدخل رسالتك..."
+  },
+  "contactSeller": {
+    "messageSent": {
+      "title": "تم إرسال الرسالة",
+      "description": "تم إرسال رسالتك إلى {{sellerName}}."
+    },
+    "error": {
+      "title": "خطأ",
+      "description": "فشل في إرسال رسالتك. يرجى المحاولة مرة أخرى."
+    },
+    "contactButton": "تواصل مع البائع",
+    "dialogTitle": "تواصل مع {{sellerName}}",
+    "dialogDescription": "أرسل رسالة حول \"{{itemName}}\"",
+    "messagePlaceholder": "اكتب رسالتك هنا...",
+    "cancel": "إلغاء",
+    "sendMessage": "إرسال الرسالة"
+  },
+  "sendMessage": {
+    "messageSent": {
+      "title": "تم إرسال الرسالة",
+      "description": "تم إرسال رسالتك إلى {{receiverName}}."
+    },
+    "error": {
+      "title": "خطأ",
+      "description": "فشل في إرسال رسالتك. يرجى المحاولة مرة أخرى."
+    },
+    "dialogTitle": "أرسل رسالة إلى {{receiverName}}",
+    "dialogDescription": "ستكون رسالتك خاصة بينك وبين {{receiverName}}.",
+    "messagePlaceholder": "اكتب رسالتك هنا...",
+    "cancel": "إلغاء",
+    "sendMessage": "إرسال الرسالة"
+  },
+  "button": {
+    "messages": "الرسائل"
+  }
+}

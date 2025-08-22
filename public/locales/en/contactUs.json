@@ -1,0 +1,30 @@
+{
+  "pageTitle": "Contact Us",
+  "pageDescription": "We're here to help! Choose the best way to reach us based on your needs.",
+  "emailSection": {
+    "title": "Email Support",
+    "description": "Get in touch via email for general inquiries"
+  },
+  "socialMediaSection": {
+    "title": "Follow Us",
+    "description": "Stay updated with our latest news and updates"
+  },
+  "directMessageSection": {
+    "title": "Direct Message",
+    "description": "Send a private message to our administrators"
+  },
+  "auth": {
+    "signInToMessage": "Sign in to message our administrators",
+    "signIn": "Sign In"
+  },
+  "status": {
+    "loadingAdministrators": "Loading administrators...",
+    "noAdministratorsAvailable": "No administrators available"
+  },
+  "helpSection": {
+    "title": "Need Help?",
+    "emailTip": "For general questions and support, use our email",
+    "instagramTip": "Follow us on Instagram for updates and community highlights",
+    "adminMessageTip": "Message our administrators directly for account-specific issues"
+  }
+}

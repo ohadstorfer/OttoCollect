@@ -14,6 +14,7 @@ import { sendMessage } from '@/services/messageService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface SendMessageProps {
   receiverId: string;
@@ -28,6 +29,7 @@ export function SendMessage({ receiverId, receiverName, isOpen, onOpenChange }: 
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useTranslation(['messaging']);
   
   const handleSendMessage = async () => {
     if (!message.trim() || !user?.id) return;
@@ -38,8 +40,8 @@ export function SendMessage({ receiverId, receiverName, isOpen, onOpenChange }: 
       
       if (result) {
         toast({
-          title: "Message Sent",
-          description: `Your message has been sent to ${receiverName}.`,
+          title: t('sendMessage.messageSent.title'),
+          description: t('sendMessage.messageSent.description', { receiverName }),
         });
         setMessage('');
         onOpenChange(false);
@@ -48,8 +50,8 @@ export function SendMessage({ receiverId, receiverName, isOpen, onOpenChange }: 
         navigate('/community');
       } else {
         toast({
-          title: "Error",
-          description: "Failed to send your message. Please try again.",
+          title: t('sendMessage.error.title'),
+          description: t('sendMessage.error.description'),
           variant: "destructive",
         });
       }
@@ -62,15 +64,15 @@ export function SendMessage({ receiverId, receiverName, isOpen, onOpenChange }: 
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Send a message to {receiverName}</DialogTitle>
+          <DialogTitle>{t('sendMessage.dialogTitle', { receiverName })}</DialogTitle>
           <DialogDescription>
-            Your message will be private between you and {receiverName}.
+            {t('sendMessage.dialogDescription', { receiverName })}
           </DialogDescription>
         </DialogHeader>
         
         <div className="py-4">
           <Textarea
-            placeholder="Write your message here..."
+            placeholder={t('sendMessage.messagePlaceholder')}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="min-h-[100px]"
@@ -79,13 +81,13 @@ export function SendMessage({ receiverId, receiverName, isOpen, onOpenChange }: 
         
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('sendMessage.cancel')}
           </Button>
           <Button 
             onClick={handleSendMessage}
             disabled={isSending || !message.trim()}
           >
-            Send Message
+            {t('sendMessage.sendMessage')}
           </Button>
         </DialogFooter>
       </DialogContent>

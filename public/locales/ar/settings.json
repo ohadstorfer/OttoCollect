@@ -1,0 +1,51 @@
+{
+  "pageTitle": "الإعدادات",
+  "pageDescription": "إدارة تفضيلاتك والخصوصية وتفاصيل الحساب.",
+  "auth": {
+    "pleaseLoginToAccessSettings": "يرجى تسجيل الدخول للوصول إلى الإعدادات."
+  },
+  "tabs": {
+    "profile": {
+      "label": "الملف الشخصي",
+      "description": "تحرير معلومات ملفك الشخصي"
+    },
+    "password": {
+      "label": "كلمة المرور",
+      "description": "تغيير كلمة مرور حسابك"
+    }
+  },
+  "profileSection": {
+    "title": "إعدادات الملف الشخصي",
+    "description": "تحديث معلوماتك الشخصية والتفضيلات"
+  },
+  "passwordSection": {
+    "title": "إعدادات كلمة المرور",
+    "description": "تغيير كلمة مرور حسابك لتعزيز الأمان"
+  },
+  "changePassword": {
+    "title": "تغيير كلمة المرور",
+    "description": "أدخل كلمة المرور الحالية واختر واحدة جديدة.",
+    "fields": {
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmNewPassword": "تأكيد كلمة المرور الجديدة"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "كلمات المرور غير متطابقة"
+    },
+    "errors": {
+      "fillAllFields": "يرجى ملء جميع الحقول.",
+      "passwordsDoNotMatch": "كلمات المرور الجديدة غير متطابقة.",
+      "sessionNotFound": "لم يتم العثور على جلسة المستخدم.",
+      "incorrectCurrentPassword": "كلمة المرور الحالية غير صحيحة.",
+      "updateFailed": "فشل في تحديث كلمة المرور."
+    },
+    "success": {
+      "passwordUpdated": "تم تحديث كلمة المرور بنجاح!"
+    },
+    "buttons": {
+      "updating": "جاري التحديث...",
+      "changePassword": "تغيير كلمة المرور"
+    }
+  }
+}

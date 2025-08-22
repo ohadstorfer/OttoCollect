@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
 import { checkUserDailyMessagingLimit } from "@/services/messageService";
+import { useTranslation } from 'react-i18next';
 
 export default function Messaging() {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ export default function Messaging() {
   const { userId } = useParams<{ userId: string }>();
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
+  const { t } = useTranslation(['messaging']);
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
@@ -37,17 +39,17 @@ export default function Messaging() {
   if (!user) {
     return (
       <div className="page-container">
-        <h1 className="page-title"> <span> Messages </span> </h1>
+        <h1 className="page-title"> <span> {t('pageTitle')} </span> </h1>
         
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4"> <span> Sign In to Access Messages </span> </h2>
+            <h2 className="text-2xl font-serif mb-4"> <span> {t('auth.signInToAccessMessages')} </span> </h2>
             <p className="mb-6 text-muted-foreground">
-              Please sign in to access your messages and chat with other collectors.
+              {t('auth.signInDescription')}
             </p>
             <Button onClick={() => navigate('/auth')}>
               <LogIn className="mr-2 h-4 w-4" />
-              Sign In
+              {t('auth.signIn')}
             </Button>
           </div>
         </div>
@@ -57,11 +59,11 @@ export default function Messaging() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title"> <span> Messages </span> </h1>
+      <h1 className="page-title"> <span> {t('pageTitle')} </span> </h1>
       
       <div className="flex flex-col mb-10">
         <p className="text-muted-foreground mb-4 text-center">
-          Chat with other collectors, discuss banknotes, and arrange trades or purchases.
+          {t('pageDescription')}
         </p>
         
         <MessageCenter 

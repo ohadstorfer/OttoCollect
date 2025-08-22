@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 const ChangePassword: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -13,15 +14,16 @@ const ChangePassword: React.FC = () => {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { t } = useTranslation(['settings']);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentPassword || !newPassword || !confirmNewPassword) {
-      toast.error("Please fill in all fields.");
+      toast.error(t('changePassword.errors.fillAllFields'));
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      toast.error("New passwords do not match.");
+      toast.error(t('changePassword.errors.passwordsDoNotMatch'));
       return;
     }
     setSubmitting(true);
@@ -30,7 +32,7 @@ const ChangePassword: React.FC = () => {
     const userSession = await supabase.auth.getSession();
     const userEmail = userSession.data.session?.user.email;
     if (!userEmail) {
-      toast.error("User session not found.");
+      toast.error(t('changePassword.errors.sessionNotFound'));
       setSubmitting(false);
       return;
     }
@@ -40,7 +42,7 @@ const ChangePassword: React.FC = () => {
       password: currentPassword,
     });
     if (loginError) {
-      toast.error("Current password is incorrect.");
+      toast.error(t('changePassword.errors.incorrectCurrentPassword'));
       setSubmitting(false);
       return;
     }
@@ -48,11 +50,11 @@ const ChangePassword: React.FC = () => {
     // Step 2: Update password
     const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
     if (pwError) {
-      toast.error(pwError.message || "Password update failed.");
+      toast.error(pwError.message || t('changePassword.errors.updateFailed'));
       setSubmitting(false);
       return;
     }
-    toast.success("Password updated successfully!");
+    toast.success(t('changePassword.success.passwordUpdated'));
     setCurrentPassword("");
     setNewPassword("");
     setConfirmNewPassword("");
@@ -64,15 +66,15 @@ const ChangePassword: React.FC = () => {
       <Card className="ottoman-card shadow-lg ">
         <div className="space-y-6 px-6 py-4">
           <div className="text-center">
-            <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500"><span>Change Password</span></h3>
+            <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500"><span>{t('changePassword.title')}</span></h3>
             <p className="text-ottoman-200 text-sm">
-              Enter your current password and choose a new one.
+              {t('changePassword.description')}
             </p>
           </div>
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="current-password" className="text-sm font-medium text-ottoman-200">
-                Current Password
+                {t('changePassword.fields.currentPassword')}
               </label>
               <div className="relative">
                 <Input
@@ -95,7 +97,7 @@ const ChangePassword: React.FC = () => {
             </div>
             <div className="space-y-2">
               <label htmlFor="new-password" className="text-sm font-medium text-ottoman-200">
-                New Password
+                {t('changePassword.fields.newPassword')}
               </label>
               <Input
                 id="new-password"
@@ -109,7 +111,7 @@ const ChangePassword: React.FC = () => {
             </div>
             <div className="space-y-2">
               <label htmlFor="confirm-new-password" className="text-sm font-medium text-ottoman-200">
-                Confirm New Password
+                {t('changePassword.fields.confirmNewPassword')}
               </label>
               <Input
                 id="confirm-new-password"
@@ -126,11 +128,11 @@ const ChangePassword: React.FC = () => {
               {newPassword &&
                 confirmNewPassword &&
                 newPassword !== confirmNewPassword && (
-                  <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                  <p className="text-xs text-red-500 mt-1">{t('changePassword.validation.passwordsDoNotMatch')}</p>
               )}
             </div>
             <Button type="submit" className="ottoman-button w-full" disabled={submitting}>
-              {submitting ? "Updating..." : "Change Password"}
+              {submitting ? t('changePassword.buttons.updating') : t('changePassword.buttons.changePassword')}
             </Button>
           </form>
         </div>

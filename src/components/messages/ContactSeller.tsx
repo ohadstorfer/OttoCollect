@@ -15,6 +15,7 @@ import { sendMessage } from '@/services/messageService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { MessageSquare } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ContactSellerProps {
   sellerId: string;
@@ -29,6 +30,7 @@ export function ContactSeller({ sellerId, sellerName, itemId, itemName }: Contac
   const [isSending, setIsSending] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation(['messaging']);
   
   const handleSendMessage = async () => {
     if (!message.trim() || !user?.id) return;
@@ -39,15 +41,15 @@ export function ContactSeller({ sellerId, sellerName, itemId, itemName }: Contac
       
       if (result) {
         toast({
-          title: "Message Sent",
-          description: `Your message has been sent to ${sellerName}.`,
+          title: t('contactSeller.messageSent.title'),
+          description: t('contactSeller.messageSent.description', { sellerName }),
         });
         setMessage('');
         setIsOpen(false);
       } else {
         toast({
-          title: "Error",
-          description: "Failed to send your message. Please try again.",
+          title: t('contactSeller.error.title'),
+          description: t('contactSeller.error.description'),
           variant: "destructive",
         });
       }
@@ -72,20 +74,20 @@ export function ContactSeller({ sellerId, sellerName, itemId, itemName }: Contac
       <DialogTrigger asChild>
         <Button size="sm" className="mt-2" variant="outline">
           <MessageSquare className="h-4 w-4 mr-2" />
-          Contact Seller
+          {t('contactSeller.contactButton')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Contact {sellerName}</DialogTitle>
+          <DialogTitle>{t('contactSeller.dialogTitle', { sellerName })}</DialogTitle>
           <DialogDescription>
-            Send a message about "{itemName}"
+            {t('contactSeller.dialogDescription', { itemName })}
           </DialogDescription>
         </DialogHeader>
         
         <div className="py-4">
           <Textarea
-            placeholder="Write your message here..."
+            placeholder={t('contactSeller.messagePlaceholder')}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="min-h-[100px]"
@@ -94,13 +96,13 @@ export function ContactSeller({ sellerId, sellerName, itemId, itemName }: Contac
         
         <DialogFooter>
           <Button variant="outline" onClick={() => setIsOpen(false)}>
-            Cancel
+            {t('contactSeller.cancel')}
           </Button>
           <Button 
             onClick={handleSendMessage}
             disabled={isSending || !message.trim()}
           >
-            Send Message
+            {t('contactSeller.sendMessage')}
           </Button>
         </DialogFooter>
       </DialogContent>

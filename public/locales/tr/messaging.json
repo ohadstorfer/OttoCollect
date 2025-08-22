@@ -1,0 +1,67 @@
+{
+  "pageTitle": "Mesajlar",
+  "pageDescription": "Diğer koleksiyoncularla sohbet edin, banknotları tartışın ve ticaret veya satın alma işlemlerini düzenleyin.",
+  "auth": {
+    "signInToAccessMessages": "Mesajlara Erişmek için Giriş Yapın",
+    "signInDescription": "Mesajlarınıza erişmek ve diğer koleksiyoncularla sohbet etmek için lütfen giriş yapın.",
+    "signIn": "Giriş Yap"
+  },
+  "center": {
+    "title": "Mesajlar",
+    "conversation": "Konuşma"
+  },
+  "list": {
+    "noConversations": "Henüz konuşma yok",
+    "noConversationsDescription": "Diğer koleksiyoncularla mesajlarınız burada görünecek",
+    "youPrefix": "Sen"
+  },
+  "panel": {
+    "dailyLimitReached": {
+      "title": "Günlük Limit Ulaşıldı",
+      "description": "6 mesajlık günlük limitinize ulaştınız."
+    },
+    "failedToSend": {
+      "title": "Gönderilemedi",
+      "description": "Mesajınız gönderilemedi. Lütfen tekrar deneyin."
+    },
+    "signInToView": "Mesajları görüntülemek için lütfen giriş yapın",
+    "selectConversation": "Mesajları görüntülemek için bir konuşma seçin",
+    "noMessagesYet": "Henüz mesaj yok. Konuşmayı başlatın!",
+    "dailyLimitWarning": "6 mesajlık günlük limitinize ulaştınız.",
+    "messageInputPlaceholder": "Mesajınızı girin..."
+  },
+  "contactSeller": {
+    "messageSent": {
+      "title": "Mesaj Gönderildi",
+      "description": "Mesajınız {{sellerName}} adresine gönderildi."
+    },
+    "error": {
+      "title": "Hata",
+      "description": "Mesajınız gönderilemedi. Lütfen tekrar deneyin."
+    },
+    "contactButton": "Satıcıyla İletişim Kur",
+    "dialogTitle": "{{sellerName}} ile İletişim Kur",
+    "dialogDescription": "\"{{itemName}}\" hakkında mesaj gönderin",
+    "messagePlaceholder": "Mesajınızı buraya yazın...",
+    "cancel": "İptal",
+    "sendMessage": "Mesaj Gönder"
+  },
+  "sendMessage": {
+    "messageSent": {
+      "title": "Mesaj Gönderildi",
+      "description": "Mesajınız {{receiverName}} adresine gönderildi."
+    },
+    "error": {
+      "title": "Hata",
+      "description": "Mesajınız gönderilemedi. Lütfen tekrar deneyin."
+    },
+    "dialogTitle": "{{receiverName}} adresine mesaj gönderin",
+    "dialogDescription": "Mesajınız sizinle {{receiverName}} arasında özel olacak.",
+    "messagePlaceholder": "Mesajınızı buraya yazın...",
+    "cancel": "İptal",
+    "sendMessage": "Mesaj Gönder"
+  },
+  "button": {
+    "messages": "Mesajlar"
+  }
+}

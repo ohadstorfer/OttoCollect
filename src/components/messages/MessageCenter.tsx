@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { UserRank } from '@/types';
 import { checkUserDailyMessagingLimit } from '@/services/messageService';
 import { Message } from '@/types/message';
+import { useTranslation } from 'react-i18next';
 
 interface MessageCenterProps {
   hasReachedDailyLimit?: boolean;
@@ -29,6 +30,7 @@ export function MessageCenter({
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(initialHasReachedDailyLimit);
   const [dailyCount, setDailyCount] = useState(0);
   const [temporaryConversation, setTemporaryConversation] = useState<any | null>(null);
+  const { t } = useTranslation(['messaging']);
 
   const { 
     conversations, 
@@ -149,7 +151,7 @@ export function MessageCenter({
       <div className="flex items-center justify-between p-4 border-b bg-muted/30">
         <h2 className="text-2xl font-serif font-medium text-parchment-500 flex items-center">
           <MessageCircle className="mr-2" size={24} />
-          <span>Messages</span>
+          <span>{t('center.title')}</span>
         </h2>
       </div>
       
@@ -179,7 +181,7 @@ export function MessageCenter({
                   <ChevronLeft size={20} />
                 </Button>
                 <span className="ml-2 font-medium">
-                  {activeRecipientData?.username || 'Conversation'}
+                  {activeRecipientData?.username || t('center.conversation')}
                 </span>
               </div>
             )}

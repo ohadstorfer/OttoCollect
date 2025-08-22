@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageSquare } from "lucide-react";
 import { getUnreadMessagesCount } from '@/services/messageService';
 import { subscribeToMessages } from '@/services/messageService';
+import { useTranslation } from 'react-i18next';
 
 interface MessageButtonProps {
   userId?: string;
@@ -13,6 +14,7 @@ interface MessageButtonProps {
 
 export function MessageButton({ userId, onClick }: MessageButtonProps) {
   const [unreadCount, setUnreadCount] = useState(0);
+  const { t } = useTranslation(['messaging']);
   
   // Fetch initial unread count and subscribe to new messages
   useEffect(() => {
@@ -44,7 +46,7 @@ export function MessageButton({ userId, onClick }: MessageButtonProps) {
       className="relative"
     >
       <MessageSquare className="h-5 w-5" />
-      <span className="sr-only">Messages</span>
+      <span className="sr-only">{t('button.messages')}</span>
       
       {unreadCount > 0 && (
         <Badge 

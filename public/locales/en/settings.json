@@ -1,0 +1,51 @@
+{
+  "pageTitle": "Settings",
+  "pageDescription": "Manage your preferences, privacy, and account details.",
+  "auth": {
+    "pleaseLoginToAccessSettings": "Please log in to access settings."
+  },
+  "tabs": {
+    "profile": {
+      "label": "Profile",
+      "description": "Edit your profile information"
+    },
+    "password": {
+      "label": "Password",
+      "description": "Change your account password"
+    }
+  },
+  "profileSection": {
+    "title": "Profile Settings",
+    "description": "Update your personal information and preferences"
+  },
+  "passwordSection": {
+    "title": "Password Settings",
+    "description": "Change your account password for enhanced security"
+  },
+  "changePassword": {
+    "title": "Change Password",
+    "description": "Enter your current password and choose a new one.",
+    "fields": {
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmNewPassword": "Confirm New Password"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "Passwords do not match"
+    },
+    "errors": {
+      "fillAllFields": "Please fill in all fields.",
+      "passwordsDoNotMatch": "New passwords do not match.",
+      "sessionNotFound": "User session not found.",
+      "incorrectCurrentPassword": "Current password is incorrect.",
+      "updateFailed": "Password update failed."
+    },
+    "success": {
+      "passwordUpdated": "Password updated successfully!"
+    },
+    "buttons": {
+      "updating": "Updating...",
+      "changePassword": "Change Password"
+    }
+  }
+}

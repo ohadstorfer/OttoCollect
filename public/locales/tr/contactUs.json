@@ -1,0 +1,30 @@
+{
+  "pageTitle": "Bize Ulaşın",
+  "pageDescription": "Size yardım etmek için buradayız! İhtiyaçlarınıza göre bize ulaşmanın en iyi yolunu seçin.",
+  "emailSection": {
+    "title": "E-posta Desteği",
+    "description": "Genel sorular için e-posta ile iletişime geçin"
+  },
+  "socialMediaSection": {
+    "title": "Bizi Takip Edin",
+    "description": "En son haberler ve güncellemeler için bizi takip edin"
+  },
+  "directMessageSection": {
+    "title": "Doğrudan Mesaj",
+    "description": "Yöneticilerimize özel mesaj gönderin"
+  },
+  "auth": {
+    "signInToMessage": "Yöneticilerimizi mesajlamak için giriş yapın",
+    "signIn": "Giriş Yap"
+  },
+  "status": {
+    "loadingAdministrators": "Yöneticiler yükleniyor...",
+    "noAdministratorsAvailable": "Yönetici mevcut değil"
+  },
+  "helpSection": {
+    "title": "Yardıma mı ihtiyacınız var?",
+    "emailTip": "Genel sorular ve destek için e-postamızı kullanın",
+    "instagramTip": "Güncellemeler ve topluluk vurguları için bizi Instagram'da takip edin",
+    "adminMessageTip": "Hesap özelindeki sorunlar için yöneticilerimizi doğrudan mesajlayın"
+  }
+}

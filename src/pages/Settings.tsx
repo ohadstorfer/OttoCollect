@@ -5,6 +5,7 @@ import { useTheme } from '@/context/ThemeContext';
 import ChangePassword from '@/components/auth/ChangePassword';
 import { User, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 type SettingsTab = 'profile' | 'password';
 
@@ -13,6 +14,7 @@ const Settings: React.FC = () => {
   const [isEditing, setIsEditing] = useState(true);
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const { theme } = useTheme();
+  const { t } = useTranslation(['settings']);
 
   const handleSaveComplete = () => {
     // Keep editing mode active in settings
@@ -23,7 +25,7 @@ const Settings: React.FC = () => {
     return (
       <div className="page-container py-10">
         <div className="max-w-4xl mx-auto">
-          <p>Please log in to access settings.</p>
+          <p>{t('auth.pleaseLoginToAccessSettings')}</p>
         </div>
       </div>
     );
@@ -32,15 +34,15 @@ const Settings: React.FC = () => {
   const tabs = [
     {
       id: 'profile' as SettingsTab,
-      label: 'Profile',
+      label: t('tabs.profile.label'),
       icon: User,
-      description: 'Edit your profile information'
+      description: t('tabs.profile.description')
     },
     {
       id: 'password' as SettingsTab,
-      label: 'Password',
+      label: t('tabs.password.label'),
       icon: Lock,
-      description: 'Change your account password'
+      description: t('tabs.password.description')
     }
   ];
 
@@ -62,7 +64,7 @@ const Settings: React.FC = () => {
             className={`text-2xl md:text-3xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'
               } fade-bottom`}
           >
-            <span>Settings</span>
+            <span>{t('pageTitle')}</span>
           </h1>
         </div>
 
@@ -70,7 +72,7 @@ const Settings: React.FC = () => {
           className={`mt-2 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'
             } max-w-2xl mx-auto fade-bottom text-sm`}
         >
-          Manage your preferences, privacy, and account details.
+          {t('pageDescription')}
         </p>
       </section>
 
@@ -122,8 +124,8 @@ const Settings: React.FC = () => {
                   <User className="h-4 w-4 text-ottoman-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold"> <span> Profile Settings </span> </h2>
-                  <p className="text-xs text-muted-foreground">Update your personal information and preferences</p>
+                  <h2 className="text-lg font-semibold"> <span> {t('profileSection.title')} </span> </h2>
+                  <p className="text-xs text-muted-foreground">{t('profileSection.description')}</p>
                 </div>
               </div>
               
@@ -144,8 +146,8 @@ const Settings: React.FC = () => {
                   <Lock className="h-4 w-4 text-ottoman-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold"> <span> Password Settings </span> </h2>
-                  <p className="text-xs text-muted-foreground">Change your account password for enhanced security</p>
+                  <h2 className="text-lg font-semibold"> <span> {t('passwordSection.title')} </span> </h2>
+                  <p className="text-xs text-muted-foreground">{t('passwordSection.description')}</p>
                 </div>
               </div>
               

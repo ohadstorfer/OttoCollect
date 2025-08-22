@@ -10,6 +10,7 @@ import UserProfileLink from '@/components/common/UserProfileLink';
 import { useTheme } from '@/context/ThemeContext';
 import SEOHead from '@/components/seo/SEOHead';
 import { SEO_CONFIG } from '@/config/seoConfig';
+import { useTranslation } from 'react-i18next';
 
 export default function ContactUs() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function ContactUs() {
   const [superAdmins, setSuperAdmins] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
+  const { t } = useTranslation(['contactUs']);
 
 
   useEffect(() => {
@@ -66,12 +68,12 @@ export default function ContactUs() {
         <div className="container mx-auto px-4 relative z-10 flex items-center justify-center">
           
           <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
-            <span>Contact Us</span>
+            <span>{t('pageTitle')}</span>
           </h1>
           
         </div>
         <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
-          We're here to help! Choose the best way to reach us based on your needs.
+          {t('pageDescription')}
           </p>
       </section>
 
@@ -86,9 +88,9 @@ export default function ContactUs() {
           <Card className="ottoman-card">
             <CardHeader className="text-center">
               <Mail className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <CardTitle><span>Email Support</span></CardTitle>
+              <CardTitle><span>{t('emailSection.title')}</span></CardTitle>
               <CardDescription>
-                Get in touch via email for general inquiries
+                {t('emailSection.description')}
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center sm:mt-4">
@@ -105,9 +107,9 @@ export default function ContactUs() {
           <Card className="ottoman-card">
             <CardHeader className="text-center">
               <Instagram className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <CardTitle><span>Follow Us</span></CardTitle>
+              <CardTitle><span>{t('socialMediaSection.title')}</span></CardTitle>
               <CardDescription>
-                Stay updated with our latest news and updates
+                {t('socialMediaSection.description')}
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
@@ -126,28 +128,28 @@ export default function ContactUs() {
           <Card className="ottoman-card">
             <CardHeader className="text-center">
               <MessageCircle className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <CardTitle><span>Direct Message</span></CardTitle>
+              <CardTitle><span>{t('directMessageSection.title')}</span></CardTitle>
               <CardDescription>
-                Send a private message to our administrators
+                {t('directMessageSection.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {!user ? (
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground mb-3">
-                    Sign in to message our administrators
+                    {t('auth.signInToMessage')}
                   </p>
                   <Button onClick={() => navigate('/auth')} className="w-full">
-                    Sign In
+                    {t('auth.signIn')}
                   </Button>
                 </div>
               ) : loading ? (
                 <div className="text-center text-muted-foreground">
-                  Loading administrators...
+                  {t('status.loadingAdministrators')}
                 </div>
               ) : superAdmins.length === 0 ? (
                 <div className="text-center text-muted-foreground">
-                  No administrators available
+                  {t('status.noAdministratorsAvailable')}
                 </div>
               ) : (
                 <div className="flex flex-wrap justify-center gap-2 mb-0">
@@ -183,18 +185,18 @@ export default function ContactUs() {
         {/* Additional Information */}
         <Card className="ottoman-card mt-8">
           <CardHeader>
-            <CardTitle className="text-center"><span>Need Help?</span></CardTitle>
+            <CardTitle className="text-center"><span>{t('helpSection.title')}</span></CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center space-y-2 text-sm text-muted-foreground">
               <p>
-                • For general questions and support, use our email
+                • {t('helpSection.emailTip')}
               </p>
               <p>
-                • Follow us on Instagram for updates and community highlights
+                • {t('helpSection.instagramTip')}
               </p>
               <p>
-                • Message our administrators directly for account-specific issues
+                • {t('helpSection.adminMessageTip')}
               </p>
             </div>
           </CardContent>

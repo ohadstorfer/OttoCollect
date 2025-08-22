@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Message, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface MessagePanelProps {
   messages?: Message[];
@@ -38,6 +39,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation(['messaging']);
   
   useEffect(() => {
     if (messages && messages.length > 0) {
@@ -94,8 +96,8 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     // Check if user has reached daily limit
     if (isLimitedRank && hasReachedDailyLimit) {
       toast({
-        title: "Daily Limit Reached",
-        description: "You have reached your daily limit of 6 messages.",
+        title: t('panel.dailyLimitReached.title'),
+        description: t('panel.dailyLimitReached.description'),
         variant: "destructive"
       });
       return;
@@ -122,8 +124,8 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
           // Restore message if failed
           setNewMessage(messageContent);
           toast({
-            title: "Failed to Send",
-            description: "Your message could not be sent. Please try again.",
+            title: t('panel.failedToSend.title'),
+            description: t('panel.failedToSend.description'),
             variant: "destructive"
           });
         } else {
@@ -148,8 +150,8 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
           // Restore message if failed
           setNewMessage(messageContent);
           toast({
-            title: "Failed to Send",
-            description: "Your message could not be sent. Please try again.",
+            title: t('panel.failedToSend.title'),
+            description: t('panel.failedToSend.description'),
             variant: "destructive"
           });
         } else {
@@ -163,8 +165,8 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
       // Restore message if failed
       setNewMessage(messageContent);
       toast({
-        title: "Failed to Send",
-        description: "Your message could not be sent. Please try again.",
+        title: t('panel.failedToSend.title'),
+        description: t('panel.failedToSend.description'),
         variant: "destructive"
       });
     }
@@ -215,7 +217,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
   if (!currentUserId) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-muted-foreground">Please sign in to view messages</p>
+        <p className="text-muted-foreground">{t('panel.signInToView')}</p>
       </div>
     );
   }
@@ -224,7 +226,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     <div className="flex flex-col h-full min-h-0">
       {!recipientId && !recipientData ? (
         <div className="flex-grow flex items-center justify-center">
-          <p className="text-muted-foreground">Select a conversation to view messages</p>
+          <p className="text-muted-foreground">{t('panel.selectConversation')}</p>
         </div>
       ) : (
         <>
@@ -234,7 +236,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
           >
             {displayMessages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
+                <p className="text-muted-foreground">{t('panel.noMessagesYet')}</p>
               </div>
             ) : (
               displayMessages.map((message) => (
@@ -274,7 +276,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
             <div className="mb-4 text-center">
               <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800">
                 <p className="text-red-600 dark:text-red-400 text-sm">
-                  You have reached your daily limit of 6 messages.
+                  {t('panel.dailyLimitWarning')}
                 </p>
               </div>
             </div>
@@ -284,7 +286,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
             <Input
               ref={inputRef}
               type="text"
-              placeholder="Enter your message..."
+              placeholder={t('panel.messageInputPlaceholder')}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={handleKeyPress}
