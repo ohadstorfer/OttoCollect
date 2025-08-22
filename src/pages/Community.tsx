@@ -7,41 +7,43 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import SEOHead from "@/components/seo/SEOHead";
 import { SEO_CONFIG } from "@/config/seoConfig";
+import { useTranslation } from 'react-i18next';
 
 export default function Community() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation(['pages']);
 
   const communityFeatures = [
     {
-      title: "Messages",
-      description: "Chat with other collectors and sellers",
+      title: t('community.features.messages.title'),
+      description: t('community.features.messages.description'),
       icon: <MessageCircle className="h-8 w-8 text-ottoman-500" />,
       action: () => navigate('/messaging'),
-      buttonText: "Go to Messages"
+      buttonText: t('community.features.messages.button')
     },
     {
-      title: "Members",
-      description: "Browse other collectors and view their profiles",
+      title: t('community.features.members.title'),
+      description: t('community.features.members.description'),
       icon: <Users className="h-8 w-8 text-ottoman-500" />,
       action: () => navigate('/members'),
-      buttonText: "Browse Members",
+      buttonText: t('community.features.members.button'),
       comingSoon: false
     },
     {
-      title: "Forum",
-      description: "Discuss banknotes and collecting strategies",
+      title: t('community.features.forum.title'),
+      description: t('community.features.forum.description'),
       icon: <BookOpen className="h-8 w-8 text-ottoman-500" />,
       action: () => navigate('/community/forum'),
-      buttonText: "Visit Forum",
+      buttonText: t('community.features.forum.button'),
       comingSoon: false
     },
     {
-      title: "Badges",
-      description: "Earn badges for your collecting achievements",
+      title: t('community.features.badges.title'),
+      description: t('community.features.badges.description'),
       icon: <Award className="h-8 w-8 text-ottoman-500" />,
       action: () => {},
-      buttonText: "View Badges",
+      buttonText: t('community.features.badges.button'),
       comingSoon: true
     }
   ];
@@ -49,17 +51,17 @@ export default function Community() {
   if (!user) {
     return (
       <div className="page-container">
-        <h1 className="page-title"><span>Community</span></h1>
+        <h1 className="page-title"><span>{t('community.title')}</span></h1>
         
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4"><span>Join the Community</span></h2>
+            <h2 className="text-2xl font-serif mb-4"><span>{t('community.join.title')}</span></h2>
             <p className="mb-6 text-muted-foreground">
-              Please sign in to access community features including messaging, forums, and more.
+              {t('community.join.description')}
             </p>
             <Button onClick={() => navigate('/auth')}>
               <LogIn className="mr-2 h-4 w-4" />
-              Sign In
+              {t('community.join.signIn')}
             </Button>
           </div>
         </div>
@@ -74,11 +76,11 @@ export default function Community() {
         description={SEO_CONFIG.pages.community.description}
         keywords={SEO_CONFIG.pages.community.keywords}
       />
-      <h1 className="page-title"><span>Community</span></h1>
+      <h1 className="page-title"><span>{t('community.title')}</span></h1>
       
       <div className="flex flex-col mb-10">
         <p className="text-muted-foreground mb-6">
-          Connect with other collectors, share knowledge, and grow your collection through community engagement.
+          {t('community.description')}
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -90,7 +92,7 @@ export default function Community() {
                   <CardTitle className="text-xl">{feature.title}</CardTitle>
                   {feature.comingSoon && (
                     <span className="inline-flex items-center rounded-md bg-ottoman-900/20 px-2 py-1 text-xs font-medium text-ottoman-300 ring-1 ring-inset ring-ottoman-700/30">
-                      Coming soon
+                      {t('community.comingSoon')}
                     </span>
                   )}
                 </div>

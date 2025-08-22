@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Role } from '@/types';
 import { Search, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { blockUserByEmail, deleteUserById } from '@/services/profileService';
 import UserProfileDialog from './UserProfileDialog';
 
@@ -16,6 +17,7 @@ interface UserManagementProps {
 }
 
 const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
+  const { t } = useTranslation(['admin']);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -72,7 +74,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       setUsers(formattedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast.error('Failed to load users');
+      toast.error(t('userManagement.errors.loadUsersFailed'));
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       setRoles(data);
     } catch (error) {
       console.error('Error fetching roles:', error);
-      toast.error('Failed to load roles');
+      toast.error(t('userManagement.errors.loadRolesFailed'));
     }
   };
 
@@ -118,7 +120,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         throw error;
       }
       
-      toast.success(`User role updated to ${selectedRole.name}`);
+      toast.success(t('userManagement.success.roleUpdated', { role: selectedRole.name }));
       
       // Update local state
       setUsers(users.map(user => 
@@ -132,13 +134,13 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       ));
     } catch (error) {
       console.error('Error updating user role:', error);
-      toast.error('Failed to update user role');
+      toast.error(t('userManagement.errors.updateRoleFailed'));
     }
   };
 
   const getRoleDisplay = (user: User) => {
     const role = roles.find(r => r.id === user.role_id);
-    return role?.name || user.role || 'Unknown Role';
+    return role?.name || user.role || t('userManagement.unknownRole');
   };
 
   const filteredUsers = users.filter(user =>
@@ -173,11 +175,11 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
 
       if (updateError) throw updateError;
 
-      toast.success('User blocked and prevented from logging in.');
+      toast.success(t('userManagement.success.userBlocked'));
       await fetchUsers();
     } catch (error) {
       console.error('Error blocking user:', error);
-      toast.error('Failed to remove and block user');
+      toast.error(t('userManagement.errors.blockUserFailed'));
     } finally {
       setRemovingUserId(null);
       setShowRemoveDialog(false);
@@ -207,11 +209,11 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
 
       if (updateError) throw updateError;
 
-      toast.success('User has been unblocked successfully.');
+      toast.success(t('userManagement.success.userUnblocked'));
       await fetchUsers();
     } catch (error) {
       console.error('Error unblocking user:', error);
-      toast.error('Failed to unblock user');
+      toast.error(t('userManagement.errors.unblockUserFailed'));
     } finally {
       setUnblockingUserId(null);
       setShowUnblockDialog(false);
@@ -237,11 +239,11 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
 
       if (error) throw error;
 
-      toast.success(userToForumBlock.is_forum_blocked ? 'User unblocked from forum' : 'User blocked from forum');
+      toast.success(userToForumBlock.is_forum_blocked ? t('userManagement.success.forumUnblocked') : t('userManagement.success.forumBlocked'));
       await fetchUsers();
     } catch (error) {
       console.error('Error toggling forum block:', error);
-      toast.error('Failed to update forum access');
+      toast.error(t('userManagement.errors.forumAccessFailed'));
     } finally {
       setForumBlockingUserId(null);
       setShowForumBlockDialog(false);
@@ -264,7 +266,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         <div className="relative max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search users..."
+            placeholder={t('userManagement.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8"
@@ -274,10 +276,10 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Loading
+              {t('userManagement.loading')}
             </>
           ) : (
-            'Refresh Users'
+            t('userManagement.refreshUsers')
           )}
         </Button>
       </div>
@@ -286,13 +288,13 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Username</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Forum</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>{t('userManagement.table.username')}</TableHead>
+              <TableHead>{t('userManagement.table.email')}</TableHead>
+              <TableHead>{t('userManagement.table.role')}</TableHead>
+              <TableHead>{t('userManagement.table.status')}</TableHead>
+              <TableHead>{t('userManagement.table.forum')}</TableHead>
+              <TableHead>{t('userManagement.table.createdAt')}</TableHead>
+              <TableHead>{t('userManagement.table.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -322,7 +324,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                     className={`cursor-pointer hover:opacity-80 ${user.blocked ? "bg-red-100 text-red-800 border-red-300" : "bg-green-100 text-green-800 border-green-300"}`}
                     onClick={() => user.blocked ? handleUnblock(user) : handleRemoveAndBlock(user)}
                   >
-                    {user.blocked ? "Blocked" : "Active"}
+                    {user.blocked ? t('userManagement.status.blocked') : t('userManagement.status.active')}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -331,7 +333,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                     className={`cursor-pointer hover:opacity-80 ${user.is_forum_blocked ? "bg-red-100 text-red-800 border-red-300" : "bg-green-100 text-green-800 border-green-300"}`}
                     onClick={() => handleForumBlockToggle(user)}
                   >
-                    {user.is_forum_blocked ? "Blocked" : "Active"}
+                    {user.is_forum_blocked ? t('userManagement.status.blocked') : t('userManagement.status.active')}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -345,7 +347,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                         onValueChange={(value) => updateUserRole(user.id, value)}
                       >
                         <SelectTrigger className="w-[200px]">
-                          <SelectValue placeholder="Select role" />
+                          <SelectValue placeholder={t('userManagement.selectRole')} />
                         </SelectTrigger>
                         <SelectContent>
                           {roles.map((role) => (
@@ -366,12 +368,12 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       {showRemoveDialog && userToRemove && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h2 className="text-lg font-bold mb-2"><span>Block user</span></h2>
-            <p className="mb-4">Are you sure that you want to block this user from the website and prevent them from opening another account with this email address in the future?</p>
+            <h2 className="text-lg font-bold mb-2"><span>{t('userManagement.dialogs.blockUser.title')}</span></h2>
+            <p className="mb-4">{t('userManagement.dialogs.blockUser.description')}</p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowRemoveDialog(false)} disabled={removingUserId === userToRemove.id}>Cancel</Button>
+              <Button variant="outline" onClick={() => setShowRemoveDialog(false)} disabled={removingUserId === userToRemove.id}>{t('common:cancel')}</Button>
               <Button variant="destructive" onClick={confirmRemoveAndBlock} disabled={removingUserId === userToRemove.id}>
-                {removingUserId === userToRemove.id ? 'Blocking...' : 'Block user'}
+                {removingUserId === userToRemove.id ? t('userManagement.dialogs.blockUser.blocking') : t('userManagement.dialogs.blockUser.block')}
               </Button>
             </div>
           </div>
@@ -380,12 +382,12 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       {showUnblockDialog && userToUnblock && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h2 className="text-lg font-bold mb-2"><span>Unblock user</span></h2>
-            <p className="mb-4">Are you sure you want to unblock this user? They will be able to log in and access the website again.</p>
+            <h2 className="text-lg font-bold mb-2"><span>{t('userManagement.dialogs.unblockUser.title')}</span></h2>
+            <p className="mb-4">{t('userManagement.dialogs.unblockUser.description')}</p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowUnblockDialog(false)} disabled={unblockingUserId === userToUnblock.id}>Cancel</Button>
+              <Button variant="outline" onClick={() => setShowUnblockDialog(false)} disabled={unblockingUserId === userToUnblock.id}>{t('common:cancel')}</Button>
               <Button variant="default" onClick={confirmUnblock} disabled={unblockingUserId === userToUnblock.id}>
-                {unblockingUserId === userToUnblock.id ? 'Unblocking...' : 'Unblock user'}
+                {unblockingUserId === userToUnblock.id ? t('userManagement.dialogs.unblockUser.unblocking') : t('userManagement.dialogs.unblockUser.unblock')}
               </Button>
             </div>
           </div>
@@ -395,12 +397,12 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full">
             <h2 className="text-lg font-bold mb-2">
-              {userToForumBlock.is_forum_blocked ? 'Unblock from Forum' : 'Block from Forum'}
+              {userToForumBlock.is_forum_blocked ? t('userManagement.dialogs.forumBlock.unblockTitle') : t('userManagement.dialogs.forumBlock.blockTitle')}
             </h2>
             <p className="mb-4">
               {userToForumBlock.is_forum_blocked
-                ? 'Are you sure you want to unblock this user from the forum? They will be able to create posts and comments again.'
-                : 'Are you sure you want to block this user from the forum? They will not be able to create posts or comments.'}
+                ? t('userManagement.dialogs.forumBlock.unblockDescription')
+                : t('userManagement.dialogs.forumBlock.blockDescription')}
             </p>
             <div className="flex justify-end gap-2">
               <Button 
@@ -408,7 +410,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                 onClick={() => setShowForumBlockDialog(false)} 
                 disabled={forumBlockingUserId === userToForumBlock.id}
               >
-                Cancel
+                {t('common:cancel')}
               </Button>
               <Button 
                 variant={userToForumBlock.is_forum_blocked ? "default" : "destructive"}
@@ -416,8 +418,8 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                 disabled={forumBlockingUserId === userToForumBlock.id}
               >
                 {forumBlockingUserId === userToForumBlock.id 
-                  ? (userToForumBlock.is_forum_blocked ? 'Unblocking...' : 'Blocking...') 
-                  : (userToForumBlock.is_forum_blocked ? 'Unblock' : 'Block')}
+                  ? (userToForumBlock.is_forum_blocked ? t('userManagement.dialogs.forumBlock.unblocking') : t('userManagement.dialogs.forumBlock.blocking')) 
+                  : (userToForumBlock.is_forum_blocked ? t('userManagement.dialogs.forumBlock.unblock') : t('userManagement.dialogs.forumBlock.block'))}
               </Button>
             </div>
           </div>

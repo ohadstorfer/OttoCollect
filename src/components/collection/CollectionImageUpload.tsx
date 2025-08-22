@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CollectionItem } from '@/types';
 import { uploadCollectionImage } from '@/services/collectionService';
 import { useTutorial } from '@/context/TutorialContext';
+import { useTranslation } from 'react-i18next';
 
 interface CollectionImageUploadProps {
   collectionItem: CollectionItem;
@@ -27,6 +28,7 @@ export default function CollectionImageUpload({
 }: CollectionImageUploadProps) {
   const { toast } = useToast();
   const { triggerSuggestPictureGuide } = useTutorial();
+  const { t } = useTranslation(['collection']);
   const [isUploading, setIsUploading] = useState(false);
   const [personalImages, setPersonalImages] = useState<string[]>(
     collectionItem.personalImages || []
@@ -45,7 +47,7 @@ export default function CollectionImageUpload({
     // File validation
     if (!file.type.startsWith('image/')) {
       toast({
-        title: 'Please select an image file.',
+        title: t('imageUpload.selectImageFile'),
         variant: 'destructive'
       });
       return;
@@ -53,7 +55,7 @@ export default function CollectionImageUpload({
 
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: 'Image size should be less than 5MB.',
+        title: t('imageUpload.imageSizeLimit'),
         variant: 'destructive'
       });
       return;
@@ -77,7 +79,7 @@ export default function CollectionImageUpload({
       }
 
       toast({
-        title: `${type.charAt(0).toUpperCase() + type.slice(1)} image uploaded successfully.`,
+        title: t('imageUpload.uploadSuccess', { type: t(`imageUpload.${type}Image`) }),
         variant: 'default'
       });
       
@@ -88,7 +90,7 @@ export default function CollectionImageUpload({
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({
-        title: 'Failed to upload image. Please try again.',
+        title: t('imageUpload.uploadFailed'),
         variant: 'destructive'
       });
     } finally {
@@ -111,7 +113,7 @@ export default function CollectionImageUpload({
       <div className={`grid grid-cols-1 gap-4 ${className}`}>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <Label htmlFor="obverse-image">Obverse Image</Label>
+            <Label htmlFor="obverse-image">{t('imageUpload.obverseImage')}</Label>
             <Button 
               type="button" 
               variant="outline" 
@@ -120,7 +122,7 @@ export default function CollectionImageUpload({
               disabled={isUploading}
             >
               <UploadCloud className="h-4 w-4 mr-1" />
-              Upload
+              {t('imageUpload.upload')}
             </Button>
           </div>
           <Input
@@ -135,7 +137,7 @@ export default function CollectionImageUpload({
             <div className="relative inline-block">
               <img
                 src={collectionItem.obverseImage}
-                alt="Obverse"
+                alt={t('imageUpload.obverseImage')}
                 className="h-24 w-auto rounded border"
               />
             </div>
@@ -144,7 +146,7 @@ export default function CollectionImageUpload({
 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <Label htmlFor="reverse-image">Reverse Image</Label>
+            <Label htmlFor="reverse-image">{t('imageUpload.reverseImage')}</Label>
             <Button 
               type="button" 
               variant="outline" 
@@ -153,7 +155,7 @@ export default function CollectionImageUpload({
               disabled={isUploading}
             >
               <UploadCloud className="h-4 w-4 mr-1" />
-              Upload
+              {t('imageUpload.upload')}
             </Button>
           </div>
           <Input
@@ -168,7 +170,7 @@ export default function CollectionImageUpload({
             <div className="relative inline-block">
               <img
                 src={collectionItem.reverseImage}
-                alt="Reverse"
+                alt={t('imageUpload.reverseImage')}
                 className="h-24 w-auto rounded border"
               />
             </div>
@@ -183,14 +185,14 @@ export default function CollectionImageUpload({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Obverse Image */}
         <div className="space-y-2">
-          <Label htmlFor="obverse-image">Obverse Image</Label>
+          <Label htmlFor="obverse-image">{t('imageUpload.obverseImage')}</Label>
           <div className="border rounded-md p-4 bg-gray-50">
             <div className="flex flex-col items-center justify-center text-center">
               {collectionItem.obverseImage ? (
                 <div className="relative">
                   <img
                     src={collectionItem.obverseImage}
-                    alt="Obverse"
+                    alt={t('imageUpload.obverseImage')}
                     className="max-h-48 w-auto mb-4 rounded"
                   />
                   <Button
@@ -202,14 +204,14 @@ export default function CollectionImageUpload({
                     className="mt-2"
                   >
                     <UploadCloud className="h-4 w-4 mr-2" />
-                    Change Image
+                    {t('imageUpload.changeImage')}
                   </Button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center">
                   <UploadCloud className="h-12 w-12 text-gray-400 mb-2" />
                   <p className="text-sm text-gray-500 mb-4">
-                    Drag and drop or click to upload
+                    {t('imageUpload.dragAndDrop')}
                   </p>
                   <Button
                     type="button"
@@ -217,7 +219,7 @@ export default function CollectionImageUpload({
                     onClick={() => obverseFileRef.current?.click()}
                     disabled={isUploading}
                   >
-                    {isUploading ? 'Uploading...' : 'Upload Obverse Image'}
+                    {isUploading ? t('imageUpload.uploading') : t('imageUpload.uploadObverseImage')}
                   </Button>
                 </div>
               )}
@@ -235,14 +237,14 @@ export default function CollectionImageUpload({
 
         {/* Reverse Image */}
         <div className="space-y-2">
-          <Label htmlFor="reverse-image">Reverse Image</Label>
+          <Label htmlFor="reverse-image">{t('imageUpload.reverseImage')}</Label>
           <div className="border rounded-md p-4 bg-gray-50">
             <div className="flex flex-col items-center justify-center text-center">
               {collectionItem.reverseImage ? (
                 <div className="relative">
                   <img
                     src={collectionItem.reverseImage}
-                    alt="Reverse"
+                    alt={t('imageUpload.reverseImage')}
                     className="max-h-48 w-auto mb-4 rounded"
                   />
                   <Button
@@ -254,14 +256,14 @@ export default function CollectionImageUpload({
                     className="mt-2"
                   >
                     <UploadCloud className="h-4 w-4 mr-2" />
-                    Change Image
+                    {t('imageUpload.changeImage')}
                   </Button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center">
                   <UploadCloud className="h-12 w-12 text-gray-400 mb-2" />
                   <p className="text-sm text-gray-500 mb-4">
-                    Drag and drop or click to upload
+                    {t('imageUpload.dragAndDrop')}
                   </p>
                   <Button
                     type="button"
@@ -269,7 +271,7 @@ export default function CollectionImageUpload({
                     onClick={() => reverseFileRef.current?.click()}
                     disabled={isUploading}
                   >
-                    {isUploading ? 'Uploading...' : 'Upload Reverse Image'}
+                    {isUploading ? t('imageUpload.uploading') : t('imageUpload.uploadReverseImage')}
                   </Button>
                 </div>
               )}
@@ -289,7 +291,7 @@ export default function CollectionImageUpload({
       {/* Personal Images */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <Label htmlFor="personal-images">Personal Photos (Optional)</Label>
+          <Label htmlFor="personal-images">{t('imageUpload.personalPhotos')}</Label>
           <Button
             type="button"
             variant="outline"
@@ -298,7 +300,7 @@ export default function CollectionImageUpload({
             disabled={isUploading}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Photo
+            {t('imageUpload.addPhoto')}
           </Button>
         </div>
         <Input
@@ -315,7 +317,7 @@ export default function CollectionImageUpload({
             <div key={index} className="relative group">
               <img
                 src={imageUrl}
-                alt={`Personal ${index + 1}`}
+                alt={t('imageUpload.personalImage', { number: index + 1 })}
                 className="h-24 w-24 object-cover rounded border"
               />
               <button

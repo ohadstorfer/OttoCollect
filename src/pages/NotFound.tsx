@@ -4,9 +4,11 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Home } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 const NotFound = () => {
   const location = useLocation();
+  const { t } = useTranslation(['pages']);
 
   useEffect(() => {
     console.error(
@@ -21,14 +23,14 @@ const NotFound = () => {
         <div className="mb-6 w-24 h-24 rounded-full bg-ottoman-800/50 flex items-center justify-center mx-auto">
           <span className="text-4xl font-serif font-bold text-ottoman-300">404</span>
         </div>
-        <h1 className="text-3xl font-serif font-bold mb-4 text-parchment-500"><span>Page Not Found</span></h1>
+        <h1 className="text-3xl font-serif font-bold mb-4 text-parchment-500"><span>{t('notFound.title')}</span></h1>
         <p className="text-ottoman-300 mb-8">
-          The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+          {t('notFound.description')}
         </p>
         <Link to="/">
           <Button className="ottoman-button">
             <Home className="h-4 w-4 mr-2" />
-            Return to Home
+            {t('notFound.returnHome')}
           </Button>
         </Link>
       </div>

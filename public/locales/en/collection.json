@@ -386,5 +386,23 @@
   "onCollections": "On Collections",
   "addToWishlist": "Add to wishlist",
   "addToYourCollection": "Add to your collection",
-  "removeFromWishlist": "Remove from wishlist"
+  "removeFromWishlist": "Remove from wishlist",
+  "imageUpload": {
+    "selectImageFile": "Please select an image file.",
+    "imageSizeLimit": "Image size should be less than 5MB.",
+    "uploadSuccess": "{{type}} uploaded successfully.",
+    "uploadFailed": "Failed to upload image. Please try again.",
+    "obverseImage": "Obverse Image",
+    "reverseImage": "Reverse Image",
+    "personalImage": "Personal Image",
+    "upload": "Upload",
+    "changeImage": "Change Image",
+    "dragAndDrop": "Drag and drop or click to upload",
+    "uploading": "Uploading...",
+    "uploadObverseImage": "Upload Obverse Image",
+    "uploadReverseImage": "Upload Reverse Image",
+    "personalPhotos": "Personal Photos (Optional)",
+    "addPhoto": "Add Photo",
+    "personalImage": "Personal {{number}}"
+  }
 }

@@ -82,7 +82,8 @@
     "commentPlaceholder": "Yorumunuzu yazın...",
     "replyPlaceholder": "{{username}} kullanıcısına yanıt verin...",
     "publishPost": "Gönderiyi Yayınla",
-    "publishAnnouncement": "Duyuruyu Yayınla"
+    "publishAnnouncement": "Duyuruyu Yayınla",
+    "announcementDescription": "Tüm toplulukla önemli bilgileri paylaşın"
   },
   "comments": {
     "showReplies": "{{count}} {{count, plural, one {yanıtı} other {yanıtı}}} göster",
@@ -114,7 +115,8 @@
     "replyError": "Yanıt eklenemedi"
   },
   "navigation": {
-    "backToForum": "Foruma Geri Dön"
+    "backToForum": "Foruma Geri Dön",
+    "backToBlog": "Bloga Geri Dön"
   },
   "actions": {
     "post": "Gönderi",
@@ -131,8 +133,10 @@
     "postReply": "Yanıt Yayınla",
     "deletePost": "Gönderiyi Sil",
     "deleteComment": "Yorumu Sil",
+    "deleteAnnouncement": "Duyuruyu Sil",
     "deletePostConfirm": "Bu gönderiyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     "deleteCommentConfirm": "Bu yorumu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "deleteAnnouncementConfirm": "Bu duyuruyu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     "delete": "Sil"
   },
   "profile": {
@@ -141,5 +145,22 @@
     "blocking": "Engelleniyor...",
     "blockFromForum": "Forumdan Engelle",
     "chooseAction": "Bu kullanıcı için bir işlem seçin:"
+  },
+  "imageUploader": {
+    "invalidFiles": "Geçersiz dosyalar",
+    "selectImagesOnly": "Lütfen sadece resim dosyaları seçin.",
+    "uploadSuccess": "{{count}} resim başarıyla yüklendi",
+    "uploadSuccess_plural": "{{count}} resim başarıyla yüklendi",
+    "uploadFailed": "Yükleme başarısız",
+    "uploadError": "Resimlerinizi yüklerken bir hata oluştu. Lütfen tekrar deneyin.",
+    "uploadedImage": "Yüklenen {{number}}",
+    "upload": "Yükle"
+  },
+  "auth": {
+    "authenticationRequired": "Kimlik Doğrulama Gerekli",
+    "mustBeSignedIn": "Duyuru oluşturmak için giriş yapmalısınız.",
+    "signIn": "Giriş Yap",
+    "accessDenied": "Erişim Reddedildi",
+    "onlySuperAdmins": "Sadece Süper Yöneticiler duyuru oluşturabilir."
   }
 } 

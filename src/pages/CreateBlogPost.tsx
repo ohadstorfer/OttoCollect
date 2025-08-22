@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { CreatePostForm } from "@/components/blog/CreatePostForm";
 import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export default function CreateBlogPost() {
+  const { t } = useTranslation(['blog']);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -32,7 +34,7 @@ export default function CreateBlogPost() {
         className="mb-6"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Blog
+        {t('post.backToBlog')}
       </Button>
 
       <CreatePostForm />

@@ -1,22 +1,29 @@
 import React from 'react';
-import AuthForm from "@/components/auth/AuthForm";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useTranslation } from 'react-i18next';
+import AuthForm from '../components/auth/AuthForm';
+import { AuthRequiredDialog } from '../components/auth/AuthRequiredDialog';
+import { useAuth } from '@/context/AuthContext';
+import { useSearchParams } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
 
-const Auth = () => {
+const Auth: React.FC = () => {
+  const { t } = useTranslation(['pages']);
   const { user } = useAuth();
-  const navigate = useNavigate();
   const { theme } = useTheme();
-  
-  useEffect(() => {
-    // If user is already logged in, redirect to home
-    if (user) {
-      navigate("/");
-    }
-  }, [user, navigate]);
-  
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get('mode') || 'login';
+  const showRequiredDialog = searchParams.get('required') === 'true';
+
+  // If user is already logged in, redirect to home
+  if (user && !showRequiredDialog) {
+    window.location.href = '/';
+    return null;
+  }
+
+  if (showRequiredDialog) {
+    return <AuthRequiredDialog />;
+  }
+
   return (
     <div className={`min-h-screen flex items-center justify-center ${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-900'} py-12 px-4 sm:px-6 lg:px-8 animate-fade-in`}>
       <div className="absolute inset-0 -z-10">
@@ -31,11 +38,11 @@ const Auth = () => {
             <span>OttoCollect</span>
           </h2>
           <p className="mt-4 text-lg text-ottoman-300">
-            Join our community of collectors and explore the rich history of Ottoman Empire banknotes.
+            {t('auth.description')}
           </p>
         </div>
         
-        <AuthForm />
+        <AuthForm mode={mode as 'login' | 'register' | 'reset'} />
       </div>
     </div>
   );

@@ -122,5 +122,17 @@
     "goToProfile": "الذهاب إلى الملف الشخصي",
     "blocking": "جاري الحظر...",
     "blockFromForum": "حظر من المنتدى"
+  },
+  "imageUploader": {
+    "invalidFile": "ملف غير صالح",
+    "selectImageOnly": "يرجى اختيار ملف صورة فقط.",
+    "uploadSuccess": "تم رفع الصورة بنجاح",
+    "uploadFailed": "فشل الرفع",
+    "uploadError": "حدث خطأ أثناء رفع الصورة. يرجى المحاولة مرة أخرى.",
+    "mainImageAlt": "الصورة الرئيسية للمدونة",
+    "uploading": "جاري رفع الصورة...",
+    "uploadMainImage": "رفع الصورة الرئيسية",
+    "required": "مطلوب",
+    "clickToSelect": "انقر لاختيار ملف صورة"
   }
 } 

@@ -2,6 +2,7 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import { Shield, Award, Star } from "lucide-react"
+import { useTranslation } from 'react-i18next';
 
 const badgeVariants = cva(
   "inline-flex items-center rounded-md px-0.5 py-0.5 text-xs font-medium ring-1 ring-gray-400 sm:px-2 sm:py-1",
@@ -61,6 +62,7 @@ function Badge({
   showIcon = true,
   ...props
 }: BadgeProps) {
+  const { t } = useTranslation(['badges']);
   // If a rank is provided, use it to determine the variant
   const badgeVariant = rank ? getUserRankVariant(rank) : variant;
   
@@ -80,19 +82,45 @@ function Badge({
     return null;
   };
 
+  const getRankTranslationKey = (userRank: string): string => {
+    // Map the rank strings to translation keys
+    const rankMap: Record<string, string> = {
+      'Newbie Collector': 'ranks.newbieCollector',
+      'Beginner Collector': 'ranks.beginnerCollector',
+      'Mid Collector': 'ranks.midCollector',
+      'Known Collector': 'ranks.knownCollector',
+      'Advance Collector': 'ranks.advanceCollector',
+      'Master Collector': 'ranks.masterCollector',
+      'Admin Newbie Collector': 'ranks.adminNewbieCollector',
+      'Admin Beginner Collector': 'ranks.adminBeginnerCollector',
+      'Admin Mid Collector': 'ranks.adminMidCollector',
+      'Admin Known Collector': 'ranks.adminKnownCollector',
+      'Admin Advance Collector': 'ranks.adminAdvanceCollector',
+      'Admin Master Collector': 'ranks.adminMasterCollector',
+      'Super Admin Newbie Collector': 'ranks.superAdminNewbieCollector',
+      'Super Admin Beginner Collector': 'ranks.superAdminBeginnerCollector',
+      'Super Admin Mid Collector': 'ranks.superAdminMidCollector',
+      'Super Admin Known Collector': 'ranks.superAdminKnownCollector',
+      'Super Admin Advance Collector': 'ranks.superAdminAdvanceCollector',
+      'Super Admin Master Collector': 'ranks.superAdminMasterCollector'
+    };
+    
+    return rankMap[userRank] || userRank;
+  };
+
   const getDisplayRank = (userRank: string, userRole?: string) => {
     if (!userRole) {
-      return userRank;
+      return t(getRankTranslationKey(userRank));
     }
 
     // If the user is Super Admin, add "- Admin" to the rank
     if (userRole === "Super Admin") {
       return (
         <span>
-  {userRank}
-  <span className="inline">- </span>
-  <span className="inline-block break-words">Admin</span>
-</span>
+          {t(getRankTranslationKey(userRank))}
+          <span className="inline">- </span>
+          <span className="inline-block break-words">Admin</span>
+        </span>
       );
     }
     
@@ -100,15 +128,15 @@ function Badge({
     if (userRole.includes("Admin") && userRole !== "Super Admin") {
       return (
         <span>
-        {userRank}
-        <span className="inline">- </span>
-        <span className="inline-block break-words">{userRole}</span>
-      </span>
+          {t(getRankTranslationKey(userRank))}
+          <span className="inline">- </span>
+          <span className="inline-block break-words">{userRole}</span>
+        </span>
       );
     }
     
     // For regular users, just show the rank
-    return userRank;
+    return t(getRankTranslationKey(userRank));
   };
   
   return (

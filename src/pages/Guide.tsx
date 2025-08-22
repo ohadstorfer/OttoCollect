@@ -74,7 +74,7 @@ const Guide = () => {
           <span>{t('title')}</span>
         </h1>
         <p className="text-lg text-muted-foreground">
-          Learn how to use OttoCollect effectively
+          {t('subtitle')}
         </p>
       </div>
 

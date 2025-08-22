@@ -1,0 +1,104 @@
+{
+  "title": "Admin",
+  "dashboardTitle": "Admin Dashboard",
+  "loading": "Loading admin dashboard...",
+  "accessRestricted": "Access Restricted",
+  "mustBeLoggedIn": "You must be logged in to access this area.",
+  "administratorsOnly": "This area is restricted to administrators only.",
+  "tabs": {
+    "users": "Users",
+    "banknotes": "Banknotes",
+    "imageSuggestions": "Image Suggestions",
+    "stamps": "Stamps",
+    "countries": "Countries",
+    "filters": "Filters",
+    "statistics": "Statistics"
+  },
+  "sections": {
+    "userManagement": "User Management",
+    "banknotesManagement": "Banknotes Management",
+    "imageSuggestions": "Image Suggestions",
+    "stamps": "Stamps",
+    "countryFilterSettings": "Country Filter Settings"
+  },
+  "userManagement": {
+    "searchPlaceholder": "Search users...",
+    "loading": "Loading",
+    "refreshUsers": "Refresh Users",
+    "unknownRole": "Unknown Role",
+    "selectRole": "Select role",
+    "table": {
+      "username": "Username",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "forum": "Forum",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "blocked": "Blocked"
+    },
+    "success": {
+      "roleUpdated": "User role updated to {{role}}",
+      "userBlocked": "User blocked and prevented from logging in.",
+      "userUnblocked": "User has been unblocked successfully.",
+      "forumBlocked": "User blocked from forum",
+      "forumUnblocked": "User unblocked from forum"
+    },
+    "errors": {
+      "loadUsersFailed": "Failed to load users",
+      "loadRolesFailed": "Failed to load roles",
+      "updateRoleFailed": "Failed to update user role",
+      "blockUserFailed": "Failed to remove and block user",
+      "unblockUserFailed": "Failed to unblock user",
+      "forumAccessFailed": "Failed to update forum access"
+    },
+    "dialogs": {
+      "blockUser": {
+        "title": "Block user",
+        "description": "Are you sure that you want to block this user from the website and prevent them from opening another account with this email address in the future?",
+        "block": "Block user",
+        "blocking": "Blocking..."
+      },
+      "unblockUser": {
+        "title": "Unblock user",
+        "description": "Are you sure you want to unblock this user? They will be able to log in and access the website again.",
+        "unblock": "Unblock user",
+        "unblocking": "Unblocking..."
+      },
+      "forumBlock": {
+        "blockTitle": "Block from Forum",
+        "unblockTitle": "Unblock from Forum",
+        "blockDescription": "Are you sure you want to block this user from the forum? They will not be able to create posts or comments.",
+        "unblockDescription": "Are you sure you want to unblock this user from the forum? They will be able to create posts and comments again.",
+        "block": "Block",
+        "unblock": "Unblock",
+        "blocking": "Blocking...",
+        "unblocking": "Unblocking..."
+      }
+    }
+  },
+  "userProfileDialog": {
+    "authenticationRequired": "Authentication Required",
+    "loginRequired": "To view this collector's profile and their banknote collection, please log in to your account. If you don't have an account yet, join our community to explore collections and connect with fellow collectors."
+  },
+  "banknoteDetailDialog": {
+    "noIdProvided": "No banknote ID provided"
+  },
+  "statistics": {
+    "title": "Platform Statistics",
+    "description": "Comprehensive analytics and insights for your platform",
+    "refreshButton": "Refresh Stats",
+    "generating": "Generating...",
+    "generateSuccess": "Daily statistics generated successfully",
+    "generateError": "Failed to generate daily statistics",
+    "tabs": {
+      "users": "User Activity",
+      "catalog": "Catalog Stats",
+      "content": "Content Stats",
+      "views": "View Analytics"
+    }
+  }
+}

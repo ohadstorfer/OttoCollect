@@ -8,11 +8,31 @@
   "status": {
     "noBadgesEarned": "Henüz rozet kazanılmadı"
   },
-  "stages": {
+    "stages": {
     "stage1": "Aşama 1",
-    "stage2": "Aşama 2", 
+    "stage2": "Aşama 2",
     "stage3": "Aşama 3",
     "stage4": "Aşama 4",
     "stage5": "Aşama 5"
+  },
+  "ranks": {
+    "newbieCollector": "Acemi Koleksiyoncu",
+    "beginnerCollector": "Başlangıç Koleksiyoncu",
+    "midCollector": "Orta Seviye Koleksiyoncu",
+    "knownCollector": "Tanınmış Koleksiyoncu",
+    "advanceCollector": "İleri Seviye Koleksiyoncu",
+    "masterCollector": "Usta Koleksiyoncu",
+    "adminNewbieCollector": "Yönetici Acemi Koleksiyoncu",
+    "adminBeginnerCollector": "Yönetici Başlangıç Koleksiyoncu",
+    "adminMidCollector": "Yönetici Orta Seviye Koleksiyoncu",
+    "adminKnownCollector": "Yönetici Tanınmış Koleksiyoncu",
+    "adminAdvanceCollector": "Yönetici İleri Seviye Koleksiyoncu",
+    "adminMasterCollector": "Yönetici Usta Koleksiyoncu",
+    "superAdminNewbieCollector": "Süper Yönetici Acemi Koleksiyoncu",
+    "superAdminBeginnerCollector": "Süper Yönetici Başlangıç Koleksiyoncu",
+    "superAdminMidCollector": "Süper Yönetici Orta Seviye Koleksiyoncu",
+    "superAdminKnownCollector": "Süper Yönetici Tanınmış Koleksiyoncu",
+    "superAdminAdvanceCollector": "Süper Yönetici İleri Seviye Koleksiyoncu",
+    "superAdminMasterCollector": "Süper Yönetici Usta Koleksiyoncu"
   }
 }

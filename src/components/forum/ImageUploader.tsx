@@ -6,6 +6,7 @@ import { uploadForumImage } from '@/services/forumService';
 import { useToast } from "@/hooks/use-toast";
 import { XCircle, Upload, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from 'react-i18next';
 
 interface ImageUploaderProps {
   images: string[];
@@ -14,6 +15,7 @@ interface ImageUploaderProps {
 
 export const ImageUploader = ({ images, onChange }: ImageUploaderProps) => {
   const { toast } = useToast();
+  const { t } = useTranslation(['forum']);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -34,8 +36,8 @@ export const ImageUploader = ({ images, onChange }: ImageUploaderProps) => {
       if (imageFiles.length === 0) {
         toast({
           variant: "destructive",
-          title: "Invalid files",
-          description: "Please select image files only.",
+          title: t('imageUploader.invalidFiles'),
+          description: t('imageUploader.selectImagesOnly'),
         });
         return;
       }
@@ -56,15 +58,15 @@ export const ImageUploader = ({ images, onChange }: ImageUploaderProps) => {
       onChange([...images, ...uploadedUrls]);
       
       toast({
-        description: `Successfully uploaded ${uploadedUrls.length} image${uploadedUrls.length !== 1 ? 's' : ''}`,
+        description: t('imageUploader.uploadSuccess', { count: uploadedUrls.length }),
       });
       
     } catch (error) {
       console.error('Error uploading images:', error);
       toast({
         variant: "destructive",
-        title: "Upload failed",
-        description: "There was an error uploading your images. Please try again.",
+        title: t('imageUploader.uploadFailed'),
+        description: t('imageUploader.uploadError'),
       });
     } finally {
       setIsUploading(false);
@@ -84,7 +86,7 @@ export const ImageUploader = ({ images, onChange }: ImageUploaderProps) => {
           <Card key={index} className="group relative aspect-square overflow-hidden">
             <img 
               src={imageUrl} 
-              alt={`Uploaded ${index + 1}`}
+              alt={t('imageUploader.uploadedImage', { number: index + 1 })}
               className="w-full h-full object-cover"
             />
             <Button
@@ -111,7 +113,7 @@ export const ImageUploader = ({ images, onChange }: ImageUploaderProps) => {
           ) : (
             <div className="flex flex-col items-center gap-2 text-muted-foreground">
               <Upload className="h-8 w-8" />
-              <div className="text-sm font-medium">Upload</div>
+              <div className="text-sm font-medium">{t('imageUploader.upload')}</div>
             </div>
           )}
         </Card>

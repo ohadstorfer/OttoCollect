@@ -54,7 +54,7 @@ i18n
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
     },
-                    ns: ['common', 'navigation', 'auth', 'catalog', 'collection', 'marketplace', 'forum', 'profile', 'pages', 'guide', 'filter', 'blog', 'notification', 'badges', 'settings', 'contactUs', 'messaging', 'shared'],
+                    ns: ['common', 'navigation', 'auth', 'catalog', 'collection', 'marketplace', 'forum', 'profile', 'pages', 'guide', 'filter', 'blog', 'notification', 'badges', 'settings', 'contactUs', 'messaging', 'shared', 'admin'],
     preload: ['en', 'tr', 'ar'],
     defaultNS: 'common',
   });

@@ -8,6 +8,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { User } from '@/types';
 
 interface UserProfileDialogProps {
@@ -25,6 +26,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const { theme } = useTheme();
+  const { t } = useTranslation(['admin', 'common']);
   const [selectedCountry, setSelectedCountry] = React.useState<string | null>(null);
   const [showCountryDetail, setShowCountryDetail] = React.useState(false);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
@@ -99,10 +101,9 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
             ) : (
               <div className="flex justify-center w-full mb-4">
                 <Card className="p-8 text-center bg-card w-[90%] sm:w-[600px]">
-                  <h3 className="text-2xl font-semibold mb-4"><span>Authentication Required</span></h3>
+                  <h3 className="text-2xl font-semibold mb-4"><span>{t('userProfileDialog.authenticationRequired')}</span></h3>
                   <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                    To view this collector's profile and their banknote collection, please log in to your account. 
-                    If you don't have an account yet, join our community to explore collections and connect with fellow collectors.
+                    {t('userProfileDialog.loginRequired')}
                   </p>
                   <div className="flex justify-center">
                     <Button 
@@ -114,7 +115,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                       }}
                       className="font-semibold"
                     >
-                      Log In
+                      {t('common:auth.login')}
                     </Button>
                   </div>
                 </Card>

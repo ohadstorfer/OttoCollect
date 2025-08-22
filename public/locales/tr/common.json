@@ -70,5 +70,16 @@
     "serialNumbering": "Seri Numaralandırma",
     "tughra": "Tuğra",
     "authorityName": "Yetkili Adı"
-  }
+  },
+  "cookieConsent": {
+    "description": "Bu web sitesinin temel işlevselliğini sağlamak ve deneyiminizi geliştirmek için temel çerezleri kullanıyoruz. Bu çerezler web sitemizin çalışması için kesinlikle gereklidir. Bu siteyi kullanmaya devam ederek temel çerezlerimizin kullanımını kabul etmiş olursunuz.",
+    "learnMore": "Çerezleri nasıl kullandığımız hakkında daha fazla bilgi edinin",
+    "closeButton": "Çerez bildirimini kapat"
+  },
+  "modeToggle": {
+    "toggleTheme": "Temayı değiştir",
+    "light": "Açık",
+    "dark": "Koyu"
+  },
+  "cancel": "İptal"
 } 

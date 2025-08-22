@@ -70,5 +70,16 @@
     "serialNumbering": "Serial Numbering",
     "tughra": "Tughra",
     "authorityName": "Authority Name"
-  }
+  },
+  "cookieConsent": {
+    "description": "We use essential cookies to ensure the basic functionality of this website and to enhance your experience. These cookies are strictly necessary for the operation of our website. By continuing to use this site, you accept our use of essential cookies.",
+    "learnMore": "Learn more about how we use cookies",
+    "closeButton": "Close cookie notice"
+  },
+  "modeToggle": {
+    "toggleTheme": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "cancel": "Cancel"
 } 

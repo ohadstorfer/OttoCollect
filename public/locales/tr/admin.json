@@ -1,0 +1,104 @@
+{
+  "title": "Yönetici",
+  "dashboardTitle": "Yönetici Paneli",
+  "loading": "Yönetici paneli yükleniyor...",
+  "accessRestricted": "Erişim Kısıtlı",
+  "mustBeLoggedIn": "Bu alana erişmek için giriş yapmalısınız.",
+  "administratorsOnly": "Bu alan sadece yöneticilere açıktır.",
+  "tabs": {
+    "users": "Kullanıcılar",
+    "banknotes": "Banknotlar",
+    "imageSuggestions": "Resim Önerileri",
+    "stamps": "Pullar",
+    "countries": "Ülkeler",
+    "filters": "Filtreler",
+    "statistics": "İstatistikler"
+  },
+  "sections": {
+    "userManagement": "Kullanıcı Yönetimi",
+    "banknotesManagement": "Banknot Yönetimi",
+    "imageSuggestions": "Resim Önerileri",
+    "stamps": "Pullar",
+    "countryFilterSettings": "Ülke Filtre Ayarları"
+  },
+  "userManagement": {
+    "searchPlaceholder": "Kullanıcılarda ara...",
+    "loading": "Yükleniyor",
+    "refreshUsers": "Kullanıcıları Yenile",
+    "unknownRole": "Bilinmeyen Rol",
+    "selectRole": "Rol seçin",
+    "table": {
+      "username": "Kullanıcı Adı",
+      "email": "E-posta",
+      "role": "Rol",
+      "status": "Durum",
+      "forum": "Forum",
+      "createdAt": "Oluşturulma Tarihi",
+      "actions": "İşlemler"
+    },
+    "status": {
+      "active": "Aktif",
+      "blocked": "Engellenmiş"
+    },
+    "success": {
+      "roleUpdated": "Kullanıcı rolü {{role}} olarak güncellendi",
+      "userBlocked": "Kullanıcı engellendi ve giriş yapması engellendi.",
+      "userUnblocked": "Kullanıcının engeli başarıyla kaldırıldı.",
+      "forumBlocked": "Kullanıcı forumdan engellendi",
+      "forumUnblocked": "Kullanıcının forum engeli kaldırıldı"
+    },
+    "errors": {
+      "loadUsersFailed": "Kullanıcılar yüklenemedi",
+      "loadRolesFailed": "Roller yüklenemedi",
+      "updateRoleFailed": "Kullanıcı rolü güncellenemedi",
+      "blockUserFailed": "Kullanıcı engellenemedi",
+      "unblockUserFailed": "Kullanıcının engeli kaldırılamadı",
+      "forumAccessFailed": "Forum erişimi güncellenemedi"
+    },
+    "dialogs": {
+      "blockUser": {
+        "title": "Kullanıcıyı engelle",
+        "description": "Bu kullanıcıyı web sitesinden engellemek ve gelecekte bu e-posta adresiyle başka bir hesap açmasını engellemek istediğinizden emin misiniz?",
+        "block": "Kullanıcıyı engelle",
+        "blocking": "Engelleniyor..."
+      },
+      "unblockUser": {
+        "title": "Kullanıcının engelini kaldır",
+        "description": "Bu kullanıcının engelini kaldırmak istediğinizden emin misiniz? Tekrar giriş yapabilecek ve web sitesine erişebilecek.",
+        "unblock": "Kullanıcının engelini kaldır",
+        "unblocking": "Engel kaldırılıyor..."
+      },
+      "forumBlock": {
+        "blockTitle": "Forumdan Engelle",
+        "unblockTitle": "Forumdan Engel Kaldır",
+        "blockDescription": "Bu kullanıcıyı forumdan engellemek istediğinizden emin misiniz? Gönderi veya yorum oluşturamayacak.",
+        "unblockDescription": "Bu kullanıcının forum engelini kaldırmak istediğinizden emin misiniz? Tekrar gönderi ve yorum oluşturabilecek.",
+        "block": "Engelle",
+        "unblock": "Engeli Kaldır",
+        "blocking": "Engelleniyor...",
+        "unblocking": "Engel kaldırılıyor..."
+      }
+    }
+  },
+  "userProfileDialog": {
+    "authenticationRequired": "Kimlik Doğrulama Gerekli",
+    "loginRequired": "Bu koleksiyoncunun profilini ve banknot koleksiyonunu görüntülemek için lütfen hesabınıza giriş yapın. Henüz hesabınız yoksa, koleksiyonları keşfetmek ve diğer koleksiyoncularla bağlantı kurmak için topluluğumuza katılın."
+  },
+  "banknoteDetailDialog": {
+    "noIdProvided": "Banknot kimliği sağlanmadı"
+  },
+  "statistics": {
+    "title": "Platform İstatistikleri",
+    "description": "Platformunuz için kapsamlı analitik ve içgörüler",
+    "refreshButton": "İstatistikleri Yenile",
+    "generating": "Oluşturuluyor...",
+    "generateSuccess": "Günlük istatistikler başarıyla oluşturuldu",
+    "generateError": "Günlük istatistikler oluşturulamadı",
+    "tabs": {
+      "users": "Kullanıcı Aktivitesi",
+      "catalog": "Katalog İstatistikleri",
+      "content": "İçerik İstatistikleri",
+      "views": "Görüntüleme Analitikleri"
+    }
+  }
+}

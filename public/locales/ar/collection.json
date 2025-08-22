@@ -400,5 +400,23 @@
   "onCollections": "في المجموعات",
   "addToWishlist": "أضف إلى قائمة الرغبات",
   "addToYourCollection": "أضف إلى مجموعتك",
-  "removeFromWishlist": "إزالة من قائمة الرغبات"
+  "removeFromWishlist": "إزالة من قائمة الرغبات",
+  "imageUpload": {
+    "selectImageFile": "يرجى اختيار ملف صورة.",
+    "imageSizeLimit": "يجب أن يكون حجم الصورة أقل من 5 ميجابايت.",
+    "uploadSuccess": "تم رفع {{type}} بنجاح.",
+    "uploadFailed": "فشل في رفع الصورة. يرجى المحاولة مرة أخرى.",
+    "obverseImage": "صورة الوجه",
+    "reverseImage": "صورة الظهر",
+    "personalImage": "صورة شخصية",
+    "upload": "رفع",
+    "changeImage": "تغيير الصورة",
+    "dragAndDrop": "اسحب وأفلت أو انقر للرفع",
+    "uploading": "جاري الرفع...",
+    "uploadObverseImage": "رفع صورة الوجه",
+    "uploadReverseImage": "رفع صورة الظهر",
+    "personalPhotos": "الصور الشخصية (اختياري)",
+    "addPhoto": "إضافة صورة",
+    "personalImage": "شخصية {{number}}"
+  }
 } 

@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useTranslation } from 'react-i18next';
 
 interface AuthRequiredDialogProps {
   open: boolean;
@@ -25,22 +26,30 @@ interface AuthRequiredDialogProps {
 export const AuthRequiredDialog = ({
   open,
   onOpenChange,
-  title = "Join Our Community",
-  description = "Discover exclusive Ottoman banknotes and connect with collectors worldwide.",
-  features = [
+  title,
+  description,
+  features
+}: AuthRequiredDialogProps) => {
+  const navigate = useNavigate();
+  const { t } = useTranslation(['auth']);
+
+  // Use provided props or fallback to translations
+  const dialogTitle = title || t('requiredDialog.title');
+  const dialogDescription = description || t('requiredDialog.description');
+  const defaultFeatures = [
     {
       icon: <ShoppingBag className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
-      title: "Access Marketplace",
-      description: "View detailed listings and contact sellers"
+      title: t('requiredDialog.features.marketplace.title'),
+      description: t('requiredDialog.features.marketplace.description')
     },
     {
       icon: <UserPlus className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
-      title: "Join the Community",
-      description: "Connect with fellow collectors and enthusiasts"
+      title: t('requiredDialog.features.community.title'),
+      description: t('requiredDialog.features.community.description')
     }
-  ]
-}: AuthRequiredDialogProps) => {
-  const navigate = useNavigate();
+  ];
+
+  const dialogFeatures = features || defaultFeatures;
 
   const handleAuthNavigate = () => {
     onOpenChange(false);
@@ -51,15 +60,15 @@ export const AuthRequiredDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-serif text-center">{title}</DialogTitle>
+          <DialogTitle className="text-2xl font-serif text-center">{dialogTitle}</DialogTitle>
           <DialogDescription className="text-base pt-2 text-center">
-            {description}
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
         
         <div className="py-6">
           <div className="space-y-4">
-            {features.map((feature, index) => (
+            {dialogFeatures.map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-ottoman-100 dark:bg-ottoman-900/50 flex items-center justify-center">
                   {feature.icon}
@@ -80,7 +89,7 @@ export const AuthRequiredDialog = ({
             size="lg"
           >
             <LogIn className="mr-2 h-5 w-5" />
-            Sign In / Sign Up
+            {t('requiredDialog.signInButton')}
           </Button>
         </DialogFooter>
       </DialogContent>

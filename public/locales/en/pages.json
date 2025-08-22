@@ -1,4 +1,111 @@
 {
+  "auth": {
+    "description": "Join the premier platform for Ottoman Empire and successor states banknote collectors",
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Log in to access your Ottoman banknote collection",
+      "email": "Email",
+      "emailPlaceholder": "name@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Forgot password?",
+      "loginButton": "Login",
+      "loggingIn": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Register"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Join the Ottoman banknote collector community",
+      "username": "Username",
+      "usernamePlaceholder": "YourUsername",
+      "email": "Email",
+      "emailPlaceholder": "name@example.com",
+      "confirmEmail": "Confirm Email",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "confirmPassword": "Confirm Password",
+      "emailMismatch": "Email addresses do not match",
+      "passwordMismatch": "Passwords do not match",
+      "termsAgreement": "I agree to the",
+      "termsOfService": "Terms of Service",
+      "and": "and",
+      "privacyPolicy": "Privacy Policy",
+      "registerButton": "Register",
+      "creatingAccount": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Login"
+    },
+    "passwordReset": {
+      "title": "Password Reset",
+      "description": "Enter your email to receive a password reset link:",
+      "cancel": "Cancel",
+      "sendButton": "Send Reset Link",
+      "sending": "Sending...",
+      "successTitle": "Reset link sent",
+      "successDescription": "Reset link sent! Please check your email.",
+      "errorTitle": "Password Reset Failed",
+      "errorDescription": "Failed to send password reset email."
+    },
+    "errors": {
+      "accountBlocked": {
+        "title": "Account Blocked",
+        "description": "Your account has been blocked. You probably violated the website terms of service. If you believe this is a mistake, please contact support."
+      },
+      "emailBlocked": {
+        "title": "Email Blocked",
+        "description": "This email has been blocked from registering. You probably violated the website terms of service. If you believe this is a mistake, please contact support."
+      },
+      "usernameRequired": {
+        "title": "Username Required",
+        "description": "Please enter a username."
+      },
+      "usernameTooShort": {
+        "title": "Username Too Short",
+        "description": "Username must be at least 3 characters long."
+      },
+      "emailRequired": {
+        "title": "Email Required",
+        "description": "Please enter your email address."
+      },
+      "emailConfirmationRequired": {
+        "title": "Email Confirmation Required",
+        "description": "Please confirm your email address."
+      },
+      "emailMismatch": {
+        "title": "Email Mismatch",
+        "description": "Email addresses do not match. Please try again."
+      },
+      "passwordRequired": {
+        "title": "Password Required",
+        "description": "Please enter a password."
+      },
+      "passwordTooShort": {
+        "title": "Password Too Short",
+        "description": "Password must be at least 6 characters long."
+      },
+      "passwordConfirmationRequired": {
+        "title": "Password Confirmation Required",
+        "description": "Please confirm your password."
+      },
+      "passwordMismatch": {
+        "title": "Password Mismatch",
+        "description": "Passwords do not match. Please try again."
+      },
+      "invalidEmailFormat": {
+        "title": "Invalid Email Format",
+        "description": "Please enter a valid email address."
+      },
+      "googleSignInError": {
+        "title": "Google Sign-In Error",
+        "description": "Unknown error occurred"
+      },
+      "redirectingToGoogle": {
+        "title": "Redirecting to Google...",
+        "description": "Please wait while we redirect you to Google for authentication."
+      }
+    }
+  },
   "home": {
     "hero": {
       "title": "OttoCollect",

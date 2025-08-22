@@ -1,4 +1,111 @@
 {
+  "auth": {
+    "description": "Osmanlı İmparatorluğu ve halef ülkelerin banknot koleksiyoncuları için önde gelen platforma katılın",
+    "login": {
+      "title": "Tekrar Hoş Geldiniz",
+      "subtitle": "Osmanlı banknot koleksiyonunuza erişmek için giriş yapın",
+      "email": "E-posta",
+      "emailPlaceholder": "name@example.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Şifrenizi mi unuttunuz?",
+      "loginButton": "Giriş Yap",
+      "loggingIn": "Giriş yapılıyor...",
+      "noAccount": "Hesabınız yok mu?",
+      "registerLink": "Kayıt Ol"
+    },
+    "register": {
+      "title": "Hesap Oluştur",
+      "subtitle": "Osmanlı banknot koleksiyoncu topluluğuna katılın",
+      "username": "Kullanıcı Adı",
+      "usernamePlaceholder": "KullanıcıAdınız",
+      "email": "E-posta",
+      "emailPlaceholder": "name@example.com",
+      "confirmEmail": "E-postayı Onayla",
+      "password": "Şifre",
+      "passwordPlaceholder": "••••••••",
+      "confirmPassword": "Şifreyi Onayla",
+      "emailMismatch": "E-posta adresleri eşleşmiyor",
+      "passwordMismatch": "Şifreler eşleşmiyor",
+      "termsAgreement": "Kabul ediyorum",
+      "termsOfService": "Hizmet Şartları",
+      "and": "ve",
+      "privacyPolicy": "Gizlilik Politikası",
+      "registerButton": "Kayıt Ol",
+      "creatingAccount": "Hesap oluşturuluyor...",
+      "hasAccount": "Zaten hesabınız var mı?",
+      "loginLink": "Giriş Yap"
+    },
+    "passwordReset": {
+      "title": "Şifre Sıfırlama",
+      "description": "Şifre sıfırlama bağlantısı almak için e-postanızı girin:",
+      "cancel": "İptal",
+      "sendButton": "Sıfırlama Bağlantısı Gönder",
+      "sending": "Gönderiliyor...",
+      "successTitle": "Sıfırlama bağlantısı gönderildi",
+      "successDescription": "Sıfırlama bağlantısı gönderildi! Lütfen e-postanızı kontrol edin.",
+      "errorTitle": "Şifre Sıfırlama Başarısız",
+      "errorDescription": "Şifre sıfırlama e-postası gönderilemedi."
+    },
+    "errors": {
+      "accountBlocked": {
+        "title": "Hesap Engellendi",
+        "description": "Hesabınız engellendi. Muhtemelen web sitesi hizmet şartlarını ihlal ettiniz. Bunun bir hata olduğunu düşünüyorsanız, lütfen destekle iletişime geçin."
+      },
+      "emailBlocked": {
+        "title": "E-posta Engellendi",
+        "description": "Bu e-posta kayıt olmaktan engellendi. Muhtemelen web sitesi hizmet şartlarını ihlal ettiniz. Bunun bir hata olduğunu düşünüyorsanız, lütfen destekle iletişime geçin."
+      },
+      "usernameRequired": {
+        "title": "Kullanıcı Adı Gerekli",
+        "description": "Lütfen bir kullanıcı adı girin."
+      },
+      "usernameTooShort": {
+        "title": "Kullanıcı Adı Çok Kısa",
+        "description": "Kullanıcı adı en az 3 karakter olmalıdır."
+      },
+      "emailRequired": {
+        "title": "E-posta Gerekli",
+        "description": "Lütfen e-posta adresinizi girin."
+      },
+      "emailConfirmationRequired": {
+        "title": "E-posta Onayı Gerekli",
+        "description": "Lütfen e-posta adresinizi onaylayın."
+      },
+      "emailMismatch": {
+        "title": "E-posta Uyumsuzluğu",
+        "description": "E-posta adresleri eşleşmiyor. Lütfen tekrar deneyin."
+      },
+      "passwordRequired": {
+        "title": "Şifre Gerekli",
+        "description": "Lütfen bir şifre girin."
+      },
+      "passwordTooShort": {
+        "title": "Şifre Çok Kısa",
+        "description": "Şifre en az 6 karakter olmalıdır."
+      },
+      "passwordConfirmationRequired": {
+        "title": "Şifre Onayı Gerekli",
+        "description": "Lütfen şifrenizi onaylayın."
+      },
+      "passwordMismatch": {
+        "title": "Şifre Uyumsuzluğu",
+        "description": "Şifreler eşleşmiyor. Lütfen tekrar deneyin."
+      },
+      "invalidEmailFormat": {
+        "title": "Geçersiz E-posta Formatı",
+        "description": "Lütfen geçerli bir e-posta adresi girin."
+      },
+      "googleSignInError": {
+        "title": "Google Giriş Hatası",
+        "description": "Bilinmeyen bir hata oluştu"
+      },
+      "redirectingToGoogle": {
+        "title": "Google'a Yönlendiriliyor...",
+        "description": "Kimlik doğrulama için sizi Google'a yönlendirirken lütfen bekleyin."
+      }
+    }
+  },
   "home": {
     "hero": {
       "title": "OttoCollect",
@@ -100,59 +207,59 @@
   "countrySelection": {
     "noCollections": "Henüz koleksiyon yok",
     "startJourney": "Koleksiyon yolculuğunuza başlayın",
-    "noCollectionsDescription": "Bu koleksiyoncu henüz koleksiyonuna herhangi bir banknot eklememiş.",
+    "noCollectionsDescription": "Bu koleksiyoncu henüz koleksiyonlarına herhangi bir banknot eklemedi.",
     "startJourneyDescription": "İlk banknotunuzu ekleyerek Osmanlı İmparatorluğu banknot koleksiyonunuzu oluşturmaya başlayın.",
-    "browseCatalog": "Katalogları Gözden Geçir",
-    "visitMarketplace": "Pazar Yerini Ziyaret Et",
-    "checkBackLater": "Koleksiyonlarının büyümesini görmek için daha sonra tekrar kontrol edin!"
+    "browseCatalog": "Katalogları Gözden Geçirin",
+    "visitMarketplace": "Pazar Yerini Ziyaret Edin",
+    "checkBackLater": "Koleksiyonlarının büyüdüğünü görmek için daha sonra tekrar kontrol edin!"
   },
   "aboutUs": {
     "title": "OttoCollect Hakkında",
     "aboutProject": {
       "title": "Proje Hakkında",
-      "description1": "Osmanlı Banknotları, Osmanlı İmparatorluğu banknotları ve bir zamanlar Osmanlı İmparatorluğu tarafından yönetilen topraklardan para birimlerinin koleksiyoncularına adanmış kapsamlı bir katalog ve koleksiyon yönetim aracıdır.",
-      "description2": "Misyonumuz, Osmanlı İmparatorluğu'nun nümizmatik tarihini belgelemek ve korumak, aynı zamanda Türkiye, Yunanistan, Ürdün, Lübnan, Suriye, İsrail, Kıbrıs, Arnavutluk, Karadağ ve daha fazlası dahil olmak üzere bu tarihi mirası paylaşan bölgelerdeki koleksiyonculardan oluşan bir topluluk oluşturmaktır.",
-      "description3": "Osmanlı banknotları hakkında ayrıntılı bilgilerin yanı sıra bir zamanlar Osmanlı yönetimi altındaki çeşitli ülkelerden banknotlar hakkında bilgi sağlıyoruz. Bu, platformumuzu genellikle kendi ülkelerinden koleksiyonları tamamladıktan sonra koleksiyonlarını Osmanlı para birimlerini içerecek şekilde genişleten koleksiyoncular için benzersiz bir şekilde değerli kılmaktadır.",
-      "description4": "Platformumuz, koleksiyoncuların kişisel koleksiyonlarını takip etmelerine, görüntüleri paylaşmalarına, tartışmalara katılmalarına ve dünya çapındaki meraklı arkadaşlarıyla bağlantı kurmalarına olanak tanır."
+      "description1": "Osmanlı Banknotları, Osmanlı İmparatorluğu banknotları ve Osmanlı İmparatorluğu tarafından bir zamanlar yönetilen bölgelerden gelen para birimlerinin koleksiyoncularına adanmış kapsamlı bir katalog ve koleksiyon yönetim aracıdır.",
+      "description2": "Misyonumuz, Osmanlı İmparatorluğu'nun nümismatik tarihini belgelemek ve korumak, aynı zamanda bu tarihi mirası paylaşan bölgelerde koleksiyoncular topluluğu oluşturmaktır. Bu bölgeler arasında Türkiye, Yunanistan, Ürdün, Lübnan, Suriye, İsrail, Kıbrıs, Arnavutluk, Karadağ ve daha fazlası bulunmaktadır.",
+      "description3": "Osmanlı banknotları hakkında detaylı bilgi sağlıyoruz, ayrıca bir zamanlar Osmanlı yönetimi altında olan çeşitli ülkelerden gelen banknotlar hakkında da bilgi veriyoruz. Bu, platformumuzu, genellikle kendi ülkelerinden koleksiyonları tamamladıktan sonra koleksiyonlarını Osmanlı para birimlerini içerecek şekilde genişleten koleksiyoncular için benzersiz şekilde değerli kılar.",
+      "description4": "Platformumuz, koleksiyoncuların kişisel koleksiyonlarını takip etmelerine, görüntü paylaşmalarına, tartışmalara katılmalarına ve dünya çapındaki fellow tutkunlarla bağlantı kurmalarına olanak tanır."
     },
     "founders": {
       "title": "Kurucularımız",
       "assaf": {
         "name": "Assaf Unger",
-        "description": "Assaf 40 yılı aşkın süredir banknot topluyor ve Osmanlı İmparatorluğu ve Filistin banknotlarında önde gelen bir uzmandır. Bu platformu, bilgisini ve tutkusunu dünya çapındaki koleksiyoncu arkadaşlarıyla paylaşmak için kurdu."
+        "description": "Assaf 40 yılı aşkın süredir banknot topluyor ve Osmanlı İmparatorluğu ve Filistin banknotları konusunda önde gelen bir uzmandır. Bu platformu, bilgisini ve tutkusunu dünya çapındaki fellow koleksiyoncularla paylaşmak için kurdu."
       },
       "dror": {
         "name": "Dror Korcharz",
-        "description1": "Dror, 40 yılı aşkın koleksiyon deneyimine sahip Osmanlı banknotları konusunda ünlü bir uzmandır. (IBA)'da aktif bir yönetim rolü üstlenir ve nümizmatik alanına önemli katkılarda bulunmuştur.",
-        "description2": "Osmanlı para birimi varyantları, mühürler ve tarihsel bağlam konusundaki uzman bilgisi, onu eskiden Osmanlı yönetimi altındaki birçok ülkedeki koleksiyoncular ve kurumlar için aranan bir danışman haline getirmiştir."
+        "description1": "Dror, 40 yılı aşkın toplama deneyimiyle Osmanlı banknotları konusunda tanınmış bir uzmandır. (IBA) içinde aktif bir yönetim rolü üstlenir ve nümismatik alanına önemli katkılarda bulunmuştur.",
+        "description2": "Osmanlı para birimi varyantları, mühürleri ve tarihi bağlam konusundaki uzmanlaşmış bilgisi, onu eski Osmanlı yönetimi altında olan birkaç ülkedeki koleksiyoncular ve kurumlar için aranan bir danışman haline getirmiştir."
       },
       "viewCollection": "Koleksiyonu Görüntüle"
     },
     "platformFeatures": {
-      "title": "Koleksiyoncular için Kapsamlı Platform",
-      "subtitle": "Osmanlı ve halefi ülkelerin banknot koleksiyonunuzu yönetmek, sergilemek ve büyütmek için ihtiyacınız olan her şey",
+      "title": "Koleksiyoncular İçin Kapsamlı Platform",
+      "subtitle": "Osmanlı ve halef ülkelerin banknot koleksiyonunuzu yönetmek, sergilemek ve büyütmek için ihtiyacınız olan her şey",
       "catalogues": {
         "title": "Kataloglar",
-        "description": "Osmanlı ve halefi ülkeler/otoritelerinin banknotlarının kapsamlı kataloglarını inceleyin"
+        "description": "Osmanlı ve halef ülkelerin/otoritelerin banknotlarının kapsamlı kataloglarını gözden geçirin"
       },
       "collectionTools": {
         "title": "Koleksiyon Araçları",
-        "description": "Koleksiyonunuzu, istek listenizi takip edin ve ayrıntılı bilgilerle eksik öğeleri görüntüleyin"
+        "description": "Koleksiyonunuzu, istek listenizi takip edin ve eksik öğeleri detaylı bilgilerle görüntüleyin"
       },
       "marketplace": {
         "title": "Pazar Yeri",
-        "description": "Entegre pazar yerimiz aracılığıyla topluluk içinde banknot alın ve satın"
+        "description": "Entegre pazar yerimiz aracılığıyla topluluk içinde banknotları satın alın ve satın"
       },
       "community": {
         "title": "Topluluk",
-        "description": "Diğer kişisel koleksiyonları görüntüleyin. Dünya çapından diğer koleksiyoncularla bağlantı kurun, etkileşimde bulunun ve takip edin."
+        "description": "Diğer kişisel koleksiyonları görüntüleyin. Dünya çapındaki diğer koleksiyoncularla bağlantı kurun, etkileşimde bulunun ve takip edin."
       }
     },
     "callToAction": {
       "title": "Topluluğumuza Katılın",
-      "description": "Osmanlı banknotlarını keşfetmeye başlayın ve dünya çapından koleksiyoncu arkadaşlarınızla bağlantı kurun.",
-      "exploreCatalogues": "Katalogları Keşfedin",
-      "joinCommunity": "Topluluğa Katılın"
+      "description": "Osmanlı banknotlarını keşfetmeye başlayın ve dünya çapındaki fellow koleksiyoncularla bağlantı kurun.",
+      "exploreCatalogues": "Katalogları Keşfet",
+      "joinCommunity": "Topluluğa Katıl"
     }
   }
 } 

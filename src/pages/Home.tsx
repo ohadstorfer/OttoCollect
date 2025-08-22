@@ -2,17 +2,19 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation(['pages']);
 
   return (
     <div className="page-container py-10">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-serif font-bold mb-4">Ottoman Banknotes Collection</h1>
+          <h1 className="text-4xl font-serif font-bold mb-4">{t('home.title')}</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Explore and manage your collection of historical Ottoman banknotes
+            {t('home.subtitle')}
           </p>
         </div>
 
@@ -24,15 +26,15 @@ const Home: React.FC = () => {
                   <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"></path>
                 </svg>
               </div>
-              <h2 className="text-xl font-medium mb-2"><span>Catalog</span></h2>
+              <h2 className="text-xl font-medium mb-2"><span>{t('home.catalog.title')}</span></h2>
               <p className="text-muted-foreground mb-6">
-                Browse a comprehensive catalog of Ottoman banknotes
+                {t('home.catalog.description')}
               </p>
               <Button 
                 onClick={() => navigate('/catalog')}
                 className="w-full"
               >
-                Explore Catalog
+                {t('home.catalog.button')}
               </Button>
             </CardContent>
           </Card>
@@ -46,15 +48,15 @@ const Home: React.FC = () => {
                   <line x1="12" y1="17" x2="12" y2="21"></line>
                 </svg>
               </div>
-              <h2 className="text-xl font-medium mb-2"><span>My Collection</span></h2>
+              <h2 className="text-xl font-medium mb-2"><span>{t('home.collection.title')}</span></h2>
               <p className="text-muted-foreground mb-6">
-                Manage and organize your personal collection
+                {t('home.collection.description')}
               </p>
               <Button 
                 onClick={() => navigate('/my-collection')}
                 className="w-full"
               >
-                View Collection
+                {t('home.collection.button')}
               </Button>
             </CardContent>
           </Card>
@@ -68,15 +70,15 @@ const Home: React.FC = () => {
                   <line x1="8" y1="12" x2="16" y2="12"></line>
                 </svg>
               </div>
-              <h2 className="text-xl font-medium mb-2"><span>Profile</span></h2>
+              <h2 className="text-xl font-medium mb-2"><span>{t('home.profile.title')}</span></h2>
               <p className="text-muted-foreground mb-6">
-                View and edit your profile information
+                {t('home.profile.description')}
               </p>
               <Button 
                 onClick={() => navigate('/profile')} 
                 className="w-full"
               >
-                Go to Profile
+                {t('home.profile.button')}
               </Button>
             </CardContent>
           </Card>

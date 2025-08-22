@@ -80,6 +80,8 @@ const renderComment = (
     renderTextWithLinks: (text: string) => React.ReactNode;
     updateReplyContent: (content: string) => void;
     updateEditedContent: (content: string) => void;
+    t: (key: string) => string;
+    currentLanguage: string;
   }
 ) => {
   const isReply = depth > 0;
@@ -96,7 +98,7 @@ const renderComment = (
           >
             <AvatarImage src={comment.author?.avatarUrl} />
             <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-              {getInitials(comment.author?.username || 'Anonymous')}
+                              {getInitials(comment.author?.username || props.t('post.anonymous'))}
             </AvatarFallback>
           </Avatar>
 
@@ -107,14 +109,14 @@ const renderComment = (
                 className="font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words"
                 onClick={() => props.handleOnProfileClick(comment.author?.id)}
               >
-                {comment.author?.username || 'Anonymous'}
+                {comment.author?.username || props.t('post.anonymous')}
               </span>
               <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
               <span className="text-xs text-muted-foreground flex-shrink-0">{formatRelativeTime(comment.created_at || comment.createdAt)}</span>
               {comment.isEdited && (
                 <>
                   <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-                  <span className="text-xs italic text-muted-foreground flex-shrink-0">edited</span>
+                  <span className="text-xs italic text-muted-foreground flex-shrink-0">{props.t('post.edited')}</span>
                 </>
               )}
             </div>
@@ -265,7 +267,7 @@ const ForumPostAnnouncementsPage = () => {
   const { id: postId } = useParams();
   const { user } = useAuth();
   const { t } = useTranslation(['forum']);
-  const { formatRelativeTime } = useDateLocale();
+  const { formatRelativeTime, currentLanguage } = useDateLocale();
   const [post, setPost] = useState<ForumPostType | null>(null);
   const [comments, setComments] = useState<ForumComment[]>([]);
   const [commentContent, setCommentContent] = useState('');
@@ -697,7 +699,7 @@ const ForumPostAnnouncementsPage = () => {
             className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Forum
+            {t('navigation.backToForum')}
           </Button>
 
           {canDeletePost && (
@@ -713,18 +715,18 @@ const ForumPostAnnouncementsPage = () => {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Announcement</AlertDialogTitle>
+                  <AlertDialogTitle>{t('actions.deleteAnnouncement')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete this announcement? This action cannot be undone.
+                    {t('actions.deleteAnnouncementConfirm')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeletePost}
                     className="bg-red-600 hover:bg-red-700"
                   >
-                    Delete
+                    {t('actions.delete')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -883,7 +885,9 @@ const ForumPostAnnouncementsPage = () => {
                   handleOnProfileClick,
                   renderTextWithLinks,
                   updateReplyContent,
-                  updateEditedContent
+                  updateEditedContent,
+                  t,
+                  currentLanguage
                 })
               )
             )}

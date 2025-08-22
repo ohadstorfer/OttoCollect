@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from './button';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const COOKIE_CONSENT_KEY = 'cookie-consent-accepted';
 
 export function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
+  const { t } = useTranslation(['common']);
 
   useEffect(() => {
     // Check if user has already accepted cookies
@@ -27,8 +29,7 @@ export function CookieConsent() {
       <div className="container mx-auto p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex-1 text-sm text-muted-foreground">
           <p>
-            We use essential cookies to ensure the basic functionality of this website and to enhance your experience.
-            These cookies are strictly necessary for the operation of our website. By continuing to use this site, you accept our use of essential cookies.
+            {t('cookieConsent.description')}
           </p>
           <p className="mt-1">
             <a 
@@ -37,7 +38,7 @@ export function CookieConsent() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Learn more about how we use cookies
+              {t('cookieConsent.learnMore')}
             </a>
           </p>
         </div>
@@ -48,10 +49,10 @@ export function CookieConsent() {
             size="icon"
             onClick={acceptCookies}
             className="shrink-0"
-            title="Close cookie notice"
+            title={t('cookieConsent.closeButton')}
           >
             <X className="h-4 w-4" />
-            <span className="sr-only">Close cookie notice</span>
+            <span className="sr-only">{t('cookieConsent.closeButton')}</span>
           </Button>
         </div>
       </div>

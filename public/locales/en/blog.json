@@ -122,5 +122,17 @@
     "goToProfile": "Go to Profile",
     "blocking": "Blocking...",
     "blockFromForum": "Block from Forum"
+  },
+  "imageUploader": {
+    "invalidFile": "Invalid file",
+    "selectImageOnly": "Please select an image file only.",
+    "uploadSuccess": "Image uploaded successfully",
+    "uploadFailed": "Upload failed",
+    "uploadError": "There was an error uploading your image. Please try again.",
+    "mainImageAlt": "Blog post main image",
+    "uploading": "Uploading image...",
+    "uploadMainImage": "Upload Main Image",
+    "required": "Required",
+    "clickToSelect": "Click to select an image file"
   }
 } 

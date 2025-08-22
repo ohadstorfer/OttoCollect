@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Shield, Users, Book, Image, Globe, Settings, Stamp, BarChart3 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import UserManagement from '@/components/admin/UserManagement';
 import BanknotesManagement from '@/components/admin/BanknotesManagement';
 import ImageSuggestions from '@/components/admin/ImageSuggestions';
@@ -17,6 +18,7 @@ import { AdminStatistics } from '@/components/admin/AdminStatistics';
 
 const Admin = () => {
   const { user } = useAuth();
+  const { t } = useTranslation(['admin', 'common']);
   const [isCountryAdmin, setIsCountryAdmin] = useState<boolean>(false);
   const [countryAdminName, setCountryAdminName] = useState<string>("");
   const [countryId, setCountryId] = useState<string>("");
@@ -97,7 +99,7 @@ const Admin = () => {
     return (
       <div className="page-container">
         <div className="max-w-2xl mx-auto text-center p-8">
-          <p>Loading admin dashboard...</p>
+          <p>{t('admin:loading')}</p>
         </div>
       </div>
     );
@@ -107,13 +109,13 @@ const Admin = () => {
   if (!user) {
     return (
       <div className="page-container">
-        <h1 className="page-title"><span>Admin</span></h1>
+        <h1 className="page-title"><span>{t('admin:title')}</span></h1>
         
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4"><span>Access Restricted</span></h2>
+            <h2 className="text-2xl font-serif mb-4"><span>{t('admin:accessRestricted')}</span></h2>
             <p className="mb-6 text-muted-foreground">
-              You must be logged in to access this area.
+              {t('admin:mustBeLoggedIn')}
             </p>
           </div>
         </div>
@@ -130,13 +132,13 @@ const Admin = () => {
     console.log("User has no admin privileges:", user);
     return (
       <div className="page-container">
-        <h1 className="page-title"><span>Admin</span></h1>
+        <h1 className="page-title"><span>{t('admin:title')}</span></h1>
         
         <div className="max-w-2xl mx-auto text-center">
           <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4"><span>Access Restricted</span></h2>
+            <h2 className="text-2xl font-serif mb-4"><span>{t('admin:accessRestricted')}</span></h2>
             <p className="mb-6 text-muted-foreground">
-              This area is restricted to administrators only.
+              {t('admin:administratorsOnly')}
             </p>
           </div>
         </div>
@@ -153,7 +155,7 @@ const Admin = () => {
   // Full admin dashboard for super admins
   return (
     <div className="page-container mb-20">
-      <h1 className="page-title"><span>Admin Dashboard</span></h1>
+      <h1 className="page-title"><span>{t('admin:dashboardTitle')}</span></h1>
       
       <div className="max-w-6xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -161,31 +163,31 @@ const Admin = () => {
             
             <TabsTrigger value="users">
               <Users className="mr-2 h-4 w-4" />
-              Users
+              {t('admin:tabs.users')}
             </TabsTrigger>
             <TabsTrigger value="banknotes">
               <Book className="mr-2 h-4 w-4" />
-              Banknotes
+              {t('admin:tabs.banknotes')}
             </TabsTrigger>
             <TabsTrigger value="suggestions">
               <Image className="mr-2 h-4 w-4" />
-              Image Suggestions
+              {t('admin:tabs.imageSuggestions')}
             </TabsTrigger>
             <TabsTrigger value="stamps">
               <Stamp className="mr-2 h-4 w-4" />
-              Stamps
+              {t('admin:tabs.stamps')}
             </TabsTrigger>
             <TabsTrigger value="countries">
               <Globe className="mr-2 h-4 w-4" />
-              Countries
+              {t('admin:tabs.countries')}
             </TabsTrigger>
             <TabsTrigger value="filter-settings">
               <Settings className="mr-2 h-4 w-4" />
-              Filters
+              {t('admin:tabs.filters')}
             </TabsTrigger>
             <TabsTrigger value="statistics">
               <BarChart3 className="mr-2 h-4 w-4" />
-              Statistics
+              {t('admin:tabs.statistics')}
             </TabsTrigger>
           </TabsList>
 
@@ -194,7 +196,7 @@ const Admin = () => {
           <TabsContent value="users">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif"><span>User Management</span></CardTitle>
+                <CardTitle className="text-xl font-serif"><span>{t('admin:sections.userManagement')}</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <UserManagement isSuperAdmin={isSuperAdmin} />
@@ -205,7 +207,7 @@ const Admin = () => {
           <TabsContent value="banknotes">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif"><span>Banknotes Management</span></CardTitle>
+                <CardTitle className="text-xl font-serif"><span>{t('admin:sections.banknotesManagement')}</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <BanknotesManagement />
@@ -216,7 +218,7 @@ const Admin = () => {
           <TabsContent value="suggestions">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif"><span>Image Suggestions</span></CardTitle>
+                <CardTitle className="text-xl font-serif"><span>{t('admin:sections.imageSuggestions')}</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageSuggestions />
@@ -227,7 +229,7 @@ const Admin = () => {
           <TabsContent value="stamps">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif"><span>Stamps</span></CardTitle>
+                <CardTitle className="text-xl font-serif"><span>{t('admin:sections.stamps')}</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampsManagement />
@@ -242,7 +244,7 @@ const Admin = () => {
           <TabsContent value="filter-settings">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-serif"><span>Country Filter Settings</span></CardTitle>
+                <CardTitle className="text-xl font-serif"><span>{t('admin:sections.countryFilterSettings')}</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <CountryFilterSettings />

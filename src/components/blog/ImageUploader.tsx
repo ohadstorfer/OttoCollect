@@ -5,6 +5,7 @@ import { uploadBlogImage } from '@/services/blogService';
 import { useToast } from "@/hooks/use-toast";
 import { XCircle, Upload, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from 'react-i18next';
 
 interface ImageUploaderProps {
   image: string;
@@ -15,6 +16,7 @@ interface ImageUploaderProps {
 
 export const ImageUploader = ({ image, onChange, disabled = false, required = false }: ImageUploaderProps) => {
   const { toast } = useToast();
+  const { t } = useTranslation(['blog']);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -28,8 +30,8 @@ export const ImageUploader = ({ image, onChange, disabled = false, required = fa
     if (!file.type.startsWith('image/')) {
       toast({
         variant: "destructive",
-        title: "Invalid file",
-        description: "Please select an image file only.",
+        title: t('imageUploader.invalidFile'),
+        description: t('imageUploader.selectImageOnly'),
       });
       return;
     }
@@ -51,15 +53,15 @@ export const ImageUploader = ({ image, onChange, disabled = false, required = fa
       onChange(url);
       
       toast({
-        description: "Image uploaded successfully",
+        description: t('imageUploader.uploadSuccess'),
       });
       
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({
         variant: "destructive",
-        title: "Upload failed",
-        description: "There was an error uploading your image. Please try again.",
+        title: t('imageUploader.uploadFailed'),
+        description: t('imageUploader.uploadError'),
       });
     } finally {
       setIsUploading(false);
@@ -79,7 +81,7 @@ export const ImageUploader = ({ image, onChange, disabled = false, required = fa
         <Card className="group relative aspect-video overflow-hidden max-w-md">
           <img 
             src={image} 
-            alt="Blog post main image"
+            alt={t('imageUploader.mainImageAlt')}
             className="w-full h-full object-cover"
           />
           <Button
@@ -102,14 +104,14 @@ export const ImageUploader = ({ image, onChange, disabled = false, required = fa
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="h-12 w-12 animate-spin text-ottoman-600" />
               <div className="text-sm font-medium">{uploadProgress}%</div>
-              <div className="text-xs text-muted-foreground">Uploading image...</div>
+              <div className="text-xs text-muted-foreground">{t('imageUploader.uploading')}</div>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2 text-muted-foreground p-8">
               <Upload className="h-12 w-12" />
-              <div className="text-sm font-medium">Upload Main Image</div>
-              {required && <div className="text-xs text-red-500">Required</div>}
-              <div className="text-xs text-center">Click to select an image file</div>
+              <div className="text-sm font-medium">{t('imageUploader.uploadMainImage')}</div>
+              {required && <div className="text-xs text-red-500">{t('imageUploader.required')}</div>}
+              <div className="text-xs text-center">{t('imageUploader.clickToSelect')}</div>
             </div>
           )}
         </Card>

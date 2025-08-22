@@ -81,7 +81,8 @@
     "commentPlaceholder": "اكتب تعليقك...",
     "replyPlaceholder": "رد على {{username}}...",
     "publishPost": "نشر المشاركة",
-    "publishAnnouncement": "نشر الإعلان"
+    "publishAnnouncement": "نشر الإعلان",
+    "announcementDescription": "شارك معلومات مهمة مع المجتمع بأكمله"
   },
   "comments": {
     "showReplies": "عرض {{count}} {{count, plural, one {رد} other {ردود}}}",
@@ -113,7 +114,8 @@
     "replyError": "فشل في إضافة الرد"
   },
   "navigation": {
-    "backToForum": "العودة إلى المنتدى"
+    "backToForum": "العودة إلى المنتدى",
+    "backToBlog": "العودة إلى المدونة"
   },
   "actions": {
     "post": "نشر",
@@ -130,8 +132,10 @@
     "postReply": "نشر رد",
     "deletePost": "حذف المنشور",
     "deleteComment": "حذف التعليق",
+    "deleteAnnouncement": "حذف الإعلان",
     "deletePostConfirm": "هل أنت متأكد من أنك تريد حذف هذا المنشور؟ لا يمكن التراجع عن هذا الإجراء.",
     "deleteCommentConfirm": "هل أنت متأكد من أنك تريد حذف هذا التعليق؟ لا يمكن التراجع عن هذا الإجراء.",
+    "deleteAnnouncementConfirm": "هل أنت متأكد من أنك تريد حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.",
     "delete": "حذف"
   },
 
@@ -141,5 +145,22 @@
     "blocking": "جاري الحظر...",
     "blockFromForum": "حظر من المنتدى",
     "chooseAction": "اختر إجراءاً لهذا المستخدم:"
+  },
+  "imageUploader": {
+    "invalidFiles": "ملفات غير صالحة",
+    "selectImagesOnly": "يرجى اختيار ملفات الصور فقط.",
+    "uploadSuccess": "تم رفع {{count}} صورة بنجاح",
+    "uploadSuccess_plural": "تم رفع {{count}} صور بنجاح",
+    "uploadFailed": "فشل الرفع",
+    "uploadError": "حدث خطأ أثناء رفع الصور. يرجى المحاولة مرة أخرى.",
+    "uploadedImage": "الصورة المرفوعة {{number}}",
+    "upload": "رفع"
+  },
+  "auth": {
+    "authenticationRequired": "المصادقة مطلوبة",
+    "mustBeSignedIn": "يجب عليك تسجيل الدخول لإنشاء الإعلانات.",
+    "signIn": "تسجيل الدخول",
+    "accessDenied": "تم رفض الوصول",
+    "onlySuperAdmins": "يمكن للمدراء المتفوقين فقط إنشاء الإعلانات."
   }
 } 

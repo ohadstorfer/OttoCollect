@@ -400,5 +400,23 @@
   "onCollections": "Koleksiyonlarda",
   "addToWishlist": "İstek listesine ekle",
   "addToYourCollection": "Koleksiyonunuza ekleyin",
-  "removeFromWishlist": "İstek listesinden kaldır"
+  "removeFromWishlist": "İstek listesinden kaldır",
+  "imageUpload": {
+    "selectImageFile": "Lütfen bir resim dosyası seçin.",
+    "imageSizeLimit": "Resim boyutu 5MB'dan küçük olmalıdır.",
+    "uploadSuccess": "{{type}} başarıyla yüklendi.",
+    "uploadFailed": "Resim yüklenemedi. Lütfen tekrar deneyin.",
+    "obverseImage": "Ön Yüz Resmi",
+    "reverseImage": "Arka Yüz Resmi",
+    "personalImage": "Kişisel Resim",
+    "upload": "Yükle",
+    "changeImage": "Resmi Değiştir",
+    "dragAndDrop": "Sürükleyip bırakın veya yüklemek için tıklayın",
+    "uploading": "Yükleniyor...",
+    "uploadObverseImage": "Ön Yüz Resmini Yükle",
+    "uploadReverseImage": "Arka Yüz Resmini Yükle",
+    "personalPhotos": "Kişisel Fotoğraflar (İsteğe Bağlı)",
+    "addPhoto": "Fotoğraf Ekle",
+    "personalImage": "Kişisel {{number}}"
+  }
 }

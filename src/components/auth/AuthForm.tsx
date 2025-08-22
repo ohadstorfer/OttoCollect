@@ -13,8 +13,10 @@ import { useRef } from "react";
 import { toast } from "sonner";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
+import { useTranslation } from 'react-i18next';
 
 const AuthForm = () => {
+  const { t } = useTranslation(['pages']);
   const { login, register, blockedNotice } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("login");
@@ -64,8 +66,8 @@ const AuthForm = () => {
         console.log('Email is blocked');
         toast({
           variant: "destructive",
-          title: "Account Blocked",
-          description: "Your account has been blocked. You probably violated the website terms of service. If you believe this is a mistake, please contact support.",
+          title: t('auth.errors.accountBlocked.title'),
+          description: t('auth.errors.accountBlocked.description'),
         });
         setLoginLoading(false);
         return;
@@ -92,8 +94,8 @@ const AuthForm = () => {
     if (!registerUsername.trim()) {
       toast({
         variant: "destructive",
-        title: "Username Required",
-        description: "Please enter a username.",
+        title: t('auth.errors.usernameRequired.title'),
+        description: t('auth.errors.usernameRequired.description'),
       });
       return;
     }
@@ -101,8 +103,8 @@ const AuthForm = () => {
     if (registerUsername.length < 3) {
       toast({
         variant: "destructive",
-        title: "Username Too Short",
-        description: "Username must be at least 3 characters long.",
+        title: t('auth.errors.usernameTooShort.title'),
+        description: t('auth.errors.usernameTooShort.description'),
       });
       return;
     }
@@ -110,8 +112,8 @@ const AuthForm = () => {
     if (!registerEmail.trim()) {
       toast({
         variant: "destructive",
-        title: "Email Required",
-        description: "Please enter your email address.",
+        title: t('auth.errors.emailRequired.title'),
+        description: t('auth.errors.emailRequired.description'),
       });
       return;
     }
@@ -119,8 +121,8 @@ const AuthForm = () => {
     if (!registerConfirmEmail.trim()) {
       toast({
         variant: "destructive",
-        title: "Email Confirmation Required",
-        description: "Please confirm your email address.",
+        title: t('auth.errors.emailConfirmationRequired.title'),
+        description: t('auth.errors.emailConfirmationRequired.description'),
       });
       return;
     }
@@ -129,8 +131,8 @@ const AuthForm = () => {
       setEmailsMatch(false);
       toast({
         variant: "destructive",
-        title: "Email Mismatch",
-        description: "Email addresses do not match. Please try again.",
+        title: t('auth.errors.emailMismatch.title'),
+        description: t('auth.errors.emailMismatch.description'),
       });
       return;
     }
@@ -138,8 +140,8 @@ const AuthForm = () => {
     if (!registerPassword) {
       toast({
         variant: "destructive",
-        title: "Password Required",
-        description: "Please enter a password.",
+        title: t('auth.errors.passwordRequired.title'),
+        description: t('auth.errors.passwordRequired.description'),
       });
       return;
     }
@@ -147,8 +149,8 @@ const AuthForm = () => {
     if (registerPassword.length < 6) {
       toast({
         variant: "destructive",
-        title: "Password Too Short",
-        description: "Password must be at least 6 characters long.",
+        title: t('auth.errors.passwordTooShort.title'),
+        description: t('auth.errors.passwordTooShort.description'),
       });
       return;
     }
@@ -156,8 +158,8 @@ const AuthForm = () => {
     if (!registerConfirmPassword) {
       toast({
         variant: "destructive",
-        title: "Password Confirmation Required",
-        description: "Please confirm your password.",
+        title: t('auth.errors.passwordConfirmationRequired.title'),
+        description: t('auth.errors.passwordConfirmationRequired.description'),
       });
       return;
     }
@@ -166,8 +168,8 @@ const AuthForm = () => {
       setPasswordsMatch(false);
       toast({
         variant: "destructive",
-        title: "Password Mismatch",
-        description: "Passwords do not match. Please try again.",
+        title: t('auth.errors.passwordMismatch.title'),
+        description: t('auth.errors.passwordMismatch.description'),
       });
       return;
     }
@@ -177,8 +179,8 @@ const AuthForm = () => {
     if (!emailRegex.test(registerEmail)) {
       toast({
         variant: "destructive",
-        title: "Invalid Email Format",
-        description: "Please enter a valid email address.",
+        title: t('auth.errors.invalidEmailFormat.title'),
+        description: t('auth.errors.invalidEmailFormat.description'),
       });
       return;
     }
@@ -191,8 +193,8 @@ const AuthForm = () => {
         console.log('Email is blocked');
         toast({
           variant: "destructive",
-          title: "Email Blocked",
-          description: "This email has been blocked from registering. You probably violated the website terms of service. If you believe this is a mistake, please contact support.",
+          title: t('auth.errors.emailBlocked.title'),
+          description: t('auth.errors.emailBlocked.description'),
         });
         setRegisterLoading(false);
         return;
@@ -221,14 +223,14 @@ const AuthForm = () => {
       });
       if (error) throw error;
       toast({
-        title: "Redirecting to Google...",
-        description: "Please wait while we redirect you to Google for authentication.",
+        title: t('auth.errors.redirectingToGoogle.title'),
+        description: t('auth.errors.redirectingToGoogle.description'),
       });
     } catch (err: any) {
       toast({
         variant: "destructive",
-        title: "Google Sign-In Error",
-        description: err?.message || "Unknown error occurred",
+        title: t('auth.errors.googleSignInError.title'),
+        description: err?.message || t('auth.errors.googleSignInError.description'),
       });
     }
   };
@@ -244,21 +246,21 @@ const AuthForm = () => {
       if (error) {
         toast({
           variant: "destructive",
-          title: "Password Reset Failed",
-          description: error.message || "Failed to send reset email.",
+          title: t('auth.passwordReset.errorTitle'),
+          description: error.message || t('auth.passwordReset.errorDescription'),
         });
       } else {
         toast({
-          title: "Reset link sent",
-          description: "Reset link sent! Please check your email.",
+          title: t('auth.passwordReset.successTitle'),
+          description: t('auth.passwordReset.successDescription'),
         });
         setResetOpen(false);
       }
     } catch (err: any) {
       toast({
         variant: "destructive",
-        title: "Password Reset Failed",
-        description: "Failed to send password reset email.",
+        title: t('auth.passwordReset.errorTitle'),
+        description: t('auth.passwordReset.errorDescription'),
       });
     } finally {
       setResetLoading(false);
@@ -282,10 +284,10 @@ const AuthForm = () => {
         >
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="login" className="font-medium">
-              Login
+              {t('auth.login.loginButton')}
             </TabsTrigger>
             <TabsTrigger value="register" className="font-medium">
-              Register
+              {t('auth.register.registerButton')}
             </TabsTrigger>
           </TabsList>
 
@@ -294,10 +296,10 @@ const AuthForm = () => {
             <div className="space-y-6">
               <div className="text-center">
                 <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500">
-                  <span>Welcome Back</span>
+                  <span>{t('auth.login.title')}</span>
                 </h3>
                 <p className="text-ottoman-200 text-sm">
-                  Log in to access your Ottoman banknote collection
+                  {t('auth.login.subtitle')}
                 </p>
                 {blockedError && (
                   <div className="text-red-600 text-sm mt-2">{blockedError}</div>
@@ -307,12 +309,12 @@ const AuthForm = () => {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-ottoman-200">
-                    Email
+                    {t('auth.login.email')}
                   </label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="name@example.com"
+                    placeholder={t('auth.login.emailPlaceholder')}
                     required
                     className="ottoman-input"
                     value={loginEmail}
@@ -326,21 +328,21 @@ const AuthForm = () => {
                       htmlFor="password"
                       className="text-sm font-medium text-ottoman-200"
                     >
-                      Password
+                      {t('auth.login.password')}
                     </label>
                     <button
                       type="button"
                       className="text-xs text-ottoman-400 hover:text-ottoman-300 px-0 underline"
                       onClick={() => setResetOpen(true)}
                     >
-                      Forgot password?
+                      {t('auth.login.forgotPassword')}
                     </button>
                   </div>
                   <div className="relative">
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder={t('auth.login.passwordPlaceholder')}
                       required
                       className="ottoman-input pr-10"
                       value={loginPassword}
@@ -366,11 +368,11 @@ const AuthForm = () => {
                   disabled={loginLoading}
                 >
                   {loginLoading ? (
-                    <span className="animate-pulse">Logging in...</span>
+                    <span className="animate-pulse">{t('auth.login.loggingIn')}</span>
                   ) : (
                     <>
                       <LogIn className="h-4 w-4 mr-2" />
-                      Login
+                      {t('auth.login.loginButton')}
                     </>
                   )}
                 </Button>
@@ -395,12 +397,12 @@ const AuthForm = () => {
 
               <div className="text-center">
                 <p className="text-sm text-ottoman-400">
-                  Don't have an account?{" "}
+                  {t('auth.login.noAccount')}{" "}
                   <button
                     className="text-ottoman-300 hover:text-ottoman-100"
                     onClick={() => setActiveTab("register")}
                   >
-                    Register
+                    {t('auth.login.registerLink')}
                   </button>
                 </p>
               </div>
@@ -412,10 +414,10 @@ const AuthForm = () => {
             <div className="space-y-6">
               <div className="text-center">
                 <h3 className="text-2xl font-serif font-semibold mb-2 text-gold-500">
-                  <span>Create Account</span>
+                  <span>{t('auth.register.title')}</span>
                 </h3>
                 <p className="text-ottoman-200 text-sm">
-                  Join the Ottoman banknote collector community
+                  {t('auth.register.subtitle')}
                 </p>
                 {blockedError && (
                   <div className="text-red-600 text-sm mt-2">{blockedError}</div>
@@ -428,11 +430,11 @@ const AuthForm = () => {
                     htmlFor="username"
                     className="text-sm font-medium text-ottoman-200"
                   >
-                    Username
+                    {t('auth.register.username')}
                   </label>
                   <Input
                     id="username"
-                    placeholder="YourUsername"
+                    placeholder={t('auth.register.usernamePlaceholder')}
                     required
                     className="ottoman-input"
                     value={registerUsername}
@@ -445,12 +447,12 @@ const AuthForm = () => {
                     htmlFor="register-email"
                     className="text-sm font-medium text-ottoman-200"
                   >
-                    Email
+                    {t('auth.register.email')}
                   </label>
                   <Input
                     id="register-email"
                     type="email"
-                    placeholder="name@example.com"
+                    placeholder={t('auth.register.emailPlaceholder')}
                     required
                     className={`ottoman-input ${
                       !emailsMatch && registerConfirmEmail
@@ -470,12 +472,12 @@ const AuthForm = () => {
                     htmlFor="confirm-email"
                     className="text-sm font-medium text-ottoman-200"
                   >
-                    Confirm Email
+                    {t('auth.register.confirmEmail')}
                   </label>
                   <Input
                     id="confirm-email"
                     type="email"
-                    placeholder="name@example.com"
+                    placeholder={t('auth.register.emailPlaceholder')}
                     required
                     className={`ottoman-input ${
                       !emailsMatch && registerConfirmEmail
@@ -490,7 +492,7 @@ const AuthForm = () => {
                   />
                   {!emailsMatch && registerConfirmEmail && (
                     <p className="text-xs text-red-500 mt-1">
-                      Email addresses do not match
+                      {t('auth.register.emailMismatch')}
                     </p>
                   )}
                 </div>
@@ -500,13 +502,13 @@ const AuthForm = () => {
                     htmlFor="register-password"
                     className="text-sm font-medium text-ottoman-200"
                   >
-                    Password
+                    {t('auth.register.password')}
                   </label>
                   <div className="relative">
                     <Input
                       id="register-password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder={t('auth.register.passwordPlaceholder')}
                       required
                       className="ottoman-input pr-10"
                       value={registerPassword}
@@ -536,12 +538,12 @@ const AuthForm = () => {
                     htmlFor="confirm-password"
                     className="text-sm font-medium text-ottoman-200"
                   >
-                    Confirm Password
+                    {t('auth.register.confirmPassword')}
                   </label>
                   <Input
                     id="confirm-password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder={t('auth.register.passwordPlaceholder')}
                     required
                     className={`ottoman-input ${
                       !passwordsMatch && registerConfirmPassword
@@ -556,7 +558,7 @@ const AuthForm = () => {
                   />
                   {!passwordsMatch && registerConfirmPassword && (
                     <p className="text-xs text-red-500 mt-1">
-                      Passwords do not match
+                      {t('auth.register.passwordMismatch')}
                     </p>
                   )}
                 </div>
@@ -572,21 +574,21 @@ const AuthForm = () => {
                     htmlFor="terms"
                     className="text-xs text-ottoman-300"
                   >
-                    I agree to the{" "}
+                    {t('auth.register.termsAgreement')}{" "}
                     <button
                       type="button"
                       onClick={() => setTermsOpen(true)}
                       className="text-ottoman-400 hover:text-ottoman-300 underline"
                     >
-                      Terms of Service
+                      {t('auth.register.termsOfService')}
                     </button>{" "}
-                    and{" "}
+                    {t('auth.register.and')}{" "}
                     <button
                       type="button"
                       onClick={() => setPrivacyOpen(true)}
                       className="text-ottoman-400 hover:text-ottoman-300 underline"
                     >
-                      Privacy Policy
+                      {t('auth.register.privacyPolicy')}
                     </button>
                   </label>
                 </div>
@@ -597,11 +599,11 @@ const AuthForm = () => {
                   disabled={registerLoading || !passwordsMatch || !emailsMatch}
                 >
                   {registerLoading ? (
-                    <span className="animate-pulse">Creating account...</span>
+                    <span className="animate-pulse">{t('auth.register.creatingAccount')}</span>
                   ) : (
                     <>
                       <UserPlus className="h-4 w-4 mr-2" />
-                      Register
+                      {t('auth.register.registerButton')}
                     </>
                   )}
                 </Button>
@@ -626,12 +628,12 @@ const AuthForm = () => {
 
               <div className="text-center">
                 <p className="text-sm text-ottoman-400">
-                  Already have an account?{" "}
+                  {t('auth.register.hasAccount')}{" "}
                   <button
                     className="text-ottoman-300 hover:text-ottoman-100"
                     onClick={() => setActiveTab("login")}
                   >
-                    Login
+                    {t('auth.register.loginLink')}
                   </button>
                 </p>
               </div>
@@ -644,12 +646,12 @@ const AuthForm = () => {
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Password Reset</DialogTitle>
+            <DialogTitle>{t('auth.passwordReset.title')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handlePasswordReset} className="space-y-4 mt-2">
             <div className="space-y-1">
               <label htmlFor="reset-email" className="text-sm font-medium">
-                Enter your email to receive a password reset link:
+                {t('auth.passwordReset.description')}
               </label>
               <Input
                 id="reset-email"
@@ -667,14 +669,14 @@ const AuthForm = () => {
                 onClick={() => setResetOpen(false)}
                 disabled={resetLoading}
               >
-                Cancel
+                {t('auth.passwordReset.cancel')}
               </Button>
               <Button
                 type="submit"
                 className="ottoman-button"
                 disabled={resetLoading}
               >
-                {resetLoading ? "Sending..." : "Send Reset Link"}
+                {resetLoading ? t('auth.passwordReset.sending') : t('auth.passwordReset.sendButton')}
               </Button>
             </DialogFooter>
           </form>

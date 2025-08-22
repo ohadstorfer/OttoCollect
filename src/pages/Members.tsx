@@ -9,6 +9,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Search, Users, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 
 export default function Members() {
   const [members, setMembers] = useState<User[]>([]);
@@ -17,6 +18,7 @@ export default function Members() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const navigate = useNavigate();
+  const { t } = useTranslation(['pages']);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -90,22 +92,22 @@ export default function Members() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title"> <span>All Users</span></h1>
+      <h1 className="page-title"> <span>{t('allUsers')}</span></h1>
       
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <p className="text-muted-foreground mb-6">
-            Connect with other collectors, view their profiles and collections, and expand your collecting network.
+            {t('connectWithCollectors')}
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-card border rounded-lg p-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Search</span>
+                <span className="font-medium">{t('search')}</span>
               </div>
               <Input
-                placeholder="Search by username or country"
+                placeholder={t('searchByUsernameOrCountry')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
@@ -115,21 +117,21 @@ export default function Members() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Sort By</span>
+                <span className="font-medium">{t('sortBy')}</span>
               </div>
               <Select
                 value={sortBy}
                 onValueChange={setSortBy}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sort by" />
+                  <SelectValue placeholder={t('sortBy')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">Newest Members</SelectItem>
-                  <SelectItem value="oldest">Oldest Members</SelectItem>
-                  <SelectItem value="a-z">A-Z</SelectItem>
-                  <SelectItem value="z-a">Z-A</SelectItem>
-                  <SelectItem value="rank">By Points</SelectItem>
+                  <SelectItem value="newest">{t('newestMembers')}</SelectItem>
+                  <SelectItem value="oldest">{t('oldestMembers')}</SelectItem>
+                  <SelectItem value="a-z">{t('aZ')}</SelectItem>
+                  <SelectItem value="z-a">{t('zA')}</SelectItem>
+                  <SelectItem value="rank">{t('byPoints')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -142,8 +144,8 @@ export default function Members() {
           </div>
         ) : filteredMembers.length === 0 ? (
           <div className="text-center py-8">
-            <h3 className="text-xl font-medium mb-4"><span>No members found</span></h3>
-            <p className="text-muted-foreground">Try adjusting your search criteria</p>
+            <h3 className="text-xl font-medium mb-4"><span>{t('noMembersFound')}</span></h3>
+            <p className="text-muted-foreground">{t('tryAdjustingSearchCriteria')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -179,9 +181,9 @@ export default function Members() {
                   
                   <div className="border-t p-3 bg-muted/20 flex justify-between">
                     <span className="text-sm text-muted-foreground">
-                      Member since {new Date(member.createdAt).toLocaleDateString()}
+                      {t('memberSince')}{new Date(member.createdAt).toLocaleDateString()}
                     </span>
-                    <Button variant="ghost" size="sm" className="h-auto py-0 px-2">View Profile</Button>
+                    <Button variant="ghost" size="sm" className="h-auto py-0 px-2">{t('viewProfile')}</Button>
                   </div>
                 </CardContent>
               </Card>

@@ -21,12 +21,14 @@ import { Dialog, DialogContentWithScroll } from '@/components/ui/dialog';
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
 import SEOHead from '@/components/seo/SEOHead';
 import { SEO_CONFIG } from '@/config/seoConfig';
+import { useTranslation } from 'react-i18next';
 
 const Collection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { countryId } = useParams<{ countryId: string }>();
   const { toast } = useToast();
+  const { t } = useTranslation(['collection', 'pages']);
   
   const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -282,7 +284,7 @@ const Collection = () => {
                 className="flex items-center gap-1"
               >
                 <ChevronLeft className="h-4 w-4" />
-                Back to Countries
+                {t('backToCountries')}
               </Button>
             </div>
             <h1 className="text-3xl font-bold">
@@ -290,11 +292,11 @@ const Collection = () => {
             </h1>
           </div>
         ) : (
-          <h1 className="text-3xl font-bold mb-4 md:mb-0"><span>My Collection</span></h1>
+          <h1 className="text-3xl font-bold mb-4 md:mb-0"><span>{t('myCollection')}</span></h1>
         )}
         
         <Button onClick={handleAddItem} className="flex items-center gap-2">
-          <Plus className="h-5 w-5" /> Add Item
+          <Plus className="h-5 w-5" /> {t('addItem')}
         </Button>
       </div>
       
@@ -336,29 +338,29 @@ const Collection = () => {
           ) : error ? (
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-4 text-red-500"><span>{error}</span></h3>
-              <Button onClick={() => loadUserCollection()}>Retry</Button>
+              <Button onClick={() => loadUserCollection()}>{t('retry')}</Button>
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="text-center py-8">
               <h3 className="text-xl font-medium mb-4">
                 {collectionItems.length === 0
                   ? country 
-                    ? `Your collection doesn't have any items from ${country.name}` 
-                    : "Your collection is empty"
-                  : "No items match your filter criteria"
+                    ? `${t('noItemsFromCountry', { country: country.name })}` 
+                    : `${t('myCollectionEmpty')}`
+                  : `${t('noItemsMatchFilterCriteria')}`
                 }
               </h3>
               {collectionItems.length === 0 ? (
                 <div className="flex flex-col gap-4 items-center">
-                  <Button onClick={handleAddItem} className="mt-2">Add Your First Item</Button>
+                  <Button onClick={handleAddItem} className="mt-2">{t('addYourFirstItem')}</Button>
                   {country && (
                     <Button variant="outline" onClick={() => navigate(`/catalog/${countryId}`)}>
-                      Browse {country.name} Catalog
+                      {t('browseCountryCatalog', { country: country.name })}
                     </Button>
                   )}
                 </div>
               ) : (
-                <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+                <p className="text-muted-foreground">{t('tryAdjustingFilters')}</p>
               )}
             </div>
           ) : (

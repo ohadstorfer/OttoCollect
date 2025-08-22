@@ -9,10 +9,13 @@ import { CatalogStatsSection } from './statistics/CatalogStatsSection';
 import { ContentStatsSection } from './statistics/ContentStatsSection';
 import { ViewStatsSection } from './statistics/ViewStatsSection';
 import { statisticsService } from '@/services/statisticsService';
+import { useTranslation } from 'react-i18next';
 
 export const AdminStatistics: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const { t } = useTranslation(['admin']);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Auto-generate daily statistics when component loads
@@ -37,11 +40,11 @@ export const AdminStatistics: React.FC = () => {
     setIsGenerating(true);
     try {
       await statisticsService.generateDailyStats();
-      toast.success('Daily statistics generated successfully');
+      toast.success(t('statistics.generateSuccess'));
       setRefreshKey(prev => prev + 1); // Trigger refresh of child components
     } catch (error) {
       console.error('Error generating daily stats:', error);
-      toast.error('Failed to generate daily statistics');
+      toast.error(t('statistics.generateError'));
     } finally {
       setIsGenerating(false);
     }
@@ -51,9 +54,9 @@ export const AdminStatistics: React.FC = () => {
     <div className="space-y-6 ">
       <div className="flex justify-between items-center">
         <div>
-          <CardTitle className="text-2xl font-serif"><span>Platform Statistics</span></CardTitle>
+          <CardTitle className="text-2xl font-serif"><span>{t('statistics.title')}</span></CardTitle>
           <p className="text-muted-foreground">
-            Comprehensive analytics and insights for your platform
+            {t('statistics.description')}
           </p>
         </div>
         <Button 
@@ -62,7 +65,7 @@ export const AdminStatistics: React.FC = () => {
           className="flex items-center gap-2"
         >
           <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
-          {isGenerating ? 'Generating...' : 'Refresh Stats'}
+          {isGenerating ? t('statistics.generating') : t('statistics.refreshButton')}
         </Button>
       </div>
 
@@ -70,19 +73,19 @@ export const AdminStatistics: React.FC = () => {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            User Activity
+            {t('statistics.tabs.users')}
           </TabsTrigger>
           <TabsTrigger value="catalog" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            Catalog Stats
+            {t('statistics.tabs.catalog')}
           </TabsTrigger>
           <TabsTrigger value="content" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            Content Stats
+            {t('statistics.tabs.content')}
           </TabsTrigger>
           <TabsTrigger value="views" className="flex items-center gap-2">
             <Eye className="h-4 w-4" />
-            View Analytics
+            {t('statistics.tabs.views')}
           </TabsTrigger>
         </TabsList>
 
