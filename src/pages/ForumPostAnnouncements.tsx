@@ -12,11 +12,11 @@ import UserProfileLink from "@/components/common/UserProfileLink";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
-import { ArrowLeft, Trash2, Edit2, Ban, Megaphone } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit2, Ban, Megaphone, MessageSquare, Reply } from 'lucide-react';
 import { statisticsService } from "@/services/statisticsService";
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
-import { useDateLocale } from '@/lib/dateUtils';
+import { formatRelativeTime, useDateLocale } from '@/lib/dateUtils';
 import {
   AlertDialog,
   AlertDialogAction,

@@ -266,15 +266,15 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
           <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.frontSignaturePictures')}</span>
           <div className="flex flex-wrap gap-2">
-            {collectionItem.banknote.signaturesFrontUrls.map((url, index) => (
-              <img
-                key={index}
-                src={url}
-                alt={`Signature ${index + 1}`}
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => openImageViewer(url)}
-              />
-            ))}
+                         {collectionItem.banknote.signaturesFrontUrls.map((url, index) => (
+               <img
+                 key={index}
+                 src={url}
+                 alt={t('details.signatureImage', { number: index + 1 })}
+                 className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                 onClick={() => openImageViewer(url)}
+               />
+             ))}
           </div>
         </div>
       )}
@@ -284,15 +284,15 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
           <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.backSignaturePictures')}</span>
           <div className="flex flex-wrap gap-2">
-            {collectionItem.banknote.signaturesBackUrls.map((url, index) => (
-              <img
-                key={index}
-                src={url}
-                alt={`Signature ${index + 1}`}
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => openImageViewer(url)}
-              />
-            ))}
+                         {collectionItem.banknote.signaturesBackUrls.map((url, index) => (
+               <img
+                 key={index}
+                 src={url}
+                 alt={t('details.signatureImage', { number: index + 1 })}
+                 className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
+                 onClick={() => openImageViewer(url)}
+               />
+             ))}
           </div>
         </div>
       )}
@@ -306,7 +306,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                   <img
                     key={index}
                     src={url}
-                    alt={`Seal ${index + 1}`}
+                    alt={t('details.sealImage', { number: index + 1 })}
                     className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
                     onClick={() => openImageViewer(url)}
                   />
@@ -321,7 +321,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.watermarkPicture')}</span>
               <img
                 src={collectionItem.banknote.watermarkUrl}
-                alt="Watermark"
+                alt={t('details.watermarkImage')}
                 className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
                 onClick={() => openImageViewer(collectionItem.banknote.watermarkUrl!)}
               />
@@ -334,7 +334,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.tughraPicture')}</span>
               <img
                 src={collectionItem.banknote.tughraUrl}
-                alt="Tughra"
+                alt={t('details.tughraImage')}
                 className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
                 onClick={() => openImageViewer(collectionItem.banknote.tughraUrl!)}
               />
@@ -350,7 +350,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                   <img
                     key={index}
                     src={url}
-                    alt={`Other Element ${index + 1}`}
+                    alt={t('details.otherElementImage', { number: index + 1 })}
                     className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
                     onClick={() => openImageViewer(url)}
                   />

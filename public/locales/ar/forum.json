@@ -11,20 +11,7 @@
     "noResults": "لم يتم العثور على مشاركات أو إعلانات تطابق بحثك.",
     "noPostsYet": "لا توجد مشاركات في المنتدى بعد. كن أول من ينشئ مشاركة!"
   },
-  "actions": {
-    "post": "نشر",
-    "announcement": "إعلان",
-    "createPost": "إنشاء مشاركة",
-    "createAnnouncement": "إنشاء إعلان",
-    "createFirstPost": "أنشئ مشاركتك الأولى",
-    "reply": "رد",
-    "edit": "تعديل",
-    "save": "حفظ",
-    "cancel": "إلغاء",
-    "publish": "نشر",
-    "postComment": "نشر تعليق",
-    "postReply": "نشر رد"
-  },
+
   "status": {
     "blocked": "محظور",
     "dailyLimitReached": "تم الوصول للحد اليومي",
@@ -104,8 +91,50 @@
   },
   "post": {
     "noComments": "لا توجد تعليقات بعد. كن أول من يعلق!",
-    "loginToComment": "يرجى تسجيل الدخول لإضافة تعليق."
+    "loginToComment": "يرجى تسجيل الدخول لإضافة تعليق.",
+    "comments": "التعليقات",
+    "blockedFromCommenting": "تم حظرك من التعليق على منشورات المنتدى",
+    "replyingTo": "الرد على",
+    "thisComment": "هذا التعليق",
+    "replyTo": "الرد على",
+    "replyPlaceholder": "الرد على {{username}}...",
+    "postReply": "نشر الرد",
+    "posting": "جاري النشر...",
+    "cancel": "إلغاء",
+    "replyButton": "رد",
+    "editButton": "تعديل",
+    "deleteButton": "حذف",
+    "saveButton": "حفظ",
+    "editPlaceholder": "عدل تعليقك...",
+    "anonymous": "مجهول",
+    "edited": "معدل",
+    "replySuccess": "تم إضافة ردك بنجاح.",
+    "replyFailed": "فشل في إضافة الرد. يرجى المحاولة مرة أخرى.",
+    "replyError": "فشل في إضافة الرد"
   },
+  "navigation": {
+    "backToForum": "العودة إلى المنتدى"
+  },
+  "actions": {
+    "post": "نشر",
+    "announcement": "إعلان",
+    "createPost": "إنشاء مشاركة",
+    "createAnnouncement": "إنشاء إعلان",
+    "createFirstPost": "أنشئ مشاركتك الأولى",
+    "reply": "رد",
+    "edit": "تعديل",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "publish": "نشر",
+    "postComment": "نشر تعليق",
+    "postReply": "نشر رد",
+    "deletePost": "حذف المنشور",
+    "deleteComment": "حذف التعليق",
+    "deletePostConfirm": "هل أنت متأكد من أنك تريد حذف هذا المنشور؟ لا يمكن التراجع عن هذا الإجراء.",
+    "deleteCommentConfirm": "هل أنت متأكد من أنك تريد حذف هذا التعليق؟ لا يمكن التراجع عن هذا الإجراء.",
+    "delete": "حذف"
+  },
+
   "profile": {
     "actions": "إجراءات الملف الشخصي",
     "goToProfile": "الذهاب إلى الملف الشخصي",

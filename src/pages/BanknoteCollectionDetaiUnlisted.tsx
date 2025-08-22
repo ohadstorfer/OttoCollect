@@ -13,12 +13,14 @@ import { Dialog, DialogContentWithScroll } from '@/components/ui/dialog';
 import CollectionItemForm from '@/components/collection/CollectionItemForm';
 import { useToast } from '@/hooks/use-toast';
 import { BanknoteImage } from '@/components/banknote/BanknoteImage';
+import { useTranslation } from 'react-i18next';
 
 interface BanknoteCollectionDetailProps {
   isOwner: boolean;
 }
 
 const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> = ({ isOwner }) => {
+  const { t } = useTranslation(['collection']);
   const { id } = useParams<{ id: string }>();
   const { banknoteId } = useBanknoteContext();
   const { toast } = useToast();
@@ -51,7 +53,7 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
   if (isLoading || !collectionItem) {
     return (
       <div className="p-4">
-        <p className="text-muted-foreground text-center">Loading collection details...</p>
+        <p className="text-muted-foreground text-center">{t('details.loadingCollectionDetails')}</p>
       </div>
     );
   }
@@ -67,35 +69,35 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
       {/* Banknote Details Section */}
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-medium mb-4"> <span> Public Details </span> </h3>
+          <h3 className="text-lg font-medium mb-4"> <span> {t('details.publicDetails')} </span> </h3>
           <div className="space-y-2">
             {collectionItem.banknote?.extendedPickNumber && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Extended Pick Number</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.extendedPickNumber')}</span>
                 <span className="text-base">{collectionItem.banknote.extendedPickNumber}</span>
               </div>
             )}
             {collectionItem.banknote?.pickNumber && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Pick Number</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.pickNumber')}</span>
                 <span className="text-base">{collectionItem.banknote.pickNumber} </span>
               </div>
             )}
             {collectionItem.banknote?.turkCatalogNumber && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Turk Catalog Number</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.turkCatalogNumber')}</span>
                 <span className="text-base">{collectionItem.banknote.turkCatalogNumber}</span>
               </div>
             )}
             {collectionItem.banknote?.denomination && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Denomination</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.denomination')}</span>
                 <span className="text-base">{collectionItem.banknote.denomination}</span>
               </div>
             )}
             {collectionItem.banknote?.country && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Country</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.country')}</span>
                 <span className="text-base">{collectionItem.banknote.country}</span>
               </div>
             )}
@@ -362,26 +364,26 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
         {isOwner && (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-lg font-medium"> <span> Private Details </span> </h3>
-              <span className="text-sm text-muted-foreground">Only visible to you</span>
+                          <h3 className="text-lg font-medium"> <span> {t('details.privateDetails')} </span> </h3>
+            <span className="text-sm text-muted-foreground">{t('details.onlyVisibleToYou')}</span>
             </div>
             <div className="space-y-2">
               {collectionItem.privateNote && (
                 <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                  <span className="text-sm font-medium text-muted-foreground w-32">Private Notes</span>
+                  <span className="text-sm font-medium text-muted-foreground w-32">{t('details.privateNotes')}</span>
                   <span className="text-base">{collectionItem.privateNote}</span>
                 </div>
               )}
               {collectionItem.location && (
                 <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                  <span className="text-sm font-medium text-muted-foreground w-32">Item Status</span>
+                  <span className="text-sm font-medium text-muted-foreground w-32">{t('details.itemStatus')}</span>
                   <span className="text-base">{collectionItem.location}</span>
                 </div>
               )}
              
               {collectionItem.purchaseDate && (
                 <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                  <span className="text-sm font-medium text-muted-foreground w-32">Purchase Date</span>
+                  <span className="text-sm font-medium text-muted-foreground w-32">{t('details.purchaseDate')}</span>
                   <span className="text-base">{formatDate(collectionItem.purchaseDate)}</span>
                 </div>
               )}

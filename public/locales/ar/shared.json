@@ -1,0 +1,13 @@
+{
+  "imageCrop": {
+    "title": "تعديل الصورة",
+    "failedToSave": "فشل في حفظ الصورة. يرجى المحاولة مرة أخرى.",
+    "loadingImage": "جاري تحميل الصورة...",
+    "cancel": "إلغاء",
+    "save": "حفظ"
+  },
+  "multipleImageUpload": {
+    "maxImagesLimit": "يمكنك رفع ما يصل إلى {{maxImages}} صور فقط",
+    "uploadNumber": "رفع {{number}}"
+  }
+}

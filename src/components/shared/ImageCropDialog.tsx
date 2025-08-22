@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { RotateCcw, RotateCw, Check, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface ImageCropDialogProps {
   imageUrl: string;
@@ -19,9 +20,12 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
   open,
   onClose,
   onSave,
-  title = 'Edit Image'
+  title
 }) => {
+  const { t } = useTranslation(['shared']);
   
+  // Use translated title if none provided
+  const dialogTitle = title || t('imageCrop.title');
   
   const [crop, setCrop] = useState<Crop>({
     unit: '%',
@@ -278,7 +282,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
       onClose();
     } catch (error) {
       console.error('Error in handleSave:', error);
-      toast.error('Failed to save image. Please try again.');
+      toast.error(t('imageCrop.failedToSave'));
     } finally {
       setLoading(false);
     }
@@ -294,9 +298,9 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
       }}
     >
       <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl"> <span> {title} </span> </DialogTitle>
-        </DialogHeader>
+                 <DialogHeader>
+           <DialogTitle className="text-lg sm:text-xl"> <span> {dialogTitle} </span> </DialogTitle>
+         </DialogHeader>
 
         <div className="space-y-4 sm:space-y-6">
           <div className="relative flex justify-center items-center bg-muted rounded-lg overflow-hidden">
@@ -332,7 +336,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
                   onLoad={handleImageLoad}
                   className="hidden"
                 />
-                <span>Loading image...</span>
+                <span>{t('imageCrop.loadingImage')}</span>
               </div>
             )}
           </div>
@@ -404,7 +408,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
                 className="flex-1 sm:flex-initial"
               >
                 <X className="h-4 w-4 mr-2" />
-                Cancel
+                {t('imageCrop.cancel')}
               </Button>
               <Button
                 variant="default"
@@ -413,7 +417,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
                 className="flex-1 sm:flex-initial"
               >
                 <Check className="h-4 w-4 mr-2" />
-                Save
+                {t('imageCrop.save')}
               </Button>
             </div>
           </div>

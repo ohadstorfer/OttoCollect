@@ -1,0 +1,13 @@
+{
+  "imageCrop": {
+    "title": "Resmi Düzenle",
+    "failedToSave": "Resim kaydedilemedi. Lütfen tekrar deneyin.",
+    "loadingImage": "Resim yükleniyor...",
+    "cancel": "İptal",
+    "save": "Kaydet"
+  },
+  "multipleImageUpload": {
+    "maxImagesLimit": "En fazla {{maxImages}} resim yükleyebilirsiniz",
+    "uploadNumber": "Yükle {{number}}"
+  }
+}

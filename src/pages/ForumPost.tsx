@@ -16,7 +16,7 @@ import { UserRank } from '@/types';
 import { ArrowLeft, Trash2, Edit2, Ban, MessageSquare, Reply } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
-import { useDateLocale } from '@/lib/dateUtils';
+import { formatRelativeTime, useDateLocale } from '@/lib/dateUtils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,6 +80,8 @@ const renderComment = (
     renderTextWithLinks: (text: string) => React.ReactNode;
     updateReplyContent: (content: string) => void;
     updateEditedContent: (content: string) => void;
+    t: (key: string) => string;
+    currentLanguage: string;
   }
 ) => {
   const isReply = depth > 0;
@@ -96,7 +98,7 @@ const renderComment = (
           >
             <AvatarImage src={comment.author?.avatarUrl} />
             <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-              {getInitials(comment.author?.username || 'Anonymous')}
+              {getInitials(comment.author?.username || props.t('post.anonymous'))}
             </AvatarFallback>
           </Avatar>
 
@@ -107,14 +109,14 @@ const renderComment = (
                 className="font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words"
                 onClick={() => props.handleOnProfileClick(comment.author?.id)}
               >
-                {comment.author?.username || 'Anonymous'}
+                {comment.author?.username || props.t('post.anonymous')}
               </span>
               <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-              <span className="text-xs text-muted-foreground flex-shrink-0">{formatRelativeTime(comment.created_at || comment.createdAt)}</span>
+              <span className="text-xs text-muted-foreground flex-shrink-0">{formatRelativeTime(comment.created_at || comment.createdAt, props.currentLanguage)}</span>
               {comment.isEdited && (
                 <>
                   <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-                  <span className="text-xs italic text-muted-foreground flex-shrink-0">edited</span>
+                  <span className="text-xs italic text-muted-foreground flex-shrink-0">{props.t('post.edited')}</span>
                 </>
               )}
             </div>
@@ -126,6 +128,7 @@ const renderComment = (
                   value={props.editedContent}
                   onChange={(e) => props.updateEditedContent(e.target.value)}
                   className="min-h-[80px] text-sm border rounded-md resize-none"
+                  placeholder={props.t('post.editPlaceholder')}
                   disabled={props.isSubmitting}
                 />
                 <div className="flex justify-end gap-2">
@@ -135,14 +138,14 @@ const renderComment = (
                     onClick={props.cancelEditing}
                     disabled={props.isSubmitting}
                   >
-                    Cancel
+                    {props.t('post.cancel')}
                   </Button>
                   <Button
                     size="sm"
                     onClick={() => props.handleEditComment(comment.id, props.editedContent)}
                     disabled={props.isSubmitting || props.editedContent.trim() === ''}
                   >
-                    Save
+                    {props.t('post.saveButton')}
                   </Button>
                 </div>
               </div>
@@ -157,13 +160,13 @@ const renderComment = (
                   <div className="mb-4 space-y-3">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <MessageSquare className="h-3 w-3 flex-shrink-0" />
-                      <span className="break-words">Replying to {comment.author?.username || 'this comment'}</span>
+                      <span className="break-words">{props.t('post.replyingTo')} {comment.author?.username || props.t('post.thisComment')}</span>
                     </div>
                     <Textarea 
                       value={props.replyContent}
                       onChange={(e) => props.updateReplyContent(e.target.value)}
                       className="min-h-[60px] resize-none text-sm border rounded-md"
-                      placeholder={`Reply to ${comment.author?.username || 'this comment'}...`}
+                      placeholder={`${props.t('post.replyTo')} ${comment.author?.username || props.t('post.thisComment')}...`}
                       autoFocus
                     />
                     <div className="flex gap-2">
@@ -172,7 +175,7 @@ const renderComment = (
                         onClick={() => props.handleReplyToComment(comment.id)}
                         disabled={props.isSubmittingReply || !props.replyContent.trim()}
                       >
-                        {props.isSubmittingReply ? 'Posting...' : 'Post Reply'}
+                        {props.isSubmittingReply ? props.t('post.posting') : props.t('post.postReply')}
                       </Button>
                       <Button 
                         size="sm" 
@@ -180,7 +183,7 @@ const renderComment = (
                         onClick={props.cancelReplying}
                         disabled={props.isSubmittingReply}
                       >
-                        Cancel
+                        {props.t('post.cancel')}
                       </Button>
                     </div>
                   </div>
@@ -223,18 +226,18 @@ const renderComment = (
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Comment</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this comment? This action cannot be undone.
-                              </AlertDialogDescription>
+                              <AlertDialogTitle>{props.t('actions.deleteComment')}</AlertDialogTitle>
+                                                              <AlertDialogDescription>
+                                  {props.t('actions.deleteCommentConfirm')}
+                                </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>{props.t('post.cancel')}</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => props.onDeleteComment(comment.id)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
-                                Delete
+                                {props.t('actions.delete')}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -265,7 +268,7 @@ const ForumPostPage = () => {
   const { id: postId } = useParams();
   const { user } = useAuth();
   const { t } = useTranslation(['forum']);
-  const { formatRelativeTime } = useDateLocale();
+  const { formatRelativeTime, currentLanguage } = useDateLocale();
   const [post, setPost] = useState<ForumPostType | null>(null);
   const [comments, setComments] = useState<ForumComment[]>([]);
   const [commentContent, setCommentContent] = useState('');
@@ -450,11 +453,11 @@ const ForumPostPage = () => {
         toast.success("Post deleted successfully");
         navigate('/community/forum');
       } else {
-        toast.error("Failed to delete post");
+        toast.error(t('notifications.failedToDeletePost'));
       }
     } catch (error) {
       console.error('Error deleting post:', error);
-      toast.error("Failed to delete post");
+              toast.error(t('notifications.failedToDeletePost'));
     } finally {
       setIsDeleting(false);
     }
@@ -566,7 +569,7 @@ const ForumPostPage = () => {
         setComments(prevComments => addReplyToTree(prevComments));
         setReplyContent('');
         setReplyingToCommentId(null);
-        toast.success("Your reply has been added successfully.");
+        toast.success(t('post.replySuccess'));
 
         // Update daily count after successful reply
         if (isLimitedRank) {
@@ -576,11 +579,11 @@ const ForumPostPage = () => {
           }
         }
       } else {
-        toast.error("Failed to add reply. Please try again.");
+        toast.error(t('post.replyFailed'));
       }
     } catch (error) {
       console.error('Error adding reply:', error);
-      toast.error("Failed to add reply");
+      toast.error(t('post.replyError'));
     } finally {
       setIsSubmittingReply(false);
     }
@@ -702,7 +705,7 @@ const ForumPostPage = () => {
             className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Forum
+            {t('navigation.backToForum')}
           </Button>
 
           {canDeletePost && (
@@ -718,19 +721,19 @@ const ForumPostPage = () => {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                  <AlertDialogTitle>{t('actions.deletePost')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete this post? This action cannot be undone.
+                    {t('actions.deletePostConfirm')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeletePost}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    Delete
-                  </AlertDialogAction>
+                  <AlertDialogCancel>{t('post.cancel')}</AlertDialogCancel>
+                                      <AlertDialogAction
+                      onClick={handleDeletePost}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {t('actions.delete')}
+                    </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -759,7 +762,7 @@ const ForumPostPage = () => {
                   className="font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words"
                   onClick={() => handleOnProfileClick(post?.author?.id)}
                 >
-                  {post.author?.username || 'Anonymous'}
+                  {post.author?.username || t('post.anonymous')}
                 </span>
                 <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
                 <span className="text-xs text-muted-foreground flex-shrink-0">{formattedDate}</span>
@@ -790,7 +793,7 @@ const ForumPostPage = () => {
           <div className="flex items-center gap-2 mb-4">
             <MessageSquare className="h-4 w-4" />
             <h2 className="text-lg font-semibold">
-              <span>Comments ({post.commentCount || 0})</span>
+              <span>{t('post.comments')} ({post.commentCount || 0})</span>
             </h2>
           </div>
 
@@ -799,7 +802,7 @@ const ForumPostPage = () => {
             isUserBlocked ? (
               <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 text-center mb-4">
                 <p className="text-red-600 dark:text-red-400 text-sm">
-                  You have been blocked from commenting on forum posts
+                  {t('post.blockedFromCommenting')}
                 </p>
               </div>
             ) : (
@@ -878,7 +881,9 @@ const ForumPostPage = () => {
                   handleOnProfileClick,
                   renderTextWithLinks,
                   updateReplyContent,
-                  updateEditedContent
+                  updateEditedContent,
+                  t,
+                  currentLanguage: currentLanguage
                 })
               )
             ) : (
@@ -912,7 +917,7 @@ const ForumPostPage = () => {
               disabled={isBlockingUser}
             >
               <Ban className="h-4 w-4 mr-2" />
-              {isBlockingUser ? 'Blocking...' : 'Block from Forum'}
+              {isBlockingUser ? tWithFallback('profile.blocking', 'Blocking...') : tWithFallback('profile.blockFromForum', 'Block from Forum')}
             </Button>
           </div>
           <AlertDialogFooter>

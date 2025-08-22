@@ -11,20 +11,7 @@
     "noResults": "No posts or announcements found matching your search.",
     "noPostsYet": "No forum posts yet. Be the first to create one!"
   },
-  "actions": {
-    "post": "Post",
-    "announcement": "Announcement",
-    "createPost": "Create Post",
-    "createAnnouncement": "Create Announcement",
-    "createFirstPost": "Create Your First Post",
-    "reply": "Reply",
-    "edit": "Edit",
-    "save": "Save",
-    "cancel": "Cancel",
-    "publish": "Publish",
-    "postComment": "Post Comment",
-    "postReply": "Post Reply"
-  },
+
   "status": {
     "blocked": "Blocked",
     "dailyLimitReached": "Daily Limit Reached",
@@ -104,8 +91,50 @@
   },
   "post": {
     "noComments": "No comments yet. Be the first to comment!",
-    "loginToComment": "Please log in to add a comment."
+    "loginToComment": "Please log in to add a comment.",
+    "comments": "Comments",
+    "blockedFromCommenting": "You have been blocked from commenting on forum posts",
+    "replyingTo": "Replying to",
+    "thisComment": "this comment",
+    "replyTo": "Reply to",
+    "replyPlaceholder": "Reply to {{username}}...",
+    "postReply": "Post Reply",
+    "posting": "Posting...",
+    "cancel": "Cancel",
+    "replyButton": "Reply",
+    "editButton": "Edit",
+    "deleteButton": "Delete",
+    "saveButton": "Save",
+    "editPlaceholder": "Edit your comment...",
+    "anonymous": "Anonymous",
+    "edited": "edited",
+    "replySuccess": "Your reply has been added successfully.",
+    "replyFailed": "Failed to add reply. Please try again.",
+    "replyError": "Failed to add reply"
   },
+  "navigation": {
+    "backToForum": "Back to Forum"
+  },
+  "actions": {
+    "post": "Post",
+    "announcement": "Announcement",
+    "createPost": "Create Post",
+    "createAnnouncement": "Create Announcement",
+    "createFirstPost": "Create Your First Post",
+    "reply": "Reply",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "publish": "Publish",
+    "postComment": "Post Comment",
+    "postReply": "Post Reply",
+    "deletePost": "Delete Post",
+    "deleteComment": "Delete Comment",
+    "deletePostConfirm": "Are you sure you want to delete this post? This action cannot be undone.",
+    "deleteCommentConfirm": "Are you sure you want to delete this comment? This action cannot be undone.",
+    "delete": "Delete"
+  },
+
   "profile": {
     "actions": "User Profile Actions",
     "goToProfile": "Go to Profile",

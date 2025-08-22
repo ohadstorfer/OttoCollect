@@ -11,20 +11,7 @@
     "noResults": "Aramanızla eşleşen gönderi veya duyuru bulunamadı.",
     "noPostsYet": "Henüz forum gönderisi yok. İlk gönderiyi oluşturan siz olun!"
   },
-  "actions": {
-    "post": "Gönderi",
-    "announcement": "Duyuru",
-    "createPost": "Gönderi Oluştur",
-    "createAnnouncement": "Duyuru Oluştur",
-    "createFirstPost": "İlk Gönderinizi Oluşturun",
-    "reply": "Yanıtla",
-    "edit": "Düzenle",
-    "save": "Kaydet",
-    "cancel": "İptal",
-    "publish": "Yayınla",
-    "postComment": "Yorum Yayınla",
-    "postReply": "Yanıt Yayınla"
-  },
+
   "status": {
     "blocked": "Engellendi",
     "dailyLimitReached": "Günlük Limit Doldu",
@@ -81,6 +68,7 @@
     "error": "Bir hata oluştu. Lütfen tekrar deneyin.",
     "failedToAddComment": "Yorum eklenemedi. Lütfen tekrar deneyin.",
     "failedToCreatePost": "Gönderi oluşturulamadı. Lütfen tekrar deneyin.",
+    "failedToDeletePost": "Gönderi silinemedi",
     "unexpectedError": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin."
   },
   "forms": {
@@ -104,7 +92,48 @@
   },
   "post": {
     "noComments": "Henüz yorum yok. İlk yorumu yapan siz olun!",
-    "loginToComment": "Yorum eklemek için lütfen giriş yapın."
+    "loginToComment": "Yorum eklemek için lütfen giriş yapın.",
+    "comments": "Yorumlar",
+    "blockedFromCommenting": "Forum gönderilerinde yorum yapmaktan engellendiniz",
+    "replyingTo": "Yanıtlanıyor",
+    "thisComment": "bu yorum",
+    "replyTo": "Yanıtla",
+    "replyPlaceholder": "{{username}} kullanıcısına yanıtla...",
+    "postReply": "Yanıtı Gönder",
+    "posting": "Gönderiliyor...",
+    "cancel": "İptal",
+    "replyButton": "Yanıtla",
+    "editButton": "Düzenle",
+    "deleteButton": "Sil",
+    "saveButton": "Kaydet",
+    "editPlaceholder": "Yorumunuzu düzenleyin...",
+    "anonymous": "Anonim",
+    "edited": "düzenlendi",
+    "replySuccess": "Yanıtınız başarıyla eklendi.",
+    "replyFailed": "Yanıt eklenemedi. Lütfen tekrar deneyin.",
+    "replyError": "Yanıt eklenemedi"
+  },
+  "navigation": {
+    "backToForum": "Foruma Geri Dön"
+  },
+  "actions": {
+    "post": "Gönderi",
+    "announcement": "Duyuru",
+    "createPost": "Gönderi Oluştur",
+    "createAnnouncement": "Duyuru Oluştur",
+    "createFirstPost": "İlk Gönderinizi Oluşturun",
+    "reply": "Yanıtla",
+    "edit": "Düzenle",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "publish": "Yayınla",
+    "postComment": "Yorum Yayınla",
+    "postReply": "Yanıt Yayınla",
+    "deletePost": "Gönderiyi Sil",
+    "deleteComment": "Yorumu Sil",
+    "deletePostConfirm": "Bu gönderiyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "deleteCommentConfirm": "Bu yorumu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "delete": "Sil"
   },
   "profile": {
     "actions": "Kullanıcı Profil İşlemleri",

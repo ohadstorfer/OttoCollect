@@ -1,0 +1,13 @@
+{
+  "imageCrop": {
+    "title": "Edit Image",
+    "failedToSave": "Failed to save image. Please try again.",
+    "loadingImage": "Loading image...",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "multipleImageUpload": {
+    "maxImagesLimit": "You can only upload up to {{maxImages}} images",
+    "uploadNumber": "Upload {{number}}"
+  }
+}

@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, X } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from 'react-i18next';
 
 export interface ImageFile {
   file: File;
@@ -21,6 +22,7 @@ export default function MultipleImageUpload({
   label,
   maxImages = 10
 }: MultipleImageUploadProps) {
+  const { t } = useTranslation(['shared']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,7 +31,7 @@ export default function MultipleImageUpload({
       const totalImages = images.length + newFiles.length;
 
       if (totalImages > maxImages) {
-        alert(`You can only upload up to ${maxImages} images`);
+        alert(t('multipleImageUpload.maxImagesLimit', { maxImages }));
         return;
       }
 
@@ -64,7 +66,7 @@ export default function MultipleImageUpload({
             <div className="aspect-square rounded-lg border overflow-hidden bg-muted">
               <img
                 src={image.previewUrl}
-                alt={`Upload ${index + 1}`}
+                alt={t('multipleImageUpload.uploadNumber', { number: index + 1 })}
                 className="w-full h-full object-cover"
               />
             </div>
