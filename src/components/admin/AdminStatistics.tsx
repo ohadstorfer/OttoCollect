@@ -15,7 +15,6 @@ export const AdminStatistics: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const { t } = useTranslation(['admin']);
-  const { toast } = useToast();
 
   useEffect(() => {
     // Auto-generate daily statistics when component loads
