@@ -1157,3 +1157,7 @@ export const deleteForumAnnouncement = async (id: string): Promise<boolean> => {
     return false;
   }
 };
+
+// Export aliases for announcement functions to match component imports
+export { addForumAnnouncementComment as addAnnouncementComment };
+export { updateForumAnnouncementComment as updateAnnouncementComment };
