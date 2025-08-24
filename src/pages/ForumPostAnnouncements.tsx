@@ -12,11 +12,12 @@ import UserProfileLink from "@/components/common/UserProfileLink";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
-import { ArrowLeft, Trash2, Edit2, Ban, Megaphone, MessageSquare, Reply } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Trash2, Edit2, Ban, Megaphone, MessageSquare, Reply, AlertCircle } from 'lucide-react';
 import { statisticsService } from "@/services/statisticsService";
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
 import { formatRelativeTime, useDateLocale } from '@/lib/dateUtils';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -268,6 +269,7 @@ const ForumPostAnnouncementsPage = () => {
   const { user } = useAuth();
   const { t } = useTranslation(['forum']);
   const { formatRelativeTime, currentLanguage } = useDateLocale();
+  const { direction } = useLanguage();
   const [post, setPost] = useState<ForumPostType | null>(null);
   const [comments, setComments] = useState<ForumComment[]>([]);
   const [commentContent, setCommentContent] = useState('');
@@ -618,6 +620,10 @@ const ForumPostAnnouncementsPage = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   if (isLoading) {
     return (
       <div className="page-container">
@@ -634,9 +640,36 @@ const ForumPostAnnouncementsPage = () => {
   if (!post) {
     return (
       <div className="page-container">
-        <div className="text-center py-20">
-          <h2 className="text-2xl font-semibold mb-2"><span>Announcement not found</span></h2>
-          <p className="text-muted-foreground">The announcement you're looking for doesn't exist or has been removed.</p>
+        <div className="max-w-2xl mx-auto text-center py-20">
+          <div className="mb-8">
+            <div className="w-24 h-24 mx-auto mb-6 bg-ottoman-100 dark:bg-ottoman-800 rounded-full flex items-center justify-center">
+              <AlertCircle className="w-12 h-12 text-ottoman-600 dark:text-ottoman-400" />
+            </div>
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              {t('errors.announcementNotFound')}
+            </h2>
+            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+              {t('errors.announcementNotFoundDescription')}
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <Button
+              onClick={handleBack}
+              variant="default"
+              size="lg"
+              className="px-8"
+            >
+              {direction === 'rtl' ? (
+                <ArrowRight className="w-4 h-4 mr-2" />
+              ) : (
+                <ArrowLeft className="w-4 h-4 mr-2" />
+              )}
+              {/* <ArrowLeft className="w-4 h-4 mr-2" /> */}
+              {t('navigation.backToForum')}
+            </Button>
+            
+          </div>
         </div>
       </div>
     );
@@ -681,10 +714,6 @@ const ForumPostAnnouncementsPage = () => {
       ...post,
       commentCount: (post.commentCount || 0) + 1,
     });
-  };
-
-  const handleBack = () => {
-    navigate(-1);
   };
 
   return (

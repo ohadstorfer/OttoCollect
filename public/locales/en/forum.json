@@ -168,5 +168,9 @@
     "signIn": "Sign In",
     "accessDenied": "Access Denied",
     "onlySuperAdmins": "Only Super Admins can create announcements."
+  },
+  "errors": {
+    "announcementNotFound": "Announcement not found",
+    "announcementNotFoundDescription": "The announcement you're looking for doesn't exist or has been removed."
   }
 } 

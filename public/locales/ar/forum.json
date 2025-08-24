@@ -168,5 +168,9 @@
     "signIn": "تسجيل الدخول",
     "accessDenied": "تم رفض الوصول",
     "onlySuperAdmins": "يمكن للمدراء المتفوقين فقط إنشاء الإعلانات."
+  },
+  "errors": {
+    "announcementNotFound": "الإعلان غير موجود",
+    "announcementNotFoundDescription": "الإعلان الذي تبحث عنه غير موجود أو تم إزالته."
   }
 } 

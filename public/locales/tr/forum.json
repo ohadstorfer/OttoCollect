@@ -168,5 +168,9 @@
     "signIn": "Giriş Yap",
     "accessDenied": "Erişim Reddedildi",
     "onlySuperAdmins": "Sadece Süper Yöneticiler duyuru oluşturabilir."
+  },
+  "errors": {
+    "announcementNotFound": "Duyuru bulunamadı",
+    "announcementNotFoundDescription": "Aradığınız duyuru mevcut değil veya kaldırılmış."
   }
 } 
