@@ -162,15 +162,65 @@ export const fetchForumPostById = async (id: string): Promise<ForumPost | null> 
       .from('forum_posts')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
-    if (postError) {
+    if (postError && (postError as any).code !== 'PGRST116') {
       console.error('Error fetching forum post:', postError);
+      // If it's not the 'no rows' case, bail out
       return null;
     }
 
     if (!post) {
-      return null;
+      // Not a regular forum post — try announcements as a fallback
+      const { data: announcement, error: annError } = await supabase
+        .from('forum_announcements')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (annError && (annError as any).code !== 'PGRST116') {
+        console.error('Error fetching forum announcement (fallback):', annError);
+        return null;
+      }
+
+      if (!announcement) {
+        return null;
+      }
+
+      // Author profile
+      const { data: authorProfile, error: authorError } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, rank')
+        .eq('id', announcement.author_id)
+        .single();
+      if (authorError) {
+        console.error('Error fetching author profile (announcement):', authorError);
+      }
+
+      // Announcement comments
+      const comments = await fetchAnnouncementComments(id);
+
+      return {
+        id: announcement.id,
+        title: announcement.title,
+        content: announcement.content,
+        author_id: announcement.author_id,
+        authorId: announcement.author_id,
+        image_urls: announcement.image_urls || [],
+        imageUrls: announcement.image_urls || [],
+        created_at: announcement.created_at,
+        updated_at: announcement.updated_at,
+        createdAt: announcement.created_at,
+        updatedAt: announcement.updated_at,
+        author: authorProfile ? {
+          id: authorProfile.id,
+          username: authorProfile.username,
+          avatarUrl: authorProfile.avatar_url,
+          rank: authorProfile.rank
+        } : null,
+        comments,
+        commentCount: comments.length
+      };
     }
 
     console.log("Fetched post:", post.id);
@@ -248,9 +298,9 @@ export const fetchForumAnnouncementById = async (id: string): Promise<ForumPost 
         )
       `)
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
-    if (error) {
+    if (error && (error as any).code !== 'PGRST116') {
       console.error('Error fetching forum announcement:', error);
       return null;
     }
