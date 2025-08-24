@@ -5,6 +5,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { Eye, Database, FileImage, ImageOff } from 'lucide-react';
 import { statisticsService } from '@/services/statisticsService';
+import { useTranslation } from 'react-i18next';
 
 interface CatalogSummary {
   countryId: string;
@@ -17,6 +18,7 @@ interface CatalogSummary {
 }
 
 export const CatalogStatsSection: React.FC = () => {
+  const { t } = useTranslation(['admin']);
   const [catalogStats, setCatalogStats] = useState<CatalogSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,15 +39,15 @@ export const CatalogStatsSection: React.FC = () => {
 
   const chartConfig = {
     totalItems: {
-      label: "Total Items",
+      label: t('statistics.catalogStats.totalItems'),
       color: "hsl(var(--primary))",
     },
     itemsWithPhotos: {
-      label: "Items with Photos",
+      label: t('statistics.catalogStats.itemsWithPhotos'),
       color: "hsl(var(--secondary))",
     },
     itemsMissingPhotos: {
-      label: "Items Missing Photos",
+      label: t('statistics.catalogStats.itemsMissingPhotos'),
       color: "hsl(var(--destructive))",
     },
   };
@@ -58,7 +60,7 @@ export const CatalogStatsSection: React.FC = () => {
   }));
 
   if (loading) {
-    return <div>Loading catalog statistics...</div>;
+    return <div>{t('statistics.catalogStats.loading')}</div>;
   }
 
   console.log('Catalog stats data:', { catalogStats, chartData });
@@ -67,7 +69,7 @@ export const CatalogStatsSection: React.FC = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle><span>Catalog Items Overview</span></CardTitle>
+          <CardTitle><span>{t('statistics.catalogStats.catalogItemsOverview')}</span></CardTitle>
         </CardHeader>
         <CardContent>
           {chartData.length > 0 ? (
@@ -105,8 +107,8 @@ export const CatalogStatsSection: React.FC = () => {
           ) : (
             <div className="h-[400px] flex items-center justify-center text-muted-foreground">
               <div className="text-center">
-                <p className="text-lg mb-2">No catalog data available</p>
-                <p className="text-sm">Generate daily statistics to see catalog overview</p>
+                <p className="text-lg mb-2">{t('statistics.catalogStats.noCatalogData')}</p>
+                <p className="text-sm">{t('statistics.catalogStats.generateDailyStats')}</p>
               </div>
             </div>
           )}
@@ -115,35 +117,35 @@ export const CatalogStatsSection: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle><span>Catalog Statistics by Country</span></CardTitle>
+          <CardTitle><span>{t('statistics.catalogStats.catalogStatisticsByCountry')}</span></CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Country</TableHead>
+                <TableHead>{t('statistics.catalogStats.country')}</TableHead>
                 <TableHead className="text-right">
                   <div className="flex items-center justify-end">
                     <Eye className="mr-2 h-4 w-4" />
-                    Total Views
+                    {t('statistics.catalogStats.totalViews')}
                   </div>
                 </TableHead>
                 <TableHead className="text-right">
                   <div className="flex items-center justify-end">
                     <Database className="mr-2 h-4 w-4" />
-                    Collections
+                    {t('statistics.catalogStats.collections')}
                   </div>
                 </TableHead>
                 <TableHead className="text-right">
                   <div className="flex items-center justify-end">
                     <FileImage className="mr-2 h-4 w-4" />
-                    Total Items
+                    {t('statistics.catalogStats.totalItems')}
                   </div>
                 </TableHead>
                 <TableHead className="text-right">
                   <div className="flex items-center justify-end">
                     <ImageOff className="mr-2 h-4 w-4" />
-                    Missing Photos
+                    {t('statistics.catalogStats.missingPhotos')}
                   </div>
                 </TableHead>
               </TableRow>
@@ -166,7 +168,7 @@ export const CatalogStatsSection: React.FC = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    No catalog statistics available. Generate daily statistics to see data.
+                    {t('statistics.catalogStats.noCatalogStatistics')}
                   </TableCell>
                 </TableRow>
               )}

@@ -5,8 +5,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } fro
 import { FileText, MessageSquare } from 'lucide-react';
 import { StatCard } from './StatCard';
 import { statisticsService, BlogStats, ForumStats } from '@/services/statisticsService';
+import { useTranslation } from 'react-i18next';
 
 export const ContentStatsSection: React.FC = () => {
+  const { t } = useTranslation(['admin']);
   const [blogStats, setBlogStats] = useState<BlogStats[]>([]);
   const [forumStats, setForumStats] = useState<ForumStats[]>([]);
   const [currentTotals, setCurrentTotals] = useState({
@@ -43,11 +45,11 @@ export const ContentStatsSection: React.FC = () => {
 
   const chartConfig = {
     blogPosts: {
-      label: "Blog Posts",
+      label: t('statistics.contentStats.blogPosts'),
       color: "hsl(var(--primary))",
     },
     forumPosts: {
-      label: "Forum Posts",
+      label: t('statistics.contentStats.forumPosts'),
       color: "hsl(280, 70%, 60%)", // Purple color
     },
   };
@@ -63,7 +65,7 @@ export const ContentStatsSection: React.FC = () => {
   });
 
   if (loading) {
-    return <div>Loading content statistics...</div>;
+    return <div>{t('statistics.contentStats.loading')}</div>;
   }
 
   console.log('Content stats data:', { blogStats, forumStats, currentTotals, chartData });
@@ -72,22 +74,22 @@ export const ContentStatsSection: React.FC = () => {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
         <StatCard
-          title="Total Blog Posts"
+          title={t('statistics.contentStats.totalBlogPosts')}
           value={currentTotals.totalBlogPosts}
           icon={FileText}
-          description="All published blog posts"
+          description={t('statistics.contentStats.allPublishedBlogPosts')}
         />
         <StatCard
-          title="Total Forum Posts"
+          title={t('statistics.contentStats.totalForumPosts')}
           value={currentTotals.totalForumPosts}
           icon={MessageSquare}
-          description="All forum discussions"
+          description={t('statistics.contentStats.allForumDiscussions')}
         />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle><span>Content Growth Over Time</span></CardTitle>
+          <CardTitle><span>{t('statistics.contentStats.contentGrowthOverTime')}</span></CardTitle>
         </CardHeader>
         <CardContent>
           {chartData.length > 0 ? (
@@ -124,8 +126,8 @@ export const ContentStatsSection: React.FC = () => {
           ) : (
             <div className="h-[400px] flex items-center justify-center text-muted-foreground">
               <div className="text-center">
-                <p className="text-lg mb-2">No content growth data available</p>
-                <p className="text-sm">Generate daily statistics to see content trends</p>
+                <p className="text-lg mb-2">{t('statistics.contentStats.noContentGrowthData')}</p>
+                <p className="text-sm">{t('statistics.contentStats.generateDailyStats')}</p>
               </div>
             </div>
           )}

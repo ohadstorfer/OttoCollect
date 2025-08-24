@@ -5,8 +5,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } fro
 import { Users, UserCheck, Globe } from 'lucide-react';
 import { StatCard } from './StatCard';
 import { statisticsService, UserStats } from '@/services/statisticsService';
+import { useTranslation } from 'react-i18next';
 
 export const UserStatsSection: React.FC = () => {
+  const { t } = useTranslation(['admin']);
   const [userStats, setUserStats] = useState<UserStats[]>([]);
   const [currentTotals, setCurrentTotals] = useState({
     totalRegistered: 0,
@@ -37,15 +39,15 @@ export const UserStatsSection: React.FC = () => {
 
   const chartConfig = {
     totalRegistered: {
-      label: "Total Registered",
+      label: t('statistics.userStats.totalRegistered'),
       color: "hsl(var(--primary))",
     },
     weeklyActive: {
-      label: "Weekly Active",
+      label: t('statistics.userStats.weeklyActive'),
       color: "hsl(0, 0%, 30%)", // Dark grey color
     },
     weeklyGuests: {
-      label: "Weekly Guests",
+      label: t('statistics.userStats.weeklyGuests'),
       color: "hsl(280, 70%, 60%)", // Purple color to distinguish from primary
     },
   };
@@ -58,7 +60,7 @@ export const UserStatsSection: React.FC = () => {
   }));
 
   if (loading) {
-    return <div>Loading user statistics...</div>;
+    return <div>{t('statistics.userStats.loading')}</div>;
   }
 
   console.log('User stats data:', { userStats, currentTotals, chartData });
@@ -67,28 +69,28 @@ export const UserStatsSection: React.FC = () => {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
-          title="Total Registered Users"
+          title={t('statistics.userStats.totalRegisteredUsers')}
           value={currentTotals.totalRegistered}
           icon={Users}
-          description="All registered users"
+          description={t('statistics.userStats.allRegisteredUsers')}
         />
         <StatCard
-          title="Weekly Guest Visits"
+          title={t('statistics.userStats.weeklyGuestVisits')}
           value={currentTotals.weeklyGuests}
           icon={Globe}
-          description="Last 7 days"
+          description={t('statistics.userStats.last7Days')}
         />
         <StatCard
-          title="Weekly Registered Users"
+          title={t('statistics.userStats.weeklyRegisteredUsers')}
           value={currentTotals.weeklyActive}
           icon={UserCheck}
-          description="Logged in users (last 7 days)"
+          description={t('statistics.userStats.loggedInUsersLast7Days')}
         />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle><span>User Growth Trends</span></CardTitle>
+          <CardTitle><span>{t('statistics.userStats.userGrowthTrends')}</span></CardTitle>
         </CardHeader>
         <CardContent>
           {chartData.length > 0 ? (
@@ -132,8 +134,8 @@ export const UserStatsSection: React.FC = () => {
           ) : (
             <div className="h-[400px] flex items-center justify-center text-muted-foreground">
               <div className="text-center">
-                <p className="text-lg mb-2">No historical data available</p>
-                <p className="text-sm">Generate daily statistics to see trends over time</p>
+                <p className="text-lg mb-2">{t('statistics.userStats.noHistoricalData')}</p>
+                <p className="text-sm">{t('statistics.userStats.generateDailyStats')}</p>
               </div>
             </div>
           )}

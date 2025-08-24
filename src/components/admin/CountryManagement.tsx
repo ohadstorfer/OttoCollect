@@ -33,12 +33,14 @@ import { Edit, Plus, Trash2, Save, X, GripVertical } from 'lucide-react';
 import SimpleCountryImageUpload from './SimpleCountryImageUpload';
 import { ImageIcon } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { useTranslation } from 'react-i18next';
 
 interface ExtendedCountry extends Country {
   display_order: number;
 }
 
 const CountryManagement: React.FC = () => {
+  const { t } = useTranslation(['admin']);
   const { toast } = useToast();
   const [countries, setCountries] = useState<ExtendedCountry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +73,7 @@ const CountryManagement: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching countries:', error);
-      toast({ title: "Error", description: "Failed to fetch countries.", variant: "destructive" });
+      toast({ title: t('countryManagement.error'), description: t('countryManagement.failedToFetchCountries'), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +83,7 @@ const CountryManagement: React.FC = () => {
     console.log('Starting addCountry process with form data:', countryForm);
     
     if (!countryForm.name.trim()) {
-      toast({ title: "Error", description: "Country name is required.", variant: "destructive" });
+      toast({ title: t('countryManagement.error'), description: t('countryManagement.countryNameRequired'), variant: "destructive" });
       return;
     }
 
@@ -129,7 +131,7 @@ const CountryManagement: React.FC = () => {
         }
       }
       
-      toast({ title: "Success", description: "Country and related records created successfully." });
+      toast({ title: t('countryManagement.success'), description: t('countryManagement.countryAdded') });
       await fetchCountries();
       setCountryForm({ name: '', image_url: '' });
       setIsDialogOpen(false);
@@ -145,7 +147,7 @@ const CountryManagement: React.FC = () => {
     console.log('Starting updateCountry process:', { id, formData: countryForm });
     
     if (!countryForm.name.trim()) {
-      toast({ title: "Error", description: "Country name is required.", variant: "destructive" });
+      toast({ title: t('countryManagement.error'), description: t('countryManagement.countryNameRequired'), variant: "destructive" });
       return;
     }
 
@@ -167,13 +169,13 @@ const CountryManagement: React.FC = () => {
       }
       
       console.log('Country updated successfully');
-      toast({ title: "Success", description: "Country updated successfully." });
+      toast({ title: t('countryManagement.success'), description: t('countryManagement.countryUpdated') });
       await fetchCountries();
       setCountryForm({ name: '', image_url: '' });
       setIsEditing(null);
     } catch (error) {
       console.error('Error in updateCountry:', error);
-      toast({ title: "Error", description: "Failed to update country.", variant: "destructive" });
+      toast({ title: t('countryManagement.error'), description: t('countryManagement.failedToUpdateCountry'), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -181,7 +183,7 @@ const CountryManagement: React.FC = () => {
 
   const deleteCountry = async (id: string) => {
     console.log('Starting country deletion process for id:', id);
-    if (!confirm("Are you sure you want to delete this country? This will delete all related categories, types, and sort options.")) {
+    if (!confirm(t('countryManagement.deleteConfirmDescription'))) {
       console.log('User cancelled deletion');
       return;
     }
@@ -334,7 +336,7 @@ const CountryManagement: React.FC = () => {
         throw new Error('Delete operation did not remove the country. You may not have sufficient permissions.');
       }
       
-      toast({ title: "Success", description: "Country and all related records deleted successfully." });
+      toast({ title: t('countryManagement.success'), description: t('countryManagement.countryDeleted') });
       console.log('Delete operation completed successfully, refreshing countries list...');
       fetchCountries();
       if (selectedCountryId === id) {
@@ -399,8 +401,8 @@ const CountryManagement: React.FC = () => {
 
       setCountries(updatedItems);
       toast({
-        title: "Success",
-        description: "Countries reordered successfully",
+        title: t('countryManagement.success'),
+        description: t('countryManagement.countriesReordered'),
       });
     } catch (error) {
       console.error("Error reordering countries:", error);
@@ -418,39 +420,39 @@ const CountryManagement: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle><span>Country Management</span></CardTitle>
+        <CardTitle><span>{t('countryManagement.title')}</span></CardTitle>
         <CardDescription>
-          Manage the countries in the banknote catalog.
+          {t('countryManagement.description')}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold"><span>Countries</span></h2>
+          <h2 className="text-xl font-bold"><span>{t('countryManagement.title')}</span></h2>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleAddButtonClick} variant="primary">
-                <Plus className="mr-2 h-4 w-4" /> Add Country
+                <Plus className="mr-2 h-4 w-4" /> {t('countryManagement.addCountry')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle><span>Add New Country</span></DialogTitle>
+                <DialogTitle><span>{t('countryManagement.addCountry')}</span></DialogTitle>
                 <DialogDescription>
-                  Add a new country to the system.
+                  {t('countryManagement.description')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Country Name</Label>
+                  <Label htmlFor="name">{t('countryManagement.countryName')}</Label>
                   <Input
                     id="name"
                     value={countryForm.name}
                     onChange={(e) => setCountryForm({...countryForm, name: e.target.value})}
-                    placeholder="Enter country name"
+                    placeholder={t('countryManagement.countryName')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Country Image</Label>
+                  <Label>{t('countryManagement.imageUrl')}</Label>
                   <SimpleCountryImageUpload
                     image={countryForm.image_url}
                     onImageUploaded={(url) => setCountryForm({...countryForm, image_url: url})}
@@ -458,13 +460,13 @@ const CountryManagement: React.FC = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t('countryManagement.cancel')}</Button>
                 <Button
                   variant="primary"
                   onClick={addCountry}
                   disabled={isLoading || !countryForm.name}
                 >
-                  {isLoading ? "Adding..." : "Add Country"}
+                  {isLoading ? t('countryManagement.adding') : t('countryManagement.addCountry')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -474,10 +476,10 @@ const CountryManagement: React.FC = () => {
         <Table className="border">
           <TableHeader>
             <TableRow>
-              <TableHead>Order</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Image</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('countryManagement.tableHeaders.order')}</TableHead>
+              <TableHead>{t('countryManagement.tableHeaders.name')}</TableHead>
+              <TableHead>{t('countryManagement.tableHeaders.image')}</TableHead>
+              <TableHead className="text-right">{t('countryManagement.tableHeaders.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <DragDropContext onDragEnd={handleDragEnd}>

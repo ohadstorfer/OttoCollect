@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Search, Loader2, Check, X, Image as ImageIcon, Eye, Crop } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import { AdminComponentProps } from '@/types/admin';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import BanknoteDetailDialog from './BanknoteDetailDialog';
 import ImageCropDialog from '@/components/shared/ImageCropDialog';
@@ -354,6 +355,7 @@ const ImageSuggestions: React.FC<ImageSuggestionsProps> = ({
   isCountryAdmin,
   disableCountrySelect
 }) => {
+  const { t } = useTranslation(['admin']);
   const [suggestions, setSuggestions] = useState<ImageSuggestion[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');

@@ -54,11 +54,6 @@ export const BanknoteGroupDialog: React.FC<BanknoteGroupDialogProps> = ({
       <DialogHeader className="sticky top-0 z-10 bg-background flex flex-row items-center justify-between border-b">
           <div className="flex flex-col">
             <DialogTitle><span>{tWithFallback('banknoteGroup', 'Banknote Group')}: {groupBaseNumber}</span></DialogTitle>
-            {displaySultan && (
-              <div className="text-sm text-muted-foreground mt-1">
-                {tWithFallback('sultan', 'Sultan')}: {displaySultan}
-              </div>
-            )}
           </div>
           <DialogClose asChild>
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Eye, User } from 'lucide-react';
 import { statisticsService, CollectionViewStats, BlogPostViewStats } from '@/services/statisticsService';
+import { useTranslation } from 'react-i18next';
 
 export const ViewStatsSection: React.FC = () => {
+  const { t } = useTranslation(['admin']);
   const [collectionViews, setCollectionViews] = useState<CollectionViewStats[]>([]);
   const [blogPostViews, setBlogPostViews] = useState<BlogPostViewStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export const ViewStatsSection: React.FC = () => {
   };
 
   if (loading) {
-    return <div>Loading view statistics...</div>;
+    return <div>{t('statistics.viewStats.loading')}</div>;
   }
 
   console.log('View stats data:', { collectionViews, blogPostViews });
@@ -39,7 +41,7 @@ export const ViewStatsSection: React.FC = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle><span>Top Collection Views by User</span></CardTitle>
+          <CardTitle><span>{t('statistics.viewStats.topCollectionViews')}</span></CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -48,14 +50,14 @@ export const ViewStatsSection: React.FC = () => {
                 <TableHead>
                   <div className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
-                    Username
+                    {t('statistics.viewStats.username')}
                   </div>
                 </TableHead>
-                <TableHead>Country</TableHead>
+                <TableHead>{t('statistics.viewStats.country')}</TableHead>
                 <TableHead className="text-right">
                   <div className="flex items-center justify-end">
                     <Eye className="mr-2 h-4 w-4" />
-                    Total Views
+                    {t('statistics.viewStats.totalViews')}
                   </div>
                 </TableHead>
               </TableRow>
@@ -76,7 +78,7 @@ export const ViewStatsSection: React.FC = () => {
               {collectionViews.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    No collection views recorded yet
+                    {t('statistics.viewStats.noCollectionViews')}
                   </TableCell>
                 </TableRow>
               )}
@@ -87,7 +89,7 @@ export const ViewStatsSection: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle><span>Top Blog Post Views</span></CardTitle>
+          <CardTitle><span>{t('statistics.viewStats.topBlogPostViews')}</span></CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -96,10 +98,10 @@ export const ViewStatsSection: React.FC = () => {
                 <TableHead>
                   <div className="flex items-center">
                     <Eye className="mr-2 h-4 w-4" />
-                    Blog Post Title
+                    {t('statistics.viewStats.blogPostTitle')}
                   </div>
                 </TableHead>
-                <TableHead className="text-right">Total Views</TableHead>
+                <TableHead className="text-right">{t('statistics.viewStats.totalViews')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -119,7 +121,7 @@ export const ViewStatsSection: React.FC = () => {
               {blogPostViews.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={2} className="text-center text-muted-foreground">
-                    No blog post views recorded yet
+                    {t('statistics.viewStats.noBlogPostViews')}
                   </TableCell>
                 </TableRow>
               )}

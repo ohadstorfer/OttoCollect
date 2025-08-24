@@ -1,3 +1,6 @@
+// Note: react-beautiful-dnd generates a warning about defaultProps in React 18+
+// This is a known issue with the library and cannot be fixed from our code
+// The warning: "Support for defaultProps will be removed from memo components in a future major release"
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

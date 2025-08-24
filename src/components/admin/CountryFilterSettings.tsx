@@ -13,6 +13,7 @@ import SortOptionsManager from "./filter/SortOptionsManager";
 import CurrenciesManager from "./filter/CurrenciesManager";
 import SultansManager from "./filter/SultansManager";
 import { fetchSortOptionsByCountryId } from "@/services/countryService";
+import { useTranslation } from 'react-i18next';
 
 interface Country {
   id: string;
@@ -26,6 +27,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
   isCountryAdmin,
   disableCountrySelect
 }) => {
+  const { t } = useTranslation(['admin']);
   const [countries, setCountries] = useState<Country[]>([]);
   const [selectedCountryId, setSelectedCountryId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("categories");
@@ -90,7 +92,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             onValueChange={handleCountryChange}
           >
             <SelectTrigger className="w-full md:w-80">
-              <SelectValue placeholder="Select a country" />
+              <SelectValue placeholder={t('countryFilterSettings.selectCountryPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
               {countries.map((country) => (
@@ -107,20 +109,20 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className={`grid ${hasSultanSort ? 'grid-cols-5' : 'grid-cols-4'} mb-6`}>
             <TabsTrigger value="categories">
-              Categories
+              {t('countryFilterSettings.tabs.categories')}
             </TabsTrigger>
             <TabsTrigger value="types">
-              Types
+              {t('countryFilterSettings.tabs.types')}
             </TabsTrigger>
             <TabsTrigger value="sort">
-              Sort Options
+              {t('countryFilterSettings.tabs.sortOptions')}
             </TabsTrigger>
             <TabsTrigger value="currencies">
-              Currencies
+              {t('countryFilterSettings.tabs.currencies')}
             </TabsTrigger>
             {hasSultanSort && (
               <TabsTrigger value="sultans">
-                Sultans
+                {t('countryFilterSettings.tabs.sultans')}
               </TabsTrigger>
             )}
           </TabsList>
@@ -129,7 +131,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  <span>Categories for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}</span>
+                  <span>{t('countryFilterSettings.cardTitles.categoriesFor', { countryName: countries.find(c => c.id === selectedCountryId)?.name || t('countryFilterSettings.cardTitles.selectedCountry') })}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -142,7 +144,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  <span>Types for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}</span>
+                  <span>{t('countryFilterSettings.cardTitles.typesFor', { countryName: countries.find(c => c.id === selectedCountryId)?.name || t('countryFilterSettings.cardTitles.selectedCountry') })}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -156,7 +158,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  <span>Sort Options for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}</span>
+                  <span>{t('countryFilterSettings.cardTitles.sortOptionsFor', { countryName: countries.find(c => c.id === selectedCountryId)?.name || t('countryFilterSettings.cardTitles.selectedCountry') })}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -169,7 +171,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  <span>Currencies for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}</span>
+                  <span>{t('countryFilterSettings.cardTitles.currenciesFor', { countryName: countries.find(c => c.id === selectedCountryId)?.name || t('countryFilterSettings.cardTitles.selectedCountry') })}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -182,9 +184,9 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             <TabsContent value="sultans">
               <Card>
                 <CardHeader>
-                  <CardTitle>
-                    <span>Sultans for {countries.find(c => c.id === selectedCountryId)?.name || "Selected Country"}</span>
-                  </CardTitle>
+                                  <CardTitle>
+                  <span>{t('countryFilterSettings.cardTitles.sultansFor', { countryName: countries.find(c => c.id === selectedCountryId)?.name || t('countryFilterSettings.cardTitles.selectedCountry') })}</span>
+                </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <SultansManager countryId={selectedCountryId} />

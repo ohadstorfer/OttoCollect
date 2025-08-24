@@ -24,6 +24,7 @@ import { useBanknoteSorting } from '@/hooks/use-banknote-sorting';
 import { Currency } from '@/types/banknote';
 import { importBanknoteData } from '@/scripts/importBanknoteData';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,6 +75,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   isCountryAdmin,
   disableCountrySelect
 }) => {
+  const { t } = useTranslation(['admin']);
   const { user } = useAuth();
   const [allBanknotes, setAllBanknotes] = useState<Banknote[]>([]);
   const [filteredBanknotes, setFilteredBanknotes] = useState<Banknote[]>([]);
@@ -438,7 +440,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
       setBanknoteToDelete(null);
     } catch (error) {
       console.error('Error deleting banknote:', error);
-      toast.error('Failed to delete banknote');
+              toast.error(t('banknotesManagement.deleteFailed'));
     }
   };
 
@@ -452,7 +454,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
             onValueChange={handleCountryChange}
           >
             <SelectTrigger className="w-full md:w-80">
-              <SelectValue placeholder="Select a country" />
+                              <SelectValue placeholder={t('banknotesManagement.selectCountryPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
               {countries.map((country) => (
@@ -471,7 +473,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
             <div className="relative max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search banknotes..."
+                placeholder={t('banknotesManagement.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
@@ -497,7 +499,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                     {uploading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
+                        {t('banknotesManagement.uploading')}
                       </>
                     ) : (
                       <>
@@ -512,7 +514,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                       variant="default"
                     >
                       <Upload className="mr-2 h-4 w-4" />
-                      Upload
+                      {t('banknotesManagement.upload')}
                     </Button>
                   )}
                 </div>
@@ -522,7 +524,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading
+                                            {t('banknotesManagement.loading')}
                   </>
                 ) : (
                   'Refresh'
@@ -531,7 +533,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
               
               <Button onClick={handleAddNewBanknote}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add New
+                {t('banknotesManagement.addNew')}
               </Button>
             </div>
           </div>
@@ -550,12 +552,12 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>View</TableHead>
-                      <TableHead>Extended Pick</TableHead>
-                      <TableHead>Country</TableHead>
-                      <TableHead>Denomination</TableHead>
-                      <TableHead>Year</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t('banknotesManagement.view')}</TableHead>
+                      <TableHead>{t('banknotesManagement.extendedPickNumber')}</TableHead>
+                      <TableHead>{t('banknotesManagement.country')}</TableHead>
+                      <TableHead>{t('banknotesManagement.denomination')}</TableHead>
+                      <TableHead>{t('banknotesManagement.year')}</TableHead>
+                      <TableHead>{t('banknotesManagement.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -569,7 +571,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                               onClick={() => handleViewBanknote(banknote)}
                               className="flex items-center gap-1"
                             >
-                              <Eye className="h-4 w-4" /> View
+                              <Eye className="h-4 w-4" /> {t('banknotesManagement.view')}
                             </Button>
                           </TableCell>
                           <TableCell className="font-medium">{banknote.extendedPickNumber}</TableCell>
@@ -599,7 +601,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                     ) : (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-10">
-                          No banknotes found
+                          {t('banknotesManagement.noBanknotesFound')}
                         </TableCell>
                       </TableRow>
                     )}
@@ -646,19 +648,18 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
           >
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle><span>Are you sure?</span></AlertDialogTitle>
+                <AlertDialogTitle><span>{t('banknotesManagement.deleteConfirmTitle')}</span></AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete the banknote with ext.Pick: {banknoteToDelete?.extendedPickNumber}. 
-                  This action cannot be undone.
+                  {t('banknotesManagement.deleteConfirmDescription')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('banknotesManagement.cancel')}</AlertDialogCancel>
                 <AlertDialogAction 
                   onClick={() => banknoteToDelete && handleDeleteBanknote(banknoteToDelete)}
                   className="bg-red-600 hover:bg-red-700"
                 >
-                  Delete
+                  {t('banknotesManagement.deleteConfirm')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Country } from '@/types';
 import { fetchCountries } from '@/services/countryService';
 import { AdminComponentProps } from '@/types/admin';
+import { useTranslation } from 'react-i18next';
 import StampPicturesManager from './stamps/StampPicturesManager';
 
 const StampsManagement: React.FC<AdminComponentProps> = ({
@@ -14,6 +15,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
   isCountryAdmin = false,
   disableCountrySelect = false
 }) => {
+  const { t } = useTranslation(['admin']);
   const [countries, setCountries] = useState<Country[]>([]);
   const [selectedCountryId, setSelectedCountryId] = useState<string>(countryId || '');
   const [activeTab, setActiveTab] = useState<string>('signatures-front');
@@ -43,10 +45,10 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
     <div className="space-y-6">
       {!disableCountrySelect && !isCountryAdmin && (
         <div className="space-y-2">
-          <Label htmlFor="country-select">Country</Label>
+          <Label htmlFor="country-select">{t('stampsManagement.country')}</Label>
           <Select value={selectedCountryId} onValueChange={setSelectedCountryId}>
             <SelectTrigger className="w-64">
-              <SelectValue placeholder="Select a country..." />
+              <SelectValue placeholder={t('stampsManagement.selectCountryPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
               {countries.map((country) => (
@@ -61,24 +63,24 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
 
       {isCountryAdmin && countryName && (
         <div>
-          <Label>Managing stamps for: {countryName}</Label>
+          <Label>{t('stampsManagement.managingStampsFor', { countryName })}</Label>
         </div>
       )}
 
       {selectedCountryId && (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="signatures-front">Front Signatures</TabsTrigger>
-            <TabsTrigger value="signatures-back">Back Signatures</TabsTrigger>
-            <TabsTrigger value="seals">Seals</TabsTrigger>
-            <TabsTrigger value="watermarks">Watermarks</TabsTrigger>
-            <TabsTrigger value="tughras">Tughras</TabsTrigger>
+            <TabsTrigger value="signatures-front">{t('stampsManagement.tabs.signaturesFront')}</TabsTrigger>
+            <TabsTrigger value="signatures-back">{t('stampsManagement.tabs.signaturesBack')}</TabsTrigger>
+            <TabsTrigger value="seals">{t('stampsManagement.tabs.seals')}</TabsTrigger>
+            <TabsTrigger value="watermarks">{t('stampsManagement.tabs.watermarks')}</TabsTrigger>
+            <TabsTrigger value="tughras">{t('stampsManagement.tabs.tughras')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="signatures-front" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle><span>Front Signature Pictures</span></CardTitle>
+                <CardTitle><span>{t('stampsManagement.cardTitles.frontSignatures')}</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampPicturesManager
@@ -93,7 +95,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
           <TabsContent value="signatures-back" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle><span>Back Signature Pictures</span></CardTitle>
+                <CardTitle><span>{t('stampsManagement.cardTitles.backSignatures')}</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampPicturesManager
@@ -108,7 +110,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
           <TabsContent value="seals" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle><span>Seal Pictures</span></CardTitle>
+                <CardTitle><span>{t('stampsManagement.cardTitles.seals')}</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampPicturesManager
@@ -123,7 +125,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
           <TabsContent value="watermarks" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle><span>Watermark Pictures</span></CardTitle>
+                <CardTitle><span>{t('stampsManagement.cardTitles.watermarks')}</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampPicturesManager
@@ -138,7 +140,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
           <TabsContent value="tughras" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle><span>Tughra Pictures</span></CardTitle>
+                <CardTitle><span>{t('stampsManagement.cardTitles.tughras')}</span></CardTitle>
               </CardHeader>
               <CardContent>
                 <StampPicturesManager
@@ -154,7 +156,7 @@ const StampsManagement: React.FC<AdminComponentProps> = ({
 
       {!selectedCountryId && !isCountryAdmin && (
         <div className="text-center py-8 text-muted-foreground">
-          Please select a country to manage stamp images.
+          {t('stampsManagement.selectCountryToManage')}
         </div>
       )}
     </div>
