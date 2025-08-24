@@ -150,7 +150,8 @@
     "goToProfile": "Profile Git",
     "blocking": "Engelleniyor...",
     "blockFromForum": "Forumdan Engelle",
-    "chooseAction": "Bu kullanıcı için bir işlem seçin:"
+    "chooseAction": "Bu kullanıcı için bir işlem seçin:",
+    "viewProfile": "Profili Görüntüle"
   },
   "imageUploader": {
     "invalidFiles": "Geçersiz dosyalar",

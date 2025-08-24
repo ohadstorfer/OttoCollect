@@ -150,7 +150,8 @@
     "goToProfile": "Go to Profile",
     "blocking": "Blocking...",
     "blockFromForum": "Block from Forum",
-    "chooseAction": "Choose an action for this user:"
+    "chooseAction": "Choose an action for this user:",
+    "viewProfile": "View Profile"
   },
   "imageUploader": {
     "invalidFiles": "Invalid files",

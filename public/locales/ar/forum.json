@@ -150,7 +150,8 @@
     "goToProfile": "الذهاب إلى الملف الشخصي",
     "blocking": "جاري الحظر...",
     "blockFromForum": "حظر من المنتدى",
-    "chooseAction": "اختر إجراءاً لهذا المستخدم:"
+    "chooseAction": "اختر إجراءاً لهذا المستخدم:",
+    "viewProfile": "عرض الملف الشخصي"
   },
   "imageUploader": {
     "invalidFiles": "ملفات غير صالحة",

@@ -89,7 +89,7 @@ const renderComment = (
   const canReply = props.user && depth < maxDepth;
 
   return (
-    <div key={comment.id} className={`${isReply ? 'ml-10' : ''} ${depth > 0 ? 'mt-4' : 'mb-6'}`}>
+    <div key={comment.id} className={`${isReply ? (props.currentLanguage === 'ar' ? 'mr-10' : 'ml-10') : ''} ${depth > 0 ? 'mt-4' : 'mb-6'}`}>
       {/* Wrap parent comment and replies with soft outline */}
       <div className={`${depth === 0 && comment.replies && comment.replies.length > 0 ? 'border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50/50 dark:bg-gray-800/20' : ''}`}>
         <div className="flex gap-3">
@@ -107,17 +107,17 @@ const renderComment = (
             {/* Comment Header */}
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span
-                className="font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words"
+                className={`font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}
                 onClick={() => props.handleOnProfileClick(comment.author?.id)}
               >
                 {comment.author?.username || props.t('post.anonymous')}
               </span>
               <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-              <span className="text-xs text-muted-foreground flex-shrink-0">{formatRelativeTime(comment.created_at || comment.createdAt)}</span>
+              <span className={`text-xs text-muted-foreground flex-shrink-0 ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}>{formatRelativeTime(comment.created_at || comment.createdAt)}</span>
               {comment.isEdited && (
                 <>
                   <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-                  <span className="text-xs italic text-muted-foreground flex-shrink-0">{props.t('post.edited')}</span>
+                  <span className={`text-xs italic text-muted-foreground flex-shrink-0 ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}>{props.t('post.edited')}</span>
                 </>
               )}
             </div>
@@ -151,7 +151,7 @@ const renderComment = (
               </div>
             ) : (
               <>
-                <div className="text-sm leading-relaxed text-foreground mb-3 break-words whitespace-pre-wrap overflow-hidden">
+                <div className={`text-sm leading-relaxed text-foreground mb-3 break-words whitespace-pre-wrap overflow-hidden ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}>
                   {props.renderTextWithLinks(comment.content)}
                 </div>
 
@@ -224,20 +224,20 @@ const renderComment = (
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent>
+                          <AlertDialogContent className={props.currentLanguage === 'ar' ? 'text-right' : ''}>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Comment</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this comment? This action cannot be undone.
+                              <AlertDialogTitle className={props.currentLanguage === 'ar' ? 'text-right' : ''}>{props.t('actions.deleteComment')}</AlertDialogTitle>
+                              <AlertDialogDescription className={props.currentLanguage === 'ar' ? 'text-right' : ''}>
+                                {props.t('actions.deleteCommentConfirm')}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel className={props.currentLanguage === 'ar' ? 'text-right' : ''}>{props.t('post.cancel')}</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => props.onDeleteComment(comment.id)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
-                                Delete
+                                {props.t('actions.delete')}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -727,7 +727,11 @@ const ForumPostAnnouncementsPage = () => {
             onClick={handleBack}
             className="text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            {direction === 'rtl' ? (
+                <ArrowRight className="w-4 h-4 mr-2" />
+              ) : (
+                <ArrowLeft className="w-4 h-4 mr-2" />
+              )}
             {t('navigation.backToForum')}
           </Button>
 
@@ -787,22 +791,22 @@ const ForumPostAnnouncementsPage = () => {
               {/* Post Header */}
               <div className="flex items-center gap-2 mb-2">
                 <span
-                  className="font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+                  className={`font-medium text-sm cursor-pointer hover:text-primary transition-colors ${direction === 'rtl' ? 'text-right' : ''}`}
                   onClick={() => handleOnProfileClick(post?.author?.id)}
                 >
                   {post.author?.username || 'Anonymous'}
                 </span>
                 <span className="text-xs text-muted-foreground">•</span>
-                <span className="text-xs text-muted-foreground">{formattedDate}</span>
+                <span className={`text-xs text-muted-foreground ${direction === 'rtl' ? 'text-right' : ''}`}>{formattedDate}</span>
               </div>
 
               {/* Post Title */}
-              <h1 className="text-xl font-semibold mb-3 text-foreground">
+              <h1 className={`text-xl font-semibold mb-3 text-foreground ${direction === 'rtl' ? 'text-right' : ''}`}>
                 <span>{renderTextWithLinks(post.title)}</span>
               </h1>
 
               {/* Post Content */}
-              <div className="text-sm leading-relaxed mb-4 text-foreground">
+              <div className={`text-sm leading-relaxed mb-4 text-foreground ${direction === 'rtl' ? 'text-right' : ''}`}>
                 {renderTextWithLinks(post.content)}
               </div>
 
@@ -926,10 +930,10 @@ const ForumPostAnnouncementsPage = () => {
         {/* Profile Action Dialog for Super Admins */}
         {user?.role === 'Super Admin' && (
           <AlertDialog open={showProfileActionDialog} onOpenChange={setShowProfileActionDialog}>
-            <AlertDialogContent>
+            <AlertDialogContent className={direction === 'rtl' ? 'text-right' : ''}>
               <AlertDialogHeader>
-                <AlertDialogTitle>{tWithFallback('profile.actions', 'User Profile Actions')}</AlertDialogTitle>
-                <AlertDialogDescription>
+                <AlertDialogTitle className={direction === 'rtl' ? 'text-right' : ''}>{tWithFallback('profile.actions', 'User Profile Actions')}</AlertDialogTitle>
+                <AlertDialogDescription className={direction === 'rtl' ? 'text-right' : ''}>
                   {tWithFallback('profile.chooseAction', 'Choose an action for this user:')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -943,7 +947,7 @@ const ForumPostAnnouncementsPage = () => {
                     }
                   }}
                 >
-                  View Profile
+                  {t('profile.viewProfile')}
                 </Button>
                 <Button
                   variant="destructive"
@@ -951,11 +955,11 @@ const ForumPostAnnouncementsPage = () => {
                   disabled={isBlockingUser}
                 >
                   <Ban className="h-4 w-4 mr-2" />
-                  {isBlockingUser ? 'Blocking...' : 'Block from Forum'}
+                  {isBlockingUser ? t('profile.blocking') : t('profile.blockFromForum')}
                 </Button>
               </div>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel className={direction === 'rtl' ? 'text-right' : ''}>{t('actions.cancel')}</AlertDialogCancel>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

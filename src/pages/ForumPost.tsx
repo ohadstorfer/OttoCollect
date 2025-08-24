@@ -13,7 +13,7 @@ import ForumCommentComponent from "@/components/forum/ForumComment";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
-import { ArrowLeft, Trash2, Edit2, Ban, MessageSquare, Reply } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit2, Ban, MessageSquare, Reply, ArrowRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
 import { formatRelativeTime, useDateLocale } from '@/lib/dateUtils';
@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useLanguage } from '@/context/LanguageContext';
 
 
 // Simple function to detect and render links
@@ -88,7 +89,7 @@ const renderComment = (
   const canReply = props.user && depth < maxDepth;
 
   return (
-    <div key={comment.id} className={`${isReply ? 'ml-10' : ''} `}>
+    <div key={comment.id} className={`${isReply ? (props.currentLanguage === 'ar' ? 'mr-10' : 'ml-10') : ''}`}>
       {/* Wrap parent comment and replies with soft outline */}
       <div className={`${depth === 0 && comment.replies  ? 'border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50/50 dark:bg-gray-800/20' : ''}`}>
         <div className="flex gap-3">
@@ -106,17 +107,17 @@ const renderComment = (
             {/* Comment Header */}
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span
-                className="font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words"
+                className={`font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}
                 onClick={() => props.handleOnProfileClick(comment.author?.id)}
               >
                 {comment.author?.username || props.t('post.anonymous')}
               </span>
               <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-              <span className="text-xs text-muted-foreground flex-shrink-0">{formatRelativeTime(comment.created_at || comment.createdAt, props.currentLanguage)}</span>
+              <span className={`text-xs text-muted-foreground flex-shrink-0 ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}>{formatRelativeTime(comment.created_at || comment.createdAt, props.currentLanguage)}</span>
               {comment.isEdited && (
                 <>
                   <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-                  <span className="text-xs italic text-muted-foreground flex-shrink-0">{props.t('post.edited')}</span>
+                  <span className={`text-xs italic text-muted-foreground flex-shrink-0 ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}>{props.t('post.edited')}</span>
                 </>
               )}
             </div>
@@ -151,7 +152,7 @@ const renderComment = (
               </div>
             ) : (
               <>
-                <div className="text-sm leading-relaxed text-foreground mb-3 break-words whitespace-pre-wrap overflow-hidden">
+                <div className={`text-sm leading-relaxed text-foreground mb-3 break-words whitespace-pre-wrap overflow-hidden ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}>
                   {props.renderTextWithLinks(comment.content)}
                 </div>
 
@@ -224,15 +225,15 @@ const renderComment = (
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent>
+                          <AlertDialogContent className={props.currentLanguage === 'ar' ? 'text-right' : ''}>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>{props.t('actions.deleteComment')}</AlertDialogTitle>
-                                                              <AlertDialogDescription>
-                                  {props.t('actions.deleteCommentConfirm')}
-                                </AlertDialogDescription>
+                              <AlertDialogTitle className={props.currentLanguage === 'ar' ? 'text-right' : ''}>{props.t('actions.deleteComment')}</AlertDialogTitle>
+                              <AlertDialogDescription className={props.currentLanguage === 'ar' ? 'text-right' : ''}>
+                                {props.t('actions.deleteCommentConfirm')}
+                              </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>{props.t('post.cancel')}</AlertDialogCancel>
+                              <AlertDialogCancel className={props.currentLanguage === 'ar' ? 'text-right' : ''}>{props.t('post.cancel')}</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => props.onDeleteComment(comment.id)}
                                 className="bg-red-600 hover:bg-red-700"
@@ -288,6 +289,7 @@ const ForumPostPage = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isBlockingUser, setIsBlockingUser] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const { direction } = useLanguage();
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
@@ -704,39 +706,43 @@ const ForumPostPage = () => {
             onClick={handleBack}
             className="text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            {direction === 'rtl' ? (
+                <ArrowRight className="w-4 h-4 mr-2" />
+              ) : (
+                <ArrowLeft className="w-4 h-4 mr-2" />
+              )}
             {t('navigation.backToForum')}
           </Button>
 
           {canDeletePost && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
+                      <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-100/50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className={direction === 'rtl' ? 'text-right' : ''}>
+              <AlertDialogHeader>
+                <AlertDialogTitle className={direction === 'rtl' ? 'text-right' : ''}>{t('actions.deletePost')}</AlertDialogTitle>
+                <AlertDialogDescription className={direction === 'rtl' ? 'text-right' : ''}>
+                  {t('actions.deletePostConfirm')}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className={direction === 'rtl' ? 'text-right' : ''}>{t('post.cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeletePost}
+                  className="bg-red-600 hover:bg-red-700"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('actions.deletePost')}</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t('actions.deletePostConfirm')}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('post.cancel')}</AlertDialogCancel>
-                                      <AlertDialogAction
-                      onClick={handleDeletePost}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      {t('actions.delete')}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                  {t('actions.delete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           )}
         </div>
 
@@ -759,22 +765,22 @@ const ForumPostPage = () => {
               {/* Post Header */}
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span
-                  className="font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words"
+                  className={`font-medium text-sm cursor-pointer hover:text-primary transition-colors break-words ${direction === 'rtl' ? 'text-right' : ''}`}
                   onClick={() => handleOnProfileClick(post?.author?.id)}
                 >
                   {post.author?.username || t('post.anonymous')}
                 </span>
                 <span className="text-xs text-muted-foreground flex-shrink-0">•</span>
-                <span className="text-xs text-muted-foreground flex-shrink-0">{formattedDate}</span>
+                <span className={`text-xs text-muted-foreground flex-shrink-0 ${direction === 'rtl' ? 'text-right' : ''}`}>{formattedDate}</span>
               </div>
 
               {/* Post Title */}
-              <h1 className="text-xl font-semibold mb-3 text-foreground break-words">
+              <h1 className={`text-xl font-semibold mb-3 text-foreground break-words ${direction === 'rtl' ? 'text-right' : ''}`}>
                 <span>{renderTextWithLinks(post.title)}</span>
               </h1>
 
               {/* Post Content */}
-              <div className="text-sm leading-relaxed mb-4 text-foreground break-words whitespace-pre-wrap overflow-hidden">
+              <div className={`text-sm leading-relaxed mb-4 text-foreground break-words whitespace-pre-wrap overflow-hidden ${direction === 'rtl' ? 'text-right' : ''}`}>
                 {renderTextWithLinks(post.content)}
               </div>
 
@@ -897,9 +903,9 @@ const ForumPostPage = () => {
 
       {/* Profile Action Dialog for Super Admin */}
       <AlertDialog open={showProfileActionDialog} onOpenChange={setShowProfileActionDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className={direction === 'rtl' ? 'text-right' : ''}>
           <AlertDialogHeader>
-            <AlertDialogTitle>{tWithFallback('profile.actions', 'User Profile Actions')}</AlertDialogTitle>
+            <AlertDialogTitle className={direction === 'rtl' ? 'text-right' : ''}>{tWithFallback('profile.actions', 'User Profile Actions')}</AlertDialogTitle>
           </AlertDialogHeader>
           <div className="flex flex-col gap-2">
             <Button
@@ -921,7 +927,7 @@ const ForumPostPage = () => {
             </Button>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className={direction === 'rtl' ? 'text-right' : ''}>Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

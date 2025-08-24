@@ -163,7 +163,7 @@ export default function ForumComment({
             <Textarea 
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              className="min-h-[80px] resize-none"
+              className="min-h-[80px] resize-none "
               placeholder={tWithFallback('forms.commentPlaceholder', 'Write your comment...')}
             />
             <div className="flex gap-2">
