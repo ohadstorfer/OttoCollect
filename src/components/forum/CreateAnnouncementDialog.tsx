@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,13 +35,7 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
 
-  // Memoize the fallback function to prevent infinite re-renders
-  const tWithFallback = useMemo(() => {
-    return (key: string, fallback: string) => {
-      const translation = t(key);
-      return translation === key ? fallback : translation;
-    };
-  }, [t]);
+
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
@@ -74,8 +68,8 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
 
     if (!isSuperAdmin) {
       toast({
-        title: tWithFallback('limits.accessDenied', 'Access Denied'),
-        description: tWithFallback('limits.accessDenied', 'Only Super Admins can create announcements.'),
+        title: t('limits.accessDenied'),
+        description: t('limits.accessDenied'),
         variant: "destructive",
       });
       return;
@@ -86,8 +80,8 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
       const { hasReachedLimit: limitReached } = await checkUserDailyForumLimit(user.id);
       if (limitReached) {
         toast({
-          title: tWithFallback('status.dailyLimitReached', 'Daily limit reached'),
-          description: tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).'),
+          title: t('status.dailyLimitReached'),
+          description: t('limits.dailyLimitWarning'),
           variant: "destructive",
         });
         return;
@@ -100,8 +94,8 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
       
       if (newAnnouncement) {
         toast({
-          title: tWithFallback('notifications.announcementCreated', 'Success'),
-          description: tWithFallback('notifications.announcementCreated', 'Your announcement has been published successfully.'),
+          title: t('notifications.announcementCreated'),
+          description: t('notifications.announcementCreated'),
         });
         
         // Reset form
@@ -121,16 +115,16 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
       } else {
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to create announcement. Please try again.",
+          title: t('notifications.error'),
+          description: t('notifications.failedToCreatePost'),
         });
       }
     } catch (error) {
       console.error("Error creating announcement:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: t('notifications.error'),
+        description: t('notifications.unexpectedError'),
       });
     } finally {
       setIsSubmitting(false);
@@ -149,7 +143,7 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>Create New Announcement</span>
+            <span>{t('forms.createNewAnnouncement')}</span>
             <Button
               variant="ghost"
               size="sm"
@@ -165,7 +159,7 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
           {!isSuperAdmin && (
             <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800">
               <p className="text-red-600 dark:text-red-400 text-sm">
-                Only Super Admins can create announcements.
+                {t('limits.accessDenied')}
               </p>
             </div>
           )}
@@ -173,7 +167,7 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
           {isLimitedRank && hasReachedLimit && (
             <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-200 dark:border-red-800">
               <p className="text-red-600 dark:text-red-400 text-sm">
-                You have reached your daily limit of 6 forum activities (posts + comments).
+                {t('limits.dailyLimitWarning')}
               </p>
             </div>
           )}
@@ -181,20 +175,20 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
           {isLimitedRank && !hasReachedLimit && (
             <div className="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-md border border-yellow-200 dark:border-yellow-800">
               <p className="text-yellow-600 dark:text-yellow-400 text-sm">
-                Daily forum activity: {dailyCount}/6 (posts + comments)
+                {t('limits.dailyActivity', { count: dailyCount })}
               </p>
             </div>
           )}
           
           <div className="space-y-2">
             <Label htmlFor="title">
-              <span>Announcement Title</span>
+              <span>{t('forms.announcementTitle')}</span>
             </Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Add a clear title for your announcement"
+              placeholder={t('forms.announcementTitlePlaceholder')}
               required
               maxLength={100}
               disabled={hasReachedLimit || !isSuperAdmin}
@@ -202,12 +196,12 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="content">Announcement Content</Label>
+            <Label htmlFor="content">{t('forms.announcementContent')}</Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share important information, updates, or announcements..."
+              placeholder={t('forms.announcementContentPlaceholder')}
               required
               className="min-h-[200px] resize-none"
               disabled={hasReachedLimit || !isSuperAdmin}
@@ -215,7 +209,7 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
           </div>
           
           <div className="space-y-2">
-            <Label>Images (Optional)</Label>
+            <Label>{t('forms.imagesLabel')}</Label>
             <ImageUploader images={images} onChange={setImages} disabled={hasReachedLimit || !isSuperAdmin} />
           </div>
           
@@ -226,7 +220,7 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
               onClick={handleCancel}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('forms.cancel')}
             </Button>
             <Button 
               type="submit"
@@ -235,10 +229,10 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Publishing...
+                  {t('forms.publishing')}
                 </>
               ) : (
-                'Publish Announcement'
+                t('forms.publishAnnouncement')
               )}
             </Button>
           </div>

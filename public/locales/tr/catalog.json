@@ -37,7 +37,13 @@
     "grade": "Not",
     "condition": "Durum",
     "year": "Yıl",
-    "denomination": "Değer"
+    "denomination": "Değer",
+    "buttonTitles": {
+      "addToWishlist": "İstek listesine ekle",
+      "removeFromWishlist": "İstek listesinden çıkar",
+      "alreadyOwned": "Bu banknotu zaten sahipsiniz",
+      "onCollections": "{{count}} Koleksiyonda"
+    }
   },
   "details": {
     "detailedInformation": "Bu banknot hakkında ayrıntılı bilgiler",

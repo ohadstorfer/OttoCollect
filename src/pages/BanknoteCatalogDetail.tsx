@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBanknoteDetail, getBanknoteCollectors } from "@/services/banknoteService";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ import {
   Hash,
   Shield,
   ArrowLeft,
+  ArrowRight,
   Info,
   ImagePlus,
   FileText,
@@ -86,6 +88,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation(['catalog']);
+  const { direction } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showCollectorsDialog, setShowCollectorsDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -523,7 +526,11 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                 size="icon"
                 className="h-10 w-10"
               >
-                <ArrowLeft className="h-5 w-5" /> {/* match h1 size */}
+                {direction === 'rtl' ? (
+                  <ArrowRight className="h-5 w-5" />
+                ) : (
+                  <ArrowLeft className="h-5 w-5" />
+                )} {/* match h1 size */}
               </Button>
 
 
@@ -542,11 +549,25 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
 
 
               
-              <p className="text-xl text-muted-foreground">
-                {banknote?.country}
-                {banknote?.country && banknote?.year && ", "}
-                {banknote?.year}
-              </p>
+          <p
+  className={`text-xl text-muted-foreground ${
+    direction === "rtl" ? "text-right" : ""
+  }`}
+>
+  {direction === "rtl" ? (
+    <>
+      {banknote?.country}
+      {banknote?.country && banknote?.year && ", "}
+      {banknote?.year}
+    </>
+  ) : (
+    <>
+      {banknote?.country}
+      {banknote?.country && banknote?.year && ", "}
+      {banknote?.year}
+    </>
+  )}
+</p>
 
               </div>
             </div>
@@ -695,7 +716,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                           e.stopPropagation();
                           setShowCollectorsDialog(true);
                         }}
-                        title={`On ${collectorsData?.total_count || 0} Collections`}
+                        title={t('card.buttonTitles.onCollections', { count: collectorsData?.total_count || 0 })}
                       >
                         <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-3.5 w-3.5" /></span>
                       </Button>
@@ -704,13 +725,13 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         size="icon"
                         className={wishlistButtonClass}
                         onClick={handleWishlistClick}
-                        title={wishlistItem ? "Remove from wishlist" : "Add to wishlist"}
+                        title={wishlistItem ? t('card.buttonTitles.removeFromWishlist') : t('card.buttonTitles.addToWishlist')}
                       >
                         <Heart className={cn("h-4 w-4", (wishlistItem || hasJustBeenWishlisted) ? "fill-current" : "")} />
                       </Button>
                       {shouldShowCheckButton ? (
                         <Button
-                          title="You already own this banknote"
+                          title={t('card.buttonTitles.alreadyOwned')}
                           variant="ghost"
                           size="icon"
                           className={checkButtonClass}
@@ -732,9 +753,11 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                       )}
                     </div>
                 </div>
-                <CardDescription>
-                  {t('details.detailedInformation')}
-                </CardDescription>
+                <CardDescription
+  className={direction === "rtl" ? "text-right" : "text-left"}
+>
+  {t("details.detailedInformation")}
+</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <BanknoteCatalogDetailMinimized 

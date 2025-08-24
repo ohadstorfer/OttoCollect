@@ -37,7 +37,13 @@
     "grade": "الدرجة",
     "condition": "الحالة",
     "year": "السنة",
-    "denomination": "الفئة"
+    "denomination": "الفئة",
+    "buttonTitles": {
+      "addToWishlist": "أضف إلى قائمة الأماني",
+      "removeFromWishlist": "إزالة من قائمة الأماني",
+      "alreadyOwned": "لديك بالفعل هذه الورقة النقدية",
+      "onCollections": "في {{count}} مجموعة"
+    }
   },
   "details": {
     "detailedInformation": "معلومات مفصلة عن هذه الورقة النقدية",

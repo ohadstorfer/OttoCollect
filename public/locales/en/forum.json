@@ -82,7 +82,13 @@
     "replyPlaceholder": "Reply to {{username}}...",
     "publishPost": "Publish Post",
     "publishAnnouncement": "Publish Announcement",
-    "announcementDescription": "Share important information with the entire community"
+    "announcementDescription": "Share important information with the entire community",
+    "announcementTitle": "Announcement Title",
+    "announcementContent": "Announcement Content",
+    "announcementTitlePlaceholder": "Add a clear title for your announcement",
+    "announcementContentPlaceholder": "Share important information, updates, or announcements...",
+    "publishing": "Publishing...",
+    "cancel": "Cancel"
   },
   "comments": {
     "showReplies": "Show {{count}} {{count, plural, one {reply} other {replies}}}",

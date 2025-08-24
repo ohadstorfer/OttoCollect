@@ -82,7 +82,13 @@
     "replyPlaceholder": "رد على {{username}}...",
     "publishPost": "نشر المشاركة",
     "publishAnnouncement": "نشر الإعلان",
-    "announcementDescription": "شارك معلومات مهمة مع المجتمع بأكمله"
+    "announcementDescription": "شارك معلومات مهمة مع المجتمع بأكمله",
+    "announcementTitle": "عنوان الإعلان",
+    "announcementContent": "محتوى الإعلان",
+    "announcementTitlePlaceholder": "أضف عنواناً واضحاً لإعلانك",
+    "announcementContentPlaceholder": "شارك معلومات مهمة أو تحديثات أو إعلانات...",
+    "publishing": "جاري النشر...",
+    "cancel": "إلغاء"
   },
   "comments": {
     "showReplies": "عرض {{count}} {{count, plural, one {رد} other {ردود}}}",

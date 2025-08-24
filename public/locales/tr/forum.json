@@ -83,7 +83,13 @@
     "replyPlaceholder": "{{username}} kullanıcısına yanıt verin...",
     "publishPost": "Gönderiyi Yayınla",
     "publishAnnouncement": "Duyuruyu Yayınla",
-    "announcementDescription": "Tüm toplulukla önemli bilgileri paylaşın"
+    "announcementDescription": "Tüm toplulukla önemli bilgileri paylaşın",
+    "announcementTitle": "Duyuru Başlığı",
+    "announcementContent": "Duyuru İçeriği",
+    "announcementTitlePlaceholder": "Duyurunuz için net bir başlık ekleyin",
+    "announcementContentPlaceholder": "Önemli bilgiler, güncellemeler veya duyurular paylaşın...",
+    "publishing": "Yayınlanıyor...",
+    "cancel": "İptal"
   },
   "comments": {
     "showReplies": "{{count}} {{count, plural, one {yanıtı} other {yanıtı}}} göster",

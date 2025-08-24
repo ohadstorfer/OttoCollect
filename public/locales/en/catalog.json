@@ -37,7 +37,13 @@
     "grade": "Grade",
     "condition": "Condition",
     "year": "Year",
-    "denomination": "Denomination"
+    "denomination": "Denomination",
+    "buttonTitles": {
+      "addToWishlist": "Add to wishlist",
+      "removeFromWishlist": "Remove from wishlist",
+      "alreadyOwned": "You already own this banknote",
+      "onCollections": "On {{count}} Collections"
+    }
   },
   "details": {
     "detailedInformation": "Detailed information about this banknote",
