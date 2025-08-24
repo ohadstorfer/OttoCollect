@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ForumPost as ForumPostType, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
-import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment, checkUserDailyForumLimit, fetchCommentsByPostId } from "@/services/forumService";
+import { addAnnouncementComment, fetchForumAnnouncementById, deleteForumAnnouncement, updateAnnouncementComment, checkUserDailyForumLimit, fetchAnnouncementComments } from "@/services/forumService";
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ImageGallery from "@/components/forum/ImageGallery";
@@ -347,11 +347,11 @@ const ForumPostAnnouncementsPage = () => {
   const loadPost = async (postId: string) => {
     setIsLoading(true);
     try {
-      const announcement = await fetchForumPostById(postId);
+      const announcement = await fetchForumAnnouncementById(postId);
       if (announcement) {
         setPost(announcement);
         // Load comments with nested structure
-        const nestedComments = await fetchCommentsByPostId(postId);
+        const nestedComments = await fetchAnnouncementComments(postId);
         setComments(nestedComments);
       }
     } catch (error) {
@@ -365,7 +365,7 @@ const ForumPostAnnouncementsPage = () => {
   const refreshComments = async () => {
     if (!post) return;
     try {
-      const nestedComments = await fetchCommentsByPostId(post.id);
+      const nestedComments = await fetchAnnouncementComments(post.id);
       setComments(nestedComments);
     } catch (error) {
       console.error('Error refreshing comments:', error);
@@ -386,7 +386,7 @@ const ForumPostAnnouncementsPage = () => {
 
     setIsSubmitting(true);
     try {
-      const newComment = await addForumComment(post.id, commentContent);
+      const newComment = await addAnnouncementComment(post.id, commentContent);
 
       if (newComment) {
         onAddComment(newComment);
@@ -443,7 +443,7 @@ const ForumPostAnnouncementsPage = () => {
 
     setIsDeleting(true);
     try {
-      const success = await deleteForumPost(post.id);
+      const success = await deleteForumAnnouncement(post.id);
 
       if (success) {
         toast.success("Announcement deleted successfully");
@@ -468,7 +468,7 @@ const ForumPostAnnouncementsPage = () => {
 
     setIsSubmitting(true);
     try {
-      const updatedComment = await updateForumComment(commentId, newContent);
+      const updatedComment = await updateAnnouncementComment(commentId, newContent);
 
       if (updatedComment) {
         // Update the nested comment structure properly
@@ -540,7 +540,7 @@ const ForumPostAnnouncementsPage = () => {
 
     setIsSubmittingReply(true);
     try {
-      const newReply = await addForumComment(post.id, replyContent.trim(), commentId);
+      const newReply = await addAnnouncementComment(post.id, replyContent.trim(), commentId);
 
       if (newReply) {
         // Add the new reply to the nested structure immediately
