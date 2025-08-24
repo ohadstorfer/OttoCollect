@@ -123,7 +123,7 @@ const Catalog = () => {
                       <div className="w-full p-4 text-white bg-gradient-to-t from-black/70 to-transparent">
                         <h3 className="text-xl font-bold !text-gray-200"><span>{country.name}</span></h3>
                         <p className="text-sm opacity-80">
-                        {country.banknoteCount} {t('banknote', { count: country.banknoteCount })}
+                          {t('banknote', { count: country.banknoteCount })}
                         </p>
                       </div>
                     </div>

@@ -3,8 +3,8 @@
   "subtitle": "استكشف الأوراق النقدية البارزة للإمبراطورية العثمانية والدول التي خلفتها من فهرسنا الشامل",
   "searchPlaceholder": "ابحث عن البلدان...",
   "countryCount": "{{count}} دولة متاحة",
-  "banknoteCount": "{{count}} ورقة نقدية",
-  "banknoteCount_plural": "{{count}} ورقة نقدية",
+  "banknote_one": "{{count}} ورقة نقدية",
+  "banknote_other": "{{count}} أوراق نقدية",
   "filters": {
     "search": "بحث",
     "categories": "الفئات",

@@ -114,6 +114,9 @@ export interface CountryData {
   image_url?: string;
   created_at?: string;
   updated_at?: string;
+  imageUrl?: string;
+  banknoteCount?: number;
+  display_order?: number;
 }
 
 // Banknote related interfaces
