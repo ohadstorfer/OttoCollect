@@ -21,13 +21,13 @@ interface MessageListProps {
   onSelectConversation: (userId: string) => void;
 }
 
-export function MessageList({ 
-  conversations, 
-  activeConversationId, 
-  isLoading, 
-  onSelectConversation 
+export function MessageList({
+  conversations,
+  activeConversationId,
+  isLoading,
+  onSelectConversation
 }: MessageListProps) {
-  
+
   const navigate = useNavigate();
   const { user } = useAuth();
   const { formatRelativeTime } = useDateLocale();
@@ -50,7 +50,7 @@ export function MessageList({
       </div>
     );
   }
-  
+
   if (conversations.length === 0 && !isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-4 text-center">
@@ -61,7 +61,7 @@ export function MessageList({
       </div>
     );
   }
-  
+
   return (
     <ScrollArea className="h-full">
       <div className="p-1">
@@ -69,7 +69,7 @@ export function MessageList({
           // Filter out temporary conversations if there's a real one with the same user
           .filter(conversation => {
             if (conversation.lastMessage.id === 'temp') {
-              return !conversations.some(c => 
+              return !conversations.some(c =>
                 c.lastMessage.id !== 'temp' && (
                   c.otherUserId === conversation.otherUserId ||
                   c.lastMessage.senderId === conversation.otherUserId ||
@@ -82,16 +82,17 @@ export function MessageList({
           .map(conversation => {
             // Hide unread count if this is the active conversation
             const showUnreadCount = conversation.unreadCount > 0 && conversation.otherUserId !== activeConversationId;
-            
+
             return (
-              <div 
+              <div
                 key={conversation.otherUserId}
-                className={`w-full flex items-start gap-3 p-3 rounded-md hover:bg-accent/20 transition-colors text-left mb-1
-                  ${activeConversationId === conversation.otherUserId ? 'bg-accent/30' : showUnreadCount ? 'bg-muted/50' : ''}
-                  ${conversation.lastMessage.id === 'temp' ? 'border-2 border-primary/50 bg-primary/5' : ''} ${direction === 'rtl' ? 'text-right' : ''}
-                `}
+                className={`w-full flex items-start gap-3 p-3 rounded-md hover:bg-accent/20 transition-colors mb-1
+                      ${activeConversationId === conversation.otherUserId ? 'bg-accent/30' : showUnreadCount ? 'bg-muted/50' : ''}
+                      ${conversation.lastMessage.id === 'temp' ? 'border-2 border-primary/50 bg-primary/5' : ''}
+                      ${direction === 'rtl' ? 'flex-row-reverse' : 'flex-row'}
+                    `}
               >
-                <Link 
+                <Link
                   to={`/profile/${conversation.otherUserId}`}
                   onClick={(e) => e.stopPropagation()}
                   className="flex-shrink-0"
@@ -103,34 +104,48 @@ export function MessageList({
                     </AvatarFallback>
                   </Avatar>
                 </Link>
-                
+
                 <button
                   onClick={() => onSelectConversation(conversation.otherUserId)}
-                  className="flex-1 text-left"
+                  className={`flex-1 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className={`flex items-center ${direction === 'rtl' ? 'flex-row-reverse justify-between' : 'justify-between'}`}>
                     <span className="font-medium truncate">
                       {conversation.otherUser.username}
                     </span>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                    <span
+                      className={`text-xs text-muted-foreground whitespace-nowrap ${direction === 'rtl' ? 'ml-2' : 'ml-2'}`}
+                    >
                       {formatRelativeTime(new Date(conversation.lastMessage.createdAt))}
                     </span>
                   </div>
-                  
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-sm text-muted-foreground truncate max-w-[180px]">
-                      {conversation.lastMessage.senderId === conversation.otherUserId ? '' : t('list.youPrefix') + ' '}
-                      {conversation.lastMessage.content}
-                    </p>
-                    
+
+                  <div className={`flex items-center mt-1 ${direction === 'rtl' ? 'flex-row-reverse justify-between' : 'justify-between'}`}>
                     {showUnreadCount && (
-                      <Badge variant="default" className="ml-2 bg-ottoman-500">
+                      <Badge
+                        variant="default"
+                        className={`${direction === 'rtl' ? 'mr-2' : 'ml-2'} bg-ottoman-500`}
+                      >
                         {conversation.unreadCount}
                       </Badge>
                     )}
+                    <p
+  className={`text-sm text-muted-foreground truncate max-w-[180px] ${
+    direction === 'rtl' ? 'text-right' : 'text-left'
+  }`}
+>
+  {conversation.lastMessage.senderId === conversation.otherUserId ? (
+    conversation.lastMessage.content
+  ) : direction === 'rtl' ? (
+    `${conversation.lastMessage.content} :${t('list.youPrefix')}`
+  ) : (
+    `${t('list.youPrefix')}: ${conversation.lastMessage.content}`
+  )}
+</p>
                   </div>
                 </button>
               </div>
+
             );
           })}
       </div>

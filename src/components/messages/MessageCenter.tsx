@@ -11,6 +11,7 @@ import { UserRank } from '@/types';
 import { checkUserDailyMessagingLimit } from '@/services/messageService';
 import { Message } from '@/types/message';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface MessageCenterProps {
   hasReachedDailyLimit?: boolean;
@@ -31,7 +32,7 @@ export function MessageCenter({
   const [dailyCount, setDailyCount] = useState(0);
   const [temporaryConversation, setTemporaryConversation] = useState<any | null>(null);
   const { t } = useTranslation(['messaging']);
-
+  const { direction } = useLanguage();
   const { 
     conversations, 
     currentMessages, 
