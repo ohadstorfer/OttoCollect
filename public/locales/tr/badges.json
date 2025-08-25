@@ -21,18 +21,6 @@
     "midCollector": "Orta Seviye Koleksiyoncu",
     "knownCollector": "Tanınmış Koleksiyoncu",
     "advanceCollector": "İleri Seviye Koleksiyoncu",
-    "masterCollector": "Usta Koleksiyoncu",
-    "adminNewbieCollector": "Yönetici Acemi Koleksiyoncu",
-    "adminBeginnerCollector": "Yönetici Başlangıç Koleksiyoncu",
-    "adminMidCollector": "Yönetici Orta Seviye Koleksiyoncu",
-    "adminKnownCollector": "Yönetici Tanınmış Koleksiyoncu",
-    "adminAdvanceCollector": "Yönetici İleri Seviye Koleksiyoncu",
-    "adminMasterCollector": "Yönetici Usta Koleksiyoncu",
-    "superAdminNewbieCollector": "Süper Yönetici Acemi Koleksiyoncu",
-    "superAdminBeginnerCollector": "Süper Yönetici Başlangıç Koleksiyoncu",
-    "superAdminMidCollector": "Süper Yönetici Orta Seviye Koleksiyoncu",
-    "superAdminKnownCollector": "Süper Yönetici Tanınmış Koleksiyoncu",
-    "superAdminAdvanceCollector": "Süper Yönetici İleri Seviye Koleksiyoncu",
-    "superAdminMasterCollector": "Süper Yönetici Usta Koleksiyoncu"
+    "masterCollector": "Usta Koleksiyoncu"
   }
 }

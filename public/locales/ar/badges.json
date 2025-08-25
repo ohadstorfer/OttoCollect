@@ -21,18 +21,6 @@
     "midCollector": "جامع متوسط",
     "knownCollector": "جامع معروف",
     "advanceCollector": "جامع متقدم",
-    "masterCollector": "جامع محترف",
-    "adminNewbieCollector": "مدير جامع مبتدئ",
-    "adminBeginnerCollector": "مدير جامع ناشئ",
-    "adminMidCollector": "مدير جامع متوسط",
-    "adminKnownCollector": "مدير جامع معروف",
-    "adminAdvanceCollector": "مدير جامع متقدم",
-    "adminMasterCollector": "مدير جامع محترف",
-    "superAdminNewbieCollector": "مدير عام جامع مبتدئ",
-    "superAdminBeginnerCollector": "مدير عام جامع ناشئ",
-    "superAdminMidCollector": "مدير عام جامع متوسط",
-    "superAdminKnownCollector": "مدير عام جامع معروف",
-    "superAdminAdvanceCollector": "مدير عام جامع متقدم",
-    "superAdminMasterCollector": "مدير عام جامع محترف"
+    "masterCollector": "جامع محترف"
   }
 }

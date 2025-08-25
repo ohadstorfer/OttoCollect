@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sheet";
 import { withHighlight } from "./withHighlight";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/context/LanguageContext";
 
 export type FilterOption = {
   id: string;
@@ -72,7 +73,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { t } = useTranslation(['filter']);
-  
+  const { direction } = useLanguage();
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
     return (key: string, fallback: string) => {
@@ -384,12 +385,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
         {/* Search bar and view/group buttons */}
         <div className="flex w-full sm:w-auto gap-2">
           <div className="relative flex-1 sm:w-[300px]">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4`} />
                     <Input
           placeholder={tWithFallback('search.placeholder', 'Search banknotes...')}
           value={search}
           onChange={handleSearchChange}
-          className="pl-10"
+          className={`${direction === 'rtl' ? 'pr-10' : 'pl-10'}`}
         />
           </div>
 

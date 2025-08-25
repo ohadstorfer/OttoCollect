@@ -126,13 +126,17 @@
   "imageUploader": {
     "invalidFile": "Geçersiz dosya",
     "selectImageOnly": "Lütfen sadece bir resim dosyası seçin.",
-    "uploadSuccess": "Resim başarıyla yüklendi",
-    "uploadFailed": "Yükleme başarısız",
     "uploadError": "Resminizi yüklerken bir hata oluştu. Lütfen tekrar deneyin.",
     "mainImageAlt": "Blog yazısı ana resmi",
     "uploading": "Resim yükleniyor...",
     "uploadMainImage": "Ana Resmi Yükle",
     "required": "Gerekli",
     "clickToSelect": "Resim dosyası seçmek için tıklayın"
+  },
+  "auth": {
+    "authenticationRequired": "Kimlik Doğrulama Gerekli",
+    "mustBeSignedIn": "Blog yazıları oluşturmak için giriş yapmalısınız.",
+    "signIn": "Giriş Yap",
+    "joinCommunity": "Osmanlı İmparatorluğu banknotları hakkındaki bilgi ve görüşlerinizi paylaşmak için topluluğumuza katılın."
   }
 } 

@@ -81,5 +81,24 @@
     "light": "فاتح",
     "dark": "داكن"
   },
-  "cancel": "إلغاء"
+  "cancel": "إلغاء",
+  "countrySelection": {
+    "authenticationRequired": "المصادقة مطلوبة",
+    "pleaseSignIn": "يرجى تسجيل الدخول لعرض مجموعتك.",
+    "signIn": "تسجيل الدخول",
+    "errorLoadingCountries": "خطأ في تحميل البلدان",
+    "pleaseTryAgainLater": "يرجى المحاولة مرة أخرى لاحقاً.",
+    "noCountriesFound": "لم يتم العثور على بلدان",
+    "noCountriesMatchSearch": "لا توجد بلدان تطابق بحثك عن \"{{searchTerm}}\". جرب مصطلح بحث مختلف.",
+    "clearSearch": "مسح البحث",
+    "noCollectionsYet": "لا توجد مجموعات بعد",
+    "startYourCollectionJourney": "ابدأ رحلة مجموعتك",
+    "collectorNoBanknotes": "لم يضف هذا الجامع أي أوراق نقدية إلى مجموعته بعد.",
+    "beginBuildingCollection": "ابدأ في بناء مجموعتك من أوراق الإمبراطورية العثمانية النقدية بإضافة أول ورقة نقدية لك.",
+    "browseCatalogues": "تصفح الكتالوجات",
+    "visitMarketplace": "زيارة السوق",
+    "checkBackLater": "عد لاحقاً لرؤية مجموعتهم تنمو!",
+    "banknote_one": "{{count}} ورقة نقدية",
+    "banknote_other": "{{count}} أوراق نقدية"
+  }
 } 

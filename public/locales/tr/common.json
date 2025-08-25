@@ -81,5 +81,24 @@
     "light": "Açık",
     "dark": "Koyu"
   },
-  "cancel": "İptal"
+  "cancel": "İptal",
+  "countrySelection": {
+    "authenticationRequired": "Kimlik Doğrulama Gerekli",
+    "pleaseSignIn": "Koleksiyonunuzu görüntülemek için lütfen giriş yapın.",
+    "signIn": "Giriş Yap",
+    "errorLoadingCountries": "Ülkeler yüklenirken hata",
+    "pleaseTryAgainLater": "Lütfen daha sonra tekrar deneyin.",
+    "noCountriesFound": "Ülke bulunamadı",
+    "noCountriesMatchSearch": "\"{{searchTerm}}\" aramanızla eşleşen ülke bulunamadı. Farklı bir arama terimi deneyin.",
+    "clearSearch": "Aramayı Temizle",
+    "noCollectionsYet": "Henüz koleksiyon yok",
+    "startYourCollectionJourney": "Koleksiyon yolculuğunuza başlayın",
+    "collectorNoBanknotes": "Bu koleksiyoncu henüz koleksiyonuna herhangi bir banknot eklememiş.",
+    "beginBuildingCollection": "İlk banknotunuzu ekleyerek Osmanlı İmparatorluğu banknot koleksiyonunuzu oluşturmaya başlayın.",
+    "browseCatalogues": "Katalogları Göz At",
+    "visitMarketplace": "Pazar Yerini Ziyaret Et",
+    "checkBackLater": "Koleksiyonlarının büyümesini görmek için daha sonra tekrar kontrol edin!",
+    "banknote_one": "{{count}} banknot",
+    "banknote_other": "{{count}} banknot"
+  }
 } 

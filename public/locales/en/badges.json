@@ -21,18 +21,6 @@
     "midCollector": "Mid Collector",
     "knownCollector": "Known Collector",
     "advanceCollector": "Advance Collector",
-    "masterCollector": "Master Collector",
-    "adminNewbieCollector": "Admin Newbie Collector",
-    "adminBeginnerCollector": "Admin Beginner Collector",
-    "adminMidCollector": "Admin Mid Collector",
-    "adminKnownCollector": "Admin Known Collector",
-    "adminAdvanceCollector": "Admin Advance Collector",
-    "adminMasterCollector": "Admin Master Collector",
-    "superAdminNewbieCollector": "Super Admin Newbie Collector",
-    "superAdminBeginnerCollector": "Super Admin Beginner Collector",
-    "superAdminMidCollector": "Super Admin Mid Collector",
-    "superAdminKnownCollector": "Super Admin Known Collector",
-    "superAdminAdvanceCollector": "Super Admin Advance Collector",
-    "superAdminMasterCollector": "Super Admin Master Collector"
+    "masterCollector": "Master Collector"
   }
 }

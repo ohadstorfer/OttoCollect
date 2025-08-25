@@ -13,22 +13,21 @@ interface RankBadgeProps {
 export default function RankBadge({ rank, size = 'md', showPoints = false, points }: RankBadgeProps) {
   const { t } = useTranslation(['badges']);
   const getRankColor = (userRank: UserRank) => {
-    if (userRank.includes('Super Admin')) {
-      return 'bg-gray-500 text-white border-gray-600';
-    } else if (userRank.includes('Admin')) {
-      return 'bg-red-500 text-white border-red-600';
-    } else if (userRank === 'Master Collector') {
-      return 'bg-purple-600 text-white border-purple-700';
-    } else if (userRank === 'Advance Collector') {
-      return 'bg-indigo-600 text-white border-indigo-700';
-    } else if (userRank === 'Known Collector') {
-      return 'bg-blue-600 text-white border-blue-700';
-    } else if (userRank === 'Mid Collector') {
-      return 'bg-green-600 text-white border-green-700';
-    } else if (userRank === 'Beginner Collector') {
-      return 'bg-yellow-600 text-white border-yellow-700';
-    } else {
-      return 'bg-gray-500 text-white border-gray-600';
+    switch (userRank) {
+      case 'Master Collector':
+        return 'bg-purple-600 text-white border-purple-700';
+      case 'Advance Collector':
+        return 'bg-indigo-600 text-white border-indigo-700';
+      case 'Known Collector':
+        return 'bg-blue-600 text-white border-blue-700';
+      case 'Mid Collector':
+        return 'bg-green-600 text-white border-green-700';
+      case 'Beginner Collector':
+        return 'bg-yellow-600 text-white border-yellow-700';
+      case 'Newbie Collector':
+        return 'bg-orange-500 text-white border-orange-600';
+      default:
+        return 'bg-gray-500 text-white border-gray-600';
     }
   };
 
@@ -48,19 +47,7 @@ export default function RankBadge({ rank, size = 'md', showPoints = false, point
       'Mid Collector': 'ranks.midCollector',
       'Known Collector': 'ranks.knownCollector',
       'Advance Collector': 'ranks.advanceCollector',
-      'Master Collector': 'ranks.masterCollector',
-      'Admin Newbie Collector': 'ranks.adminNewbieCollector',
-      'Admin Beginner Collector': 'ranks.adminBeginnerCollector',
-      'Admin Mid Collector': 'ranks.adminMidCollector',
-      'Admin Known Collector': 'ranks.adminKnownCollector',
-      'Admin Advance Collector': 'ranks.adminAdvanceCollector',
-      'Admin Master Collector': 'ranks.adminMasterCollector',
-      'Super Admin Newbie Collector': 'ranks.superAdminNewbieCollector',
-      'Super Admin Beginner Collector': 'ranks.superAdminBeginnerCollector',
-      'Super Admin Mid Collector': 'ranks.superAdminMidCollector',
-      'Super Admin Known Collector': 'ranks.superAdminKnownCollector',
-      'Super Admin Advance Collector': 'ranks.superAdminAdvanceCollector',
-      'Super Admin Master Collector': 'ranks.superAdminMasterCollector'
+      'Master Collector': 'ranks.masterCollector'
     };
     
     return rankMap[userRank] || userRank;

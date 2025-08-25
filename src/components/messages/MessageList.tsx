@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getInitials } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface MessageListProps {
   conversations: Conversation[];
@@ -31,6 +32,7 @@ export function MessageList({
   const { user } = useAuth();
   const { formatRelativeTime } = useDateLocale();
   const { t } = useTranslation(['messaging']);
+  const { direction } = useLanguage();
 
   if (isLoading && conversations.length === 0) {
     return (
@@ -86,7 +88,7 @@ export function MessageList({
                 key={conversation.otherUserId}
                 className={`w-full flex items-start gap-3 p-3 rounded-md hover:bg-accent/20 transition-colors text-left mb-1
                   ${activeConversationId === conversation.otherUserId ? 'bg-accent/30' : showUnreadCount ? 'bg-muted/50' : ''}
-                  ${conversation.lastMessage.id === 'temp' ? 'border-2 border-primary/50 bg-primary/5' : ''}
+                  ${conversation.lastMessage.id === 'temp' ? 'border-2 border-primary/50 bg-primary/5' : ''} ${direction === 'rtl' ? 'text-right' : ''}
                 `}
               >
                 <Link 

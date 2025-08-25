@@ -81,5 +81,24 @@
     "light": "Light",
     "dark": "Dark"
   },
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "countrySelection": {
+    "authenticationRequired": "Authentication Required",
+    "pleaseSignIn": "Please sign in to view your collection.",
+    "signIn": "Sign In",
+    "errorLoadingCountries": "Error loading countries",
+    "pleaseTryAgainLater": "Please try again later.",
+    "noCountriesFound": "No countries found",
+    "noCountriesMatchSearch": "No countries match your search for \"{{searchTerm}}\". Try a different search term.",
+    "clearSearch": "Clear Search",
+    "noCollectionsYet": "No collections yet",
+    "startYourCollectionJourney": "Start your collection journey",
+    "collectorNoBanknotes": "This collector hasn't added any banknotes to their collection yet.",
+    "beginBuildingCollection": "Begin building your Ottoman Empire banknote collection by adding your first banknote.",
+    "browseCatalogues": "Browse Catalogues",
+    "visitMarketplace": "Visit Marketplace",
+    "checkBackLater": "Check back later to see their collection grow!",
+    "banknote_one": "{{count}} banknote",
+    "banknote_other": "{{count}} banknotes"
+  }
 } 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageSquare, AlertCircle, User } from "lucide-react";
+import { ArrowLeft, MessageSquare, AlertCircle, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDeta
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import ImagePreview from "@/components/shared/ImagePreview";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/context/LanguageContext";
 
 const MarketplaceItemDetail = () => {
   console.log('Rendering MarketplaceItemDetail component');
@@ -30,6 +31,7 @@ const MarketplaceItemDetail = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { direction } = useLanguage();
   const { t } = useTranslation(['marketplace']);
 
   // Memoize the fallback function to prevent infinite re-renders
@@ -174,7 +176,7 @@ const MarketplaceItemDetail = () => {
     <div className="container py-8">
       <div className="flex items-center gap-2 mb-1">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          {direction === 'rtl' ? <ArrowRight className="h-4 w-4 mr-2" /> : <ArrowLeft className="h-4 w-4 mr-2" />}
           {tWithFallback('actions.back', 'Back')}
         </Button>
       </div>

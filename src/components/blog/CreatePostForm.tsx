@@ -11,12 +11,14 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 export function CreatePostForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation(['blog']);
+  const { direction } = useLanguage();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [mainImage, setMainImage] = useState<string>('');
@@ -123,7 +125,7 @@ export function CreatePostForm() {
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="title">{tWithFallback('forms.titleLabel', 'Title')}</Label>
+            <Label htmlFor="title" className={`block w-full ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>{tWithFallback('forms.titleLabel', 'Title')}</Label>
             <Input
               id="title"
               value={title}
@@ -136,7 +138,7 @@ export function CreatePostForm() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="content">{tWithFallback('forms.contentLabel', 'Content')}</Label>
+            <Label htmlFor="content" className={`block w-full ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>{tWithFallback('forms.contentLabel', 'Content')}</Label>
             <Textarea
               id="content"
               value={content}
@@ -149,7 +151,7 @@ export function CreatePostForm() {
           </div>
           
           <div className="space-y-2">
-            <Label>{tWithFallback('forms.imagesLabel', 'Images (Optional)')}</Label>
+            <Label className= {`block w-full ${direction === 'rtl' ? 'text-right' : 'text-left'}`}    >{tWithFallback('forms.imagesLabel', 'Images (Optional)')}</Label>
             <ImageUploader 
               image={mainImage} 
               onChange={setMainImage}

@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { CountryData } from '@/types/filter';
 import CountrySelectionHeader from '@/components/country/CountrySelectionHeader';
 import { fetchUserCollectionCountByCountry } from '@/services/collectionService';
+import { useTranslation } from 'react-i18next';
 
 interface CountrySelectionProps {
   showHeader?: boolean;
@@ -30,6 +31,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = React.useState('');
   const effectiveUserId = userId || user?.id;
+  const { t } = useTranslation(['common']);
 
   // Fetch countries
   const {
@@ -84,11 +86,11 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4"><span>Authentication Required</span></h2>
+          <h2 className="text-2xl font-serif mb-4"><span>{t('countrySelection.authenticationRequired')}</span></h2>
           <p className="mb-6 text-muted-foreground">
-            Please sign in to view your collection.
+            {t('countrySelection.pleaseSignIn')}
           </p>
-          <Button onClick={() => navigate('/auth')}>Sign In</Button>
+          <Button onClick={() => navigate('/auth')}>{t('countrySelection.signIn')}</Button>
         </div>
       </div>
     );
@@ -114,8 +116,8 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
           </div>
         ) : countriesError ? (
           <div className="text-center py-12">
-            <h3 className="text-xl font-medium mb-4 text-red-500">Error loading countries</h3>
-            <p className="text-muted-foreground mb-6">Please try again later.</p>
+            <h3 className="text-xl font-medium mb-4 text-red-500">{t('countrySelection.errorLoadingCountries')}</h3>
+            <p className="text-muted-foreground mb-6">{t('countrySelection.pleaseTryAgainLater')}</p>
           </div>
         ) : filteredCountries.length === 0 ? (
           <div className="text-center py-12">
@@ -125,10 +127,10 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                 <div className="mb-6">
                   <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <h3 className="text-xl font-medium mb-2">
-                    <span>No countries found</span>
+                    <span>{t('countrySelection.noCountriesFound')}</span>
                   </h3>
                   <p className="text-muted-foreground">
-                    No countries match your search for "{searchTerm}". Try a different search term.
+                    {t('countrySelection.noCountriesMatchSearch', { searchTerm })}
                   </p>
                 </div>
                 <Button 
@@ -136,7 +138,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                   onClick={() => setSearchTerm('')}
                   className="mt-4"
                 >
-                  Clear Search
+                  {t('countrySelection.clearSearch')}
                 </Button>
               </div>
             ) : (
@@ -148,16 +150,16 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                   </div>
                   <h3 className="text-xl font-medium mb-2">
                     {userId && userId !== user?.id ? (
-                      <span>No collections yet</span>
+                      <span>{t('countrySelection.noCollectionsYet')}</span>
                     ) : (
-                      <span>Start your collection journey</span>
+                      <span>{t('countrySelection.startYourCollectionJourney')}</span>
                     )}
                   </h3>
                   <p className="text-muted-foreground mb-6">
                     {userId && userId !== user?.id ? (
-                      "This collector hasn't added any banknotes to their collection yet."
+                      t('countrySelection.collectorNoBanknotes')
                     ) : (
-                      "Begin building your Ottoman Empire banknote collection by adding your first banknote."
+                      t('countrySelection.beginBuildingCollection')
                     )}
                   </p>
                 </div>
@@ -168,21 +170,21 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                       onClick={() => navigate('/catalog')}
                       className="flex items-center gap-2"
                     >
-                      <span>Browse Catalogues</span>
+                      <span>{t('countrySelection.browseCatalogues')}</span>
                     </Button>
                     <Button 
                       variant="outline"
                       onClick={() => navigate('/marketplace')}
                       className="flex items-center gap-2"
                     >
-                      <span>Visit Marketplace</span>
+                      <span>{t('countrySelection.visitMarketplace')}</span>
                     </Button>
                   </div>
                 )}
                 
                 {userId && userId !== user?.id && (
                   <div className="text-sm text-muted-foreground">
-                    <p>Check back later to see their collection grow!</p>
+                    <p>{t('countrySelection.checkBackLater')}</p>
                   </div>
                 )}
               </div>
@@ -214,7 +216,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                       <div className="w-full p-4 text-white bg-gradient-to-t from-black/70 to-transparent">
                         <h3 className="text-xl font-bold !text-gray-200"><span>{country.name}</span></h3>
                         <p className="text-sm opacity-80">
-                          {collectionCount} banknote{collectionCount === 1 ? '' : 's'}
+                          {t('countrySelection.banknote', { count: collectionCount })}
                         </p>
                       </div>
                     </div>

@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import SEOHead from '@/components/seo/SEOHead';
 import { SEO_CONFIG } from '@/config/seoConfig';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Author {
   id: string;
@@ -30,6 +31,7 @@ const Blog = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation(['blog']);
+  const { direction } = useLanguage();
   const [posts, setPosts] = useState<BlogPostWithAuthor[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<BlogPostWithAuthor[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,7 +50,7 @@ const Blog = () => {
 
   // Check if user is admin
   const isAdmin = user ? user.role === 'Super Admin' || user.role?.includes('Admin') : false;
-  
+
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
 
@@ -65,7 +67,7 @@ const Blog = () => {
             rank: post.author.rank || 'Unknown' // Provide a default rank if missing
           }
         })) as BlogPostWithAuthor[];
-        
+
         setPosts(postsWithAuthorRank);
         setFilteredPosts(postsWithAuthorRank);
       } catch (error) {
@@ -81,7 +83,7 @@ const Blog = () => {
   useEffect(() => {
     const checkDailyLimit = async () => {
       if (!user || !isLimitedRank) return;
-      
+
       try {
         const { hasReachedLimit, dailyCount: count } = await checkUserDailyBlogLimit(user.id);
         setHasReachedDailyLimit(hasReachedLimit);
@@ -128,35 +130,38 @@ const Blog = () => {
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">
           <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${theme === 'light'
-              ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
-              : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
+            ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
+            : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
             } shadow-xl ring-1 ring-inset`} aria-hidden="true" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10 flex items-center justify-center">
-          
+
           <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
             <span>{tWithFallback('title', 'Blog')}</span>
           </h1>
-          
+
         </div>
         <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
           {tWithFallback('subtitle', 'Discover insights, stories, and knowledge about banknote collecting')}
-          </p>
+        </p>
       </section>
 
       <div className="page-container">
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="all" className="mb-10">
             <div className="flex items-center justify-center gap-2 sm:gap-4">
-              
+
 
               <div className="relative w-32 sm:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search
+                  className={`absolute ${direction === 'rtl' ? 'right-2.5' : 'left-2.5'} top-2.5 h-4 w-4 text-muted-foreground`}
+                />
                 <Input
                   type="search"
+                  dir={direction === 'rtl' ? 'rtl' : 'ltr'}
                   placeholder={tWithFallback('search.placeholder', 'Search blog posts...')}
-                  className="pl-8 text-sm"
+                  className={`${direction === 'rtl' ? 'pr-8 text-right' : 'pl-8 text-left'} text-sm`}
                   value={searchTerm}
                   onChange={handleSearch}
                 />
@@ -182,13 +187,13 @@ const Blog = () => {
             </div>
 
             {/* Daily activity warning for limited ranks */}
-            {user && isLimitedRank && hasReachedDailyLimit &&(
+            {user && isLimitedRank && hasReachedDailyLimit && (
               <div className="mt-4 text-center">
-                  <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 max-w-md mx-auto">
-                    <p className="text-red-600 dark:text-red-400 text-sm">
-                      {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 3 blog activities (posts + comments).')}
-                    </p>
-                  </div>
+                <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 max-w-md mx-auto">
+                  <p className="text-red-600 dark:text-red-400 text-sm">
+                    {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 3 blog activities (posts + comments).')}
+                  </p>
+                </div>
               </div>
             )}
 
@@ -203,8 +208,8 @@ const Blog = () => {
                     <div className="px-4">
                       <div className="columns-1 md:columns-2 lg:columns-3 gap-4 md:gap-6 [column-fill:_balance] w-full">
                         {filteredPosts.map((post) => (
-                          <div 
-                            key={post.id} 
+                          <div
+                            key={post.id}
                             className="break-inside-avoid mb-4 md:mb-6 transform transition-all duration-300 hover:scale-[1.02]"
                           >
                             <BlogPostCard post={post} />
@@ -238,8 +243,8 @@ const Blog = () => {
                           {filteredPosts
                             .filter(post => post.authorId === user.id)
                             .map((post) => (
-                              <div 
-                                key={post.id} 
+                              <div
+                                key={post.id}
                                 className="break-inside-avoid mb-4 md:mb-6 transform transition-all duration-300 hover:scale-[1.02]"
                               >
                                 <BlogPostCard post={post} />

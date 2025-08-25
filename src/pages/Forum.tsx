@@ -17,6 +17,7 @@ import { CreateAnnouncementDialog } from '@/components/forum/CreateAnnouncementD
 import SEOHead from '@/components/seo/SEOHead';
 import { SEO_CONFIG } from '@/config/seoConfig';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Author {
   id: string;
@@ -33,6 +34,7 @@ const Forum = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation(['forum']);
+  const { direction } = useLanguage();
   const [posts, setPosts] = useState<ForumPostWithAuthor[]>([]);
   const [announcements, setAnnouncements] = useState<ForumPostWithAuthor[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<ForumPostWithAuthor[]>([]);
@@ -73,7 +75,7 @@ const Forum = () => {
             rank: post.author.rank || 'Unknown' // Provide a default rank if missing
           }
         })) as ForumPostWithAuthor[];
-        
+
         setPosts(postsWithAuthorRank);
         setFilteredPosts(postsWithAuthorRank);
 
@@ -119,7 +121,7 @@ const Forum = () => {
   useEffect(() => {
     const checkUserBlockStatus = async () => {
       if (!user) return;
-      
+
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -140,7 +142,7 @@ const Forum = () => {
   useEffect(() => {
     const checkDailyLimit = async () => {
       if (!user || !isLimitedRank) return;
-      
+
       try {
         const { hasReachedLimit, dailyCount: count } = await checkUserDailyForumLimit(user.id);
         setHasReachedDailyLimit(hasReachedLimit);
@@ -166,12 +168,12 @@ const Forum = () => {
         post.title.toLowerCase().includes(term.toLowerCase()) ||
         post.content.toLowerCase().includes(term.toLowerCase())
       );
-      
+
       const filteredAnnouncements = announcements.filter(announcement =>
         announcement.title.toLowerCase().includes(term.toLowerCase()) ||
         announcement.content.toLowerCase().includes(term.toLowerCase())
       );
-      
+
       // Set filtered results
       setFilteredPosts(filteredPosts);
       setFilteredAnnouncements(filteredAnnouncements);
@@ -210,21 +212,21 @@ const Forum = () => {
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">
           <div className={`absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] ${theme === 'light'
-              ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
-              : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
+            ? 'bg-ottoman-500/10 shadow-ottoman-300/20 ring-ottoman-400/10'
+            : 'bg-dark-500/40 shadow-ottoman-900/20 ring-ottoman-900/10'
             } shadow-xl ring-1 ring-inset`} aria-hidden="true" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10 flex items-center justify-center">
-          
+
           <h1 className={`text-3xl md:text-4xl font-serif font-bold text-center ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'} fade-bottom`}>
             <span>{tWithFallback('title', 'Forum')}</span>
           </h1>
-          
+
         </div>
         <p className={`mt-4 text-center ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto fade-bottom`}>
           {tWithFallback('subtitle', 'Discuss banknotes and collecting strategies')}
-          </p>
+        </p>
       </section>
 
       <div className="page-container">
@@ -239,11 +241,12 @@ const Forum = () => {
               </TabsList>
 
               <div className="relative w-32 sm:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className={`absolute ${direction === 'rtl' ? 'right-2.5' : 'left-2.5'} top-2.5 h-4 w-4 text-muted-foreground`} />
                 <Input
                   type="search"
-                  placeholder={tWithFallback('search.placeholder', 'Search...')}
-                  className="pl-8 text-sm"
+                  dir={direction === 'rtl' ? 'rtl' : 'ltr'}
+                  placeholder={tWithFallback('search.placeholder', 'Search blog posts...')}
+                  className={`${direction === 'rtl' ? 'pr-8 text-right' : 'pl-8 text-left'} text-sm`}
                   value={searchTerm}
                   onChange={handleSearch}
                 />
@@ -290,13 +293,13 @@ const Forum = () => {
             </div>
 
             {/* Daily activity warning for limited ranks */}
-            {user && isLimitedRank && hasReachedDailyLimit &&(
+            {user && isLimitedRank && hasReachedDailyLimit && (
               <div className="mt-4 text-center">
-                  <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 max-w-md mx-auto">
-                    <p className="text-red-600 dark:text-red-400 text-sm">
-                      {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).')}
-                    </p>
-                  </div>
+                <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-md border border-red-200 dark:border-red-800 max-w-md mx-auto">
+                  <p className="text-red-600 dark:text-red-400 text-sm">
+                    {tWithFallback('limits.dailyLimitWarning', 'You have reached your daily limit of 6 forum activities (posts + comments).')}
+                  </p>
+                </div>
               </div>
             )}
 
@@ -314,7 +317,7 @@ const Forum = () => {
                         {filteredAnnouncements.map((announcement) => (
                           <ForumPostCardAnnouncements key={`announcement-${announcement.id}`} post={announcement} />
                         ))}
-                        
+
                         {/* Render regular posts */}
                         {filteredPosts.map((post) => (
                           <ForumPostCard key={post.id} post={post} />
@@ -341,7 +344,7 @@ const Forum = () => {
                   </div>
                 ) : (
                   <>
-                    {(filteredPosts.filter(post => post.authorId === user.id).length > 0 || 
+                    {(filteredPosts.filter(post => post.authorId === user.id).length > 0 ||
                       filteredAnnouncements.filter(announcement => announcement.authorId === user.id).length > 0) ? (
                       <div className="max-w-4xl mx-auto">
                         <div className="space-y-0">
@@ -351,7 +354,7 @@ const Forum = () => {
                             .map((announcement) => (
                               <ForumPostCardAnnouncements key={`my-announcement-${announcement.id}`} post={announcement} />
                             ))}
-                          
+
                           {/* Render user's posts */}
                           {filteredPosts
                             .filter(post => post.authorId === user.id)
@@ -390,14 +393,14 @@ const Forum = () => {
       </div>
 
       {/* Create Post Dialog */}
-      <CreatePostDialog 
+      <CreatePostDialog
         open={showCreatePostDialog}
         onOpenChange={setShowCreatePostDialog}
         onPostCreated={handlePostCreated}
       />
 
       {/* Create Announcement Dialog */}
-      <CreateAnnouncementDialog 
+      <CreateAnnouncementDialog
         open={showCreateAnnouncementDialog}
         onOpenChange={setShowCreateAnnouncementDialog}
         onAnnouncementCreated={handleAnnouncementCreated}

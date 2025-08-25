@@ -134,5 +134,11 @@
     "uploadMainImage": "Upload Main Image",
     "required": "Required",
     "clickToSelect": "Click to select an image file"
+  },
+  "auth": {
+    "authenticationRequired": "Authentication Required",
+    "mustBeSignedIn": "You must be signed in to create blog posts.",
+    "signIn": "Sign In",
+    "joinCommunity": "Join our community to share your knowledge and insights about Ottoman Empire banknotes."
   }
 } 
