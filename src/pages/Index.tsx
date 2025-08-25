@@ -591,15 +591,15 @@ const Index = () => {
       <AlertDialog open={showAdminDialog} onOpenChange={setShowAdminDialog}>
         <AlertDialogContent className="sm:max-w-[425px]">
           <AlertDialogHeader>
-            <AlertDialogTitle><span>{t('home.adminDialog.title')}</span></AlertDialogTitle>
+            <AlertDialogTitle className={direction === 'rtl' ? 'text-right' : ''}><span>{t('home.adminDialog.title')}</span></AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
-              <p>
+              <p className={direction === 'rtl' ? 'text-right' : ''}>
                 {t('home.adminDialog.description', { country: selectedCountry })}
               </p>
-              <p>
+              <p className={direction === 'rtl' ? 'text-right' : ''}>
                 {t('home.adminDialog.contactInfo')}
               </p>
-              <p>
+              <p className={direction === 'rtl' ? 'text-right' : ''}>
                 {t('home.adminDialog.emailInfo')}{" "}
                 <a
                   href="mailto:info@ottocollect.com"

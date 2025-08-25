@@ -35,7 +35,7 @@ export function NotificationPanel({
   const wasOpenRef = useRef(false);
   const { formatRelativeTime } = useDateLocale();
   const { t } = useTranslation(['notification']);
-  const { currentLanguage } = useLanguage();
+  const { currentLanguage, direction } = useLanguage();
 
   // Helper function to get translated text based on current language
   const getTranslatedText = (notification: Notification, field: 'title' | 'content'): string => {
@@ -120,7 +120,7 @@ export function NotificationPanel({
           notification.is_read
             ? 'bg-background hover:bg-accent/50 border-muted'
             : 'bg-accent/30 hover:bg-accent/40 border-accent shadow-sm'
-        }`}
+        } ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}
         onClick={() => handleNotificationClick(notification)}
       >
         <div className="flex-shrink-0">
@@ -131,17 +131,17 @@ export function NotificationPanel({
           </div>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-2 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
             <p className={`text-sm font-medium ${
               notification.is_read 
                 ? 'text-muted-foreground' 
                 : 'text-foreground'
-            }`}>
+            } ${direction === 'rtl' ? 'text-right' : ''}`}>
               {translatedTitle}
             </p>
           </div>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="text-sm text-muted-foreground line-clamp-2">
+          <div className={`flex items-center gap-2 mt-1 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
+            <p className={`text-sm text-muted-foreground line-clamp-2 ${direction === 'rtl' ? 'text-right' : ''}`}>
               {translatedContent}
             </p>
             {isBadgeNotification && badgeData && (
@@ -157,7 +157,7 @@ export function NotificationPanel({
               />
             )}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className={`text-xs text-muted-foreground mt-1 ${direction === 'rtl' ? 'text-right' : ''}`}>
             {formatRelativeTime(new Date(notification.created_at))}
           </p>
         </div>
@@ -177,13 +177,13 @@ export function NotificationPanel({
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-[380px] p-4 mt-2"
+        className={`w-[380px] p-4 mt-2 ${direction === 'rtl' ? 'text-right' : ''}`}
         sideOffset={8}
       >
-        <div className="flex items-center justify-between border-b border-muted pb-2 mb-3">
-          <div className="flex items-center gap-2">
+        <div className={`flex items-center justify-between border-b border-muted pb-2 mb-3 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex items-center gap-2 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
             <Bell className="h-5 w-5" />
-            <h2 className="text-lg font-semibold"> <span> {t('notifications')} </span> </h2>
+            <h2 className={`text-lg font-semibold ${direction === 'rtl' ? 'text-right' : ''}`}> <span> {t('notifications')} </span> </h2>
           </div>
           {unreadNotifications.length > 0 && (
             <button
@@ -192,7 +192,7 @@ export function NotificationPanel({
                 e.stopPropagation();
                 onMarkAsRead();
               }}
-              className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+              className={`text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}
             >
               <CheckCheck className="h-4 w-4" />
               {t('markAllAsRead')}
@@ -202,17 +202,17 @@ export function NotificationPanel({
 
         <ScrollArea className="h-[400px]">
           {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+            <div className={`flex flex-col items-center justify-center h-[200px] text-muted-foreground ${direction === 'rtl' ? 'text-right' : ''}`}>
               <Bell className="h-8 w-8 mb-2 opacity-50" />
-              <p>{t('noNotifications')}</p>
+              <p className={direction === 'rtl' ? 'text-right' : ''}>{t('noNotifications')}</p>
             </div>
           ) : (
             <div className="space-y-4">
               {/* Unread notifications section */}
               {unreadNotifications.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <h3 className="text-sm font-medium text-primary"> <span> {t('new')} </span> </h3>
+                  <div className={`flex items-center gap-2 mb-3 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                    <h3 className={`text-sm font-medium text-primary ${direction === 'rtl' ? 'text-right' : ''}`}> <span> {t('new')} </span> </h3>
                     <div className="h-5 px-2 rounded-full bg-primary/10 text-primary text-xs font-medium flex items-center">
                       {unreadNotifications.length}
                     </div>
@@ -233,7 +233,7 @@ export function NotificationPanel({
               {/* Read notifications section */}
               {readNotifications.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3"> <span> {t('earlier')} </span> </h3>
+                  <h3 className={`text-sm font-medium text-muted-foreground mb-3 ${direction === 'rtl' ? 'text-right' : ''}`}> <span> {t('earlier')} </span> </h3>
                   <div className="space-y-2">
                     {readNotifications.map((notification) => (
                       <NotificationItem key={notification.id} notification={notification} />
