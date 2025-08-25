@@ -727,7 +727,7 @@ const ForumPostPage = () => {
             </AlertDialogTrigger>
             <AlertDialogContent className={direction === 'rtl' ? 'text-right' : ''}>
               <AlertDialogHeader>
-                <AlertDialogTitle className={direction === 'rtl' ? 'text-right' : ''}>{t('actions.deletePost')}</AlertDialogTitle>
+                <AlertDialogTitle className={direction === 'rtl' ? 'text-right' : ''}> <span>{t('actions.deletePost')}</span></AlertDialogTitle>
                 <AlertDialogDescription className={direction === 'rtl' ? 'text-right' : ''}>
                   {t('actions.deletePostConfirm')}
                 </AlertDialogDescription>
@@ -905,7 +905,7 @@ const ForumPostPage = () => {
       <AlertDialog open={showProfileActionDialog} onOpenChange={setShowProfileActionDialog}>
         <AlertDialogContent className={direction === 'rtl' ? 'text-right' : ''}>
           <AlertDialogHeader>
-            <AlertDialogTitle className={direction === 'rtl' ? 'text-right' : ''}>{tWithFallback('profile.actions', 'User Profile Actions')}</AlertDialogTitle>
+            <AlertDialogTitle className={direction === 'rtl' ? 'text-right' : ''}><span>{tWithFallback('profile.actions', 'User Profile Actions')}</span></AlertDialogTitle>
           </AlertDialogHeader>
           <div className="flex flex-col gap-2">
             <Button

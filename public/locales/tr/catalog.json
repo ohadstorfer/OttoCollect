@@ -42,7 +42,8 @@
       "addToWishlist": "İstek listesine ekle",
       "removeFromWishlist": "İstek listesinden çıkar",
       "alreadyOwned": "Bu banknotu zaten sahipsiniz",
-      "onCollections": "{{count}} Koleksiyonda"
+      "onCollections": "{{count}} Koleksiyonda",
+      "addToYourCollection": "Koleksiyonunuza ekleyin"
     }
   },
   "details": {

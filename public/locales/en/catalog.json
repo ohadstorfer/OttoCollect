@@ -42,7 +42,8 @@
       "addToWishlist": "Add to wishlist",
       "removeFromWishlist": "Remove from wishlist",
       "alreadyOwned": "You already own this banknote",
-      "onCollections": "On {{count}} Collections"
+      "onCollections": "On {{count}} Collections",
+      "addToYourCollection": "Add to your collection"
     }
   },
   "details": {

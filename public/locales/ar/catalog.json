@@ -42,7 +42,8 @@
       "addToWishlist": "أضف إلى قائمة الأماني",
       "removeFromWishlist": "إزالة من قائمة الأماني",
       "alreadyOwned": "لديك بالفعل هذه الورقة النقدية",
-      "onCollections": "في {{count}} مجموعة"
+      "onCollections": "في {{count}} مجموعة",
+      "addToYourCollection": "أضف إلى مجموعتك"
     }
   },
   "details": {

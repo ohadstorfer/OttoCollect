@@ -742,6 +742,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         </Button>
                       ) : (
                         <Button
+                          title={t('card.buttonTitles.addToYourCollection')}
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 shrink-0"

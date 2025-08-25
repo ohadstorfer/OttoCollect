@@ -748,7 +748,7 @@ const ForumPostAnnouncementsPage = () => {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>{t('actions.deleteAnnouncement')}</AlertDialogTitle>
+                  <AlertDialogTitle><span>{t('actions.deleteAnnouncement')}</span></AlertDialogTitle>
                   <AlertDialogDescription>
                     {t('actions.deleteAnnouncementConfirm')}
                   </AlertDialogDescription>
@@ -932,7 +932,7 @@ const ForumPostAnnouncementsPage = () => {
           <AlertDialog open={showProfileActionDialog} onOpenChange={setShowProfileActionDialog}>
             <AlertDialogContent className={direction === 'rtl' ? 'text-right' : ''}>
               <AlertDialogHeader>
-                <AlertDialogTitle className={direction === 'rtl' ? 'text-right' : ''}>{tWithFallback('profile.actions', 'User Profile Actions')}</AlertDialogTitle>
+                <AlertDialogTitle className={direction === 'rtl' ? 'text-right' : ''}><span>{tWithFallback('profile.actions', 'User Profile Actions')}</span></AlertDialogTitle>
                 <AlertDialogDescription className={direction === 'rtl' ? 'text-right' : ''}>
                   {tWithFallback('profile.chooseAction', 'Choose an action for this user:')}
                 </AlertDialogDescription>
