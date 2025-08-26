@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { fetchCountryByName, fetchCategoriesByCountryId, fetchUserFilterPreferences } from "@/services/countryService";
@@ -135,17 +136,19 @@ export const useCountryData = ({
     loadCountryData();
   }, [countryName, navigate, toast, user]); // Removed onGroupModeChange from dependencies
 
+  // Debug: Track when groupMode actually changes
+  useEffect(() => {
+    console.log("useCountryData: groupMode state changed to:", groupMode);
+  }, [groupMode]);
+
   const handleGroupModeChange = useCallback((mode: boolean) => {
     console.log("useCountryData: handleGroupModeChange called with mode:", mode, "current groupMode:", groupMode);
     
-    // Update state immediately
-    setGroupMode(mode);
-    
-    // Force a synchronous update by using a state update function
-    setGroupMode(currentMode => {
-      console.log("useCountryData: Forcing groupMode update from", currentMode, "to", mode);
-      return mode;
+    // Update state immediately with flushSync
+    flushSync(() => {
+      setGroupMode(mode);
     });
+    console.log("useCountryData: setGroupMode called with flushSync:", mode);
     
     // Store in session storage as a fallback for non-logged in users
     if (!user) {

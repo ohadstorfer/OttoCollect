@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { flushSync } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
 import { cn } from "@/lib/utils";
@@ -156,9 +157,16 @@ const CountryDetail = () => {
   }, []);
 
   const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
-    console.log('CountryDetail: handleViewModeChange called with mode:', mode, 'current viewMode:', viewMode);
-    setViewMode(mode);
-    console.log('CountryDetail: viewMode state updated to:', mode);
+    console.log('CountryDetail: handleViewModeChange called with mode:', mode);
+    flushSync(() => {
+      setViewMode(mode);
+    });
+    console.log('CountryDetail: setViewMode called with flushSync:', mode);
+  }, []);
+
+  // Debug: Track when viewMode actually changes
+  useEffect(() => {
+    console.log('CountryDetail: viewMode state changed to:', viewMode);
   }, [viewMode]);
 
   // Handle preferences loaded callback
