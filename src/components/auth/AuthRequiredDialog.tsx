@@ -60,7 +60,7 @@ export const AuthRequiredDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-serif text-center">{dialogTitle}</DialogTitle>
+          <DialogTitle className="text-2xl font-serif text-center"><span>{dialogTitle}</span></DialogTitle>
           <DialogDescription className="text-base pt-2 text-center">
             {dialogDescription}
           </DialogDescription>
