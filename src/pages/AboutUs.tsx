@@ -34,7 +34,7 @@ const AboutUs: React.FC = () => {
     // Founder user IDs
     const founderIds = [
         'e0ceafe0-0a02-42a9-a72f-6232af4b2579', // Assaf
-        '589295a6-1042-4e19-afd7-9060d53324fe'  // Dror
+        '589295a6-1042-4e19-afd7-9060d53324fe' //Dror
     ];
 
     // Fetch founder profiles
@@ -146,7 +146,7 @@ const AboutUs: React.FC = () => {
                                             )}
 
                                             <p className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed">
-                                                {t('aboutUs.founders.assaf.description')}
+                                                {founders?.[0]?.about || t('aboutUs.founders.assaf.description')}
                                             </p>
 
                                             <Button
@@ -192,10 +192,13 @@ const AboutUs: React.FC = () => {
 
                                             <div className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed space-y-3">
                                                 <p>
-                                                    {t('aboutUs.founders.dror.description1')}
-                                                </p>
-                                                <p>
-                                                    {t('aboutUs.founders.dror.description2')}
+                                                    {founders?.[1]?.about || (
+                                                        <>
+                                                            {t('aboutUs.founders.dror.description1')}
+                                                            <br />
+                                                            {t('aboutUs.founders.dror.description2')}
+                                                        </>
+                                                    )}
                                                 </p>
                                             </div>
 
