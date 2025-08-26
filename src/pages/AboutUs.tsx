@@ -34,7 +34,7 @@ const AboutUs: React.FC = () => {
     // Founder user IDs
     const founderIds = [
         'e0ceafe0-0a02-42a9-a72f-6232af4b2579', // Assaf
-        '589295a6-1042-4e19-afd7-9060d53324fe' //Dror
+        '64681131-4747-4036-9c32-fe60a560bf78' // Dror
     ];
 
     // Fetch founder profiles
