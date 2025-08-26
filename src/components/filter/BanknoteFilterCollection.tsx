@@ -315,8 +315,10 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
           }
         }
         
-        // Mark as complete to prevent repeated loads
+        // Mark as complete to prevent repeated loads and clear ignore flags
         initialLoadComplete.current = true;
+        ignoreNextViewModeChange.current = false;
+        ignoreNextGroupModeChange.current = false;
         lastCountryId.current = countryId;
       } catch (error) {
         console.error("Error loading filter options:", error);
@@ -391,11 +393,19 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   }, [onFilterChange, sortOptions, authUser, countryId, currentFilters, groupMode]);
   
   const handleViewModeChange = React.useCallback((mode: 'grid' | 'list') => {
-    // If we're set to ignore the next change, skip this call
-    if (ignoreNextViewModeChange.current) {
+    // If we're set to ignore the next change and still in initial load, skip this call
+    if (ignoreNextViewModeChange.current && !initialLoadComplete.current) {
       ignoreNextViewModeChange.current = false;
+      console.log("BanknoteFilterCollection: Ignoring view mode change during initial load to prevent loop");
       return;
     }
+    
+    // Clear the ignore flag if we're past initial load (user interaction)
+    if (initialLoadComplete.current) {
+      ignoreNextViewModeChange.current = false;
+    }
+    
+    console.log("BanknoteFilterCollection: handleViewModeChange called with mode:", mode, "current viewMode:", viewMode);
     
     setViewMode(mode);
     if (onViewModeChange) {
@@ -431,14 +441,22 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         console.error("Unable to store view mode in session storage:", e);
       }
     }
-  }, [onViewModeChange, authUser, countryId, currentFilters, groupMode, viewMode, sortOptions]);
+  }, [onViewModeChange, authUser, countryId, currentFilters, groupMode, sortOptions]);
   
   const handleGroupModeChange = React.useCallback((mode: boolean) => {
-    // If we're set to ignore the next change, skip this call
-    if (ignoreNextGroupModeChange.current) {
+    // If we're set to ignore the next change and still in initial load, skip this call
+    if (ignoreNextGroupModeChange.current && !initialLoadComplete.current) {
       ignoreNextGroupModeChange.current = false;
+      console.log("BanknoteFilterCollection: Ignoring group mode change during initial load to prevent loop");
       return;
     }
+    
+    // Clear the ignore flag if we're past initial load (user interaction)
+    if (initialLoadComplete.current) {
+      ignoreNextGroupModeChange.current = false;
+    }
+    
+    console.log("BanknoteFilterCollection: handleGroupModeChange called with mode:", mode, "current groupMode:", groupMode);
     
     // Save group mode preference if user is logged in
     if (authUser?.id) {
@@ -477,7 +495,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     if (onGroupModeChange) {
       onGroupModeChange(mode);
     }
-  }, [onGroupModeChange, groupMode, authUser, countryId, currentFilters.categories, currentFilters.sort, currentFilters.types, sortOptions]);
+  }, [onGroupModeChange, authUser, countryId, currentFilters.categories, currentFilters.sort, currentFilters.types, sortOptions]);
 
   return (
     <div className={cn(
