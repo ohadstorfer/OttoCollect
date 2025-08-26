@@ -72,42 +72,74 @@ export const useBanknoteSorting = ({ banknotes, currencies, sortFields }: UseBan
           // Step 1: Corrected extPick case
           case "extPick": {
             const parseExtPick = (pick: string) => {
-              const regex = /^(\d+)([A-Za-z])?(\d+)?([A-Za-z]*)?$/;
-              const match = (pick || '').match(regex);
+              const regex = /^(\d+)([A-Za-z]+)?$/;
+              const match = (pick || "").match(regex);
+          
               if (!match) {
-                return { base_num: 0, letter_type: null, letter_value: null, suffix_num: 0, trailing_text: '' };
+                return {
+                  base_num: 0,
+                  raw_suffix: "",
+                };
               }
+          
               const base_num = parseInt(match[1], 10);
-              const letter_value = match[2] || null;
-              const letter_type = letter_value ? (letter_value === letter_value.toUpperCase() ? 'capital' : 'lowercase') : null;
-              const suffix_num = match[3] ? parseInt(match[3], 10) : 0;
-              const trailing_text = match[4] || '';
-              return { base_num, letter_type, letter_value, suffix_num, trailing_text };
+              const raw_suffix = match[2] || "";
+              return { base_num, raw_suffix };
             };
-
-            const aPick = parseExtPick(a.extendedPickNumber || a.catalogId || '');
-            const bPick = parseExtPick(b.extendedPickNumber || b.catalogId || '');
-
+          
+            const classifySuffix = (suffix: string) => {
+              if (!suffix) {
+                return { group: 0, rank: 0, raw: "" }; // no suffix
+              }
+          
+              // lowercase
+              if (/^[a-z]+$/.test(suffix)) {
+                if (suffix.length === 1) {
+                  return { group: 1, rank: suffix.charCodeAt(0), raw: suffix }; // single lowercase
+                } else {
+                  return { group: 2, rank: suffix.charCodeAt(0), raw: suffix }; // multi-letter lowercase
+                }
+              }
+          
+              // uppercase
+              if (/^[A-Z]+$/.test(suffix)) {
+                if (suffix.length === 1) {
+                  return { group: 3, rank: suffix.charCodeAt(0), raw: suffix }; // single uppercase
+                } else {
+                  return { group: 4, rank: suffix.charCodeAt(0), raw: suffix }; // multi-letter uppercase (Abs…)
+                }
+              }
+          
+              // mixed-case like "Abs" -> treat as uppercase extended
+              if (/^[A-Z][a-zA-Z]*$/.test(suffix)) {
+                return { group: 4, rank: suffix.charCodeAt(0), raw: suffix };
+              }
+          
+              // fallback
+              return { group: 5, rank: 0, raw: suffix };
+            };
+          
+            const aPick = parseExtPick(a.extendedPickNumber || a.catalogId || "");
+            const bPick = parseExtPick(b.extendedPickNumber || b.catalogId || "");
+          
             if (aPick.base_num !== bPick.base_num) {
               comparison = aPick.base_num - bPick.base_num;
             } else {
-              const letterTypeOrder = { null: 0, capital: 1, lowercase: 2 };
-              const typeAOrder = letterTypeOrder[aPick.letter_type || 'null'] || 0;
-              const typeBOrder = letterTypeOrder[bPick.letter_type || 'null'] || 0;
-
-              if (typeAOrder !== typeBOrder) {
-                comparison = typeAOrder - typeBOrder;
-              } else if ((aPick.letter_value || '') !== (bPick.letter_value || '')) {
-                comparison = (aPick.letter_value || '').localeCompare(bPick.letter_value || '');
-              } else if (aPick.suffix_num !== bPick.suffix_num) {
-                comparison = aPick.suffix_num - bPick.suffix_num;
-              } else if ((aPick.trailing_text || '') !== (bPick.trailing_text || '')) {
-                comparison = (aPick.trailing_text || '').localeCompare(bPick.trailing_text || '');
+              const aClass = classifySuffix(aPick.raw_suffix);
+              const bClass = classifySuffix(bPick.raw_suffix);
+          
+              // Compare groups first
+              if (aClass.group !== bClass.group) {
+                comparison = aClass.group - bClass.group;
+              } else if (aClass.rank !== bClass.rank) {
+                comparison = aClass.rank - bClass.rank;
               } else {
-                comparison = 0; // All parts are equal
+                // tie-breaker: full string compare
+                comparison = aClass.raw.localeCompare(bClass.raw);
               }
             }
-            break; // Crucial break
+          
+            break;
           }
 
           case "newest":
