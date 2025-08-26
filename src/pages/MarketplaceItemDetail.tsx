@@ -212,7 +212,7 @@ const MarketplaceItemDetail = () => {
                                     className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                                     onClick={() => openImageViewer(url)}
                                   >
-                                    <div className="w-full rounded-md overflow-hidden border">
+                                    <div className="w-full overflow-hidden border">
                                       <img
                                         src={url}
                                         className="w-full h-auto object-contain"
@@ -234,7 +234,7 @@ const MarketplaceItemDetail = () => {
                                   className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                                   onClick={() => openImageViewer(url)}
                                 >
-                                  <div className="w-full rounded-md overflow-hidden border">
+                                  <div className="w-full overflow-hidden border">
                                     <img
                                       src={url}
                                       className="w-full h-auto object-contain"
@@ -254,7 +254,7 @@ const MarketplaceItemDetail = () => {
                             className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => openImageViewer(url)}
                           >
-                            <div className="w-full rounded-md overflow-hidden border">
+                            <div className="w-full overflow-hidden border">
                               <img
                                 src={url}
                                 className="w-full h-auto object-contain"

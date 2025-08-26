@@ -447,7 +447,7 @@ export default function CollectionItemUnlisted() {
                                 className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                                 onClick={() => openImageViewer(url)}
                               >
-                                <div className="w-full rounded-md overflow-hidden border">
+                                <div className="w-full overflow-hidden border">
                                   <img
                                     src={url}
                                     alt={`Banknote Image ${index + 1}`}
@@ -502,7 +502,7 @@ export default function CollectionItemUnlisted() {
                               className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                               onClick={() => openImageViewer(url)}
                             >
-                              <div className="w-full rounded-md overflow-hidden border">
+                              <div className="w-full overflow-hidden border">
                                 <img
                                   src={url}
                                   alt={`Banknote Image ${index + 1}`}

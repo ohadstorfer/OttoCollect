@@ -603,7 +603,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                                     className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                                     onClick={() => openImageViewer(url)}
                                   >
-                                    <div className="w-full rounded-md overflow-hidden border">
+                                    <div className="w-full overflow-hidden border">
                                       <img
                                         src={url}
                                         alt={`Banknote Image ${index + 1}`}
@@ -625,7 +625,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                                   className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                                   onClick={() => openImageViewer(url)}
                                 >
-                                  <div className="w-full rounded-md overflow-hidden border">
+                                  <div className="w-full overflow-hidden border">
                                     <img
                                       src={url}
                                       alt={`Banknote Image ${index + 1}`}
@@ -645,7 +645,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => openImageViewer(url)}
                       >
-                        <div className="w-full rounded-md overflow-hidden border">
+                        <div className="w-full overflow-hidden border">
                           <img
                             src={url}
                             alt={`Banknote Image ${index + 1}`}
@@ -682,7 +682,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                               className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
                               onClick={() => openImageViewer(url)}
                             >
-                              <div className="absolute inset-0 rounded-md overflow-hidden border">
+                              <div className="absolute inset-0 overflow-hidden border">
                                 <img
                                   src={url}
                                   alt={`Banknote Image ${index + 1}`}
