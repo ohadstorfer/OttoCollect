@@ -28,11 +28,9 @@ interface BanknoteFilterCatalogProps {
 
 // Custom comparison function to ensure re-renders when viewMode or groupMode change
 const areEqual = (prevProps: BanknoteFilterCatalogProps, nextProps: BanknoteFilterCatalogProps) => {
-  // Always re-render if viewMode or groupMode change
-  if (prevProps.viewMode !== nextProps.viewMode || prevProps.groupMode !== nextProps.groupMode) {
-    console.log('BanknoteFilterCatalog: Re-rendering due to viewMode or groupMode change', {
-      prevViewMode: prevProps.viewMode,
-      nextViewMode: nextProps.viewMode,
+  // Always re-render if groupMode changes
+  if (prevProps.groupMode !== nextProps.groupMode) {
+    console.log('BanknoteFilterCatalog: Re-rendering due to groupMode change', {
       prevGroupMode: prevProps.groupMode,
       nextGroupMode: nextProps.groupMode
     });
@@ -61,6 +59,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
   onGroupModeChange,
   onPreferencesLoaded
 }) => {
+
+  
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation(['filter']);
@@ -84,10 +84,22 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
   const ignoreNextViewModeChange = useRef(false);
   const isFetchingFilter = useRef(false);
   const lastCountryId = useRef("");
+  const lastUserState = useRef<string | null>(null); // Track user state changes
 
   useEffect(() => {
+    const currentUserState = user?.id || null;
+    
     // Skip if no countryId or if we're already fetching
-    if (!countryId || isFetchingFilter.current) return;
+    if (!countryId || isFetchingFilter.current) {
+      return;
+    }
+    
+    // Reset state if user changed (from null to user or vice versa)
+    if (lastUserState.current !== currentUserState) {
+      initialLoadComplete.current = false;
+      lastCountryId.current = "";
+      lastUserState.current = currentUserState;
+    }
     
     // Skip if we already loaded options for this country
     if (lastCountryId.current === countryId && initialLoadComplete.current) {
@@ -161,7 +173,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         if (user) {
           try {
             userPreferences = await fetchUserFilterPreferences(user.id, countryId);
-            
             // Set group mode if it's defined in preferences, but only during initial load
             if (userPreferences && 
                 typeof userPreferences.group_mode === 'boolean' && 
@@ -179,8 +190,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
                 onViewModeChange && 
                 !initialLoadComplete.current) {
               
-              console.log("BanknoteFilterCatalog: Loading view mode from preferences:", userPreferences.view_mode);
-              
               // Set a flag to ignore the next view mode change to prevent infinite loops
               ignoreNextViewModeChange.current = true;
               
@@ -194,10 +203,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           // For non-logged-in users, try to load from session storage
           try {
             const savedViewMode = sessionStorage.getItem(`viewMode-${countryId}`);
-            console.log("BanknoteFilterCatalog: Checking session storage for view mode:", savedViewMode);
             if (savedViewMode && onViewModeChange && !initialLoadComplete.current) {
               const parsedViewMode = JSON.parse(savedViewMode) as 'grid' | 'list';
-              console.log("BanknoteFilterCatalog: Loaded view mode from session storage:", parsedViewMode);
               
               ignoreNextViewModeChange.current = true;
               setViewMode(parsedViewMode);
@@ -234,7 +241,22 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
             types: userPreferences.selected_types,
             sort: finalSortFields,
           });
-        } else if (!initialLoadComplete.current) {
+        } else if (!initialLoadComplete.current && !user) {
+          // Only apply defaults if there's no user (not logged in)
+          const defaultCategoryIds = mappedCategories.map(cat => cat.id);
+          const defaultTypeIds = mappedTypes
+            .filter(type => type.name.toLowerCase().includes('issued'))
+            .map(t => t.id);
+            
+          const defaultSort = ['extPick'];
+          
+          onFilterChange({
+            categories: defaultCategoryIds,
+            types: defaultTypeIds,
+            sort: defaultSort,
+          });
+        } else if (!initialLoadComplete.current && user && !userPreferences) {
+          // User is logged in but has no preferences - apply defaults
           const defaultCategoryIds = mappedCategories.map(cat => cat.id);
           const defaultTypeIds = mappedTypes
             .filter(type => type.name.toLowerCase().includes('issued'))

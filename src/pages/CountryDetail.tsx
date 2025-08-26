@@ -131,6 +131,8 @@ const CountryDetail = () => {
     countryId,
     filters
   });
+  
+
 
   const sortedBanknotes = useOptimizedBanknoteSorting({
     banknotes,
@@ -145,6 +147,8 @@ const CountryDetail = () => {
     countryId,
     sultanOrderMap
   });
+  
+
 
   // Extract banknote IDs for wishlist context
   const banknoteIds = banknotes.map(banknote => banknote.id);
@@ -154,28 +158,29 @@ const CountryDetail = () => {
       ...prev,
       ...newFilters
     }));
+    // Mark preferences as loaded when filter changes come from BanknoteFilterCatalog
+    setPreferencesLoaded(true);
   }, []);
 
   const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
-    console.log('CountryDetail: handleViewModeChange called with mode:', mode);
     flushSync(() => {
       setViewMode(mode);
     });
-    console.log('CountryDetail: setViewMode called with flushSync:', mode);
   }, []);
 
-  // Debug: Track when viewMode actually changes
-  useEffect(() => {
-    console.log('CountryDetail: viewMode state changed to:', viewMode);
-  }, [viewMode]);
+
 
   // Handle preferences loaded callback
   const handlePreferencesLoaded = useCallback(() => {
     setPreferencesLoaded(true);
   }, []);
 
-  // Calculate loading state - include preferences loading
-  const isLoading = countryLoading || banknotesLoading || !preferencesLoaded;
+
+
+  // Calculate loading state - don't wait for preferences loading
+  const isLoading = countryLoading || banknotesLoading;
+  
+  
 
   return (
     <WishlistProvider banknoteIds={banknoteIds}>
@@ -193,16 +198,26 @@ const CountryDetail = () => {
             onPreferencesLoaded={handlePreferencesLoaded}
           />
 
-          <BanknoteDisplay
-            groups={groupedItems}
-            showSultanGroups={filters.sort.includes('sultan')}
-            viewMode={viewMode}
-            countryId={countryId}
-            isLoading={isLoading}
-            groupMode={groupMode}
-            userCollection={userCollection}
-            filters={filters}
-          />
+          {/* Only render BanknoteDisplay after preferences are loaded to prevent default view mode flash */}
+          {preferencesLoaded && (
+            <BanknoteDisplay
+              groups={groupedItems}
+              showSultanGroups={filters.sort.includes('sultan')}
+              viewMode={viewMode}
+              countryId={countryId}
+              isLoading={isLoading}
+              groupMode={groupMode}
+              userCollection={userCollection}
+              filters={filters}
+            />
+          )}
+          
+          {/* Show loading state when preferences haven't loaded yet */}
+          {!preferencesLoaded && (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          )}
         </div>
       </div>
     </WishlistProvider>
