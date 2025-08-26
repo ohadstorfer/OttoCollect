@@ -73,6 +73,9 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
   }, [countries, collectionCounts, searchTerm]);
 
   const handleCountrySelect = (country: string) => {
+    // Set the active tab to "collection" when navigating to a country collection
+    sessionStorage.setItem('countryDetailActiveTab', 'collection');
+    
     if (onCountrySelect) {
       onCountrySelect(country);
     } else {
