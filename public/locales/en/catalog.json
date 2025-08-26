@@ -100,7 +100,7 @@
     "type": "Type",
     "category": "Category",
     "rarity": "Rarity",
-    "securityElement": "Security Element",
+    "securityElement": "Additional Information",
     "colors": "Colors",
     "serialNumbering": "Serial Numbering",
     "banknoteDescription": "Banknote Description",

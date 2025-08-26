@@ -119,7 +119,7 @@ export function CreatePostForm() {
           {isLimitedRank && !hasReachedLimit && (
             <div className="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-md border border-yellow-200 dark:border-yellow-800">
               <p className="text-yellow-600 dark:text-yellow-400">
-                {tWithFallback('limits.dailyActivity', 'Daily blog activity: {{count}}/3 (posts + comments)', { count: dailyCount })}
+                {t('limits.dailyActivity', { count: dailyCount })}
               </p>
             </div>
           )}

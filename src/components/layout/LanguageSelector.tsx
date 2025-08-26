@@ -18,9 +18,14 @@ export const LanguageSelector = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Globe className={`h-5 w-5 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'}`} />
-        </Button>
+      <Button variant="ghost" size="icon" className="rounded-full">
+  <Globe
+    strokeWidth={1.6}
+    className={`h-5 w-5 ${
+      theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-100'
+    }`}
+  />
+</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {Object.entries(LANGUAGES).map(([code, { name }]) => (
