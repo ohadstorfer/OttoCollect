@@ -20,6 +20,7 @@ interface CollectionItemsDisplayProps {
   activeTab?: 'collection' | 'wishlist' | 'missing' | 'sale';
   countryName?: string;
   filters?: DynamicFilterState; // Add filters prop
+  hasAnyItems?: boolean; // Add hasAnyItems prop
 }
 
 export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
@@ -33,9 +34,10 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
   activeTab,
   countryName,
   filters, // Destructure filters prop
+  hasAnyItems, // Destructure hasAnyItems prop
 }) => {
   // Debug logging for props
-  console.log('CollectionItemsDisplay: Received props:', { viewMode, groupMode, activeTab, groupsCount: groups.length });
+  console.log('CollectionItemsDisplay: Received props:', { viewMode, groupMode, activeTab, groupsCount: groups.length, hasAnyItems });
   
   // Function to update collection items after changes
   const handleUpdate = async () => {
@@ -61,12 +63,70 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
         <div className="text-center py-8">
           {activeTab === 'sale' ? (
             <>
-              <h3 className="text-xl font-medium mb-4">
-                <span>No banknotes from {countryName || 'this country'} are currently listed for sale.</span>
-              </h3>
-              <p className="text-muted-foreground">
-                {isOwner ? 'To list your banknotes for sale, edit your collection items.' : 'Check back later for new listings.'}
-              </p>
+              {hasAnyItems === false ? (
+                // No items for sale at all
+                <>
+                  <h3 className="text-xl font-medium mb-4">
+                    <span>No banknotes from {countryName || 'this country'} are currently listed for sale.</span>
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {isOwner ? 'To list your banknotes for sale, edit your collection items.' : 'Check back later for new listings.'}
+                  </p>
+                </>
+              ) : isSearching ? (
+                // Show search-specific message when user is searching
+                <>
+                  <h3 className="text-xl font-medium mb-4"><span>No sale items found</span></h3>
+                  <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+                </>
+              ) : (
+                // Show filter guidance message when no search is active but filters are too restrictive
+                <>
+                  <h3 className="text-xl font-medium mb-4">
+                    <span className="text-red-600">!!</span><span> Go to Filter in the toolbar</span>
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Add categories or select <strong>All categories</strong> to view the entire collection. 
+                  </p>
+                </>
+              )}
+            </>
+          ) : activeTab === 'wishlist' ? (
+            <>
+              {hasAnyItems === false ? (
+                // No wishlist items at all
+                <>
+                  <h3 className="text-xl font-medium mb-4">
+                    <span>No banknotes from {countryName || 'this country'} were added to the Wishlist.</span>
+                  </h3>
+                </>
+              ) : hasAnyItems === true ? (
+                // Wishlist items exist but none match current filters
+                <>
+                  <h3 className="text-xl font-medium mb-4">
+                    <span className="text-red-600">!!</span><span> Go to Filter in the toolbar</span>
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Add categories or select <strong>All categories</strong> to view the entire collection. 
+                  </p>
+                </>
+              ) : isSearching ? (
+                // Show search-specific message when user is searching
+                <>
+                  <h3 className="text-xl font-medium mb-4"><span>No wishlist items found</span></h3>
+                  <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+                </>
+              ) : (
+                // Default case: show filter guidance message (when hasAnyItems is undefined)
+                <>
+                  <h3 className="text-xl font-medium mb-4">
+                    <span className="text-red-600">!!</span><span> Go to Filter in the toolbar</span>
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Add categories or select <strong>All categories</strong> to view the entire collection. 
+                  </p>
+                </>
+              )}
             </>
           ) : isSearching ? (
             // Show search-specific message when user is searching
@@ -75,14 +135,13 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
               <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
             </>
           ) : (
-            // Show filter guidance message when no search is active
+            // Show filter guidance message when no search is active but filters are too restrictive
             <>
               <h3 className="text-xl font-medium mb-4">
                 <span className="text-red-600">!!</span><span> Go to Filter in the toolbar</span>
               </h3>
               <p className="text-muted-foreground">
                 Add categories or select <strong>All categories</strong> to view the entire collection. 
-                Check that: <strong>Issue note</strong> type is selected or select <strong>All types</strong>.
               </p>
             </>
           )}

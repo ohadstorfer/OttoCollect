@@ -929,6 +929,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           activeTab={activeTab}
           countryName={effectiveCountryName}
           filters={filters}
+          hasAnyItems={wishlistItems && wishlistItems.length > 0}
         />
       )}
       {activeTab === 'sale' && (
@@ -943,6 +944,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           activeTab={activeTab}
           countryName={effectiveCountryName}
           filters={filters}
+          hasAnyItems={collectionItems && collectionItems.some(item => item.isForSale)}
         />
       )}
     </div>
