@@ -88,12 +88,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const sellerRank = (seller?.rank || "Newbie") as UserRank;
   
   // More robust image selection with fallbacks
-  const displayImage = collectionItem.obverseImage || 
-    (collectionItem.personalImages && collectionItem.personalImages.length > 0 
-      ? collectionItem.personalImages[0] 
-      : banknote.imageUrls && banknote.imageUrls.length > 0 
-        ? (typeof banknote.imageUrls === 'string' ? banknote.imageUrls : banknote.imageUrls[0])
-        : '/placeholder.svg');
+  const displayImage = collectionItem.obverseImage ||'/placeholder.svg';
   
  
   

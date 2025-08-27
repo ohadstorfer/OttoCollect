@@ -62,8 +62,8 @@ const MarketplaceItemDetail = () => {
       if (!item?.collectionItem) return;
       
       const displayImages = [
-        item.collectionItem.obverseImage || item.collectionItem.banknote?.imageUrls?.[0],
-        item.collectionItem.reverseImage || item.collectionItem.banknote?.imageUrls?.[1]
+        item.collectionItem.obverseImage ,
+        item.collectionItem.reverseImage
       ].filter(Boolean) as string[];
 
       const orientations: Record<number, 'vertical' | 'horizontal'> = {};

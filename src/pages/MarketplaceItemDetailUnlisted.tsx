@@ -148,7 +148,7 @@ const MarketplaceItemDetailUnlisted = () => {
             <TabsContent value="obverse">
               <div className="aspect-[4/3] overflow-hidden border">
                 <img
-                  src={obverseImage || banknote.imageUrls[0] || '/placeholder.svg'}
+                  src={obverseImage || '/placeholder.svg'}
                   alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - front`}
                   className="w-full h-full object-contain"
                 />
@@ -158,7 +158,7 @@ const MarketplaceItemDetailUnlisted = () => {
             <TabsContent value="reverse">
               <div className="aspect-[4/3] overflow-hidden border">
                 <img
-                  src={reverseImage || banknote.imageUrls[1] || '/placeholder.svg'}
+                  src={reverseImage || '/placeholder.svg'}
                   alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - back`}
                   className="w-full h-full object-contain"
                 />
