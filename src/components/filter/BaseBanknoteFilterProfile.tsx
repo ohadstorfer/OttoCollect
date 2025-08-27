@@ -257,11 +257,26 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     let newCategories: string[];
 
     if (categoryId === "all") {
-      newCategories = checked ? categories.map(c => c.id) : [];
+      // If "All Categories" is clicked and not all are currently selected, select all
+      // If all are already selected, do nothing (don't clear all)
+      if (allCategoriesSelected) {
+        console.log("BaseBanknoteFilter: All categories already selected, doing nothing");
+        return;
+      } else {
+        newCategories = categories.map(c => c.id);
+      }
     } else {
-      newCategories = checked
-        ? [...selectedCategories, categoryId]
-        : selectedCategories.filter(id => id !== categoryId);
+      if (checked) {
+        // Adding a category
+        newCategories = [...selectedCategories, categoryId];
+      } else {
+        // Removing a category - prevent removing the last one
+        if (selectedCategories.length <= 1) {
+          console.log("BaseBanknoteFilter: Cannot remove last category, doing nothing");
+          return;
+        }
+        newCategories = selectedCategories.filter(id => id !== categoryId);
+      }
     }
 
     console.log("BaseBanknoteFilter: New categories:", newCategories);
@@ -274,11 +289,26 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     let newTypes: string[];
 
     if (typeId === "all") {
-      newTypes = checked ? types.map(t => t.id) : [];
+      // If "All Types" is clicked and not all are currently selected, select all
+      // If all are already selected, do nothing (don't clear all)
+      if (allTypesSelected) {
+        console.log("BaseBanknoteFilter: All types already selected, doing nothing");
+        return;
+      } else {
+        newTypes = types.map(t => t.id);
+      }
     } else {
-      newTypes = checked
-        ? [...selectedTypes, typeId]
-        : selectedTypes.filter(id => id !== typeId);
+      if (checked) {
+        // Adding a type
+        newTypes = [...selectedTypes, typeId];
+      } else {
+        // Removing a type - prevent removing the last one
+        if (selectedTypes.length <= 1) {
+          console.log("BaseBanknoteFilter: Cannot remove last type, doing nothing");
+          return;
+        }
+        newTypes = selectedTypes.filter(id => id !== typeId);
+      }
     }
 
     console.log("BaseBanknoteFilter: New types:", newTypes);

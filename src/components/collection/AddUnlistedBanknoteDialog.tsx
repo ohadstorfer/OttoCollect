@@ -1398,9 +1398,9 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? (
-                      <>{t('saving')}</>
+                                                      <>{t('item.saving')}</>
                     ) : (
-                      t('addBanknote')
+                                              t('item.addBanknote')
                     )}
                   </Button>
                 </DialogFooter>

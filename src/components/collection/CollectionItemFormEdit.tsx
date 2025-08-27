@@ -258,8 +258,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
     } catch (error) {
       console.error('Error in handleCroppedImage:', error);
       toast({
-        title: t('failedToSaveCroppedImage'),
-        description: t('failedToSaveCroppedImage'),
+        title: t('item.failedToSaveCroppedImage'),
+        description: t('item.failedToSaveCroppedImage'),
         variant: "destructive",
       });
     } finally {
@@ -283,8 +283,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!authUser?.id) {
       toast({
-        title: t('authenticationError'),
-        description: t('mustBeLoggedIn'),
+        title: t('item.authenticationError'),
+        description: t('item.mustBeLoggedIn'),
         variant: "destructive"
       });
       return;
@@ -384,16 +384,16 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       }
 
       toast({
-        title: currentItem ? t('itemUpdatedSuccess') : t('itemAddedSuccess'),
-        description: currentItem ? t('banknoteUpdatedDescription') : t('banknoteAddedDescription')
+        title: currentItem ? t('item.itemUpdatedSuccess') : t('item.itemAddedSuccess'),
+        description: currentItem ? t('item.banknoteUpdatedDescription') : t('item.banknoteAddedDescription')
       });
 
       if (onCancel) onCancel();
     } catch (error: any) {
       console.error('Error saving collection item:', error);
       toast({
-        title: t('failedToSaveItem'),
-        description: error.message || t('failedToSaveItem'),
+        title: t('item.failedToSaveItem'),
+        description: error.message || t('item.failedToSaveItem'),
         variant: "destructive"
       });
     } finally {
@@ -509,16 +509,16 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                       name="gradeBy"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('gradingBy')}</FormLabel>
+                          <FormLabel>{t('item.gradingBy')}</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
                               maxLength={8}
-                              placeholder={t('gradingByPlaceholder')}
+                              placeholder={t('item.gradingByPlaceholder')}
                             />
                           </FormControl>
                           <FormDescription>
-                            {t('gradingByDescription')}
+                            {t('item.gradingByDescription')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -530,7 +530,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                       name="gradeNumber"
                       render={({ field: { onChange, ...field } }) => (
                         <FormItem>
-                          <FormLabel>{t('grade')}</FormLabel>
+                          <FormLabel>{t('item.grade')}</FormLabel>
                           <FormControl>
                             <Input
                               type="text"
@@ -545,7 +545,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                             />
                           </FormControl>
                           <FormDescription>
-                            {t('gradeDescription')}
+                            {t('item.gradeDescription')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -557,16 +557,16 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                       name="gradeLetters"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('gradeLetters')}</FormLabel>
+                          <FormLabel>{t('item.gradeLetters')}</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
                               maxLength={3}
-                              placeholder={t('gradeLettersPlaceholder')}
+                              placeholder={t('item.gradeLettersPlaceholder')}
                             />
                           </FormControl>
                           <FormDescription>
-                            {t('gradeLettersDescription')}
+                            {t('item.gradeLettersDescription')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -678,7 +678,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                                 size="sm"
                                 onClick={() => handleCropClick(obverseImagePreview, 'obverse')}
                               >
-                                {t('editImage')}
+                                {t('item.editImage')}
                               </Button>
                               <Button
                                 type="button"
@@ -686,7 +686,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                                 size="sm"
                                 onClick={() => obverseInputRef?.current?.click()}
                               >
-                                {t('changeImage')}
+                                {t('item.changeImage')}
                               </Button>
                             </>
                           )}
@@ -697,7 +697,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                                 size="sm"
                                 onClick={() => obverseInputRef?.current?.click()}
                               >
-                                {t('uploadImage')}
+                                {t('item.uploadImage')}
                               </Button>
                           )}
                         </div>
@@ -706,7 +706,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
                     {/* Reverse Image */}
                     <div>
-                      <Label htmlFor="reverseImage">{t('reverseBackImage')}</Label>
+                      <Label htmlFor="reverseImage">{t('item.reverseBackImage')}</Label>
                       <div className="mt-2 flex items-center gap-4">
                         <div
                           onClick={() => reverseImagePreview && openImageViewer(reverseImagePreview)}
@@ -740,7 +740,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                                 size="sm"
                                 onClick={() => handleCropClick(reverseImagePreview, 'reverse')}
                               >
-                                {t('editImage')}
+                                {t('item.editImage')}
                               </Button>
                               <Button
                                 type="button"
@@ -748,7 +748,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                                 size="sm"
                                 onClick={() => reverseInputRef?.current?.click()}
                               >
-                                {t('changeImage')}
+                                {t('item.changeImage')}
                               </Button>
                             </>
                           )}
@@ -759,7 +759,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                                 size="sm"
                                 onClick={() => reverseInputRef?.current?.click()}
                               >
-                                {t('uploadImage')}
+                                {t('item.uploadImage')}
                               </Button>
                           )}
                         </div>
@@ -772,8 +772,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 <div className="w-full h-px bg-muted my-6" />
 
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-medium"> <span> {t('privateDetails')} </span> </h3>
-                  <span className="text-sm text-muted-foreground">{t('onlyVisibleToYou')}</span>
+                  <h3 className="text-lg font-medium"> <span> {t('item.privateDetails')} </span> </h3>
+                  <span className="text-sm text-muted-foreground">{t('item.onlyVisibleToYou')}</span>
                 </div>
 
 
@@ -782,7 +782,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   name="purchaseDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>{t('purchaseDate')}</FormLabel>
+                      <FormLabel>{t('item.purchaseDate')}</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -794,7 +794,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                               {field.value ? (
                                 format(field.value, "PPP")
                               ) : (
-                                <span>{t('pickADate')}</span>
+                                <span>{t('item.pickADate')}</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -813,7 +813,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                         </PopoverContent>
                       </Popover>
                       <FormDescription>
-                        {t('purchaseDateDescription')}
+                        {t('item.purchaseDateDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -826,7 +826,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   name="purchasePrice"
                   render={({ field: { onChange, ...field } }) => (
                     <FormItem>
-                      <FormLabel>{t('purchasePrice')}</FormLabel>
+                      <FormLabel>{t('item.purchasePrice')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2">
@@ -845,7 +845,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                         </div>
                       </FormControl>
                       <FormDescription>
-                        {t('purchasePriceDescription')}
+                        {t('item.purchasePriceDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -858,56 +858,56 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   name="location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('itemStatus')}</FormLabel>
+                      <FormLabel>{t('item.itemStatus')}</FormLabel>
                       <FormControl>
                         <div className="space-y-4">
                           <Select
                             onValueChange={(value) => {
-                              if (value !== t('other')) {
+                              if (value !== t('item.other')) {
                                 field.onChange(value);
                               } else {
                                 field.onChange('');
                               }
                             }}
                             value={field.value === '' || ![
-                              t('inMyCollection'),
-                              t('atGrading'),
-                              t('atTheAuctionHouse'),
-                              t('inTransit'),
-                              t('toBeCollected'),
-                              t('other')
-                            ].includes(field.value) ? t('other') : field.value || t('inMyCollection')}
+                              t('item.inMyCollection'),
+                              t('item.atGrading'),
+                              t('item.atTheAuctionHouse'),
+                              t('item.inTransit'),
+                              t('item.toBeCollected'),
+                              t('item.other')
+                            ].includes(field.value) ? t('item.other') : field.value || t('item.inMyCollection')}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder={t('selectStatus')} />
+                              <SelectValue placeholder={t('item.selectStatus')} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value={t('inMyCollection')}>{t('inMyCollection')}</SelectItem>
-                              <SelectItem value={t('atGrading')}>{t('atGrading')}</SelectItem>
-                              <SelectItem value={t('atTheAuctionHouse')}>{t('atTheAuctionHouse')}</SelectItem>
-                              <SelectItem value={t('inTransit')}>{t('inTransit')}</SelectItem>
-                              <SelectItem value={t('toBeCollected')}>{t('toBeCollected')}</SelectItem>
-                              <SelectItem value={t('other')}>{t('other')}</SelectItem>
+                              <SelectItem value={t('item.inMyCollection')}>{t('item.inMyCollection')}</SelectItem>
+                                                              <SelectItem value={t('item.atGrading')}>{t('item.atGrading')}</SelectItem>
+                                                              <SelectItem value={t('item.atTheAuctionHouse')}>{t('item.atTheAuctionHouse')}</SelectItem>
+                                                              <SelectItem value={t('item.inTransit')}>{t('item.inTransit')}</SelectItem>
+                                                              <SelectItem value={t('item.toBeCollected')}>{t('item.toBeCollected')}</SelectItem>
+                                                              <SelectItem value={t('item.other')}>{t('item.other')}</SelectItem>
                             </SelectContent>
                           </Select>
                           {(field.value === '' || ![
-                            t('inMyCollection'),
-                            t('atGrading'),
-                            t('atTheAuctionHouse'),
-                            t('inTransit'),
-                            t('toBeCollected'),
-                            t('other')
+                            t('item.inMyCollection'),
+                            t('item.atGrading'),
+                            t('item.atTheAuctionHouse'),
+                            t('item.inTransit'),
+                            t('item.toBeCollected'),
+                            t('item.other')
                           ].includes(field.value)) && (
                               <Input
                                 {...field}
-                                placeholder={t('enterCustomStatus')}
+                                placeholder={t('item.enterCustomStatus')}
                                 className="mt-2"
                               />
                             )}
                         </div>
                       </FormControl>
                       <FormDescription>
-                        {t('itemStatusDescription')}
+                        {t('item.itemStatusDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -921,15 +921,15 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 name="privateNote"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('privateNote')}</FormLabel>
+                    <FormLabel>{t('item.privateNote')}</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
-                        placeholder={t('privateNotePlaceholder')}
+                        placeholder={t('item.privateNotePlaceholder')}
                       />
                     </FormControl>
                     <FormDescription>
-                      {t('privateNoteDescription')}
+                      {t('item.privateNoteDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -945,11 +945,11 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">{t('forSale')}</FormLabel>
+                      <FormLabel className="text-base">{t('item.forSale')}</FormLabel>
                       <FormDescription>
                         {isLimitedRank
-                          ? t('rankInsufficient')
-                          : t('forSaleDescription')}
+                          ? t('item.rankInsufficient')
+                          : t('item.forSaleDescription')}
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -971,7 +971,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                   name="salePrice"
                   render={({ field: { onChange, ...field } }) => (
                     <FormItem>
-                      <FormLabel>{t('salePrice')}</FormLabel>
+                      <FormLabel>{t('item.salePrice')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2">
@@ -1004,12 +1004,12 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 onClick={onCancel}
                 disabled={isSubmitting}
               >
-                {t('cancel')}
+                {t('item.cancel')}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting
-                  ? t('saving')
-                  : t('updateItem')}
+                  ? t('item.saving')
+                  : t('item.updateItem')}
               </Button>
             </div>
           </form>

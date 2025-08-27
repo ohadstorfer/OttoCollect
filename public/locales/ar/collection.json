@@ -334,8 +334,7 @@
     "updateCollectionItemDescription": "تحديث تفاصيل هذه الورقة النقدية في مجموعتك.",
     "addUnlistedBanknote": "إضافة ورقة نقدية غير مدرجة",
     "addBanknote": "إضافة ورقة نقدية",
-    "adding": "جاري الإضافة...",
-    "saving": "جاري الحفظ..."
+    "adding": "جاري الإضافة..."
   },
   "details": {
     "extendedPickNumber": "رقم بيك الموسع",

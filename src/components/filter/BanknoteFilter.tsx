@@ -145,11 +145,26 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     let newCategories: string[];
     if (categoryId === "all") {
-      newCategories = checked ? categories.map(c => c.id) : [];
+      // If "All Categories" is clicked and not all are currently selected, select all
+      // If all are already selected, do nothing (don't clear all)
+      if (allCategoriesSelected) {
+        console.log("BanknoteFilter: All categories already selected, doing nothing");
+        return;
+      } else {
+        newCategories = categories.map(c => c.id);
+      }
     } else {
-      newCategories = checked 
-        ? [...selectedCategories, categoryId]
-        : selectedCategories.filter(id => id !== categoryId);
+      if (checked) {
+        // Adding a category
+        newCategories = [...selectedCategories, categoryId];
+      } else {
+        // Removing a category - prevent removing the last one
+        if (selectedCategories.length <= 1) {
+          console.log("BanknoteFilter: Cannot remove last category, doing nothing");
+          return;
+        }
+        newCategories = selectedCategories.filter(id => id !== categoryId);
+      }
     }
     
     setSelectedCategories(newCategories);
@@ -159,11 +174,26 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
   const handleTypeChange = (type: string, checked: boolean) => {
     let newTypes: string[];
     if (type === "all") {
-      newTypes = checked ? availableTypes.map(t => t.id) : [];
+      // If "All Types" is clicked and not all are currently selected, select all
+      // If all are already selected, do nothing (don't clear all)
+      if (allTypesSelected) {
+        console.log("BanknoteFilter: All types already selected, doing nothing");
+        return;
+      } else {
+        newTypes = availableTypes.map(t => t.id);
+      }
     } else {
-      newTypes = checked
-        ? [...selectedTypes, type]
-        : selectedTypes.filter(t => normalizeType(t) !== normalizeType(type));
+      if (checked) {
+        // Adding a type
+        newTypes = [...selectedTypes, type];
+      } else {
+        // Removing a type - prevent removing the last one
+        if (selectedTypes.length <= 1) {
+          console.log("BanknoteFilter: Cannot remove last type, doing nothing");
+          return;
+        }
+        newTypes = selectedTypes.filter(t => normalizeType(t) !== normalizeType(type));
+      }
     }
     
     setSelectedTypes(newTypes);

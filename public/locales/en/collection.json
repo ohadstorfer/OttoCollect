@@ -312,8 +312,7 @@
     "updateCollectionItemDescription": "Update the details of this banknote in your collection.",
     "addUnlistedBanknote": "Add Unlisted Banknote",
     "addBanknote": "Add Banknote",
-    "adding": "Adding...",
-    "saving": "Saving..."
+    "adding": "Adding..."
   },
   "details": {
     "publicDetails": "Public Details",
