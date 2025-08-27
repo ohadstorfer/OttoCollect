@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { useTutorial } from '@/context/TutorialContext';
 import { useAuth } from '@/context/AuthContext';
 import { Play, RotateCcw, Eye } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const TutorialDebug: React.FC = () => {
   const { showGuide, resetTutorials, isNewUser, completedGuides, tutorialState } = useTutorial();
   const { user } = useAuth();
+  const { t } = useTranslation('guide');
   const [isVisible, setIsVisible] = useState(false);
 
   // Only show in development
@@ -43,7 +45,7 @@ export const TutorialDebug: React.FC = () => {
       {/* Debug panel */}
       {isVisible && (
         <div className="mt-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border p-4 w-64">
-          <h3 className="text-sm font-semibold mb-3">🎯 Tutorial Debug</h3>
+          <h3 className="text-sm font-semibold mb-3">🎯 {t('debug.title', 'Tutorial Debug')}</h3>
           
           <div className="space-y-2">
             <Button
@@ -53,7 +55,7 @@ export const TutorialDebug: React.FC = () => {
               className="w-full justify-start"
             >
               <Play className="h-3 w-3 mr-2" />
-              Welcome Guide 🧾
+              {t('debug.welcomeGuide', 'Welcome Guide')} 🧾
             </Button>
             
             <Button
@@ -63,7 +65,7 @@ export const TutorialDebug: React.FC = () => {
               className="w-full justify-start"
             >
               <Play className="h-3 w-3 mr-2" />
-              Edit Guide ✏️
+              {t('debug.editGuide', 'Edit Guide')} ✏️
             </Button>
             
             <Button
@@ -73,7 +75,7 @@ export const TutorialDebug: React.FC = () => {
               className="w-full justify-start"
             >
               <Play className="h-3 w-3 mr-2" />
-              Suggest Guide 🖼️
+              {t('debug.suggestGuide', 'Suggest Guide')} 🖼️
             </Button>
             
             <div className="border-t pt-2 mt-3">
@@ -84,16 +86,16 @@ export const TutorialDebug: React.FC = () => {
                 className="w-full justify-start"
               >
                 <RotateCcw className="h-3 w-3 mr-2" />
-                Reset All Guides
+                {t('debug.resetAllGuides', 'Reset All Guides')}
               </Button>
             </div>
           </div>
           
           <div className="mt-3 text-xs text-muted-foreground">
-            <p>User ID: {user?.id}</p>
-            <p>New User: {isNewUser ? 'Yes' : 'No'}</p>
-            <p>Active: {tutorialState.currentGuide || 'None'}</p>
-            <p>Completed: {completedGuides.size}/3</p>
+            <p>{t('debug.userId', 'User ID')}: {user?.id}</p>
+            <p>{t('debug.newUser', 'New User')}: {isNewUser ? t('debug.yes', 'Yes') : t('debug.no', 'No')}</p>
+            <p>{t('debug.active', 'Active')}: {tutorialState.currentGuide || t('debug.none', 'None')}</p>
+            <p>{t('debug.completed', 'Completed')}: {completedGuides.size}/3</p>
           </div>
         </div>
       )}

@@ -4,16 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { HelpCircle, CheckCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export const TutorialProgress: React.FC = () => {
   const { isNewUser, completedGuides, resetTutorials } = useTutorial();
+  const { t } = useTranslation('guide');
 
   if (!isNewUser) return null;
 
   const guides = [
-    { key: 'addBanknote', name: 'Welcome Guide', icon: '🧾' },
-    { key: 'editBanknote', name: 'Edit Guide', icon: '✏️' },
-    { key: 'suggestPicture', name: 'Suggest Guide', icon: '🖼️' }
+    { key: 'addBanknote', name: t('progress.welcomeGuide', 'Welcome Guide'), icon: '🧾' },
+    { key: 'editBanknote', name: t('progress.editGuide', 'Edit Guide'), icon: '✏️' },
+    { key: 'suggestPicture', name: t('progress.suggestGuide', 'Suggest Guide'), icon: '🖼️' }
   ];
 
   const completedCount = completedGuides.size;
@@ -24,7 +26,7 @@ export const TutorialProgress: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border p-4 w-64">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles className="h-4 w-4 text-yellow-500" />
-          <h3 className="text-sm font-semibold">Getting Started</h3>
+          <h3 className="text-sm font-semibold">{t('progress.gettingStarted', 'Getting Started')}</h3>
           <div className="ml-auto">
             <span className="text-xs text-muted-foreground">
               {completedCount}/{guides.length}
@@ -36,7 +38,7 @@ export const TutorialProgress: React.FC = () => {
         
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">
-            {progress === 100 ? 'All done! 🎉' : `${Math.round(progress)}% complete`}
+            {progress === 100 ? t('progress.allDone', 'All done! 🎉') : `${Math.round(progress)}% ${t('progress.complete', 'complete')}`}
           </span>
           
           {progress === 100 && (
@@ -46,7 +48,7 @@ export const TutorialProgress: React.FC = () => {
               onClick={resetTutorials}
               className="text-xs"
             >
-              Restart
+              {t('progress.restart', 'Restart')}
             </Button>
           )}
         </div>

@@ -1,13 +1,36 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle, XCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, XCircle, Info, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
 
 const Guide = () => {
   const { t } = useTranslation('guide');
+  const { direction } = useLanguage();
+
+
+  // Function to replace emojis with Lucide icons
+  const renderDescriptionWithIcons = (text: string) => {
+    if (!text) return text;
+    
+    // Replace trash emoji with Trash2 icon
+    const parts = text.split('🗑️');
+    if (parts.length > 1) {
+      return parts.map((part, index) => (
+        <React.Fragment key={index}>
+          {part}
+          {index < parts.length - 1 && (
+            <Trash2 className="inline-block w-4 h-4 text-red-500 mx-1" />
+          )}
+        </React.Fragment>
+      ));
+    }
+    
+    return text;
+  };
 
   // State to track which sections are expanded (default to all minimized)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -69,11 +92,11 @@ const Guide = () => {
                     <div className="flex items-start gap-4">
                       <StepIcon type={step.type} />
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-foreground mb-2">
+                        <h3 className={`text-lg font-semibold text-foreground mb-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                           <span>{step.title}</span>
                         </h3>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {step.description}
+                        <p className={`text-muted-foreground leading-relaxed ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+                          {renderDescriptionWithIcons(step.description)}
                         </p>
                       </div>
                     </div>

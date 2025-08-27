@@ -7,27 +7,27 @@
       "icon": "🧾",
       "steps": {
         "step1": {
-          "title": "Kataloğa Gidin",
-          "description": "Üst menüden \"Katalog\"a tıklayın."
+          "title": "Kataloglara Gidin",
+          "description": "Üst menüden \"Kataloglar\"a tıklayın."
         },
         "step2": {
           "title": "Bir Ülke Seçin",
           "description": "Banknotlarını görmek istediğiniz ülkeye tıklayın."
         },
         "step3": {
-          "title": "Banknotları İnceleyin ve Ekleyin",
-          "description": "Banknot listesini inceleyin. Koleksiyonunuza eklemek için banknot kartının sağ üst köşesindeki \"+\" simgesine tıklayın."
+          "title": "Banknotları Gözden Geçirin ve Ekleyin",
+          "description": "Banknot listesini kaydırın. Koleksiyonunuza eklemek için banknot kartının sağ üst köşesindeki \"+\" simgesine tıklayın."
         },
         "step4": {
           "title": "Daha Fazla Banknot Ekleyin",
-          "description": "Sahip olduğunuz her banknot için bu işlemi tekrarlayın. Bu şekilde hızla birden fazla ekleyebilirsiniz."
+          "description": "Sahip olduğunuz her banknot için bu işlemi tekrarlayın. Bu şekilde hızlıca birden fazla banknot ekleyebilirsiniz."
         },
         "step5": {
           "title": "Koleksiyonunuzu Görüntüleyin",
-          "description": "İşlemi tamamladığınızda, eklediğiniz tüm banknotları görmek için menüden \"Koleksiyonum\" bölümüne gidin."
+          "description": "İşiniz bittiğinde, menüden \"Koleksiyonum\" bölümüne giderek eklediğiniz tüm banknotları görün."
         },
         "step6": {
-          "title": "Yanlışlıkla Eklenen Girdiyi Kaldırın",
+          "title": "Yanlış Girişi Kaldırın",
           "description": "Yanlışlıkla bir banknot eklediyseniz: Koleksiyonunuzdaki o banknota tıklayın. Sayfasında çöp kutusu simgesi 🗑️'ne tıklayarak kaldırın. Banknot koleksiyonunuzdan silinecektir.",
           "type": "error"
         }
@@ -50,16 +50,16 @@
           "description": "Aşağı kaydırın ve güncellemek istediğiniz banknota tıklayın."
         },
         "step4": {
-          "title": "Düzenle Simgesine ✏️ Tıklayın",
-          "description": "Banknot detay sayfasında Düzenle simgesine (genellikle bir kalem) tıklayın."
+          "title": "Düzenleme Simgesine Tıklayın ✏️",
+          "description": "Banknot detay sayfasında Düzenle simgesine (genellikle kalem) tıklayın."
         },
         "step5": {
           "title": "Detayları Doldurun",
-          "description": "Bir form görünecektir. Artık şunları yapabilirsiniz: Miktar ekleyebilir veya güncelleyebilir, Notlar, derece, satın alma kaynağı veya diğer kişisel detayları girebilirsiniz."
+          "description": "Bir form görünecek. Artık şunları yapabilirsiniz: Miktar ekleyin veya güncelleyin, notlar, derece, satın alma kaynağı veya diğer kişisel detayları girin."
         },
         "step6": {
           "title": "\"Resmi Değiştir\"e Tıklayın",
-          "description": "Fotoğraf yüklemek veya değiştirmek için \"Resmi Değiştir\" düğmesine tıklayın."
+          "description": "Bir fotoğraf yüklemek veya değiştirmek için \"Resmi Değiştir\" düğmesine tıklayın."
         },
         "step7": {
           "title": "Resminizi Seçin",
@@ -67,61 +67,113 @@
         },
         "step8": {
           "title": "Resmi Düzenleyin (İsteğe Bağlı)",
-          "description": "Gerekli görüntü alanına uyması için resmi ayarlayın veya kırpın."
+          "description": "Resmi gerekli görüntüleme alanına sığacak şekilde ayarlayın veya kırpın. Sonra onaylamak için \"Kaydet\"e tıklayın."
         },
         "step9": {
-          "title": "Kaydet",
-          "description": "Değişiklikleri onaylamak için Kaydet düğmesine tıklayın."
-        },
-        "step10": {
-          "title": "\"Güncelle\"ye Tıklayın",
-          "description": "Bitirmek için düzenlemeleri koleksiyonunuza uygulamak üzere Güncelle düğmesine tıklayın."
+          "title": "\"Öğeyi Güncelle\"ye Tıklayın",
+          "description": "Bitirmek için aşağı kaydırın. Sonra düzenlemeleri koleksiyonunuza uygulamak için \"Öğeyi Güncelle\" düğmesine tıklayın."
         }
       }
     },
     "suggestPicture": {
-      "title": "Koleksiyonunuzdan Ana Kataloğa Resim Nasıl Önerilir",
+      "title": "Koleksiyonunuzdan Ana Kataloglara Banknot Resmi Nasıl Önerilir",
       "icon": "🖼️",
       "steps": {
         "step1": {
           "title": "Banknot Sayfasına Gidin",
-          "description": "Önermek istediğiniz fotoğrafı içeren koleksiyonunuzdaki banknot sayfasına gidin."
+          "description": "Önermek istediğiniz banknot resmini içeren koleksiyonunuzdaki banknot sayfasına gidin."
         },
         "step2": {
-          "title": "\"Kataloğa Öner\"e Tıklayın",
-          "description": "Yüklediğiniz banknot resminin üstünde \"Kataloğa Öner\" düğmesine tıklayın. Bu, resminizi bir yönetici tarafından incelenmek üzere gönderir."
+          "title": "\"Kataloglara Öner\"e Tıklayın",
+          "description": "Yüklediğiniz banknot resminin üstünde \"Kataloglara Öner\" düğmesine tıklayın. Bu, resminizi bir yönetici tarafından inceleme için gönderir."
         },
         "step3": {
-          "title": "İncelemeyi Bekleyin",
-          "description": "Öneriniz sitenin yönetici ekibi tarafından incelenecektir. Kalite ve netlik temelinde önerinizi onaylayabilir veya reddedebilirler."
+          "title": "İnceleme Bekleyin",
+          "description": "Öneriniz sitenin yönetici ekibi tarafından incelenecektir. Kalite ve netliğe göre gönderiminizi onaylayabilir veya reddedebilirler."
         },
         "step4": {
-          "title": "Gerekirse Düzenleyin ve Yeniden Önerin",
-          "description": "Resmi daha sonra düzenler veya değiştirirseniz, sistem katalog dahil edilmesi için tekrar önermenize izin verecektir."
+          "title": "Gerekirse Düzenleyin ve Tekrar Önerin",
+          "description": "Daha sonra banknot resmini düzenler veya değiştirirseniz, sistem bunu kataloglara dahil etmek için tekrar önermenize izin verecektir."
         }
       },
       "note": {
         "title": "En İyi Resim Kazanır",
-        "description": "Ana katalog için yalnızca en kaliteli resimler seçilir. Yöneticiler daha uygunsa başka bir kullanıcının fotoğrafını seçebilir."
+        "description": "Ana kataloglar için sadece en kaliteli resimler seçilir. Yöneticiler, daha uygun olan başka bir kullanıcının banknot resmini seçebilir."
       }
     }
   },
   "tutorials": {
     "welcome": {
-      "title": "OttoCollect'e Hoş Geldiniz!",
-      "description": "Banknot koleksiyonunuza başlamanıza yardımcı olalım."
+      "title": "OttoCollect'e Hoş Geldiniz! 🎉",
+      "description": "Osmanlı İmparatorluğu banknotlarının dünyasında heyecan verici bir yolculuğa çıkmak üzeresiniz. Başlamanız için temelleri size rehberlik edelim!",
+      "action": "Başlayalım!",
+      "skipText": "Girişi Atla"
     },
     "firstCatalogueVisit": {
-      "title": "Kataloğu Keşfedin",
-      "description": "Ülkelere göre banknotları inceleyin ve koleksiyonunuza eklemek için \"+\" simgesine tıklayın."
+      "title": "Katalogları Keşfedin 📚",
+      "description": "Osmanlı İmparatorluğu ve halef ülke banknotlarının kapsamlı koleksiyonumuzu gözden geçirin. Herhangi bir banknota eklemek için \"+\" simgesine tıklayın!",
+      "action": "Anladım!",
+      "skipText": "Öğreticiyi Atla"
     },
     "firstCollectionVisit": {
-      "title": "Koleksiyonunuz",
-      "description": "Burada tüm banknotlarınızı görüntüleyebilir, düzenleyebilir ve yönetebilirsiniz. Daha fazla detay görmek için herhangi bir banknota tıklayın."
+      "title": "Kişisel Koleksiyonunuz 💼",
+      "description": "Tüm banknotlarınızı buradan yöneteceksiniz. Detayları görüntülemek, bilgileri düzenlemek veya kendi fotoğraflarınızı yüklemek için herhangi bir banknota tıklayın!",
+      "action": "Anladım!",
+      "skipText": "Öğreticiyi Atla"
     },
     "firstEditClick": {
-      "title": "Banknotunuzu Düzenleyin",
-      "description": "Kişisel detaylar eklemek, resim yüklemek ve banknot bilgilerinizi yönetmek için düzenle simgesine tıklayın."
+      "title": "Banknotunuzu Özelleştirin ✏️",
+      "description": "Durum, satın alma fiyatı gibi kişisel detaylar ekleyin veya kendi fotoğraflarınızı yükleyin. Koleksiyonunuzu gerçekten benzersiz yapın!",
+      "action": "Anladım!",
+      "skipText": "Öğreticiyi Atla"
+    },
+    "firstMarketplaceVisit": {
+      "title": "Banknot Alın ve Satın 💰",
+      "description": "Güvenli pazar yerimizde diğer koleksiyonerlerle bağlantı kurun. Orijinal banknotlar satın alın veya koleksiyonunuzdan tekrarları satın!",
+      "action": "Anladım!",
+      "skipText": "Öğreticiyi Atla"
+    },
+    "firstForumVisit": {
+      "title": "Topluluğa Katılın 💬",
+      "description": "Diğer koleksiyonerlerle bağlantı kurun, bilgi paylaşın ve Osmanlı İmparatorluğu banknotları hakkında tartışmalara katılın!",
+      "action": "Anladım!",
+      "skipText": "Öğreticiyi Atla"
     }
+  },
+  "debug": {
+    "title": "Öğretici Hata Ayıklama",
+    "welcomeGuide": "Hoş Geldiniz Rehberi",
+    "editGuide": "Düzenleme Rehberi",
+    "suggestGuide": "Öneri Rehberi",
+    "resetAllGuides": "Tüm Rehberleri Sıfırla",
+    "userId": "Kullanıcı ID",
+    "newUser": "Yeni Kullanıcı",
+    "yes": "Evet",
+    "no": "Hayır",
+    "active": "Aktif",
+    "none": "Yok",
+    "completed": "Tamamlanan"
+  },
+  "progress": {
+    "gettingStarted": "Başlarken",
+    "welcomeGuide": "Hoş Geldiniz Rehberi",
+    "editGuide": "Düzenleme Rehberi",
+    "suggestGuide": "Öneri Rehberi",
+    "allDone": "Hepsi tamamlandı! 🎉",
+    "complete": "tamamlandı",
+    "restart": "Yeniden Başlat"
+  },
+  "popup": {
+    "step": "Adım",
+    "of": "/",
+    "welcomeDescription": "Banknot koleksiyon yolculuğunuza başlamanıza yardımcı olalım",
+    "importantNote": "Önemli Not",
+    "back": "Geri",
+    "skipGuide": "Rehberi Atla",
+    "completeGuide": "Rehberi Tamamla",
+    "nextStep": "Sonraki Adım"
+  },
+  "highlight": {
+    "clickHere": "Buraya tıklayın!"
   }
 }

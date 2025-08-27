@@ -28,7 +28,7 @@
         },
         "step6": {
           "title": "Remove a Mistaken Entry",
-          "description": "If you added a banknote by mistake: Click on that banknote in your collection. On its page, click the red trash icon to remove it. The banknote will be deleted from your collection.",
+         "description": "If you added a banknote by mistake: Click on that banknote in your collection. On its page, click the trash icon 🗑️ to remove it. The banknote will be deleted from your collection.",
           "type": "error"
         }
       }
@@ -139,5 +139,41 @@
       "action": "Got it!",
       "skipText": "Skip Tutorial"
     }
+  },
+  "debug": {
+    "title": "Tutorial Debug",
+    "welcomeGuide": "Welcome Guide",
+    "editGuide": "Edit Guide",
+    "suggestGuide": "Suggest Guide",
+    "resetAllGuides": "Reset All Guides",
+    "userId": "User ID",
+    "newUser": "New User",
+    "yes": "Yes",
+    "no": "No",
+    "active": "Active",
+    "none": "None",
+    "completed": "Completed"
+  },
+  "progress": {
+    "gettingStarted": "Getting Started",
+    "welcomeGuide": "Welcome Guide",
+    "editGuide": "Edit Guide",
+    "suggestGuide": "Suggest Guide",
+    "allDone": "All done! 🎉",
+    "complete": "complete",
+    "restart": "Restart"
+  },
+  "popup": {
+    "step": "Step",
+    "of": "of",
+    "welcomeDescription": "Let's get you started with your banknote collection journey",
+    "importantNote": "Important Note",
+    "back": "Back",
+    "skipGuide": "Skip Guide",
+    "completeGuide": "Complete Guide",
+    "nextStep": "Next Step"
+  },
+  "highlight": {
+    "clickHere": "Click here!"
   }
 }

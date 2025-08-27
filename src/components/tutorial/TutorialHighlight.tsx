@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTutorial } from '@/context/TutorialContext';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface TutorialHighlightProps {
@@ -18,6 +19,7 @@ export const TutorialHighlight: React.FC<TutorialHighlightProps> = ({
   highlight = false
 }) => {
   const { tutorialState } = useTutorial();
+  const { t } = useTranslation('guide');
   
   const isHighlighted = highlight && 
     tutorialState.isVisible && 
@@ -46,7 +48,7 @@ export const TutorialHighlight: React.FC<TutorialHighlightProps> = ({
           {/* Arrow indicator */}
           <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
             <div className="bg-ottoman-600 text-white px-2 py-1 rounded text-xs font-medium animate-bounce">
-              Click here!
+              {t('highlight.clickHere', 'Click here!')}
             </div>
             <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-ottoman-600 mx-auto" />
           </div>

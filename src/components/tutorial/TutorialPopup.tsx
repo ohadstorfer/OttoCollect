@@ -4,11 +4,13 @@ import { useTutorial } from '@/context/TutorialContext';
 import { useTheme } from '@/context/ThemeContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, ArrowRight, ArrowLeft, HelpCircle } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, HelpCircle, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
 
 export const TutorialPopup = () => {
   const { t } = useTranslation('guide');
+  const { direction } = useLanguage();
   const { theme } = useTheme();
   const { 
     tutorialState, 
@@ -46,21 +48,41 @@ export const TutorialPopup = () => {
     addBanknote: { 
       icon: '🧾', 
       color: theme === 'light' ? 'bg-gradient-to-r from-ottoman-300 to-ottoman-500' : 'bg-gradient-to-r from-ottoman-600 via-gold-600 to-ottoman-700',
-      name: 'How to Add a Banknote to Your Collection'
+      name: t('sections.addBanknote.title', 'How to Add a Banknote to Your Collection')
     },
     editBanknote: { 
       icon: '✏️', 
       color: theme === 'light' ? 'bg-gradient-to-r from-ottoman-300 to-ottoman-500' : 'bg-gradient-to-r from-ottoman-600 via-gold-600 to-ottoman-700',
-      name: 'How to Add Information or a Picture to a Banknote in Your Collection'
+      name: t('sections.editBanknote.title', 'How to Add Information or a Picture to a Banknote in Your Collection')
     },
     suggestPicture: { 
       icon: '🖼️', 
       color: theme === 'light' ? 'bg-gradient-to-r from-ottoman-300 to-ottoman-500' : 'bg-gradient-to-r from-ottoman-600 via-gold-600 to-ottoman-700',
-      name: 'How to Suggest a Picture from Your Collection to the Main Catalogues'
+      name: t('sections.suggestPicture.title', 'How to Suggest a Picture from Your Collection to the Main Catalogues')
     }
   };
 
   const currentGuideConfig = guideConfigs[currentGuide];
+
+  // Function to replace emojis with Lucide icons
+  const renderDescriptionWithIcons = (text: string) => {
+    if (!text) return text;
+    
+    // Replace trash emoji with Trash2 icon
+    const parts = text.split('🗑️');
+    if (parts.length > 1) {
+      return parts.map((part, index) => (
+        <React.Fragment key={index}>
+          {part}
+          {index < parts.length - 1 && (
+            <Trash2 className="inline-block w-4 h-4 text-red-500 mx-1" />
+          )}
+        </React.Fragment>
+      ));
+    }
+    
+    return text;
+  };
 
   return (
     <>
@@ -82,23 +104,24 @@ export const TutorialPopup = () => {
               <div className="flex-1 min-w-0">
                 {/* Welcome message - only for first step of addBanknote */}
                 {isWelcomeStep && (
-                  <h2 className="text-xl font-bold mb-2 leading-tight">
-                    <span>Welcome to OttoCollect! 🎉</span>
+                  <h2 className={cn("text-xl font-bold mb-2 leading-tight", direction === 'rtl' ? 'text-right' : 'text-left')}>
+                    <span>{t('tutorials.welcome.title', 'Welcome to OttoCollect! 🎉')}</span>
                   </h2>
                 )}
                 
                 {/* Guide name - always visible */}
                 <h3 className={cn(
                   "font-semibold leading-tight",
-                  isWelcomeStep ? "text-base text-white/90" : "text-lg text-white"
+                  isWelcomeStep ? "text-base text-white/90" : "text-lg text-white",
+                  direction === 'rtl' ? 'text-right' : 'text-left'
                 )}>
                  <span>{currentGuideConfig.name}</span>
                 </h3>
                 
                 {/* Step counter and current step title */}
                 <div className="mt-2 space-y-1">
-                  <p className="text-white/80 text-xs font-medium">
-                    Step {currentStep} of {totalSteps}
+                  <p className={cn("text-white/80 text-xs font-medium", direction === 'rtl' ? 'text-right' : 'text-left')}>
+                    {t('popup.step', 'Step')} {currentStep} {t('popup.of', 'of')} {totalSteps}
                   </p>
 
                 </div>
@@ -130,22 +153,23 @@ export const TutorialPopup = () => {
               <div className="flex-1">
               <h4 className={cn(
                     "font-bold leading-tight",
-                    isWelcomeStep ? "text-base text-white/90" : "text-lg text-white"
+                    isWelcomeStep ? "text-base text-white/90" : "text-lg text-white",
+                    direction === 'rtl' ? 'text-right' : 'text-left'
                   )}>
                     <span>{stepContent.title}</span>
                   </h4>
                 {isWelcomeStep && (
-                  <p className="text-muted-foreground mb-3 text-sm">
-                    Let's get you started with your banknote collection journey
+                  <p className={cn("text-muted-foreground mb-3 text-sm", direction === 'rtl' ? 'text-right' : 'text-left')}>
+                    {t('popup.welcomeDescription', 'Let\'s get you started with your banknote collection journey')}
                   </p>
                 )}
-                <p className="text-foreground leading-relaxed text-base font-medium">
-  {stepContent.description}
-</p>
+                <p className={cn("text-foreground leading-relaxed text-base font-medium", direction === 'rtl' ? 'text-right' : 'text-left')}>
+                  {renderDescriptionWithIcons(stepContent.description)}
+                </p>
                 {stepContent.type === 'error' && (
                   <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 mt-3">
                     <p className="text-sm text-destructive font-medium">
-                      ⚠️ Important Note
+                      ⚠️ {t('popup.importantNote', 'Important Note')}
                     </p>
                   </div>
                 )}
@@ -161,8 +185,8 @@ export const TutorialPopup = () => {
                     onClick={previousStep}
                     className="text-sm flex items-center gap-1"
                   >
-                    <ArrowLeft className="h-3 w-3" />
-                    Back
+                    {direction === 'rtl' ? <ArrowRight className="h-3 w-3" /> : <ArrowLeft className="h-3 w-3" />}
+                    {t('popup.back', 'Back')}
                   </Button>
                 )}
                 <Button
@@ -170,7 +194,7 @@ export const TutorialPopup = () => {
                   onClick={skipTutorial}
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
-                  Skip Guide
+                  {t('popup.skipGuide', 'Skip Guide')}
                 </Button>
               </div>
               
@@ -179,15 +203,15 @@ export const TutorialPopup = () => {
                   onClick={completeTutorial}
                   className="text-sm flex items-center gap-2 bg-gradient-to-r from-ottoman-600  to-ottoman-700 hover:from-ottoman-700  hover:to-ottoman-800 text-white"
                 >
-                  Complete Guide ✓
+                  {t('popup.completeGuide', 'Complete Guide')} ✓
                 </Button>
               ) : (
                 <Button
                   onClick={nextStep}
                   className="text-sm flex items-center gap-2 bg-gradient-to-r from-ottoman-500  to-ottoman-600 hover:from-ottoman-600  hover:to-ottoman-700 text-white"
                 >
-                  Next Step
-                  <ArrowRight className="h-4 w-4" />
+                  {t('popup.nextStep', 'Next Step')}
+                  {direction === 'rtl' ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
                 </Button>
               )}
             </div>
