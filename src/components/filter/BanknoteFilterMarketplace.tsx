@@ -20,6 +20,7 @@ interface BanknoteFilterMarketplaceProps {
   viewMode?: 'grid' | 'list';
   availableCategories?: FilterOption[];
   availableTypes?: FilterOption[];
+  availableCountries?: FilterOption[];
 }
 
 export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps> = ({
@@ -31,6 +32,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
   viewMode = 'grid',
   availableCategories: externalCategories,
   availableTypes: externalTypes,
+  availableCountries: externalCountries,
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -45,6 +47,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
   }, [t]);
   const [categories, setCategories] = useState<FilterOption[]>([]);
   const [types, setTypes] = useState<FilterOption[]>([]);
+  const [availableCountries, setAvailableCountries] = useState<FilterOption[]>([]);
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
@@ -54,26 +57,37 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     // Always set sort options for the marketplace filter
     setSortOptions([
       {
-        id: "faceValue",
-        name: tWithFallback('sort.faceValue', 'Face Value'),
-        fieldName: "faceValue",
+        id: "country",
+        name: tWithFallback('sort.country', 'Country'),
+        fieldName: "country",
         isRequired: false
       },
       {
-        id: "extPick",
-        name: tWithFallback('sort.catalogNumber', 'Catalog Number'),
-        fieldName: "extPick",
-        isRequired: true
+        id: "priceHighToLow",
+        name: tWithFallback('sort.priceHighToLow', 'Price: High to Low'),
+        fieldName: "priceHighToLow",
+        isRequired: false
+      },
+      {
+        id: "priceLowToHigh", 
+        name: tWithFallback('sort.priceLowToHigh', 'Price: Low to High'),
+        fieldName: "priceLowToHigh",
+        isRequired: false
+      },
+      {
+        id: "newest",
+        name: tWithFallback('sort.newest', 'Newest Listed'),
+        fieldName: "newest",
+        isRequired: false
+      },
+      {
+        id: "oldest",
+        name: tWithFallback('sort.oldest', 'Oldest Listed'),
+        fieldName: "oldest", 
+        isRequired: false
       }
-      // ,
-      // {
-      //   id: "country",
-      //   name: "Country",
-      //   fieldName: "country",
-      //   isRequired: false
-      // }
     ]);
-  }, []);
+  }, [tWithFallback]);
   
   // Use a memoized function to load user preferences to avoid re-renders
   const loadUserPreferences = useCallback(async (
@@ -100,7 +114,8 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
             search: userPreferences.search || "",
             categories: userPreferences.categories || [],
             types: userPreferences.types || [],
-            sort: userPreferences.sort || ['extPick']
+            sort: userPreferences.sort || [],
+            countries: userPreferences.countries || []
           });
         } else {
           // Use marketplace categories and types directly instead of trying to filter by name
@@ -118,7 +133,8 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
           onFilterChange({
             categories: defaultCategories,
             types: defaultTypes,
-            sort: ['extPick']
+            sort: [],
+            countries: []
           });
         }
       }
@@ -133,12 +149,13 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
       onFilterChange({
         categories: defaultCategories,
         types: defaultTypes,
-        sort: ['extPick']
+        sort: ['extPick'],
+        countries: []
       });
     }
   }, [user, onFilterChange]);
 
-  // Handle external category/type updates
+  // Handle external category/type/country updates
   useEffect(() => {
     if (externalCategories && externalCategories.length > 0) {
       setCategories(externalCategories);
@@ -147,13 +164,33 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     if (externalTypes && externalTypes.length > 0) {
       setTypes(externalTypes);
     }
+    
+    if (externalCountries && externalCountries.length > 0) {
+      setAvailableCountries(externalCountries);
+    }
     setIsLoading(false);
-  }, [externalCategories, externalTypes]);
+  }, [externalCategories, externalTypes, externalCountries]);
+
+  // Load user preferences when external data is provided
+  useEffect(() => {
+    if (externalCategories && externalTypes && externalCountries && !initialLoadComplete) {
+      const loadPreferencesWithExternalData = async () => {
+        try {
+          await loadUserPreferences(externalCategories, externalTypes);
+          setInitialLoadComplete(true);
+        } catch (error) {
+          console.error("Error loading preferences with external data:", error);
+        }
+      };
+      
+      loadPreferencesWithExternalData();
+    }
+  }, [externalCategories, externalTypes, externalCountries, initialLoadComplete, loadUserPreferences]);
 
   // Load filter options once on component mount
   useEffect(() => {
-    // Skip if already loaded or if external categories/types are provided
-    if (initialLoadComplete || (externalCategories && externalTypes)) {
+    // Skip if already loaded
+    if (initialLoadComplete) {
       return;
     }
     
@@ -190,21 +227,33 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
                  // Create fixed sort options for marketplace
          const sortOptions = [
            {
-             id: "faceValue",
-             name: tWithFallback('sort.faceValue', 'Face Value'),
-             fieldName: "faceValue",
-             isRequired: false
-           },
-           {
-             id: "extPick",
-             name: tWithFallback('sort.catalogNumber', 'Catalog Number'),
-             fieldName: "extPick",
-             isRequired: true
-           },
-           {
              id: "country",
              name: tWithFallback('sort.country', 'Country'),
              fieldName: "country",
+             isRequired: false
+           },
+           {
+             id: "priceHighToLow",
+             name: tWithFallback('sort.priceHighToLow', 'Price: High to Low'),
+             fieldName: "priceHighToLow",
+             isRequired: false
+           },
+           {
+             id: "priceLowToHigh", 
+             name: tWithFallback('sort.priceLowToHigh', 'Price: Low to High'),
+             fieldName: "priceLowToHigh",
+             isRequired: false
+           },
+           {
+             id: "newest",
+             name: tWithFallback('sort.newest', 'Newest Listed'),
+             fieldName: "newest",
+             isRequired: false
+           },
+           {
+             id: "oldest",
+             name: tWithFallback('sort.oldest', 'Oldest Listed'),
+             fieldName: "oldest", 
              isRequired: false
            }
          ];
@@ -235,12 +284,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
   }, [loadUserPreferences, toast, initialLoadComplete, externalCategories, externalTypes]);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    if (newFilters.sort) {
-      // Ensure extPick is always included
-      if (!newFilters.sort.includes('extPick')) {
-        newFilters.sort = [...newFilters.sort, 'extPick'];
-      }
-    }
+    // For marketplace, don't force extPick - let users sort by price/date without catalog number interference
     
     // Save user preferences to localStorage instead of database
     if (user?.id) {
@@ -251,7 +295,8 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
           search: newFilters.search || currentFilters.search,
           categories: newFilters.categories || currentFilters.categories,
           types: newFilters.types || currentFilters.types,
-          sort: newFilters.sort || currentFilters.sort
+          sort: newFilters.sort || currentFilters.sort,
+          countries: newFilters.countries || currentFilters.countries
         })
       );
     }
@@ -279,6 +324,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
         isLoading={isLoading}
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
+        countries={externalCountries || availableCountries}
       />
     </div>
   );

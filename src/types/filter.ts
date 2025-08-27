@@ -76,6 +76,7 @@ export interface DynamicFilterState {
   types: string[];
   sort: string[];
   country_id?: string; // Make sure country_id is included here
+  countries?: string[]; // Add countries array for marketplace filtering
 }
 
 export interface FilterableItem {

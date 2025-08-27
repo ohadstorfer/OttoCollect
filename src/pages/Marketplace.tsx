@@ -43,6 +43,9 @@ const Marketplace = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<FilterOption[]>([]);
   const [availableTypes, setAvailableTypes] = useState<FilterOption[]>([]);
+  const [availableCountries, setAvailableCountries] = useState<FilterOption[]>([]);
+
+
 
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
@@ -108,12 +111,13 @@ const Marketplace = () => {
         }
       }
 
-      // Extract available categories and types from fetched items
+      // Extract available categories, types, and countries from fetched items
       const categoryMap = new Map<string, FilterOption>();
       const typeMap = new Map<string, FilterOption>();
+      const countryMap = new Map<string, FilterOption>();
 
       items.forEach(item => {
-        const { series, type } = item.collectionItem?.banknote || {};
+        const { series, type, country } = item.collectionItem?.banknote || {};
 
         // Process category (series)
         if (series) {
@@ -126,11 +130,18 @@ const Marketplace = () => {
           const id = type.toLowerCase().replace(/\s+/g, '-');
           typeMap.set(id, { id, name: type });
         }
+
+        // Process country
+        if (country) {
+          const id = country.toLowerCase().replace(/\s+/g, '-');
+          countryMap.set(id, { id, name: country });
+        }
       });
 
       // Update available filters
       setAvailableCategories(Array.from(categoryMap.values()));
       setAvailableTypes(Array.from(typeMap.values()));
+      setAvailableCountries(Array.from(countryMap.values()));
 
       console.log('Setting marketplace items in state');
       setMarketplaceItems(items);
@@ -156,11 +167,12 @@ const Marketplace = () => {
   }, [loadMarketplaceItems]);
 
   // Transform marketplace items to have the banknote property at the top level
-  // This allows useBanknoteFilter to work correctly
+  // This allows useBanknoteFilter to work correctly, while preserving collectionItem for price sorting
   const marketplaceItemsForFilter = useMemo(() => {
     return marketplaceItems.map(item => ({
       ...item,
-      banknote: item.collectionItem?.banknote
+      banknote: item.collectionItem?.banknote,
+      collectionItem: item.collectionItem // Preserve collectionItem for price/date sorting
     }));
   }, [marketplaceItems]);
 
@@ -172,7 +184,7 @@ const Marketplace = () => {
   } = useBanknoteFilter({
     items: marketplaceItemsForFilter,
     initialFilters: {
-      sort: ["extPick"]
+      sort: [] // No default sort for marketplace - let users choose
     }
   });
 
@@ -235,7 +247,7 @@ const Marketplace = () => {
           <span>{tWithFallback('status.noItems', 'No Items Found')}</span>
         </h3>
         <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
-          {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search)
+          {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search || filters.countries?.length > 0 || filters.sort?.length > 0)
             ? tWithFallback('status.noItemsFiltered', 'No items match your current filters. Try adjusting your criteria.')
             : tWithFallback('status.noItemsDescription', 'There are currently no items available in the marketplace')}
         </p>
@@ -247,10 +259,10 @@ const Marketplace = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             {tWithFallback('actions.refresh', 'Refresh')}
           </Button>
-          {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search) && (
+          {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search || filters.countries?.length > 0 || filters.sort?.length > 0) && (
             <Button
               variant="outline"
-              onClick={() => setFilters({ categories: [], types: [], search: "", sort: ["extPick"] })}
+              onClick={() => setFilters({ categories: [], types: [], search: "", sort: [], countries: [] })}
             >
               {tWithFallback('filters.clearFilters', 'Clear Filters')}
             </Button>
@@ -265,8 +277,8 @@ const Marketplace = () => {
     return null;
   }
 
-  // Flatten all items from all groups
-  const allItems = groupedItems.flatMap(group => group.items);
+  // For marketplace, use filtered and sorted items directly (no grouping needed)
+  const allItems = filteredItems;
 
   return (
     <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -329,6 +341,7 @@ const Marketplace = () => {
                 isLoading={loading}
                 availableCategories={availableCategories}
                 availableTypes={availableTypes}
+                availableCountries={availableCountries}
               />
             
             {contentSection}

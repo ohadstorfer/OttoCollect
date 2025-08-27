@@ -52,6 +52,7 @@ export type BaseBanknoteFilterProps = {
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
   countryName?: string;
+  countries?: FilterOption[]; // Add countries support for marketplace
 };
 
 export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
@@ -68,7 +69,8 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   onViewModeChange,
   groupMode = false,
   onGroupModeChange,
-  countryName
+  countryName,
+  countries = []
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -92,6 +94,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(currentFilters.types || []);
   const [selectedSort, setSelectedSort] = useState<string[]>(currentFilters.sort || []);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>(currentFilters.countries || []);
   
   const isLocalChange = useRef(false);
   const prevFiltersRef = useRef<DynamicFilterState | null>(null);
@@ -117,14 +120,16 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       search: currentFilters.search,
       categories: currentFilters.categories,
       types: currentFilters.types,
-      sort: currentFilters.sort
+      sort: currentFilters.sort,
+      countries: currentFilters.countries
     });
     
     const prevFiltersStr = prevFiltersRef.current ? JSON.stringify({
       search: prevFiltersRef.current.search,
       categories: prevFiltersRef.current.categories,
       types: prevFiltersRef.current.types,
-      sort: prevFiltersRef.current.sort
+      sort: prevFiltersRef.current.sort,
+      countries: prevFiltersRef.current.countries
     }) : null;
     
     if (prevFiltersStr === currentFilterStr) {
@@ -139,6 +144,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     setSelectedCategories(currentFilters.categories || []);
     setSelectedTypes(currentFilters.types || []);
     setSelectedSort(currentFilters.sort || []);
+    setSelectedCountries(currentFilters.countries || []);
   }, [currentFilters]);
 
   const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
@@ -150,12 +156,14 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     if (changes.categories !== undefined) setSelectedCategories(changes.categories);
     if (changes.types !== undefined) setSelectedTypes(changes.types);
     if (changes.sort !== undefined) setSelectedSort(changes.sort);
+    if (changes.countries !== undefined) setSelectedCountries(changes.countries);
     
     const newFilters = {
       search: changes.search !== undefined ? changes.search : search,
       categories: changes.categories !== undefined ? changes.categories : selectedCategories,
       types: changes.types !== undefined ? changes.types : selectedTypes,
       sort: changes.sort !== undefined ? changes.sort : selectedSort,
+      countries: changes.countries !== undefined ? changes.countries : selectedCountries,
       country_id: currentFilters.country_id
     };
     
@@ -245,6 +253,41 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     handleFilterChange({ types: newTypes });
   };
 
+  const handleCountryChange = (countryId: string, checked: boolean) => {
+    console.log("BaseBanknoteFilter: Country change:", { countryId, checked });
+    
+    const allCountriesSelected = countries.length > 0 && 
+      countries.every(country => selectedCountries.includes(country.id));
+    
+    let newCountries: string[];
+    
+    if (countryId === "all") {
+      // If "All Countries" is clicked and not all are currently selected, select all
+      // If all are already selected, do nothing (don't clear all)
+      if (allCountriesSelected) {
+        console.log("BaseBanknoteFilter: All countries already selected, doing nothing");
+        return;
+      } else {
+        newCountries = countries.map(c => c.id);
+      }
+    } else {
+      if (checked) {
+        // Adding a country
+        newCountries = [...selectedCountries, countryId];
+      } else {
+        // Removing a country - prevent removing the last one
+        if (selectedCountries.length <= 1) {
+          console.log("BaseBanknoteFilter: Cannot remove last country, doing nothing");
+          return;
+        }
+        newCountries = selectedCountries.filter(id => id !== countryId);
+      }
+    }
+    
+    console.log("BaseBanknoteFilter: New countries:", newCountries);
+    handleFilterChange({ countries: newCountries });
+  };
+
   const handleSortChange = (sortId: string, checked: boolean) => {
     console.log("BaseBanknoteFilter: Sort change:", { sortId, checked });
     
@@ -252,6 +295,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     if (!sortOption || !sortOption.fieldName) return;
     
     const fieldName = sortOption.fieldName;
+    
+    // Define conflicting sort groups (only one can be selected from each group)
+    const conflictingGroups = [
+      ['priceHighToLow', 'priceLowToHigh'], // Price sorting - only one direction
+      ['newest', 'oldest'], // Date sorting - only one direction
+    ];
     
     const requiredSortFields = sortOptions
       .filter(option => option.isRequired)
@@ -261,12 +310,23 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     let newSort: string[];
     
     if (checked) {
-      if (!selectedSort.includes(fieldName)) {
-        newSort = [...selectedSort, fieldName];
-      } else {
-        newSort = [...selectedSort];
+      // Remove conflicting sorts first
+      newSort = selectedSort.filter(field => {
+        // Find if current fieldName conflicts with any existing field
+        const conflictGroup = conflictingGroups.find(group => group.includes(fieldName));
+        if (conflictGroup) {
+          // Remove other items from the same conflict group
+          return !conflictGroup.includes(field) || field === fieldName;
+        }
+        return true;
+      });
+      
+      // Add the new sort if not already present
+      if (!newSort.includes(fieldName)) {
+        newSort = [...newSort, fieldName];
       }
     } else {
+      // Remove the unchecked sort option
       if (!requiredSortFields.includes(fieldName)) {
         newSort = selectedSort.filter(field => field !== fieldName);
       } else {
@@ -274,6 +334,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       }
     }
     
+    // Ensure required fields are always included
     requiredSortFields.forEach(reqField => {
       if (!newSort.includes(reqField)) {
         newSort.push(reqField);
@@ -366,6 +427,9 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     
   const allTypesSelected = types.length > 0 && 
     types.every(type => selectedTypes.includes(type.id));
+    
+  const allCountriesSelected = countries.length > 0 && 
+    countries.every(country => selectedCountries.includes(country.id));
 
   return (
     <div className={cn(
@@ -464,7 +528,39 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 <SheetTitle><span>{tWithFallback('categories.categoryAndTypes', 'Categories & Types')}</span></SheetTitle>
               </SheetHeader>
               <div className="space-y-6 py-4 overflow-y-auto">
-                              <div>
+                {/* Countries Section - only show if countries are available */}
+                {countries.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3"><span>{tWithFallback('categories.countries', 'Countries')}</span></h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="all-countries"
+                          checked={allCountriesSelected}
+                          onCheckedChange={(checked) => handleCountryChange("all", !!checked)}
+                        />
+                        <label htmlFor="all-countries" className="text-sm">{tWithFallback('categories.allCountries', 'All Countries')}</label>
+                      </div>
+                      {countries.map(country => (
+                        <div key={country.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`country-${country.id}`}
+                            checked={selectedCountries.includes(country.id)}
+                            onCheckedChange={(checked) => handleCountryChange(country.id, !!checked)}
+                          />
+                          <label htmlFor={`country-${country.id}`} className="text-sm flex justify-between w-full">
+                            <span>{withHighlight(country.name, search)}</span>
+                            {country.count !== undefined && (
+                              <span className="text-muted-foreground">({country.count})</span>
+                            )}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div>
                 <h4 className="font-medium mb-3"><span>{tWithFallback('categories.title', 'Categories')}</span></h4>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
@@ -520,6 +616,8 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                     ))}
                   </div>
                 </div>
+
+                
                 <SheetClose asChild>
                   <Button 
                     className="w-full"

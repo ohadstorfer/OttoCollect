@@ -37,7 +37,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     search: initialFilters.search || "",
     categories: initialFilters.categories || [],
     types: initialFilters.types || [],
-    sort: initialFilters.sort || ["extPick"],
+    sort: initialFilters.sort !== undefined ? initialFilters.sort : ["extPick"],
   });
 
   console.log("Initial state after setup:", {
@@ -95,14 +95,17 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     // When no filters are selected, show all items
     const noCategories = !filters.categories || filters.categories.length === 0;
     const noTypes = !filters.types || filters.types.length === 0;
+    const noCountries = !filters.countries || filters.countries.length === 0;
     
-    // If both categories and types are empty, return all items
-    if (noCategories && noTypes && !filters.search) {
-      console.log("No filters selected, returning all items");
-      return validItems;
-    }
+    let filtered;
     
-    const filtered = validItems.filter((item) => {
+    // If no filtering criteria at all, use all items but still apply sorting
+    if (noCategories && noTypes && noCountries && !filters.search) {
+      console.log("No filtering criteria, using all items but will apply sorting");
+      filtered = validItems;
+    } else {
+      // Apply filtering criteria
+      filtered = validItems.filter((item) => {
       const banknote = getBanknote(item);
       if (!banknote) {
         return false;
@@ -150,14 +153,31 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
         });
       }
 
-      const result = matchesSearch && matchesCategory && matchesType;
+      // Country filter - for marketplace items
+      const noCountries = !filters.countries || filters.countries.length === 0;
+      let matchesCountry = noCountries;
+      
+      if (!noCountries && banknote.country) {
+        // Create a normalized version of the country for comparison
+        const countryId = banknote.country.toLowerCase().replace(/\s+/g, '-');
+        
+        // Try to match by direct ID first, then by country name (case-insensitive)
+        matchesCountry = filters.countries.some(country => 
+          country === countryId || 
+          country.toLowerCase() === countryId ||
+          banknote.country?.toLowerCase() === country.toLowerCase()
+        );
+      }
+
+      const result = matchesSearch && matchesCategory && matchesType && matchesCountry;
       
       if (banknote.catalogId) {
         console.log(`Item ${banknote.catalogId} - Search: ${matchesSearch}, Category: ${matchesCategory}, Type: ${matchesType}, NormalizedType: ${normalizedItemType}`);
       }
       
       return result;
-    });
+      });
+    }
     
     console.log(`Filtering complete: ${filtered.length} items matched out of ${validItems.length}`);
     
@@ -203,7 +223,40 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
             if (a && b && 'createdAt' in a && 'createdAt' in b) {
               const dateA = new Date((a.createdAt as string) || "").getTime();
               const dateB = new Date((b.createdAt as string) || "").getTime();
-              comparison = dateB - dateA;
+              comparison = dateB - dateA; // newest first
+            } else if (a && b && 'created_at' in a && 'created_at' in b) {
+              // Handle marketplace items with created_at field
+              const dateA = new Date((a as any).created_at || "").getTime();
+              const dateB = new Date((b as any).created_at || "").getTime();
+              comparison = dateB - dateA; // newest first
+            }
+            break;
+          case "oldest":
+            if (a && b && 'createdAt' in a && 'createdAt' in b) {
+              const dateA = new Date((a.createdAt as string) || "").getTime();
+              const dateB = new Date((b.createdAt as string) || "").getTime();
+              comparison = dateA - dateB; // oldest first
+            } else if (a && b && 'created_at' in a && 'created_at' in b) {
+              // Handle marketplace items with created_at field
+              const dateA = new Date((a as any).created_at || "").getTime();
+              const dateB = new Date((b as any).created_at || "").getTime();
+              comparison = dateA - dateB; // oldest first
+            }
+            break;
+          case "priceHighToLow":
+            // Sort by price (high to low) for marketplace items
+            if (a && b && 'collectionItem' in a && 'collectionItem' in b) {
+              const priceA = parseFloat((a as any).collectionItem?.salePrice || "0");
+              const priceB = parseFloat((b as any).collectionItem?.salePrice || "0");
+              comparison = priceB - priceA; // high to low
+            }
+            break;
+          case "priceLowToHigh":
+            // Sort by price (low to high) for marketplace items
+            if (a && b && 'collectionItem' in a && 'collectionItem' in b) {
+              const priceA = parseFloat((a as any).collectionItem?.salePrice || "0");
+              const priceB = parseFloat((b as any).collectionItem?.salePrice || "0");
+              comparison = priceA - priceB; // low to high
             }
             break;
           case "country":
@@ -465,6 +518,14 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       if (!filters.sort || 
           newFilters.sort.length !== filters.sort.length ||
           !newFilters.sort.every(s => filters.sort?.includes(s))) {
+        hasChanged = true;
+      }
+    }
+    
+    if (newFilters.countries !== undefined) {
+      if (!filters.countries || 
+          newFilters.countries.length !== filters.countries.length ||
+          !newFilters.countries.every(c => filters.countries?.includes(c))) {
         hasChanged = true;
       }
     }
