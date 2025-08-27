@@ -115,7 +115,7 @@ export const useOptimizedBanknoteSorting = ({
           
           case "extPick": {
             const parseExtPick = (pick: string) => {
-              const regex = /^(\d+)([A-Za-z]+)?$/;
+              const regex = /^(\d+)(.*)$/; // Changed to capture everything after the initial number
               const match = (pick || "").match(regex);
           
               if (!match) {
@@ -135,12 +135,21 @@ export const useOptimizedBanknoteSorting = ({
                 return { group: 0, rank: 0, raw: "" }; // no suffix
               }
           
-              // lowercase
-              if (/^[a-z]+$/.test(suffix)) {
+              // lowercase (including mixed alphanumeric like "a1", "c1")
+              if (/^[a-z]+(\d+)?$/.test(suffix)) {
+                const letterPart = suffix.match(/^[a-z]+/)?.[0] || "";
+                const numberPart = suffix.match(/\d+$/)?.[0] || "";
+                
                 if (suffix.length === 1) {
-                  return { group: 1, rank: suffix.charCodeAt(0), raw: suffix }; // single lowercase
+                  // Single lowercase letter like "a", "b", "c"
+                  return { group: 1, rank: letterPart.charCodeAt(0) * 1000, raw: suffix };
+                } else if (numberPart) {
+                  // Mixed alphanumeric like "a1", "c1" - should come right after the base letter
+                  const numValue = parseInt(numberPart, 10);
+                  return { group: 1, rank: letterPart.charCodeAt(0) * 1000 + numValue, raw: suffix };
                 } else {
-                  return { group: 2, rank: suffix.charCodeAt(0), raw: suffix }; // multi-letter lowercase
+                  // Multi-letter lowercase like "aa", "ab"
+                  return { group: 2, rank: letterPart.charCodeAt(0), raw: suffix };
                 }
               }
           

@@ -366,11 +366,92 @@ export async function generateAdminExcel(options: AdminExportOptions): Promise<A
     return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
   }
 
+  // Sort records by extended pick number using the same logic as use-optimized-banknote-sorting.ts
+  const parseExtPick = (pick: string) => {
+    const regex = /^(\d+)(.*)$/; // Changed to capture everything after the initial number
+    const match = (pick || "").match(regex);
+
+    if (!match) {
+      return {
+        base_num: 0,
+        raw_suffix: "",
+      };
+    }
+
+    const base_num = parseInt(match[1], 10);
+    const raw_suffix = match[2] || "";
+    return { base_num, raw_suffix };
+  };
+
+  const classifySuffix = (suffix: string) => {
+    if (!suffix) {
+      return { group: 0, rank: 0, raw: "" }; // no suffix
+    }
+
+    // lowercase (including mixed alphanumeric like "a1", "c1")
+    if (/^[a-z]+(\d+)?$/.test(suffix)) {
+      const letterPart = suffix.match(/^[a-z]+/)?.[0] || "";
+      const numberPart = suffix.match(/\d+$/)?.[0] || "";
+      
+      if (suffix.length === 1) {
+        // Single lowercase letter like "a", "b", "c"
+        return { group: 1, rank: letterPart.charCodeAt(0) * 1000, raw: suffix };
+      } else if (numberPart) {
+        // Mixed alphanumeric like "a1", "c1" - should come right after the base letter
+        const numValue = parseInt(numberPart, 10);
+        return { group: 1, rank: letterPart.charCodeAt(0) * 1000 + numValue, raw: suffix };
+      } else {
+        // Multi-letter lowercase like "aa", "ab"
+        return { group: 2, rank: letterPart.charCodeAt(0), raw: suffix };
+      }
+    }
+
+    // uppercase
+    if (/^[A-Z]+$/.test(suffix)) {
+      if (suffix.length === 1) {
+        return { group: 3, rank: suffix.charCodeAt(0), raw: suffix }; // single uppercase
+      } else {
+        return { group: 4, rank: suffix.charCodeAt(0), raw: suffix }; // multi-letter uppercase (Abs…)
+      }
+    }
+
+    // mixed-case like "Abs" -> treat as uppercase extended
+    if (/^[A-Z][a-zA-Z]*$/.test(suffix)) {
+      return { group: 4, rank: suffix.charCodeAt(0), raw: suffix };
+    }
+
+    // fallback
+    return { group: 5, rank: 0, raw: suffix };
+  };
+
+  records.sort((a: any, b: any) => {
+    const aPick = parseExtPick(a.extended_pick_number || a.extendedPickNumber || "");
+    const bPick = parseExtPick(b.extended_pick_number || b.extendedPickNumber || "");
+
+    if (aPick.base_num !== bPick.base_num) {
+      return aPick.base_num - bPick.base_num;
+    } else {
+      const aClass = classifySuffix(aPick.raw_suffix);
+      const bClass = classifySuffix(bPick.raw_suffix);
+
+      // Compare groups first
+      if (aClass.group !== bClass.group) {
+        return aClass.group - bClass.group;
+      } else if (aClass.rank !== bClass.rank) {
+        return aClass.rank - bClass.rank;
+      } else {
+        // tie-breaker: full string compare
+        return aClass.raw.localeCompare(bClass.raw);
+      }
+    }
+  });
+
   // 2) Determine columns dynamically and exclude specified fields
   const excludeKeys = new Set<string>([
     'updated_at', 'created_at', 'is_pending', 'is_approved',
     'back_picture_thumbnail', 'front_picture_thumbnail',
-    'back_picture_watermarked', 'front_picture_watermarked'
+    'back_picture_watermarked', 'front_picture_watermarked',
+    'front_picture', 'back_picture','other_element_pictures','id' // Exclude Front Picture URL and Back Picture URL from admin export
   ]);
 
   const allKeysSet = new Set<string>();
