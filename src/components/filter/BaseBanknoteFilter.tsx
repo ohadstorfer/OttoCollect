@@ -525,7 +525,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
             
             <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
               <SheetHeader>
-                <SheetTitle><span>{tWithFallback('categories.categoryAndTypes', 'Categories & Types')}</span></SheetTitle>
+                <SheetTitle><span>{tWithFallback('filters.title', 'Filters')}</span></SheetTitle>
               </SheetHeader>
               <div className="space-y-6 py-4 overflow-y-auto">
                 {/* Countries Section - only show if countries are available */}

@@ -256,13 +256,13 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
             >
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
-                <span>{isMobile ? tWithFallback('categories.types', 'Types') : tWithFallback('categories.categoryAndTypes', 'Category & Types')}</span>
+                <span>{isMobile ? tWithFallback('categories.types', 'Types') : tWithFallback('filters.title', 'Filters')}</span>
               </div>
             </Button>
           </SheetTrigger>
           <SheetContent side={isMobile ? "bottom" : "left"} className="w-full sm:max-w-lg overflow-y-auto max-h-screen">
             <SheetHeader>
-              <SheetTitle>{tWithFallback('categories.categoryAndTypes', 'Categories & Types')}</SheetTitle>
+              <SheetTitle>{tWithFallback('filters.title', 'Filters')}</SheetTitle>
             </SheetHeader>
             <div className="space-y-6 py-4 overflow-y-auto">
               <div>
