@@ -153,8 +153,9 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
                 key={index}
                 src={url}
                 alt={`Signature ${index + 1}`}
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => onImageClick?.(url)}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+                // onClick={() => onImageClick?.(url)}
+                onError={(e) => (e.currentTarget.style.display = "none")}
               />
             ))}
           </div>
@@ -171,8 +172,9 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
                 key={index}
                 src={url}
                 alt={`Signature ${index + 1}`}
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => onImageClick?.(url)}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+                // onClick={() => onImageClick?.(url)}
+                onError={(e) => (e.currentTarget.style.display = "none")}
               />
             ))}
           </div>
@@ -189,8 +191,9 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
                 key={index}
                 src={url}
                 alt={`Seal ${index + 1}`}
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => onImageClick?.(url)}
+                className="rounded-lg max-h-40 object-contain border border-gray-200 dark:border-gray-700 "
+                // onClick={() => onImageClick?.(url)}
+                onError={(e) => (e.currentTarget.style.display = "none")}
               />
             ))}
           </div>
@@ -206,8 +209,9 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
           <img
             src={banknote.watermarkUrl}
             alt="Watermark"
-            className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-            onClick={() => onImageClick?.(banknote.watermarkUrl!)}
+            className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+            // onClick={() => onImageClick?.(banknote.watermarkUrl!)}
+            onError={(e) => (e.currentTarget.style.display = "none")}
           />
         </div>
       )}
@@ -219,8 +223,9 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
           <img
             src={banknote.tughraUrl}
             alt="Tughra"
-            className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-            onClick={() => onImageClick?.(banknote.tughraUrl!)}
+            className="rounded-lg max-h-40 object-contain border border-gray-200 dark:border-gray-700 "
+            // onClick={() => onImageClick?.(banknote.tughraUrl!)}
+            onError={(e) => (e.currentTarget.style.display = "none")}
           />
         </div>
       )}
@@ -236,8 +241,9 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
                 key={index}
                 src={url}
                 alt={`Other Element ${index + 1}`}
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => onImageClick?.(url)}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+                // onClick={() => onImageClick?.(url)}
+                onError={(e) => (e.currentTarget.style.display = "none")}
               />
             ))}
           </div>

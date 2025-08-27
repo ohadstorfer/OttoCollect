@@ -270,8 +270,9 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
                 key={index}
                 src={url}
                 alt={`Signature ${index + 1}`}
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => openImageViewer(url)}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+                // onClick={() => openImageViewer(url)}
+                onError={(e) => (e.currentTarget.style.display = "none")}
               />
             ))}
           </div>
@@ -288,8 +289,9 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
                 key={index}
                 src={url}
                 alt={`Signature ${index + 1}`}
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => openImageViewer(url)}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+                // onClick={() => openImageViewer(url)}
+                onError={(e) => (e.currentTarget.style.display = "none")}
               />
             ))}
           </div>
@@ -306,8 +308,9 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
                     key={index}
                     src={url}
                     alt={`Seal ${index + 1}`}
-                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                    onClick={() => openImageViewer(url)}
+                    className="rounded-lg max-h-40 object-contain border border-gray-200 dark:border-gray-700 "
+                    // onClick={() => openImageViewer(url)}
+                    onError={(e) => (e.currentTarget.style.display = "none")}
                   />
                 ))}
               </div>
@@ -321,8 +324,9 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
               <img
                 src={collectionItem.banknote.watermark}
                 alt="Watermark"
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => openImageViewer(collectionItem.banknote.watermark!)}
+                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+                // onClick={() => openImageViewer(collectionItem.banknote.watermark!)}
+                onError={(e) => (e.currentTarget.style.display = "none")}
               />
             </div>
           )}
@@ -334,8 +338,9 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
               <img
                 src={collectionItem.banknote.tughraUrl}
                 alt="Tughra"
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                onClick={() => openImageViewer(collectionItem.banknote.tughraUrl!)}
+                className="rounded-lg max-h-40 object-contain border border-gray-200 dark:border-gray-700 "
+                // onClick={() => openImageViewer(collectionItem.banknote.tughraUrl!)}
+                onError={(e) => (e.currentTarget.style.display = "none")}
               />
             </div>
           )}
@@ -350,8 +355,9 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
                     key={index}
                     src={url}
                     alt={`Other Element ${index + 1}`}
-                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 cursor-pointer"
-                    onClick={() => openImageViewer(url)}
+                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+                    // onClick={() => openImageViewer(url)}
+                    onError={(e) => (e.currentTarget.style.display = "none")}
                   />
                 ))}
               </div>
