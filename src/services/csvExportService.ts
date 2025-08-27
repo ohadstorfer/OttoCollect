@@ -295,3 +295,85 @@ export function generateFilename(
   
   return `${username}_${tabName}${country}_${timestamp}.xlsx`;
 }
+
+// Admin-specific interfaces and functions
+export interface AdminExportOptions {
+  banknotes: any[]; // Use any[] since we're working with transformed Banknote objects
+  countryName: string;
+}
+
+// Define all possible admin columns for detailed banknotes
+function getAdminColumnDefinitions() {
+  return [
+    { key: 'extended_pick_number', header: 'Extended Pick Number', getValue: (item: any) => item.extendedPickNumber || '' },
+    { key: 'pick_number', header: 'Pick Number', getValue: (item: any) => item.pickNumber || '' },
+    { key: 'turk_catalog_number', header: 'Turk Catalog Number', getValue: (item: any) => item.turkCatalogNumber || '' },
+    { key: 'face_value', header: 'Face Value', getValue: (item: any) => item.denomination || '' },
+    { key: 'islamic_year', header: 'Islamic Year', getValue: (item: any) => item.islamicYear || '' },
+    { key: 'gregorian_year', header: 'Gregorian Year', getValue: (item: any) => item.year || '' },
+    { key: 'signatures_front', header: 'Signatures Front', getValue: (item: any) => item.signaturesFront || '' },
+    { key: 'signatures_back', header: 'Signatures Back', getValue: (item: any) => item.signaturesBack || '' },
+    { key: 'seal_names', header: 'Seal Names', getValue: (item: any) => item.sealNames || '' },
+    { key: 'watermark', header: 'Watermark', getValue: (item: any) => item.watermark || '' },
+    { key: 'sultan_name', header: 'Sultan Name', getValue: (item: any) => item.sultanName || '' },
+    { key: 'type', header: 'Type', getValue: (item: any) => item.type || '' },
+    { key: 'category', header: 'Category', getValue: (item: any) => item.category || '' },
+    { key: 'rarity', header: 'Rarity', getValue: (item: any) => item.rarity || '' },
+    { key: 'security_element', header: 'Security Element', getValue: (item: any) => item.securityElement || '' },
+    { key: 'colors', header: 'Colors', getValue: (item: any) => item.colors || '' },
+    { key: 'serial_numbering', header: 'Serial Numbering', getValue: (item: any) => item.serialNumbering || '' },
+    { key: 'printer', header: 'Printer', getValue: (item: any) => item.printer || '' },
+    { key: 'dimensions', header: 'Dimensions', getValue: (item: any) => item.dimensions || '' },
+    { key: 'banknote_description', header: 'Banknote Description', getValue: (item: any) => item.description || '' },
+    { key: 'historical_description', header: 'Historical Description', getValue: (item: any) => item.historicalDescription || '' },
+    { key: 'front_picture', header: 'Front Picture URL', getValue: (item: any) => item.frontPicture || '' },
+    { key: 'back_picture', header: 'Back Picture URL', getValue: (item: any) => item.backPicture || '' },
+    { key: 'is_approved', header: 'Is Approved', getValue: (item: any) => item.isApproved ? 'Yes' : 'No' },
+    { key: 'is_pending', header: 'Is Pending', getValue: (item: any) => item.isPending ? 'Yes' : 'No' },
+    { key: 'created_at', header: 'Created At', getValue: (item: any) => item.createdAt || '' },
+    { key: 'updated_at', header: 'Updated At', getValue: (item: any) => item.updatedAt || '' }
+  ];
+}
+
+export async function generateAdminExcel(options: AdminExportOptions): Promise<ArrayBuffer> {
+  const { banknotes, countryName } = options;
+  
+  // Get all column definitions for admin export
+  const allColumns = getAdminColumnDefinitions();
+  
+  // Prepare data for Excel
+  const headers = ['Country', ...allColumns.map(col => col.header)];
+  const data: any[][] = [];
+  
+  // Add header row
+  data.push(headers);
+  
+  // Add data rows
+  banknotes.forEach(banknote => {
+    const rowData = [countryName];
+    
+    allColumns.forEach(column => {
+      const value = column.getValue(banknote);
+      rowData.push(value || '');
+    });
+    
+    data.push(rowData);
+  });
+  
+  // Create workbook and worksheet
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.aoa_to_sheet(data);
+  
+  // Add worksheet to workbook
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Banknotes');
+  
+  // Generate Excel file buffer
+  return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+}
+
+export function generateAdminFilename(countryName: string, adminUsername: string): string {
+  const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+  const country = countryName.replace(/\s+/g, '_');
+  
+  return `${adminUsername}_${country}_banknotes_${timestamp}.xlsx`;
+}

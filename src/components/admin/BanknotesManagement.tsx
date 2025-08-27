@@ -35,6 +35,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Download } from 'lucide-react';
+import { generateAdminExcel, downloadExcel, generateAdminFilename } from '@/services/csvExportService';
 
 interface BanknotesManagementProps extends AdminComponentProps {}
 
@@ -92,6 +94,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
   const [banknoteToDelete, setBanknoteToDelete] = useState<Banknote | null>(null);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
   
   const PAGE_SIZE = 10;
 
@@ -444,6 +447,37 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
     }
   };
 
+  const handleExportExcel = async () => {
+    if (!selectedCountryId || sortedBanknotes.length === 0) {
+      toast.error('No data to export');
+      return;
+    }
+
+    const selectedCountry = countries.find(c => c.id === selectedCountryId);
+    if (!selectedCountry) {
+      toast.error('Selected country not found');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const excelBuffer = await generateAdminExcel({
+        banknotes: sortedBanknotes,
+        countryName: selectedCountry.name
+      });
+
+      const filename = generateAdminFilename(selectedCountry.name, user?.username || 'admin');
+      downloadExcel(excelBuffer, filename);
+
+      toast.success(`${sortedBanknotes.length} banknotes exported to Excel successfully`);
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      toast.error('Failed to export data. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div>
       {!disableCountrySelect && (
@@ -528,6 +562,24 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                   </>
                 ) : (
                   'Refresh'
+                )}
+              </Button>
+
+              <Button 
+                onClick={handleExportExcel} 
+                variant="outline" 
+                disabled={isExporting || sortedBanknotes.length === 0}
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export Excel
+                  </>
                 )}
               </Button>
               
