@@ -36,6 +36,11 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     isVisible: false
   });
   const [completedGuides, setCompletedGuides] = useState<Set<TutorialGuide>>(new Set());
+  const [guideShowCounts, setGuideShowCounts] = useState<Record<TutorialGuide, number>>({
+    addBanknote: 0,
+    editBanknote: 0,
+    suggestPicture: 0
+  });
   const [isNewUser, setIsNewUser] = useState(false);
 
   // Enhanced new user detection
@@ -69,8 +74,13 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setIsNewUser(isNew);
       
       if (savedState) {
-        const { completed } = JSON.parse(savedState);
+        const { completed, showCounts } = JSON.parse(savedState);
         setCompletedGuides(new Set(completed));
+        setGuideShowCounts(showCounts || {
+          addBanknote: 0,
+          editBanknote: 0,
+          suggestPicture: 0
+        });
       } else if (isNew) {
         // New user - show addBanknote guide (welcome) after 2 seconds
         setTimeout(() => {
@@ -81,10 +91,11 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [user]);
 
   // Save tutorial state to localStorage
-  const saveTutorialState = (completed: Set<TutorialGuide>) => {
+  const saveTutorialState = (completed: Set<TutorialGuide>, showCounts?: Record<TutorialGuide, number>) => {
     if (user) {
       localStorage.setItem(`tutorials_${user.id}`, JSON.stringify({
-        completed: Array.from(completed)
+        completed: Array.from(completed),
+        showCounts: showCounts || guideShowCounts
       }));
     }
   };
@@ -92,6 +103,14 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const showGuide = (guide: TutorialGuide, force: boolean = false) => {
     // Don't show if already completed (unless manually triggered or forced)
     if (completedGuides.has(guide) && !force) return;
+    
+    // Check 3-time limit per guide (unless forced)
+    if (!force && guideShowCounts[guide] >= 3) return;
+    
+    // Increment show count
+    const newShowCounts = { ...guideShowCounts, [guide]: guideShowCounts[guide] + 1 };
+    setGuideShowCounts(newShowCounts);
+    saveTutorialState(completedGuides, newShowCounts);
     
     const totalSteps = getGuideSteps(guide);
     setTutorialState({
@@ -143,6 +162,11 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const resetTutorials = () => {
     setCompletedGuides(new Set());
+    setGuideShowCounts({
+      addBanknote: 0,
+      editBanknote: 0,
+      suggestPicture: 0
+    });
     if (user) {
       localStorage.removeItem(`tutorials_${user.id}`);
     }
@@ -150,13 +174,13 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Trigger functions for specific events
   const triggerEditBanknoteGuide = () => {
-    if (!completedGuides.has('editBanknote') && user) {
+    if (!completedGuides.has('editBanknote') && guideShowCounts['editBanknote'] < 3 && user) {
       setTimeout(() => showGuide('editBanknote'), 1000);
     }
   };
 
   const triggerSuggestPictureGuide = () => {
-    if (!completedGuides.has('suggestPicture') && user) {
+    if (!completedGuides.has('suggestPicture') && guideShowCounts['suggestPicture'] < 3 && user) {
       setTimeout(() => showGuide('suggestPicture'), 1000);
     }
   };
@@ -170,6 +194,11 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const debugResetTutorials = () => {
     console.log('🎯 Debug: Resetting all tutorials');
     setCompletedGuides(new Set());
+    setGuideShowCounts({
+      addBanknote: 0,
+      editBanknote: 0,
+      suggestPicture: 0
+    });
     setIsNewUser(true);
     if (user) {
       localStorage.removeItem(`tutorials_${user.id}`);
@@ -182,6 +211,11 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     // Reset all tutorial progress
     setCompletedGuides(new Set());
+    setGuideShowCounts({
+      addBanknote: 0,
+      editBanknote: 0,
+      suggestPicture: 0
+    });
     setIsNewUser(true);
     if (user) {
       localStorage.removeItem(`tutorials_${user.id}`);
