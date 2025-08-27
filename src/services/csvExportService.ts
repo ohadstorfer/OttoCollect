@@ -298,8 +298,9 @@ export function generateFilename(
 
 // Admin-specific interfaces and functions
 export interface AdminExportOptions {
-  banknotes: any[]; // Use any[] since we're working with transformed Banknote objects
-  countryName: string;
+  countryId?: string;
+  countryName?: string;
+  banknotes?: any[]; // Optional: if omitted, we will fetch directly from DB
 }
 
 // Define all possible admin columns for detailed banknotes
@@ -332,40 +333,112 @@ function getAdminColumnDefinitions() {
 }
 
 export async function generateAdminExcel(options: AdminExportOptions): Promise<ArrayBuffer> {
-  const { banknotes, countryName } = options;
-  
-  // Get all column definitions for admin export
-  const allColumns = getAdminColumnDefinitions();
-  
-  // Prepare data for Excel
-  const headers = ['Country', ...allColumns.map(col => col.header)];
-  const data: any[][] = [];
-  
-  // Add header row
-  data.push(headers);
-  
-  // Add data rows
-  banknotes.forEach(banknote => {
-    const rowData = [countryName];
-    
-    allColumns.forEach(column => {
-      const value = column.getValue(banknote);
-      rowData.push(value || '');
+  const { countryId, countryName, banknotes } = options;
+
+  // 1) Fetch records directly from DB using snake_case to avoid mapping issues
+  let records: any[] = [];
+  try {
+    if (countryId) {
+      const { data, error } = await supabase.rpc('catalog_banknotes_sorted_by_country', { country_id: countryId });
+      if (error) throw error;
+      records = data || [];
+    } else if (countryName) {
+      const { data, error } = await supabase
+        .from('detailed_banknotes')
+        .select('*')
+        .eq('country', countryName)
+        .eq('is_approved', true)
+        .order('extended_pick_number', { ascending: true });
+      if (error) throw error;
+      records = data || [];
+    } else if (banknotes && banknotes.length) {
+      // Fallback: use provided data if no country specified
+      records = banknotes;
+    }
+  } catch (e: any) {
+    throw new Error(`Failed to fetch banknotes for export: ${e?.message || e}`);
+  }
+
+  if (!records || records.length === 0) {
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet([["No data"]]);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Banknotes');
+    return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  }
+
+  // 2) Determine columns dynamically and exclude specified fields
+  const excludeKeys = new Set<string>([
+    'updated_at', 'created_at', 'is_pending', 'is_approved',
+    'back_picture_thumbnail', 'front_picture_thumbnail',
+    'back_picture_watermarked', 'front_picture_watermarked'
+  ]);
+
+  const allKeysSet = new Set<string>();
+  records.forEach(r => {
+    Object.keys(r || {}).forEach(k => {
+      if (!excludeKeys.has(k)) allKeysSet.add(k);
     });
-    
-    data.push(rowData);
   });
-  
-  // Create workbook and worksheet
+
+  // Preferred ordering for readability
+  const preferredOrder = [
+    'country', 'extended_pick_number', 'pick_number', 'turk_catalog_number',
+    'face_value', 'islamic_year', 'gregorian_year', 'sultan_name', 'type', 'category',
+    'rarity', 'security_element', 'colors', 'serial_numbering', 'printer', 'dimensions',
+    'banknote_description', 'historical_description', 'signatures_front', 'signatures_back',
+    'seal_names', 'watermark', 'front_picture', 'back_picture', 'tughra_picture', 'watermark_picture',
+    'seal_pictures', 'signature_pictures', 'other_element_pictures', 'id'
+  ];
+
+  const remainingKeys = Array.from(allKeysSet).filter(k => !preferredOrder.includes(k)).sort();
+  const orderedKeys = [...preferredOrder.filter(k => allKeysSet.has(k)), ...remainingKeys];
+
+  const headerForKey = (key: string): string => {
+    const mapping: Record<string, string> = {
+      front_picture: 'Front Picture URL',
+      back_picture: 'Back Picture URL',
+      watermark_picture: 'Watermark Picture URL',
+      tughra_picture: 'Tughra Picture URL',
+      seal_pictures: 'Seal Pictures',
+      signature_pictures: 'Signature Pictures',
+      other_element_pictures: 'Other Element Pictures',
+      extended_pick_number: 'Extended Pick Number',
+      pick_number: 'Pick Number',
+      turk_catalog_number: 'Turk Catalog Number',
+      face_value: 'Face Value',
+      islamic_year: 'Islamic Year',
+      gregorian_year: 'Gregorian Year',
+      sultan_name: 'Sultan Name',
+      serial_numbering: 'Serial Numbering',
+      banknote_description: 'Banknote Description',
+      historical_description: 'Historical Description',
+      seal_names: 'Seal Names'
+    };
+    if (mapping[key]) return mapping[key];
+    return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
+
+  const toCellValue = (v: any): string => {
+    if (v === null || v === undefined) return '';
+    if (Array.isArray(v)) return v.filter(Boolean).join(', ');
+    if (typeof v === 'object') return JSON.stringify(v);
+    return String(v);
+  };
+
+  const headers = orderedKeys.map(headerForKey);
+  const data: any[][] = [headers];
+
+  records.forEach(rec => {
+    const row = orderedKeys.map(k => toCellValue((rec as any)[k]));
+    data.push(row);
+  });
+
   const workbook = XLSX.utils.book_new();
   const worksheet = XLSX.utils.aoa_to_sheet(data);
-  
-  // Add worksheet to workbook
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Banknotes');
-  
-  // Generate Excel file buffer
   return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 }
+
 
 export function generateAdminFilename(countryName: string, adminUsername: string): string {
   const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
