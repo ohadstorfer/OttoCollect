@@ -34,6 +34,7 @@ import {
 import { BookmarkPlus, CalendarIcon, Upload, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from "@/services/collectionService";
+import { addToMarketplace } from '@/services/marketplaceService';
 import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
@@ -374,13 +375,9 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
           );
         }
 
-        // If item is marked for sale, create marketplace item
+        // If item is marked for sale, add to marketplace
         if (values.isForSale) {
-          await createMarketplaceItem({
-            collectionItemId: result.id,
-            sellerId: user.id,
-            banknoteId: result.banknoteId
-          });
+          await addToMarketplace(result.id, user.id);
         }
 
         toast({

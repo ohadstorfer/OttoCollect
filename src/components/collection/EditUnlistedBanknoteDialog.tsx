@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollectionItem } from '@/types';
 import { updateUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
+import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Upload, CalendarIcon } from 'lucide-react';
@@ -449,6 +450,15 @@ export default function EditUnlistedBanknoteDialog({
           obverseProcessedImages,
           reverseProcessedImages
         );
+      }
+
+      // Handle marketplace listing
+      if (values.isForSale && !collectionItem.isForSale) {
+        // Item was just marked for sale - add to marketplace
+        await addToMarketplace(collectionItem.id, user.id);
+      } else if (!values.isForSale && collectionItem.isForSale) {
+        // Item was removed from sale - remove from marketplace
+        await removeFromMarketplace(collectionItem.id);
       }
 
       // If item is marked for sale, create marketplace item

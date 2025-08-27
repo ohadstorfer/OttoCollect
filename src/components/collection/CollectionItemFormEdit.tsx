@@ -37,6 +37,7 @@ import { useTranslation } from 'react-i18next';
 import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
+import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
 
 // Define props for CollectionItemForm
@@ -351,6 +352,15 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             obverseProcessedImages,
             reverseProcessedImages
           );
+        }
+
+        // Handle marketplace listing
+        if (values.isForSale && !currentItem.isForSale) {
+          // Item was just marked for sale - add to marketplace
+          await addToMarketplace(currentItem.id, authUser.id);
+        } else if (!values.isForSale && currentItem.isForSale) {
+          // Item was removed from sale - remove from marketplace
+          await removeFromMarketplace(currentItem.id);
         }
 
         if (onUpdate) onUpdate(currentItem, hasImageChanged);
