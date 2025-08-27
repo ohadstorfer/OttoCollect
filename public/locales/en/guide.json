@@ -28,7 +28,7 @@
         },
         "step6": {
           "title": "Remove a Mistaken Entry",
-          "description": "If you added a banknote by mistake: Click on that banknote in your collection. On its page, click the trash icon 🗑️ to remove it. The banknote will be deleted from your collection.",
+          "description": "If you added a banknote by mistake: Click on that banknote in your collection. On its page, click the red trash icon to remove it. The banknote will be deleted from your collection.",
           "type": "error"
         }
       }
@@ -67,25 +67,21 @@
         },
         "step8": {
           "title": "Edit Image (Optional)",
-          "description": "Adjust or crop the picture to fit the required display area."
+          "description": "Adjust or crop the picture to fit the required display area. Then click the “Save” to confirm. " 
         },
         "step9": {
-          "title": "Save",
-          "description": "Click the Save button to confirm changes."
-        },
-        "step10": {
-          "title": "Click \"Update\"",
-          "description": "To finish, click the Update button to apply the edits to your collection."
+          "title": "Click \"Update Item\"",
+          "description": "To finish, scroll to the bottom. Then click the “Update Item” button to apply the edits to your collection."
         }
       }
     },
     "suggestPicture": {
-      "title": "How to Suggest a Picture from Your Collection to the Main Catalogues",
+      "title": "How to Suggest a banknote image from Your Collection to the Main Catalogues",
       "icon": "🖼️",
       "steps": {
         "step1": {
           "title": "Go to the Banknote Page",
-          "description": "Navigate to the banknote page in your collection that contains the photo you want to suggest."
+          "description": "Navigate to the banknote page in your collection that contains the banknote image you want to suggest."
         },
         "step2": {
           "title": "Click \"Suggest to Catalogues\"",
@@ -97,12 +93,12 @@
         },
         "step4": {
           "title": "Edit and Re-Suggest if Needed",
-          "description": "If you edit or change the image later, the system will allow you to suggest it again for catalogues inclusion."
+          "description": "If you edit or change the banknote image later, the system will allow you to suggest it again for catalogues inclusion."
         }
       },
       "note": {
         "title": "Best Picture Wins",
-        "description": "Only the best-quality images are selected for the main catalogues. Admins may choose another user's photo if it's better suited."
+        "description": "Only the best-quality images are selected for the main catalogues. Admins may choose another user's banknote image if it's better suited."
       }
     }
   },
