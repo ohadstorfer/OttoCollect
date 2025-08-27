@@ -229,6 +229,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
                 </div>
                 <div className="text-sm text-muted-foreground truncate">
                   {item?.banknote?.year || tWithFallback('unknownYear', 'Unknown Year')}
+                  
                 </div>
               </div>
               {isOwner && !(item as any).isMissing && (
@@ -254,6 +255,14 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
                   {item.banknote.turkCatalogNumber}
                 </Badge>
               )}
+              {item.banknote.rarity && (
+                <Badge title={tWithFallback('rarity', 'Rarity')}
+                  variant="secondary"
+                  className="hidden sm:inline text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-red-100 text-red-800 border border-gray-300 hover:bg-red-200 shrink-0"
+                >
+                  {item.banknote.rarity}
+                </Badge>
+              )}
               {item?.condition && !item?.grade && (
                 <Badge title={tWithFallback('condition', 'Condition')} variant="secondary" className={`text-[10px] px-1.5 py-0.5 h-auto leading-tight ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'} shrink-0`}>
                   {item.condition}
@@ -269,6 +278,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
                   {formatPrice(item.salePrice)}
                 </Badge>
               )}
+              
             </div>
           </div>
         </div>
