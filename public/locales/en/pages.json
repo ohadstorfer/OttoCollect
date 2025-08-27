@@ -129,7 +129,7 @@
         "title": "Marketplace",
         "description": "Buy and sell authentic banknotes in a secure marketplace with verified sellers"
       },
-      "community": {
+      "communityHome": {
         "title": "Community",
         "description": "Connect with fellow collectors, share knowledge, and participate in discussions"
       }
@@ -250,7 +250,7 @@
         "title": "Marketplace",
         "description": "Buy and sell banknotes within the community through our integrated marketplace"
       },
-      "community": {
+      "communityFeature": {
         "title": "Community",
         "description": "View other personal collection. Connect interact and follow other collectors from around the world."
       }
@@ -261,5 +261,38 @@
       "exploreCatalogues": "Explore Catalogues",
       "joinCommunity": "Join Community"
     }
+  },
+  "community": {
+    "title": "Community",
+    "description": "Connect with fellow collectors, share knowledge, and participate in discussions",
+    "join": {
+      "title": "Join Our Community",
+      "description": "Sign in to access all community features and connect with fellow collectors",
+      "signIn": "Sign In"
+    },
+    "features": {
+      "messages": {
+        "title": "Messaging",
+        "description": "Connect with other collectors through private messages and discussions",
+        "button": "Open Messages"
+      },
+      "blog": {
+        "title": "Blog",
+        "description": "Read and share articles about Ottoman banknotes, collecting tips, and historical insights",
+        "button": "Visit Blog"
+      },
+      "forum": {
+        "title": "Forum",
+        "description": "Participate in community discussions about banknotes, collecting strategies, and historical topics",
+        "button": "Visit Forum"
+      },
+      "badges": {
+        "title": "Achievement Badges",
+        "description": "Earn badges and recognition for your contributions to the community and collection milestones",
+        "button": "View Badges"
+      }
+    },
+    "comingSoon": "Coming Soon",
+    "featureAvailable": "Feature available - no action required"
   }
 } 

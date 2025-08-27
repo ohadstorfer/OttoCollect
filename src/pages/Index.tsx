@@ -382,11 +382,11 @@ const Index = () => {
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <h3 className={`text-xl font-serif font-semibold ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-200'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
-                  <span>{t('home.features.community.title')}</span>
+                  <span>{t('home.features.communityHome.title')}</span>
                 </h3>
               </div>
               <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-ottoman-600' : 'text-ottoman-300'}`} style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
-                {t('home.features.community.description')}
+                {t('home.features.communityHome.description')}
               </p>
               <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="w-6 h-0.5 bg-gradient-to-r from-ottoman-500 to-ottoman-600 rounded-full"></div>

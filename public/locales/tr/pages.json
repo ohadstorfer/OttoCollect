@@ -129,7 +129,7 @@
         "title": "Pazar Yeri",
         "description": "Doğrulanmış satıcılarla güvenli bir pazarda orijinal banknotları satın alın ve satın"
       },
-      "community": {
+      "communityHome": {
         "title": "Topluluk",
         "description": "Fellow koleksiyoncularla bağlantı kurun, bilgi paylaşın ve tartışmalara katılın"
       }
@@ -250,7 +250,7 @@
         "title": "Pazar Yeri",
         "description": "Entegre pazar yerimiz aracılığıyla topluluk içinde banknotları satın alın ve satın"
       },
-      "community": {
+      "communityFeature": {
         "title": "Topluluk",
         "description": "Diğer kişisel koleksiyonları görüntüleyin. Dünya çapındaki diğer koleksiyoncularla bağlantı kurun, etkileşimde bulunun ve takip edin."
       }
@@ -261,5 +261,38 @@
       "exploreCatalogues": "Katalogları Keşfet",
       "joinCommunity": "Topluluğa Katıl"
     }
+  },
+  "community": {
+    "title": "Topluluk",
+    "description": "Fellow koleksiyoncularla bağlantı kurun, bilgi paylaşın ve tartışmalara katılın",
+    "join": {
+      "title": "Topluluğumuza Katılın",
+      "description": "Tüm topluluk özelliklerine erişmek ve fellow koleksiyoncularla bağlantı kurmak için giriş yapın",
+      "signIn": "Giriş Yap"
+    },
+    "features": {
+      "messages": {
+        "title": "Mesajlaşma",
+        "description": "Özel mesajlar ve tartışmalar aracılığıyla diğer koleksiyoncularla bağlantı kurun",
+        "button": "Mesajları Aç"
+      },
+      "blog": {
+        "title": "Blog",
+        "description": "Osmanlı banknotları, toplama ipuçları ve tarihsel içgörüler hakkında makaleler okuyun ve paylaşın",
+        "button": "Blogu Ziyaret Et"
+      },
+      "forum": {
+        "title": "Forum",
+        "description": "Banknotlar, toplama stratejileri ve tarihsel konular hakkında topluluk tartışmalarına katılın",
+        "button": "Forumu Ziyaret Et"
+      },
+      "badges": {
+        "title": "Başarı Rozetleri",
+        "description": "Topluluğa yaptığınız katkılar ve koleksiyon kilometre taşları için rozetler ve tanınma kazanın",
+        "button": "Rozetleri Görüntüle"
+      }
+    },
+    "comingSoon": "Yakında",
+    "featureAvailable": "Özellik mevcut - eylem gerekmez"
   }
 } 

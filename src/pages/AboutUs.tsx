@@ -280,10 +280,10 @@ const AboutUs: React.FC = () => {
                                         <Users className="h-6 w-6 text-white" />
                                     </div>
                                     <h3 className="text-xl font-serif font-semibold mb-2 text-ottoman-800 dark:text-ottoman-200">
-                                        <span>{t('aboutUs.platformFeatures.community.title')}</span>
+                                        <span>{t('aboutUs.platformFeatures.communityFeature.title')}</span>
                                     </h3>
                                     <p className="text-ottoman-600 dark:text-ottoman-300">
-                                        {t('aboutUs.platformFeatures.community.description')}
+                                        {t('aboutUs.platformFeatures.communityFeature.description')}
                                     </p>
                                 </div>
                             </div>

@@ -23,17 +23,17 @@ export default function Community() {
       buttonText: t('community.features.messages.button')
     },
     {
-      title: t('community.features.members.title'),
-      description: t('community.features.members.description'),
-      icon: <Users className="h-8 w-8 text-ottoman-500" />,
-      action: () => navigate('/members'),
-      buttonText: t('community.features.members.button'),
+      title: t('community.features.blog.title'),
+      description: t('community.features.blog.description'),
+      icon: <BookOpen className="h-8 w-8 text-ottoman-500" />,
+      action: () => navigate('/blog'),
+      buttonText: t('community.features.blog.button'),
       comingSoon: false
     },
     {
       title: t('community.features.forum.title'),
       description: t('community.features.forum.description'),
-      icon: <BookOpen className="h-8 w-8 text-ottoman-500" />,
+      icon: <Users className="h-8 w-8 text-ottoman-500" />,
       action: () => navigate('/community/forum'),
       buttonText: t('community.features.forum.button'),
       comingSoon: false
@@ -44,7 +44,7 @@ export default function Community() {
       icon: <Award className="h-8 w-8 text-ottoman-500" />,
       action: () => {},
       buttonText: t('community.features.badges.button'),
-      comingSoon: true
+      comingSoon: false
     }
   ];
 
@@ -89,23 +89,23 @@ export default function Community() {
               <CardHeader className="flex flex-row items-center gap-4">
                 {feature.icon}
                 <div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  {feature.comingSoon && (
-                    <span className="inline-flex items-center rounded-md bg-ottoman-900/20 px-2 py-1 text-xs font-medium text-ottoman-300 ring-1 ring-inset ring-ottoman-700/30">
-                      {t('community.comingSoon')}
-                    </span>
-                  )}
+                  <CardTitle className="text-xl"><span>{feature.title}</span></CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">{feature.description}</p>
-                <Button 
-                  onClick={feature.action} 
-                  variant={feature.comingSoon ? "outline" : "default"}
-                  disabled={feature.comingSoon}
-                >
-                  {feature.buttonText}
-                </Button>
+                {feature.title === t('community.features.badges.title') ? (
+                  <div className="text-sm text-muted-foreground italic">
+                   
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={feature.action} 
+                    variant="default"
+                  >
+                    {feature.buttonText}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}
