@@ -95,6 +95,11 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
     }
   };
 
+
+
+
+
+  
   const updateUserRole = async (userId: string, roleId: string) => {
     try {
       console.log(`Updating user ${userId} to role ${roleId}`);
@@ -105,16 +110,21 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       if (!selectedRole) {
         throw new Error('Selected role not found');
       }
-
-      // Update both role_id and role in the database
+  
+      // Check if role is a country admin
+      const isCountryAdmin = (roleName: string) => {
+        return roleName.toLowerCase().includes('admin') && !roleName.toLowerCase().includes('super');
+      };
+  
       const { error } = await supabase
         .from('profiles')
         .update({ 
           role_id: roleId,
-          role: selectedRole.name 
+          role: selectedRole.name,
+          is_country_admin: isCountryAdmin(selectedRole.name) // ✅ set true/false dynamically
         })
         .eq('id', userId);
-
+  
       if (error) {
         console.error('Error details:', error);
         throw error;
@@ -128,7 +138,8 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
           ? { 
               ...user, 
               role_id: roleId, 
-              role: selectedRole.name 
+              role: selectedRole.name,
+              is_country_admin: isCountryAdmin(selectedRole.name) // ✅ reflect in state too
             } 
           : user
       ));
@@ -137,6 +148,10 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
       toast.error(t('userManagement.errors.updateRoleFailed'));
     }
   };
+
+  
+
+
 
   const getRoleDisplay = (user: User) => {
     const role = roles.find(r => r.id === user.role_id);
