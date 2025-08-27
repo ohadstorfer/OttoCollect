@@ -85,7 +85,7 @@ const Guide = () => {
             "overflow-hidden transition-all duration-300 ease-in-out",
             isExpanded ? "max-h-none opacity-100" : "max-h-0 opacity-0"
           )}>
-            <div className="px-8 pb-8">
+            <div className="px-8 pb-8 mt-4">
               <div className="space-y-6">
                 {Object.entries(section.steps).map(([stepKey, step]: [string, any]) => (
                   <div key={stepKey}>
