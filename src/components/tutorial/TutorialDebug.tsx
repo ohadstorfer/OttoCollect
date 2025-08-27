@@ -31,14 +31,14 @@ export const TutorialDebug: React.FC = () => {
   return (
     <div className="fixed top-4 left-4 z-50">
       {/* Toggle button */}
-      {/* <Button
+      <Button
         variant="outline"
         size="sm"
         onClick={() => setIsVisible(!isVisible)}
         className="bg-white/80 backdrop-blur-sm shadow-lg"
       >
         <Eye className="h-4 w-4" />
-      </Button> */}
+      </Button>
 
       {/* Debug panel */}
       {isVisible && (

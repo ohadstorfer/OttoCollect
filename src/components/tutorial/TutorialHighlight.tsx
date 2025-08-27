@@ -38,17 +38,17 @@ export const TutorialHighlight: React.FC<TutorialHighlightProps> = ({
       {isHighlighted && (
         <>
           {/* Glow effect */}
-          <div className="absolute inset-0 bg-blue-500/20 rounded-lg animate-pulse" />
+          <div className="absolute inset-0 bg-ottoman-500/20 rounded-lg animate-pulse" />
           
           {/* Border highlight */}
-          <div className="absolute inset-0 border-2 border-blue-500 rounded-lg animate-ping" />
+          <div className="absolute inset-0 border-2 border-ottoman-600 rounded-lg animate-ping" />
           
           {/* Arrow indicator */}
           <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-            <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium animate-bounce">
+            <div className="bg-ottoman-600 text-white px-2 py-1 rounded text-xs font-medium animate-bounce">
               Click here!
             </div>
-            <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-blue-500 mx-auto" />
+            <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-ottoman-600 mx-auto" />
           </div>
         </>
       )}

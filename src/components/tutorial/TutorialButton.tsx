@@ -47,12 +47,12 @@ export const TutorialButton: React.FC<TutorialButtonProps> = ({
       {/* Sparkle effect for new users */}
       {shouldShowSparkle && (
         <div className="absolute -top-1 -right-1">
-          <Sparkles className="h-3 w-3 text-yellow-500 animate-bounce" />
+          <Sparkles className="h-3 w-3 text-gold-500 animate-bounce" />
         </div>
       )}
       
       {/* Hover effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      <div className="absolute inset-0 bg-gradient-to-r from-ottoman-500/10 to-gold-500/10 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </Button>
   );
 };

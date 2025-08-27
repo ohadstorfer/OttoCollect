@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTutorial } from '@/context/TutorialContext';
+import { useTheme } from '@/context/ThemeContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, ArrowRight, ArrowLeft, HelpCircle } from 'lucide-react';
@@ -8,6 +9,7 @@ import { cn } from '@/lib/utils';
 
 export const TutorialPopup = () => {
   const { t } = useTranslation('guide');
+  const { theme } = useTheme();
   const { 
     tutorialState, 
     nextStep, 
@@ -43,17 +45,17 @@ export const TutorialPopup = () => {
   const guideConfigs = {
     addBanknote: { 
       icon: '🧾', 
-      color: 'bg-gradient-to-r from-green-500 to-blue-500',
+      color: theme === 'light' ? 'bg-gradient-to-r from-ottoman-300 to-ottoman-500' : 'bg-gradient-to-r from-ottoman-600 via-gold-600 to-ottoman-700',
       name: 'How to Add a Banknote to Your Collection'
     },
     editBanknote: { 
       icon: '✏️', 
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
+      color: theme === 'light' ? 'bg-gradient-to-r from-ottoman-300 to-ottoman-500' : 'bg-gradient-to-r from-ottoman-600 via-gold-600 to-ottoman-700',
       name: 'How to Add Information or a Picture to a Banknote in Your Collection'
     },
     suggestPicture: { 
       icon: '🖼️', 
-      color: 'bg-gradient-to-r from-orange-500 to-red-500',
+      color: theme === 'light' ? 'bg-gradient-to-r from-ottoman-300 to-ottoman-500' : 'bg-gradient-to-r from-ottoman-600 via-gold-600 to-ottoman-700',
       name: 'How to Suggest a Picture from Your Collection to the Main Catalogues'
     }
   };
@@ -98,12 +100,7 @@ export const TutorialPopup = () => {
                   <p className="text-white/80 text-xs font-medium">
                     Step {currentStep} of {totalSteps}
                   </p>
-                  <h4 className={cn(
-                    "font-bold leading-tight",
-                    isWelcomeStep ? "text-base text-white/90" : "text-lg text-white"
-                  )}>
-                    <span>{stepContent.title}</span>
-                  </h4>
+
                 </div>
               </div>
               <Button
@@ -127,18 +124,24 @@ export const TutorialPopup = () => {
           
           <CardContent className="p-6">
             <div className="flex items-start gap-3 mb-6">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <HelpCircle className="h-4 w-4 text-blue-600" />
+              <div className="flex-shrink-0 w-8 h-8 bg-ottoman-100 rounded-full flex items-center justify-center">
+                <HelpCircle className="h-4 w-4 text-ottoman-600" />
               </div>
               <div className="flex-1">
+              <h4 className={cn(
+                    "font-bold leading-tight",
+                    isWelcomeStep ? "text-base text-white/90" : "text-lg text-white"
+                  )}>
+                    <span>{stepContent.title}</span>
+                  </h4>
                 {isWelcomeStep && (
                   <p className="text-muted-foreground mb-3 text-sm">
                     Let's get you started with your banknote collection journey
                   </p>
                 )}
-                <p className="text-muted-foreground leading-relaxed text-base">
-                  {stepContent.description}
-                </p>
+                <p className="text-foreground leading-relaxed text-base font-medium">
+  {stepContent.description}
+</p>
                 {stepContent.type === 'error' && (
                   <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 mt-3">
                     <p className="text-sm text-destructive font-medium">
@@ -174,14 +177,14 @@ export const TutorialPopup = () => {
               {isLastStep ? (
                 <Button
                   onClick={completeTutorial}
-                  className="text-sm flex items-center gap-2 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+                  className="text-sm flex items-center gap-2 bg-gradient-to-r from-ottoman-600  to-ottoman-700 hover:from-ottoman-700  hover:to-ottoman-800 text-white"
                 >
                   Complete Guide ✓
                 </Button>
               ) : (
                 <Button
                   onClick={nextStep}
-                  className="text-sm flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                  className="text-sm flex items-center gap-2 bg-gradient-to-r from-ottoman-500  to-ottoman-600 hover:from-ottoman-600  hover:to-ottoman-700 text-white"
                 >
                   Next Step
                   <ArrowRight className="h-4 w-4" />
@@ -197,7 +200,7 @@ export const TutorialPopup = () => {
                   className={cn(
                     "w-2 h-2 rounded-full transition-all duration-300",
                     index < currentStep 
-                      ? "bg-blue-500" 
+                      ? "bg-ottoman-600" 
                       : "bg-gray-300"
                   )}
                 />

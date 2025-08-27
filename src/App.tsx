@@ -163,7 +163,7 @@ function App() {
                   <Toaster />
                   <TutorialPopup />
                   <TutorialTriggers />
-                  <TutorialDebug />
+                  {/* <TutorialDebug /> */}
                 </PageBackground>
               </div>
             </HelmetProvider>
