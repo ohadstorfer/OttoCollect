@@ -62,8 +62,8 @@
   },
   
   "country": {
-    "catalogues": "kataloglar",
-    "historicalBanknoteCatalogues": "Tarihi Banknot Katalogları"
+    "catalogue": "katalog",
+    "historicalBanknoteCatalogue": "Tarihi Banknot Kataloğu"
   },
   
   "loading": {

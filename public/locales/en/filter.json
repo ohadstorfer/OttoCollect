@@ -64,8 +64,8 @@
   },
   
   "country": {
-    "catalogues": "catalogues",
-    "historicalBanknoteCatalogues": "Historical Banknote Catalogues"
+    "catalogue": "catalogue",
+    "historicalBanknoteCatalogue": "Historical Banknote Catalogue"
   },
   
   "loading": {

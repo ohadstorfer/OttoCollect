@@ -451,12 +451,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
     {/* Mobile title */}
     <h3 className="text-xl font-semibold border-primary block sm:hidden">
-      <span>{countryName} {tWithFallback('country.catalogues', 'catalogues')}</span>
+      <span>{countryName} {tWithFallback('country.catalogue', 'catalogue')}</span>
     </h3>
 
     {/* Desktop title */}
     <h3 className="text-xl font-semibold border-primary hidden sm:block">
-      <span>{countryName}'s {tWithFallback('country.historicalBanknoteCatalogues', 'Historical Banknote Catalogues')}</span>
+      <span>{countryName}'s {tWithFallback('country.historicalBanknoteCatalogue', 'Historical Banknote Catalogue')}</span>
     </h3>
   </div>
 )}
