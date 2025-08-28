@@ -1,33 +1,98 @@
-import React from 'react';
+import { useNavigate } from "react-router-dom";
+import { LogIn, ShoppingBag, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import AuthForm from './AuthForm';
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useTranslation } from 'react-i18next';
 
 interface AuthRequiredDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  features?: Array<{
+    icon: JSX.Element;
+    title: string;
+    description: string;
+  }>;
 }
 
-const AuthRequiredDialog = ({ open, onOpenChange }: AuthRequiredDialogProps) => {
+export const AuthRequiredDialog = ({
+  open,
+  onOpenChange,
+  title,
+  description,
+  features
+}: AuthRequiredDialogProps) => {
+  const navigate = useNavigate();
+  const { t } = useTranslation(['auth']);
+
+  // Use provided props or fallback to translations
+  const dialogTitle = title || t('requiredDialog.title');
+  const dialogDescription = description || t('requiredDialog.description');
+  const defaultFeatures = [
+    {
+      icon: <ShoppingBag className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
+      title: t('requiredDialog.features.marketplace.title'),
+      description: t('requiredDialog.features.marketplace.description')
+    },
+    {
+      icon: <UserPlus className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
+      title: t('requiredDialog.features.community.title'),
+      description: t('requiredDialog.features.community.description')
+    }
+  ];
+
+  const dialogFeatures = features || defaultFeatures;
+
+  const handleAuthNavigate = () => {
+    onOpenChange(false);
+    navigate('/auth');
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Authentication Required</DialogTitle>
-          <DialogDescription>
-            Please sign in to continue.
+          <DialogTitle className="text-2xl font-serif text-center"><span>{dialogTitle}</span></DialogTitle>
+          <DialogDescription className="text-base pt-2 text-center">
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
-        <AuthForm mode="login" />
+        
+        <div className="py-6">
+          <div className="space-y-4">
+            {dialogFeatures.map((feature, index) => (
+              <div key={index} className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-ottoman-100 dark:bg-ottoman-900/50 flex items-center justify-center">
+                  {feature.icon}
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-ottoman-900 dark:text-ottoman-100"><span>{feature.title}</span></h4>
+                  <p className="text-sm text-ottoman-600 dark:text-ottoman-300">{feature.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button 
+            onClick={handleAuthNavigate} 
+            className="w-full bg-ottoman-600 hover:bg-ottoman-700 text-white"
+            size="lg"
+          >
+            <LogIn className="mr-2 h-5 w-5" />
+            {t('requiredDialog.signInButton')}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default AuthRequiredDialog;
+}; 

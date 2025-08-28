@@ -1,184 +1,538 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
-import {
-  DynamicFilterState,
-  FilterCategoryOption,
-  CollectionItem,
-} from '@/types';
-import { ToggleGroup } from '@/components/shared/ToggleGroup';
-import { Toggle } from '@/components/ui/toggle';
-import { Label } from '@/components/ui/label';
-import { useToast } from "@/hooks/use-toast"
+import React, { useState, useEffect, useRef, memo, useMemo } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
+import { DynamicFilterState } from "@/types/filter";
+import { 
+  fetchCategoriesByCountryId, 
+  fetchTypesByCountryId, 
+  fetchSortOptionsByCountryId, 
+  saveUserFilterPreferences, 
+  fetchUserFilterPreferences 
+} from "@/services/countryService";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { BaseBanknoteFilterProfile } from "./BaseBanknoteFilterProfile";
+import { CollectionItem } from "@/types";
+import { useTranslation } from "react-i18next";
 
-interface BanknoteFilterCollectionProps {
+export interface BanknoteFilterCollectionProps {
   countryId: string;
-  onFilterChange: (newFilters: Partial<DynamicFilterState>) => void;
+  countryName: string;
+  onFilterChange: (filters: Partial<DynamicFilterState>) => void;
   currentFilters: DynamicFilterState;
-  categories: FilterCategoryOption[];
-  types: FilterCategoryOption[];
-  sortOptions: FilterCategoryOption[];
-  groupMode: boolean;
-  onGroupModeChange: (enabled: boolean) => void;
-  viewMode?: 'grid' | 'list';
+  isLoading?: boolean;
+  className?: string;
   onViewModeChange?: (mode: 'grid' | 'list') => void;
-  isLoading: boolean;
-  totalItems: number;
-  collectionTypes: { id: string; name: string }[];
-  collectionItems: CollectionItem[];
+  groupMode?: boolean;
+  onGroupModeChange?: (mode: boolean) => void;
+  onPreferencesLoaded?: () => void;
+  activeTab?: 'collection' | 'wishlist' | 'missing' | 'sale';
+  onTabChange?: (tab: 'collection' | 'wishlist' | 'missing' | 'sale') => void;
+  isOwner?: boolean;
+  profileUser?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank?: string;
+  };
+  onBackToCountries?: () => void;
+  collectionItems?: CollectionItem[];
+  sortedCollectionItems?: CollectionItem[];
+  sortedSaleItems?: CollectionItem[];
+  sortedMissingItems?: CollectionItem[];
+  sortedWishlistItems?: CollectionItem[];
+  currencies?: any[];
+  categoryOrder?: any[];
+  getFlattenedItemsForExport?: (activeTab: string) => CollectionItem[];
 }
 
-const BanknoteFilterCollection = ({
-  countryId,
-  onFilterChange,
-  currentFilters,
-  categories,
-  types,
-  sortOptions,
-  groupMode,
-  onGroupModeChange,
-  viewMode = 'grid',
-  onViewModeChange,
-  isLoading,
-  totalItems,
-  collectionTypes,
-  collectionItems,
-}: BanknoteFilterCollectionProps) => {
-  const { t } = useTranslation();
-  const { toast } = useToast();
-  const [isGridView, setIsGridView] = useState(viewMode === 'grid');
-
-  const handleViewModeChange = useCallback((newMode: 'grid' | 'list') => {
-    setIsGridView(newMode === 'grid');
-    onViewModeChange?.(newMode);
-  }, [onViewModeChange]);
-
-  useEffect(() => {
-    setIsGridView(viewMode === 'grid');
-  }, [viewMode]);
-
-  const handleCategoryChange = (selectedCategories: string[]) => {
-    onFilterChange({ categories: selectedCategories });
-  };
-
-  const handleTypeChange = (selectedTypes: string[]) => {
-    onFilterChange({ types: selectedTypes });
-  };
-
-  const handleSortChange = (selectedSorts: string[]) => {
-    onFilterChange({ sort: selectedSorts });
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFilterChange({ search: e.target.value });
-  };
-
-  const handleGroupModeChange = (enabled: boolean) => {
-    onGroupModeChange(enabled);
-  };
-
-  const handleResetFilters = () => {
-    onFilterChange({
-      search: '',
-      categories: [],
-      types: [],
-      sort: [],
+// Custom comparison function to ensure re-renders when viewMode or groupMode change
+const areEqual = (prevProps: BanknoteFilterCollectionProps, nextProps: BanknoteFilterCollectionProps) => {
+  // Always re-render if viewMode or groupMode change
+  if (prevProps.viewMode !== nextProps.viewMode || prevProps.groupMode !== nextProps.groupMode) {
+    console.log('BanknoteFilterCollection: Re-rendering due to viewMode or groupMode change', {
+      prevViewMode: prevProps.viewMode,
+      nextViewMode: nextProps.viewMode,
+      prevGroupMode: prevProps.groupMode,
+      nextGroupMode: nextProps.groupMode
     });
-    toast({
-      title: "Filters Reset",
-      description: "All filters have been reset to their default values.",
-    })
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t('filter:title')}</h2>
-        <button onClick={handleResetFilters} className="text-sm text-blue-500 hover:underline">
-          {t('filter:reset')}
-        </button>
-      </div>
-
-      {/* Search Bar */}
-      <div>
-        <Label htmlFor="search">{t('filter:search.label')}</Label>
-        <input
-          type="text"
-          id="search"
-          placeholder={t('filter:search.placeholder')}
-          className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-500"
-          onChange={handleSearchChange}
-          defaultValue={currentFilters.search}
-        />
-      </div>
-
-      {/* Category Filter */}
-      <div>
-        <Label>{t('filter:categories.label')}</Label>
-        <ToggleGroup
-          items={categories}
-          selected={currentFilters.categories}
-          onSelectedChange={handleCategoryChange}
-          isLoading={isLoading}
-        />
-      </div>
-
-      {/* Type Filter */}
-      <div>
-        <Label>{t('filter:types.label')}</Label>
-        <ToggleGroup
-          items={types}
-          selected={currentFilters.types}
-          onSelectedChange={handleTypeChange}
-          isLoading={isLoading}
-        />
-      </div>
-
-      {/* Sort Options */}
-      <div>
-        <Label>{t('filter:sortBy.label')}</Label>
-        <ToggleGroup
-          items={sortOptions}
-          selected={currentFilters.sort}
-          onSelectedChange={handleSortChange}
-          isLoading={isLoading}
-        />
-      </div>
-
-      {/* Group Mode Toggle */}
-      <div className="flex items-center space-x-2">
-        <Toggle
-          id="group-mode"
-          aria-label="Enable Group Mode"
-          onChecked={groupMode}
-          onClick={() => handleGroupModeChange(!groupMode)}
-        />
-        <Label htmlFor="group-mode">{t('filter:groupBy.label')}</Label>
-      </div>
-
-      {/* View Mode Toggle */}
-      {onViewModeChange && (
-        <div className="flex items-center space-x-2">
-          <Label>{t('filter:viewMode.label')}</Label>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleViewModeChange('grid')}
-              className={`px-3 py-1 rounded-md ${isGridView ? 'bg-blue-500 text-white' : 'bg-gray-200'
-                }`}
-            >
-              {t('filter:viewMode.grid')}
-            </button>
-            <button
-              onClick={() => handleViewModeChange('list')}
-              className={`px-3 py-1 rounded-md ${!isGridView ? 'bg-blue-500 text-white' : 'bg-gray-200'
-                }`}
-            >
-              {t('filter:viewMode.list')}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    return false;
+  }
+  
+  // Re-render if other important props change
+  if (prevProps.countryId !== nextProps.countryId || 
+      prevProps.activeTab !== nextProps.activeTab ||
+      prevProps.isLoading !== nextProps.isLoading) {
+    return false;
+  }
+  
+  return true;
 };
 
-export default BanknoteFilterCollection;
+// Use React.memo with custom comparison to ensure re-renders when viewMode or groupMode change
+export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> = memo(({
+  countryId,
+  countryName,
+  onFilterChange,
+  currentFilters,
+  isLoading = false,
+  className,
+  onViewModeChange,
+  groupMode = false,
+  onGroupModeChange,
+  onPreferencesLoaded,
+  activeTab,
+  onTabChange,
+  isOwner = false,
+  profileUser,
+  onBackToCountries,
+  collectionItems,
+  sortedCollectionItems,
+  sortedSaleItems,
+  sortedMissingItems,
+  sortedWishlistItems,
+  currencies = [],
+  categoryOrder = [],
+  getFlattenedItemsForExport
+}) => {
+  const { toast } = useToast();
+  const { user: authUser } = useAuth();
+  const { t } = useTranslation(['filter']);
+  
+  // Memoize the fallback function to prevent infinite re-renders
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    };
+  }, [t]);
+  const [categories, setCategories] = useState<FilterOption[]>([]);
+  const [types, setTypes] = useState<FilterOption[]>([]);
+  const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // Add refs to track states and prevent render loops
+  const initialLoadComplete = useRef(false);
+  const ignoreNextGroupModeChange = useRef(false);
+  const ignoreNextViewModeChange = useRef(false);
+  const isFetchingFilter = useRef(false);
+  const lastCountryId = useRef("");
+
+  console.log("BanknoteFilterCollection: Rendering with", { 
+    countryId, 
+    currentFilters,
+    isLoading, 
+    loading,
+    categories: categories.length,
+    types: types.length,
+    sortOptions: sortOptions.length,
+    groupMode
+  });
+
+  useEffect(() => {
+    // Skip if no countryId or if we're already fetching
+    if (!countryId || isFetchingFilter.current) return;
+    
+    // Skip if we already loaded options for this country
+    if (lastCountryId.current === countryId && initialLoadComplete.current) {
+      console.log("BanknoteFilterCollection: Already loaded options for this country, skipping");
+      return;
+    }
+    
+    const loadFilterOptionsAndPreferences = async () => {
+      console.log("BanknoteFilterCollection: Loading filter options for country:", countryId);
+      setLoading(true);
+      isFetchingFilter.current = true;
+      
+      try {
+        const [categoriesData, typesData, sortOptionsData] = await Promise.all([
+          fetchCategoriesByCountryId(countryId),
+          fetchTypesByCountryId(countryId),
+          fetchSortOptionsByCountryId(countryId)
+        ]);
+        
+        const mappedCategories = categoriesData.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+        }));
+        
+        const mappedTypes = typesData.map(type => ({
+          id: type.id,
+          name: type.name,
+        }));
+        
+        // Make sure we have all the necessary sort options
+        let hasSultanOption = false;
+        let hasFaceValueOption = false;
+        let hasPickOption = false;
+        
+        const mappedSortOptions = sortOptionsData.map(sort => {
+          if (sort.field_name === "sultan") hasSultanOption = true;
+          if (sort.field_name === "faceValue") hasFaceValueOption = true;
+          if (sort.field_name === "extPick") hasPickOption = true;
+          
+          return {
+            id: sort.id,
+            name: sort.name,
+            fieldName: sort.field_name,
+            isRequired: sort.is_required
+          };
+        });
+        
+        // Add default sort options if they don't exist
+        
+        if (!hasFaceValueOption) {
+          mappedSortOptions.push({
+                    id: "facevalue-default",
+        name: tWithFallback('sort.faceValue', 'Face Value'),
+        fieldName: "faceValue",
+            isRequired: false
+          });
+        }
+        
+        if (!hasPickOption) {
+          mappedSortOptions.push({
+                    id: "extpick-default",
+        name: tWithFallback('sort.catalogNumber', 'Catalog Number'),
+        fieldName: "extPick",
+            isRequired: true
+          });
+        }
+        
+        setCategories(mappedCategories);
+        setTypes(mappedTypes);
+        setSortOptions(mappedSortOptions);
+        
+        let userPreferences = null;
+        if (authUser) {
+          try {
+            userPreferences = await fetchUserFilterPreferences(authUser.id, countryId);
+            console.log("BanknoteFilterCollection: User preferences loaded", userPreferences);
+            
+            // Set group mode if it's defined in preferences, but only during initial load
+            // and only notify the parent if the value is different from current groupMode
+            if (userPreferences && 
+                typeof userPreferences.group_mode === 'boolean' && 
+                onGroupModeChange && 
+                userPreferences.group_mode !== groupMode && 
+                !initialLoadComplete.current) {
+              
+              // Set a flag to ignore the next group mode change to prevent infinite loops
+              ignoreNextGroupModeChange.current = true;
+              
+              // Call the parent's onGroupModeChange
+              onGroupModeChange(userPreferences.group_mode);
+            }
+
+            // Set view mode if it's defined in preferences, but only during initial load
+            if (userPreferences && 
+                userPreferences.view_mode && 
+                onViewModeChange && 
+                !initialLoadComplete.current) {
+              
+              console.log("BanknoteFilterCollection: Loading view mode from preferences:", userPreferences.view_mode);
+              
+              // Set a flag to ignore the next view mode change to prevent infinite loops
+              ignoreNextViewModeChange.current = true;
+              
+              setViewMode(userPreferences.view_mode);
+              onViewModeChange(userPreferences.view_mode);
+            }
+          } catch (err) {
+            console.error("Error fetching user preferences:", err);
+          }
+        } else {
+          // For non-logged-in users, try to load from session storage
+          try {
+            const savedViewMode = sessionStorage.getItem(`viewMode-${countryId}`);
+            console.log("BanknoteFilterCollection: Checking session storage for view mode:", savedViewMode);
+            if (savedViewMode && onViewModeChange && !initialLoadComplete.current) {
+              const parsedViewMode = JSON.parse(savedViewMode) as 'grid' | 'list';
+              console.log("BanknoteFilterCollection: Loaded view mode from session storage:", parsedViewMode);
+              
+              ignoreNextViewModeChange.current = true;
+              setViewMode(parsedViewMode);
+              onViewModeChange(parsedViewMode);
+            }
+          } catch (err) {
+            console.error("Error loading view mode from session storage:", err);
+          }
+        }
+        
+        // Always ensure extPick is included in the sort options for fallback sorting
+        const requiredSortFields = sortOptionsData
+          .filter(opt => opt.is_required)
+          .map(opt => opt.field_name || '');
+          
+        // Make sure extPick is always included as a fallback sort 
+        if (!requiredSortFields.includes('extPick')) {
+          requiredSortFields.push('extPick');
+        }
+          
+        if (userPreferences && !initialLoadComplete.current) {
+          const sortFieldNames = userPreferences.selected_sort_options
+            .map(sortId => {
+              const option = sortOptionsData.find(opt => opt.id === sortId);
+              return option ? option.field_name : null;
+            })
+            .filter(Boolean) as string[];
+          
+          // Ensure extPick is always included in the sort, after user choices
+          const finalSortFields = Array.from(
+            new Set([...sortFieldNames, ...requiredSortFields])
+          );
+          
+          onFilterChange({
+            categories: userPreferences.selected_categories,
+            types: userPreferences.selected_types,
+            sort: finalSortFields,
+          });
+
+          // Notify parent that preferences are loaded
+          if (onPreferencesLoaded) {
+            onPreferencesLoaded();
+          }
+        } else if (!initialLoadComplete.current) {
+          // Set default filters if no user preferences are found
+          const defaultCategoryIds = mappedCategories.map(cat => cat.id);
+          const defaultTypeIds = mappedTypes
+            .filter(type => type.name.toLowerCase().includes('issued'))
+            .map(t => t.id);
+            
+          // For new users, default to sorting by extPick only since it comes pre-sorted from the DB
+          const defaultSort = ['extPick']; // Remove faceValue from default sort
+          
+          onFilterChange({
+            categories: defaultCategoryIds,
+            types: defaultTypeIds,
+            sort: defaultSort,
+          });
+
+          // Notify parent that preferences are loaded, even with defaults
+          if (onPreferencesLoaded) {
+            onPreferencesLoaded();
+          }
+        }
+        
+        // Mark as complete to prevent repeated loads and clear ignore flags
+        initialLoadComplete.current = true;
+        ignoreNextViewModeChange.current = false;
+        ignoreNextGroupModeChange.current = false;
+        lastCountryId.current = countryId;
+      } catch (error) {
+        console.error("Error loading filter options:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load filter options.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+        isFetchingFilter.current = false;
+      }
+    };
+
+    loadFilterOptionsAndPreferences();
+    // groupMode is NOT included in the dependency array because it would cause infinite loops
+  }, [countryId, authUser, onFilterChange, toast, onGroupModeChange, onPreferencesLoaded]); // groupMode removed from dependencies
+
+  const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
+    if (newFilters.sort) {
+      // Get only the required sort fields that must be included
+      const requiredSortFields = sortOptions
+        .filter(opt => opt.isRequired)
+        .map(opt => opt.fieldName || '')
+        .filter(Boolean);
+      
+      // Ensure extPick is always included as a fallback sort
+      if (!requiredSortFields.includes('extPick') && !newFilters.sort.includes('extPick')) {
+        newFilters.sort = [...newFilters.sort, 'extPick'];
+      }
+      
+      // Add other required sort fields if they're missing
+      requiredSortFields.forEach(fieldName => {
+        if (!newFilters.sort.includes(fieldName)) {
+          newFilters.sort.push(fieldName);
+        }
+      });
+    }
+
+    // Save user preferences automatically with each change
+    if (authUser?.id) {
+      console.log("BanknoteFilterCollection: Auto-saving filter preferences");
+      const sortOptionIds = newFilters.sort
+        ? newFilters.sort
+            .map(fieldName => {
+              const option = sortOptions.find(opt => opt.fieldName === fieldName);
+              return option ? option.id : null;
+            })
+            .filter(Boolean) as string[]
+        : currentFilters.sort
+            .map(fieldName => {
+              const option = sortOptions.find(opt => opt.fieldName === fieldName);
+              return option ? option.id : null;
+            })
+            .filter(Boolean) as string[];
+
+      saveUserFilterPreferences(
+        authUser.id,
+        countryId,
+        {
+          selected_categories: newFilters.categories || currentFilters.categories || [],
+          selected_types: newFilters.types || currentFilters.types || [],
+          selected_sort_options: sortOptionIds,
+          group_mode: groupMode || false
+        }
+      ).catch(error => {
+        console.error("Error saving filter preferences:", error);
+      });
+    }
+    
+    onFilterChange(newFilters);
+  }, [onFilterChange, sortOptions, authUser, countryId, currentFilters, groupMode]);
+  
+  const handleViewModeChange = React.useCallback((mode: 'grid' | 'list') => {
+    // If we're set to ignore the next change and still in initial load, skip this call
+    if (ignoreNextViewModeChange.current && !initialLoadComplete.current) {
+      ignoreNextViewModeChange.current = false;
+      console.log("BanknoteFilterCollection: Ignoring view mode change during initial load to prevent loop");
+      return;
+    }
+    
+    // Clear the ignore flag if we're past initial load (user interaction)
+    if (initialLoadComplete.current) {
+      ignoreNextViewModeChange.current = false;
+    }
+    
+    console.log("BanknoteFilterCollection: handleViewModeChange called with mode:", mode, "current viewMode:", viewMode);
+    
+    setViewMode(mode);
+    if (onViewModeChange) {
+      onViewModeChange(mode);
+    }
+    
+    // Save view mode preference
+    if (authUser && countryId) {
+      console.log("BanknoteFilterCollection: Saving view mode preference:", mode);
+      
+      // Get current sort option IDs
+      const sortOptionIds = currentFilters.sort
+        .map(fieldName => {
+          const option = sortOptions.find(opt => opt.fieldName === fieldName);
+          return option ? option.id : null;
+        })
+        .filter(Boolean) as string[];
+      
+      saveUserFilterPreferences(authUser.id, countryId, {
+        selected_categories: currentFilters.categories || [],
+        selected_types: currentFilters.types || [],
+        selected_sort_options: sortOptionIds,
+        group_mode: groupMode || false,
+        view_mode: mode
+      }).catch(err => {
+        console.error("Error saving view mode preference:", err);
+      });
+    } else {
+      // For non-logged-in users, store in session storage
+      try {
+        sessionStorage.setItem(`viewMode-${countryId}`, JSON.stringify(mode));
+      } catch (e) {
+        console.error("Unable to store view mode in session storage:", e);
+      }
+    }
+  }, [onViewModeChange, authUser, countryId, currentFilters, groupMode, sortOptions]);
+  
+  const handleGroupModeChange = React.useCallback((mode: boolean) => {
+    // If we're set to ignore the next change and still in initial load, skip this call
+    if (ignoreNextGroupModeChange.current && !initialLoadComplete.current) {
+      ignoreNextGroupModeChange.current = false;
+      console.log("BanknoteFilterCollection: Ignoring group mode change during initial load to prevent loop");
+      return;
+    }
+    
+    // Clear the ignore flag if we're past initial load (user interaction)
+    if (initialLoadComplete.current) {
+      ignoreNextGroupModeChange.current = false;
+    }
+    
+    console.log("BanknoteFilterCollection: handleGroupModeChange called with mode:", mode, "current groupMode:", groupMode);
+    
+    // Save group mode preference if user is logged in
+    if (authUser?.id) {
+      console.log("BanknoteFilterCollection: Saving group mode preference:", mode);
+      
+      // Get current sort option IDs
+      const sortOptionIds = currentFilters.sort
+        .map(fieldName => {
+          const option = sortOptions.find(opt => opt.fieldName === fieldName);
+          return option ? option.id : null;
+        })
+        .filter(Boolean) as string[];
+      
+      // Save all preferences including group mode
+      saveUserFilterPreferences(
+        authUser.id,
+        countryId,
+        {
+          selected_categories: currentFilters.categories || [],
+          selected_types: currentFilters.types || [],
+          selected_sort_options: sortOptionIds,
+          group_mode: mode
+        }
+      ).catch(error => {
+        console.error("Error saving group mode preference:", error);
+      });
+    } else {
+      // For non-logged-in users, store in session storage
+      try {
+        sessionStorage.setItem(`groupMode-${countryId}`, JSON.stringify(mode));
+      } catch (e) {
+        console.error("Unable to store group mode in session storage:", e);
+      }
+    }
+    
+    if (onGroupModeChange) {
+      onGroupModeChange(mode);
+    }
+  }, [onGroupModeChange, authUser, countryId, currentFilters.categories, currentFilters.sort, currentFilters.types, sortOptions]);
+
+  return (
+    <div className={cn(
+      "w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-1.5",
+      "sticky top-16 inset-x-0",
+      className
+    )}>
+      <BaseBanknoteFilterProfile
+        categories={categories}
+        types={types}
+        sortOptions={sortOptions}
+        onFilterChange={handleFilterChange}
+        currentFilters={currentFilters}
+        isLoading={isLoading || loading}
+        className={className}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+        groupMode={groupMode}
+        onGroupModeChange={handleGroupModeChange}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+        isOwner={isOwner}
+        countryName={countryName}
+        profileUser={profileUser}
+        onBackToCountries={onBackToCountries}
+        collectionItems={collectionItems}
+        sortedCollectionItems={sortedCollectionItems}
+        sortedSaleItems={sortedSaleItems}
+        sortedMissingItems={sortedMissingItems}
+        sortedWishlistItems={sortedWishlistItems}
+        currencies={currencies}
+        categoryOrder={categoryOrder}
+        getFlattenedItemsForExport={getFlattenedItemsForExport}
+      />
+    </div>
+  );
+}, areEqual);
+
+// Add a display name for the memoized component
+BanknoteFilterCollection.displayName = 'BanknoteFilterCollection';

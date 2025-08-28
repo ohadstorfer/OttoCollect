@@ -1,400 +1,263 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
-import { useToast } from "@/hooks/use-toast"
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/select';
 import { CollectionItem } from '@/types';
+import { updateCollectionItem } from '@/services/collectionService';
+import { useToast } from '@/hooks/use-toast';
 import CollectionImageUpload from './CollectionImageUpload';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Switch } from "@/components/ui/switch";
+import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format } from 'date-fns';
+import { cn } from "@/lib/utils";
 
-const formSchema = z.object({
-  condition: z.string().optional(),
-  grade_by: z.string().optional(),
-  grade: z.string().optional(),
-  grade_condition_description: z.string().optional(),
-  salePrice: z.number().optional(),
-  isForSale: z.boolean().optional(),
-  publicNote: z.string().optional(),
-  privateNote: z.string().optional(),
-  purchasePrice: z.number().optional(),
-  purchaseDate: z.string().optional(),
-  location: z.string().optional(),
-  obverseImage: z.string().optional(),
-  reverseImage: z.string().optional(),
-  orderIndex: z.number().optional(),
-  type: z.string().optional(),
-  prefix: z.string().optional(),
-  hide_images: z.boolean().optional(),
-});
-
-interface CollectionItemFormProps {
-  item?: CollectionItem;
-  onSubmit: (updatedItem: CollectionItem) => Promise<void>;
+export interface CollectionItemFormProps {
+  item: CollectionItem;
   onCancel: () => void;
+  onSaveComplete?: () => void;
+  onUpdate?: () => void;
 }
 
-const CollectionItemForm = ({ item, onSubmit, onCancel }: CollectionItemFormProps) => {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      condition: item?.condition || '',
-      grade_by: item?.grade_by || '',
-      grade: item?.grade || '',
-      grade_condition_description: item?.grade_condition_description || '',
-      salePrice: item?.salePrice || undefined,
-      isForSale: item?.isForSale || false,
-      publicNote: item?.publicNote || '',
-      privateNote: item?.privateNote || '',
-      purchasePrice: item?.purchasePrice || undefined,
-      purchaseDate: item?.purchaseDate || '',
-      location: item?.location || '',
-      obverseImage: item?.obverseImage || '',
-      reverseImage: item?.reverseImage || '',
-      orderIndex: item?.orderIndex || 0,
-      type: item?.type || '',
-      prefix: item?.prefix || '',
-      hide_images: item?.hide_images || false,
-    },
+const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel, onSaveComplete, onUpdate }) => {
+  const [formData, setFormData] = useState({
+    condition: item.condition || "VF",
+    purchasePrice: item.purchasePrice || undefined,
+    purchaseDate: item.purchaseDate ? new Date(item.purchaseDate) : undefined,
+    location: item.location || "",
+    publicNote: item.publicNote || "",
+    privateNote: item.privateNote || "",
+    isForSale: item.isForSale || false,
+    salePrice: item.salePrice || undefined,
+    obverseImage: item.obverseImage || "",
+    reverseImage: item.reverseImage || "",
   });
 
-  const handleImageUpload = async (file: File, side: 'obverse' | 'reverse') => {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-  
-      // Simulate image upload to server
-      const imageUrl = URL.createObjectURL(file);
-  
-      form.setValue(side === 'obverse' ? 'obverseImage' : 'reverseImage', imageUrl);
-      toast({
-        title: `${side === 'obverse' ? 'Obverse' : 'Reverse'} image uploaded`,
-        description: `Successfully uploaded ${file.name}`,
-      });
-    } catch (error) {
-      toast({
-        title: "Upload failed",
-        description: "Failed to upload image. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSalePrice, setShowSalePrice] = useState(!!item.salePrice);
+
+  const handleChange = (name: string, value: any) => {
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsSubmitting(true);
     try {
-      const updatedItem: CollectionItem = {
+      const updatedItem = {
         ...item,
-        condition: values.condition || null,
-        grade_by: values.grade_by || null,
-        grade: values.grade || null,
-        grade_condition_description: values.grade_condition_description || null,
-        salePrice: values.salePrice || null,
-        isForSale: values.isForSale || false,
-        publicNote: values.publicNote || null,
-        privateNote: values.privateNote || null,
-        purchasePrice: values.purchasePrice || null,
-        purchaseDate: values.purchaseDate || null,
-        location: values.location || null,
-        obverseImage: values.obverseImage || null,
-        reverseImage: values.reverseImage || null,
-        orderIndex: values.orderIndex || 0,
-        type: values.type || null,
-        prefix: values.prefix || null,
-        hide_images: values.hide_images || false,
+        ...formData,
+        salePrice: formData.isForSale ? formData.salePrice : null,
       };
-      await onSubmit(updatedItem);
-      toast({
-        title: "Collection item updated",
-        description: "Your collection item has been updated successfully.",
-      });
+      await updateCollectionItem(item.id, updatedItem);
+      if (onSaveComplete) {
+        onSaveComplete();
+      }
     } catch (error) {
-      toast({
-        title: "Update failed",
-        description: "Failed to update collection item. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
+      console.error("Error saving collection item:", error);
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-      <FormField
-        control={form.control}
-        name="condition"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Condition</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a condition" />
-                </SelectTrigger>
-              </FormControl>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-3">
+        <h3 className="text-lg font-medium">Banknote details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <div className="font-medium mb-1">{item.banknote.denomination}</div>
+            <div className="text-sm text-muted-foreground">
+              {item.banknote.country}, {item.banknote.year}
+            </div>
+            <div className="mt-1 text-sm">
+              Pick: {item.banknote.pickNumber || item.banknote.extendedPickNumber}
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="condition">Condition</Label>
+            <Select
+              value={formData.condition}
+              onValueChange={(value) => handleChange("condition", value)}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="condition">
+                <SelectValue placeholder="Select condition" />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="UNC">UNC</SelectItem>
-                <SelectItem value="AU">AU</SelectItem>
-                <SelectItem value="XF/AU">XF/AU</SelectItem>
-                <SelectItem value="XF">XF</SelectItem>
-                <SelectItem value="VF/XF">VF/XF</SelectItem>
-                <SelectItem value="VF">VF</SelectItem>
-                <SelectItem value="F/VF">F/VF</SelectItem>
-                <SelectItem value="F">F</SelectItem>
-                <SelectItem value="VG/F">VG/F</SelectItem>
-                <SelectItem value="VG">VG</SelectItem>
-                <SelectItem value="G">G</SelectItem>
-                <SelectItem value="FR">FR</SelectItem>
-                <SelectItem value="Fair">Fair</SelectItem>
-                <SelectItem value="Poor">Poor</SelectItem>
+                <SelectGroup>
+                  <SelectItem value="UNC">UNC (Uncirculated)</SelectItem>
+                  <SelectItem value="AU">AU (About Uncirculated)</SelectItem>
+                  <SelectItem value="XF">XF (Extremely Fine)</SelectItem>
+                  <SelectItem value="VF">VF (Very Fine)</SelectItem>
+                  <SelectItem value="F">F (Fine)</SelectItem>
+                  <SelectItem value="VG">VG (Very Good)</SelectItem>
+                  <SelectItem value="G">G (Good)</SelectItem>
+                  <SelectItem value="Fair">Fair</SelectItem>
+                  <SelectItem value="Poor">Poor</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="grade_by"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Graded By</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., PCGS" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="grade"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Grade</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., 67" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-      <FormField
-        control={form.control}
-        name="grade_condition_description"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Grade Condition Description</FormLabel>
-            <FormControl>
-              <Textarea placeholder="e.g., Cleaned" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="purchasePrice"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Purchase Price</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="e.g., 25.00"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="salePrice"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Sale Price</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="e.g., 50.00"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-      <FormField
-        control={form.control}
-        name="purchaseDate"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Purchase Date</FormLabel>
-            <FormControl>
-              <Input type="date" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="location"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Location</FormLabel>
-            <FormControl>
-              <Input placeholder="e.g., Safe deposit box" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="publicNote"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Public Note</FormLabel>
-            <FormControl>
-              <Textarea placeholder="e.g., From my grandfather's collection" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="privateNote"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Private Note</FormLabel>
-            <FormControl>
-              <Textarea placeholder="e.g., Sentimental value" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="orderIndex"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Order Index</FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                placeholder="e.g., 1"
-                {...field}
-                onChange={(e) => field.onChange(Number(e.target.value))}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="type"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Type</FormLabel>
-            <FormControl>
-              <Input placeholder="e.g., Commemorative" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="prefix"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Prefix</FormLabel>
-            <FormControl>
-              <Input placeholder="e.g., A" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="hide_images"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <FormLabel className="text-base">Hide Images</FormLabel>
-              <FormDescription>
-                This will hide the images from public view.
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Input
-                type="checkbox"
-                checked={field.value}
-                onChange={(e) => field.onChange(e.target.checked)}
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>Obverse Image</Label>
-          <CollectionImageUpload
-            currentImage={form.getValues("obverseImage") || undefined}
-            side="front"
-            onImageUploaded={(file) => handleImageUpload(file, 'obverse')}
-            disabled={isSubmitting}
-          />
+          </div>
         </div>
-        
-        <div>
-          <Label>Reverse Image</Label>
-          <CollectionImageUpload
-            currentImage={form.getValues("reverseImage") || undefined}
-            side="back"
-            onImageUploaded={(file) => handleImageUpload(file, 'reverse')}
-            disabled={isSubmitting}
-          />
+      </div>
+      
+      <div className="space-y-3">
+        <h3 className="text-lg font-medium">Purchase information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="purchasePrice">Purchase Price</Label>
+            <Input
+              id="purchasePrice"
+              type="number"
+              step="0.01"
+              value={formData.purchasePrice || ""}
+              onChange={(e) => handleChange("purchasePrice", e.target.value ? parseFloat(e.target.value) : undefined)}
+              disabled={isSubmitting}
+              placeholder="Enter purchase price"
+            />
+          </div>
+          <div>
+            <Label htmlFor="purchaseDateInput">Purchase Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="purchaseDateInput"
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.purchaseDate && "text-muted-foreground"
+                  )}
+                  disabled={isSubmitting}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.purchaseDate ? (
+                    format(formData.purchaseDate, "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.purchaseDate}
+                  onSelect={(date) => handleChange("purchaseDate", date)}
+                  disabled={isSubmitting}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <Label htmlFor="location">Purchase Location</Label>
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={(e) => handleChange("location", e.target.value)}
+              disabled={isSubmitting}
+              placeholder="Where did you buy it?"
+            />
+          </div>
         </div>
       </div>
 
+      <div className="space-y-3">
+        <h3 className="text-lg font-medium">Banknote Images</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Obverse (Front)</Label>
+            <CollectionImageUpload
+              image={formData.obverseImage}
+              side="obverse"
+              onImageUploaded={(url) => handleChange("obverseImage", url)}
+              disabled={isSubmitting}
+            />
+          </div>
+          <div>
+            <Label>Reverse (Back)</Label>
+            <CollectionImageUpload
+              image={formData.reverseImage}
+              side="reverse"
+              onImageUploaded={(url) => handleChange("reverseImage", url)}
+              disabled={isSubmitting}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-lg font-medium">Notes</h3>
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <Label htmlFor="publicNote">Public Note</Label>
+            <Textarea
+              id="publicNote"
+              value={formData.publicNote}
+              onChange={(e) => handleChange("publicNote", e.target.value)}
+              disabled={isSubmitting}
+              placeholder="This note will be visible to everyone"
+              rows={3}
+            />
+          </div>
+          <div>
+            <Label htmlFor="privateNote">Private Note</Label>
+            <Textarea
+              id="privateNote"
+              value={formData.privateNote}
+              onChange={(e) => handleChange("privateNote", e.target.value)}
+              disabled={isSubmitting}
+              placeholder="This note will only be visible to you"
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-lg font-medium"><span>Marketplace</span></h3>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="isForSale"
+            checked={formData.isForSale}
+            onCheckedChange={(checked) => {
+              handleChange("isForSale", checked);
+              setShowSalePrice(checked);
+            }}
+            disabled={isSubmitting}
+          />
+          <Label htmlFor="isForSale">List this banknote for sale</Label>
+        </div>
+
+        {showSalePrice && (
+          <div>
+            <Label htmlFor="salePrice">Sale Price</Label>
+            <Input
+              id="salePrice"
+              type="number"
+              step="0.01"
+              value={formData.salePrice || ""}
+              onChange={(e) => handleChange("salePrice", e.target.value ? parseFloat(e.target.value) : undefined)}
+              disabled={isSubmitting}
+              placeholder="Enter sale price"
+            />
+          </div>
+        )}
+      </div>
+
       <div className="flex justify-end space-x-2">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit"}
+          {isSubmitting ? "Saving..." : "Save"}
         </Button>
       </div>
     </form>
