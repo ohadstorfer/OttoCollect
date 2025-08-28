@@ -118,41 +118,28 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
             sort: userPreferences.sort || [],
             countries: userPreferences.countries || []
           });
-        } else {
-          // When no user preferences exist, select ALL available filters by default
-          const defaultCategories = mappedCategories.map(cat => cat.id);
-          const defaultTypes = mappedTypes.map(type => type.id);
-          
-          console.log("No user preferences found, selecting ALL available filters by default:", { 
-            categories: defaultCategories,
-            types: defaultTypes
-          });
-          
-          // Set default filters to include ALL available options
-          const defaultCountries = mappedCountries.map(country => country.id);
-          
-          onFilterChange({
-            categories: defaultCategories,
-            types: defaultTypes,
-            sort: ["newest"],
-            countries: defaultCountries
-          });
-        }
+                 } else {
+           // When no user preferences exist, select NO filters by default to show all items
+           console.log("No user preferences found, selecting NO filters by default to show all items");
+           
+           onFilterChange({
+             categories: [],
+             types: [],
+             sort: ["newest"],
+             countries: []
+           });
+         }
       }
-    } catch (err) {
-      console.error("Error handling user preferences:", err);
-      // Use defaults on error - but with properly mapped IDs
-      const defaultCategories = mappedCategories.map(cat => cat.id);
-      const defaultTypes = mappedTypes.map(type => type.id);
-      const defaultCountries = mappedCountries.map(country => country.id);
-      
-      onFilterChange({
-        categories: defaultCategories,
-        types: defaultTypes,
-        sort: ["newest"],
-        countries: defaultCountries
-      });
-    }
+         } catch (err) {
+       console.error("Error handling user preferences:", err);
+       // Use empty defaults on error to show all items
+       onFilterChange({
+         categories: [],
+         types: [],
+         sort: ["newest"],
+         countries: []
+       });
+     }
   }, [user, onFilterChange]);
 
   // Handle external category/type/country updates
