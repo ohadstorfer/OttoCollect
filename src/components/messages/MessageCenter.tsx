@@ -9,7 +9,7 @@ import { ChevronLeft, MessageCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { UserRank } from '@/types';
 import { checkUserDailyMessagingLimit } from '@/services/messageService';
-import { Message } from '@/types/message';
+import { Message } from '@/types';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/context/LanguageContext';
 

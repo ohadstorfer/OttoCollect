@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Conversation, Message } from '@/types/message';
+import { Conversation, Message } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { getMessages, sendMessage as sendMessageService, markMessageAsRead, getUnreadMessagesCount, subscribeToMessages, checkUserDailyMessagingLimit } from '@/services/messageService';
 
@@ -56,11 +56,16 @@ export default function useMessages(): UseMessagesReturn {
         },
         lastMessage: {
           id: 'temp-' + Date.now(),
+          sender_id: user.id,
+          receiver_id: userId,
           content: '',
-          createdAt: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          isRead: true,
+          reference_item_id: undefined,
           senderId: user.id,
-          recipientId: userId,
-          isRead: true
+          receiverId: userId,
+          createdAt: new Date().toISOString(),
+          recipientId: userId
         },
         unreadCount: 0
       };
@@ -211,7 +216,7 @@ export default function useMessages(): UseMessagesReturn {
     try {
       const { data, error } = await supabase
         .from('messages')
-        .select('*')
+        .select('id, sender_id, receiver_id, content, created_at, is_read, reference_item_id')
         .or(
           `and(sender_id.eq.${user.id},receiver_id.eq.${userId}),` +
           `and(sender_id.eq.${userId},receiver_id.eq.${user.id})`
@@ -227,12 +232,18 @@ export default function useMessages(): UseMessagesReturn {
       // Transform to our Message interface
       const conversationMessages: Message[] = data.map(msg => ({
         id: msg.id,
+        sender_id: msg.sender_id,
+        receiver_id: msg.receiver_id,
         content: msg.content,
-        createdAt: msg.created_at,
-        senderId: msg.sender_id,
-        recipientId: msg.receiver_id,
+        content_ar: undefined,
+        content_tr: undefined,
+        created_at: msg.created_at,
         isRead: msg.is_read,
-        referenceItemId: msg.reference_item_id
+        reference_item_id: msg.reference_item_id,
+        senderId: msg.sender_id,
+        receiverId: msg.receiver_id,
+        createdAt: msg.created_at,
+        recipientId: msg.receiver_id
       }));
       
       setCurrentMessages(conversationMessages);
@@ -273,7 +284,7 @@ export default function useMessages(): UseMessagesReturn {
         message.senderId,
         message.recipientId,
         message.content,
-        message.referenceItemId
+        message.reference_item_id
       );
 
       if (!result) {

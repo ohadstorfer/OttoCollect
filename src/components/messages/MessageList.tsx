@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Calendar, User } from 'lucide-react';
-import { Conversation, Message } from '@/types/message';
+import { Conversation, Message } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useDateLocale } from '@/lib/dateUtils';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

@@ -1,8 +1,14 @@
 export interface BlogPost {
   id: string;
   title: string;
+  title_ar?: string;
+  title_tr?: string;
   content: string;
+  content_ar?: string;
+  content_tr?: string;
   excerpt: string;
+  excerpt_ar?: string;
+  excerpt_tr?: string;
   main_image_url: string;
   author_id: string;
   authorId?: string;
@@ -26,6 +32,8 @@ export interface BlogComment {
   id: string;
   post_id: string;
   content: string;
+  content_ar?: string;
+  content_tr?: string;
   author_id: string;
   author?: {
     id: string;

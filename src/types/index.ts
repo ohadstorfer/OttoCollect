@@ -5,19 +5,36 @@ export interface Message {
   sender_id: string;
   receiver_id: string;
   content: string;
+  content_ar?: string;
+  content_tr?: string;
   created_at: string;
   isRead: boolean;
   reference_item_id?: string;
   
   // Alias properties for compatibility
-  senderId?: string;
-  receiverId?: string;
-  createdAt?: string;
+  senderId: string;
+  receiverId: string;
+  createdAt: string;
+  recipientId: string;
+}
+
+export interface Conversation {
+  otherUserId: string;
+  otherUser: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    rank: string;
+  };
+  lastMessage: Message;
+  unreadCount: number;
 }
 
 export interface Role {
   id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   created_at: string;
 }
 
@@ -59,6 +76,8 @@ export interface User {
   email: string;
   avatarUrl?: string;
   about?: string;
+  about_ar?: string;
+  about_tr?: string;
   country?: string;
   role_id: string;
   role: UserRole;
@@ -77,6 +96,7 @@ export interface User {
 // Add missing Banknote interface
 export interface Banknote {
   id: string;
+  catalogId: string;
   country: string;
   extendedPickNumber: string;
   pickNumber?: string;
@@ -110,9 +130,11 @@ export interface Banknote {
 export interface CountryData {
   id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   description?: string;
   image_url?: string;
-  created_at?: string;
+  created_at: string;
   updated_at?: string;
   imageUrl?: string;
   banknoteCount?: number;
@@ -280,6 +302,8 @@ export interface MarketplaceItem {
 export interface Country {
   id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   description?: string;
   image_url?: string;
   created_at: string;
@@ -289,7 +313,11 @@ export interface Country {
 export interface ForumPost {
   id: string;
   title: string;
+  title_ar?: string;
+  title_tr?: string;
   content: string;
+  content_ar?: string;
+  content_tr?: string;
   author_id: string;
   image_urls?: string[];
   created_at: string;
@@ -301,6 +329,8 @@ export interface ForumComment {
   post_id: string;
   author_id: string;
   content: string;
+  content_ar?: string;
+  content_tr?: string;
   created_at: string;
   updated_at: string;
   is_edited?: boolean;

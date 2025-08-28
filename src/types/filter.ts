@@ -10,11 +10,13 @@ export interface Country {
 export interface CountryData {
   id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   description?: string;
   imageUrl?: string | null;
   banknoteCount?: number;
-  display_order: number;
-  created_at?: string;
+  display_order?: number;
+  created_at: string;
   updated_at?: string;
 }
 
@@ -22,6 +24,8 @@ export interface CategoryDefinition {
   id: string;
   country_id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   description?: string;
   display_order: number;
   created_at: string;
@@ -32,6 +36,8 @@ export interface TypeDefinition {
   id: string;
   country_id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   description?: string;
   display_order: number;
   created_at: string;
@@ -42,6 +48,8 @@ export interface SortOption {
   id: string;
   country_id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   field_name: string;
   description?: string;
   is_default: boolean;

@@ -1,7 +1,11 @@
 export interface ForumPost {
   id: string;
   title: string;
+  title_ar?: string;
+  title_tr?: string;
   content: string;
+  content_ar?: string;
+  content_tr?: string;
   author_id: string;
   authorId?: string;
   author?: {
@@ -26,6 +30,8 @@ export interface ForumComment {
   id: string;
   post_id: string;
   content: string;
+  content_ar?: string;
+  content_tr?: string;
   author_id: string;
   author?: {
     id: string;
