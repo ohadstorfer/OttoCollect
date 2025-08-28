@@ -13,6 +13,7 @@ import SEOHead from "@/components/seo/SEOHead";
 import { SEO_CONFIG } from "@/config/seoConfig";
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from "@/context/LanguageContext";
+import { useLocalizedContent } from '@/hooks/useLocalizedContent';
 
 const Catalog = () => {
   const { t } = useTranslation(['catalog']);
@@ -22,13 +23,24 @@ const Catalog = () => {
   const [countries, setCountries] = useState<CountryData[]>([]);
   const { user } = useAuth();
   const [userCollection, setUserCollection] = useState<CollectionItem[]>([]);
-  const { direction } = useLanguage();
+  const { direction, currentLanguage } = useLanguage();
+  const { getLocalizedText, isTranslating } = useLocalizedContent({
+    autoTranslate: true,
+    onTranslationComplete: (localizedCountry) => {
+      // Update the country in the state with the localized name
+      setCountries(prevCountries => 
+        prevCountries.map(country => 
+          country.id === localizedCountry.id ? localizedCountry : country
+        )
+      );
+    }
+  });
 
   useEffect(() => {
     const loadCountries = async () => {
       setLoading(true);
       try {
-        const data = await fetchCountriesForCatalog();
+        const data = await fetchCountriesForCatalog(currentLanguage);
         // Remove alphabetical sorting - keep database order by display_order
         setCountries(data);
       } catch (error) {
@@ -44,7 +56,7 @@ const Catalog = () => {
     };
 
     loadCountries();
-  }, [toast]);
+  }, [toast, currentLanguage]);
 
   // Fetch user collection once user is signed in
   useEffect(() => {
@@ -63,9 +75,10 @@ const Catalog = () => {
     fetchCollection();
   }, [user]);
 
-  const filteredCountries = countries.filter(country => 
-    country.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCountries = countries.filter(country => {
+    const localizedName = getLocalizedText(country.name, country.name_ar || country.name_tr);
+    return localizedName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   return (
     <div className="min-h-screen animate-fade-in">
@@ -118,12 +131,16 @@ const Catalog = () => {
                     />
                   ) : (
                     <div className="w-full h-full bg-ottoman-100 dark:bg-ottoman-100 bg-ottoman-50 flex items-center justify-center">
-                      <span className="text-ottoman-500">{country.name}</span>
+                      <span className="text-ottoman-500">
+                        {getLocalizedText(country.name, country.name_ar || country.name_tr)}
+                      </span>
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
                       <div className="w-full p-4 text-white bg-gradient-to-t from-black/70 to-transparent">
-                        <h3 className={`text-xl font-bold !text-gray-200 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}><span>{country.name}</span></h3>
+                        <h3 className={`text-xl font-bold !text-gray-200 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+                          <span>{getLocalizedText(country.name, country.name_ar || country.name_tr)}</span>
+                        </h3>
                         <p className={`text-sm opacity-80 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                           {t('banknote', { count: country.banknoteCount })}
                         </p>

@@ -1,7 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CountryData } from "@/types";
+import { databaseTranslationService, createNameTranslationConfig } from "./databaseTranslationService";
 
-export async function fetchCountriesForCatalog(): Promise<CountryData[]> {
+export async function fetchCountriesForCatalog(currentLanguage: string = 'en'): Promise<CountryData[]> {
   try {
     const { data, error } = await supabase
       .from('countries')
@@ -30,7 +31,7 @@ export async function fetchCountriesForCatalog(): Promise<CountryData[]> {
     });
     
     // Combine data
-    return data.map(country => ({
+    const countries = data.map(country => ({
       id: country.id,
       name: country.name,
       description: country.description || '',
@@ -38,6 +39,19 @@ export async function fetchCountriesForCatalog(): Promise<CountryData[]> {
       banknoteCount: countMap[country.name] || 0,
       display_order: country.display_order
     }));
+
+    // Create translation configuration for countries table (name field only)
+    const translationConfig = createNameTranslationConfig('countries', 'id');
+    
+    // Apply localization with auto-translation
+    const localizedCountries = await databaseTranslationService.getLocalizedRecords(
+      translationConfig,
+      countries,
+      currentLanguage,
+      true // Auto-translate missing translations
+    );
+
+    return localizedCountries;
   } catch (error) {
     console.error('Error in fetchCountriesForCatalog:', error);
     return [];
