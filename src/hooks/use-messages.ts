@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Message } from '@/types';
-import { Conversation } from '@/types/message';
+import { Conversation, Message } from '@/types/message';
 import { useAuth } from '@/context/AuthContext';
 import { getMessages, sendMessage as sendMessageService, markMessageAsRead, getUnreadMessagesCount, subscribeToMessages, checkUserDailyMessagingLimit } from '@/services/messageService';
 
@@ -17,6 +16,7 @@ interface UseMessagesReturn {
   markAsRead: (messageId: string) => Promise<boolean>;
   loadMessages: (userId: string) => Promise<void>;
   setActiveConversation: (userId: string | null) => void;
+  createTemporaryConversation: (userId: string) => Promise<Conversation | null>;
 }
 
 export default function useMessages(): UseMessagesReturn {
@@ -28,10 +28,54 @@ export default function useMessages(): UseMessagesReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [temporaryConversations, setTemporaryConversations] = useState<Map<string, Conversation>>(new Map());
+
+  // Create temporary conversation for new user
+  const createTemporaryConversation = useCallback(async (userId: string): Promise<Conversation | null> => {
+    if (!user?.id || userId === user.id) return null;
+
+    try {
+      const { data: userData, error } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, rank')
+        .eq('id', userId)
+        .single();
+
+      if (error || !userData) {
+        console.error('User not found:', error);
+        return null;
+      }
+
+      const tempConversation: Conversation = {
+        otherUserId: userId,
+        otherUser: {
+          id: userData.id,
+          username: userData.username || 'Unknown User',
+          avatarUrl: userData.avatar_url || '',
+          rank: userData.rank || 'User'
+        },
+        lastMessage: {
+          id: 'temp-' + Date.now(),
+          content: '',
+          createdAt: new Date().toISOString(),
+          senderId: user.id,
+          recipientId: userId,
+          isRead: true
+        },
+        unreadCount: 0
+      };
+
+      setTemporaryConversations(prev => new Map(prev.set(userId, tempConversation)));
+      return tempConversation;
+    } catch (error) {
+      console.error('Error creating temporary conversation:', error);
+      return null;
+    }
+  }, [user?.id]);
 
   // Build conversations from messages
   const buildConversations = useCallback(async (messagesData: Message[]) => {
-    if (!user || messagesData.length === 0) {
+    if (!user) {
       setConversations([]);
       return;
     }
@@ -66,7 +110,7 @@ export default function useMessages(): UseMessagesReturn {
         );
         
         const lastMessage = userMessages.reduce((latest, current) => 
-          new Date(current.created_at) > new Date(latest.created_at) ? current : latest
+          new Date(current.createdAt || current.created_at) > new Date(latest.createdAt || latest.created_at) ? current : latest
         );
         
         const unreadCount = userMessages.filter(msg => 
@@ -75,6 +119,16 @@ export default function useMessages(): UseMessagesReturn {
         
         const userData = usersData?.find(u => u.id === userId);
         
+        // Transform lastMessage to match Message interface
+        const messageForConversation: Message = {
+          id: lastMessage.id,
+          content: lastMessage.content,
+          createdAt: lastMessage.createdAt || lastMessage.created_at,
+          senderId: lastMessage.senderId || lastMessage.sender_id,
+          recipientId: lastMessage.receiverId || lastMessage.receiver_id,
+          isRead: lastMessage.isRead
+        };
+
         return {
           otherUserId: userId,
           otherUser: {
@@ -83,22 +137,30 @@ export default function useMessages(): UseMessagesReturn {
             avatarUrl: userData?.avatar_url,
             rank: userData?.rank || 'User',
           },
-          lastMessage,
+          lastMessage: messageForConversation,
           unreadCount
         };
       });
       
       // Sort conversations by latest message
       conversationList.sort((a, b) => 
-        new Date(b.lastMessage.created_at).getTime() - 
-        new Date(a.lastMessage.created_at).getTime()
+        new Date(b.lastMessage.createdAt).getTime() - 
+        new Date(a.lastMessage.createdAt).getTime()
       );
       
-      setConversations(conversationList);
+      // Merge with temporary conversations
+      const allConversations = [...conversationList];
+      temporaryConversations.forEach((tempConv, userId) => {
+        if (!conversationList.find(c => c.otherUserId === userId)) {
+          allConversations.push(tempConv);
+        }
+      });
+      
+      setConversations(allConversations);
     } catch (err) {
       console.error('Error building conversations:', err);
     }
-  }, [user]);
+  }, [user, temporaryConversations]);
 
   useEffect(() => {
     if (!user) return;
@@ -267,6 +329,15 @@ export default function useMessages(): UseMessagesReturn {
         return false;
       }
 
+      // Remove temporary conversation if it exists
+      if (temporaryConversations.has(message.receiver_id)) {
+        setTemporaryConversations(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(message.receiver_id);
+          return newMap;
+        });
+      }
+
       // Replace temporary message with real one
       setCurrentMessages(prev => 
         prev.map(msg => msg.id === tempId ? result : msg)
@@ -335,5 +406,6 @@ export default function useMessages(): UseMessagesReturn {
     markAsRead,
     loadMessages,
     setActiveConversation,
+    createTemporaryConversation,
   };
 }

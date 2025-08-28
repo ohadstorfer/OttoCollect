@@ -30,7 +30,6 @@ export function MessageCenter({
   const [showMessages, setShowMessages] = useState(!isMobile);
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(initialHasReachedDailyLimit);
   const [dailyCount, setDailyCount] = useState(0);
-  const [temporaryConversation, setTemporaryConversation] = useState<any | null>(null);
   const { t } = useTranslation(['messaging']);
   const { direction } = useLanguage();
   const { 
@@ -40,7 +39,8 @@ export function MessageCenter({
     isLoading, 
     loadMessages, 
     sendMessage,
-    setActiveConversation
+    setActiveConversation,
+    createTemporaryConversation
   } = useMessages();
 
   // Check daily limit when component mounts or user changes
@@ -63,10 +63,9 @@ export function MessageCenter({
   // Handle initial user ID from URL parameter
   useEffect(() => {
     const setupInitialConversation = async () => {
-      // Wait for conversations to be loaded and user to be available
-      if (!initialUserId || !user?.id || !conversations || conversations.length === 0) return;
+      if (!initialUserId || !user?.id) return;
 
-      // Check if we have a conversation with this user
+      // Check if we already have a conversation with this user
       const existingConversation = conversations.find(c => 
         c.otherUserId === initialUserId || 
         (c.lastMessage && (
@@ -76,23 +75,27 @@ export function MessageCenter({
       );
 
       if (existingConversation) {
+        // Existing conversation found
         loadMessages(initialUserId);
         setActiveConversation(initialUserId);
         if (isMobile) {
           setShowMessages(true);
         }
       } else {
-        // If no existing conversation, we still want to open the chat panel
-        // The user might want to start a new conversation
-        setActiveConversation(initialUserId);
-        if (isMobile) {
-          setShowMessages(true);
+        // No existing conversation - create a temporary one
+        const tempConv = await createTemporaryConversation(initialUserId);
+        if (tempConv) {
+          setActiveConversation(initialUserId);
+          setCurrentMessages([]); // Start with empty messages for new conversation
+          if (isMobile) {
+            setShowMessages(true);
+          }
         }
       }
     };
 
     setupInitialConversation();
-  }, [initialUserId, conversations, user?.id, loadMessages, setActiveConversation, isMobile]);
+  }, [initialUserId, conversations, user?.id, loadMessages, setActiveConversation, isMobile, createTemporaryConversation]);
 
   // Sync showMessages with isMobile and activeConversation
   // On mobile: show messages only if a conversation is selected, otherwise show the conversations list
