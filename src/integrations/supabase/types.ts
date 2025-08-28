@@ -20,10 +20,14 @@ export type Database = {
           created_at: string
           criteria: string
           description: string
+          description_ar: string | null
+          description_tr: string | null
           icon_url: string
           id: string
           is_automatic_award: boolean
           name: string
+          name_ar: string | null
+          name_tr: string | null
           stage: string | null
           threshold_value: number | null
         }
@@ -32,10 +36,14 @@ export type Database = {
           created_at?: string
           criteria: string
           description: string
+          description_ar?: string | null
+          description_tr?: string | null
           icon_url: string
           id?: string
           is_automatic_award?: boolean
           name: string
+          name_ar?: string | null
+          name_tr?: string | null
           stage?: string | null
           threshold_value?: number | null
         }
@@ -44,10 +52,14 @@ export type Database = {
           created_at?: string
           criteria?: string
           description?: string
+          description_ar?: string | null
+          description_tr?: string | null
           icon_url?: string
           id?: string
           is_automatic_award?: boolean
           name?: string
+          name_ar?: string | null
+          name_tr?: string | null
           stage?: string | null
           threshold_value?: number | null
         }
@@ -2303,7 +2315,7 @@ export type Database = {
         }[]
       }
       create_badge_notifications: {
-        Args: { new_badge_ids: string[]; target_user_id: string }
+        Args: { badge_ids: string[]; target_user_id: string }
         Returns: undefined
       }
       create_complete_user_filter_preferences: {
@@ -2468,6 +2480,18 @@ export type Database = {
       }
       track_user_login: {
         Args: { user_id_param: string }
+        Returns: undefined
+      }
+      translate_badges: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_badge_translations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_existing_notification_translations: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       user_has_reached_daily_blog_limit: {

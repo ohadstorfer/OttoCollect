@@ -86,7 +86,7 @@ export function MessageCenter({
         const tempConv = await createTemporaryConversation(initialUserId);
         if (tempConv) {
           setActiveConversation(initialUserId);
-          setCurrentMessages([]); // Start with empty messages for new conversation
+          // Start with empty messages for new conversation
           if (isMobile) {
             setShowMessages(true);
           }
