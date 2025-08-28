@@ -92,7 +92,8 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
   // Use a memoized function to load user preferences to avoid re-renders
   const loadUserPreferences = useCallback(async (
     mappedCategories: FilterOption[], 
-    mappedTypes: FilterOption[]
+    mappedTypes: FilterOption[],
+    mappedCountries: FilterOption[] = []
   ) => {
     try {
       if (user) {
@@ -118,23 +119,23 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
             countries: userPreferences.countries || []
           });
         } else {
-          // Use marketplace categories and types directly instead of trying to filter by name
+          // When no user preferences exist, select ALL available filters by default
           const defaultCategories = mappedCategories.map(cat => cat.id);
-          const defaultTypes = mappedTypes
-            .filter(type => type.name.toLowerCase().includes('issue'))
-            .map(t => t.id);
+          const defaultTypes = mappedTypes.map(type => type.id);
           
-          console.log("Using default filters:", { 
+          console.log("No user preferences found, selecting ALL available filters by default:", { 
             categories: defaultCategories,
             types: defaultTypes
           });
           
-          // Set default filters if no user preferences are found
+          // Set default filters to include ALL available options
+          const defaultCountries = mappedCountries.map(country => country.id);
+          
           onFilterChange({
             categories: defaultCategories,
             types: defaultTypes,
-            sort: [],
-            countries: []
+            sort: ["newest"],
+            countries: defaultCountries
           });
         }
       }
@@ -142,15 +143,14 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
       console.error("Error handling user preferences:", err);
       // Use defaults on error - but with properly mapped IDs
       const defaultCategories = mappedCategories.map(cat => cat.id);
-      const defaultTypes = mappedTypes
-        .filter(type => type.name.toLowerCase().includes('issue'))
-        .map(t => t.id);
+      const defaultTypes = mappedTypes.map(type => type.id);
+      const defaultCountries = mappedCountries.map(country => country.id);
       
       onFilterChange({
         categories: defaultCategories,
         types: defaultTypes,
-        sort: ['extPick'],
-        countries: []
+        sort: ["newest"],
+        countries: defaultCountries
       });
     }
   }, [user, onFilterChange]);
@@ -176,7 +176,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     if (externalCategories && externalTypes && externalCountries && !initialLoadComplete) {
       const loadPreferencesWithExternalData = async () => {
         try {
-          await loadUserPreferences(externalCategories, externalTypes);
+          await loadUserPreferences(externalCategories, externalTypes, externalCountries || []);
           setInitialLoadComplete(true);
         } catch (error) {
           console.error("Error loading preferences with external data:", error);
@@ -213,6 +213,14 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
           
         if (typesError) throw typesError;
         
+        // Get all countries
+        const { data: countriesData, error: countriesError } = await supabase
+          .from('countries')
+          .select('*')
+          .order('name');
+          
+        if (countriesError) throw countriesError;
+        
         // Map the data to FilterOption format
         const mappedCategories = categoriesData.map(cat => ({
           id: cat.id,
@@ -222,6 +230,11 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
         const mappedTypes = typesData.map(type => ({
           id: type.id,
           name: type.name,
+        }));
+        
+        const mappedCountries = countriesData.map(country => ({
+          id: country.id,
+          name: country.name,
         }));
         
                  // Create fixed sort options for marketplace
@@ -263,7 +276,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
         setSortOptions(sortOptions);
         
         // Load user preferences
-        await loadUserPreferences(mappedCategories, mappedTypes);
+        await loadUserPreferences(mappedCategories, mappedTypes, []);
         
         // Mark initial load as complete
         setInitialLoadComplete(true);

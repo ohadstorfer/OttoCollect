@@ -184,7 +184,7 @@ const Marketplace = () => {
   } = useBanknoteFilter({
     items: marketplaceItemsForFilter,
     initialFilters: {
-      sort: [] // No default sort for marketplace - let users choose
+      sort: ["newest"] // Default to "Newest Listed" when no user preferences are loaded
     }
   });
 
@@ -262,7 +262,7 @@ const Marketplace = () => {
           {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search || filters.countries?.length > 0 || filters.sort?.length > 0) && (
             <Button
               variant="outline"
-              onClick={() => setFilters({ categories: [], types: [], search: "", sort: [], countries: [] })}
+              onClick={() => setFilters({ categories: [], types: [], search: "", sort: ["newest"], countries: [] })}
             >
               {tWithFallback('filters.clearFilters', 'Clear Filters')}
             </Button>
