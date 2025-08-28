@@ -13,7 +13,10 @@
   "list": {
     "noConversations": "Henüz konuşma yok",
     "noConversationsDescription": "Diğer koleksiyoncularla mesajlarınız burada görünecek",
-    "youPrefix": "Sen"
+    "youPrefix": "Sen",
+    "temporaryConversations": "Geçici Konuşmalar",
+    "temporary": "Geçici",
+    "newConversation": "Yeni konuşma"
   },
   "panel": {
     "dailyLimitReached": {

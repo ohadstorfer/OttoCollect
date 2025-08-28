@@ -13,7 +13,10 @@
   "list": {
     "noConversations": "لا توجد محادثات بعد",
     "noConversationsDescription": "ستظهر رسائلك مع جامعي العملات الآخرين هنا",
-    "youPrefix": "أنت"
+    "youPrefix": "أنت",
+    "temporaryConversations": "محادثات مؤقتة",
+    "temporary": "مؤقت",
+    "newConversation": "محادثة جديدة"
   },
   "panel": {
     "dailyLimitReached": {

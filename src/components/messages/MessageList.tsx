@@ -65,12 +65,13 @@ export function MessageList({
   return (
     <ScrollArea className="h-full">
       <div className="p-1">
+       
         {conversations
           // Filter out temporary conversations if there's a real one with the same user
           .filter(conversation => {
-            if (conversation.lastMessage.id === 'temp') {
+            if (conversation.lastMessage.id.startsWith('temp-')) {
               return !conversations.some(c =>
-                c.lastMessage.id !== 'temp' && (
+                !c.lastMessage.id.startsWith('temp-') && (
                   c.otherUserId === conversation.otherUserId ||
                   c.lastMessage.senderId === conversation.otherUserId ||
                   c.lastMessage.recipientId === conversation.otherUserId
@@ -79,7 +80,7 @@ export function MessageList({
             }
             return true;
           })
-          .map(conversation => {
+          .map((conversation, index) => {
             // Hide unread count if this is the active conversation
             const showUnreadCount = conversation.unreadCount > 0 && conversation.otherUserId !== activeConversationId;
 
@@ -88,7 +89,7 @@ export function MessageList({
                 key={conversation.otherUserId}
                 className={`w-full flex items-start gap-3 p-3 rounded-md hover:bg-accent/20 transition-colors mb-1
                       ${activeConversationId === conversation.otherUserId ? 'bg-accent/30' : showUnreadCount ? 'bg-muted/50' : ''}
-                      ${conversation.lastMessage.id === 'temp' ? 'border-2 border-primary/50 bg-primary/5' : ''}
+                      ${conversation.lastMessage.id.startsWith('temp-') ? 'border-2 border-primary/50 bg-primary/5' : ''}
                       ${direction === 'rtl' ? 'flex-row-reverse' : 'flex-row'}
                     `}
               >
@@ -135,11 +136,11 @@ export function MessageList({
   }`}
 >
   {conversation.lastMessage.senderId === conversation.otherUserId ? (
-    conversation.lastMessage.content
+    conversation.lastMessage.content || t('list.newConversation', 'New conversation')
   ) : direction === 'rtl' ? (
-    `${conversation.lastMessage.content} :${t('list.youPrefix')}`
+    `${conversation.lastMessage.content || t('list.newConversation', 'New conversation')} :${t('list.youPrefix')}`
   ) : (
-    `${t('list.youPrefix')}: ${conversation.lastMessage.content}`
+    `${t('list.youPrefix')}: ${conversation.lastMessage.content || t('list.newConversation', 'New conversation')}`
   )}
 </p>
                   </div>

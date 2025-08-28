@@ -148,12 +148,25 @@ export default function useMessages(): UseMessagesReturn {
         new Date(a.lastMessage.createdAt).getTime()
       );
       
-      // Merge with temporary conversations
+      // Merge with temporary conversations and sort them to appear first
       const allConversations = [...conversationList];
       temporaryConversations.forEach((tempConv, userId) => {
         if (!conversationList.find(c => c.otherUserId === userId)) {
           allConversations.push(tempConv);
         }
+      });
+      
+      // Sort conversations so temporary ones appear first, then by latest message
+      allConversations.sort((a, b) => {
+        const aIsTemp = a.lastMessage.id.startsWith('temp-');
+        const bIsTemp = b.lastMessage.id.startsWith('temp-');
+        
+        // If one is temporary and the other isn't, temporary comes first
+        if (aIsTemp && !bIsTemp) return -1;
+        if (!aIsTemp && bIsTemp) return 1;
+        
+        // If both are temporary or both are real, sort by latest message
+        return new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime();
       });
       
       setConversations(allConversations);

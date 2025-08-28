@@ -13,7 +13,10 @@
   "list": {
     "noConversations": "No conversations yet",
     "noConversationsDescription": "Your messages with other collectors will appear here",
-    "youPrefix": "You"
+    "youPrefix": "You",
+    "temporaryConversations": "Temporary Conversations",
+    "temporary": "Temporary",
+    "newConversation": "New conversation"
   },
   "panel": {
     "dailyLimitReached": {
