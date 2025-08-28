@@ -121,7 +121,6 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         .update({ 
           role_id: roleId,
           role: selectedRole.name,
-          is_country_admin: isCountryAdmin(selectedRole.name) // ✅ set true/false dynamically
         })
         .eq('id', userId);
   
