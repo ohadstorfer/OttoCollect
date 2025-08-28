@@ -12,7 +12,8 @@ import {
   Save,
   Layers,
   ArrowLeft,
-  ArrowUpDown
+  ArrowUpDown,
+  ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
@@ -445,7 +446,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       className="h-6 w-6 sm:h-8 sm:w-8"
       onClick={() => navigate('/catalog')}
     >
-      <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+      {direction === 'rtl' ? <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" /> : <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />}
     </Button>
 
     {/* Mobile title */}

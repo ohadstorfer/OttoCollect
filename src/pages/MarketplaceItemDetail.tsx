@@ -369,7 +369,7 @@ const MarketplaceItemDetail = () => {
                    <span>{tWithFallback('item.banknoteDetails', 'Banknote Details')}</span>
                  </CardTitle>
                </div>
-               <CardDescription>
+               <CardDescription className={`${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                  {tWithFallback('item.detailedInformation', 'Detailed information about this banknote')}
                </CardDescription>
             </CardHeader>

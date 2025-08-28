@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ProfileSidebarProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
   const { t, i18n: i18nInstance } = useTranslation(['profile']);
   const isAdmin = user?.role === 'Super Admin' || user?.role?.includes('Admin');
   const isSuperAdmin = user?.role === 'Super Admin';
+  const { direction } = useLanguage();
 
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
@@ -59,13 +61,17 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
           className="pb-6 cursor-pointer hover:opacity-80 active:scale-95 transition"
           onClick={() => handleNavigation(`/profile/${user.id}`)}
         >
-          <div className="flex items-center space-x-3">
+          <div
+    className={`flex items-center ${
+      direction === "rtl" ? "flex-row-reverse space-x-reverse space-x-3" : "flex-row space-x-3"
+    }`}
+  >
             <Avatar className="h-12 w-12">
               <AvatarImage src={user.avatarUrl} alt={user.username} />
               <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <SheetTitle className="text-left"> <span> {user.username} </span> </SheetTitle>
+              <SheetTitle > <span> {user.username} </span> </SheetTitle>
               <div className="flex items-center gap-2">
                 <Badge variant="user" rank={user.rank} role={user.role} showIcon />
               </div>
