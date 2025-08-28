@@ -172,6 +172,15 @@ const MarketplaceItemDetail = () => {
     setSelectedImage(imageUrl);
   };
 
+
+  const handleMessageClick = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    navigate(`/messaging/${seller.id}`);
+  };
+
   return (
     <div className="container py-8">
       <div className="flex items-center gap-2 mb-1">
@@ -347,12 +356,10 @@ const MarketplaceItemDetail = () => {
 
                 {user && user.id !== seller.id && (
                   <div>
-                    <ContactSeller
-                      sellerId={seller.id}
-                      sellerName={seller.username}
-                      itemId={collectionItem.id}
-                      itemName={`${banknote.denomination} (${banknote.year})`}
-                    />
+                    <Button variant="outline" size="sm" onClick={handleMessageClick}>
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      {tWithFallback('actions.message', 'Message')}
+                    </Button>
                   </div>
                 )}
               </div>
