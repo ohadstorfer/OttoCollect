@@ -2,7 +2,10 @@
   "title": "Banknot Katalogları",
   "subtitle": "Kapsamlı kataloğumuzdan Osmanlı İmparatorluğu ve halefi devletlerin önemli banknotlarını keşfedin",
   "searchPlaceholder": "Ülke ara...",
+  "noCountriesFound": "Ülke bulunamadı",
+  "tryAdjustingSearchCriteria": "Arama kriterlerinizi ayarlamayı deneyin",
   "countryCount": "{{count}} Ülke Mevcut",
+  "banknote": "{{count}} banknot",
   "banknote_one": "{{count}} banknot",
   "banknote_other": "{{count}} banknot",
   "filters": {

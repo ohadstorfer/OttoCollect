@@ -12,6 +12,7 @@ import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import SEOHead from "@/components/seo/SEOHead";
 import { SEO_CONFIG } from "@/config/seoConfig";
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from "@/context/LanguageContext";
 
 const Catalog = () => {
   const { t } = useTranslation(['catalog']);
@@ -21,6 +22,7 @@ const Catalog = () => {
   const [countries, setCountries] = useState<CountryData[]>([]);
   const { user } = useAuth();
   const [userCollection, setUserCollection] = useState<CollectionItem[]>([]);
+  const { direction } = useLanguage();
 
   useEffect(() => {
     const loadCountries = async () => {
@@ -121,8 +123,8 @@ const Catalog = () => {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
                       <div className="w-full p-4 text-white bg-gradient-to-t from-black/70 to-transparent">
-                        <h3 className="text-xl font-bold !text-gray-200"><span>{country.name}</span></h3>
-                        <p className="text-sm opacity-80">
+                        <h3 className={`text-xl font-bold !text-gray-200 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}><span>{country.name}</span></h3>
+                        <p className={`text-sm opacity-80 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                           {t('banknote', { count: country.banknoteCount })}
                         </p>
                       </div>

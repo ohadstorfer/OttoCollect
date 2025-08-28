@@ -2,7 +2,10 @@
   "title": "Banknotes Catalogues",
   "subtitle": "Explore these notable Ottoman Empire banknotes and it's successor countries/authorities banknotes from our extensive catalogue",
   "searchPlaceholder": "Search countries...",
+  "noCountriesFound": "No countries found",
+  "tryAdjustingSearchCriteria": "Try adjusting your search criteria",
   "countryCount": "{{count}} Countries Available",
+  "banknote": "{{count}} banknote",
   "banknote_one": "{{count}} banknote",
   "banknote_other": "{{count}} banknotes",
   "filters": {
