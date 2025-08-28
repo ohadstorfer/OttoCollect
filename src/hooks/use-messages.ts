@@ -84,11 +84,9 @@ export default function useMessages(): UseMessagesReturn {
       // Get unique conversation partners
       const conversationUsers = new Set<string>();
       messagesData.forEach(message => {
-        if (message.sender_id === user.id) {
-          conversationUsers.add(message.receiver_id);
-        } else {
-          conversationUsers.add(message.sender_id);
-        }
+        const isFromCurrentUser = message.senderId === user.id;
+        const otherUserId = isFromCurrentUser ? message.recipientId : message.senderId;
+        conversationUsers.add(otherUserId);
       });
       
       // Fetch user information for each conversation partner
@@ -106,29 +104,19 @@ export default function useMessages(): UseMessagesReturn {
       // Build conversations list
       const conversationList: Conversation[] = userIds.map(userId => {
         const userMessages = messagesData.filter(msg => 
-          msg.sender_id === userId || msg.receiver_id === userId
+          msg.senderId === userId || msg.recipientId === userId
         );
         
         const lastMessage = userMessages.reduce((latest, current) => 
-          new Date(current.createdAt || current.created_at) > new Date(latest.createdAt || latest.created_at) ? current : latest
+          new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
         );
         
         const unreadCount = userMessages.filter(msg => 
-          msg.sender_id === userId && !msg.isRead
+          msg.senderId === userId && !msg.isRead
         ).length;
         
         const userData = usersData?.find(u => u.id === userId);
         
-        // Transform lastMessage to match Message interface
-        const messageForConversation: Message = {
-          id: lastMessage.id,
-          content: lastMessage.content,
-          createdAt: lastMessage.createdAt || lastMessage.created_at,
-          senderId: lastMessage.senderId || lastMessage.sender_id,
-          recipientId: lastMessage.receiverId || lastMessage.receiver_id,
-          isRead: lastMessage.isRead
-        };
-
         return {
           otherUserId: userId,
           otherUser: {
@@ -137,7 +125,7 @@ export default function useMessages(): UseMessagesReturn {
             avatarUrl: userData?.avatar_url,
             rank: userData?.rank || 'User',
           },
-          lastMessage: messageForConversation,
+          lastMessage,
           unreadCount
         };
       });
@@ -213,50 +201,6 @@ export default function useMessages(): UseMessagesReturn {
     };
   }, [user, buildConversations]);
 
-  // Fetch all messages for the current user
-  const fetchAllMessages = useCallback(async () => {
-    if (!user) return [];
-    
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
-        
-      if (error) {
-        console.error('Error fetching messages:', error);
-        setError('Failed to load messages');
-        return [];
-      }
-      
-      // Transform the data to match our Message interface
-      const transformedMessages: Message[] = data.map(msg => ({
-        id: msg.id,
-        sender_id: msg.sender_id,
-        receiver_id: msg.receiver_id,
-        content: msg.content,
-        created_at: msg.created_at,
-        isRead: msg.is_read,
-        reference_item_id: msg.reference_item_id,
-        senderId: msg.sender_id,
-        receiverId: msg.receiver_id,
-        createdAt: msg.created_at
-      }));
-      
-      setMessages(transformedMessages);
-      return transformedMessages;
-    } catch (err) {
-      console.error('Unexpected error fetching messages:', err);
-      setError('Failed to load messages.');
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
   // Load messages for a specific user conversation
   const loadMessages = useCallback(async (userId: string) => {
     if (!user) return;
@@ -283,15 +227,12 @@ export default function useMessages(): UseMessagesReturn {
       // Transform to our Message interface
       const conversationMessages: Message[] = data.map(msg => ({
         id: msg.id,
-        sender_id: msg.sender_id,
-        receiver_id: msg.receiver_id,
         content: msg.content,
-        created_at: msg.created_at,
-        isRead: msg.is_read,
-        reference_item_id: msg.reference_item_id,
+        createdAt: msg.created_at,
         senderId: msg.sender_id,
-        receiverId: msg.receiver_id,
-        createdAt: msg.created_at
+        recipientId: msg.receiver_id,
+        isRead: msg.is_read,
+        referenceItemId: msg.reference_item_id
       }));
       
       setCurrentMessages(conversationMessages);
@@ -320,7 +261,6 @@ export default function useMessages(): UseMessagesReturn {
     const optimisticMessage: Message = {
       id: tempId,
       ...message,
-      created_at: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       isRead: false
     };
@@ -330,10 +270,10 @@ export default function useMessages(): UseMessagesReturn {
     
     try {
       const result = await sendMessageService(
-        message.sender_id,
-        message.receiver_id,
+        message.senderId,
+        message.recipientId,
         message.content,
-        message.reference_item_id
+        message.referenceItemId
       );
 
       if (!result) {
@@ -343,10 +283,10 @@ export default function useMessages(): UseMessagesReturn {
       }
 
       // Remove temporary conversation if it exists
-      if (temporaryConversations.has(message.receiver_id)) {
+      if (temporaryConversations.has(message.recipientId)) {
         setTemporaryConversations(prev => {
           const newMap = new Map(prev);
-          newMap.delete(message.receiver_id);
+          newMap.delete(message.recipientId);
           return newMap;
         });
       }
@@ -394,18 +334,6 @@ export default function useMessages(): UseMessagesReturn {
       return false;
     }
   };
-
-  // Initial load
-  useEffect(() => {
-    const loadAllMessages = async () => {
-      const messagesData = await fetchAllMessages();
-      await buildConversations(messagesData);
-    };
-
-    if (user) {
-      loadAllMessages();
-    }
-  }, [user, fetchAllMessages, buildConversations]);
 
   return {
     messages,
