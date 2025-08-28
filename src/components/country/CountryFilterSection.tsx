@@ -1,121 +1,132 @@
-import React, { useCallback, memo } from "react";
-import { BanknoteFilterCatalog } from "@/components/filter/BanknoteFilterCatalog";
-import { BanknoteFilterCollection } from "@/components/filter/BanknoteFilterCollection";
-import { DynamicFilterState } from "@/types/filter";
-import { CollectionItem } from "@/types";
+import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { FilterCategoryOption, DynamicFilterState } from '@/types/filter';
+import CategoryFilter from '@/components/filter/CategoryFilter';
+import TypeFilter from '@/components/filter/TypeFilter';
+import SortFilter from '@/components/filter/SortFilter';
+import ViewModeToggle from '@/components/filter/ViewModeToggle';
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface CountryFilterSectionProps {
   countryId: string;
   countryName: string;
   filters: DynamicFilterState;
-  onFilterChange: (newFilters: Partial<DynamicFilterState>) => void;
+  onFilterChange: (filters: Partial<DynamicFilterState>) => void;
   isLoading: boolean;
-  onViewModeChange: (mode: 'grid' | 'list') => void;
+  categories: FilterCategoryOption[];
+  types: FilterCategoryOption[];
+  sortOptions: FilterCategoryOption[];
+  viewMode?: 'grid' | 'list';
+  onViewModeChange?: (mode: 'grid' | 'list') => void;
   groupMode: boolean;
-  onGroupModeChange: (mode: boolean) => void;
-  source?: 'catalog' | 'collection';
-  collectionCategories?: { id: string; name: string; count: number }[];
-  collectionTypes?: { id: string; name: string; count: number }[];
-  onPreferencesLoaded?: () => void;
-  activeTab?: 'collection' | 'wishlist' | 'missing' | 'sale';
-  onTabChange?: (tab: 'collection' | 'wishlist' | 'missing' | 'sale') => void;
-  isOwner?: boolean;
-  profileUser?: {
-    id: string;
-    username: string;
-    avatarUrl?: string;
-    rank?: string;
-  };
-  onBackToCountries?: () => void;
-  collectionItems?: CollectionItem[];
+  onGroupModeChange: (enabled: boolean) => void;
+  totalItems: number;
+  collectionTypes: { id: string; name: string }[];
 }
 
-// Custom comparison function to ensure re-renders when viewMode or groupMode change
-const areEqual = (prevProps: CountryFilterSectionProps, nextProps: CountryFilterSectionProps) => {
-  // Always re-render if viewMode or groupMode change
-  if (prevProps.viewMode !== nextProps.viewMode || prevProps.groupMode !== nextProps.groupMode) {
-    console.log('CountryFilterSection: Re-rendering due to viewMode or groupMode change', {
-      prevViewMode: prevProps.viewMode,
-      nextViewMode: nextProps.viewMode,
-      prevGroupMode: prevProps.groupMode,
-      nextGroupMode: nextProps.groupMode
-    });
-    return false;
-  }
-  
-  // Re-render if other important props change
-  if (prevProps.countryId !== nextProps.countryId || 
-      prevProps.isLoading !== nextProps.isLoading ||
-      prevProps.source !== nextProps.source) {
-    return false;
-  }
-  
-  return true;
-};
-
-// Use React.memo with custom comparison to ensure re-renders when viewMode or groupMode change
-export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
+const CountryFilterSection = ({
   countryId,
   countryName,
   filters,
   onFilterChange,
   isLoading,
+  categories,
+  types,
+  sortOptions,
+  viewMode = 'grid',
   onViewModeChange,
   groupMode,
   onGroupModeChange,
-  source = 'catalog',
-  collectionCategories = [],
-  collectionTypes = [],
-  onPreferencesLoaded,
-  activeTab,
-  onTabChange,
-  isOwner = false,
-  profileUser,
-  onBackToCountries,
-  collectionItems
-}) => {
-  // Memoize handleFilterChange to prevent it from causing re-renders
-  const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    onFilterChange(newFilters);
-  }, [onFilterChange]);
+  totalItems,
+  collectionTypes,
+}: CountryFilterSectionProps) => {
+  const { t } = useTranslation();
 
-  // Decide which filter component to render based on source
-  if (source === 'collection') {
-    return (
-      <BanknoteFilterCollection
-        countryId={countryId}
-        countryName={countryName}
-        onFilterChange={handleFilterChange}
-        currentFilters={filters}
-        isLoading={isLoading}
-        onViewModeChange={onViewModeChange}
-        groupMode={groupMode}
-        onGroupModeChange={onGroupModeChange}
-        onPreferencesLoaded={onPreferencesLoaded}
-        activeTab={activeTab}
-        onTabChange={onTabChange}
-        isOwner={isOwner}
-        profileUser={profileUser}
-        onBackToCountries={onBackToCountries}
-        collectionItems={collectionItems}
-      />
-    );
-  }
-  
-  return countryId ? (
-    <BanknoteFilterCatalog
-      countryId={countryId}
-      countryName={countryName}
-      onFilterChange={handleFilterChange}
-      currentFilters={filters}
-      isLoading={isLoading}
-      onViewModeChange={onViewModeChange}
-      groupMode={groupMode}
-      onGroupModeChange={onGroupModeChange}
-      onPreferencesLoaded={onPreferencesLoaded}
-    />
-  ) : null;
-}, areEqual);
+  const handleCategoryChange = useCallback(
+    (selectedCategories: string[]) => {
+      onFilterChange({ categories: selectedCategories });
+    },
+    [onFilterChange]
+  );
 
-// Add a display name for the memoized component
-CountryFilterSection.displayName = 'CountryFilterSection';
+  const handleTypeChange = useCallback(
+    (selectedTypes: string[]) => {
+      onFilterChange({ types: selectedTypes });
+    },
+    [onFilterChange]
+  );
+
+  const handleSortChange = useCallback(
+    (selectedSorts: string[]) => {
+      onFilterChange({ sort: selectedSorts });
+    },
+    [onFilterChange]
+  );
+
+  const handleViewModeChange = useCallback(
+    (mode: 'grid' | 'list') => {
+      onViewModeChange?.(mode);
+    },
+    [onViewModeChange]
+  );
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">{countryName}</h2>
+        <span className="text-sm text-muted-foreground">
+          {t('filter:totalItems', { count: totalItems })}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <CategoryFilter
+            countryId={countryId}
+            selectedCategories={filters.categories}
+            onCategoryChange={handleCategoryChange}
+            isLoading={isLoading}
+            categories={categories}
+          />
+        </div>
+
+        <div>
+          <TypeFilter
+            countryId={countryId}
+            selectedTypes={filters.types}
+            onTypeChange={handleTypeChange}
+            isLoading={isLoading}
+            types={types}
+            collectionTypes={collectionTypes}
+          />
+        </div>
+
+        <div>
+          <SortFilter
+            countryId={countryId}
+            selectedSorts={filters.sort}
+            onSortChange={handleSortChange}
+            isLoading={isLoading}
+            sortOptions={sortOptions}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={handleViewModeChange} />
+          <div className="space-x-2 flex items-center">
+            <Label htmlFor="group-mode">{t('filter:groupMode')}</Label>
+            <Switch
+              id="group-mode"
+              checked={groupMode}
+              onCheckedChange={onGroupModeChange}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CountryFilterSection;

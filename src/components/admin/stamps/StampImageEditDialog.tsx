@@ -1,249 +1,200 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { StampPicture, StampType, StampUploadData } from '@/types/stamps';
-import { createStampPicture, updateStampPicture } from '@/services/stampsService';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { StampPicture, StampType } from '@/types/stamps';
 import { useToast } from '@/hooks/use-toast';
-import StampImageUpload from './StampImageUpload';
+import { createStampPicture, updateStampPicture } from '@/services/stampsService';
+import { useImageSearch } from '@/hooks/useImageSearch';
+import { ImageSelectItem } from '@/components/shared/ImageSelectItem';
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface StampImageEditDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  stampType: StampType;
-  countryId: string;
-  editingStamp?: StampPicture | null;
+  stamp?: StampPicture;
+  type: StampType;
+  onSave: (stamp: StampPicture) => void;
+  onCancel: () => void;
 }
 
-const StampImageEditDialog: React.FC<StampImageEditDialogProps> = ({
-  isOpen,
-  onClose,
-  onSuccess,
-  stampType,
-  countryId,
-  editingStamp
-}) => {
-  console.log('[StampImageEditDialog] Initializing with props:', { isOpen, stampType, countryId, editingStamp });
-  
-  const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: '',
-    image_url: ''
+const StampImageEditDialog = ({ stamp, type, onSave, onCancel }: StampImageEditDialogProps) => {
+  const [editedStamp, setEditedStamp] = useState<StampPicture>({
+    id: stamp?.id || '',
+    country_id: stamp?.country_id || '',
+    name: stamp?.name || '',
+    image_url: stamp?.image_url || '',
+    created_at: stamp?.created_at || new Date().toISOString(),
+    updated_at: stamp?.updated_at || new Date().toISOString(),
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isImageUploading, setIsImageUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+  const { images, searchImages } = useImageSearch();
 
   useEffect(() => {
-    console.log('[StampImageEditDialog] useEffect triggered:', { editingStamp, isOpen });
-    if (editingStamp) {
-      console.log('[StampImageEditDialog] Setting form data from editingStamp:', { 
-        name: editingStamp.name, 
-        image_url: editingStamp.image_url 
-      });
-      setFormData({
-        name: editingStamp.name,
-        image_url: editingStamp.image_url
-      });
-    } else {
-      console.log('[StampImageEditDialog] Resetting form data');
-      setFormData({
-        name: '',
-        image_url: ''
+    if (stamp) {
+      setEditedStamp({
+        id: stamp.id,
+        country_id: stamp.country_id,
+        name: stamp.name,
+        image_url: stamp.image_url,
+        created_at: stamp.created_at,
+        updated_at: stamp.updated_at,
       });
     }
-  }, [editingStamp, isOpen]);
+  }, [stamp]);
 
-  const getStampTypeDisplayName = (type: StampType): string => {
-    switch (type) {
-      case 'signatures_front':
-        return 'Front Signature';
-      case 'signatures_back':
-        return 'Back Signature';
-      case 'seal':
-        return 'Seal';
-      case 'watermark':
-        return 'Watermark';
-      case 'tughra':
-        return 'Tughra';
-      default:
-        return type.charAt(0).toUpperCase() + type.slice(1);
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditedStamp(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    console.log('[StampImageEditDialog] handleSubmit called with formData:', formData);
-    console.log('[StampImageEditDialog] Current states:', { isSubmitting, isImageUploading });
-    
-    if (!formData.name.trim()) {
-      console.log('[StampImageEditDialog] Name validation failed');
-      toast({
-        title: "Name Required",
-        description: "Please enter a name for the image.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.image_url.trim()) {
-      console.log('[StampImageEditDialog] Image URL validation failed');
-      toast({
-        title: "Image Required",
-        description: "Please upload an image.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (isImageUploading) {
-      console.log('[StampImageEditDialog] Attempted to submit while image is uploading');
-      toast({
-        title: "Wait for Upload",
-        description: "Please wait for the image to finish uploading.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    console.log('[StampImageEditDialog] Starting submission process');
-
+  const handleSave = async () => {
+    setIsSaving(true);
     try {
-      if (editingStamp) {
-        console.log('[StampImageEditDialog] Updating existing stamp:', { id: editingStamp.id, formData });
-        await updateStampPicture(stampType, editingStamp.id, formData);
-        console.log('[StampImageEditDialog] Update successful');
+      if (editedStamp.id) {
+        const updatedStamp = await updateStampPicture(type, editedStamp.id, {
+          name: editedStamp.name,
+          image_url: editedStamp.image_url,
+          country_id: editedStamp.country_id,
+        });
+        onSave(updatedStamp);
         toast({
-          title: "Success",
-          description: "Image updated successfully.",
+          title: `${capitalizeFirstLetter(type)} Stamp Updated`,
+          description: 'Stamp image updated successfully.',
         });
       } else {
-        console.log('[StampImageEditDialog] Creating new stamp:', { formData, countryId });
-        const data: StampUploadData = {
-          ...formData,
-          country_id: countryId
-        };
-        await createStampPicture(stampType, data);
-        console.log('[StampImageEditDialog] Creation successful');
+        const newStamp = await createStampPicture(type, {
+          name: editedStamp.name,
+          image_url: editedStamp.image_url,
+          country_id: editedStamp.country_id,
+        });
+        onSave(newStamp);
         toast({
-          title: "Success",
-          description: "Image created successfully.",
+          title: `${capitalizeFirstLetter(type)} Stamp Created`,
+          description: 'New stamp image created successfully.',
         });
       }
-      onSuccess();
-      onClose();
-    } catch (error) {
-      console.error('[StampImageEditDialog] Error in submission:', error);
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to save image. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to save stamp image.',
+        variant: 'destructive',
       });
     } finally {
-      console.log('[StampImageEditDialog] Submission process completed');
-      setIsSubmitting(false);
+      setIsSaving(false);
+      onCancel();
     }
   };
 
-  const handleImageUploaded = (url: string) => {
-    console.log('[StampImageEditDialog] Image uploaded callback received with URL:', url);
-    setFormData(prev => {
-      console.log('[StampImageEditDialog] Updating form data with new image URL. Previous:', prev);
-      return { ...prev, image_url: url };
-    });
+  const handleImageSelect = (imageUrl: string) => {
+    setEditedStamp(prev => ({ ...prev, image_url: imageUrl }));
   };
 
-  const handleImageUploadStart = () => {
-    console.log('[StampImageEditDialog] Image upload started');
-    setIsImageUploading(true);
+  const capitalizeFirstLetter = (str: string) => {
+    if (!str || typeof str !== 'string') return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
   };
-
-  const handleImageUploadEnd = () => {
-    console.log('[StampImageEditDialog] Image upload ended');
-    setIsImageUploading(false);
-  };
-
-  const handleClose = () => {
-    console.log('[StampImageEditDialog] Handling close');
-    if (isImageUploading) {
-      console.log('[StampImageEditDialog] Preventing close during upload');
-      toast({
-        title: "Wait for Upload",
-        description: "Please wait for the image to finish uploading.",
-        variant: "destructive",
-      });
-      return;
-    }
-    onClose();
-  };
-
-  console.log('[StampImageEditDialog] Rendering with states:', { formData, isSubmitting, isImageUploading });
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      console.log('[StampImageEditDialog] Dialog onOpenChange:', open);
-      if (!open) handleClose();
-    }}>
-      <DialogContent className="max-w-md" onClick={(e) => e.stopPropagation()}>
+    <Dialog open={true} onOpenChange={() => onCancel()}>
+      <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
-          <DialogTitle>
-            <span>{editingStamp ? 'Edit' : 'Add'} {getStampTypeDisplayName(stampType)} Image</span>
-          </DialogTitle>
+          <DialogTitle>{stamp ? `Edit ${capitalizeFirstLetter(type)} Stamp` : `New ${capitalizeFirstLetter(type)} Stamp`}</DialogTitle>
+          <DialogDescription>
+            {stamp ? 'Update the stamp image details.' : 'Create a new stamp image.'}
+          </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4" onClick={(e) => e.stopPropagation()}>
-          <div>
-            <Label htmlFor="name">Name</Label>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right">
+              Name
+            </Label>
             <Input
+              type="text"
               id="name"
-              value={formData.name}
-              onChange={(e) => {
-                console.log('[StampImageEditDialog] Name input changed:', e.target.value);
-                setFormData(prev => ({ ...prev, name: e.target.value }));
-              }}
-              placeholder="Enter image name"
-              disabled={isSubmitting}
+              name="name"
+              value={editedStamp.name}
+              onChange={handleInputChange}
+              className="col-span-3"
             />
           </div>
-
-          <div>
-            <Label>Image</Label>
-            <StampImageUpload
-              imageUrl={formData.image_url}
-              onImageUploaded={handleImageUploaded}
-              onUploadStart={handleImageUploadStart}
-              onUploadEnd={handleImageUploadEnd}
-              disabled={isSubmitting}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="country_id" className="text-right">
+              Country ID
+            </Label>
+            <Input
+              type="text"
+              id="country_id"
+              name="country_id"
+              value={editedStamp.country_id}
+              onChange={handleInputChange}
+              className="col-span-3"
             />
           </div>
-
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('[StampImageEditDialog] Cancel button clicked');
-                handleClose();
-              }}
-              disabled={isSubmitting || isImageUploading}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting || isImageUploading}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {isSubmitting ? 'Saving...' : (isImageUploading ? 'Uploading...' : 'Save')}
-            </Button>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="image_url" className="text-right">
+              Image URL
+            </Label>
+            <Input
+              type="text"
+              id="image_url"
+              name="image_url"
+              value={editedStamp.image_url}
+              onChange={handleInputChange}
+              className="col-span-3"
+            />
           </div>
-        </form>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="image_search" className="text-right">
+              Image Search
+            </Label>
+            <Input
+              type="text"
+              id="image_search"
+              placeholder="Search for images..."
+              className="col-span-3"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  searchImages(e.currentTarget.value);
+                }
+              }}
+            />
+          </div>
+          {images.length > 0 && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">
+                Select Image
+              </Label>
+              <ScrollArea className="col-span-3 h-40 p-2 rounded-md border">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {images.map((image, index) => (
+                    <ImageSelectItem
+                      key={index}
+                      imageUrl={image}
+                      isSelected={image === editedStamp.image_url}
+                      onSelect={handleImageSelect}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </div>
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="secondary" onClick={() => onCancel()}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save'}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

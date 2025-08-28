@@ -1,133 +1,79 @@
-
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { uploadForumImage } from '@/services/forumService';
-import { useToast } from "@/hooks/use-toast";
-import { XCircle, Upload, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { useTranslation } from 'react-i18next';
+import React, { useState, useCallback } from 'react';
+import { Button } from "@/components/ui/button"
+import { FileInput } from "@/components/ui/file-input"
+import { X } from 'lucide-react';
 
 interface ImageUploaderProps {
   images: string[];
   onChange: (images: string[]) => void;
+  disabled?: boolean;
 }
 
-export const ImageUploader = ({ images, onChange }: ImageUploaderProps) => {
-  const { toast } = useToast();
-  const { t } = useTranslation(['forum']);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+const ImageUploader = ({ images, onChange, disabled = false }: ImageUploaderProps) => {
+  const [uploading, setUploading] = useState(false);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    setIsUploading(true);
-    setUploadProgress(0);
-    
+  const handleImageUpload = useCallback(async (file: File) => {
+    setUploading(true);
     try {
-      // Filter for image files
-      const imageFiles = Array.from(files).filter(file => 
-        file.type.startsWith('image/')
-      );
-      
-      if (imageFiles.length === 0) {
-        toast({
-          variant: "destructive",
-          title: t('imageUploader.invalidFiles'),
-          description: t('imageUploader.selectImagesOnly'),
-        });
-        return;
-      }
-      
-      const uploadedUrls: string[] = [];
-      
-      // Upload each file
-      for (let i = 0; i < imageFiles.length; i++) {
-        const file = imageFiles[i];
-        const url = await uploadForumImage(file);
-        uploadedUrls.push(url);
-        
-        // Update progress
-        setUploadProgress(Math.round(((i + 1) / imageFiles.length) * 100));
-      }
-      
-      // Add new images to the existing ones
-      onChange([...images, ...uploadedUrls]);
-      
-      toast({
-        description: t('imageUploader.uploadSuccess', { count: uploadedUrls.length }),
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'banknote_images'); // Replace with your upload preset
+
+      const response = await fetch('https://api.cloudinary.com/v1_1/djv90epnq/image/upload', {
+        method: 'POST',
+        body: formData,
       });
-      
+
+      if (response.ok) {
+        const data = await response.json();
+        const newImages = [...images, data.secure_url];
+        onChange(newImages);
+      } else {
+        console.error('Upload failed');
+      }
     } catch (error) {
-      console.error('Error uploading images:', error);
-      toast({
-        variant: "destructive",
-        title: t('imageUploader.uploadFailed'),
-        description: t('imageUploader.uploadError'),
-      });
+      console.error('Error uploading image:', error);
     } finally {
-      setIsUploading(false);
-      // Reset the file input
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      setUploading(false);
     }
-  };
-  
+  }, [images, onChange]);
+
   const handleRemoveImage = (indexToRemove: number) => {
-    onChange(images.filter((_, index) => index !== indexToRemove));
+    const newImages = images.filter((_, index) => index !== indexToRemove);
+    onChange(newImages);
   };
-  
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {images.map((imageUrl, index) => (
-          <Card key={index} className="group relative aspect-square overflow-hidden">
-            <img 
-              src={imageUrl} 
-              alt={t('imageUploader.uploadedImage', { number: index + 1 })}
-              className="w-full h-full object-cover"
-            />
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              className="absolute top-1 right-1 h-6 w-6 opacity-90 transition-opacity"
-              onClick={() => handleRemoveImage(index)}
-            >
-              <XCircle className="h-4 w-4" />
-            </Button>
-          </Card>
-        ))}
-        
-        <Card 
-          className="flex flex-col items-center justify-center aspect-square cursor-pointer border-dashed"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {isUploading ? (
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="h-8 w-8 animate-spin text-ottoman-600" />
-              <div className="text-sm font-medium">{uploadProgress}%</div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <Upload className="h-8 w-8" />
-              <div className="text-sm font-medium">{t('imageUploader.upload')}</div>
-            </div>
-          )}
-        </Card>
-      </div>
-      
-      <Input 
-        type="file"
-        accept="image/*"
-        multiple
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        disabled={isUploading}
-        className="hidden"
+    <div>
+      <FileInput
+        onFileChange={(file) => {
+          if (file) {
+            handleImageUpload(file);
+          }
+        }}
+        disabled={disabled || uploading}
       />
+
+      {uploading && <p>Uploading...</p>}
+
+      <div className="flex flex-wrap mt-2">
+        {images.map((image, index) => (
+          <div key={index} className="relative w-32 h-32 m-1">
+            <img src={image} alt={`Uploaded ${index}`} className="object-cover w-full h-full rounded" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-0 right-0 p-0 m-0 bg-white/50 hover:bg-white rounded-full"
+              onClick={() => handleRemoveImage(index)}
+              disabled={disabled}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
+
+export default ImageUploader;

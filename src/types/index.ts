@@ -1,4 +1,3 @@
-
 // Remove duplicate isRead declaration and consolidate
 export interface Message {
   id: string;
@@ -338,3 +337,10 @@ export interface ForumComment {
 
 // Re-export everything from banknote.ts
 export * from './banknote';
+
+export interface BanknoteDetailSource {
+  catalog: 'catalog';
+  collection: 'collection';
+  marketplace: 'marketplace';
+  wishlist: 'wishlist';
+}
