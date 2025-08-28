@@ -6,7 +6,7 @@ export async function fetchCountries(): Promise<CountryData[]> {
   try {
     const { data, error } = await supabase
       .from('countries')
-      .select('id, name, description, image_url, display_order')
+      .select('id, name, name_ar, name_tr, description, image_url, display_order')
       .order('display_order', { ascending: true });
 
     if (error) {
@@ -18,6 +18,8 @@ export async function fetchCountries(): Promise<CountryData[]> {
     return data.map(country => ({
       id: country.id,
       name: country.name,
+      name_ar: country.name_ar || null,
+      name_tr: country.name_tr || null,
       description: country.description || '',
       imageUrl: country.image_url || null,
       display_order: country.display_order
