@@ -2,6 +2,8 @@
 export interface StampPicture {
   id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   image_url: string;
   country_id: string;
   created_at: string;

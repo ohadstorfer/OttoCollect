@@ -4,6 +4,8 @@ export interface SultanOrder {
   id: string;
   country_id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   display_order: number;
   created_at: string;
   updated_at: string;
