@@ -931,49 +931,14 @@ function isValidUuid(id: string): boolean {
 export async function fetchUserCollectionCountByCountry(userId: string): Promise<Record<string, number>> {
   // Returns a map of country name -> collection item count for user
   try {
-    console.log('🔍 [Collection Count Debug] Starting fetchUserCollectionCountByCountry for userId:', userId);
-    
-    // Fetch only the minimal fields needed to compute counts to avoid any client-side duplication
-    const { data, error } = await supabase
-      .from('collection_items')
-      .select(`
-        id,
-        user_id,
-        is_for_sale,
-        is_unlisted_banknote,
-        detailed_banknotes:banknote_id ( country ),
-        unlisted_banknotes:unlisted_banknotes_id ( country )
-      `)
-      .eq('user_id', userId);
-
-    if (error) {
-      console.error("Error fetching minimal collection items for counts:", error);
-      return {};
-    }
-
-    console.log('🔍 [Collection Count Debug] Raw data from DB:', data?.length, 'rows');
-    console.log('🔍 [Collection Count Debug] Sample rows:', data?.slice(0, 3));
-
+    // We'll just fetch all user's collection items and aggregate by country (good enough unless user has MANY thousands)
+    const items = await fetchUserCollection(userId);
     const counts: Record<string, number> = {};
-    const itemDetails: Array<{id: string, country: string, isForSale: boolean, isUnlisted: boolean}> = [];
-    
-    for (const row of data || []) {
-      const country = (row as any)?.detailed_banknotes?.country || (row as any)?.unlisted_banknotes?.country || 'Unknown';
-      if (!country || country === 'Unknown') continue;
-      
-      counts[country] = (counts[country] || 0) + 1;
-      itemDetails.push({
-        id: (row as any).id,
-        country,
-        isForSale: (row as any).is_for_sale || false,
-        isUnlisted: (row as any).is_unlisted_banknote || false
-      });
+    for (const item of items) {
+      const country = item.banknote?.country ?? 'Unknown';
+      if (!counts[country]) counts[country] = 0;
+      counts[country]++;
     }
-
-    console.log('🔍 [Collection Count Debug] Final counts by country:', counts);
-    console.log('🔍 [Collection Count Debug] Items marked for sale:', itemDetails.filter(item => item.isForSale));
-    console.log('🔍 [Collection Count Debug] Total unique collection items:', itemDetails.length);
-
     return counts;
   } catch (err) {
     console.error("Error in fetchUserCollectionCountByCountry", err);
