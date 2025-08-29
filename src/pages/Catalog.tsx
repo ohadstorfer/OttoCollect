@@ -132,14 +132,18 @@ const Catalog = () => {
                   ) : (
                     <div className="w-full h-full bg-ottoman-100 dark:bg-ottoman-100 bg-ottoman-50 flex items-center justify-center">
                       <span className="text-ottoman-500">
-                        {getLocalizedText(country.name, country.name_ar || country.name_tr)}
+                        {currentLanguage === 'ar' && country.name_ar ? country.name_ar :
+                         currentLanguage === 'tr' && country.name_tr ? country.name_tr :
+                         country.name}
                       </span>
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
                       <div className="w-full p-4 text-white bg-gradient-to-t from-black/70 to-transparent">
                         <h3 className={`text-xl font-bold !text-gray-200 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-                          <span>{getLocalizedText(country.name, country.name_ar || country.name_tr)}</span>
+                          <span>{currentLanguage === 'ar' && country.name_ar ? country.name_ar :
+                           currentLanguage === 'tr' && country.name_tr ? country.name_tr :
+                           country.name}</span>
                         </h3>
                         <p className={`text-sm opacity-80 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                           {t('banknote', { count: country.banknoteCount })}

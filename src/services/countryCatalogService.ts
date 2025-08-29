@@ -6,7 +6,7 @@ export async function fetchCountriesForCatalog(currentLanguage: string = 'en'): 
   try {
     const { data, error } = await supabase
       .from('countries')
-      .select('id, name, description, image_url, display_order')
+      .select('id, name, name_ar, name_tr, description, image_url, display_order')
       .order('display_order');
     
     if (error) {
@@ -30,28 +30,69 @@ export async function fetchCountriesForCatalog(currentLanguage: string = 'en'): 
       countMap[item.country] = (countMap[item.country] || 0) + 1;
     });
     
-    // Combine data
+    // Combine data with existing translations
     const countries = data.map(country => ({
       id: country.id,
       name: country.name,
+      name_ar: country.name_ar || null,
+      name_tr: country.name_tr || null,
       description: country.description || '',
       imageUrl: country.image_url || null,
       banknoteCount: countMap[country.name] || 0,
       display_order: country.display_order
     }));
 
-    // Create translation configuration for countries table (name field only)
-    const translationConfig = createNameTranslationConfig('countries', 'id');
-    
-    // Apply localization with auto-translation
-    const localizedCountries = await databaseTranslationService.getLocalizedRecords(
-      translationConfig,
-      countries,
-      currentLanguage,
-      true // Auto-translate missing translations
-    );
+    // If language is Arabic or Turkish, check for missing translations and auto-translate
+    if (currentLanguage === 'ar' || currentLanguage === 'tr') {
+      // Create a modified config that only translates name_ar and name_tr fields
+      // without overwriting the original name field
+      const translationConfig = {
+        table: 'countries',
+        idField: 'id',
+        fields: [{
+          originalField: 'name',
+          arField: 'name_ar',
+          trField: 'name_tr'
+        }]
+      };
+      
+      // Apply localization with auto-translation for missing translations
+      // This will only update name_ar and name_tr in the database
+      const localizedCountries = await databaseTranslationService.getLocalizedRecords(
+        translationConfig,
+        countries,
+        currentLanguage,
+        true // Auto-translate missing translations
+      );
 
-    return localizedCountries;
+      // Now fetch the updated data from database to get the new translations
+      const { data: updatedData, error: updateError } = await supabase
+        .from('countries')
+        .select('id, name, name_ar, name_tr, description, image_url, display_order')
+        .order('display_order');
+      
+      if (updateError) {
+        console.error("Error fetching updated countries:", updateError);
+        // Fallback to original data if update fetch fails
+        return countries;
+      }
+
+      // Map the updated data with new translations
+      const updatedCountries = updatedData.map(country => ({
+        id: country.id,
+        name: country.name,
+        name_ar: country.name_ar || null,
+        name_tr: country.name_tr || null,
+        description: country.description || '',
+        imageUrl: country.image_url || null,
+        banknoteCount: countMap[country.name] || 0,
+        display_order: country.display_order
+      }));
+
+      return updatedCountries;
+    }
+
+    return countries;
   } catch (error) {
     console.error('Error in fetchCountriesForCatalog:', error);
     return [];

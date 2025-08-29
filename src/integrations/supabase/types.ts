@@ -508,6 +508,8 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          name_ar: string | null
+          name_tr: string | null
           updated_at: string
         }
         Insert: {
