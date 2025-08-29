@@ -9,12 +9,27 @@ const queryClient = new QueryClient({
       staleTime: 60 * 1000, // 1 minute default
       // Keep data in cache for 10 minutes after component unmounts
       gcTime: 10 * 60 * 1000,
-      // Retry failed requests 2 times
-      retry: 2,
+      // Retry failed requests 2 times with exponential backoff
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors (client errors)
+        if (error?.status >= 400 && error?.status < 500) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       // Refetch on window focus for fresh data
       refetchOnWindowFocus: true,
       // Don't refetch on reconnect to avoid unnecessary requests
       refetchOnReconnect: false,
+      // Network mode configuration
+      networkMode: 'online',
+    },
+    mutations: {
+      // Connection timeout settings for mutations
+      retry: 1,
+      retryDelay: 1000,
+      networkMode: 'online',
     },
   },
 });

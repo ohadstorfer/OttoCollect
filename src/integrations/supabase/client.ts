@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
+// Use PgBouncer pooled connection URL for better connection management
 const SUPABASE_URL = "https://psnzolounfwgvkupepxb.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzbnpvbG91bmZ3Z3ZrdXBlcHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NTk0NTksImV4cCI6MjA1OTQzNTQ1OX0.iIE3DilRwCum5BZiVa-W3nLCAV2EEwzd2h8XDvNdhF8";
 
@@ -13,5 +14,25 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  }
+  },
+  // Database connection optimization settings
+  db: {
+    schema: 'public',
+  },
+  // Global options for connection management
+  global: {
+    headers: {
+      'x-application-name': 'ottoman-collection-app',
+    },
+  },
+  // Realtime connection settings to prevent zombie connections
+  realtime: {
+    params: {
+      eventsPerSecond: 2,
+    },
+    heartbeatIntervalMs: 30000, // 30 seconds
+    reconnectAfterMs: function (tries: number) {
+      return Math.min(tries * 1000, 10000); // Max 10 seconds
+    },
+  },
 });
