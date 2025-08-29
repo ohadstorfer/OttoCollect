@@ -201,13 +201,15 @@ export class DatabaseTranslationService {
           targetLanguage
         );
         
-        // Update the localized record with the new translation
-        const newTranslatedText = await translationService.translateText(
-          originalText,
-          targetLanguage,
-          'en'
-        );
-        localizedRecord[field.originalField] = newTranslatedText;
+        // Get the new translation that was saved to the database
+        const { data: updatedRecord } = await supabase
+          .from(config.table)
+          .select(`${field[`${targetLanguage}Field`]}`)
+          .eq(config.idField, record[config.idField])
+          .single();
+        
+        const savedTranslation = updatedRecord?.[field[`${targetLanguage}Field`]];
+        localizedRecord[field.originalField] = savedTranslation || originalText;
       }
     }
 
