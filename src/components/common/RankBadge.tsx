@@ -73,7 +73,7 @@ export default function RankBadge({ rank, size = 'md', showPoints = false, point
         ar: 'مدير',
         tr: 'Yönetici'
       };
-      return adminTranslations[i18n.language as keyof typeof adminTranslations] || adminTranslations.en;
+      return adminTranslations[currentLanguage as keyof typeof adminTranslations] || adminTranslations.en;
     } else if (userRole && userRole.includes('Admin')) {
       // For country admins, use the role as is (already translated in profileService)
       return userRole;

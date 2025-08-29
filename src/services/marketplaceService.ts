@@ -220,7 +220,7 @@ export async function addToMarketplace(
     // Add the item to marketplace
     const newItem = {
       collection_item_id: collectionItemId,
-      banknote_id: collectionItem.banknote_id,
+      banknote_id: collectionItem.is_unlisted_banknote ? null : collectionItem.banknote_id,
       seller_id: userId,
       status: 'Available'
     };

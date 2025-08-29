@@ -1305,7 +1305,7 @@ export type Database = {
       }
       marketplace_items: {
         Row: {
-          banknote_id: string
+          banknote_id: string | null
           collection_item_id: string
           created_at: string
           id: string
@@ -1314,7 +1314,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          banknote_id: string
+          banknote_id?: string | null
           collection_item_id: string
           created_at?: string
           id?: string
@@ -1323,7 +1323,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          banknote_id?: string
+          banknote_id?: string | null
           collection_item_id?: string
           created_at?: string
           id?: string
