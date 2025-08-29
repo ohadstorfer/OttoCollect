@@ -931,60 +931,14 @@ function isValidUuid(id: string): boolean {
 export async function fetchUserCollectionCountByCountry(userId: string): Promise<Record<string, number>> {
   // Returns a map of country name -> collection item count for user
   try {
-    console.log(`[CollectionCount] Fetching counts for user: ${userId}`);
-    
-    // Use direct queries to get counts without fetching all collection data
-    // This avoids potential issues with stale data or duplicates from fetchUserCollection
-    
-    // Query for detailed banknotes
-    const { data: detailedItems, error: detailedError } = await supabase
-      .from('collection_items')
-      .select(`
-        id,
-        enhanced_detailed_banknotes!inner(country)
-      `)
-      .eq('user_id', userId)
-      .eq('is_unlisted_banknote', false);
-
-    // Query for unlisted banknotes
-    const { data: unlistedItems, error: unlistedError } = await supabase
-      .from('collection_items')
-      .select(`
-        id,
-        unlisted_banknotes!inner(country)
-      `)
-      .eq('user_id', userId)
-      .eq('is_unlisted_banknote', true);
-
-    if (detailedError) {
-      console.error("Error fetching detailed collection counts:", detailedError);
-    }
-    
-    if (unlistedError) {
-      console.error("Error fetching unlisted collection counts:", unlistedError);
-    }
-
+    // We'll just fetch all user's collection items and aggregate by country (good enough unless user has MANY thousands)
+    const items = await fetchUserCollection(userId);
     const counts: Record<string, number> = {};
-    
-    // Count detailed banknotes
-    if (detailedItems) {
-      for (const item of detailedItems) {
-        const country = item.enhanced_detailed_banknotes?.country || 'Unknown';
-        if (!counts[country]) counts[country] = 0;
-        counts[country]++;
-      }
+    for (const item of items) {
+      const country = item.banknote?.country ?? 'Unknown';
+      if (!counts[country]) counts[country] = 0;
+      counts[country]++;
     }
-    
-    // Count unlisted banknotes
-    if (unlistedItems) {
-      for (const item of unlistedItems) {
-        const country = item.unlisted_banknotes?.country || 'Unknown';
-        if (!counts[country]) counts[country] = 0;
-        counts[country]++;
-      }
-    }
-    
-    console.log(`[CollectionCount] Counts for user ${userId}:`, counts);
     return counts;
   } catch (err) {
     console.error("Error in fetchUserCollectionCountByCountry", err);
