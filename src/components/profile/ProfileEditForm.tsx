@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { Loader2, Upload, Check, ExternalLink, X } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export interface ProfileEditFormProps {
   profile: User;
@@ -37,6 +38,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
   const [selectedFileName, setSelectedFileName] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const { direction } = useLanguage();
 
   // Clean up object URL when selectedFile changes
   useEffect(() => {
@@ -358,30 +360,39 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
           </div>
           
           <div className="space-y-4 flex-1">
-            <div className="space-y-2">
-              <Label htmlFor="username">{t('editForm.username')}</Label>
-              <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder={t('editForm.username')}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="about">{t('editForm.about')}</Label>
-              <Textarea
-                id="about"
-                value={about}
-                onChange={(e) => setAbout(e.target.value)}
-                placeholder={t('editForm.aboutPlaceholder')}
-                className="min-h-[120px]"
-              />
-            </div>
+              <div className={`space-y-2 ${direction === 'rtl' ? 'text-right' : ''}`}>
+                <Label 
+                  className={direction === 'rtl' ? 'text-right block' : ''} 
+                  htmlFor="username"
+                  style={direction === 'rtl' ? { textAlign: 'right', display: 'block' } : {}}
+                >
+                  {t('editForm.username')}
+                </Label>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder={t('editForm.username')}
+                  required
+                  className={direction === 'rtl' ? 'text-right' : ''}
+                  dir={direction === 'rtl' ? 'rtl' : 'ltr'}
+                />
+              </div>
+              
+              <div className={`space-y-2 ${direction === 'rtl' ? 'text-right' : ''}`}>
+                <Label className={direction === 'rtl' ? 'text-right block' : ''} htmlFor="about">{t('editForm.about')}</Label>
+                <Textarea
+                  id="about"
+                  value={about}
+                  onChange={(e) => setAbout(e.target.value)}
+                  placeholder={t('editForm.aboutPlaceholder')}
+                  className={`min-h-[120px] ${direction === 'rtl' ? 'text-right' : ''}`}
+                  dir={direction === 'rtl' ? 'rtl' : 'ltr'}
+                />
+              </div>
 
             <div className="space-y-4">
-              <h4 className="font-medium"> <span>{t('editForm.socialMediaLinks')}</span> </h4>
+              <h4 className={`font-medium ${direction === 'rtl' ? 'text-right' : ''}`}> <span>{t('editForm.socialMediaLinks')}</span> </h4>
               <div className="grid grid-cols-1 gap-4">
                 <SocialMediaInput
                   platform="facebook"
