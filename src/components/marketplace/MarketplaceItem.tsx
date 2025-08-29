@@ -142,9 +142,11 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
                   )}
                   </div>
 
-              <p className="text-sm text-ottoman-300">
-                {banknote.country}, {banknote.year}
-              </p>
+                  <p className="text-sm text-ottoman-300">
+                    {banknote.country}
+                    {banknote.country && banknote.year && ', '}
+                    {banknote.year}
+                  </p>
             </div>
             <div className="self-start">
               {collectionItem.condition && !collectionItem.grade && (
