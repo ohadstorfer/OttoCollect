@@ -232,7 +232,10 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                           </span>
                         </h3>
                         <p className={`text-sm opacity-80 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-                          {t('countrySelection.banknote', { count: collectionCount })}
+                          {collectionCount === 1 
+                            ? t('countrySelection.banknote_one', { count: collectionCount })
+                            : t('countrySelection.banknote_other', { count: collectionCount })
+                          }
                         </p>
                       </div>
                     </div>
