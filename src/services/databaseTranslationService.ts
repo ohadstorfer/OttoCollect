@@ -177,6 +177,15 @@ export class DatabaseTranslationService {
     currentLanguage: string,
     autoTranslate: boolean = false
   ): Promise<any> {
+    console.log('getLocalizedRecord called for record:', record.id, 'language:', currentLanguage);
+    
+    // If English, return the original record
+    if (currentLanguage === 'en') {
+      console.log('Language is English, returning original record');
+      return record;
+    }
+
+    // Create a copy of the record for localization
     const localizedRecord = { ...record };
 
     for (const field of config.fields) {
@@ -230,10 +239,18 @@ export class DatabaseTranslationService {
     currentLanguage: string,
     autoTranslate: boolean = false
   ): Promise<any[]> {
+    console.log('getLocalizedRecords called with:', {
+      recordsCount: records.length,
+      currentLanguage,
+      autoTranslate,
+      configTable: config.table
+    });
+    
     const localizedRecords = await Promise.all(
       records.map(record => this.getLocalizedRecord(config, record, currentLanguage, autoTranslate))
     );
 
+    console.log('getLocalizedRecords completed, returning', localizedRecords.length, 'records');
     return localizedRecords;
   }
 }

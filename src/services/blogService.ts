@@ -720,8 +720,11 @@ export const fetchBlogPostsWithTranslations = async (currentLanguage: string = '
       };
     });
 
+    console.log('Step 3: Built blog posts data, count:', blogPosts.length);
+
     // Step 6: If language is Arabic or Turkish, apply translation logic
     if (currentLanguage === 'ar' || currentLanguage === 'tr') {
+      console.log('Step 4: Starting translation process for language:', currentLanguage);
       try {
         const { databaseTranslationService, createNameTranslationConfig } = await import('./databaseTranslationService');
         
@@ -748,6 +751,7 @@ export const fetchBlogPostsWithTranslations = async (currentLanguage: string = '
           ]
         };
         
+        console.log('Step 5: Calling translation service...');
         // Apply localization with auto-translation for missing translations
         const localizedPosts = await databaseTranslationService.getLocalizedRecords(
           translationConfig,
@@ -756,6 +760,7 @@ export const fetchBlogPostsWithTranslations = async (currentLanguage: string = '
           true // Auto-translate missing translations
         );
 
+        console.log('Step 6: Translation complete, localized posts count:', localizedPosts.length);
         // Return the localized posts
         return localizedPosts;
       } catch (error) {
@@ -765,6 +770,7 @@ export const fetchBlogPostsWithTranslations = async (currentLanguage: string = '
       }
     }
 
+    console.log('Step 7: Returning original posts for language:', currentLanguage);
     return blogPosts;
   } catch (error) {
     console.error('Error in fetchBlogPostsWithTranslations:', error);
