@@ -9,6 +9,8 @@ import { BadgeDisplay, BadgeInfo } from './BadgeDisplay';
 import { BadgeCategory } from '@/services/badgeService';
 import { Card } from "@/components/ui/card";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useLanguage } from '@/context/LanguageContext';
+import { getLocalizedText } from '@/utils/localizationUtils';
 
 interface BadgesDialogProps {
   open: boolean;
@@ -53,11 +55,15 @@ export const BadgesDialog = ({
 }: BadgesDialogProps) => {
   const isMobile = useIsMobile(); // Mobile detection hook
   const { t } = useTranslation(['badges']);
+  const { currentLanguage, direction } = useLanguage();
   console.log('BadgesDialog: isMobile =', isMobile);
 
   const content = (
     <ScrollArea className="flex-1 px-1">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 p-1">
+      <div 
+        className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 p-1"
+        dir={direction}
+      >
         {isLoading ? (
           // Loading skeleton - show 4 ghost category cards
           <>
@@ -74,13 +80,21 @@ export const BadgesDialog = ({
               : 100;
               
             return (
-              <Card key={category.name} className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm sm:text-base font-medium"><span>{category.name}</span></h3>
-                  <span className="text-xs text-muted-foreground">
-                    {category.currentValue} / {category.nextThreshold || t('progress.max', { defaultValue: 'Max' })}
-                  </span>
-                </div>
+                             <Card key={category.name} className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                 <div className="flex items-center justify-between mb-2">
+                   <h3 className={`text-sm sm:text-base font-medium ${direction === 'rtl' ? 'text-right' : ''}`}>
+                     <span>
+                       {getLocalizedText(
+                         category.name,
+                         currentLanguage === 'ar' ? category.name_ar : category.name_tr,
+                         currentLanguage
+                       )}
+                     </span>
+                   </h3>
+                   <span className={`text-xs text-muted-foreground ${direction === 'rtl' ? 'text-right' : ''}`}>
+                     {category.currentValue} / {category.nextThreshold || t('progress.max', { defaultValue: 'Max' })}
+                   </span>
+                 </div>
                 
                 <Progress value={progress} className="h-1 sm:h-1.5" />
                 
@@ -113,13 +127,16 @@ export const BadgesDialog = ({
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="max-h-[85vh] flex flex-col">
           <DrawerHeader className="px-4 py-3 border-b flex-shrink-0">
-            <DrawerTitle className="text-lg font-semibold text-center">
+            <DrawerTitle className={`text-lg font-semibold text-center ${direction === 'rtl' ? 'text-right' : ''}`}>
               <span>{t('dialog.title', { defaultValue: 'Achievements' })}</span>
             </DrawerTitle>
           </DrawerHeader>
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full px-4 pb-6">
-              <div className="grid grid-cols-1 gap-3 py-4">
+              <div 
+                className="grid grid-cols-1 gap-3 py-4"
+                dir={direction}
+              >
                 {isLoading ? (
                   // Loading skeleton - show 4 ghost category cards
                   <>
@@ -138,8 +155,16 @@ export const BadgesDialog = ({
                     return (
                       <Card key={category.name} className="p-3 space-y-2">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm font-medium"><span>{category.name}</span></h3>
-                          <span className="text-xs text-muted-foreground">
+                          <h3 className={`text-sm font-medium ${direction === 'rtl' ? 'text-right' : ''}`}>
+                            <span>
+                              {getLocalizedText(
+                                category.name,
+                                currentLanguage === 'ar' ? category.name_ar : category.name_tr,
+                                currentLanguage
+                              )}
+                            </span>
+                          </h3>
+                          <span className={`text-xs text-muted-foreground ${direction === 'rtl' ? 'text-right' : ''}`}>
                             {category.currentValue} / {category.nextThreshold || t('progress.max', { defaultValue: 'Max' })}
                           </span>
                         </div>
@@ -157,7 +182,7 @@ export const BadgesDialog = ({
                               />
                             ))
                           ) : (
-                            <span className="text-xs text-muted-foreground py-2">
+                            <span className={`text-xs text-muted-foreground py-2 ${direction === 'rtl' ? 'text-right' : ''}`}>
                               {t('status.noBadgesEarned', { defaultValue: 'No badges earned yet' })}
                             </span>
                           )}
@@ -178,7 +203,7 @@ export const BadgesDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
+          <DialogTitle className={`text-xl font-semibold ${direction === 'rtl' ? 'text-right' : ''}`}>
             <span>{t('dialog.title', { defaultValue: 'Achievements' })}</span>
           </DialogTitle>
         </DialogHeader>

@@ -4,6 +4,8 @@ import { BadgeInfo } from '@/components/badges/BadgeDisplay';
 
 export interface BadgeCategory {
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   badges: BadgeInfo[];
   currentValue: number;
   nextThreshold?: number;
@@ -124,8 +126,11 @@ export async function getUserBadgeCategories(userId: string): Promise<BadgeCateg
         
         console.log(`getUserBadgeCategories - Category ${badge.category} stats:`, { currentValue, categoryStats });
         
+        const categoryInfo = formatCategoryName(badge.category);
         acc[badge.category] = {
-          name: formatCategoryName(badge.category),
+          name: categoryInfo.name,
+          name_ar: categoryInfo.name_ar,
+          name_tr: categoryInfo.name_tr,
           badges: [],
           currentValue,
           nextThreshold: undefined
@@ -172,11 +177,43 @@ export async function getUserBadgeCategories(userId: string): Promise<BadgeCateg
   }
 }
 
-function formatCategoryName(category: string): string {
-  return category
+function formatCategoryName(category: string, language: string = 'en'): { name: string; name_ar?: string; name_tr?: string } {
+  const baseName = category
     .split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+  
+  // Define translations for category names
+  const categoryTranslations: Record<string, { name_ar: string; name_tr: string }> = {
+    'wish_list': {
+      name_ar: 'قائمة الأمنيات',
+      name_tr: 'İstek Listesi'
+    },
+    'forum_posts': {
+      name_ar: 'منشورات المنتدى',
+      name_tr: 'Forum Gönderileri'
+    },
+    'rare_banknotes': {
+      name_ar: 'الأوراق النقدية النادرة',
+      name_tr: 'Nadir Banknotlar'
+    },
+    'add_banknotes': {
+      name_ar: 'إضافة الأوراق النقدية',
+      name_tr: 'Banknot Ekle'
+    },
+    'social_engagement': {
+      name_ar: 'التفاعل الاجتماعي',
+      name_tr: 'Sosyal Etkileşim'
+    }
+  };
+  
+  const translations = categoryTranslations[category.toLowerCase()];
+  
+  return {
+    name: baseName,
+    name_ar: translations?.name_ar,
+    name_tr: translations?.name_tr
+  };
 }
 
 export async function getHighestBadge(userId: string): Promise<BadgeInfo | null> {

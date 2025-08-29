@@ -4,6 +4,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { cn } from "@/lib/utils";
 import { useTranslation } from 'react-i18next';
 import { getLocalizedText } from '@/utils/localizationUtils';
+import { useLanguage } from '@/context/LanguageContext';
 
 export interface BadgeInfo {
   id: string;
