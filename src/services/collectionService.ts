@@ -931,12 +931,16 @@ function isValidUuid(id: string): boolean {
 export async function fetchUserCollectionCountByCountry(userId: string): Promise<Record<string, number>> {
   // Returns a map of country name -> collection item count for user
   try {
+    console.log('🔍 [Collection Count Debug] Starting fetchUserCollectionCountByCountry for userId:', userId);
+    
     // Fetch only the minimal fields needed to compute counts to avoid any client-side duplication
     const { data, error } = await supabase
       .from('collection_items')
       .select(`
         id,
         user_id,
+        is_for_sale,
+        is_unlisted_banknote,
         detailed_banknotes:banknote_id ( country ),
         unlisted_banknotes:unlisted_banknotes_id ( country )
       `)
@@ -947,12 +951,28 @@ export async function fetchUserCollectionCountByCountry(userId: string): Promise
       return {};
     }
 
+    console.log('🔍 [Collection Count Debug] Raw data from DB:', data?.length, 'rows');
+    console.log('🔍 [Collection Count Debug] Sample rows:', data?.slice(0, 3));
+
     const counts: Record<string, number> = {};
+    const itemDetails: Array<{id: string, country: string, isForSale: boolean, isUnlisted: boolean}> = [];
+    
     for (const row of data || []) {
       const country = (row as any)?.detailed_banknotes?.country || (row as any)?.unlisted_banknotes?.country || 'Unknown';
-      if (!country) continue;
+      if (!country || country === 'Unknown') continue;
+      
       counts[country] = (counts[country] || 0) + 1;
+      itemDetails.push({
+        id: (row as any).id,
+        country,
+        isForSale: (row as any).is_for_sale || false,
+        isUnlisted: (row as any).is_unlisted_banknote || false
+      });
     }
+
+    console.log('🔍 [Collection Count Debug] Final counts by country:', counts);
+    console.log('🔍 [Collection Count Debug] Items marked for sale:', itemDetails.filter(item => item.isForSale));
+    console.log('🔍 [Collection Count Debug] Total unique collection items:', itemDetails.length);
 
     return counts;
   } catch (err) {
