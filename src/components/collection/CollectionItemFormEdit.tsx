@@ -358,9 +358,11 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         if (values.isForSale && !currentItem.isForSale) {
           // Item was just marked for sale - add to marketplace
           await addToMarketplace(currentItem.id, authUser.id);
+          // No need to invalidate collection count - item count shouldn't change
         } else if (!values.isForSale && currentItem.isForSale) {
           // Item was removed from sale - remove from marketplace
           await removeFromMarketplace(currentItem.id);
+          // No need to invalidate collection count - item count shouldn't change
         }
 
         if (onUpdate) onUpdate(currentItem, hasImageChanged);
