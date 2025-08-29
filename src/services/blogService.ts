@@ -90,8 +90,14 @@ export const fetchBlogPosts = async (): Promise<BlogPost[]> => {
       return {
         id: post.id,
         title: post.title,
+        title_ar: post.title_ar,
+        title_tr: post.title_tr,
         content: post.content,
+        content_ar: post.content_ar,
+        content_tr: post.content_tr,
         excerpt: post.excerpt,
+        excerpt_ar: post.excerpt_ar,
+        excerpt_tr: post.excerpt_tr,
         main_image_url: post.main_image_url,
         author_id: post.author_id,
         authorId: post.author_id, // Add compatibility alias
@@ -634,6 +640,135 @@ export const deleteBlogComment = async (id: string): Promise<boolean> => {
   } catch (error) {
     console.error('Error in deleteBlogComment:', error);
     return false;
+  }
+};
+
+/**
+ * Fetch blog posts with translation support
+ */
+export const fetchBlogPostsWithTranslations = async (currentLanguage: string = 'en'): Promise<BlogPost[]> => {
+  try {
+    console.log("Fetching blog posts with translations for language:", currentLanguage);
+    
+    // Step 1: Fetch blog posts with comment counts and translation fields
+    const { data: posts, error: postsError } = await supabase
+      .from('blog_posts')
+      .select(`
+        *,
+        blog_comments:blog_comments(count)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (postsError) {
+      console.error('Error fetching blog posts:', postsError);
+      return [];
+    }
+
+    console.log("Fetched posts:", posts.length);
+
+    // Step 2: Get unique author IDs from posts
+    const authorIds = Array.from(new Set(posts.map(post => post.author_id)));
+    
+    // Step 3: Fetch author profiles
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, rank')
+      .in('id', authorIds);
+
+    if (profilesError) {
+      console.error('Error fetching author profiles:', profilesError);
+      return [];
+    }
+
+    console.log("Fetched profiles:", profiles.length);
+
+    // Step 4: Create a lookup map for profiles
+    const profileMap = profiles.reduce((acc, profile) => {
+      acc[profile.id] = profile;
+      return acc;
+    }, {} as Record<string, any>);
+
+    // Step 5: Combine data to create normalized blog posts
+    const blogPosts = posts.map(post => {
+      const authorProfile = profileMap[post.author_id] || null;
+      
+      return {
+        id: post.id,
+        title: post.title,
+        title_ar: post.title_ar || null,
+        title_tr: post.title_tr || null,
+        content: post.content,
+        content_ar: post.content_ar || null,
+        content_tr: post.content_tr || null,
+        excerpt: post.excerpt,
+        excerpt_ar: post.excerpt_ar || null,
+        excerpt_tr: post.excerpt_tr || null,
+        main_image_url: post.main_image_url,
+        author_id: post.author_id,
+        authorId: post.author_id,
+        author: authorProfile ? {
+          id: authorProfile.id,
+          username: authorProfile.username,
+          avatarUrl: authorProfile.avatar_url,
+          rank: authorProfile.rank
+        } : null,
+        created_at: post.created_at,
+        updated_at: post.updated_at,
+        createdAt: post.created_at,
+        updatedAt: post.updated_at,
+        commentCount: post.blog_comments?.[0]?.count || 0
+      };
+    });
+
+    // Step 6: If language is Arabic or Turkish, apply translation logic
+    if (currentLanguage === 'ar' || currentLanguage === 'tr') {
+      try {
+        const { databaseTranslationService, createNameTranslationConfig } = await import('./databaseTranslationService');
+        
+        // Create translation config for blog posts
+        const translationConfig = {
+          table: 'blog_posts',
+          idField: 'id',
+          fields: [
+            {
+              originalField: 'title',
+              arField: 'title_ar',
+              trField: 'title_tr'
+            },
+            {
+              originalField: 'content',
+              arField: 'content_ar',
+              trField: 'content_tr'
+            },
+            {
+              originalField: 'excerpt',
+              arField: 'excerpt_ar',
+              trField: 'excerpt_tr'
+            }
+          ]
+        };
+        
+        // Apply localization with auto-translation for missing translations
+        const localizedPosts = await databaseTranslationService.getLocalizedRecords(
+          translationConfig,
+          blogPosts,
+          currentLanguage,
+          true // Auto-translate missing translations
+        );
+
+        // Return the localized posts
+        return localizedPosts;
+      } catch (error) {
+        console.error('Translation service error, falling back to original content:', error);
+        // Return original posts if translation fails
+        return blogPosts;
+      }
+    }
+
+    return blogPosts;
+  } catch (error) {
+    console.error('Error in fetchBlogPostsWithTranslations:', error);
+    return [];
   }
 };
 

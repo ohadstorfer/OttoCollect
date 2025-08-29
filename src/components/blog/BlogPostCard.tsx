@@ -7,6 +7,8 @@ import UserProfileLink from '@/components/common/UserProfileLink';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from '@/lib/utils';
 import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
+import { useLanguage } from '@/context/LanguageContext';
+import { useLocalizedContent } from '@/hooks/useLocalizedContent';
 
 interface BlogPostCardProps {
   post: BlogPost;
@@ -15,6 +17,11 @@ interface BlogPostCardProps {
 const BlogPostCard = ({ post }: BlogPostCardProps) => {
   const navigate = useNavigate();
   const { formatDate } = useDateLocale();
+  const { currentLanguage } = useLanguage();
+  const { getLocalizedText } = useLocalizedContent();
+
+  // Get localized title with fallback
+  const localizedTitle = getLocalizedText(post.title, post.title_ar || post.title_tr) || post.title;
 
   const handlePostClick = () => {
     navigate(`/blog/${post.id}`);
@@ -38,7 +45,7 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
 
       <CardHeader className="p-4 pb-2">
         <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-ottoman-600 transition-colors">
-          <span>{post.title}</span>
+          <span>{localizedTitle}</span>
         </h3>
       </CardHeader>
 
