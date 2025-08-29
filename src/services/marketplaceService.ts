@@ -165,6 +165,7 @@ export async function addToMarketplace(
   userId: string
 ): Promise<boolean> {
   try {
+    console.log('🔍 [Marketplace Debug] Starting addToMarketplace for:', { collectionItemId, userId });
     // First, check if the collection item exists and is not already for sale
     const { data: collectionItem, error: fetchError } = await supabase
       .from('collection_items')
@@ -238,7 +239,7 @@ export async function addToMarketplace(
       throw error;
     }
     
-    console.log(`Successfully added item ${collectionItemId} to marketplace`);
+    console.log('🔍 [Marketplace Debug] Successfully added item to marketplace:', { collectionItemId, marketplaceItemCreated: true });
     return true;
   } catch (error) {
     console.error("Error in addToMarketplace:", error);
