@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole, UserRank } from "@/types";
 import heic2any from 'heic2any';
-import { databaseTranslationService } from '@/services/databaseTranslationService';
+import { translationService } from '@/services/translationService';
 
 // Helper function to convert HEIC files to JPEG
 async function convertHeicToJpeg(file: File): Promise<File> {
@@ -285,7 +285,7 @@ async function translateAndSaveRole(userId: string, originalRole: string, target
       return; // Don't translate super admin role
     }
 
-    const translatedRole = await databaseTranslationService.translateText(originalRole, targetLanguage);
+    const translatedRole = await translationService.translateText(originalRole, targetLanguage, 'en');
     
     if (translatedRole && translatedRole !== originalRole) {
       const updateField = targetLanguage === 'ar' ? 'role_ar' : 'role_tr';

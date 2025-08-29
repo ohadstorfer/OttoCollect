@@ -87,7 +87,7 @@ export default function BlogComment({
             avatarUrl={author.avatarUrl}
             size="sm"
           />
-          <RankBadge rank={author.rank as any} size="sm" />
+          <RankBadge rank={author.rank as any} size="sm" userRole={author.role} />
         </div>
           <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">

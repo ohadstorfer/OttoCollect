@@ -15,7 +15,7 @@ interface Author {
   id: string;
   username: string;
   avatarUrl?: string;
-  rank: string;
+  rank?: string;
   role?: string;
 }
 
@@ -136,7 +136,7 @@ export default function ForumComment({
               avatarUrl={comment.author?.avatarUrl}
               size="sm"
             />
-            <RankBadge rank={comment.author?.rank as any} size="sm" />
+            <RankBadge rank={comment.author?.rank as any} size="sm" userRole={comment.author?.role} />
 
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0">
