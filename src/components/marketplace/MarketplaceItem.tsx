@@ -19,6 +19,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface MarketplaceItemProps {
   item: MarketplaceItemType;
@@ -31,6 +32,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { direction } = useLanguage();
   const { t } = useTranslation(['marketplace']);
   
   // Memoize the fallback function to prevent infinite re-renders
@@ -111,7 +113,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
               alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
               className={cn(
                 "w-full h-full object-cover transition-transform duration-500",
-                isHovering ? "scale-110" : "scale-100"
+                isHovering ? "scale-105" : "scale-100"
               )}
             />
           </div>
@@ -126,11 +128,20 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         </div>
         
         <CardHeader className="pt-2.5 pb-0 px-4">
-          <div className="flex justify-between items-start">
+          <div className={`flex justify-between items-start ${direction === "rtl" ? "text-right" : "text-left"}`}>
             <div>
+
+            <div className="flex items-center gap-1">
               <h3 className="text-lg font-serif font-semibold text-parchment-500">
                 <span> {banknote.denomination} </span>
                 </h3>
+                {banknote.extendedPickNumber && (
+                    <span className="text-m font-bold text-black-400">
+                      ({banknote.extendedPickNumber})
+                    </span>
+                  )}
+                  </div>
+
               <p className="text-sm text-ottoman-300">
                 {banknote.country}, {banknote.year}
               </p>
@@ -152,7 +163,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           </div>
         </CardHeader>
         
-        <CardContent className="pt-0 pb-1 px-4">
+        <CardContent className={`pt-0 pb-1 px-4 ${direction === "rtl" ? "text-right" : "text-left"}`}>
           {publicNote && (
             <p className="text-sm text-ottoman-200 line-clamp-2 mb-2">
               {publicNote}

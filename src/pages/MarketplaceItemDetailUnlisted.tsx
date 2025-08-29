@@ -15,6 +15,8 @@ import { ContactSeller } from "@/components/messages/ContactSeller";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
+import { useLanguage } from "@/context/LanguageContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const MarketplaceItemDetailUnlisted = () => {
   console.log('Rendering MarketplaceItemDetailUnlisted component');
@@ -29,6 +31,7 @@ const MarketplaceItemDetailUnlisted = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation(['marketplace']);
+  const { direction } = useLanguage();
 
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
@@ -171,7 +174,12 @@ const MarketplaceItemDetailUnlisted = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-ottoman-400" />
+                <Avatar className="h-8 w-8 text-ottoman-400 cursor-pointer" onClick={() => navigate(`/profile/${seller.id}`)} >
+                      <AvatarImage src={seller.avatarUrl} />
+                      <AvatarFallback>
+                        {seller.username.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
                   <div>
                     <Link
                       to={`/profile/${seller.id}`}
@@ -202,43 +210,55 @@ const MarketplaceItemDetailUnlisted = () => {
         <div>
           <Card className="mb-6">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-serif font-bold text-parchment-500 mb-2">
-                <span> {banknote.denomination} </span>
-              </h2>
-
-                             <h2 className="text-2xl font-serif font-bold text-parchment-500 mb-2">
-                 <span>{tWithFallback('item.unlistedBanknote', 'Unlisted Banknote')}</span>
-               </h2>
-
-              <div className="flex items-center gap-2 mb-4">
-                <p className="text-lg text-ottoman-300">
-                  {banknote.country}
-                  {banknote.country && banknote.year ? ', ' : ''}
-                  {banknote.year}
-                </p>
-                <div className="ml-auto">
-                  {collectionItem.condition && !collectionItem.grade && (
-                    <Badge variant="secondary">
-                      {collectionItem.condition}
-                    </Badge>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <h2 className={`text-2xl font-serif font-bold text-parchment-500 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+                    <span> {banknote.denomination} </span>
+                  </h2>
+                  {banknote.extendedPickNumber && (
+                    <span className="text-xl font-bold text-black-400">
+                      ({banknote.extendedPickNumber})
+                    </span>
                   )}
-                  {collectionItem.grade && (
-                    <Badge variant="secondary">
-                      {collectionItem.grade_by && `${collectionItem.grade_by} `}
-                      {collectionItem.grade}
-                      {collectionItem.grade_condition_description && ` - ${collectionItem.grade_condition_description}`}
-                    </Badge>
-                  )}
+                </div>
+
+                <div className="text-3xl font-bold text-ottoman-500">
+                  <span className={`${direction === 'rtl' ? 'text-left' : 'text-right'}`}> ${salePrice} </span>
                 </div>
               </div>
+              <div className={`mb-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+                <span className="text-sm text-ottoman-400 font-medium">
+                  {tWithFallback('item.unlistedBanknote', 'Unlisted Banknote')}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mb-4">
 
-              <Separator className="mb-4" />
 
-              <div className="flex items-center justify-between gap-4 mb-6">
-                <div className="text-3xl font-bold text-ottoman-500">
-                  ${salePrice}
+                <div className=" items-center gap-2 ">
+                  <p className="text-lg text-ottoman-300">
+                    {banknote.country}
+                    {banknote.country && banknote.year ? ', ' : ''}
+                    {banknote.year}
+                  </p>
+                  <div
+                    className={`mt-2 ${direction === "rtl" ? "text-right" : "text-left"
+                      }`}
+                  >
+                    {collectionItem.condition && !collectionItem.grade && (
+                      <Badge variant="secondary">
+                        {collectionItem.condition}
+                      </Badge>
+                    )}
+                    {collectionItem.grade && (
+                      <Badge variant="secondary">
+                        {collectionItem.grade_by && `${collectionItem.grade_by} `}
+                        {collectionItem.grade}
+                        {collectionItem.grade_condition_description &&
+                          ` - ${collectionItem.grade_condition_description}`}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-
 
               </div>
 

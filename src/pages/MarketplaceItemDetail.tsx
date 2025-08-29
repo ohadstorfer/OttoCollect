@@ -17,6 +17,7 @@ import { BanknoteProvider } from "@/context/BanknoteContext";
 import ImagePreview from "@/components/shared/ImagePreview";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/context/LanguageContext";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const MarketplaceItemDetail = () => {
   console.log('Rendering MarketplaceItemDetail component');
@@ -355,7 +356,13 @@ const MarketplaceItemDetail = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <User className="h-5 w-5 text-ottoman-400" />
+                    <Avatar className="h-8 w-8 text-ottoman-400 cursor-pointer" onClick={() => navigate(`/profile/${seller.id}`)} >
+                      <AvatarImage src={seller.avatarUrl} />
+                      <AvatarFallback>
+                        {seller.username.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+
                     <div>
                       <Link
                         to={`/profile/${seller.id}`}
