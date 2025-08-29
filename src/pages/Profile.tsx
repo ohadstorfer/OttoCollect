@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { useAuth } from '@/context/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getUserProfile } from '@/services/profileService';
 import { Button } from '@/components/ui/button';
 import { ProfileEditForm } from '@/components/profile/ProfileEditForm';
@@ -18,6 +18,7 @@ const Profile: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user: authUser } = useAuth();
   const { t } = useTranslation(['profile']);
+  const queryClient = useQueryClient();
   const [selectedCountry, setSelectedCountry] = React.useState<string | null>(null);
   const [showCountryDetail, setShowCountryDetail] = React.useState(false);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
@@ -62,6 +63,8 @@ const Profile: React.FC = () => {
       routeCountry,
       'authUser?.id': authUser?.id,
       'profile?.id': profile?.id,
+      'profile?.avatarUrl': profile?.avatarUrl,
+      'authUser?.avatarUrl': authUser?.avatarUrl,
       isOwnProfile,
       selectedCountry,
       showCountryDetail,
@@ -131,7 +134,13 @@ const Profile: React.FC = () => {
   // Handle save completion for profile edit
   const handleSaveComplete = async () => {
     setIsEditingProfile(false);
+    
+    // Invalidate and refetch the profile data
+    await queryClient.invalidateQueries({ queryKey: ['profile', username] });
     await refetchProfile();
+    
+    // Also invalidate any other profile-related queries
+    await queryClient.invalidateQueries({ queryKey: ['profile'] });
   };
 
   if (profileLoading || (routeCountry && isLoadingCountry)) {

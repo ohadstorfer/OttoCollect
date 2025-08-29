@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { User } from '@/types';
@@ -17,7 +17,7 @@ import { Loader2, Upload, Check, ExternalLink, X } from 'lucide-react';
 export interface ProfileEditFormProps {
   profile: User;
   onCancel: () => void;
-  onSaveComplete: () => void;
+  onSaveComplete: () => Promise<void>;
 }
 
 export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEditFormProps) {
@@ -34,7 +34,20 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
   const [linkedinUrl, setLinkedinUrl] = useState(profile.linkedin_url || '');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Clean up object URL when selectedFile changes
+  useEffect(() => {
+    if (selectedFile) {
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [selectedFile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +65,20 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     setIsSuccess(false);
     
     try {
+      // Upload avatar first if a new file is selected
+      let newAvatarUrl = avatarUrl;
+      if (selectedFile && authUser) {
+        console.log('🚀 [ProfileEditForm] Starting avatar upload process...');
+        const uploadedAvatarUrl = await uploadAvatar(authUser.id, selectedFile);
+        if (uploadedAvatarUrl) {
+          newAvatarUrl = uploadedAvatarUrl;
+          console.log('✅ [ProfileEditForm] Avatar uploaded successfully:', newAvatarUrl);
+        } else {
+          throw new Error('Failed to upload avatar');
+        }
+      }
+      
+      // Update profile data
       await updateUserProfile(authUser.id, {
         username,
         about: about || null,
@@ -65,7 +92,7 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
       updateUserState({
         username,
         about,
-        avatarUrl,
+        avatarUrl: newAvatarUrl,
         facebook_url: facebookUrl.trim() || null,
         instagram_url: instagramUrl.trim() || null,
         twitter_url: twitterUrl.trim() || null,
@@ -81,15 +108,31 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         className: "bg-green-50 border-green-200 text-green-800",
       });
       
+      // Clear selected file after successful submission
+      setSelectedFile(null);
+      setSelectedFileName('');
+      
       // Reset success state after 2 seconds
       setTimeout(() => {
         setIsSuccess(false);
       }, 2000);
       
-      onSaveComplete();
+      // Call onSaveComplete first to trigger refetch
+      await onSaveComplete();
+      
+      // Small delay to ensure refetch completes and UI updates
+      setTimeout(() => {
+        // Navigate back to close the form after refetch is complete
+        navigate(-1);
+      }, 100);
       
     } catch (error) {
       console.error("Error updating profile:", error);
+      
+      // Clear selected file on error
+      setSelectedFile(null);
+      setSelectedFileName('');
+      
       toast({
         title: t('editForm.error'),
         description: t('editForm.failedToUpdateProfile'),
@@ -121,9 +164,13 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
     }
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !authUser) return;
+    if (!file) return;
+    
+    // Set the selected file name for user feedback
+    setSelectedFileName(file.name);
+    setSelectedFile(file);
     
     console.log('🔍 [ProfileEditForm] File selected:', {
       name: file.name,
@@ -150,6 +197,8 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         description: t('editForm.selectImageFile'),
         variant: "destructive",
       });
+      setSelectedFile(null);
+      setSelectedFileName('');
       return;
     }
     
@@ -169,43 +218,16 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         description: t('editForm.profileImageSize'),
         variant: "destructive",
       });
+      setSelectedFile(null);
+      setSelectedFileName('');
       return;
     }
     
-    setIsLoading(true);
-    
-    console.log('🚀 [ProfileEditForm] Starting upload process...');
-    
-    try {
-      console.log('📤 [ProfileEditForm] Calling uploadAvatar function...');
-      const newAvatarUrl = await uploadAvatar(authUser.id, file);
-      
-      if (newAvatarUrl) {
-        setAvatarUrl(newAvatarUrl);
-        // Update the local user state
-        updateUserState({
-          avatarUrl: newAvatarUrl,
-        });
-        
-        toast({
-          title: t('editForm.profilePictureUpdated'),
-          description: t('editForm.profilePictureUpdatedDescription'),
-        });
-      }
-    } catch (error) {
-      console.error("Error uploading profile picture:", error);
-      
-      // Show specific error message for HEIC files
-      const errorMessage = error instanceof Error ? error.message : "Failed to upload profile picture";
-      
-      toast({
-        title: t('editForm.uploadFailed'),
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Show preview toast
+    toast({
+      title: t('editForm.fileSelected'),
+      description: t('editForm.clickSaveToUpload'),
+    });
   };
 
   const SocialMediaInput = ({ 
@@ -285,7 +307,12 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex flex-col items-center space-y-3">
             <Avatar className="h-24 w-24">
-              {avatarUrl ? (
+              {previewUrl ? (
+                <AvatarImage 
+                  src={previewUrl} 
+                  alt={username} 
+                />
+              ) : avatarUrl ? (
                 <AvatarImage src={avatarUrl} alt={username} />
               ) : (
                 <AvatarFallback className="bg-ottoman-700 text-parchment-100">
@@ -294,24 +321,40 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
               )}
             </Avatar>
             
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {t('editForm.changeProfilePicture')}
-            </Button>
-            
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              className="hidden"
-            />
+            <div className="space-y-3">
+              <input
+                type="file"
+                id="profile-picture-upload"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+                disabled={isLoading}
+              />
+              
+              <label
+                htmlFor="profile-picture-upload"
+                className={`
+                  inline-flex items-center px-4 py-2 text-sm font-medium rounded-md
+                  border border-gray-300 bg-white text-gray-700
+                  hover:bg-gray-50 hover:border-gray-400
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ottoman-500
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  cursor-pointer transition-colors duration-200
+                  ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {t('editForm.changeProfilePicture')}
+              </label>
+              
+              {selectedFileName && (
+                <div className="text-center">
+                  <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                    {selectedFileName}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="space-y-4 flex-1">

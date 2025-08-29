@@ -27,6 +27,9 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick, s
   const { t } = useTranslation(['profile']);
   const isOwnProfile = user && profile && user.id === profile.id;
   const userRank = (profile?.rank || "Newbie");
+  
+  // Use auth user's avatar URL for own profile to ensure it's always up to date
+  const avatarUrl = isOwnProfile ? user?.avatarUrl : profile?.avatarUrl;
 
   const handleEditClick = () => {
     navigate('/settings');
@@ -40,9 +43,9 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick, s
           <div className="sm:hidden">
             <div className="flex flex-col items-center gap-4">
               <Avatar className={`h-20 w-20 border-4 ${theme === 'dark' ? 'border-dark-700 bg-dark-700' : 'border-background bg-background'} shadow-lg`}>
-                {profile?.avatarUrl && !['/placeholder.svg', '/placeholder-brown.svg'].includes(profile.avatarUrl) ? (
+                {avatarUrl && !['/placeholder.svg', '/placeholder-brown.svg'].includes(avatarUrl) ? (
                   <AvatarImage 
-                    src={profile.avatarUrl} 
+                    src={avatarUrl} 
                     alt={profile.username}
                     onError={(e) => {
                       const img = e.target as HTMLImageElement;
@@ -143,9 +146,9 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick, s
           {/* Desktop View */}
           <div className="hidden sm:flex items-center gap-8">
             <Avatar className={`h-20 w-20 border-4 ${theme === 'dark' ? 'border-dark-700 bg-dark-700' : 'border-background bg-background'} shadow-lg flex-shrink-0`}>
-              {profile?.avatarUrl && !['/placeholder.svg', '/placeholder-brown.svg'].includes(profile.avatarUrl) ? (
+              {avatarUrl && !['/placeholder.svg', '/placeholder-brown.svg'].includes(avatarUrl) ? (
                 <AvatarImage 
-                  src={profile.avatarUrl} 
+                  src={avatarUrl} 
                   alt={profile.username}
                 />
               ) : (
