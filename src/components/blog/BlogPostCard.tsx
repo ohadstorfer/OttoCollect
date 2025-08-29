@@ -20,8 +20,8 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
   const { currentLanguage } = useLanguage();
   const { getLocalizedText } = useLocalizedContent();
 
-  // Get localized title with fallback
-  const localizedTitle = getLocalizedText(post.title, post.title_ar || post.title_tr) || post.title;
+  // The title field should already contain the translated text from the service
+  const localizedTitle = post.title;
 
   const handlePostClick = () => {
     navigate(`/blog/${post.id}`);

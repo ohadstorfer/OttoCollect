@@ -53,10 +53,24 @@ export class DatabaseTranslationService {
     translatedText: string | null | undefined,
     targetLanguage: string
   ): boolean {
+    console.log('needsTranslation check:', {
+      originalText: originalText?.substring(0, 50) + '...',
+      translatedText: translatedText?.substring(0, 50) + '...',
+      targetLanguage,
+      hasOriginalText: !!originalText,
+      originalTextTrimmed: originalText?.trim(),
+      hasTranslatedText: !!translatedText,
+      translatedTextTrimmed: translatedText?.trim()
+    });
+    
     if (targetLanguage === 'en' || !originalText || originalText.trim() === '') {
+      console.log('Translation not needed: English language or empty original text');
       return false;
     }
-    return !translatedText || translatedText.trim() === '';
+    
+    const needsTranslation = !translatedText || translatedText.trim() === '';
+    console.log('Translation needed:', needsTranslation);
+    return needsTranslation;
   }
 
   /**
@@ -74,13 +88,24 @@ export class DatabaseTranslationService {
     field: TranslationField,
     originalText: string,
     targetLanguage: 'ar' | 'tr'
-  ): Promise<boolean> {
+  ): Promise<{ success: boolean; translatedText?: string }> {
     try {
+      console.log('translateAndSaveField called:', {
+        table: config.table,
+        recordId,
+        field: field.originalField,
+        targetField: field[`${targetLanguage}Field`],
+        originalText: originalText?.substring(0, 50) + '...',
+        targetLanguage
+      });
+      
       // Check if translation is needed
       if (!this.needsTranslation(originalText, null, targetLanguage)) {
-        return true;
+        console.log('Translation not needed, skipping');
+        return { success: true };
       }
 
+      console.log('Starting translation...');
       // Translate the text
       const translatedText = await translationService.translateText(
         originalText,
@@ -88,10 +113,16 @@ export class DatabaseTranslationService {
         'en'
       );
 
+      console.log('Translation result:', {
+        original: originalText?.substring(0, 50) + '...',
+        translated: translatedText?.substring(0, 50) + '...'
+      });
+
       // Update the database
       const updateData: any = {};
       updateData[field[`${targetLanguage}Field`]] = translatedText;
 
+      console.log('Updating database with:', updateData);
       const { error } = await supabase
         .from(config.table)
         .update(updateData)
@@ -99,13 +130,14 @@ export class DatabaseTranslationService {
 
       if (error) {
         console.error(`Error updating ${config.table} translation:`, error);
-        return false;
+        return { success: false };
       }
 
-      return true;
+      console.log('Database update successful');
+      return { success: true, translatedText };
     } catch (error) {
       console.error('Translation and save failed:', error);
-      return false;
+      return { success: false };
     }
   }
 
@@ -192,6 +224,13 @@ export class DatabaseTranslationService {
       const originalText = record[field.originalField];
       const translatedText = record[field[`${currentLanguage === 'ar' ? 'ar' : 'tr'}Field`]];
 
+      console.log('Processing field:', {
+        fieldName: field.originalField,
+        originalText: originalText?.substring(0, 50) + '...',
+        translatedText: translatedText?.substring(0, 50) + '...',
+        currentLanguage
+      });
+
       // Get the appropriate text
       localizedRecord[field.originalField] = this.getLocalizedText(
         originalText,
@@ -199,27 +238,30 @@ export class DatabaseTranslationService {
         currentLanguage
       );
 
-      // Auto-translate if needed and enabled
-      if (autoTranslate && currentLanguage !== 'en' && this.needsTranslation(originalText, translatedText, currentLanguage)) {
-        const targetLanguage = currentLanguage as 'ar' | 'tr';
-        await this.translateAndSaveField(
-          config,
-          record[config.idField],
-          field,
-          originalText,
-          targetLanguage
-        );
-        
-        // Get the new translation that was saved to the database
-        const { data: updatedRecord } = await supabase
-          .from(config.table)
-          .select(`${field[`${targetLanguage}Field`]}`)
-          .eq(config.idField, record[config.idField])
-          .single();
-        
-        const savedTranslation = updatedRecord?.[field[`${targetLanguage}Field`]];
-        localizedRecord[field.originalField] = savedTranslation || originalText;
-      }
+             // Auto-translate if needed and enabled
+       if (autoTranslate && currentLanguage !== 'en' && this.needsTranslation(originalText, translatedText, currentLanguage)) {
+         console.log('Auto-translation needed for field:', field.originalField);
+         const targetLanguage = currentLanguage as 'ar' | 'tr';
+         const translationResult = await this.translateAndSaveField(
+           config,
+           record[config.idField],
+           field,
+           originalText,
+           targetLanguage
+         );
+         
+         console.log('Translation result:', translationResult);
+         
+         if (translationResult.success && translationResult.translatedText) {
+           console.log('Using translated text directly:', translationResult.translatedText.substring(0, 50) + '...');
+           localizedRecord[field.originalField] = translationResult.translatedText;
+         } else {
+           console.warn('Translation failed or no translated text returned, using original text');
+           localizedRecord[field.originalField] = originalText;
+         }
+       } else {
+         console.log('Auto-translation not needed for field:', field.originalField);
+       }
     }
 
     return localizedRecord;
