@@ -3,6 +3,7 @@ import React from 'react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import { useTranslation } from 'react-i18next';
+import { getLocalizedText } from '@/utils/localizationUtils';
 
 export interface BadgeInfo {
   id: string;
@@ -12,6 +13,10 @@ export interface BadgeInfo {
   category: string;
   description?: string;
   threshold_value?: number;
+  name_ar?: string;
+  name_tr?: string;
+  description_ar?: string;
+  description_tr?: string;
 }
 
 interface BadgeDisplayProps {
@@ -64,7 +69,20 @@ export const BadgeDisplay = ({
   onClick 
 }: BadgeDisplayProps) => {
   const sizeConfig = sizesConfig[size];
-  const { t } = useTranslation(['badges']);
+  const { t, i18n } = useTranslation(['badges']);
+  
+  // Get localized badge name and description
+  const localizedName = getLocalizedText(
+    badge.name,
+    i18n.language === 'ar' ? badge.name_ar : badge.name_tr,
+    i18n.language
+  );
+  
+  const localizedDescription = badge.description ? getLocalizedText(
+    badge.description,
+    i18n.language === 'ar' ? badge.description_ar : badge.description_tr,
+    i18n.language
+  ) : undefined;
   
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
@@ -103,11 +121,11 @@ export const BadgeDisplay = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <BadgeIcon color={stageColors[badge.stage]} className="h-6 w-6" />
-            <h4 className="font-semibold"><span>{badge.name}</span></h4>
+            <h4 className="font-semibold"><span>{localizedName}</span></h4>
           </div>
-          {badge.description && (
+          {localizedDescription && (
             <p className="text-sm text-muted-foreground">
-              {badge.description}
+              {localizedDescription}
             </p>
           )}
           {showStage && (

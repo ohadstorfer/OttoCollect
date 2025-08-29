@@ -40,7 +40,11 @@ export async function getUserBadges(userId: string): Promise<BadgeInfo[]> {
           category,
           stage,
           threshold_value,
-          icon_url
+          icon_url,
+          name_ar,
+          name_tr,
+          description_ar,
+          description_tr
         )
       `)
       .eq('user_id', userId);
@@ -61,7 +65,11 @@ export async function getUserBadges(userId: string): Promise<BadgeInfo[]> {
       icon_url: (item.badges as any).icon_url,
       category: (item.badges as any).category,
       description: (item.badges as any).description,
-      threshold_value: (item.badges as any).threshold_value
+      threshold_value: (item.badges as any).threshold_value,
+      name_ar: (item.badges as any).name_ar,
+      name_tr: (item.badges as any).name_tr,
+      description_ar: (item.badges as any).description_ar,
+      description_tr: (item.badges as any).description_tr
     }));
 
     console.log('getUserBadges - Processed badges:', badges);
@@ -136,7 +144,11 @@ export async function getUserBadgeCategories(userId: string): Promise<BadgeCateg
           icon_url: badge.icon_url,
           category: badge.category,
           description: badge.description,
-          threshold_value: badge.threshold_value
+          threshold_value: badge.threshold_value,
+          name_ar: badge.name_ar,
+          name_tr: badge.name_tr,
+          description_ar: badge.description_ar,
+          description_tr: badge.description_tr
         });
       }
       
@@ -213,7 +225,11 @@ export async function getHighestBadge(userId: string): Promise<BadgeInfo | null>
         icon_url: current.icon_url,
         category: current.category,
         threshold_value: current.threshold_value,
-        description: current.description // Ensure description is included
+        description: current.description,
+        name_ar: current.name_ar,
+        name_tr: current.name_tr,
+        description_ar: current.description_ar,
+        description_tr: current.description_tr
       };
       
       if (!highest) return currentBadge;
