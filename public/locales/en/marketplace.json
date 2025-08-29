@@ -39,7 +39,8 @@
     "addToWishlist": "Add to Wishlist",
     "removeFromWishlist": "Remove from Wishlist",
     "back": "Back",
-    "backToMarketplace": "Back to Marketplace"
+    "backToMarketplace": "Back to Marketplace",
+    "message": "Message"
   },
 
   "item": {

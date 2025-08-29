@@ -39,7 +39,8 @@
     "addToWishlist": "أضف إلى قائمة الأماني",
     "removeFromWishlist": "إزالة من قائمة الأماني",
     "back": "رجوع",
-    "backToMarketplace": "العودة إلى السوق"
+    "backToMarketplace": "العودة إلى السوق",
+    "message": "رسالة"
   },
 
   "item": {

@@ -22,7 +22,7 @@ const MarketplaceItemDetail = () => {
   console.log('Rendering MarketplaceItemDetail component');
   const { id } = useParams<{ id: string }>();
   console.log('MarketplaceItemDetail ID from params:', id);
-  
+
   const [item, setItem] = useState<MarketplaceItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,18 +60,18 @@ const MarketplaceItemDetail = () => {
   useEffect(() => {
     const determineOrientations = async () => {
       if (!item?.collectionItem) return;
-      
+
       const displayImages = [
-        item.collectionItem.obverseImage ,
+        item.collectionItem.obverseImage,
         item.collectionItem.reverseImage
       ].filter(Boolean) as string[];
 
       const orientations: Record<number, 'vertical' | 'horizontal'> = {};
-      
+
       for (let i = 0; i < displayImages.length; i++) {
         orientations[i] = await getImageOrientation(displayImages[i]);
       }
-      
+
       setImageOrientations(orientations);
     };
 
@@ -210,7 +210,7 @@ const MarketplaceItemDetail = () => {
                       (() => {
                         const firstOrientation = imageOrientations[0];
                         const secondOrientation = imageOrientations[1];
-                        
+
                         // If both images are vertical, display side by side
                         if (firstOrientation === 'vertical' && secondOrientation === 'vertical') {
                           return (
@@ -233,7 +233,7 @@ const MarketplaceItemDetail = () => {
                             </div>
                           );
                         }
-                        
+
                         // If any image is horizontal, stack them vertically
                         return (
                           <div className="flex flex-col space-y-3">
@@ -274,57 +274,70 @@ const MarketplaceItemDetail = () => {
                       ))
                     )}
                   </div>
-                                 ) : (
-                   <div className="p-6 text-center bg-muted rounded-md">
-                     <p className="text-muted-foreground">{tWithFallback('item.noImagesAvailable', 'No images available')}</p>
-                   </div>
-                 )}
+                ) : (
+                  <div className="p-6 text-center bg-muted rounded-md">
+                    <p className="text-muted-foreground">{tWithFallback('item.noImagesAvailable', 'No images available')}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-         
+
         </div>
 
         {/* Right column: Details */}
         <div>
           <Card className="mb-6">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-serif font-bold text-parchment-500 mb-2">
-                <span> {banknote.denomination} </span>
-              </h2>
 
-              <div className="flex items-center gap-2 mb-4">
-                <p className="text-lg text-ottoman-300">
-                  {banknote.country}
-                  {banknote.country && banknote.year ? ', ' : ''}
-                  {banknote.year}
-                </p>
-                <div className="ml-auto">
-                  {collectionItem.condition && !collectionItem.grade && (
-                    <Badge variant="secondary">
-                      {collectionItem.condition}
-                    </Badge>
-                  )}
-                  {collectionItem.grade && (
-                    <Badge variant="secondary">
-                      {collectionItem.grade_by && `${collectionItem.grade_by} `}
-                      {collectionItem.grade}
-                      {collectionItem.grade_condition_description && ` - ${collectionItem.grade_condition_description}`}
-                    </Badge>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <h2 className={`text-2xl font-serif font-bold text-parchment-500 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+                    <span> {banknote.denomination} </span>
+                  </h2>
+                  {banknote.extendedPickNumber && (
+                    <span className="text-xl font-bold text-black-400">
+                      ({banknote.extendedPickNumber})
+                    </span>
                   )}
                 </div>
-              </div>
 
-              <Separator className="mb-4" />
-
-              <div className="flex items-center justify-between gap-4 mb-1">
                 <div className="text-3xl font-bold text-ottoman-500">
-                  ${salePrice}
+                  <span className={`${direction === 'rtl' ? 'text-left' : 'text-right'}`}> ${salePrice} </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mb-4">
+
+
+                <div className=" items-center gap-2 ">
+                  <p className="text-lg text-ottoman-300">
+                    {banknote.country}
+                    {banknote.country && banknote.year ? ', ' : ''}
+                    {banknote.year}
+                  </p>
+                  <div
+                    className={`mt-2 ${direction === "rtl" ? "text-right" : "text-left"
+                      }`}
+                  >
+                    {collectionItem.condition && !collectionItem.grade && (
+                      <Badge variant="secondary">
+                        {collectionItem.condition}
+                      </Badge>
+                    )}
+                    {collectionItem.grade && (
+                      <Badge variant="secondary">
+                        {collectionItem.grade_by && `${collectionItem.grade_by} `}
+                        {collectionItem.grade}
+                        {collectionItem.grade_condition_description &&
+                          ` - ${collectionItem.grade_condition_description}`}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
-                
               </div>
+
 
               {/* {publicNote && (
                 <div className="mt-4">
@@ -338,52 +351,52 @@ const MarketplaceItemDetail = () => {
 
 
             {/* Seller information */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-ottoman-400" />
-                  <div>
-                    <Link
-                      to={`/profile/${seller.id}`}
-                      className="text-ottoman-500 hover:text-ottoman-600"
-                    >
-                      {seller.username} <Badge variant="user" rank={sellerRank as UserRank} role={seller.role} />
-                    </Link>
-                  </div>
-                  
-                </div>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <User className="h-5 w-5 text-ottoman-400" />
+                    <div>
+                      <Link
+                        to={`/profile/${seller.id}`}
+                        className="text-ottoman-500 hover:text-ottoman-600"
+                      >
+                        {seller.username} <Badge variant="user" rank={sellerRank as UserRank} role={seller.role} />
+                      </Link>
+                    </div>
 
-                {user && user.id !== seller.id && (
-                  <div>
-                    <Button variant="outline" size="sm" onClick={handleMessageClick}>
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      {tWithFallback('actions.message', 'Message')}
-                    </Button>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+
+                  {user && user.id !== seller.id && (
+                    <div>
+                      <Button variant="outline" size="sm" onClick={handleMessageClick}>
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        {tWithFallback('actions.message', 'Message')}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
           </Card>
 
           {/* Wrap the BanknoteCatalogDetailMinimized component with BanknoteProvider */}
           <Card className="border-t-4 border-t-primary shadow-md">
             <CardHeader className="border-b bg-muted/20">
-                             <div className="flex justify-between items-center">
-                 <CardTitle className="text-xl m-0">
-                   <span>{tWithFallback('item.banknoteDetails', 'Banknote Details')}</span>
-                 </CardTitle>
-               </div>
-               <CardDescription className={`${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-                 {tWithFallback('item.detailedInformation', 'Detailed information about this banknote')}
-               </CardDescription>
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-xl m-0">
+                  <span>{tWithFallback('item.banknoteDetails', 'Banknote Details')}</span>
+                </CardTitle>
+              </div>
+              <CardDescription className={`${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+                {tWithFallback('item.detailedInformation', 'Detailed information about this banknote')}
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-              <BanknoteCatalogDetailMinimized 
-                banknote={banknote} 
-                onImageClick={(url) => setSelectedImage(url)} 
+              <BanknoteCatalogDetailMinimized
+                banknote={banknote}
+                onImageClick={(url) => setSelectedImage(url)}
               />
             </CardContent>
           </Card>
