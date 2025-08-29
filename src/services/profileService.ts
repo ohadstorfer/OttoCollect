@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole, UserRank } from "@/types";
 import heic2any from 'heic2any';
+import { databaseTranslationService } from '@/services/databaseTranslationService';
 
 // Helper function to convert HEIC files to JPEG
 async function convertHeicToJpeg(file: File): Promise<File> {
@@ -76,11 +77,29 @@ export async function getUserProfile(userIdOrUsername: string): Promise<User | n
 
     if (!data) return null;
 
+    // Handle role translation for country admins
+    let localizedRole = data.role;
+    if (data.role && data.role !== 'Super Admin' && data.role.includes('Admin')) {
+      // This is a country admin, check for translations
+      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      if (currentLanguage === 'ar' && data.role_ar) {
+        localizedRole = data.role_ar;
+      } else if (currentLanguage === 'tr' && data.role_tr) {
+        localizedRole = data.role_tr;
+      }
+      
+      // Auto-translate if translation is missing
+      if ((currentLanguage === 'ar' && !data.role_ar) || (currentLanguage === 'tr' && !data.role_tr)) {
+        // Translate and save role in background
+        translateAndSaveRole(data.id, data.role, currentLanguage as 'ar' | 'tr').catch(console.error);
+      }
+    }
+
     const userProfile: User = {
       id: data.id,
       username: data.username,
       email: data.email,
-      role: data.role as UserRole,
+      role: localizedRole as UserRole,
       role_id: data.role_id || "", // Add the missing role_id property
       rank: data.rank as UserRank,
       points: data.points,
@@ -256,5 +275,33 @@ export async function deleteUserById(userId: string): Promise<boolean> {
   } catch (error) {
     console.error('Error in deleteUserById:', error);
     return false;
+  }
+}
+
+// Helper function to translate and save role
+async function translateAndSaveRole(userId: string, originalRole: string, targetLanguage: 'ar' | 'tr'): Promise<void> {
+  try {
+    if (!originalRole || originalRole === 'Super Admin') {
+      return; // Don't translate super admin role
+    }
+
+    const translatedRole = await databaseTranslationService.translateText(originalRole, targetLanguage);
+    
+    if (translatedRole && translatedRole !== originalRole) {
+      const updateField = targetLanguage === 'ar' ? 'role_ar' : 'role_tr';
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ [updateField]: translatedRole })
+        .eq('id', userId);
+        
+      if (error) {
+        console.error('Error saving translated role:', error);
+      } else {
+        console.log(`Role translated and saved: ${originalRole} -> ${translatedRole} (${targetLanguage})`);
+      }
+    }
+  } catch (error) {
+    console.error('Error in translateAndSaveRole:', error);
   }
 }

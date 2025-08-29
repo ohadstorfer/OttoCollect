@@ -8,10 +8,11 @@ interface RankBadgeProps {
   size?: 'sm' | 'md' | 'lg';
   showPoints?: boolean;
   points?: number;
+  userRole?: string; // Add user role prop for admin badges
 }
 
-export default function RankBadge({ rank, size = 'md', showPoints = false, points }: RankBadgeProps) {
-  const { t } = useTranslation(['badges']);
+export default function RankBadge({ rank, size = 'md', showPoints = false, points, userRole }: RankBadgeProps) {
+  const { t, i18n } = useTranslation(['badges']);
   const getRankColor = (userRank: UserRank) => {
     switch (userRank) {
       case 'Master Collector':
@@ -58,12 +59,36 @@ export default function RankBadge({ rank, size = 'md', showPoints = false, point
     return t(translationKey);
   };
 
+  const getAdminBadgeColor = () => {
+    return 'bg-red-600 text-white border-red-700'; // Admin badge color
+  };
+
+  const getAdminDisplayText = () => {
+    if (userRole === 'Super Admin') {
+      // Inline translations for "admin"
+      const adminTranslations = {
+        en: 'Admin',
+        ar: 'مدير',
+        tr: 'Yönetici'
+      };
+      return adminTranslations[i18n.language as keyof typeof adminTranslations] || adminTranslations.en;
+    } else if (userRole && userRole.includes('Admin')) {
+      // For country admins, use the role as is (already translated in profileService)
+      return userRole;
+    }
+    return null;
+  };
+
+  // Check if we should show admin badge instead of rank badge
+  const adminText = getAdminDisplayText();
+  const shouldShowAdminBadge = adminText && userRole && (userRole === 'Super Admin' || userRole.includes('Admin'));
+
   return (
     <Badge 
-      className={`${getRankColor(rank)} ${getSizeClass()} font-medium border`}
+      className={`${shouldShowAdminBadge ? getAdminBadgeColor() : getRankColor(rank)} ${getSizeClass()} font-medium border`}
       variant="secondary"
     >
-      {getDisplayRank(rank)}
+      {shouldShowAdminBadge ? adminText : getDisplayRank(rank)}
       {showPoints && points !== undefined && (
         <span className="ml-1 opacity-90">({points} pts)</span>
       )}

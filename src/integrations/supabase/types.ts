@@ -1478,7 +1478,9 @@ export type Database = {
           points: number
           rank: string
           role: string
+          role_ar: string | null
           role_id: string | null
+          role_tr: string | null
           twitter_url: string | null
           updated_at: string
           username: string
@@ -1503,7 +1505,9 @@ export type Database = {
           points?: number
           rank?: string
           role?: string
+          role_ar?: string | null
           role_id?: string | null
+          role_tr?: string | null
           twitter_url?: string | null
           updated_at?: string
           username: string
@@ -1528,7 +1532,9 @@ export type Database = {
           points?: number
           rank?: string
           role?: string
+          role_ar?: string | null
           role_id?: string | null
+          role_tr?: string | null
           twitter_url?: string | null
           updated_at?: string
           username?: string
@@ -2526,7 +2532,9 @@ export type Database = {
           points: number
           rank: string
           role: string
+          role_ar: string | null
           role_id: string | null
+          role_tr: string | null
           twitter_url: string | null
           updated_at: string
           username: string
