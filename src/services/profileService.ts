@@ -42,7 +42,7 @@ async function convertHeicToJpeg(file: File): Promise<File> {
 }
 
 // Get a user profile by ID or username
-export async function getUserProfile(userIdOrUsername: string): Promise<User | null> {
+export async function getUserProfile(userIdOrUsername: string, currentLanguage?: string): Promise<User | null> {
   try {
     // Check if the input is empty
     if (!userIdOrUsername) {
@@ -81,17 +81,53 @@ export async function getUserProfile(userIdOrUsername: string): Promise<User | n
     let localizedRole = data.role;
     if (data.role && data.role !== 'Super Admin' && data.role.includes('Admin')) {
       // This is a country admin, check for translations
-      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      // Try multiple ways to detect current language
+      let currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      
+      // Also check for other possible language storage keys
+      if (currentLanguage === 'en') {
+        currentLanguage = localStorage.getItem('language') || 
+                         localStorage.getItem('currentLanguage') || 
+                         localStorage.getItem('i18n') || 
+                         'en';
+      }
+      
+      console.log('🌐 [profileService] Language detection:', {
+        i18nextLng: localStorage.getItem('i18nextLng'),
+        language: localStorage.getItem('language'),
+        currentLanguage: localStorage.getItem('currentLanguage'),
+        i18n: localStorage.getItem('i18n'),
+        finalLanguage: currentLanguage
+      });
+      console.log('🔍 [profileService] Role translation check:', {
+        userId: data.id,
+        originalRole: data.role,
+        currentLanguage,
+        hasRoleAr: !!data.role_ar,
+        hasRoleTr: !!data.role_tr,
+        roleAr: data.role_ar,
+        roleTr: data.role_tr
+      });
+      
       if (currentLanguage === 'ar' && data.role_ar) {
         localizedRole = data.role_ar;
+        console.log('✅ [profileService] Using Arabic role translation:', data.role_ar);
       } else if (currentLanguage === 'tr' && data.role_tr) {
         localizedRole = data.role_tr;
+        console.log('✅ [profileService] Using Turkish role translation:', data.role_tr);
       }
       
       // Auto-translate if translation is missing
       if ((currentLanguage === 'ar' && !data.role_ar) || (currentLanguage === 'tr' && !data.role_tr)) {
+        console.log('🔄 [profileService] Starting auto-translation for role:', {
+          userId: data.id,
+          originalRole: data.role,
+          targetLanguage: currentLanguage
+        });
         // Translate and save role in background
         translateAndSaveRole(data.id, data.role, currentLanguage as 'ar' | 'tr').catch(console.error);
+      } else {
+        console.log('ℹ️ [profileService] No translation needed or already exists');
       }
     }
 
@@ -100,6 +136,7 @@ export async function getUserProfile(userIdOrUsername: string): Promise<User | n
       username: data.username,
       email: data.email,
       role: localizedRole as UserRole,
+      originalRole: data.role as UserRole, // Add original role for admin detection
       role_id: data.role_id || "", // Add the missing role_id property
       rank: data.rank as UserRank,
       points: data.points,
@@ -279,16 +316,30 @@ export async function deleteUserById(userId: string): Promise<boolean> {
 }
 
 // Helper function to translate and save role
-async function translateAndSaveRole(userId: string, originalRole: string, targetLanguage: 'ar' | 'tr'): Promise<void> {
+export async function translateAndSaveRole(userId: string, originalRole: string, targetLanguage: 'ar' | 'tr'): Promise<void> {
   try {
+    console.log('🚀 [translateAndSaveRole] Starting translation:', {
+      userId,
+      originalRole,
+      targetLanguage
+    });
+    
     if (!originalRole || originalRole === 'Super Admin') {
+      console.log('⏭️ [translateAndSaveRole] Skipping translation for Super Admin or empty role');
       return; // Don't translate super admin role
     }
 
+    console.log('🌐 [translateAndSaveRole] Calling translation service...');
     const translatedRole = await translationService.translateText(originalRole, targetLanguage, 'en');
+    console.log('📝 [translateAndSaveRole] Translation result:', translatedRole);
     
     if (translatedRole && translatedRole !== originalRole) {
       const updateField = targetLanguage === 'ar' ? 'role_ar' : 'role_tr';
+      console.log('💾 [translateAndSaveRole] Saving to database:', {
+        userId,
+        field: updateField,
+        translatedRole
+      });
       
       const { error } = await supabase
         .from('profiles')
@@ -296,12 +347,14 @@ async function translateAndSaveRole(userId: string, originalRole: string, target
         .eq('id', userId);
         
       if (error) {
-        console.error('Error saving translated role:', error);
+        console.error('❌ [translateAndSaveRole] Error saving translated role:', error);
       } else {
-        console.log(`Role translated and saved: ${originalRole} -> ${translatedRole} (${targetLanguage})`);
+        console.log(`✅ [translateAndSaveRole] Role translated and saved: ${originalRole} -> ${translatedRole} (${targetLanguage})`);
       }
+    } else {
+      console.log('⚠️ [translateAndSaveRole] No translation needed or translation failed');
     }
   } catch (error) {
-    console.error('Error in translateAndSaveRole:', error);
+    console.error('❌ [translateAndSaveRole] Error in translateAndSaveRole:', error);
   }
 }

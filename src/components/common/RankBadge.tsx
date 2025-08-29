@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { UserRank } from '@/types';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface RankBadgeProps {
   rank: UserRank;
@@ -12,7 +13,8 @@ interface RankBadgeProps {
 }
 
 export default function RankBadge({ rank, size = 'md', showPoints = false, points, userRole }: RankBadgeProps) {
-  const { t, i18n } = useTranslation(['badges']);
+  const { t } = useTranslation(['badges']);
+  const { currentLanguage } = useLanguage();
   const getRankColor = (userRank: UserRank) => {
     switch (userRank) {
       case 'Master Collector':

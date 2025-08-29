@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { statisticsService } from "@/services/statisticsService";
+import { translateAndSaveRole } from "@/services/profileService";
 
 type AuthContextType = {
   user: User | null;
@@ -32,6 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [blockedNotice, setBlockedNotice] = useState<string | null>(null);
+  const [currentLanguage, setCurrentLanguage] = useState<string>('en');
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -60,6 +62,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
+  // Listen for language changes and refetch user profile
+  useEffect(() => {
+    const checkLanguage = () => {
+      const newLanguage = localStorage.getItem('i18nextLng') || 'en';
+      if (newLanguage !== currentLanguage) {
+        setCurrentLanguage(newLanguage);
+        if (user?.id) {
+          fetchUserProfile(user.id);
+        }
+      }
+    };
+
+    // Check language on mount
+    checkLanguage();
+
+    // Listen for storage changes (language changes)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'i18nextLng') {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically for language changes
+    const interval = setInterval(checkLanguage, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [user?.id, currentLanguage]);
+
   const fetchUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -82,11 +117,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null);
           await supabase.auth.signOut();
         } else {
+          // Handle role translation for country admins
+          let localizedRole = data.role;
+          if (data.role && data.role !== 'Super Admin' && data.role.includes('Admin')) {
+            // This is a country admin, check for translations
+            const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+            if (currentLanguage === 'ar' && data.role_ar) {
+              localizedRole = data.role_ar;
+            } else if (currentLanguage === 'tr' && data.role_tr) {
+              localizedRole = data.role_tr;
+            }
+            
+            // Auto-translate if translation is missing
+            if ((currentLanguage === 'ar' && !data.role_ar) || (currentLanguage === 'tr' && !data.role_tr)) {
+              // Call the translation function
+              translateAndSaveRole(data.id, data.role, currentLanguage as 'ar' | 'tr').catch(console.error);
+            }
+          }
+
           const userProfile: User = {
             id: data.id,
             username: data.username,
             email: data.email,
-            role: data.role as UserRole,
+            role: localizedRole as UserRole,
+            originalRole: data.role as UserRole, // Add original role for admin detection
             role_id: data.role_id,
             rank: data.rank as UserRank,
             points: data.points,

@@ -81,6 +81,9 @@ export interface User {
   country?: string;
   role_id: string;
   role: UserRole;
+  originalRole?: UserRole; // Add original role for admin detection
+  role_ar?: string;
+  role_tr?: string;
   rank: string;
   points: number;
   createdAt: string;

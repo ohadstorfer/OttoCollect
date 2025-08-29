@@ -71,6 +71,7 @@ export const BadgeDisplay = ({
 }: BadgeDisplayProps) => {
   const sizeConfig = sizesConfig[size];
   const { t, i18n } = useTranslation(['badges']);
+  const { direction } = useLanguage();
   
   // Get localized badge name and description
   const localizedName = getLocalizedText(
@@ -119,18 +120,18 @@ export const BadgeDisplay = ({
         </div>
       </HoverCardTrigger>
       <HoverCardContent className="w-64 p-3">
-        <div className="space-y-2">
+        <div className={`space-y-2 ${direction === 'rtl' ? 'text-right' : ''}`}>
           <div className="flex items-center gap-2">
             <BadgeIcon color={stageColors[badge.stage]} className="h-6 w-6" />
             <h4 className="font-semibold"><span>{localizedName}</span></h4>
           </div>
           {localizedDescription && (
-            <p className="text-sm text-muted-foreground">
+            <p className={`text-sm text-muted-foreground ${direction === 'rtl' ? 'text-right' : ''}`}>
               {localizedDescription}
             </p>
           )}
           {showStage && (
-            <p className="text-xs text-muted-foreground capitalize">
+            <p className={`text-xs text-muted-foreground capitalize ${direction === 'rtl' ? 'text-right' : ''}`}>
               {(() => {
                 const stageMap: Record<string, string> = {
                   'Stage 1': 'stage1',

@@ -11,6 +11,7 @@ import ProfileCountrySelection from '@/components/profile/ProfileCountrySelectio
 import { useTheme } from "@/context/ThemeContext";
 import { Card } from '@/components/ui/card';
 import { fetchCountryByName, fetchCountryById } from '@/services/countryService';
+import { useLanguage } from '@/context/LanguageContext';
 
 const Profile: React.FC = () => {
   const { username: routeUsername, country: routeCountry } = useParams<{ username?: string; country?: string }>();
@@ -18,6 +19,7 @@ const Profile: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user: authUser } = useAuth();
   const { t } = useTranslation(['profile']);
+  const { currentLanguage } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedCountry, setSelectedCountry] = React.useState<string | null>(null);
   const [showCountryDetail, setShowCountryDetail] = React.useState(false);
@@ -44,8 +46,8 @@ const Profile: React.FC = () => {
     error: profileError,
     refetch: refetchProfile,
   } = useQuery({
-    queryKey: ['profile', username],
-    queryFn: () => getUserProfile(username || ''),
+    queryKey: ['profile', username, currentLanguage],
+    queryFn: () => getUserProfile(username || '', currentLanguage),
     enabled: !!username,
     retry: false,
   });

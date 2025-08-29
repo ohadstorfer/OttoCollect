@@ -3,6 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import { Shield, Award, Star } from "lucide-react"
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 const badgeVariants = cva(
   "inline-flex items-center rounded-md px-0.5 py-0.5 text-xs font-medium ring-1 ring-gray-400 sm:px-2 sm:py-1",
@@ -39,6 +40,7 @@ export interface BadgeProps
     VariantProps<typeof badgeVariants> {
   rank?: string;
   role?: string;
+  originalRole?: string; // Add original role for admin detection
   showIcon?: boolean;
 }
 
@@ -59,10 +61,12 @@ function Badge({
   variant,
   rank,
   role,
+  originalRole,
   showIcon = true,
   ...props
 }: BadgeProps) {
   const { t } = useTranslation(['badges']);
+  const { currentLanguage } = useLanguage();
   // If a rank is provided, use it to determine the variant
   const badgeVariant = rank ? getUserRankVariant(rank) : variant;
   
@@ -109,23 +113,31 @@ function Badge({
   };
 
   const getDisplayRank = (userRank: string, userRole?: string) => {
+    console.log('🔍 [Badge] getDisplayRank called:', { userRank, userRole, originalRole, currentLanguage });
+    
     if (!userRole) {
       return t(getRankTranslationKey(userRank));
     }
 
-    // If the user is Super Admin, add "- Admin" to the rank
+    // If the user is Super Admin, add "- Admin" to the rank with translation
     if (userRole === "Super Admin") {
+      const adminText = currentLanguage === 'ar' ? 'مدير' : 
+                       currentLanguage === 'tr' ? 'Yönetici' : 
+                       'Admin';
       return (
         <span>
           {t(getRankTranslationKey(userRank))}
           <span className="inline">- </span>
-          <span className="inline-block break-words">Admin</span>
+          <span className="inline-block break-words">{adminText}</span>
         </span>
       );
     }
     
-    // If the user is a country admin (not Super Admin but contains "Admin"), add the role
-    if (userRole.includes("Admin") && userRole !== "Super Admin") {
+    // If the user is a country admin (not Super Admin), add the role
+    // Use originalRole for admin detection, but display the translated role
+    const isCountryAdmin = originalRole && originalRole !== "Super Admin" && originalRole.includes("Admin");
+    if (isCountryAdmin) {
+      console.log('🏷️ [Badge] Displaying country admin role:', userRole);
       return (
         <span>
           {t(getRankTranslationKey(userRank))}
