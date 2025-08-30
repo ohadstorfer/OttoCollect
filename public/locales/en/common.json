@@ -99,6 +99,7 @@
     "visitMarketplace": "Visit Marketplace",
     "checkBackLater": "Check back later to see their collection grow!",
     "banknote_one": "{{count}} banknote",
-    "banknote_other": "{{count}} banknotes"
+    "banknote_other": "{{count}} banknotes",
+    "saleItemsOnly": "Sale items only"
   }
 } 

@@ -60,17 +60,19 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
   const filteredCountries = React.useMemo(() => {
     if (!countries) return [];
 
-    // First filter by collection count > 0
-    const countriesWithCollections = countries.filter((country: CountryData) => {
-      const count = collectionCounts[country.name] || 0;
-      return count > 0;
+    // Show countries that have ANY items (regular collection OR sale items)
+    // The collectionCounts now includes countries with 0 regular items but with sale items
+    const countriesWithAnyItems = countries.filter((country: CountryData) => {
+      // If the country exists in collectionCounts, it means the user has items for that country
+      // (either regular collection items or sale items)
+      return collectionCounts.hasOwnProperty(country.name);
     });
 
     // Then apply search filter if exists
-    if (!searchTerm.trim()) return countriesWithCollections;
+    if (!searchTerm.trim()) return countriesWithAnyItems;
 
     const term = searchTerm.toLowerCase().trim();
-    return countriesWithCollections.filter((country: CountryData) =>
+    return countriesWithAnyItems.filter((country: CountryData) =>
       country.name.toLowerCase().includes(term)
     );
   }, [countries, collectionCounts, searchTerm]);
@@ -232,9 +234,11 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                           </span>
                         </h3>
                         <p className={`text-sm opacity-80 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-                          {collectionCount === 1 
-                            ? t('countrySelection.banknote_one', { count: collectionCount })
-                            : t('countrySelection.banknote_other', { count: collectionCount })
+                          {collectionCount === 0 
+                            ? t('countrySelection.saleItemsOnly', 'Sale items only')
+                            : collectionCount === 1 
+                              ? t('countrySelection.banknote_one', { count: collectionCount })
+                              : t('countrySelection.banknote_other', { count: collectionCount })
                           }
                         </p>
                       </div>

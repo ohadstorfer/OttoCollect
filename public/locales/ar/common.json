@@ -99,6 +99,7 @@
     "visitMarketplace": "زيارة السوق",
     "checkBackLater": "عد لاحقاً لرؤية مجموعتهم تنمو!",
     "banknote_one": "{{count}} ورقة نقدية",
-    "banknote_other": "{{count}} أوراق نقدية"
+    "banknote_other": "{{count}} أوراق نقدية",
+    "saleItemsOnly": "عناصر للبيع فقط"
   }
 } 

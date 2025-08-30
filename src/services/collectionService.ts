@@ -929,20 +929,87 @@ function isValidUuid(id: string): boolean {
 }
 
 export async function fetchUserCollectionCountByCountry(userId: string): Promise<Record<string, number>> {
-  // Returns a map of country name -> collection item count for user
+  // Returns a map of country name -> collection item count for user (excluding sale items)
+  // But includes countries that only have sale items with count 0
   try {
-    // We'll just fetch all user's collection items and aggregate by country (good enough unless user has MANY thousands)
-    const items = await fetchUserCollection(userId);
-    console.log("items", items);
-    console.log("items.length", items.length);
-    const counts: Record<string, number> = {};
-    for (const item of items) {
-      console.log("item", item);
-      const country = item.banknote?.country ?? 'Unknown';
-      console.log(`country: ${country}, item:`, item);
-      if (!counts[country]) counts[country] = 0;
-      counts[country]++;
+    // First, get ALL countries the user has items for (including sale items)
+    const { data: allItems, error: allItemsError } = await supabase
+      .from('collection_items')
+      .select(`
+        is_unlisted_banknote,
+        unlisted_banknotes_id,
+        banknote_id,
+        enhanced_detailed_banknotes(country),
+        unlisted_banknotes(country)
+      `)
+      .eq('user_id', userId);
+
+    if (allItemsError) {
+      console.error('Error fetching all collection items:', allItemsError);
+      throw allItemsError;
     }
+
+    if (!allItems) return {};
+
+    // Get all unique countries the user has items for
+    const allCountries = new Set<string>();
+    for (const item of allItems) {
+      let country: string;
+      
+      if (item.is_unlisted_banknote) {
+        country = item.unlisted_banknotes?.country ?? 'Unknown';
+      } else {
+        country = item.enhanced_detailed_banknotes?.country ?? 'Unknown';
+      }
+      
+      if (country && country !== 'Unknown') {
+        allCountries.add(country);
+      }
+    }
+
+    // Now get counts for regular collection items (excluding sale items)
+    const { data: regularItems, error: regularItemsError } = await supabase
+      .from('collection_items')
+      .select(`
+        is_unlisted_banknote,
+        unlisted_banknotes_id,
+        banknote_id,
+        enhanced_detailed_banknotes(country),
+        unlisted_banknotes(country)
+      `)
+      .eq('user_id', userId)
+      .eq('is_for_sale', false); // Exclude sale items at database level
+
+    if (regularItemsError) {
+      console.error('Error fetching regular collection items:', regularItemsError);
+      throw regularItemsError;
+    }
+
+    const counts: Record<string, number> = {};
+    
+    // Initialize all countries with count 0
+    for (const country of allCountries) {
+      counts[country] = 0;
+    }
+    
+    // Count regular collection items
+    if (regularItems) {
+      for (const item of regularItems) {
+        let country: string;
+        
+        if (item.is_unlisted_banknote) {
+          country = item.unlisted_banknotes?.country ?? 'Unknown';
+        } else {
+          country = item.enhanced_detailed_banknotes?.country ?? 'Unknown';
+        }
+        
+        if (country && country !== 'Unknown' && counts.hasOwnProperty(country)) {
+          counts[country]++;
+        }
+      }
+    }
+    
+    console.log("Collection counts (excluding sale items, but including countries with only sale items):", counts);
     return counts;
   } catch (err) {
     console.error("Error in fetchUserCollectionCountByCountry", err);

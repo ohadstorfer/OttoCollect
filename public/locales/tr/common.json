@@ -99,6 +99,7 @@
     "visitMarketplace": "Pazar Yerini Ziyaret Et",
     "checkBackLater": "Koleksiyonlarının büyümesini görmek için daha sonra tekrar kontrol edin!",
     "banknote_one": "{{count}} banknot",
-    "banknote_other": "{{count}} banknot"
+    "banknote_other": "{{count}} banknot",
+    "saleItemsOnly": "Sadece satış öğeleri"
   }
 } 
