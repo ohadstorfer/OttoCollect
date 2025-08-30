@@ -318,6 +318,10 @@
     "failedToUpdateBanknote": "فشل في تحديث الورقة النقدية",
     "itemUpdatedSuccess": "تم تحديث العنصر بنجاح",
     "itemAddedSuccess": "تم إضافة العنصر بنجاح",
+    "itemAddedToMarketplaceSuccess": "تم إضافة العنصر إلى السوق بنجاح!",
+    "itemAddedToMarketplaceDescription": "عنصرك متاح الآن للبيع في السوق.",
+    "itemRemovedFromMarketplaceSuccess": "تم إزالة العنصر من السوق بنجاح!",
+    "itemRemovedFromMarketplaceDescription": "تم إزالة عنصرك من السوق.",
     "banknoteUpdatedDescription": "تم تحديث الورقة النقدية في مجموعتك.",
     "banknoteAddedDescription": "تم إضافة الورقة النقدية إلى مجموعتك.",
     "authenticationError": "خطأ في المصادقة",
@@ -334,7 +338,11 @@
     "updateCollectionItemDescription": "تحديث تفاصيل هذه الورقة النقدية في مجموعتك.",
     "addUnlistedBanknote": "إضافة ورقة نقدية غير مدرجة",
     "addBanknote": "إضافة ورقة نقدية",
-    "adding": "جاري الإضافة..."
+    "adding": "جاري الإضافة...",
+    "salePriceRequired": "سعر البيع مطلوب عند تحديد العنصر للبيع",
+    "banknoteMustBeSelected": "يجب تحديد العملة",
+    "maximum8CharactersAllowed": "الحد الأقصى 8 أحرف مسموح بها",
+    "maximum3CharactersAllowed": "الحد الأقصى 3 أحرف مسموح بها"
   },
   "details": {
     "extendedPickNumber": "رقم بيك الموسع",
@@ -416,6 +424,8 @@
     "uploadReverseImage": "رفع صورة الظهر",
     "personalPhotos": "الصور الشخصية (اختياري)",
     "addPhoto": "إضافة صورة",
-    "personalImage": "شخصية {{number}}"
+    "personalImage": "شخصية {{number}}",
+    "itemAddedToMarketplaceSuccess": "تم إضافة العنصر إلى السوق بنجاح!",
+    "itemAddedToMarketplaceDescription": "عنصرك متاح الآن للبيع في السوق."
   }
 } 

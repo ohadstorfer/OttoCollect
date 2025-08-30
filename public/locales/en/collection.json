@@ -77,6 +77,7 @@
   "yourRankIsNotSufficientToListItems": "Your rank is not sufficient to list items for sale. Upgrade your rank to unlock this feature.",
   "makeThisBanknoteAvailableForSale": "Make this banknote available for sale in the marketplace",
   "salePrice": "Sale Price",
+  "salePriceRequired": "Sale price is required when item is marked for sale",
   "uploadImage": "Upload Image",
   "gradingBy": "Grading By",
   "gradingByPlaceholder": "Enter grading company",
@@ -296,6 +297,10 @@
     "failedToUpdateBanknote": "Failed to update banknote",
     "itemUpdatedSuccess": "Item Updated Successfully",
     "itemAddedSuccess": "Item Added Successfully",
+    "itemAddedToMarketplaceSuccess": "Item Added to Marketplace Successfully!",
+    "itemAddedToMarketplaceDescription": "Your item is now available for sale in the marketplace.",
+    "itemRemovedFromMarketplaceSuccess": "Item Removed from Marketplace Successfully!",
+    "itemRemovedFromMarketplaceDescription": "Your item has been removed from the marketplace.",
     "banknoteUpdatedDescription": "The banknote has been updated to your collection.",
     "banknoteAddedDescription": "The banknote has been added to your collection.",
     "authenticationError": "Authentication Error",
@@ -312,7 +317,11 @@
     "updateCollectionItemDescription": "Update the details of this banknote in your collection.",
     "addUnlistedBanknote": "Add Unlisted Banknote",
     "addBanknote": "Add Banknote",
-    "adding": "Adding..."
+    "adding": "Adding...",
+    "salePriceRequired": "Sale price is required when item is marked for sale",
+    "banknoteMustBeSelected": "Banknote must be selected",
+    "maximum8CharactersAllowed": "Maximum 8 characters allowed",
+    "maximum3CharactersAllowed": "Maximum 3 characters allowed"
   },
   "details": {
     "publicDetails": "Public Details",
@@ -402,6 +411,8 @@
     "uploadReverseImage": "Upload Reverse Image",
     "personalPhotos": "Personal Photos (Optional)",
     "addPhoto": "Add Photo",
-    "personalImage": "Personal {{number}}"
+    "personalImage": "Personal {{number}}",
+    "itemAddedToMarketplaceSuccess": "Item Added to Marketplace Successfully!",
+    "itemAddedToMarketplaceDescription": "Your item is now available for sale in the marketplace."
   }
 }

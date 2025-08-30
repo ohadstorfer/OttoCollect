@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogContentWithScroll } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
-import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, Eye, EyeOff, ArrowRight } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
@@ -21,6 +21,7 @@ import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
 import ImagePreview from "@/components/shared/ImagePreview";
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from "@/context/LanguageContext";
 
 
 interface LabelValuePairProps {
@@ -66,6 +67,8 @@ export default function CollectionItem() {
   const [showVisibilityDialog, setShowVisibilityDialog] = useState(false);
   const [suggestionStatus, setSuggestionStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
   const [imageChangedAfterApproval, setImageChangedAfterApproval] = useState(false);
+  const { direction } = useLanguage();
+
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -420,7 +423,8 @@ export default function CollectionItem() {
                 size="icon"
                 className="h-10 w-10"
               >
-                <ArrowLeft className="h-5 w-5" /> {/* match h1 size */}
+                {direction === 'rtl' ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
+                {/* <ArrowLeft className="h-5 w-5" /> match h1 size */}
               </Button>
 
               <div className="flex flex-col">

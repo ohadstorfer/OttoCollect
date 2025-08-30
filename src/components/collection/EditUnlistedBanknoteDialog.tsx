@@ -33,7 +33,7 @@ import { ImageFile } from '@/types/stamps';
 import SimpleImageUpload from './SimpleImageUpload';
 import { useTranslation } from 'react-i18next';
 
-const formSchema = z.object({
+const createFormSchema = (t: any) => z.object({
   // CollectionItem fields
   useGrading: z.boolean().default(false),
   condition: z.enum(['UNC', 'AU', 'XF/AU', 'XF', 'VF/XF', 'VF', 'F/VF', 'F', 'VG/F', 'VG', 'G', 'FR'] as const).nullable(),
@@ -82,6 +82,15 @@ const formSchema = z.object({
   signature_files: z.array(z.custom<ImageFile>()).optional(),
   signatures_front_files: z.array(z.custom<ImageFile>()).optional(),
   signatures_back_files: z.array(z.custom<ImageFile>()).optional(),
+}).refine((data) => {
+  // If isForSale is true, salePrice must be provided and greater than 0
+  if (data.isForSale) {
+    return data.salePrice && data.salePrice > 0;
+  }
+  return true;
+}, {
+  message: t('salePriceRequired'),
+  path: ["salePrice"]
 });
 
 interface EditUnlistedBanknoteDialogProps {
@@ -143,6 +152,10 @@ export default function EditUnlistedBanknoteDialog({
       </Dialog>
     );
   }
+
+  // Create form schema with translations
+  const formSchema = createFormSchema(t);
+
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -470,9 +483,16 @@ export default function EditUnlistedBanknoteDialog({
         });
       }
 
+      // Check if item was just added to marketplace for sale
+      const wasJustAddedToMarketplace = values.isForSale && !collectionItem.isForSale;
+      
       toast({
-        title: t('success'),
-        description: t('banknoteUpdatedSuccess'),
+        title: wasJustAddedToMarketplace 
+          ? t('item.itemAddedToMarketplaceSuccess', 'Item added to marketplace successfully!')
+          : t('success'),
+        description: wasJustAddedToMarketplace
+          ? t('item.itemAddedToMarketplaceDescription', 'Your item is now available for sale in the marketplace.')
+          : t('banknoteUpdatedSuccess'),
       });
 
       await onUpdate();
@@ -1376,8 +1396,8 @@ export default function EditUnlistedBanknoteDialog({
                   control={form.control}
                   name="isForSale"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
+                    <FormItem className={`flex flex-row items-center justify-between rounded-lg border p-4 ${i18n.dir() === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                      <div className={`space-y-0.5 ${i18n.dir() === 'rtl' ? 'text-right' : ''}`}>
                         <FormLabel className="text-base">{t('forSale')}</FormLabel>
                         <FormDescription>
                           {isLimitedRank 

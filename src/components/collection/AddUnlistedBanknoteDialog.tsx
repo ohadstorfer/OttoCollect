@@ -56,7 +56,7 @@ interface AddUnlistedBanknoteDialogProps {
 }
 
 // Form schema
-const formSchema = z.object({
+const createFormSchema = (t: any) => z.object({
   // CollectionItem fields
   useGrading: z.boolean().default(false),
   condition: z.enum(['UNC', 'AU', 'XF/AU', 'XF', 'VF/XF', 'VF', 'F/VF', 'F', 'VG/F', 'VG', 'G', 'FR'] as const).nullable(),
@@ -105,6 +105,15 @@ const formSchema = z.object({
   signature_files: z.array(z.custom<ImageFile>()).optional(),
   signatures_front_files: z.array(z.custom<ImageFile>()).optional(),
   signatures_back_files: z.array(z.custom<ImageFile>()).optional(),
+}).refine((data) => {
+  // If isForSale is true, salePrice must be provided and greater than 0
+  if (data.isForSale) {
+    return data.salePrice && data.salePrice > 0;
+  }
+  return true;
+}, {
+  message: t('salePriceRequired'),
+  path: ["salePrice"]
 });
 
 const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
@@ -112,7 +121,13 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
 }) => {
     const { t, i18n } = useTranslation(['collection']);
 
+    // Don't render until i18n is initialized
+    if (!i18n.isInitialized) {
+      return null;
+    }
 
+    // Create form schema with translations
+    const formSchema = createFormSchema(t);
   
   // Fallback function for translations
   const tWithFallback = (key: string, fallback: string) => {
@@ -374,9 +389,16 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
           await addToMarketplace(result.id, user.id);
         }
 
+        // Check if item was just added to marketplace for sale
+        const wasJustAddedToMarketplace = values.isForSale;
+        
         toast({
-          title: "Success",
-          description: "Banknote added successfully",
+          title: wasJustAddedToMarketplace 
+            ? t('itemAddedToMarketplaceSuccess', 'Item added to marketplace successfully!')
+            : "Success",
+          description: wasJustAddedToMarketplace
+            ? t('itemAddedToMarketplaceDescription', 'Your item is now available for sale in the marketplace.')
+            : "Banknote added successfully",
         });
 
         if (onCreated) onCreated();
@@ -1333,8 +1355,8 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                   control={form.control}
                   name="isForSale"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
+                    <FormItem className={`flex flex-row items-center justify-between rounded-lg border p-4 ${i18n.dir() === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                      <div className={`space-y-0.5 ${i18n.dir() === 'rtl' ? 'text-right' : ''}`}>
                         <FormLabel className="text-base">{tWithFallback('forSale', 'For Sale')}</FormLabel>
                         <FormDescription>
                           {isLimitedRank 

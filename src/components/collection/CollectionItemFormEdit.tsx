@@ -50,16 +50,16 @@ export interface CollectionItemFormProps {
 }
 
 // Create a schema for form validation with coerced number types
-const formSchema = z.object({
-  banknoteId: z.string().min(1, { message: "Banknote must be selected" }),
+const createFormSchema = (t: (key: string) => string) => z.object({
+  banknoteId: z.string().min(1, { message: t("item.banknoteMustBeSelected") }),
   useGrading: z.boolean().default(false),
   condition: z.enum(['UNC', 'AU', 'XF/AU', 'XF', 'VF/XF', 'VF', 'F/VF', 'F', 'VG/F', 'VG', 'G', 'FR'] as const).nullable(),
-  gradeBy: z.string().max(8, { message: "Maximum 8 characters allowed" }).optional(),
+  gradeBy: z.string().max(8, { message: t("item.maximum8CharactersAllowed") }).optional(),
   gradeNumber: z.union([
     z.coerce.number().min(1).max(70),
     z.literal('')
   ]).optional(),
-  gradeLetters: z.string().max(3, { message: "Maximum 3 characters allowed" }).optional(),
+  gradeLetters: z.string().max(3, { message: t("item.maximum3CharactersAllowed") }).optional(),
   type: z.string().optional(),
   prefix: z.string().optional(),
   purchasePrice: z.union([z.coerce.number().optional(), z.literal('')]),
@@ -69,6 +69,15 @@ const formSchema = z.object({
   privateNote: z.string().optional(),
   isForSale: z.boolean().default(false),
   salePrice: z.union([z.coerce.number().optional(), z.literal('')])
+}).refine((data) => {
+  // If isForSale is true, salePrice must be provided and greater than 0
+  if (data.isForSale) {
+    return data.salePrice && data.salePrice > 0;
+  }
+  return true;
+}, {
+  message: t('item.salePriceRequired'),
+  path: ["salePrice"]
 });
 
 interface ImageVersions {
@@ -140,6 +149,9 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   );
 
   const isLimitedRank = authUser ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(authUser.rank || '') : false;
+
+  // Create form schema with translations
+  const formSchema = createFormSchema(t);
 
   // Initialize form with existing values if editing
   const form = useForm<z.infer<typeof formSchema>>({
@@ -358,9 +370,17 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         if (values.isForSale && !currentItem.isForSale) {
           // Item was just marked for sale - add to marketplace
           await addToMarketplace(currentItem.id, authUser.id);
+          toast({
+            title: t('item.itemAddedToMarketplaceSuccess'),
+            description: t('item.itemAddedToMarketplaceDescription'),
+          });
         } else if (!values.isForSale && currentItem.isForSale) {
           // Item was removed from sale - remove from marketplace
           await removeFromMarketplace(currentItem.id);
+          toast({
+            title: t('item.itemRemovedFromMarketplaceSuccess'),
+            description: t('item.itemRemovedFromMarketplaceDescription'),
+          });
         }
 
         if (onUpdate) onUpdate(currentItem, hasImageChanged);
@@ -943,8 +963,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 control={form.control}
                 name="isForSale"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
+                  <FormItem className={`flex items-center justify-between rounded-lg border p-4 ${i18n.dir() === 'rtl' ? 'flex-row-reverse' : 'flex-row'}`}>
+                      <div className={`space-y-0.5 ${i18n.dir() === 'rtl' ? 'text-right' : 'text-left'}`}>
                       <FormLabel className="text-base">{t('item.forSale')}</FormLabel>
                       <FormDescription>
                         {isLimitedRank

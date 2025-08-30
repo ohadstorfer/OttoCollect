@@ -99,6 +99,7 @@
   "yourRankIsNotSufficientToListItems": "Rütbeniz öğeleri satışa çıkarmak için yeterli değil. Bu özelliğin kilidini açmak için rütbenizi yükseltin.",
   "makeThisBanknoteAvailableForSale": "Bu banknotu pazaryerinde satışa sunun",
   "salePrice": "Satış Fiyatı",
+  "salePriceRequired": "Öğe satış için işaretlendiğinde satış fiyatı gereklidir",
   "uploadImage": "Resim Yükle",
   "gradingBy": "Derecelendirme Yapan",
   "gradingByPlaceholder": "Derecelendirme şirketi girin",
@@ -318,6 +319,10 @@
     "failedToUpdateBanknote": "Banknot güncellenemedi",
     "itemUpdatedSuccess": "Öğe Başarıyla Güncellendi",
     "itemAddedSuccess": "Öğe Başarıyla Eklendi",
+    "itemAddedToMarketplaceSuccess": "Öğe Pazara Başarıyla Eklendi!",
+    "itemAddedToMarketplaceDescription": "Öğeniz artık pazarda satışa sunuluyor.",
+    "itemRemovedFromMarketplaceSuccess": "Öğe Pazardan Başarıyla Kaldırıldı!",
+    "itemRemovedFromMarketplaceDescription": "Öğeniz pazardan kaldırıldı.",
     "banknoteUpdatedDescription": "Banknot koleksiyonunuza güncellendi.",
     "banknoteAddedDescription": "Banknot koleksiyonunuza eklendi.",
     "authenticationError": "Kimlik Doğrulama Hatası",
@@ -334,7 +339,11 @@
     "updateCollectionItemDescription": "Bu banknotun detaylarını koleksiyonunuzda güncelleyin.",
     "addUnlistedBanknote": "Listelenmemiş Banknot Ekle",
     "addBanknote": "Banknot Ekle",
-    "adding": "Ekleniyor..."
+    "adding": "Ekleniyor...",
+    "salePriceRequired": "Öğe satış için işaretlendiğinde satış fiyatı gereklidir",
+    "banknoteMustBeSelected": "Banknot seçilmelidir",
+    "maximum8CharactersAllowed": "Maksimum 8 karakter izin verilir",
+    "maximum3CharactersAllowed": "Maksimum 3 karakter izin verilir"
   },
   "details": {
     "extendedPickNumber": "Genişletilmiş Pick Numarası",
@@ -416,6 +425,8 @@
     "uploadReverseImage": "Arka Yüz Resmini Yükle",
     "personalPhotos": "Kişisel Fotoğraflar (İsteğe Bağlı)",
     "addPhoto": "Fotoğraf Ekle",
-    "personalImage": "Kişisel {{number}}"
+    "personalImage": "Kişisel {{number}}",
+    "itemAddedToMarketplaceSuccess": "Öğe Pazara Başarıyla Eklendi!",
+    "itemAddedToMarketplaceDescription": "Öğeniz artık pazarda satışa sunuluyor."
   }
 }
