@@ -108,16 +108,19 @@ export default function CollectionItem() {
         return;
       }
 
+      // Calculate isOwner inside the effect to avoid dependency issues
+      const isOwner = user?.id === collectionItem?.userId;
+
       try {
         console.log('Checking image suggestion status for collection item:', collectionItem.id);
         
-        // Check for the current user's suggestions for this collection item
-        const { data: userSuggestions, error } = await supabase
+        // Check if the collection item's suggestion was approved
+        const { data: ownerSuggestions, error } = await supabase
           .from('image_suggestions')
           .select('status')
           .eq('collection_item_id', collectionItem.id)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .eq('user_id', collectionItem.userId)
+          .eq('status', 'approved')
           .limit(1);
 
         if (error) {
@@ -127,17 +130,37 @@ export default function CollectionItem() {
           return;
         }
 
-        if (userSuggestions && userSuggestions.length > 0) {
-          const status = userSuggestions[0].status as 'pending' | 'approved' | 'rejected';
-          console.log('Current user suggestion status:', status);
-          setSuggestionStatus(status);
-          setHasPendingSuggestion(status === 'pending');
-        } else {
-          // No suggestions found for current user
-          console.log('No image suggestions found for current user');
-          setSuggestionStatus(null);
+        // If owner's suggestion was approved, show "Catalogue Image"
+        if (ownerSuggestions && ownerSuggestions.length > 0) {
+          setSuggestionStatus('approved');
           setHasPendingSuggestion(false);
+          return;
         }
+
+        // If current user is the owner, check their other statuses (pending/rejected)
+        if (isOwner) {
+          const { data: userSuggestions, error: userError } = await supabase
+            .from('image_suggestions')
+            .select('status')
+            .eq('collection_item_id', collectionItem.id)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          if (userError) {
+            console.error('Error checking user suggestions:', userError);
+          } else if (userSuggestions && userSuggestions.length > 0) {
+            const status = userSuggestions[0].status as 'pending' | 'approved' | 'rejected';
+            console.log('Current user suggestion status:', status);
+            setSuggestionStatus(status);
+            setHasPendingSuggestion(status === 'pending');
+            return;
+          }
+        }
+
+        // No relevant suggestions found
+        setSuggestionStatus(null);
+        setHasPendingSuggestion(false);
       } catch (error) {
         console.error("Failed to check image status:", error);
         setSuggestionStatus(null);
@@ -146,7 +169,7 @@ export default function CollectionItem() {
     };
 
     checkImageStatus();
-  }, [collectionItem?.id, user?.id]);
+  }, [collectionItem?.id, collectionItem?.userId, user?.id]);
 
   // Fetch the owner's role to check if they are a Super Admin
   useEffect(() => {
