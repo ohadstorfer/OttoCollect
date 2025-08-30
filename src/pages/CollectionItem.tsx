@@ -803,7 +803,7 @@ export default function CollectionItem() {
                     </div>
                   )}
                 </div>
-                <CardDescription>
+                <CardDescription className={direction === 'rtl' ? 'text-right' : 'text-left'}>
                   {isOwner
                     ? t('item.detailsAboutCopy')
                     : t('item.informationAboutCopy')}

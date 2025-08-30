@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 import ImagePreview from "@/components/shared/ImagePreview";
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface BanknoteCollectionDetailProps {
   isOwner: boolean;
@@ -25,6 +26,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
   const { id } = useParams<{ id: string }>();
   const { banknoteId } = useBanknoteContext();
   const { toast } = useToast();
+  const { direction } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Determine which ID to use
@@ -69,8 +71,8 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
     <div className="p-6">
       {/* Banknote Details Section */}
       <div className="space-y-6">
-        <div>
-          <h3 className="text-lg font-medium mb-4"> <span> {t('details.publicDetails')} </span> </h3>
+        <div className={direction === 'rtl' ? 'text-right' : 'text-left'}>
+          <h3 className="text-lg font-medium mb-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}"> <span> {t('details.publicDetails')} </span> </h3>
           <div className="space-y-2">
             {collectionItem.banknote?.extendedPickNumber && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
@@ -140,8 +142,8 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         <div className="w-full h-px bg-muted my-6" />
 
         {/* Collection Item Details */}
-        <div>
-          <div className="space-y-2">
+        <div className={direction === 'rtl' ? 'text-right' : 'text-left'}>
+          <div className="space-y-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}">
             {collectionItem.condition && !collectionItem.grade && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('details.condition')}</span>
@@ -172,7 +174,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         </div>
         <div className="w-full h-px bg-muted my-6" />
 
-        <div className="space-y-2">
+        <div className={`space-y-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
           {collectionItem.type && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.type')}</span>
@@ -369,7 +371,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         {/* Private Details Section - Only visible to owner */}
         <div className="w-full h-px bg-muted my-6" />
         {isOwner && (
-          <div>
+          <div className={direction === 'rtl' ? 'text-right' : 'text-left'}>
             <div className="flex items-center gap-2 mb-4">
               <h3 className="text-lg font-medium"> <span> {t('details.privateDetails')} </span> </h3>
               <span className="text-sm text-muted-foreground">{t('details.onlyVisibleToYou')}</span>
