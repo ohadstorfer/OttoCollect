@@ -139,7 +139,7 @@ const AboutUs: React.FC = () => {
                                             </div>
 
                                             <h3 className="text-xl font-bold text-ottoman-900 dark:text-ottoman-100 mb-2">
-                                                <span>{founders?.[0]?.username || t('aboutUs.founders.assaf.name')}</span>
+                                                <span>{ t('aboutUs.founders.assaf.name')}</span>
                                             </h3>
 
                                             {founders?.[0]?.rank && (
@@ -184,7 +184,7 @@ const AboutUs: React.FC = () => {
                                             </div>
 
                                             <h3 className="text-xl font-bold text-ottoman-900 dark:text-ottoman-100 mb-2">
-                                                <span>{founders?.[1]?.username || t('aboutUs.founders.dror.name')}</span>
+                                                <span>{ t('aboutUs.founders.dror.name')}</span>
                                             </h3>
 
                                             {founders?.[1]?.rank && (
