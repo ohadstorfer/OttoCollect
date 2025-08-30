@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Languages, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { forumTranslationService } from '@/services/forumTranslationService';
 import { toast } from 'sonner';
@@ -56,38 +55,27 @@ export const CommentTranslationButton: React.FC<CommentTranslationButtonProps> =
     }
   };
 
-  const getLanguageName = () => {
-    switch (currentLanguage) {
-      case 'ar': return 'Arabic';
-      case 'tr': return 'Turkish';
-      default: return 'English';
-    }
-  };
-
   // Don't show button for English since it's the default
   if (currentLanguage === 'en') {
     return null;
   }
 
   return (
-    <Button
+    <button
       onClick={handleTranslate}
       disabled={isTranslating}
-      variant={variant}
-      size={size}
-      className={`${className} text-muted-foreground hover:text-foreground h-6 px-2`}
+      className={`text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer ${
+        currentLanguage === 'ar' ? 'text-right' : 'text-left'
+      } ${className}`}
     >
       {isTranslating ? (
-        <>
-          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-          {t('translating')}
-        </>
+        <span className="flex items-center gap-1">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          {t('translation.translating')}...
+        </span>
       ) : (
-        <>
-          <Languages className="h-3 w-3 mr-1" />
-          Translate
-        </>
+        t('translation.translate')
       )}
-    </Button>
+    </button>
   );
 };

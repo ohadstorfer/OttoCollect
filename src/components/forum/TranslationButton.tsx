@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Languages, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { forumTranslationService } from '@/services/forumTranslationService';
 import { toast } from 'sonner';
@@ -60,9 +59,9 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
 
   const getLanguageName = () => {
     switch (currentLanguage) {
-      case 'ar': return 'Arabic';
-      case 'tr': return 'Turkish';
-      default: return 'English';
+      case 'ar': return t('translation.translateTo') + ' العربية';
+      case 'tr': return t('translation.translateTo') + ' Türkçe';
+      default: return t('translation.translateTo') + ' English';
     }
   };
 
@@ -72,24 +71,21 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
   }
 
   return (
-    <Button
+    <button
       onClick={handleTranslate}
       disabled={isTranslating}
-      variant={variant}
-      size={size}
-      className={className}
+      className={`text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer ${
+        currentLanguage === 'ar' ? 'text-right' : 'text-left'
+      } ${className}`}
     >
       {isTranslating ? (
-        <>
-          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          {t('translating')}...
-        </>
+        <span className="flex items-center gap-1">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          {t('translation.translating')}...
+        </span>
       ) : (
-        <>
-          <Languages className="h-4 w-4 mr-2" />
-          Translate to {getLanguageName()}
-        </>
+        getLanguageName()
       )}
-    </Button>
+    </button>
   );
 };

@@ -173,5 +173,10 @@
   "errors": {
     "announcementNotFound": "Duyuru bulunamadı",
     "announcementNotFoundDescription": "Aradığınız duyuru mevcut değil veya kaldırılmış."
+  },
+  "translation": {
+    "translating": "Çevriliyor",
+    "translateTo": "Çevir",
+    "translate": "Çevir"
   }
-} 
+}

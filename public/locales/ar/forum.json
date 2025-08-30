@@ -173,5 +173,10 @@
   "errors": {
     "announcementNotFound": "الإعلان غير موجود",
     "announcementNotFoundDescription": "الإعلان الذي تبحث عنه غير موجود أو تم إزالته."
+  },
+  "translation": {
+    "translating": "جاري الترجمة",
+    "translateTo": "ترجمة إلى",
+    "translate": "ترجمة"
   }
-} 
+}
