@@ -22,12 +22,14 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import SEOHead from '@/components/seo/SEOHead';
 import { SEO_CONFIG } from '@/config/seoConfig';
+import { useLanguage } from '@/context/LanguageContext';
 
 const AboutUs: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { theme } = useTheme();
     const { t } = useTranslation(['pages']);
+    const { direction } = useLanguage();
     const skewedBgColor = theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-700';
 
 
@@ -79,20 +81,20 @@ const AboutUs: React.FC = () => {
                                 <span>{t('aboutUs.aboutProject.title')}</span>
                             </h2>
 
-                            <div className="space-y-6 text-lg leading-relaxed text-ottoman-800 dark:text-ottoman-200">
-                                <p>
+                            <div className="space-y-6 text-lg leading-relaxed text-ottoman-800 dark:text-ottoman-200 ${direction === 'rtl' ? 'text-right' : 'text-left'}">
+                                <p className={direction === 'rtl' ? 'text-right' : 'text-left'}>
                                     {t('aboutUs.aboutProject.description1')}
                                 </p>
 
-                                <p>
+                                <p className={direction === 'rtl' ? 'text-right' : 'text-left'}>
                                     {t('aboutUs.aboutProject.description2')}
                                 </p>
 
-                                <p>
+                                <p className={direction === 'rtl' ? 'text-right' : 'text-left'}>
                                     {t('aboutUs.aboutProject.description3')}
                                 </p>
 
-                                <p>
+                                <p className={direction === 'rtl' ? 'text-right' : 'text-left'}>
                                     {t('aboutUs.aboutProject.description4')}
                                 </p>
                             </div>

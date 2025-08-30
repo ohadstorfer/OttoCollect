@@ -85,7 +85,16 @@ const BlogCommentWithTranslation: React.FC<BlogCommentWithTranslationProps> = ({
         default: return 'Show original';
       }
     }
-    return t('translation.translate');
+    
+    // Use the translateTo key with language interpolation
+    let targetLanguage = 'English';
+    if (currentLanguage === 'ar') {
+      targetLanguage = 'الإنجليزية';
+    } else if (currentLanguage === 'tr') {
+      targetLanguage = 'İngilizce';
+    }
+    
+    return t('translation.translateTo', { language: targetLanguage });
   };
 
   return (
