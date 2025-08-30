@@ -114,11 +114,13 @@ export default function CollectionItem() {
       try {
         console.log('Checking image suggestion status for collection item:', collectionItem.id);
         
-        // Check if the collection item's suggestion was approved
+        // Check if the collection item's suggestion was approved (supports legacy rows without collection_item_id)
         const { data: ownerSuggestions, error } = await supabase
           .from('image_suggestions')
-          .select('status')
-          .eq('collection_item_id', collectionItem.id)
+          .select('status, collection_item_id, banknote_id')
+          .or(
+            `collection_item_id.eq.${collectionItem.id},and(collection_item_id.is.null,banknote_id.eq.${collectionItem.banknote.id})`
+          )
           .eq('user_id', collectionItem.userId)
           .eq('status', 'approved')
           .limit(1);
@@ -141,8 +143,10 @@ export default function CollectionItem() {
         if (isOwner) {
           const { data: userSuggestions, error: userError } = await supabase
             .from('image_suggestions')
-            .select('status')
-            .eq('collection_item_id', collectionItem.id)
+            .select('status, collection_item_id, banknote_id')
+            .or(
+              `collection_item_id.eq.${collectionItem.id},and(collection_item_id.is.null,banknote_id.eq.${collectionItem.banknote.id})`
+            )
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
             .limit(1);
