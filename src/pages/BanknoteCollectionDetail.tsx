@@ -72,7 +72,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
       {/* Banknote Details Section */}
       <div className="space-y-6">
         <div className={direction === 'rtl' ? 'text-right' : 'text-left'}>
-          <h3 className="text-lg font-medium mb-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}"> <span> {t('details.publicDetails')} </span> </h3>
+          <h3 className={`text-lg font-medium mb-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}> <span> {t('details.publicDetails')} </span> </h3>
           <div className="space-y-2">
             {collectionItem.banknote?.extendedPickNumber && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">

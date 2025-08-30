@@ -345,6 +345,7 @@
     "maximum3CharactersAllowed": "الحد الأقصى 3 أحرف مسموح بها"
   },
   "details": {
+    "publicDetails": "التفاصيل العامة",
     "extendedPickNumber": "رقم بيك الموسع",
     "pickNumber": "رقم بيك",
     "turkCatalogNumber": "رقم كتالوج تورك",
@@ -354,7 +355,10 @@
     "type": "النوع",
     "prefixRange": "نطاق البادئة",
     "description": "الوصف",
+    "condition": "الحالة",
+    "grading": "التقييم",
     "notes": "ملاحظات",
+    "forSale": "للبيع",
     "prefix": "البادئة",
     "islamicYear": "السنة الهجرية",
     "gregorianYear": "السنة الميلادية",
@@ -379,7 +383,11 @@
     "watermarkImage": "العلامة المائية",
     "tughraImage": "الطغراء",
     "otherElementImage": "عنصر آخر {{number}}",
+    "privateDetails": "التفاصيل الخاصة",
+    "onlyVisibleToYou": "مرئي لك فقط",
     "privateNotes": "ملاحظات خاصة",
+    "itemStatus": "حالة العنصر",
+    "purchaseDate": "تاريخ الشراء",
     "loadingCollectionDetails": "جاري تحميل تفاصيل المجموعة..."
   },
   "loginRequired": "مطلوب تسجيل الدخول",
