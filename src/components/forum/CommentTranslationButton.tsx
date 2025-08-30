@@ -70,7 +70,12 @@ export const CommentTranslationButton: React.FC<CommentTranslationButtonProps> =
 
   const getButtonText = () => {
     if (isShowingTranslation) {
-      return t('translation.showOriginal');
+      // Show "Show original" in the current language
+      switch (currentLanguage) {
+        case 'ar': return 'عرض النص الأصلي';
+        case 'tr': return 'Orijinali göster';
+        default: return 'Show original';
+      }
     }
     return t('translation.translate');
   };

@@ -74,7 +74,12 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
 
   const getButtonText = () => {
     if (isShowingTranslation) {
-      return t('translation.showOriginal');
+      // Show "Show original" in the current language
+      switch (currentLanguage) {
+        case 'ar': return 'عرض النص الأصلي';
+        case 'tr': return 'Orijinali göster';
+        default: return 'Show original';
+      }
     }
     switch (currentLanguage) {
       case 'ar': return t('translation.translateTo') + ' العربية';

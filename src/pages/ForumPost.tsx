@@ -32,6 +32,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { TranslationButton } from '@/components/forum/TranslationButton';
 import { CommentTranslationButton } from '@/components/forum/CommentTranslationButton';
 import { forumTranslationService } from '@/services/forumTranslationService';
+import CommentWithTranslation from '@/components/forum/CommentWithTranslation';
 
 
 // Simple function to detect and render links
@@ -155,9 +156,11 @@ const renderComment = (
               </div>
             ) : (
               <>
-                <div className={`text-sm leading-relaxed text-foreground mb-3 break-words whitespace-pre-wrap overflow-hidden ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}>
-                  {props.renderTextWithLinks(comment.content)}
-                </div>
+                <CommentWithTranslation 
+                  comment={comment}
+                  currentLanguage={props.currentLanguage}
+                  t={props.t}
+                />
 
                 {/* Reply Form */}
                 {props.replyingToCommentId === comment.id && (
