@@ -6,7 +6,6 @@ interface CommentWithTranslationProps {
   comment: ForumComment;
   currentLanguage: string;
   t: (key: string) => string;
-  commentType?: 'forum_comments' | 'forum_announcement_comments';
 }
 
 // Simple function to detect and render links
@@ -35,8 +34,7 @@ const renderTextWithLinks = (text: string) => {
 const CommentWithTranslation: React.FC<CommentWithTranslationProps> = ({ 
   comment, 
   currentLanguage, 
-  t,
-  commentType = 'forum_comments'
+  t 
 }) => {
   const [translatedContent, setTranslatedContent] = useState<string>('');
   const [showTranslated, setShowTranslated] = useState(false);
@@ -49,7 +47,7 @@ const CommentWithTranslation: React.FC<CommentWithTranslationProps> = ({
     try {
       const result = await forumTranslationService.translateComment(
         comment.id,
-        commentType,
+        'forum_comments',
         currentLanguage as 'ar' | 'tr',
         'en'
       );
