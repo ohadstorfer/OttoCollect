@@ -78,11 +78,16 @@ export const BlogTranslationButton: React.FC<BlogTranslationButtonProps> = ({
         default: return 'Show original';
       }
     }
-    switch (currentLanguage) {
-      case 'ar': return t('translation.translateTo') + ' العربية';
-      case 'tr': return t('translation.translateTo') + ' Türkçe';
-      default: return t('translation.translateTo') + ' English';
+    
+    // Use the translateTo key with language interpolation
+    let targetLanguage = 'English';
+    if (currentLanguage === 'ar') {
+      targetLanguage = 'الإنجليزية';
+    } else if (currentLanguage === 'tr') {
+      targetLanguage = 'İngilizce';
     }
+    
+    return t('translation.translateTo', { language: targetLanguage });
   };
 
   // Don't show button for English since it's the default (unless showing translation)

@@ -138,5 +138,15 @@
     "mustBeSignedIn": "Blog yazıları oluşturmak için giriş yapmalısınız.",
     "signIn": "Giriş Yap",
     "joinCommunity": "Osmanlı İmparatorluğu banknotları hakkındaki bilgi ve görüşlerinizi paylaşmak için topluluğumuza katılın."
+  },
+  "translation": {
+    "translate": "{{language}} diline çevir",
+    "translateTo": "{{language}} diline çevir",
+    "translateToArabic": "Arapça diline çevir",
+    "translateToTurkish": "Türkçe diline çevir",
+    "translateToEnglish": "İngilizce diline çevir",
+    "translating": "Çevriliyor...",
+    "translated_successfully": "Başarıyla çevrildi",
+    "show_original": "Orijinali göster"
   }
 } 

@@ -140,5 +140,15 @@
     "mustBeSignedIn": "يجب عليك تسجيل الدخول لإنشاء منشورات المدونة.",
     "signIn": "تسجيل الدخول",
     "joinCommunity": "انضم إلى مجتمعنا لمشاركة معرفتك ورؤيتك حول أوراق الإمبراطورية العثمانية النقدية."
+  },
+  "translation": {
+    "translate": "ترجمة إلى {{language}}",
+    "translateTo": "ترجمة إلى {{language}}",
+    "translateToArabic": "ترجمة إلى العربية",
+    "translateToTurkish": "ترجمة إلى التركية",
+    "translateToEnglish": "ترجمة إلى الإنجليزية",
+    "translating": "جاري الترجمة...",
+    "translated_successfully": "تمت الترجمة بنجاح",
+    "show_original": "عرض النص الأصلي"
   }
 } 

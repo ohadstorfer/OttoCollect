@@ -12,7 +12,7 @@ import UserProfileLink from "@/components/common/UserProfileLink";
 import ImageGallery from "@/components/forum/ImageGallery";
 import { getInitials } from '@/lib/utils';
 import { UserRank } from '@/types';
-import { ArrowLeft, Trash2, Edit2, Ban } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit2, Ban, ArrowRight } from 'lucide-react';
 import { statisticsService } from "@/services/statisticsService";
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
@@ -407,7 +407,7 @@ const BlogPostPage = () => {
             aria-label="Go back"
             className="flex-shrink-0"
           >
-            <ArrowLeft className="h-5 w-5" />
+            {currentLanguage === 'ar' ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
           </Button> 
 
           {canDeletePost && (
@@ -469,7 +469,7 @@ const BlogPostPage = () => {
                 </div>
                 <span className="text-sm text-muted-foreground flex-shrink-0">{formattedDate}</span>
               </div>
-              <h6 className="font-semibold text-xl sm:text-2xl animate-fade-in break-words">
+              <h6 className={`font-semibold text-xl sm:text-2xl animate-fade-in break-words ${currentLanguage === 'ar' ? 'text-right' : ''}`}>
                 <span> {renderTextWithLinks(displayedTitle)} </span>
               </h6>
               
