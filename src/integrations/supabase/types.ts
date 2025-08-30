@@ -298,6 +298,7 @@ export type Database = {
           author_id: string
           content: string
           content_ar: string | null
+          content_en: string | null
           content_tr: string | null
           created_at: string
           id: string
@@ -309,6 +310,7 @@ export type Database = {
           author_id: string
           content: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           id?: string
@@ -320,6 +322,7 @@ export type Database = {
           author_id?: string
           content?: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           id?: string
@@ -381,15 +384,18 @@ export type Database = {
           author_id: string
           content: string
           content_ar: string | null
+          content_en: string | null
           content_tr: string | null
           created_at: string
           excerpt: string
           excerpt_ar: string | null
+          excerpt_en: string | null
           excerpt_tr: string | null
           id: string
           main_image_url: string
           title: string
           title_ar: string | null
+          title_en: string | null
           title_tr: string | null
           updated_at: string
         }
@@ -397,15 +403,18 @@ export type Database = {
           author_id: string
           content: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           excerpt: string
           excerpt_ar?: string | null
+          excerpt_en?: string | null
           excerpt_tr?: string | null
           id?: string
           main_image_url: string
           title: string
           title_ar?: string | null
+          title_en?: string | null
           title_tr?: string | null
           updated_at?: string
         }
@@ -413,15 +422,18 @@ export type Database = {
           author_id?: string
           content?: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           excerpt?: string
           excerpt_ar?: string | null
+          excerpt_en?: string | null
           excerpt_tr?: string | null
           id?: string
           main_image_url?: string
           title?: string
           title_ar?: string | null
+          title_en?: string | null
           title_tr?: string | null
           updated_at?: string
         }
@@ -906,6 +918,7 @@ export type Database = {
           author_id: string
           content: string
           content_ar: string | null
+          content_en: string | null
           content_tr: string | null
           created_at: string
           id: string
@@ -918,6 +931,7 @@ export type Database = {
           author_id: string
           content: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           id?: string
@@ -930,6 +944,7 @@ export type Database = {
           author_id?: string
           content?: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           id?: string
@@ -966,12 +981,14 @@ export type Database = {
           author_id: string
           content: string
           content_ar: string | null
+          content_en: string | null
           content_tr: string | null
           created_at: string
           id: string
           image_urls: string[] | null
           title: string
           title_ar: string | null
+          title_en: string | null
           title_tr: string | null
           updated_at: string
         }
@@ -979,12 +996,14 @@ export type Database = {
           author_id: string
           content: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           id?: string
           image_urls?: string[] | null
           title: string
           title_ar?: string | null
+          title_en?: string | null
           title_tr?: string | null
           updated_at?: string
         }
@@ -992,12 +1011,14 @@ export type Database = {
           author_id?: string
           content?: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           id?: string
           image_urls?: string[] | null
           title?: string
           title_ar?: string | null
+          title_en?: string | null
           title_tr?: string | null
           updated_at?: string
         }
@@ -1016,6 +1037,7 @@ export type Database = {
           author_id: string
           content: string
           content_ar: string | null
+          content_en: string | null
           content_tr: string | null
           created_at: string
           id: string
@@ -1028,6 +1050,7 @@ export type Database = {
           author_id: string
           content: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           id?: string
@@ -1040,6 +1063,7 @@ export type Database = {
           author_id?: string
           content?: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           id?: string
@@ -1070,12 +1094,14 @@ export type Database = {
           author_id: string
           content: string
           content_ar: string | null
+          content_en: string | null
           content_tr: string | null
           created_at: string
           id: string
           image_urls: string[] | null
           title: string
           title_ar: string | null
+          title_en: string | null
           title_tr: string | null
           updated_at: string
         }
@@ -1083,12 +1109,14 @@ export type Database = {
           author_id: string
           content: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           id?: string
           image_urls?: string[] | null
           title: string
           title_ar?: string | null
+          title_en?: string | null
           title_tr?: string | null
           updated_at?: string
         }
@@ -1096,12 +1124,14 @@ export type Database = {
           author_id?: string
           content?: string
           content_ar?: string | null
+          content_en?: string | null
           content_tr?: string | null
           created_at?: string
           id?: string
           image_urls?: string[] | null
           title?: string
           title_ar?: string | null
+          title_en?: string | null
           title_tr?: string | null
           updated_at?: string
         }
