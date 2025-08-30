@@ -933,9 +933,13 @@ export async function fetchUserCollectionCountByCountry(userId: string): Promise
   try {
     // We'll just fetch all user's collection items and aggregate by country (good enough unless user has MANY thousands)
     const items = await fetchUserCollection(userId);
+    console.log("items", items);
+    console.log("items.length", items.length);
     const counts: Record<string, number> = {};
     for (const item of items) {
+      console.log("item", item);
       const country = item.banknote?.country ?? 'Unknown';
+      console.log(`country: ${country}, item:`, item);
       if (!counts[country]) counts[country] = 0;
       counts[country]++;
     }

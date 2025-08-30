@@ -56,7 +56,6 @@ export const BadgesDialog = ({
   const isMobile = useIsMobile(); // Mobile detection hook
   const { t } = useTranslation(['badges']);
   const { currentLanguage, direction } = useLanguage();
-  console.log('BadgesDialog: isMobile =', isMobile);
 
   const content = (
     <ScrollArea className="flex-1 px-1">

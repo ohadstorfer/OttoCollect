@@ -113,7 +113,6 @@ function Badge({
   };
 
   const getDisplayRank = (userRank: string, userRole?: string) => {
-    console.log('🔍 [Badge] getDisplayRank called:', { userRank, userRole, originalRole, currentLanguage });
     
     if (!userRole) {
       return t(getRankTranslationKey(userRank));
@@ -137,7 +136,6 @@ function Badge({
     // Use originalRole for admin detection, but display the translated role
     const isCountryAdmin = originalRole && originalRole !== "Super Admin" && originalRole.includes("Admin");
     if (isCountryAdmin) {
-      console.log('🏷️ [Badge] Displaying country admin role:', userRole);
       return (
         <span>
           {t(getRankTranslationKey(userRank))}

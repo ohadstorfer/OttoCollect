@@ -112,17 +112,11 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
 }) => {
     const { t, i18n } = useTranslation(['collection']);
 
-  // Debug: Check if translation is working
-  console.log('Translation test:', t('addUnlistedBanknote'));
-  console.log('Available keys:', Object.keys(t));
-  console.log('i18n ready:', i18n.isInitialized);
-  console.log('Current language:', i18n.language);
-  console.log('Loaded namespaces:', i18n.reportNamespaces.getUsedNamespaces());
+
   
   // Fallback function for translations
   const tWithFallback = (key: string, fallback: string) => {
     if (!i18n.isInitialized) {
-      console.log('i18n not initialized yet, using fallback for:', key);
       return fallback;
     }
     const translation = t(key);

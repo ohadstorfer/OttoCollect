@@ -198,12 +198,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 
   // Filter collection items before sorting/grouping
   const filteredCollectionItems = useMemo(() => {
-    console.log("[CollectionItems] Starting filter with items:", finalCollectionItems.length);
-    console.log("[CollectionItems] Filter criteria:", {
-      search: filters.search,
-      categories: filters.categories,
-      types: filters.types
-    });
+
 
     // Create a map of category names to IDs
     const categoryNameToId = (categoryDefs || []).reduce((acc, cat) => {
@@ -217,8 +212,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       return acc;
     }, {} as Record<string, string>);
 
-    console.log("[CollectionItems] Category name to ID mapping:", categoryNameToId);
-    console.log("[CollectionItems] Type name to ID mapping:", typeNameToId);
+
 
     const filtered = finalCollectionItems.filter(item => {
       if (!item.banknote) return false;
@@ -251,86 +245,68 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         // Get the category ID for this item's category name
         const itemCategoryId = categoryNameToId[item.banknote.category];
         
-        if (!itemCategoryId) {
-          console.log("[CollectionItems] No category ID found for category name:", {
-            itemId: item.id,
-            categoryName: item.banknote.category,
-            availableCategories: Object.keys(categoryNameToId)
-          });
-          return false;
+        // If we have a category ID for this item, check if it matches the selected categories
+        if (itemCategoryId) {
+          const categoryMatch = filters.categories.includes(itemCategoryId);
+          
+          if (!categoryMatch) {
+            console.log("[CollectionItems] Category mismatch:", {
+              itemId: item.id,
+              itemCategory: item.banknote.category,
+              itemCategoryId,
+              selectedCategories: filters.categories
+            });
+            return false;
+          }
         }
-
-        const categoryMatch = filters.categories.includes(itemCategoryId);
-        
-        if (!categoryMatch) {
-          console.log("[CollectionItems] Category mismatch:", {
-            itemId: item.id,
-            itemCategory: item.banknote.category,
-            itemCategoryId,
-            selectedCategories: filters.categories
-          });
-          return false;
-        }
+        // If no category ID is found for this item, don't filter it out - show all items
+        // This ensures that items with missing or unmapped categories are still displayed
       }
+
+
+
+      // IMPORTANT NOTE- WHEN WE WILL TRY TO "BRING BACK" THE TYPES FILTER, BRING BACK THE CODE BELOW:
 
       // Types filter - only apply if types are selected and we have type mappings
-      if (filters.types && filters.types.length > 0 && Object.keys(typeNameToId).length > 0) {
-        // Get the type ID for this item's type name
-        const itemTypeId = typeNameToId[item.banknote.type];
+      // if (filters.types && filters.types.length > 0 && Object.keys(typeNameToId).length > 0) {
+      //   // Get the type ID for this item's type name
+      //   const itemTypeId = typeNameToId[item.banknote.type];
         
-        if (!itemTypeId) {
-          console.log("[CollectionItems] No type ID found for type name:", {
-            itemId: item.id,
-            typeName: item.banknote.type,
-            availableTypes: Object.keys(typeNameToId)
-          });
-          return false;
-        }
-
-        const typeMatch = filters.types.includes(itemTypeId);
-        
-        if (!typeMatch) {
-          console.log("[CollectionItems] Type mismatch:", {
-            itemId: item.id,
-            itemType: item.banknote.type,
-            itemTypeId,
-            selectedTypes: filters.types
-          });
-          return false;
-        }
-      }
+      //   // If we have a type ID for this item, check if it matches the selected types
+      //   if (itemTypeId) {
+      //     const typeMatch = filters.types.includes(itemTypeId);
+          
+      //     if (!typeMatch) {
+      //       console.log("[CollectionItems] Type mismatch:", {
+      //         itemId: item.id,
+      //         itemType: item.banknote.type,
+      //         itemTypeId,
+      //         selectedTypes: filters.types
+      //       });
+      //       return false;
+      //     }
+      //   }
+      //   // If no type ID is found for this item, don't filter it out - show all items
+      //   // This ensures that items with missing or unmapped types are still displayed
+      // }
 
       return true;
     });
 
-    console.log("[CollectionItems] Filtered items count:", filtered.length);
-    if (filtered.length === 0) {
-      console.log("[CollectionItems] Sample of items that were filtered out:", 
-        finalCollectionItems.slice(0, 3).map(item => ({
-          id: item.id,
-          category: item.banknote?.category,
-          categoryId: item.banknote ? categoryNameToId[item.banknote.category] : null,
-          type: item.banknote?.type,
-          typeId: item.banknote ? typeNameToId[item.banknote.type] : null,
-          denomination: item.banknote?.denomination
-        }))
-      );
-    }
+    
 
     return filtered;
   }, [finalCollectionItems, filters, categoryDefs, typeDefs]);
 
-  // Separate sale items from regular collection items
-  const filteredCollectionItemsForSale = useMemo(() => {
-    return filteredCollectionItems.filter(item => item.isForSale === true);
+  // Don't separate sale items - include them all in the main collection
+  const filteredCollectionItemsForDisplay = useMemo(() => {
+    return filteredCollectionItems; // Keep all items together
   }, [filteredCollectionItems]);
 
-  const filteredCollectionItemsRegular = useMemo(() => {
-    return filteredCollectionItems.filter(item => item.isForSale !== true);
-  }, [filteredCollectionItems]);
+  
 
   // Map collection items to a format compatible with the sorting hook
-  const collectionItemsForSorting = filteredCollectionItemsRegular.map(item => ({
+  const collectionItemsForSorting = filteredCollectionItemsForDisplay.map(item => ({
     ...item.banknote,
     collectionData: {
       id: item.id,
@@ -354,7 +330,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   // Transform the sorted detailed banknotes back to collection items using the stored collectionItemId
   const sortedCollectionItemsWithData = sortedCollectionItems.map(sortedBanknote => {
     // Use the direct reference to the collection item ID
-    const originalItem = filteredCollectionItemsRegular.find(item => item.id === (sortedBanknote as any).collectionItemId);
+    const originalItem = filteredCollectionItemsForDisplay.find(item => item.id === (sortedBanknote as any).collectionItemId);
     if (!originalItem) {
       console.error("Could not find original collection item for ID:", (sortedBanknote as any).collectionItemId);
       return null;
@@ -371,6 +347,12 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     };
   }).filter(Boolean) as any[]; // Filter out any null values
 
+  console.log("[CollectionItems] After sorting transformation:", {
+    sortedItems: sortedCollectionItems.length,
+    transformedItems: sortedCollectionItemsWithData.length,
+    originalDisplay: filteredCollectionItemsForDisplay.length
+  });
+
   const groupedItems = useBanknoteGroups(
     sortedCollectionItems, 
     collectionSortFields, 
@@ -379,11 +361,16 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     sultanOrderMap
   );
 
+  console.log("[CollectionItems] After grouping:", {
+    groupedItems: groupedItems.length,
+    totalItemsInGroups: groupedItems.reduce((sum, group) => sum + group.items.length, 0)
+  });
+
   // Convert grouped banknotes to grouped collection items
   const groupedCollectionItems = groupedItems.map(group => {
     // Map each banknote in the group to its corresponding collection item using collectionItemId
     const collectionItemsInGroup = group.items.map(banknote => {
-      const collectionItem = filteredCollectionItemsRegular.find(item => item.id === (banknote as any).collectionItemId);
+      const collectionItem = filteredCollectionItemsForDisplay.find(item => item.id === (banknote as any).collectionItemId);
       if (!collectionItem) {
         console.error("Could not find collection item for banknote with collectionItemId:", (banknote as any).collectionItemId);
       }
@@ -394,7 +381,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     const sultanGroups = group.sultanGroups?.map(sultanGroup => ({
       sultan: sultanGroup.sultan,
       items: sultanGroup.items.map(banknote => {
-        const collectionItem = filteredCollectionItemsRegular.find(item => item.id === (banknote as any).collectionItemId);
+        const collectionItem = filteredCollectionItemsForDisplay.find(item => item.id === (banknote as any).collectionItemId);
         if (!collectionItem) {
           console.error("Could not find collection item for banknote with collectionItemId in sultan group:", (banknote as any).collectionItemId);
         }
@@ -409,79 +396,13 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     };
   });
 
-  // Sort and group sale items
-  const saleItemsForSorting = filteredCollectionItemsForSale.map(item => ({
-    ...item.banknote,
-    collectionData: {
-      id: item.id,
-      condition: item.condition,
-      purchaseDate: item.purchaseDate,
-      isForSale: item.isForSale,
-      salePrice: item.salePrice
-    },
-    collectionItemId: item.id
-  }));
-
-  // Apply default 'extPick' sort for sale items when no sort is selected
-  const saleSortFields = filters.sort.length > 0 ? filters.sort : ['extPick'];
-  const sortedSaleItems = useBanknoteSorting({
-    banknotes: saleItemsForSorting,
-    currencies,
-    sortFields: saleSortFields
+  console.log("[CollectionItems] Final grouped collection items:", {
+    totalGroups: groupedCollectionItems.length,
+    totalItems: groupedCollectionItems.reduce((sum, group) => sum + group.items.length, 0),
+    itemsPerGroup: groupedCollectionItems.map(group => ({ category: group.category, count: group.items.length }))
   });
 
-  const sortedSaleItemsWithData = sortedSaleItems.map(sortedBanknote => {
-    const originalItem = filteredCollectionItemsForSale.find(item => item.id === (sortedBanknote as any).collectionItemId);
-    if (!originalItem) {
-      console.error("Could not find original sale item for ID:", (sortedBanknote as any).collectionItemId);
-      return null;
-    }
-    
-    // Create a new item that preserves the sorted banknote's extendedPickNumber
-    return {
-      ...originalItem,
-      banknote: {
-        ...originalItem.banknote,
-        // Preserve the extendedPickNumber from the sorted banknote
-        extendedPickNumber: (sortedBanknote as any).extendedPickNumber || originalItem.banknote?.extendedPickNumber
-      }
-    };
-  }).filter(Boolean) as any[];
 
-  const groupedSaleItems = useBanknoteGroups(
-    sortedSaleItems,
-    saleSortFields,
-    categoryOrder,
-    countryId,
-    sultanOrderMap
-  );
-
-  const groupedSaleCollectionItems = groupedSaleItems.map(group => {
-    const collectionItemsInGroup = group.items.map(banknote => {
-      const collectionItem = filteredCollectionItemsForSale.find(item => item.id === (banknote as any).collectionItemId);
-      if (!collectionItem) {
-        console.error("Could not find sale item for banknote with collectionItemId:", (banknote as any).collectionItemId);
-      }
-      return collectionItem;
-    }).filter(Boolean) as any[];
-    
-    const sultanGroups = group.sultanGroups?.map(sultanGroup => ({
-      sultan: sultanGroup.sultan,
-      items: sultanGroup.items.map(banknote => {
-        const collectionItem = filteredCollectionItemsForSale.find(item => item.id === (banknote as any).collectionItemId);
-        if (!collectionItem) {
-          console.error("Could not find sale item for banknote with collectionItemId in sultan group:", (banknote as any).collectionItemId);
-        }
-        return collectionItem;
-      }).filter(Boolean) as any[]
-    }));
-
-    return {
-      category: group.category,
-      items: collectionItemsInGroup,
-      sultanGroups: sultanGroups
-    };
-  });
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     setFilters(prev => ({
@@ -792,21 +713,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         return flattenedItems;
       }
         
-      case 'sale': {
-        const flattenedItems: CollectionItem[] = [];
-        
-        groupedSaleCollectionItems.forEach(group => {
-          if (group.sultanGroups && group.sultanGroups.length > 0) {
-            group.sultanGroups.forEach(sultanGroup => {
-              flattenedItems.push(...sultanGroup.items);
-            });
-          } else {
-            flattenedItems.push(...group.items);
-          }
-        });
-        
-        return flattenedItems;
-      }
+
         
       case 'missing': {
         const flattenedItems: CollectionItem[] = [];
@@ -843,18 +750,18 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       default:
         return [];
     }
-  }, [groupedCollectionItems, groupedSaleCollectionItems, groupedMissingItems, groupedWishlistItems]);
+  }, [groupedCollectionItems, groupedMissingItems, groupedWishlistItems]);
 
   // On mount, restore tab from sessionStorage if available
   useEffect(() => {
     const savedTab = sessionStorage.getItem('countryDetailActiveTab');
-    if (savedTab === 'collection' || savedTab === 'missing' || savedTab === 'wishlist' || savedTab === 'sale') {
+    if (savedTab === 'collection' || savedTab === 'missing' || savedTab === 'wishlist') {
       setActiveTab(savedTab);
     }
   }, []);
 
   // Handler to change tab and persist it
-  const handleTabChange = (tab: 'collection' | 'missing' | 'wishlist' | 'sale') => {
+  const handleTabChange = (tab: 'collection' | 'missing' | 'wishlist') => {
     setActiveTab(tab);
     sessionStorage.setItem('countryDetailActiveTab', tab);
   };
@@ -882,7 +789,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         onBackToCountries={onBackToCountries}
         collectionItems={collectionItems}
         sortedCollectionItems={sortedCollectionItemsWithData}
-        sortedSaleItems={sortedSaleItemsWithData}
+
         sortedMissingItems={sortedMissingItems}
         sortedWishlistItems={sortedWishlistItems}
         getFlattenedItemsForExport={getRenderedItemsForExport}
@@ -932,21 +839,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           hasAnyItems={wishlistItems && wishlistItems.length > 0}
         />
       )}
-      {activeTab === 'sale' && (
-        <CollectionItemsDisplay
-          groups={groupedSaleCollectionItems}
-          showSultanGroups={filters.sort.includes('sultan')}
-          viewMode={viewMode}
-          countryId={countryId}
-          isLoading={isLoading}
-          groupMode={groupMode}
-          isOwner={isOwner}
-          activeTab={activeTab}
-          countryName={effectiveCountryName}
-          filters={filters}
-          hasAnyItems={collectionItems && collectionItems.some(item => item.isForSale)}
-        />
-      )}
+
     </div>
   );
 };
