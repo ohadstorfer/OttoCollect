@@ -108,50 +108,52 @@ export default function CollectionItem() {
         return;
       }
 
+      // Calculate isOwner inside the effect to avoid dependency issues
+      const isOwner = user?.id === collectionItem?.userId;
+
       try {
         console.log('Checking image suggestion status for collection item:', collectionItem.id);
         
-        // Always check the current user's suggestions first (using user.id directly)
-        const { data: userSuggestions, error } = await supabase
+        // Check if the collection item's suggestion was approved
+        const { data: ownerSuggestions, error } = await supabase
           .from('image_suggestions')
           .select('status')
           .eq('collection_item_id', collectionItem.id)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .eq('user_id', collectionItem.userId)
+          .eq('status', 'approved')
           .limit(1);
 
         if (error) {
-          console.error('Error checking user suggestions:', error);
+          console.error('Error checking image suggestions:', error);
           setSuggestionStatus(null);
           setHasPendingSuggestion(false);
           return;
         }
 
-        // If current user has suggestions, show their status
-        if (userSuggestions && userSuggestions.length > 0) {
-          const status = userSuggestions[0].status as 'pending' | 'approved' | 'rejected';
-          console.log('Current user suggestion status:', status);
-          setSuggestionStatus(status);
-          setHasPendingSuggestion(status === 'pending');
+        // If owner's suggestion was approved, show "Catalogue Image"
+        if (ownerSuggestions && ownerSuggestions.length > 0) {
+          setSuggestionStatus('approved');
+          setHasPendingSuggestion(false);
           return;
         }
 
-        // If no current user suggestions, check if ANY approved suggestions exist for this collection item
-        // This shows "Catalogue Image" status when someone else's suggestion was approved
-        const { data: approvedSuggestions, error: approvedError } = await supabase
-          .from('image_suggestions')
-          .select('status, user_id')
-          .eq('collection_item_id', collectionItem.id)
-          .eq('status', 'approved')
-          .limit(1);
+        // If current user is the owner, check their other statuses (pending/rejected)
+        if (isOwner) {
+          const { data: userSuggestions, error: userError } = await supabase
+            .from('image_suggestions')
+            .select('status')
+            .eq('collection_item_id', collectionItem.id)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
 
-        if (approvedError) {
-          console.error('Error checking approved suggestions:', approvedError);
-        } else if (approvedSuggestions && approvedSuggestions.length > 0) {
-          // Only show as approved if it's from the collection owner
-          if (approvedSuggestions[0].user_id === collectionItem.userId) {
-            setSuggestionStatus('approved');
-            setHasPendingSuggestion(false);
+          if (userError) {
+            console.error('Error checking user suggestions:', userError);
+          } else if (userSuggestions && userSuggestions.length > 0) {
+            const status = userSuggestions[0].status as 'pending' | 'approved' | 'rejected';
+            console.log('Current user suggestion status:', status);
+            setSuggestionStatus(status);
+            setHasPendingSuggestion(status === 'pending');
             return;
           }
         }
