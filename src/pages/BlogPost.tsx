@@ -17,6 +17,9 @@ import { statisticsService } from "@/services/statisticsService";
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
 import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
+import { useLanguage } from '@/context/LanguageContext';
+import { BlogTranslationButton } from '@/components/blog/BlogTranslationButton';
+import BlogCommentWithTranslation from '@/components/blog/BlogCommentWithTranslation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,6 +63,7 @@ const BlogPostPage = () => {
   const { user } = useAuth();
   const { t } = useTranslation(['blog']);
   const { formatRelativeTime } = useDateLocale();
+  const { currentLanguage } = useLanguage();
   const [post, setPost] = useState<BlogPostType | null>(null);
   const [comments, setComments] = useState<BlogComment[]>([]);
   const [commentContent, setCommentContent] = useState('');
@@ -76,6 +80,13 @@ const BlogPostPage = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isBlockingUser, setIsBlockingUser] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+  
+  // Translation states
+  const [displayedTitle, setDisplayedTitle] = useState<string>('');
+  const [displayedContent, setDisplayedContent] = useState<string>('');
+  const [originalTitle, setOriginalTitle] = useState<string>('');
+  const [originalContent, setOriginalContent] = useState<string>('');
+  const [isShowingTranslation, setIsShowingTranslation] = useState(false);
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
@@ -138,6 +149,12 @@ const BlogPostPage = () => {
       if (fetchedPost) {
         setPost(fetchedPost);
         setComments(fetchedPost.comments || []);
+        
+        // Initialize translation state
+        setOriginalTitle(fetchedPost.title);
+        setOriginalContent(fetchedPost.content);
+        setDisplayedTitle(fetchedPost.title);
+        setDisplayedContent(fetchedPost.content);
         
         // Track blog post view
         statisticsService.trackBlogPostView(postId, user?.id);
@@ -372,6 +389,13 @@ const BlogPostPage = () => {
     navigate(-1);
   };
 
+  // Handle post translation
+  const handlePostTranslated = (title: string, content: string) => {
+    setDisplayedTitle(title);
+    setDisplayedContent(content);
+    setIsShowingTranslation(title !== originalTitle || content !== originalContent);
+  };
+
   return (
     <div className="page-container px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -446,10 +470,24 @@ const BlogPostPage = () => {
                 <span className="text-sm text-muted-foreground flex-shrink-0">{formattedDate}</span>
               </div>
               <h6 className="font-semibold text-xl sm:text-2xl animate-fade-in break-words">
-                <span> {renderTextWithLinks(post.title)} </span>
+                <span> {renderTextWithLinks(displayedTitle)} </span>
               </h6>
-              <div className="whitespace-pre-line mb-4 break-words overflow-wrap-anywhere">
-                {renderTextWithLinks(post.content)}
+              
+              {/* Translation Button */}
+              <div className={`mb-3 ${currentLanguage === 'ar' ? 'text-right' : ''}`}>
+                <BlogTranslationButton
+                  postId={post.id}
+                  currentTitle={displayedTitle}
+                  currentContent={displayedContent}
+                  originalTitle={originalTitle}
+                  originalContent={originalContent}
+                  onTranslated={handlePostTranslated}
+                  isShowingTranslation={isShowingTranslation}
+                />
+              </div>
+              
+              <div className={`whitespace-pre-line mb-4 break-words overflow-wrap-anywhere ${currentLanguage === 'ar' ? 'text-right' : ''}`}>
+                {renderTextWithLinks(displayedContent)}
               </div>
 
               {post.main_image_url && (
@@ -583,8 +621,12 @@ const BlogPostPage = () => {
                         </div>
                       ) : (
                         <>
-                          <div className="whitespace-pre-line mb-2 break-words overflow-wrap-anywhere">
-                            {renderTextWithLinks(comment.content)}
+                          <div className="mb-2">
+                            <BlogCommentWithTranslation
+                              comment={comment}
+                              currentLanguage={currentLanguage}
+                              t={t}
+                            />
                           </div>
 
                           {/* Comment Actions */}
