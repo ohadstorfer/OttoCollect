@@ -11,6 +11,7 @@ import { createForumPost, checkUserDailyForumLimit } from '@/services/forumServi
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { forumTranslationService } from '@/services/forumTranslationService';
 
 export function CreatePostForm() {
   const navigate = useNavigate();
@@ -67,6 +68,14 @@ export function CreatePostForm() {
       const newPost = await createForumPost(title, content, user.id, images);
       
       if (newPost) {
+        // Detect and save original language
+        await forumTranslationService.detectAndSaveOriginalLanguage(
+          title,
+          content,
+          'forum_posts',
+          newPost.id
+        );
+        
         toast({
           title: "Success",
           description: "Your post has been published successfully.",

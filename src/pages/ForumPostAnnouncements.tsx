@@ -18,6 +18,9 @@ import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
 import { formatRelativeTime, useDateLocale } from '@/lib/dateUtils';
 import { useLanguage } from '@/context/LanguageContext';
+import { TranslationButton } from '@/components/forum/TranslationButton';
+import { CommentTranslationButton } from '@/components/forum/CommentTranslationButton';
+import { forumTranslationService } from '@/services/forumTranslationService';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -289,6 +292,11 @@ const ForumPostAnnouncementsPage = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isBlockingUser, setIsBlockingUser] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+  
+  // Translation state
+  const [translatedTitle, setTranslatedTitle] = useState('');
+  const [translatedContent, setTranslatedContent] = useState('');
+  const [showTranslated, setShowTranslated] = useState(false);
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
@@ -802,12 +810,27 @@ const ForumPostAnnouncementsPage = () => {
 
               {/* Post Title */}
               <h1 className={`text-xl font-semibold mb-3 text-foreground ${direction === 'rtl' ? 'text-right' : ''}`}>
-                <span>{renderTextWithLinks(post.title)}</span>
+                <span>{renderTextWithLinks(showTranslated && translatedTitle ? translatedTitle : post.title)}</span>
               </h1>
 
               {/* Post Content */}
               <div className={`text-sm leading-relaxed mb-4 text-foreground ${direction === 'rtl' ? 'text-right' : ''}`}>
-                {renderTextWithLinks(post.content)}
+                {renderTextWithLinks(showTranslated && translatedContent ? translatedContent : post.content)}
+              </div>
+
+              {/* Translation Button */}
+              <div className="mb-3">
+                <TranslationButton
+                  postId={post.id}
+                  postType="forum_announcements"
+                  currentTitle={post.title}
+                  currentContent={post.content}
+                  onTranslated={(title, content) => {
+                    setTranslatedTitle(title);
+                    setTranslatedContent(content);
+                    setShowTranslated(true);
+                  }}
+                />
               </div>
 
               {/* Post Images - Compact Gallery */}

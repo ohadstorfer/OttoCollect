@@ -10,6 +10,7 @@ import { createForumAnnouncement, checkUserDailyForumLimit } from '@/services/fo
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { forumTranslationService } from '@/services/forumTranslationService';
 
 export function CreateAnnouncementForm() {
   const navigate = useNavigate();
@@ -66,6 +67,14 @@ export function CreateAnnouncementForm() {
       const newAnnouncement = await createForumAnnouncement(title, content, user.id, images);
       
       if (newAnnouncement) {
+        // Detect and save original language
+        await forumTranslationService.detectAndSaveOriginalLanguage(
+          title,
+          content,
+          'forum_announcements',
+          newAnnouncement.id
+        );
+        
         toast({
           title: "Success",
           description: "Your announcement has been published successfully.",

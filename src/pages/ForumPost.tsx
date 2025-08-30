@@ -29,6 +29,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useLanguage } from '@/context/LanguageContext';
+import { TranslationButton } from '@/components/forum/TranslationButton';
+import { CommentTranslationButton } from '@/components/forum/CommentTranslationButton';
+import { forumTranslationService } from '@/services/forumTranslationService';
 
 
 // Simple function to detect and render links
@@ -290,6 +293,11 @@ const ForumPostPage = () => {
   const [isBlockingUser, setIsBlockingUser] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
   const { direction } = useLanguage();
+  
+  // Translation state
+  const [translatedTitle, setTranslatedTitle] = useState('');
+  const [translatedContent, setTranslatedContent] = useState('');
+  const [showTranslated, setShowTranslated] = useState(false);
 
   // Check if user is in limited ranks
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
@@ -776,12 +784,27 @@ const ForumPostPage = () => {
 
               {/* Post Title */}
               <h1 className={`text-xl font-semibold mb-3 text-foreground break-words ${direction === 'rtl' ? 'text-right' : ''}`}>
-                <span>{renderTextWithLinks(post.title)}</span>
+                <span>{renderTextWithLinks(showTranslated && translatedTitle ? translatedTitle : post.title)}</span>
               </h1>
 
               {/* Post Content */}
               <div className={`text-sm leading-relaxed mb-4 text-foreground break-words whitespace-pre-wrap overflow-hidden ${direction === 'rtl' ? 'text-right' : ''}`}>
-                {renderTextWithLinks(post.content)}
+                {renderTextWithLinks(showTranslated && translatedContent ? translatedContent : post.content)}
+              </div>
+
+              {/* Translation Button */}
+              <div className="mb-3">
+                <TranslationButton
+                  postId={post.id}
+                  postType="forum_posts"
+                  currentTitle={post.title}
+                  currentContent={post.content}
+                  onTranslated={(title, content) => {
+                    setTranslatedTitle(title);
+                    setTranslatedContent(content);
+                    setShowTranslated(true);
+                  }}
+                />
               </div>
 
               {/* Post Images - Compact Gallery */}
