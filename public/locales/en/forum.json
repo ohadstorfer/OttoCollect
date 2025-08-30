@@ -177,6 +177,9 @@
   "translation": {
     "translating": "Translating",
     "translateTo": "Translate to",
-    "translate": "Translate"
+    "translate": "Translate",
+    "showOriginal": "Show original",
+    "translated_successfully": "Content translated successfully",
+    "translation_failed": "Translation failed"
   }
 }

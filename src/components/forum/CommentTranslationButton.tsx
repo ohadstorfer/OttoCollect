@@ -9,7 +9,9 @@ interface CommentTranslationButtonProps {
   commentId: string;
   commentType: 'forum_comments' | 'forum_announcement_comments';
   currentContent: string;
+  originalContent: string;
   onTranslated: (content: string) => void;
+  isShowingTranslation: boolean;
   size?: 'sm' | 'default' | 'lg';
   variant?: 'default' | 'outline' | 'secondary' | 'ghost';
   className?: string;
@@ -19,7 +21,9 @@ export const CommentTranslationButton: React.FC<CommentTranslationButtonProps> =
   commentId,
   commentType,
   currentContent,
+  originalContent,
   onTranslated,
+  isShowingTranslation,
   size = 'sm',
   variant = 'ghost',
   className = ''
@@ -28,41 +32,57 @@ export const CommentTranslationButton: React.FC<CommentTranslationButtonProps> =
   const { t } = useTranslation(['forum']);
   const [isTranslating, setIsTranslating] = useState(false);
 
-  const handleTranslate = async () => {
-    if (!commentId || currentLanguage === 'en') return;
+  const handleToggleTranslation = async () => {
+    if (!commentId) return;
 
-    setIsTranslating(true);
-    try {
-      const targetLanguage = currentLanguage as 'ar' | 'tr';
-      const result = await forumTranslationService.translateComment(
-        commentId,
-        commentType,
-        targetLanguage,
-        'en' // assuming source is English for now
-      );
+    // If showing translation, show original
+    if (isShowingTranslation) {
+      onTranslated(originalContent);
+      return;
+    }
 
-      if (result.success && result.translatedContent) {
-        onTranslated(result.translatedContent);
-        toast.success('Comment translated successfully');
-      } else {
-        toast.error('Failed to translate comment');
+    // If not English and not showing translation, translate
+    if (currentLanguage !== 'en') {
+      setIsTranslating(true);
+      try {
+        const targetLanguage = currentLanguage as 'ar' | 'tr';
+        const result = await forumTranslationService.translateComment(
+          commentId,
+          commentType,
+          targetLanguage,
+          'en' // assuming source is English for now
+        );
+
+        if (result.success && result.translatedContent) {
+          onTranslated(result.translatedContent);
+          toast.success(t('translation.translated_successfully'));
+        } else {
+          toast.error(t('translation.translation_failed'));
+        }
+      } catch (error) {
+        console.error('Translation error:', error);
+        toast.error(t('translation.translation_failed'));
+      } finally {
+        setIsTranslating(false);
       }
-    } catch (error) {
-      console.error('Translation error:', error);
-      toast.error('Translation failed');
-    } finally {
-      setIsTranslating(false);
     }
   };
 
-  // Don't show button for English since it's the default
-  if (currentLanguage === 'en') {
+  const getButtonText = () => {
+    if (isShowingTranslation) {
+      return t('translation.showOriginal');
+    }
+    return t('translation.translate');
+  };
+
+  // Don't show button for English since it's the default (unless showing translation)
+  if (currentLanguage === 'en' && !isShowingTranslation) {
     return null;
   }
 
   return (
     <button
-      onClick={handleTranslate}
+      onClick={handleToggleTranslation}
       disabled={isTranslating}
       className={`text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer ${
         currentLanguage === 'ar' ? 'text-right' : 'text-left'
@@ -74,7 +94,7 @@ export const CommentTranslationButton: React.FC<CommentTranslationButtonProps> =
           {t('translation.translating')}...
         </span>
       ) : (
-        t('translation.translate')
+        getButtonText()
       )}
     </button>
   );

@@ -157,6 +157,22 @@ const renderComment = (
                 <div className={`text-sm leading-relaxed text-foreground mb-3 break-words whitespace-pre-wrap overflow-hidden ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}>
                   {props.renderTextWithLinks(comment.content)}
                 </div>
+                
+                {/* Comment Translation Button */}
+                <div className={`mb-3 ${props.currentLanguage === 'ar' ? 'text-right' : ''}`}>
+                  <CommentTranslationButton
+                    commentId={comment.id}
+                    commentType="forum_announcement_comments"
+                    currentContent={comment.content}
+                    originalContent={comment.content}
+                    isShowingTranslation={false}
+                    onTranslated={(content) => {
+                      // Since we're in a render function, we need to pass this up to the parent
+                      // For now, we'll just handle basic translation display
+                      console.log('Translation for announcement comment:', content);
+                    }}
+                  />
+                </div>
 
                 {/* Reply Form */}
                 {props.replyingToCommentId === comment.id && (
@@ -818,18 +834,27 @@ const ForumPostAnnouncementsPage = () => {
                 {renderTextWithLinks(showTranslated && translatedContent ? translatedContent : post.content)}
               </div>
 
-              {/* Translation Button */}
-              <div className="mb-3">
-                <TranslationButton
-                  postId={post.id}
-                  postType="forum_announcements"
-                  currentTitle={post.title}
-                  currentContent={post.content}
-                  onTranslated={(title, content) => {
-                    setTranslatedTitle(title);
-                    setTranslatedContent(content);
-                    setShowTranslated(true);
-                  }}
+               {/* Translation Button */}
+               <div className={`mb-3 ${direction === 'rtl' ? 'text-right' : ''}`}>
+                 <TranslationButton
+                   postId={post.id}
+                   postType="forum_announcements"
+                   currentTitle={showTranslated && translatedTitle ? translatedTitle : post.title}
+                   currentContent={showTranslated && translatedContent ? translatedContent : post.content}
+                   originalTitle={post.title}
+                   originalContent={post.content}
+                   isShowingTranslation={showTranslated}
+                   onTranslated={(title, content) => {
+                     if (title === post.title && content === post.content) {
+                       // Show original
+                       setShowTranslated(false);
+                     } else {
+                       // Show translation
+                       setTranslatedTitle(title);
+                       setTranslatedContent(content);
+                       setShowTranslated(true);
+                     }
+                   }}
                 />
               </div>
 

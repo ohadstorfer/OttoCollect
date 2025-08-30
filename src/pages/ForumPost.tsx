@@ -792,18 +792,27 @@ const ForumPostPage = () => {
                 {renderTextWithLinks(showTranslated && translatedContent ? translatedContent : post.content)}
               </div>
 
-              {/* Translation Button */}
-              <div className={`mb-3 ${direction === 'rtl' ? 'text-right' : ''}`}>
-                <TranslationButton
-                  postId={post.id}
-                  postType="forum_posts"
-                  currentTitle={post.title}
-                  currentContent={post.content}
-                  onTranslated={(title, content) => {
-                    setTranslatedTitle(title);
-                    setTranslatedContent(content);
-                    setShowTranslated(true);
-                  }}
+               {/* Translation Button */}
+               <div className={`mb-3 ${direction === 'rtl' ? 'text-right' : ''}`}>
+                 <TranslationButton
+                   postId={post.id}
+                   postType="forum_posts"
+                   currentTitle={showTranslated && translatedTitle ? translatedTitle : post.title}
+                   currentContent={showTranslated && translatedContent ? translatedContent : post.content}
+                   originalTitle={post.title}
+                   originalContent={post.content}
+                   isShowingTranslation={showTranslated}
+                   onTranslated={(title, content) => {
+                     if (title === post.title && content === post.content) {
+                       // Show original
+                       setShowTranslated(false);
+                     } else {
+                       // Show translation
+                       setTranslatedTitle(title);
+                       setTranslatedContent(content);
+                       setShowTranslated(true);
+                     }
+                   }}
                 />
               </div>
 

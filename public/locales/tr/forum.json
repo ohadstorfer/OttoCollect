@@ -175,8 +175,11 @@
     "announcementNotFoundDescription": "Aradığınız duyuru mevcut değil veya kaldırılmış."
   },
   "translation": {
-    "translating": "Çevriliyor",
-    "translateTo": "Çevir",
-    "translate": "Çevir"
+    "translating": "Çeviriliyor",
+    "translateTo": "Şuna çevir",
+    "translate": "Çevir",
+    "showOriginal": "Orijinali göster",
+    "translated_successfully": "İçerik başarıyla çevrildi",
+    "translation_failed": "Çeviri başarısız"
   }
 }

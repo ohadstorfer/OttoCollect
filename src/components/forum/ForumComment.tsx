@@ -10,6 +10,9 @@ import RankBadge from '@/components/common/RankBadge';
 import { ForumComment as ForumCommentType } from '@/types/forum';
 import { useTranslation } from 'react-i18next';
 import { useDateLocale } from '@/lib/dateUtils';
+import { useLanguage } from '@/context/LanguageContext';
+import { CommentTranslationButton } from '@/components/forum/CommentTranslationButton';
+import { forumTranslationService } from '@/services/forumTranslationService';
 
 interface Author {
   id: string;
@@ -35,6 +38,7 @@ export default function ForumComment({
   const { user } = useAuth();
   const { t } = useTranslation(['forum']);
   const { formatRelativeTime } = useDateLocale();
+  const { currentLanguage, direction } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,6 +46,10 @@ export default function ForumComment({
   const [replyContent, setReplyContent] = useState('');
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [showReplies, setShowReplies] = useState(true);
+  
+  // Translation state
+  const [translatedContent, setTranslatedContent] = useState<string>('');
+  const [showTranslatedComment, setShowTranslatedComment] = useState(false);
 
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
@@ -189,7 +197,32 @@ export default function ForumComment({
         ) : (
           <div className="space-y-3">
             <div className="prose prose-sm max-w-none">
-              <p className="text-sm whitespace-pre-wrap leading-relaxed break-words overflow-hidden">{comment.content}</p>
+              <p className={`text-sm whitespace-pre-wrap leading-relaxed break-words overflow-hidden ${
+                direction === 'rtl' ? 'text-right' : ''
+              }`}>
+                {showTranslatedComment && translatedContent ? translatedContent : comment.content}
+              </p>
+            </div>
+            
+            {/* Comment Translation Button */}
+            <div className={`${direction === 'rtl' ? 'text-right' : ''}`}>
+              <CommentTranslationButton
+                commentId={comment.id}
+                commentType="forum_comments"
+                currentContent={showTranslatedComment && translatedContent ? translatedContent : comment.content}
+                originalContent={comment.content}
+                isShowingTranslation={showTranslatedComment}
+                onTranslated={(content) => {
+                  if (content === comment.content) {
+                    // Show original
+                    setShowTranslatedComment(false);
+                  } else {
+                    // Show translation
+                    setTranslatedContent(content);
+                    setShowTranslatedComment(true);
+                  }
+                }}
+              />
             </div>
             
             {/* Action Buttons */}

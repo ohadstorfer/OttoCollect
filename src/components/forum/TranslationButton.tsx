@@ -10,7 +10,10 @@ interface TranslationButtonProps {
   postType: 'forum_posts' | 'forum_announcements';
   currentTitle: string;
   currentContent: string;
+  originalTitle: string;
+  originalContent: string;
   onTranslated: (title: string, content: string) => void;
+  isShowingTranslation: boolean;
   size?: 'sm' | 'default' | 'lg';
   variant?: 'default' | 'outline' | 'secondary' | 'ghost';
   className?: string;
@@ -21,7 +24,10 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
   postType,
   currentTitle,
   currentContent,
+  originalTitle,
+  originalContent,
   onTranslated,
+  isShowingTranslation,
   size = 'sm',
   variant = 'outline',
   className = ''
@@ -30,34 +36,46 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
   const { t } = useTranslation(['forum']);
   const [isTranslating, setIsTranslating] = useState(false);
 
-  const handleTranslate = async () => {
-    if (!postId || currentLanguage === 'en') return;
+  const handleToggleTranslation = async () => {
+    if (!postId) return;
 
-    setIsTranslating(true);
-    try {
-      const targetLanguage = currentLanguage as 'ar' | 'tr';
-      const result = await forumTranslationService.translatePost(
-        postId,
-        postType,
-        targetLanguage,
-        'en' // assuming source is English for now
-      );
+    // If showing translation, show original
+    if (isShowingTranslation) {
+      onTranslated(originalTitle, originalContent);
+      return;
+    }
 
-      if (result.success && result.translatedTitle && result.translatedContent) {
-        onTranslated(result.translatedTitle, result.translatedContent);
-        toast.success('Content translated successfully');
-      } else {
-        toast.error('Failed to translate content');
+    // If not English and not showing translation, translate
+    if (currentLanguage !== 'en') {
+      setIsTranslating(true);
+      try {
+        const targetLanguage = currentLanguage as 'ar' | 'tr';
+        const result = await forumTranslationService.translatePost(
+          postId,
+          postType,
+          targetLanguage,
+          'en' // assuming source is English for now
+        );
+
+        if (result.success && result.translatedTitle && result.translatedContent) {
+          onTranslated(result.translatedTitle, result.translatedContent);
+          toast.success(t('translation.translated_successfully'));
+        } else {
+          toast.error(t('translation.translation_failed'));
+        }
+      } catch (error) {
+        console.error('Translation error:', error);
+        toast.error(t('translation.translation_failed'));
+      } finally {
+        setIsTranslating(false);
       }
-    } catch (error) {
-      console.error('Translation error:', error);
-      toast.error('Translation failed');
-    } finally {
-      setIsTranslating(false);
     }
   };
 
-  const getLanguageName = () => {
+  const getButtonText = () => {
+    if (isShowingTranslation) {
+      return t('translation.showOriginal');
+    }
     switch (currentLanguage) {
       case 'ar': return t('translation.translateTo') + ' العربية';
       case 'tr': return t('translation.translateTo') + ' Türkçe';
@@ -65,14 +83,14 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
     }
   };
 
-  // Don't show button for English since it's the default
-  if (currentLanguage === 'en') {
+  // Don't show button for English since it's the default (unless showing translation)
+  if (currentLanguage === 'en' && !isShowingTranslation) {
     return null;
   }
 
   return (
     <button
-      onClick={handleTranslate}
+      onClick={handleToggleTranslation}
       disabled={isTranslating}
       className={`text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer ${
         currentLanguage === 'ar' ? 'text-right' : 'text-left'
@@ -84,7 +102,7 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
           {t('translation.translating')}...
         </span>
       ) : (
-        getLanguageName()
+        getButtonText()
       )}
     </button>
   );
