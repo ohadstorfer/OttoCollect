@@ -793,7 +793,7 @@ const ForumPostPage = () => {
               </div>
 
               {/* Translation Button */}
-              <div className="mb-3">
+              <div className={`mb-3 ${direction === 'rtl' ? 'text-right' : ''}`}>
                 <TranslationButton
                   postId={post.id}
                   postType="forum_posts"
