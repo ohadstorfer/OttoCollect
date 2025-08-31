@@ -382,7 +382,8 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
 
     dimensions_translated,
     dimensions_ar,
-    dimensions_tr
+    dimensions_tr,
+    
   } = item;
 
   // Create the mapped object using spread and computed properties

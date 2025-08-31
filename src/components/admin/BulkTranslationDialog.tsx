@@ -81,8 +81,10 @@ const BulkTranslationDialog: React.FC<BulkTranslationDialogProps> = ({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Languages className="h-5 w-5" />
+          <Languages className="h-5 w-5" />
+            <span>
             Bulk Translation for {countryName}
+            </span>
           </DialogTitle>
           <DialogDescription>
             This will automatically translate all banknote fields for the selected country to Arabic and Turkish.
@@ -94,7 +96,7 @@ const BulkTranslationDialog: React.FC<BulkTranslationDialogProps> = ({
           {!isProcessing && !completed && (
             <div className="space-y-4">
               <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">What will be translated:</h4>
+                <h4 className="font-medium mb-2"><span>What will be translated:</span></h4>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   <li>• Country name, face value, Islamic year</li>
                   <li>• Sultan name, printer, type, category</li>

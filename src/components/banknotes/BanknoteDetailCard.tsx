@@ -610,7 +610,7 @@ const BanknoteDetailCard = ({
             )}
             {banknote.securityElement && (
               <p className="text-xs text-muted-foreground">
-                {banknote.securityElement}
+                {getLocalizedField(banknote.securityElement, (banknote as any).security_element_translated)}
               </p>
             )}
           </div>
