@@ -67,20 +67,20 @@ class ProfileTranslationService {
 
       // Translate the about content
       console.log('🌐 [ProfileTranslationService] Translating about content...');
-      const translationResult = await translationService.translateText(
+      const translatedText = await translationService.translateText(
         existingProfile.about,
-        sourceLanguage,
-        targetLanguage
+        targetLanguage,
+        sourceLanguage
       );
 
-      if (!translationResult.success || !translationResult.translatedText) {
-        console.error('❌ [ProfileTranslationService] Translation failed:', translationResult.error);
-        return { success: false, error: translationResult.error || 'Translation failed' };
+      if (!translatedText || translatedText === existingProfile.about) {
+        console.error('❌ [ProfileTranslationService] Translation failed or returned same text');
+        return { success: false, error: 'Translation failed' };
       }
 
       // Save the translation to the database
       const updateData = {
-        [translationField]: translationResult.translatedText
+        [translationField]: translatedText
       };
 
       const { error: updateError } = await supabase
@@ -96,12 +96,12 @@ class ProfileTranslationService {
       console.log('✅ [ProfileTranslationService] About translated and saved successfully:', {
         userId,
         targetLanguage,
-        translatedContent: translationResult.translatedText
+        translatedContent: translatedText
       });
 
       return {
         success: true,
-        translatedContent: translationResult.translatedText
+        translatedContent: translatedText
       };
     } catch (error) {
       console.error('❌ [ProfileTranslationService] Unexpected error:', error);
