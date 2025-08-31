@@ -186,15 +186,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
       console.log(`No banknote found with ID: ${id}`);
       return null;
     }
-    
-    console.log(`Fetched banknote with resolved URLs:`, {
-      id: data.id,
-      signatures_front_urls: data.signatures_front_urls,
-      signatures_back_urls: data.signatures_back_urls,
-      seal_picture_urls: data.seal_picture_urls,
-      watermark_picture_url: data.watermark_picture_url,
-      dimensions: data.dimensions
-    });
+
     
     return mapBanknoteFromDatabase(data);
   } catch (error) {
@@ -287,14 +279,7 @@ export const uploadBanknoteImage = async (file: File): Promise<string> => {
 
 // Helper function to map database fields to client-side model
 export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
-  console.log(`🔄 [mapBanknoteFromDatabase] Processing banknote ${item.id}, checking translation fields:`, {
-    face_value: item.face_value,
-    face_value_translated: item.face_value_translated,
-    face_value_ar: item.face_value_ar,
-    face_value_tr: item.face_value_tr,
-    sultan_name: item.sultan_name,
-    sultan_name_translated: item.sultan_name_translated
-  });
+
 
   // Destructure all fields at once for better performance
   const {
@@ -353,7 +338,51 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     signatures_back_tr,
     seal_names_translated,
     seal_names_ar,
-    seal_names_tr
+    seal_names_tr,
+    
+    country_translated,
+    country_ar,
+    country_tr,
+
+    islamic_year_translated,
+    islamic_year_ar,
+    islamic_year_tr,
+
+    other_element_pictures_translated,
+    other_element_pictures_ar,
+    other_element_pictures_tr,
+
+    printer_translated,
+    printer_ar,
+    printer_tr,
+
+    type_translated,
+    type_ar,
+    type_tr,
+
+    category_translated,
+    category_ar,
+    category_tr,
+
+    security_element_translated,
+    security_element_ar,
+    security_element_tr,
+
+    colors_translated,
+    colors_ar,
+    colors_tr,
+
+    banknote_description_translated,
+    banknote_description_ar,
+    banknote_description_tr,
+
+    historical_description_translated,
+    historical_description_ar,
+    historical_description_tr,
+
+    dimensions_translated,
+    dimensions_ar,
+    dimensions_tr
   } = item;
 
   // Create the mapped object using spread and computed properties
@@ -444,15 +473,54 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     signatures_back_tr: signatures_back_tr,
     seal_names_translated: seal_names_translated,
     seal_names_ar: seal_names_ar,
-    seal_names_tr: seal_names_tr
+    seal_names_tr: seal_names_tr,
+
+    other_element_pictures_translated: other_element_pictures_translated,
+    other_element_pictures_ar: other_element_pictures_ar,
+    other_element_pictures_tr: other_element_pictures_tr,
+
+    printer_translated: printer_translated,
+    printer_ar: printer_ar,
+    printer_tr: printer_tr,
+
+    type_translated: type_translated,
+    type_ar: type_ar,
+    type_tr: type_tr,
+
+    category_translated: category_translated,
+    category_ar: category_ar,
+    category_tr: category_tr,
+
+    security_element_translated: security_element_translated,
+    security_element_ar: security_element_ar,
+    security_element_tr: security_element_tr,
+
+    colors_translated: colors_translated,
+    colors_ar: colors_ar,
+    colors_tr: colors_tr,
+
+    banknote_description_translated: banknote_description_translated,
+    banknote_description_ar: banknote_description_ar,
+    banknote_description_tr: banknote_description_tr,
+
+    historical_description_translated: historical_description_translated,
+    historical_description_ar: historical_description_ar,
+    historical_description_tr: historical_description_tr,
+
+    dimensions_translated: dimensions_translated,
+    dimensions_ar: dimensions_ar,
+    dimensions_tr: dimensions_tr,
+    country_translated: country_translated,
+    country_ar: country_ar,
+    country_tr: country_tr,
+    islamic_year_translated: islamic_year_translated,
+    islamic_year_ar: islamic_year_ar,
+    islamic_year_tr: islamic_year_tr,
+    
+
   };
 
-  console.log(`✅ [mapBanknoteFromDatabase] Mapped banknote ${id} with translation fields:`, {
-    face_value: mapped.face_value,
-    face_value_translated: mapped.face_value_translated,
-    face_value_ar: mapped.face_value_ar,
-    face_value_tr: mapped.face_value_tr
-  });
+
 
   return mapped;
 }

@@ -56,14 +56,7 @@ const BanknoteDetailCard = ({
     const result = currentLanguage === 'en' || !translatedField 
       ? field || '' 
       : getLocalizedText(field, translatedField, currentLanguage);
-    
-    console.log(`🌐 [BanknoteDetailCard] getLocalizedField:`, {
-      field,
-      translatedField,
-      currentLanguage,
-      result,
-      banknoteId: banknote.id
-    });
+  
     
     return result;
   };
@@ -79,24 +72,12 @@ const BanknoteDetailCard = ({
     return banknoteAny[`${fieldName}_translated`];
   };
   const [isHovering, setIsHovering] = useState(false);
-
-  // Debug: Log banknote data structure
-  console.log(`🌐 [BanknoteDetailCard] Banknote data for ${banknote.id}:`, {
-    denomination: banknote.denomination,
-    face_value: (banknote as any).face_value,
-    face_value_translated: (banknote as any).face_value_translated,
-    face_value_ar: (banknote as any).face_value_ar,
-    face_value_tr: (banknote as any).face_value_tr,
-    sultan_name: (banknote as any).sultan_name,
-    sultan_name_translated: (banknote as any).sultan_name_translated,
-    currentLanguage,
-    allFields: Object.keys(banknote).filter(key => key.includes('translate') || key.includes('_ar') || key.includes('_tr'))
-  });
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
   const { triggerEditBanknoteGuide } = useTutorial();
+  const { direction } = useLanguage();
 
   // Helper function for translations with fallback
   const tWithFallback = (key: string, fallback: string) => {
@@ -608,7 +589,7 @@ const BanknoteDetailCard = ({
             {renderBanknoteImage()}
           </div>
 
-          <div className="p-3 bg-background border-t">
+          <div className={`p-3 bg-background border-t ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
             {banknote?.sultanName && (
               <p className="text-xs text-muted-foreground">
                 {banknote.authorityName || tWithFallback('authority', 'Authority')}: {getLocalizedField(banknote.sultanName, (banknote as any).sultan_name_translated)}

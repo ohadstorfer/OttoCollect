@@ -35,7 +35,7 @@ export class DatabaseTranslationService {
     translatedText: string | null | undefined,
     currentLanguage: string
   ): string {
-    if (currentLanguage === 'en' || !translatedText || translatedText.trim() === '') {
+    if (currentLanguage === 'en' || !translatedText || (typeof translatedText === 'string' && translatedText.trim() === '')) {
       return originalText;
     }
     return translatedText;
@@ -63,12 +63,12 @@ export class DatabaseTranslationService {
       translatedTextTrimmed: translatedText?.trim()
     });
     
-    if (targetLanguage === 'en' || !originalText || originalText.trim() === '') {
+    if (targetLanguage === 'en' || !originalText || (typeof originalText === 'string' && originalText.trim() === '')) {
       console.log('Translation not needed: English language or empty original text');
       return false;
     }
     
-    const needsTranslation = !translatedText || translatedText.trim() === '';
+    const needsTranslation = !translatedText || (typeof translatedText === 'string' && translatedText.trim() === '');
     console.log('Translation needed:', needsTranslation);
     return needsTranslation;
   }

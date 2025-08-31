@@ -99,17 +99,7 @@ export type MixedBanknoteItem =
  * base pick number.
  */
 export const getMixedBanknoteItems = (banknotes: DetailedBanknote[]): MixedBanknoteItem[] => {
-  console.log(`🔧 [getMixedBanknoteItems] Processing ${banknotes.length} banknotes`);
-  if (banknotes.length > 0) {
-    console.log(`🔧 [getMixedBanknoteItems] Sample banknote fields:`, {
-      id: banknotes[0].id,
-      face_value: (banknotes[0] as any).face_value,
-      face_value_translated: (banknotes[0] as any).face_value_translated,
-      face_value_ar: (banknotes[0] as any).face_value_ar,
-      face_value_tr: (banknotes[0] as any).face_value_tr,
-      allKeys: Object.keys(banknotes[0]).filter(key => key.includes('translate') || key.includes('_ar') || key.includes('_tr'))
-    });
-  }
+
   
   // First, identify which banknotes belong to groups
   const banknoteMap = new Map<string, DetailedBanknote[]>();
@@ -155,19 +145,9 @@ export const getMixedBanknoteItems = (banknotes: DetailedBanknote[]): MixedBankn
     
     // If there's only one, add it as a single
     if (groupBanknotes.length === 1) {
-      console.log(`🔧 [getMixedBanknoteItems] Adding single banknote:`, {
-        id: groupBanknotes[0].id,
-        face_value: (groupBanknotes[0] as any).face_value,
-        face_value_translated: (groupBanknotes[0] as any).face_value_translated
-      });
       mixedItems.push({ type: 'single', banknote: groupBanknotes[0] });
     } else {
       // Otherwise, add it as a group
-      console.log(`🔧 [getMixedBanknoteItems] Adding group with ${groupBanknotes.length} banknotes, first item:`, {
-        id: groupBanknotes[0].id,
-        face_value: (groupBanknotes[0] as any).face_value,
-        face_value_translated: (groupBanknotes[0] as any).face_value_translated
-      });
       mixedItems.push({ 
         type: 'group', 
         group: {
@@ -190,7 +170,7 @@ export const getMixedBanknoteItemsBySultan = (
   banknotes: DetailedBanknote[],
   sultanOrderMap?: Map<string, number>
 ): { sultan: string; items: MixedBanknoteItem[] }[] => {
-  console.log(`\n🔧 [getMixedBanknoteItemsBySultan Debug] Processing ${banknotes.length} banknotes`);
+
   
   // First, group banknotes by sultan
   const sultanMap = new Map<string, DetailedBanknote[]>();
@@ -203,7 +183,6 @@ export const getMixedBanknoteItemsBySultan = (
     sultanMap.get(sultan)?.push(banknote);
   });
   
-  console.log(`📊 [getMixedBanknoteItemsBySultan Debug] Found sultans:`, Array.from(sultanMap.keys()));
   
   // Then, for each sultan group, apply the getMixedBanknoteItems function
   const result: { sultan: string; items: MixedBanknoteItem[] }[] = [];
@@ -218,23 +197,17 @@ export const getMixedBanknoteItemsBySultan = (
     });
   });
   
-  console.log(`🔄 [getMixedBanknoteItemsBySultan Debug] Before sorting - sultans:`, 
-    result.map(r => r.sultan));
+
   
   // Sort by sultan order if available, otherwise alphabetically
   result.sort((a, b) => {
-    console.log(`\n🔄 [getMixedBanknoteItemsBySultan Debug] Comparing sultans:`);
-    console.log(`  Sultan A: "${a.sultan}" (${a.items.length} items)`);
-    console.log(`  Sultan B: "${b.sultan}" (${a.items.length} items)`);
+
     
     if (sultanOrderMap) {
       const aOrder = getSultanOrder(a.sultan, sultanOrderMap);
       const bOrder = getSultanOrder(b.sultan, sultanOrderMap);
       
-      console.log(`  📋 Database Order:`);
-      console.log(`    "${a.sultan}" -> Order: ${aOrder} (using helper function)`);
-      console.log(`    "${b.sultan}" -> Order: ${bOrder} (using helper function)`);
-      console.log(`    Comparison result: ${aOrder - bOrder}`);
+
       
       if (aOrder !== bOrder) {
         return aOrder - bOrder;
@@ -243,12 +216,11 @@ export const getMixedBanknoteItemsBySultan = (
     
     // Fallback to alphabetical sorting
     const alphaResult = a.sultan.localeCompare(b.sultan);
-    console.log(`  📋 Alphabetical fallback: ${alphaResult}`);
+
     return alphaResult;
   });
   
-  console.log(`✅ [getMixedBanknoteItemsBySultan Debug] After sorting - final order:`, 
-    result.map((r, index) => `${index + 1}. ${r.sultan} (${r.items.length} items)`));
+ 
   
   return result;
 };
