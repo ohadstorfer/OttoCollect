@@ -274,25 +274,50 @@ export default function useMessages(): UseMessagesReturn {
   // Send a message with optimistic updates
   const sendMessage = async (message: Omit<Message, 'id' | 'createdAt'>) => {
     if (!user) return false;
-    
+
+    // Resolve ids from either camelCase or snake_case
+    const senderIdResolved = (message as any).senderId ?? (message as any).sender_id;
+    const recipientIdResolved = (message as any).recipientId ?? (message as any).receiver_id;
+
+    console.debug('[useMessages] sendMessage resolved IDs', {
+      authUserId: user.id,
+      senderIdResolved,
+      recipientIdResolved,
+      message
+    });
+
+    // Validate RLS requirements
+    if (!senderIdResolved || !recipientIdResolved) {
+      console.error('[useMessages] Missing sender/recipient id', { senderIdResolved, recipientIdResolved });
+      return false;
+    }
+
     // Create a temporary message for optimistic update
     const tempId = `temp-${Date.now()}`;
+    const nowIso = new Date().toISOString();
     const optimisticMessage: Message = {
       id: tempId,
-      ...message,
-      createdAt: new Date().toISOString(),
-      isRead: false
+      sender_id: senderIdResolved,
+      receiver_id: recipientIdResolved,
+      senderId: senderIdResolved,
+      receiverId: recipientIdResolved,
+      recipientId: recipientIdResolved,
+      content: (message as any).content,
+      reference_item_id: (message as any).reference_item_id,
+      created_at: nowIso,
+      createdAt: nowIso,
+      isRead: false,
     };
 
     // Optimistically update UI
     setCurrentMessages(prev => [...prev, optimisticMessage]);
-    
+
     try {
       const result = await sendMessageService(
-        message.senderId,
-        message.recipientId,
-        message.content,
-        message.reference_item_id
+        senderIdResolved,
+        recipientIdResolved,
+        (message as any).content,
+        (message as any).reference_item_id
       );
 
       if (!result) {
@@ -302,10 +327,10 @@ export default function useMessages(): UseMessagesReturn {
       }
 
       // Remove temporary conversation if it exists
-      if (temporaryConversations.has(message.recipientId)) {
+      if (temporaryConversations.has(recipientIdResolved)) {
         setTemporaryConversations(prev => {
           const newMap = new Map(prev);
-          newMap.delete(message.recipientId);
+          newMap.delete(recipientIdResolved);
           return newMap;
         });
       }

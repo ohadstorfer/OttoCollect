@@ -47,6 +47,9 @@ export async function sendMessage(senderId: string, receiverId: string, content:
       is_read: false
     };
 
+    const { data: authData } = await supabase.auth.getUser();
+    console.debug('[messageService.sendMessage] authUserId:', authData?.user?.id, 'args', { senderId, receiverId }, 'payload', newMessage);
+
     const { data, error } = await supabase
       .from('messages')
       .insert([newMessage])

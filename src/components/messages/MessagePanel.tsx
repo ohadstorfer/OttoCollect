@@ -85,6 +85,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
       reference_item_id: msg.reference_item_id,
       senderId: msg.sender_id,
       receiverId: msg.receiver_id,
+      recipientId: msg.receiver_id,
       createdAt: msg.created_at
     }));
     setLocalMessages(formattedMessages);
@@ -111,15 +112,20 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
     
     try {
       if (onSendMessage) {
-        const success = await onSendMessage({
+        const outgoing: any = {
+          // Prefer camelCase expected by use-messages, include snake_case for safety
+          senderId: userId,
+          recipientId: recipientId || '',
           sender_id: userId,
           receiver_id: recipientId || '',
           content: messageContent,
           isRead: false,
           reference_item_id: referenceItemId,
-          created_at: new Date().toISOString()
-        });
-        
+          created_at: new Date().toISOString(),
+        };
+        console.debug('[MessagePanel] onSendMessage payload', { userId, recipientId, outgoing });
+        const success = await onSendMessage(outgoing);
+      
         if (!success) {
           // Restore message if failed
           setNewMessage(messageContent);
