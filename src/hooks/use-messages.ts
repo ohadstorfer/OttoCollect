@@ -89,27 +89,35 @@ export default function useMessages(): UseMessagesReturn {
       // Get unique conversation partners
       const conversationUsers = new Set<string>();
       messagesData.forEach(message => {
-        const isFromCurrentUser = message.senderId === user.id;
-        const otherUserId = isFromCurrentUser ? message.recipientId : message.senderId;
-        conversationUsers.add(otherUserId);
+        // Be resilient to different message shapes (senderId/receiverId vs sender_id/receiver_id and optional recipientId)
+        const sender = (message as any).senderId ?? (message as any).sender_id;
+        const receiver = (message as any).recipientId ?? (message as any).receiverId ?? (message as any).receiver_id;
+        const isFromCurrentUser = sender === user.id;
+        const otherUserId = isFromCurrentUser ? receiver : sender;
+        if (otherUserId && otherUserId !== user.id) {
+          conversationUsers.add(otherUserId);
+        }
       });
       
       // Fetch user information for each conversation partner
-      const userIds = Array.from(conversationUsers);
+      const userIds = Array.from(conversationUsers).filter(Boolean) as string[];
+      if (userIds.length === 0) {
+        // Only temporary conversations may exist
+        setConversations(Array.from(temporaryConversations.values()));
+        return;
+      }
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
         .select('id, username, avatar_url, rank')
         .in('id', userIds);
-        
+      
       if (usersError) {
         console.error('Error fetching user profiles:', usersError);
-        return;
       }
       
-      // Build conversations list
       const conversationList: Conversation[] = userIds.map(userId => {
         const userMessages = messagesData.filter(msg => 
-          msg.senderId === userId || msg.recipientId === userId
+          msg.senderId === userId || (msg.recipientId ?? (msg as any).receiverId) === userId
         );
         
         const lastMessage = userMessages.reduce((latest, current) => 
