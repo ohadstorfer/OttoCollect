@@ -25,6 +25,8 @@ import { getInitials } from "@/lib/utils";
 import UserProfileLink from "@/components/common/UserProfileLink";
 import { useWishlist } from "@/context/WishlistContext";
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from "@/context/LanguageContext";
+import { getLocalizedText } from "@/utils/localizationUtils";
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -46,7 +48,16 @@ const BanknoteDetailCard = ({
   userCollection = [],
 }: BanknoteDetailCardProps) => {
   const { t } = useTranslation(['collection', 'catalog']);
+  const { currentLanguage } = useLanguage();
   const navigate = useNavigate();
+
+  // Helper function to get localized banknote field
+  const getLocalizedField = (field: string, translatedField?: string): string => {
+    if (currentLanguage === 'en' || !translatedField) {
+      return field || '';
+    }
+    return getLocalizedText(field, translatedField, currentLanguage);
+  };
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -388,7 +399,7 @@ const BanknoteDetailCard = ({
               <div className="flex justify-between items-start w-full">
                 <div className="min-w-0 flex-1 pr-2">
                   <div className="font-small text-sm truncate">
-                    {banknote.denomination}
+                    {getLocalizedField(banknote.denomination, (banknote as any).face_value_translated)}
                   </div>
                   <div className="text-sm text-muted-foreground truncate">
                     {banknote.year}
@@ -482,7 +493,9 @@ const BanknoteDetailCard = ({
         <div className="relative">
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
-              <h4 className="font-bold"><span>{banknote.denomination}</span></h4>
+              <h4 className="font-bold">
+                <span>{getLocalizedField(banknote.denomination, (banknote as any).face_value_translated)}</span>
+              </h4>
               <div className="flex gap-0.1">
                 <Button
                   variant="ghost"
@@ -565,20 +578,20 @@ const BanknoteDetailCard = ({
           <div className="p-3 bg-background border-t">
             {banknote?.sultanName && (
               <p className="text-xs text-muted-foreground">
-                {banknote.authorityName || tWithFallback('authority', 'Authority')}: {banknote.sultanName}
+                {banknote.authorityName || tWithFallback('authority', 'Authority')}: {getLocalizedField(banknote.sultanName, (banknote as any).sultan_name_translated)}
               </p>
             )}
             {(banknote.signaturesFront || banknote.signaturesBack) && (
               <p className="text-xs text-muted-foreground">
-                {tWithFallback('signatures', 'Signatures')}: {banknote.signaturesFront}
+                {tWithFallback('signatures', 'Signatures')}: {getLocalizedField(banknote.signaturesFront, (banknote as any).signatures_front_translated)}
                 {banknote.signaturesFront && banknote.signaturesBack && ", "}
-                {banknote.signaturesBack} 
+                {getLocalizedField(banknote.signaturesBack, (banknote as any).signatures_back_translated)} 
               </p>
             )}
 
             {banknote.sealNames && (
               <p className="text-xs text-muted-foreground">
-                {tWithFallback('seals', 'Seals')}: {banknote.sealNames}
+                {tWithFallback('seals', 'Seals')}: {getLocalizedField(banknote.sealNames, (banknote as any).seal_names_translated)}
               </p>
             )}
             {banknote.securityElement && (

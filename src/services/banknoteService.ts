@@ -48,7 +48,8 @@ export async function fetchBanknotesByCountryId(
     categories?: string[];
     types?: string[];
     sort?: string[];
-  }
+  },
+  language: string = 'en'
 ): Promise<DetailedBanknote[]> {
   try {
     if (!countryId) {
@@ -76,9 +77,14 @@ export async function fetchBanknotesByCountryId(
     const categoryNames = categoryData.data?.map(cat => cat.name) || [];
     const typeNames = typeData.data?.map(type => type.name) || [];
     
+    // Use the translated view based on language
+    const viewName = language !== 'en' 
+      ? 'enhanced_banknotes_with_translations' 
+      : 'enhanced_detailed_banknotes';
+
     // Build the main query
     let query = supabase
-      .from('enhanced_banknotes_with_translations')
+      .from(viewName)
       .select('*')
       .eq('country', countryName);
     

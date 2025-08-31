@@ -2,14 +2,15 @@ import { useQuery, useQueries } from '@tanstack/react-query';
 import { DetailedBanknote } from '@/types';
 import { DynamicFilterState } from '@/types/filter';
 import { fetchBanknotesByCountryId } from '@/services/banknoteService';
+import { useLanguage } from '@/context/LanguageContext';
 import { fetchUserFilterPreferences } from '@/services/countryService';
 import { fetchUserCollection } from '@/services/collectionService';
 import { useMemo } from 'react';
 
 // Query keys for React Query caching
 export const queryKeys = {
-  banknotes: (countryId: string, filters: DynamicFilterState) => 
-    ['banknotes', countryId, filters] as const,
+  banknotes: (countryId: string, filters: DynamicFilterState, language?: string) => 
+    ['banknotes', countryId, filters, language] as const,
   userFilterPreferences: (userId: string, countryId: string) => 
     ['userFilterPreferences', userId, countryId] as const,
   userCollection: (userId: string) => 
@@ -37,13 +38,14 @@ export const useBanknoteQuery = ({
   filters, 
   enabled = true 
 }: UseBanknoteQueryProps): UseBanknoteQueryResult => {
+  const { currentLanguage } = useLanguage();
   const {
     data: banknotes = [],
     isLoading: loading,
     error,
     refetch,
   } = useQuery({
-    queryKey: queryKeys.banknotes(countryId, filters),
+    queryKey: queryKeys.banknotes(countryId, filters, currentLanguage),
     queryFn: async () => {
       const filterParams = {
         search: filters.search,
@@ -51,7 +53,7 @@ export const useBanknoteQuery = ({
         types: filters.types,
         sort: filters.sort
       };
-      return fetchBanknotesByCountryId(countryId, filterParams);
+      return fetchBanknotesByCountryId(countryId, filterParams, currentLanguage);
     },
     enabled: enabled && !!countryId, // Remove the categories length check - empty array means "all selected"
     staleTime: 60 * 1000, // 1 minute
@@ -97,10 +99,12 @@ export const useBanknoteData = (
   filters: DynamicFilterState,
   userId?: string
 ) => {
+  const { currentLanguage } = useLanguage();
+  
   // Create query configurations
   const queries = [
     {
-      queryKey: queryKeys.banknotes(countryId, filters),
+      queryKey: queryKeys.banknotes(countryId, filters, currentLanguage),
       queryFn: async () => {
         const filterParams = {
           search: filters.search,
@@ -108,7 +112,7 @@ export const useBanknoteData = (
           types: filters.types,
           sort: filters.sort
         };
-        return fetchBanknotesByCountryId(countryId, filterParams);
+        return fetchBanknotesByCountryId(countryId, filterParams, currentLanguage);
       },
       enabled: !!countryId, // Remove the categories length check - empty array means "all selected"
       staleTime: 60 * 1000,
