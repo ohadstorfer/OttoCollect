@@ -23,13 +23,48 @@ import { useTheme } from '@/context/ThemeContext';
 import SEOHead from '@/components/seo/SEOHead';
 import { SEO_CONFIG } from '@/config/seoConfig';
 import { useLanguage } from '@/context/LanguageContext';
+import { profileTranslationService } from '@/services/profileTranslationService';
+
+// Custom hook for managing localized about content
+const useLocalizedAbout = (userId: string, currentLanguage: string) => {
+    const [localizedAbout, setLocalizedAbout] = useState<string>('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (!userId || currentLanguage === 'en') {
+            return;
+        }
+
+        const fetchLocalizedAbout = async () => {
+            setIsLoading(true);
+            try {
+                const result = await profileTranslationService.getLocalizedAbout(
+                    userId,
+                    currentLanguage as 'ar' | 'tr'
+                );
+                
+                if (result.success && result.translatedContent) {
+                    setLocalizedAbout(result.translatedContent);
+                }
+            } catch (error) {
+                console.error('Error fetching localized about:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchLocalizedAbout();
+    }, [userId, currentLanguage]);
+
+    return { localizedAbout, isLoading };
+};
 
 const AboutUs: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { theme } = useTheme();
     const { t } = useTranslation(['pages']);
-    const { direction } = useLanguage();
+    const { direction, currentLanguage } = useLanguage();
     const skewedBgColor = theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-700';
 
 
@@ -39,21 +74,32 @@ const AboutUs: React.FC = () => {
         '64681131-4747-4036-9c32-fe60a560bf78' // Dror
     ];
 
-    // Fetch founder profiles
-    const { data: founders, isLoading: foundersLoading } = useQuery({
-        queryKey: ['founders', founderIds],
-        queryFn: async () => {
-            const profiles = await Promise.all(
-                founderIds.map(id => getUserProfile(id))
-            );
-            return profiles.filter(Boolean);
-        },
-        enabled: founderIds.length > 0,
-    });
+         // Fetch founder profiles
+     const { data: founders, isLoading: foundersLoading } = useQuery({
+         queryKey: ['founders', founderIds, currentLanguage],
+         queryFn: async () => {
+             const profiles = await Promise.all(
+                 founderIds.map(id => getUserProfile(id, currentLanguage))
+             );
+             return profiles.filter(Boolean);
+         },
+         enabled: founderIds.length > 0,
+     });
 
-    const handleFounderClick = (username: string) => {
-        navigate(`/profile/${username}`);
-    };
+         const handleFounderClick = (username: string) => {
+         navigate(`/profile/${username}`);
+     };
+
+     // Use the localized about hook for each founder
+     const assafLocalizedAbout = useLocalizedAbout(
+         founders?.[0]?.id || '',
+         currentLanguage
+     );
+     
+     const drorLocalizedAbout = useLocalizedAbout(
+         founders?.[1]?.id || '',
+         currentLanguage
+     );
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-ottoman-50 to-ottoman-100 dark:from-dark-900 dark:to-dark-800 -mb-20">
@@ -148,9 +194,15 @@ const AboutUs: React.FC = () => {
                                                 <Badge variant="user" rank={founders[0].rank} className="mb-3" />
                                             )}
 
-                                            <p className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed">
-                                                {founders?.[0]?.about || t('aboutUs.founders.assaf.description')}
-                                            </p>
+                                                                                         <p className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed">
+                                                 {assafLocalizedAbout.isLoading ? (
+                                                     <span className="text-muted-foreground">Loading...</span>
+                                                 ) : currentLanguage === 'en' ? (
+                                                     founders?.[0]?.about || t('aboutUs.founders.assaf.description')
+                                                 ) : (
+                                                     assafLocalizedAbout.localizedAbout || founders?.[0]?.about || t('aboutUs.founders.assaf.description')
+                                                 )}
+                                             </p>
 
                                             <Button
                                                 variant="outline"
@@ -193,17 +245,29 @@ const AboutUs: React.FC = () => {
                                                 <Badge variant="user" rank={founders[1].rank} className="mb-3" />
                                             )}
 
-                                            <div className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed space-y-3">
-                                                <p>
-                                                    {founders?.[1]?.about || (
-                                                        <>
-                                                            {t('aboutUs.founders.dror.description1')}
-                                                            <br />
-                                                            {t('aboutUs.founders.dror.description2')}
-                                                        </>
-                                                    )}
-                                                </p>
-                                            </div>
+                                                                                         <div className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed space-y-3">
+                                                 <p>
+                                                     {drorLocalizedAbout.isLoading ? (
+                                                         <span className="text-muted-foreground">Loading...</span>
+                                                     ) : currentLanguage === 'en' ? (
+                                                         founders?.[1]?.about || (
+                                                             <>
+                                                                 {t('aboutUs.founders.dror.description1')}
+                                                                 <br />
+                                                                 {t('aboutUs.founders.dror.description2')}
+                                                             </>
+                                                         )
+                                                     ) : (
+                                                         drorLocalizedAbout.localizedAbout || founders?.[1]?.about || (
+                                                             <>
+                                                                 {t('aboutUs.founders.dror.description1')}
+                                                                 <br />
+                                                                 {t('aboutUs.founders.dror.description2')}
+                                                             </>
+                                                         )
+                                                     )}
+                                                 </p>
+                                             </div>
 
                                             <Button
                                                 variant="outline"

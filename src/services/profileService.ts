@@ -81,12 +81,13 @@ export async function getUserProfile(userIdOrUsername: string, currentLanguage?:
     let localizedRole = data.role;
     if (data.role && data.role !== 'Super Admin' && data.role.includes('Admin')) {
       // This is a country admin, check for translations
-      // Try multiple ways to detect current language
-      let currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      // Use the passed currentLanguage parameter or fallback to localStorage
+      let detectedLanguage = currentLanguage || localStorage.getItem('i18nextLng') || 'en';
       
-      // Also check for other possible language storage keys
-      if (currentLanguage === 'en') {
-        currentLanguage = localStorage.getItem('language') || 
+      // Also check for other possible language storage keys if not provided
+      if (detectedLanguage === 'en') {
+        detectedLanguage = localStorage.getItem('i18nextLng') || 
+                         localStorage.getItem('language') || 
                          localStorage.getItem('currentLanguage') || 
                          localStorage.getItem('i18n') || 
                          'en';
@@ -102,32 +103,66 @@ export async function getUserProfile(userIdOrUsername: string, currentLanguage?:
       console.log('🔍 [profileService] Role translation check:', {
         userId: data.id,
         originalRole: data.role,
-        currentLanguage,
+        detectedLanguage,
         hasRoleAr: !!data.role_ar,
         hasRoleTr: !!data.role_tr,
         roleAr: data.role_ar,
         roleTr: data.role_tr
       });
       
-      if (currentLanguage === 'ar' && data.role_ar) {
+      if (detectedLanguage === 'ar' && data.role_ar) {
         localizedRole = data.role_ar;
         console.log('✅ [profileService] Using Arabic role translation:', data.role_ar);
-      } else if (currentLanguage === 'tr' && data.role_tr) {
+      } else if (detectedLanguage === 'tr' && data.role_tr) {
         localizedRole = data.role_tr;
         console.log('✅ [profileService] Using Turkish role translation:', data.role_tr);
       }
       
       // Auto-translate if translation is missing
-      if ((currentLanguage === 'ar' && !data.role_ar) || (currentLanguage === 'tr' && !data.role_tr)) {
+      if ((detectedLanguage === 'ar' && !data.role_ar) || (detectedLanguage === 'tr' && !data.role_tr)) {
         console.log('🔄 [profileService] Starting auto-translation for role:', {
           userId: data.id,
           originalRole: data.role,
-          targetLanguage: currentLanguage
+          targetLanguage: detectedLanguage
         });
         // Translate and save role in background
-        translateAndSaveRole(data.id, data.role, currentLanguage as 'ar' | 'tr').catch(console.error);
+        translateAndSaveRole(data.id, data.role, detectedLanguage as 'ar' | 'tr').catch(console.error);
       } else {
         console.log('ℹ️ [profileService] No translation needed or already exists');
+      }
+    }
+
+    // Handle about field translation
+    let localizedAbout = data.about;
+    if (data.about && currentLanguage && currentLanguage !== 'en') {
+      console.log('🔍 [profileService] About translation check:', {
+        userId: data.id,
+        hasAbout: !!data.about,
+        currentLanguage,
+        hasAboutAr: !!data.about_ar,
+        hasAboutTr: !!data.about_tr
+      });
+      
+      if (currentLanguage === 'ar' && data.about_ar) {
+        localizedAbout = data.about_ar;
+        console.log('✅ [profileService] Using Arabic about translation:', data.about_ar);
+      } else if (currentLanguage === 'tr' && data.about_tr) {
+        localizedAbout = data.about_tr;
+        console.log('✅ [profileService] Using Turkish about translation:', data.about_tr);
+      }
+      
+      // Auto-translate if translation is missing
+      if ((currentLanguage === 'ar' && !data.about_ar) || (currentLanguage === 'tr' && !data.about_tr)) {
+        console.log('🔄 [profileService] Starting auto-translation for about:', {
+          userId: data.id,
+          targetLanguage: currentLanguage
+        });
+        // Import and use profileTranslationService to translate about in background
+        import('./profileTranslationService').then(({ profileTranslationService }) => {
+          profileTranslationService.translateAbout(data.id, currentLanguage as 'ar' | 'tr').catch(console.error);
+        });
+      } else {
+        console.log('ℹ️ [profileService] About translation already exists');
       }
     }
 
@@ -143,7 +178,9 @@ export async function getUserProfile(userIdOrUsername: string, currentLanguage?:
       createdAt: data.created_at,
       avatarUrl: data.avatar_url,
       ...(data.country && { country: data.country }),
-      ...(data.about && { about: data.about }),
+      ...(localizedAbout && { about: localizedAbout }),
+      ...(data.about_ar && { about_ar: data.about_ar }),
+      ...(data.about_tr && { about_tr: data.about_tr }),
       ...(data.facebook_url && { facebook_url: data.facebook_url }),
       ...(data.instagram_url && { instagram_url: data.instagram_url }),
       ...(data.twitter_url && { twitter_url: data.twitter_url }),
