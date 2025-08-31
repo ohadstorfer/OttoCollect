@@ -111,6 +111,24 @@ export interface DetailedBanknote {
   rarity?: string;
   name?: string;
   dimensions?: string;
+  
+  // Translation fields - these preserve the translated content from enhanced_banknotes_with_translations view
+  face_value?: string;
+  face_value_translated?: string;
+  face_value_ar?: string;
+  face_value_tr?: string;
+  sultan_name_translated?: string;
+  sultan_name_ar?: string;
+  sultan_name_tr?: string;
+  signatures_front_translated?: string[];
+  signatures_front_ar?: string[];
+  signatures_front_tr?: string[];
+  signatures_back_translated?: string[];
+  signatures_back_ar?: string[];
+  signatures_back_tr?: string[];
+  seal_names_translated?: string;
+  seal_names_ar?: string;
+  seal_names_tr?: string;
 }
 
 export interface CollectionItem {

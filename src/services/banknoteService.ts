@@ -287,6 +287,15 @@ export const uploadBanknoteImage = async (file: File): Promise<string> => {
 
 // Helper function to map database fields to client-side model
 export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
+  console.log(`🔄 [mapBanknoteFromDatabase] Processing banknote ${item.id}, checking translation fields:`, {
+    face_value: item.face_value,
+    face_value_translated: item.face_value_translated,
+    face_value_ar: item.face_value_ar,
+    face_value_tr: item.face_value_tr,
+    sultan_name: item.sultan_name,
+    sultan_name_translated: item.sultan_name_translated
+  });
+
   // Destructure all fields at once for better performance
   const {
     id,
@@ -328,7 +337,23 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     front_picture_watermarked,
     back_picture_watermarked,
     front_picture_thumbnail,
-    back_picture_thumbnail
+    back_picture_thumbnail,
+    // Translation fields from enhanced_banknotes_with_translations
+    face_value_translated,
+    face_value_ar,
+    face_value_tr,
+    sultan_name_translated,
+    sultan_name_ar,
+    sultan_name_tr,
+    signatures_front_translated,
+    signatures_front_ar,
+    signatures_front_tr,
+    signatures_back_translated,
+    signatures_back_ar,
+    signatures_back_tr,
+    seal_names_translated,
+    seal_names_ar,
+    seal_names_tr
   } = item;
 
   // Create the mapped object using spread and computed properties
@@ -401,8 +426,33 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     frontPictureWatermarked: front_picture_watermarked || null,
     backPictureWatermarked: back_picture_watermarked || null,
     frontPictureThumbnail: front_picture_thumbnail || null,
-    backPictureThumbnail: back_picture_thumbnail || null
+    backPictureThumbnail: back_picture_thumbnail || null,
+    
+    // Translation fields - preserve for localization
+    face_value: face_value,
+    face_value_translated: face_value_translated,
+    face_value_ar: face_value_ar,
+    face_value_tr: face_value_tr,
+    sultan_name_translated: sultan_name_translated,
+    sultan_name_ar: sultan_name_ar,
+    sultan_name_tr: sultan_name_tr,
+    signatures_front_translated: signatures_front_translated,
+    signatures_front_ar: signatures_front_ar,
+    signatures_front_tr: signatures_front_tr,
+    signatures_back_translated: signatures_back_translated,
+    signatures_back_ar: signatures_back_ar,
+    signatures_back_tr: signatures_back_tr,
+    seal_names_translated: seal_names_translated,
+    seal_names_ar: seal_names_ar,
+    seal_names_tr: seal_names_tr
   };
+
+  console.log(`✅ [mapBanknoteFromDatabase] Mapped banknote ${id} with translation fields:`, {
+    face_value: mapped.face_value,
+    face_value_translated: mapped.face_value_translated,
+    face_value_ar: mapped.face_value_ar,
+    face_value_tr: mapped.face_value_tr
+  });
 
   return mapped;
 }
