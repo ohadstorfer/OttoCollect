@@ -67,6 +67,17 @@ const BanknoteDetailCard = ({
     
     return result;
   };
+
+  // Helper to get translation fields based on language
+  const getTranslatedField = (fieldName: string): string | undefined => {
+    const banknoteAny = banknote as any;
+    if (currentLanguage === 'ar') {
+      return banknoteAny[`${fieldName}_ar`] || banknoteAny[`${fieldName}_translated`];
+    } else if (currentLanguage === 'tr') {
+      return banknoteAny[`${fieldName}_tr`] || banknoteAny[`${fieldName}_translated`];
+    }
+    return banknoteAny[`${fieldName}_translated`];
+  };
   const [isHovering, setIsHovering] = useState(false);
 
   // Debug: Log banknote data structure

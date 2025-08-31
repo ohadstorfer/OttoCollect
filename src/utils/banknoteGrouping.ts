@@ -99,6 +99,18 @@ export type MixedBanknoteItem =
  * base pick number.
  */
 export const getMixedBanknoteItems = (banknotes: DetailedBanknote[]): MixedBanknoteItem[] => {
+  console.log(`🔧 [getMixedBanknoteItems] Processing ${banknotes.length} banknotes`);
+  if (banknotes.length > 0) {
+    console.log(`🔧 [getMixedBanknoteItems] Sample banknote fields:`, {
+      id: banknotes[0].id,
+      face_value: (banknotes[0] as any).face_value,
+      face_value_translated: (banknotes[0] as any).face_value_translated,
+      face_value_ar: (banknotes[0] as any).face_value_ar,
+      face_value_tr: (banknotes[0] as any).face_value_tr,
+      allKeys: Object.keys(banknotes[0]).filter(key => key.includes('translate') || key.includes('_ar') || key.includes('_tr'))
+    });
+  }
+  
   // First, identify which banknotes belong to groups
   const banknoteMap = new Map<string, DetailedBanknote[]>();
   
@@ -143,9 +155,19 @@ export const getMixedBanknoteItems = (banknotes: DetailedBanknote[]): MixedBankn
     
     // If there's only one, add it as a single
     if (groupBanknotes.length === 1) {
+      console.log(`🔧 [getMixedBanknoteItems] Adding single banknote:`, {
+        id: groupBanknotes[0].id,
+        face_value: (groupBanknotes[0] as any).face_value,
+        face_value_translated: (groupBanknotes[0] as any).face_value_translated
+      });
       mixedItems.push({ type: 'single', banknote: groupBanknotes[0] });
     } else {
       // Otherwise, add it as a group
+      console.log(`🔧 [getMixedBanknoteItems] Adding group with ${groupBanknotes.length} banknotes, first item:`, {
+        id: groupBanknotes[0].id,
+        face_value: (groupBanknotes[0] as any).face_value,
+        face_value_translated: (groupBanknotes[0] as any).face_value_translated
+      });
       mixedItems.push({ 
         type: 'group', 
         group: {
