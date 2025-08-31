@@ -34,7 +34,7 @@ export async function fetchBanknotesWithMetadata(
     
     // Build optimized query with server-side filtering
     let query = supabase
-      .from('enhanced_detailed_banknotes')
+      .from('enhanced_banknotes_with_translations')
       .select('*', { count: 'exact' })
       .eq('country', countryName);
     

@@ -6,7 +6,7 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
   try {
     console.log("Fetching banknotes with filters:", filters);
     let query = supabase
-      .from('enhanced_detailed_banknotes')
+      .from('enhanced_banknotes_with_translations')
       .select('*');
     
     // Apply filters if provided
@@ -78,7 +78,7 @@ export async function fetchBanknotesByCountryId(
     
     // Build the main query
     let query = supabase
-      .from('enhanced_detailed_banknotes')
+      .from('enhanced_banknotes_with_translations')
       .select('*')
       .eq('country', countryName);
     
@@ -149,7 +149,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
     
     console.log(`Fetching banknote with ID: ${id}`);
     const { data, error } = await supabase
-      .from('enhanced_detailed_banknotes')
+      .from('enhanced_banknotes_with_translations')
       .select('*')
       .eq('id', id)
       .maybeSingle();
@@ -183,7 +183,7 @@ export async function fetchBanknoteById(id: string): Promise<DetailedBanknote | 
 export async function fetchBanknoteDetail(id: string): Promise<DetailedBanknote | null> {
   try {
     const { data, error } = await supabase
-      .from('enhanced_detailed_banknotes')
+      .from('enhanced_banknotes_with_translations')
       .select('*')
       .eq('id', id)
       .single();
@@ -217,7 +217,7 @@ export async function searchBanknotes(searchTerm: string): Promise<DetailedBankn
   try {
     console.log("Searching banknotes with term:", searchTerm);
     const { data, error } = await supabase
-      .from('enhanced_detailed_banknotes')
+      .from('enhanced_banknotes_with_translations')
       .select('*')
       .or(`extended_pick_number.ilike.%${searchTerm}%,face_value.ilike.%${searchTerm}%,banknote_description.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
       .limit(20);

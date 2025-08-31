@@ -661,7 +661,21 @@ export type Database = {
             foreignKeyName: "collection_items_banknote_id_fkey"
             columns: ["banknote_id"]
             isOneToOne: false
+            referencedRelation: "banknotes_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
             referencedRelation: "detailed_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_banknotes_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -676,6 +690,13 @@ export type Database = {
             columns: ["unlisted_banknotes_id"]
             isOneToOne: false
             referencedRelation: "unlisted_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_collection_unlisted_banknote"
+            columns: ["unlisted_banknotes_id"]
+            isOneToOne: false
+            referencedRelation: "unlisted_banknotes_with_translations"
             referencedColumns: ["id"]
           },
         ]
@@ -1433,7 +1454,21 @@ export type Database = {
             foreignKeyName: "image_suggestions_banknote_id_fkey"
             columns: ["banknote_id"]
             isOneToOne: false
+            referencedRelation: "banknotes_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "image_suggestions_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
             referencedRelation: "detailed_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "image_suggestions_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_banknotes_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -1492,7 +1527,21 @@ export type Database = {
             foreignKeyName: "marketplace_items_banknote_id_fkey"
             columns: ["banknote_id"]
             isOneToOne: false
+            referencedRelation: "banknotes_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
             referencedRelation: "detailed_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_banknotes_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -2319,7 +2368,21 @@ export type Database = {
             foreignKeyName: "wishlist_items_banknote_id_fkey"
             columns: ["banknote_id"]
             isOneToOne: false
+            referencedRelation: "banknotes_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
             referencedRelation: "detailed_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_banknotes_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -2333,6 +2396,186 @@ export type Database = {
       }
     }
     Views: {
+      banknotes_with_translations: {
+        Row: {
+          back_picture: string | null
+          back_picture_thumbnail: string | null
+          back_picture_watermarked: string | null
+          banknote_description: string | null
+          banknote_description_ar: string | null
+          banknote_description_tr: string | null
+          banknote_description_translated: string | null
+          category: string | null
+          category_ar: string | null
+          category_tr: string | null
+          category_translated: string | null
+          colors: string | null
+          colors_ar: string | null
+          colors_tr: string | null
+          colors_translated: string | null
+          country: string | null
+          country_ar: string | null
+          country_tr: string | null
+          country_translated: string | null
+          created_at: string | null
+          dimensions: string | null
+          dimensions_ar: string | null
+          dimensions_tr: string | null
+          dimensions_translated: string | null
+          extended_pick_number: string | null
+          face_value: string | null
+          face_value_ar: string | null
+          face_value_tr: string | null
+          face_value_translated: string | null
+          front_picture: string | null
+          front_picture_thumbnail: string | null
+          front_picture_watermarked: string | null
+          gregorian_year: string | null
+          historical_description: string | null
+          historical_description_ar: string | null
+          historical_description_tr: string | null
+          historical_description_translated: string | null
+          id: string | null
+          is_approved: boolean | null
+          is_pending: boolean | null
+          islamic_year: string | null
+          islamic_year_ar: string | null
+          islamic_year_tr: string | null
+          islamic_year_translated: string | null
+          other_element_pictures: string[] | null
+          pick_number: string | null
+          printer: string | null
+          printer_ar: string | null
+          printer_tr: string | null
+          printer_translated: string | null
+          rarity: string | null
+          seal_names: string | null
+          seal_names_ar: string | null
+          seal_names_tr: string | null
+          seal_names_translated: string | null
+          seal_pictures: string[] | null
+          security_element: string | null
+          security_element_ar: string | null
+          security_element_tr: string | null
+          security_element_translated: string | null
+          serial_numbering: string | null
+          signature_pictures: string[] | null
+          signatures_back: string[] | null
+          signatures_back_ar: string[] | null
+          signatures_back_tr: string[] | null
+          signatures_back_translated: string[] | null
+          signatures_front: string[] | null
+          signatures_front_ar: string[] | null
+          signatures_front_tr: string[] | null
+          signatures_front_translated: string[] | null
+          sultan_name: string | null
+          sultan_name_ar: string | null
+          sultan_name_tr: string | null
+          sultan_name_translated: string | null
+          tughra_picture: string | null
+          turk_catalog_number: string | null
+          type: string | null
+          type_ar: string | null
+          type_tr: string | null
+          type_translated: string | null
+          updated_at: string | null
+          watermark_picture: string | null
+        }
+        Relationships: []
+      }
+      enhanced_banknotes_with_translations: {
+        Row: {
+          authority_name: string | null
+          back_picture: string | null
+          back_picture_thumbnail: string | null
+          back_picture_watermarked: string | null
+          banknote_description: string | null
+          banknote_description_ar: string | null
+          banknote_description_tr: string | null
+          banknote_description_translated: string | null
+          category: string | null
+          category_ar: string | null
+          category_tr: string | null
+          category_translated: string | null
+          colors: string | null
+          colors_ar: string | null
+          colors_tr: string | null
+          colors_translated: string | null
+          country: string | null
+          country_ar: string | null
+          country_tr: string | null
+          country_translated: string | null
+          created_at: string | null
+          dimensions: string | null
+          dimensions_ar: string | null
+          dimensions_tr: string | null
+          dimensions_translated: string | null
+          extended_pick_number: string | null
+          face_value: string | null
+          face_value_ar: string | null
+          face_value_tr: string | null
+          face_value_translated: string | null
+          front_picture: string | null
+          front_picture_thumbnail: string | null
+          front_picture_watermarked: string | null
+          gregorian_year: string | null
+          historical_description: string | null
+          historical_description_ar: string | null
+          historical_description_tr: string | null
+          historical_description_translated: string | null
+          id: string | null
+          is_approved: boolean | null
+          is_pending: boolean | null
+          islamic_year: string | null
+          islamic_year_ar: string | null
+          islamic_year_tr: string | null
+          islamic_year_translated: string | null
+          other_element_pictures: string[] | null
+          pick_number: string | null
+          printer: string | null
+          printer_ar: string | null
+          printer_tr: string | null
+          printer_translated: string | null
+          rarity: string | null
+          seal_names: string | null
+          seal_names_ar: string | null
+          seal_names_tr: string | null
+          seal_names_translated: string | null
+          seal_picture_urls: string[] | null
+          seal_pictures: string[] | null
+          security_element: string | null
+          security_element_ar: string | null
+          security_element_tr: string | null
+          security_element_translated: string | null
+          serial_numbering: string | null
+          signature_pictures: string[] | null
+          signatures_back: string[] | null
+          signatures_back_ar: string[] | null
+          signatures_back_tr: string[] | null
+          signatures_back_translated: string[] | null
+          signatures_back_urls: string[] | null
+          signatures_front: string[] | null
+          signatures_front_ar: string[] | null
+          signatures_front_tr: string[] | null
+          signatures_front_translated: string[] | null
+          signatures_front_urls: string[] | null
+          sultan_name: string | null
+          sultan_name_ar: string | null
+          sultan_name_tr: string | null
+          sultan_name_translated: string | null
+          tughra_picture: string | null
+          tughra_picture_url: string | null
+          turk_catalog_number: string | null
+          type: string | null
+          type_ar: string | null
+          type_tr: string | null
+          type_translated: string | null
+          updated_at: string | null
+          watermark_picture: string | null
+          watermark_picture_url: string | null
+        }
+        Relationships: []
+      }
       enhanced_detailed_banknotes: {
         Row: {
           authority_name: string | null
@@ -2471,6 +2714,70 @@ export type Database = {
         }
         Relationships: []
       }
+      unlisted_banknotes_with_translations: {
+        Row: {
+          back_picture: string | null
+          back_picture_thumbnail: string | null
+          back_picture_watermarked: string | null
+          banknote_description: string | null
+          banknote_description_ar: string | null
+          banknote_description_tr: string | null
+          banknote_description_translated: string | null
+          category: string | null
+          colors: string | null
+          country: string | null
+          country_ar: string | null
+          country_tr: string | null
+          country_translated: string | null
+          created_at: string | null
+          dimensions: string | null
+          extended_pick_number: string | null
+          face_value: string | null
+          face_value_ar: string | null
+          face_value_tr: string | null
+          face_value_translated: string | null
+          front_picture: string | null
+          front_picture_thumbnail: string | null
+          front_picture_watermarked: string | null
+          gregorian_year: string | null
+          historical_description: string | null
+          id: string | null
+          is_approved: boolean | null
+          is_pending: boolean | null
+          islamic_year: string | null
+          name: string | null
+          name_ar: string | null
+          name_tr: string | null
+          name_translated: string | null
+          other_element_pictures: string[] | null
+          pick_number: string | null
+          printer: string | null
+          rarity: string | null
+          seal_names: string | null
+          seal_pictures: string[] | null
+          security_element: string | null
+          serial_numbering: string | null
+          signature_pictures: string[] | null
+          signatures_back: string[] | null
+          signatures_front: string[] | null
+          sultan_name: string | null
+          tughra_picture: string | null
+          turk_catalog_number: string | null
+          type: string | null
+          updated_at: string | null
+          user_id: string | null
+          watermark_picture: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_unlisted_banknote_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_collection_view: {
         Row: {
           banknote_id: string | null
@@ -2500,7 +2807,21 @@ export type Database = {
             foreignKeyName: "collection_items_banknote_id_fkey"
             columns: ["banknote_id"]
             isOneToOne: false
+            referencedRelation: "banknotes_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
             referencedRelation: "detailed_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_items_banknote_id_fkey"
+            columns: ["banknote_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_banknotes_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -2515,6 +2836,13 @@ export type Database = {
             columns: ["unlisted_banknotes_id"]
             isOneToOne: false
             referencedRelation: "unlisted_banknotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_collection_unlisted_banknote"
+            columns: ["unlisted_banknotes_id"]
+            isOneToOne: false
+            referencedRelation: "unlisted_banknotes_with_translations"
             referencedColumns: ["id"]
           },
         ]
