@@ -15,7 +15,8 @@ import {
     ArrowRight,
     ExternalLink,
     Database,
-    DollarSign
+    DollarSign,
+    ArrowLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
@@ -77,12 +78,12 @@ const AboutUs: React.FC = () => {
          // Fetch founder profiles
      const { data: founders, isLoading: foundersLoading } = useQuery({
          queryKey: ['founders', founderIds, currentLanguage],
-         queryFn: async () => {
-             const profiles = await Promise.all(
-                 founderIds.map(id => getUserProfile(id, currentLanguage))
-             );
-             return profiles.filter(Boolean);
-         },
+                   queryFn: async () => {
+              const profiles = await Promise.all(
+                  founderIds.map(id => getUserProfile(id, currentLanguage, true))
+              );
+              return profiles.filter(Boolean);
+          },
          enabled: founderIds.length > 0,
      });
 
@@ -210,7 +211,7 @@ const AboutUs: React.FC = () => {
                                             >
                                                 <BookOpen className="h-4 w-4 mr-2" />
                                                 {t('aboutUs.founders.viewCollection')}
-                                                <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                                                {direction === 'rtl' ? <ArrowLeft className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" /> : <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />}
                                             </Button>
                                         </CardContent>
                                     </Card>
@@ -275,7 +276,7 @@ const AboutUs: React.FC = () => {
                                             >
                                                 <BookOpen className="h-4 w-4 mr-2" />
                                                 {t('aboutUs.founders.viewCollection')}
-                                                <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                                                {direction === 'rtl' ? <ArrowLeft className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" /> : <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />}
                                             </Button>
                                         </CardContent>
                                     </Card>

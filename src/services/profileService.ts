@@ -42,7 +42,7 @@ async function convertHeicToJpeg(file: File): Promise<File> {
 }
 
 // Get a user profile by ID or username
-export async function getUserProfile(userIdOrUsername: string, currentLanguage?: string): Promise<User | null> {
+export async function getUserProfile(userIdOrUsername: string, currentLanguage?: string, shouldTranslateAbout: boolean = false): Promise<User | null> {
   try {
     // Check if the input is empty
     if (!userIdOrUsername) {
@@ -132,9 +132,9 @@ export async function getUserProfile(userIdOrUsername: string, currentLanguage?:
       }
     }
 
-    // Handle about field translation
+    // Handle about field translation - only when explicitly requested
     let localizedAbout = data.about;
-    if (data.about && currentLanguage && currentLanguage !== 'en') {
+    if (shouldTranslateAbout && data.about && currentLanguage && currentLanguage !== 'en') {
       console.log('🔍 [profileService] About translation check:', {
         userId: data.id,
         hasAbout: !!data.about,
