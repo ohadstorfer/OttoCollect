@@ -1173,6 +1173,7 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
       signature_pictures: params.signature_pictures && params.signature_pictures.length > 0 ? params.signature_pictures : null,
       signatures_front: params.signatures_front && params.signatures_front.length > 0 ? params.signatures_front : null,
       signatures_back: params.signatures_back && params.signatures_back.length > 0 ? params.signatures_back : null,
+
     };
 
     console.log('DEBUG: banknoteData for unlisted_banknotes insert:', JSON.stringify(banknoteData, null, 2));
