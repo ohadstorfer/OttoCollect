@@ -275,6 +275,132 @@ export type Database = {
         }
         Relationships: []
       }
+      banknotes_translation: {
+        Row: {
+          banknote_description_ar: string | null
+          banknote_description_tr: string | null
+          banknote_id: string
+          category_ar: string | null
+          category_tr: string | null
+          colors_ar: string | null
+          colors_tr: string | null
+          country_ar: string | null
+          country_tr: string | null
+          created_at: string | null
+          dimensions_ar: string | null
+          dimensions_tr: string | null
+          face_value_ar: string | null
+          face_value_tr: string | null
+          historical_description_ar: string | null
+          historical_description_tr: string | null
+          id: string
+          is_unlisted: boolean
+          islamic_year_ar: string | null
+          islamic_year_tr: string | null
+          name_ar: string | null
+          name_tr: string | null
+          other_element_pictures_ar: string[] | null
+          other_element_pictures_tr: string[] | null
+          printer_ar: string | null
+          printer_tr: string | null
+          seal_names_ar: string | null
+          seal_names_tr: string | null
+          security_element_ar: string | null
+          security_element_tr: string | null
+          signatures_back_ar: string[] | null
+          signatures_back_tr: string[] | null
+          signatures_front_ar: string[] | null
+          signatures_front_tr: string[] | null
+          sultan_name_ar: string | null
+          sultan_name_tr: string | null
+          type_ar: string | null
+          type_tr: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          banknote_description_ar?: string | null
+          banknote_description_tr?: string | null
+          banknote_id: string
+          category_ar?: string | null
+          category_tr?: string | null
+          colors_ar?: string | null
+          colors_tr?: string | null
+          country_ar?: string | null
+          country_tr?: string | null
+          created_at?: string | null
+          dimensions_ar?: string | null
+          dimensions_tr?: string | null
+          face_value_ar?: string | null
+          face_value_tr?: string | null
+          historical_description_ar?: string | null
+          historical_description_tr?: string | null
+          id?: string
+          is_unlisted?: boolean
+          islamic_year_ar?: string | null
+          islamic_year_tr?: string | null
+          name_ar?: string | null
+          name_tr?: string | null
+          other_element_pictures_ar?: string[] | null
+          other_element_pictures_tr?: string[] | null
+          printer_ar?: string | null
+          printer_tr?: string | null
+          seal_names_ar?: string | null
+          seal_names_tr?: string | null
+          security_element_ar?: string | null
+          security_element_tr?: string | null
+          signatures_back_ar?: string[] | null
+          signatures_back_tr?: string[] | null
+          signatures_front_ar?: string[] | null
+          signatures_front_tr?: string[] | null
+          sultan_name_ar?: string | null
+          sultan_name_tr?: string | null
+          type_ar?: string | null
+          type_tr?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          banknote_description_ar?: string | null
+          banknote_description_tr?: string | null
+          banknote_id?: string
+          category_ar?: string | null
+          category_tr?: string | null
+          colors_ar?: string | null
+          colors_tr?: string | null
+          country_ar?: string | null
+          country_tr?: string | null
+          created_at?: string | null
+          dimensions_ar?: string | null
+          dimensions_tr?: string | null
+          face_value_ar?: string | null
+          face_value_tr?: string | null
+          historical_description_ar?: string | null
+          historical_description_tr?: string | null
+          id?: string
+          is_unlisted?: boolean
+          islamic_year_ar?: string | null
+          islamic_year_tr?: string | null
+          name_ar?: string | null
+          name_tr?: string | null
+          other_element_pictures_ar?: string[] | null
+          other_element_pictures_tr?: string[] | null
+          printer_ar?: string | null
+          printer_tr?: string | null
+          seal_names_ar?: string | null
+          seal_names_tr?: string | null
+          security_element_ar?: string | null
+          security_element_tr?: string | null
+          signatures_back_ar?: string[] | null
+          signatures_back_tr?: string[] | null
+          signatures_front_ar?: string[] | null
+          signatures_front_tr?: string[] | null
+          sultan_name_ar?: string | null
+          sultan_name_tr?: string | null
+          type_ar?: string | null
+          type_tr?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       blocked_emails: {
         Row: {
           created_at: string
