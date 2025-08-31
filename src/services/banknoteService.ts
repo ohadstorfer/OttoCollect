@@ -99,12 +99,29 @@ export async function fetchBanknotesByCountryId(
       );
     }
     
+    console.log(`🌐 [BanknoteService] Fetching from view: ${viewName} for language: ${language}`);
+    
     // Execute the query
     const { data, error } = await query;
     
     if (error) {
       console.error('[fetchBanknotesByCountryId] Error fetching banknotes:', error);
       return [];
+    }
+
+    console.log(`🌐 [BanknoteService] Fetched ${data?.length || 0} banknotes from ${viewName}`);
+    if (data && data.length > 0) {
+      console.log(`🌐 [BanknoteService] Sample banknote data:`, {
+        id: data[0].id,
+        face_value: data[0].face_value,
+        face_value_translated: data[0].face_value_translated,
+        face_value_ar: data[0].face_value_ar,
+        face_value_tr: data[0].face_value_tr,
+        sultan_name: data[0].sultan_name,
+        sultan_name_translated: data[0].sultan_name_translated,
+        view_used: viewName,
+        language: language
+      });
     }
 
     // Apply filters efficiently

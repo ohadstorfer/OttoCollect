@@ -53,12 +53,34 @@ const BanknoteDetailCard = ({
 
   // Helper function to get localized banknote field
   const getLocalizedField = (field: string, translatedField?: string): string => {
-    if (currentLanguage === 'en' || !translatedField) {
-      return field || '';
-    }
-    return getLocalizedText(field, translatedField, currentLanguage);
+    const result = currentLanguage === 'en' || !translatedField 
+      ? field || '' 
+      : getLocalizedText(field, translatedField, currentLanguage);
+    
+    console.log(`🌐 [BanknoteDetailCard] getLocalizedField:`, {
+      field,
+      translatedField,
+      currentLanguage,
+      result,
+      banknoteId: banknote.id
+    });
+    
+    return result;
   };
   const [isHovering, setIsHovering] = useState(false);
+
+  // Debug: Log banknote data structure
+  console.log(`🌐 [BanknoteDetailCard] Banknote data for ${banknote.id}:`, {
+    denomination: banknote.denomination,
+    face_value: (banknote as any).face_value,
+    face_value_translated: (banknote as any).face_value_translated,
+    face_value_ar: (banknote as any).face_value_ar,
+    face_value_tr: (banknote as any).face_value_tr,
+    sultan_name: (banknote as any).sultan_name,
+    sultan_name_translated: (banknote as any).sultan_name_translated,
+    currentLanguage,
+    allFields: Object.keys(banknote).filter(key => key.includes('translate') || key.includes('_ar') || key.includes('_tr'))
+  });
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
