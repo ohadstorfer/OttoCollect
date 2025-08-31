@@ -119,28 +119,17 @@ export class BanknoteTranslationService {
         }
       }
 
-      // Upsert the translation record
-      if (existingTranslation) {
-        // Update existing record
-        const { error } = await supabase
-          .from('banknotes_translation')
-          .update(translationData)
-          .eq('id', existingTranslation.id);
+      // Use UPSERT to handle both insert and update cases
+      const { error } = await supabase
+        .from('banknotes_translation')
+        .upsert(translationData, {
+          onConflict: 'banknote_id,is_unlisted',
+          ignoreDuplicates: false
+        });
 
-        if (error) {
-          console.error('❌ [BanknoteTranslationService] Error updating translation:', error);
-          return false;
-        }
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from('banknotes_translation')
-          .insert([translationData]);
-
-        if (error) {
-          console.error('❌ [BanknoteTranslationService] Error inserting translation:', error);
-          return false;
-        }
+      if (error) {
+        console.error('❌ [BanknoteTranslationService] Error upserting translation:', error);
+        return false;
       }
 
       console.log(`✅ [BanknoteTranslationService] Successfully translated banknote ${banknoteId} to ${targetLanguage}`);
