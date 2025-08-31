@@ -35,8 +35,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Download } from 'lucide-react';
+import { Download, Languages } from 'lucide-react';
 import { generateAdminExcel, downloadExcel, generateAdminFilename } from '@/services/csvExportService';
+import BulkTranslationDialog from './BulkTranslationDialog';
 
 interface BanknotesManagementProps extends AdminComponentProps {}
 
@@ -95,6 +96,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
   const [uploading, setUploading] = useState<boolean>(false);
   const [banknoteToDelete, setBanknoteToDelete] = useState<Banknote | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [isBulkTranslationOpen, setIsBulkTranslationOpen] = useState<boolean>(false);
   
   const PAGE_SIZE = 10;
 
@@ -582,6 +584,15 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                   </>
                 )}
               </Button>
+
+              <Button 
+                onClick={() => setIsBulkTranslationOpen(true)}
+                variant="outline"
+                disabled={!selectedCountryId || allBanknotes.length === 0}
+              >
+                <Languages className="mr-2 h-4 w-4" />
+                Translate All
+              </Button>
               
               <Button onClick={handleAddNewBanknote}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -716,6 +727,13 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+
+          {/* Bulk Translation Dialog */}
+          <BulkTranslationDialog
+            open={isBulkTranslationOpen}
+            onOpenChange={setIsBulkTranslationOpen}
+            countryName={countries.find(c => c.id === selectedCountryId)?.name || ''}
+          />
         </>
       )}
     </div>
