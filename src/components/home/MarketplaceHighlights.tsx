@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { DollarSign, Calendar, Tag, User, ChevronLeft, ChevronRight } from "lucide-react";
-
+import { useLanguage } from '@/context/LanguageContext';
 
 import { MarketplaceItem } from '@/types';
 import { cn } from '@/lib/utils';
 import { useDateLocale } from '@/lib/dateUtils';
+
 
 interface MarketplaceHighlightsProps {
   items: MarketplaceItem[];
@@ -18,6 +19,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const { formatRelativeTime } = useDateLocale();
+  const { direction } = useLanguage();
   
 
 
@@ -180,9 +182,9 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
               )}
             </div>
             
-            <div>
+            <div className={`${direction === "rtl" ? "text-right" : "text-left"}`}>
               {/* Item Title */}
-              <div className="flex justify-between">
+              <div className={`flex justify-between ${direction === "rtl" ? "flex-row-reverse" : "flex-row"}`}>
                 <h3 className="font-serif font-semibold text-lg text-parchment-400">
                   <span>{currentItem.collectionItem.banknote.denomination} ({currentItem.collectionItem.banknote.year})</span>
                 </h3>
@@ -191,13 +193,18 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
                 </span>
               </div>
               
-              {/* Item Country */}
-              <p className="text-sm text-ottoman-300 mb-2">
-                {currentItem.collectionItem.banknote.country}
-              </p>
+             
               
               {/* Additional Info */}
               <div className="flex items-center text-xs text-ottoman-300 gap-3">
+
+                 {/* Item Country */}
+                 <div className="flex items-center">
+              <p className={`text-sm text-ottoman-300 mb-2 ${direction === "rtl" ? "text-right" : "text-left"}`}>
+                {currentItem.collectionItem.banknote.country}
+              </p>
+              </div>
+
                 <div className="flex items-center">
                   <Tag className="h-3 w-3 mr-1" />
                   {currentItem.collectionItem.condition}

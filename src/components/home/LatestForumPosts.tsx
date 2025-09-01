@@ -70,7 +70,7 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
         }
       `}</style>
   
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" dir="ltr">
         {posts.map((post, index) => (
           <div 
             key={post.id} 
@@ -83,8 +83,9 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
               animationDelay: `${index * 150}ms`
             }}
             onClick={() => handlePostClick(post.id)}
+            dir="ltr"
           >
-            <div className="flex items-start gap-3 h-full">
+            <div className="flex items-start gap-3 h-full" dir="ltr">
               {post.author?.avatarUrl ? (
                 <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-ottoman-700">
                   <img 
@@ -99,12 +100,12 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
                 </div>
               )}
               
-              <div className="flex-1 min-w-0 flex flex-col">
-                <h3 className="font-serif font-semibold text-lg text-parchment-400 line-clamp-2 mb-2">
+              <div className="flex-1 min-w-0 flex flex-col" dir="ltr">
+                <h3 className="font-serif font-semibold text-lg text-parchment-400 line-clamp-2 mb-2 text-left">
                   <span>{post.title}</span>
                 </h3>
                 
-                <div className="flex items-center text-xs text-ottoman-300 gap-3 mb-2">
+                <div className="flex items-center text-xs text-ottoman-300 gap-3 mb-2" dir="ltr">
                   <div className="flex items-center">
                     <Calendar className="h-3 w-3 mr-1" />
                     {safeFormatDate(post.createdAt)}
@@ -115,12 +116,12 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
                   </div>
                 </div>
                 
-                <p className="text-sm text-ottoman-200 line-clamp-2 break-words overflow-hidden">
+                <p className="text-sm text-ottoman-200 line-clamp-2 break-words overflow-hidden text-left">
                   {post.content}
                 </p>
                 
                 {post.author && (
-                  <div className="mt-auto pt-2 text-xs text-ottoman-400">
+                  <div className="mt-auto pt-2 text-xs text-ottoman-400 text-left">
                     By {post.author.username || 'Anonymous'}
                   </div>
                 )}

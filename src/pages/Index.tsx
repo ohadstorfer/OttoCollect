@@ -4,7 +4,7 @@ import { MOCK_BANKNOTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Search, Database, BookOpen, Users, DollarSign } from "lucide-react";
+import { Search, Database, BookOpen, Users, DollarSign, ArrowLeft, ArrowRight } from "lucide-react";
 import LatestForumPosts from "@/components/home/LatestForumPosts";
 import MarketplaceHighlights from "@/components/home/MarketplaceHighlights";
 import { fetchForumPosts } from "@/services/forumService";
@@ -257,7 +257,7 @@ const Index = () => {
               onClick={() => navigate('/catalog')}
             >
               <span className="group-hover:animate-bounce-subtle">{t('home.hero.exploreButton')}</span>
-              <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
+              <span className="ml-1 group-hover:translate-x-1 transition-transform"> {direction === 'rtl' ? <ArrowLeft /> : <ArrowRight />}</span>
             </Button>
             {!user && (
               <Link to="/auth">
@@ -443,7 +443,7 @@ const Index = () => {
               </Link>
             </div>
           </div>
-          <div className="animate-floating">
+          <div className={`animate-floating ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
             <MarketplaceHighlights items={marketplaceItems} loading={loadingMarketplace} />
           </div>
         </div>
