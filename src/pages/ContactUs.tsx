@@ -20,7 +20,7 @@ export default function ContactUs() {
   const { theme } = useTheme();
   const { t } = useTranslation(['contactUs']);
 
-
+ 
   useEffect(() => {
     const fetchSuperAdmins = async () => {
       try {
@@ -28,7 +28,7 @@ export default function ContactUs() {
         // Filter to only show specific admin users
         const specificAdminIds = [
           'e0ceafe0-0a02-42a9-a72f-6232af4b2579',
-          '589295a6-1042-4e19-afd7-9060d53324fe'
+          '64681131-4747-4036-9c32-fe60a560bf78'
         ];
         const filteredAdmins = admins.filter(admin => specificAdminIds.includes(admin.id));
         setSuperAdmins(filteredAdmins);
