@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContentWithScroll } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
-import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, Eye, EyeOff, ArrowRight } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
@@ -20,6 +20,8 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, 
 import { supabase } from '@/integrations/supabase/client';
 import BanknoteCollectionDetaiUnlisted from "./BanknoteCollectionDetaiUnlisted";
 import ImagePreview from "@/components/shared/ImagePreview";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface LabelValuePairProps {
   label: string;
@@ -46,6 +48,7 @@ export default function CollectionItemUnlisted() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation(['collection']);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSubmittingImages, setIsSubmittingImages] = useState(false);
@@ -56,6 +59,7 @@ export default function CollectionItemUnlisted() {
   const [isDeletingImage, setIsDeletingImage] = useState(false);
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
   const [showVisibilityDialog, setShowVisibilityDialog] = useState(false);
+  const { direction } = useLanguage();
   
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -95,7 +99,7 @@ export default function CollectionItemUnlisted() {
 
   const handleUpdateSuccess = async () => {
     setIsEditDialogOpen(false);
-    toast("Collection item updated successfully");
+           toast(t('collectionItemUpdatedSuccess'));
     // Refetch the data to get the latest updates
     await refetch();
   };
@@ -123,11 +127,11 @@ export default function CollectionItemUnlisted() {
         reverseImage: collectionItem.reverseImage
       });
 
-      toast("Your images have been submitted for catalog consideration");
+             toast(t('imagesSubmittedForCatalog'));
       setHasPendingSuggestion(true);
     } catch (error) {
       console.error("Error suggesting images:", error);
-      toast("Failed to submit images. Please try again later.");
+             toast(t('failedToSubmitImages'));
     } finally {
       setIsSubmittingImages(false);
     }
@@ -139,14 +143,14 @@ export default function CollectionItemUnlisted() {
     try {
       const { removeFromCollection } = await import("@/services/collectionService");
       await removeFromCollection(collectionItem.id);
-      toast("Collection item deleted successfully");
+             toast(t('collectionItemDeletedSuccess'));
       // Slight delay for better UX
       setTimeout(() => {
         navigate(-1);
       }, 600);
     } catch (error) {
       console.error("Error deleting collection item:", error);
-      toast("Failed to delete item. Please try again.");
+             toast(t('failedToDeleteItem'));
     } finally {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);
@@ -205,12 +209,12 @@ export default function CollectionItemUnlisted() {
 
       if (error) throw error;
 
-      toast.success('Image deleted successfully');
+             toast.success(t('imageDeletedSuccess'));
       await refetch();
       setImageToDelete(null);
     } catch (error) {
       console.error('Error deleting image:', error);
-      toast.error('Failed to delete image');
+             toast.error(t('failedToDeleteImage'));
     } finally {
       setIsDeletingImage(false);
     }
@@ -228,13 +232,13 @@ export default function CollectionItemUnlisted() {
         hide_images: newHideImages
       });
       
-      toast(newHideImages ? "Images are now private" : "Images are now visible to all users");
+             toast(newHideImages ? t('imagesPrivate') : t('imagesPublic'));
       
       // Force refetch to update the UI
       await refetch();
     } catch (error) {
       console.error("Error updating image visibility:", error);
-      toast("Failed to update image visibility");
+             toast(t('failedToUpdateImageVisibility'));
     } finally {
       setIsTogglingVisibility(false);
       setShowVisibilityDialog(false);
@@ -259,11 +263,11 @@ export default function CollectionItemUnlisted() {
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4"> <span> Error Loading Collection Item </span> </h2>
+          <h2 className="text-2xl font-serif mb-4"> <span> {t('errorLoadingCollectionItem')} </span> </h2>
           <p className="mb-6 text-muted-foreground">
-            We couldn't load the collection item details. Please try again later.
+            {t('couldNotLoadCollectionItem')}
           </p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
+          <Button onClick={() => navigate(-1)}>{t('goBack')}</Button>
         </div>
       </div>
     );
@@ -286,7 +290,7 @@ export default function CollectionItemUnlisted() {
                 onClick={() => navigate(-1)}
                 className="h-10 w-10"
               >
-                <ArrowLeft className="h-5 w-5" /> {/* match h1 size */}
+                 {direction === 'rtl' ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
               </Button>
 
               <div className="flex flex-col">
@@ -328,18 +332,18 @@ export default function CollectionItemUnlisted() {
                         disabled={isSubmittingImages || hasPendingSuggestion}
                       >
                         <ImagePlus className="h-4 w-4" />
-                        {hasPendingSuggestion
-                          ? "Image Suggestion Pending"
-                          : isSubmittingImages
-                            ? "Submitting..."
-                            : "Suggest Images to Catalog"}
+                                                 {hasPendingSuggestion
+                           ? t('imageSuggestionPending')
+                           : isSubmittingImages
+                             ? t('submitting')
+                             : t('suggestImagesToCatalog')}
                       </Button>
                     </div>
                   )}
 
                   {shouldHideImages ? (
                     <div className="p-6 text-center bg-muted rounded-md">
-                      <p className="text-muted-foreground">Private images, only visible to the owner.</p>
+                                             <p className="text-muted-foreground">{t('privateImagesOnlyVisibleToOwner')}</p>
                     </div>
                   ) : displayImages.length > 0 ? (
                     <div className="relative">
@@ -347,7 +351,7 @@ export default function CollectionItemUnlisted() {
                         <div className="absolute top-2 left-2 z-10">
                           {isShowingPrivateAsAdmin ? (
                             <div className="bg-white/90 rounded-sm px-2 py-1 shadow-sm border">
-                              <p className="text-xs text-muted-foreground">Private images, visible to admins</p>
+                                                             <p className="text-xs text-muted-foreground">{t('privateImagesVisibleToAdmins')}</p>
                             </div>
                           ) : (
                           <AlertDialog open={showVisibilityDialog} onOpenChange={setShowVisibilityDialog}>
@@ -360,12 +364,12 @@ export default function CollectionItemUnlisted() {
                                 {Boolean(collectionItem?.hide_images) ? (
                                   <>
                                     <EyeOff className="h-3 w-3" />
-                                    <span>Private images, only visible to you</span>
+                                                                         <span>{t('privateImagesOnlyVisibleToYou')}</span>
                                   </>
                                 ) : (
                                   <>
                                     <Eye className="h-3 w-3" />
-                                    <span>Images visible to all users</span>
+                                                                         <span>{t('imagesVisibleToAllUsers')}</span>
                                   </>
                                 )}
                               </Button>
@@ -373,28 +377,28 @@ export default function CollectionItemUnlisted() {
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle><span>
-                                  {collectionItem?.hide_images 
-                                    ? "Make Images Public" 
-                                    : "Make Images Private"}
+                                                                     {collectionItem?.hide_images 
+                                     ? t('makeImagesPublic') 
+                                     : t('makeImagesPrivate')}
                                 </span>
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  {collectionItem?.hide_images
-                                    ? "This will make your images visible to all users. Are you sure you want to continue?"
-                                    : "This will make your images private and only visible to you. Are you sure you want to continue?"}
+                                                                     {collectionItem?.hide_images
+                                     ? t('makeImagesPublicConfirmation')
+                                     : t('makeImagesPrivateConfirmation')}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel disabled={isTogglingVisibility}>Cancel</AlertDialogCancel>
+                                                                 <AlertDialogCancel disabled={isTogglingVisibility}>{t('cancel')}</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={handleToggleImageVisibility}
                                   disabled={isTogglingVisibility}
                                 >
-                                  {isTogglingVisibility 
-                                    ? "Updating..." 
-                                    : collectionItem?.hide_images
-                                      ? "Make Public"
-                                      : "Make Private"}
+                                                                     {isTogglingVisibility 
+                                     ? t('updating') 
+                                     : collectionItem?.hide_images
+                                       ? t('makePublic')
+                                       : t('makePrivate')}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -420,14 +424,14 @@ export default function CollectionItemUnlisted() {
                                       </Button>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Image</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to delete this image? This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
+                                                                             <AlertDialogHeader>
+                                         <AlertDialogTitle>{t('deleteImage')}</AlertDialogTitle>
+                                         <AlertDialogDescription>
+                                           {t('deleteImageConfirmation')}
+                                         </AlertDialogDescription>
+                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
-                                        <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                        <AlertDialogCancel disabled={isDeletingImage}>{t('cancel')}</AlertDialogCancel>
                                         <AlertDialogAction
                                           onClick={() => {
                                             setImageToDelete(index === 0 ? 'obverse' : 'reverse');
@@ -436,7 +440,7 @@ export default function CollectionItemUnlisted() {
                                           className="bg-red-600 hover:bg-red-700"
                                           disabled={isDeletingImage}
                                         >
-                                          {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                          {isDeletingImage ? t('deleting') : t('delete')}
                                         </AlertDialogAction>
                                       </AlertDialogFooter>
                                     </AlertDialogContent>
@@ -475,14 +479,14 @@ export default function CollectionItemUnlisted() {
                                     </Button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle><span>Delete Image</span></AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Are you sure you want to delete this image? This action cannot be undone.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
+                                                                         <AlertDialogHeader>
+                                       <AlertDialogTitle><span>{t('deleteImage')}</span></AlertDialogTitle>
+                                       <AlertDialogDescription>
+                                         {t('deleteImageConfirmation')}
+                                       </AlertDialogDescription>
+                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                      <AlertDialogCancel disabled={isDeletingImage}>Cancel</AlertDialogCancel>
+                                      <AlertDialogCancel disabled={isDeletingImage}>{t('cancel')}</AlertDialogCancel>
                                       <AlertDialogAction
                                         onClick={() => {
                                           setImageToDelete(index === 0 ? 'obverse' : 'reverse');
@@ -491,7 +495,7 @@ export default function CollectionItemUnlisted() {
                                         className="bg-red-600 hover:bg-red-700"
                                         disabled={isDeletingImage}
                                       >
-                                        {isDeletingImage ? 'Deleting...' : 'Delete'}
+                                        {isDeletingImage ? t('deleting') : t('delete')}
                                       </AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
@@ -516,7 +520,7 @@ export default function CollectionItemUnlisted() {
                     </div>
                   ) : (
                     <div className="p-6 text-center bg-muted rounded-md">
-                      <p className="text-muted-foreground">No images available</p>
+                      <p className="text-muted-foreground">{t('noImagesAvailable')}</p>
                     </div>
                   )}
                 </div>
@@ -531,7 +535,7 @@ export default function CollectionItemUnlisted() {
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-xl m-0">
-                    <span>{isOwner ? "My Collection Copy" : "Collection Copy"}</span>
+                                         <span>{isOwner ? t('myCollectionCopy') : t('collectionCopy')}</span>
                   </CardTitle>
                   {isOwner && (
                     <div className="flex items-center gap-1">
@@ -544,7 +548,7 @@ export default function CollectionItemUnlisted() {
                         aria-label="Delete"
                       >
                         <Trash className="w-4 h-4" />
-                        <span className="sr-only">Delete</span>
+                                                 <span className="sr-only">{t('delete')}</span>
                       </Button>
                       <Button
                         variant="ghost"
@@ -559,10 +563,10 @@ export default function CollectionItemUnlisted() {
                     </div>
                   )}
                 </div>
-                <CardDescription>
-                  {isOwner
-                    ? "Details about your personal copy of this banknote"
-                    : "Information about this collector's copy of the banknote"}
+                <CardDescription className={direction === 'rtl' ? 'text-right' : 'text-left'}>
+                                     {isOwner
+                     ? t('detailsAboutPersonalCopy')
+                     : t('informationAboutCollectorsCopy')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
@@ -576,7 +580,7 @@ export default function CollectionItemUnlisted() {
 
         <div className="flex justify-between items-center">
           <Button variant="outline" onClick={() => navigate(-1)}>
-            Back
+            {t('back')}
           </Button>
         </div>
       </div>
@@ -599,19 +603,19 @@ export default function CollectionItemUnlisted() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent onClick={e => e.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle><span>Delete Collection Item</span></AlertDialogTitle>
+                         <AlertDialogTitle><span>{t('deleteCollectionItem')}</span></AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this item from your collection? This action cannot be undone.
+                             {t('deleteCollectionItemConfirmation')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                         <AlertDialogCancel disabled={isDeleting}>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
               onClick={handleDeleteCollectionItem}
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+                             {isDeleting ? t('deleting') : t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

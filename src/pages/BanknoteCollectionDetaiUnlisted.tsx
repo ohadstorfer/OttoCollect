@@ -14,6 +14,7 @@ import CollectionItemForm from '@/components/collection/CollectionItemForm';
 import { useToast } from '@/hooks/use-toast';
 import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface BanknoteCollectionDetailProps {
   isOwner: boolean;
@@ -25,6 +26,8 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
   const { banknoteId } = useBanknoteContext();
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const { direction } = useLanguage();
+
 
   // Determine which ID to use
   const itemId = id || banknoteId;
@@ -68,7 +71,7 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
     <div className="p-6">
       {/* Banknote Details Section */}
       <div className="space-y-6">
-        <div>
+        <div className={direction === 'rtl' ? 'text-right' : 'text-left'}>
           <h3 className="text-lg font-medium mb-4"> <span> {t('details.publicDetails')} </span> </h3>
           <div className="space-y-2">
             {collectionItem.banknote?.extendedPickNumber && (
@@ -103,34 +106,34 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
             )}
             {collectionItem.banknote?.category && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Category</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('category')}</span>
                 <span className="text-base">{collectionItem.banknote.category}</span>
               </div>
             )}
             {collectionItem.banknote?.sultanName && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">
-                  {collectionItem.banknote.authorityName || "Authority"}
+                  {collectionItem.banknote.authorityName || t('authority')}
                 </span>
                 <span className="text-base">{collectionItem.banknote.sultanName}</span>
               </div>
             )}
-            {!collectionItem.type && collectionItem.banknote?.type && ( 
+            {!collectionItem.type && collectionItem.banknote?.type && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Type</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('type')}</span>
                 <span className="text-base">{collectionItem.banknote.type}</span>
               </div>
             )}
             {collectionItem.banknote?.serialNumbering && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Prefix Range</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('prefixRange')}</span>
                 <span className="text-base">{collectionItem.banknote.serialNumbering}</span>
               </div>
             )}
 
             {isUnlisted && collectionItem.banknote?.description && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Description</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('description')}</span>
                 <span className="text-base">{collectionItem.banknote.description}</span>
               </div>
             )}
@@ -139,17 +142,17 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
         <div className="w-full h-px bg-muted my-6" />
 
         {/* Collection Item Details */}
-        <div>
+        <div className={direction === 'rtl' ? 'text-right' : 'text-left'}>
           <div className="space-y-2">
             {collectionItem.condition && !collectionItem.grade && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Condition</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('condition')}</span>
                 <span className="text-base">{collectionItem.condition}</span>
               </div>
             )}
             {collectionItem.grade && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Grading</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('grading')}</span>
                 <span className="text-base">
                   {collectionItem.grade_by && `${collectionItem.grade_by} `}{collectionItem.grade}{collectionItem.grade_condition_description && ` - ${collectionItem.grade_condition_description}`}
                 </span>
@@ -157,13 +160,13 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
             )}
             {collectionItem.publicNote && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Notes</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('notes')}</span>
                 <span className="text-base">{collectionItem.publicNote}</span>
               </div>
             )}
             {collectionItem.isForSale && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">For Sale</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('forSale')}</span>
                 <span className="text-base">${collectionItem.salePrice}</span>
               </div>
             )}
@@ -171,70 +174,70 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
         </div>
         <div className="w-full h-px bg-muted my-6" />
 
-        <div className="space-y-2">
+        <div className={`space-y-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
           {collectionItem.type && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Type</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('type')}</span>
               <span className="text-base">{collectionItem.type}</span>
             </div>
           )}
           {collectionItem.prefix && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Prefix</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('prefix')}</span>
               <span className="text-base">{collectionItem.prefix}</span>
             </div>
           )}
           {collectionItem.banknote?.islamicYear && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Islamic Year</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('islamicYear')}</span>
               <span className="text-base">{collectionItem.banknote.islamicYear}</span>
             </div>
           )}
           {collectionItem.banknote?.gregorianYear && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Gregorian Year</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('gregorianYear')}</span>
               <span className="text-base">{collectionItem.banknote.gregorianYear}</span>
             </div>
           )}
           {collectionItem.banknote?.description && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Banknote Description</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('banknoteDescription')}</span>
               <span className="text-base">{collectionItem.banknote.description}</span>
             </div>
           )}
           {collectionItem.banknote?.historicalDescription && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Historical Description</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('historicalDescription')}</span>
               <span className="text-base">{collectionItem.banknote.historicalDescription}</span>
             </div>
           )}
           {collectionItem.banknote?.securityElement && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Security Element</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('securityElement')}</span>
               <span className="text-base">{collectionItem.banknote.securityElement}</span>
             </div>
           )}
           {collectionItem.banknote?.colors && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Colors</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('colors')}</span>
               <span className="text-base">{collectionItem.banknote.colors}</span>
             </div>
           )}
           {collectionItem.banknote?.dimensions && (
-        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-          <span className="text-sm font-medium text-muted-foreground w-32">Dimensions</span>
-          <span className="text-base">{collectionItem.banknote.dimensions}</span>
-        </div>
-      )}
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('dimensions')}</span>
+              <span className="text-base">{collectionItem.banknote.dimensions}</span>
+            </div>
+          )}
           {collectionItem.banknote?.printer && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Printer</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('printer')}</span>
               <span className="text-base">{collectionItem.banknote.printer}</span>
             </div>
           )}
           {collectionItem.banknote?.rarity && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Rarity</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('rarity')}</span>
               <span className="text-base">{collectionItem.banknote.rarity}</span>
             </div>
           )}
@@ -242,72 +245,72 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
             (!collectionItem.banknote.sealPictureUrls ||
               collectionItem.banknote.sealPictureUrls.length === 0) && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">Seal Names</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('sealNames')}</span>
                 <span className="text-base">{collectionItem.banknote.sealNames}</span>
               </div>
             )}
           {collectionItem.banknote?.signaturesFront && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Front Signatures</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('frontSignatures')}</span>
               <span className="text-base">{collectionItem.banknote.signaturesFront}</span>
             </div>
           )}
 
           {collectionItem.banknote?.signaturesBack && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">Back Signatures</span>
-              <span className="text-base">{collectionItem.banknote.signaturesBack}</span>
+              <span className="text-sm font-medium text-muted-foreground w-32">{t('backSignatures')}</span>
+              <span className="text-base ">{collectionItem.banknote.signaturesBack}</span>
             </div>
           )}
 
-         {/* Display resolved signature picture URLs from enhanced view */}
-      {collectionItem.banknote?.signaturesFrontUrls && collectionItem.banknote.signaturesFrontUrls.length > 0 && (
-        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Front Signature Pictures</span>
-          <div className="flex flex-wrap gap-2">
-            {collectionItem.banknote.signaturesFrontUrls.map((url, index) => (
-              <img
-                key={index}
-                src={url}
-                alt={`Signature ${index + 1}`}
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
-                // onClick={() => openImageViewer(url)}
-                onError={(e) => (e.currentTarget.style.display = "none")}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+          {/* Display resolved signature picture URLs from enhanced view */}
+          {collectionItem.banknote?.signaturesFrontUrls && collectionItem.banknote.signaturesFrontUrls.length > 0 && (
+            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.frontSignaturePictures')}</span>
+              <div className="flex flex-wrap gap-2">
+                {collectionItem.banknote.signaturesFrontUrls.map((url, index) => (
+                  <img
+                    key={index}
+                    src={url}
+                    alt={t('details.signatureImage', { number: index + 1 })}
+                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+                    //  onClick={() => openImageViewer(url)}
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
-      {/* Display resolved signature picture URLs from enhanced view */}
-      {collectionItem.banknote?.signaturesBackUrls && collectionItem.banknote.signaturesBackUrls.length > 0 && (
-        <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Back Signature Pictures</span>
-          <div className="flex flex-wrap gap-2">
-            {collectionItem.banknote.signaturesBackUrls.map((url, index) => (
-              <img
-                key={index}
-                src={url}
-                alt={`Signature ${index + 1}`}
-                className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
-                // onClick={() => openImageViewer(url)}
-                onError={(e) => (e.currentTarget.style.display = "none")}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+          {/* Display resolved signature picture URLs from enhanced view */}
+          {collectionItem.banknote?.signaturesBackUrls && collectionItem.banknote.signaturesBackUrls.length > 0 && (
+            <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.backSignaturePictures')}</span>
+              <div className="flex flex-wrap gap-2">
+                {collectionItem.banknote.signaturesBackUrls.map((url, index) => (
+                  <img
+                    key={index}
+                    src={url}
+                    alt={t('details.signatureImage', { number: index + 1 })}
+                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+                    //  onClick={() => openImageViewer(url)}
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Display resolved seal picture URLs from enhanced view */}
-          {collectionItem.banknote?.sealPictures && collectionItem.banknote.sealPictureUrls.length > 0 && (
+          {collectionItem.banknote?.sealPictureUrls && collectionItem.banknote.sealPictureUrls.length > 0 && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Seal Pictures</span>
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.sealPictures')}</span>
               <div className="flex flex-wrap gap-2">
                 {collectionItem.banknote.sealPictureUrls.map((url, index) => (
                   <img
                     key={index}
                     src={url}
-                    alt={`Seal ${index + 1}`}
+                    alt={t('details.sealImage', { number: index + 1 })}
                     className="rounded-lg max-h-40 object-contain border border-gray-200 dark:border-gray-700 "
                     // onClick={() => openImageViewer(url)}
                     onError={(e) => (e.currentTarget.style.display = "none")}
@@ -318,14 +321,14 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
           )}
 
           {/* Display resolved watermark picture URL from enhanced view */}
-          {collectionItem.banknote?.watermark && (
+          {collectionItem.banknote?.watermarkUrl && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Watermark Picture</span>
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.watermarkPicture')}</span>
               <img
-                src={collectionItem.banknote.watermark}
-                alt="Watermark"
+                src={collectionItem.banknote.watermarkUrl}
+                alt={t('details.watermarkImage')}
                 className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
-                // onClick={() => openImageViewer(collectionItem.banknote.watermark!)}
+                // onClick={() => openImageViewer(collectionItem.banknote.watermarkUrl!)}
                 onError={(e) => (e.currentTarget.style.display = "none")}
               />
             </div>
@@ -334,10 +337,10 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
           {/* Display resolved tughra picture URL from enhanced view */}
           {collectionItem.banknote?.tughraUrl && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Tughra Picture</span>
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.tughraPicture')}</span>
               <img
                 src={collectionItem.banknote.tughraUrl}
-                alt="Tughra"
+                alt={t('details.tughraImage')}
                 className="rounded-lg max-h-40 object-contain border border-gray-200 dark:border-gray-700 "
                 // onClick={() => openImageViewer(collectionItem.banknote.tughraUrl!)}
                 onError={(e) => (e.currentTarget.style.display = "none")}
@@ -348,14 +351,14 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
           {/* Display resolved other element picture URLs from enhanced view */}
           {collectionItem.banknote?.otherElementPictures && collectionItem.banknote.otherElementPictures.length > 0 && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">Other Pictures</span>
+              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.otherPictures')}</span>
               <div className="flex flex-wrap gap-2">
                 {collectionItem.banknote.otherElementPictures.map((url, index) => (
                   <img
                     key={index}
                     src={url}
-                    alt={`Other Element ${index + 1}`}
-                    className="rounded-lg max-h-20 object-contain border border-gray-200 dark:border-gray-700 "
+                    alt={t('details.otherElementImage', { number: index + 1 })}
+                    className="rounded-lg max-h-40 object-contain border border-gray-200 dark:border-gray-700 "
                     // onClick={() => openImageViewer(url)}
                     onError={(e) => (e.currentTarget.style.display = "none")}
                   />
@@ -368,10 +371,10 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
         {/* Private Details Section - Only visible to owner */}
         <div className="w-full h-px bg-muted my-6" />
         {isOwner && (
-          <div>
+          <div className={direction === 'rtl' ? 'text-right' : 'text-left'}>
             <div className="flex items-center gap-2 mb-4">
-                          <h3 className="text-lg font-medium"> <span> {t('details.privateDetails')} </span> </h3>
-            <span className="text-sm text-muted-foreground">{t('details.onlyVisibleToYou')}</span>
+              <h3 className="text-lg font-medium"> <span> {t('details.privateDetails')} </span> </h3>
+              <span className="text-sm text-muted-foreground">{t('details.onlyVisibleToYou')}</span>
             </div>
             <div className="space-y-2">
               {collectionItem.privateNote && (
@@ -386,7 +389,7 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
                   <span className="text-base">{collectionItem.location}</span>
                 </div>
               )}
-             
+
               {collectionItem.purchaseDate && (
                 <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                   <span className="text-sm font-medium text-muted-foreground w-32">{t('details.purchaseDate')}</span>
