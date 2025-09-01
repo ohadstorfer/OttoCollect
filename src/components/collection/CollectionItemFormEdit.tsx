@@ -355,27 +355,42 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       };
 
       if (currentItem) {
-        // Detect changed fields for translation
-        const oldItemData = {
-          private_note: currentItem.privateNote,
+        // Detect changed fields for translation (normalize before comparing)
+        const normalizeVal = (v: unknown) => (v ?? '').toString().trim();
+
+        const oldItemDataFull = {
+          public_note: currentItem.publicNote,
           location: currentItem.location,
           type: (currentItem as any).type
-        };
-        const newItemData = {
-          private_note: updateData.private_note,
+        } as Record<string, string | null | undefined>;
+
+        const newItemDataFull = {
+          public_note: updateData.public_note,
           location: updateData.location,
           type: updateData.type
-        };
+        } as Record<string, string | null | undefined>;
 
-        // Update existing item
+        const candidateKeys: Array<keyof typeof oldItemDataFull> = ['public_note', 'location', 'type'];
+        const changedKeys = candidateKeys.filter((k) => normalizeVal(oldItemDataFull[k]) !== normalizeVal(newItemDataFull[k]));
+
+        // Update existing item first
         await updateCollectionItem(currentItem.id, updateData);
 
-        // Handle translation for changed fields
-        await collectionItemTranslationService.handleCollectionItemUpdate(
-          currentItem.id,
-          oldItemData,
-          newItemData
-        );
+        // Handle translation only for changed fields
+        if (changedKeys.length > 0) {
+          const oldSubset: Record<string, string | null | undefined> = {};
+          const newSubset: Record<string, string | null | undefined> = {};
+          changedKeys.forEach((k) => {
+            oldSubset[k] = oldItemDataFull[k];
+            newSubset[k] = newItemDataFull[k];
+          });
+
+          await collectionItemTranslationService.handleCollectionItemUpdate(
+            currentItem.id,
+            oldSubset,
+            newSubset
+          );
+        }
 
         // Update images if they were changed
         if (obverseProcessedImages || reverseProcessedImages) {

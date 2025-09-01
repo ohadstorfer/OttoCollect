@@ -38,9 +38,12 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           *,
           public_note_ar,
           public_note_tr,
+          public_note_en,
           location_ar,
           location_tr,
+          location_en,
           type_ar,
+          type_en,
           type_tr,
           enhanced_banknotes_with_translations:banknote_id (*),
           unlisted_banknotes:unlisted_banknotes_id (*)

@@ -3,16 +3,29 @@ import { translationService } from './translationService';
 import { banknoteTranslationService } from './banknoteTranslationService';
 
 interface CollectionItemTranslationData {
+  public_note_ar?: string;
+  public_note_tr?: string;
+  public_note_en?: string;
   location_ar?: string;
   location_tr?: string;
+  location_en?: string;
   type_ar?: string;
   type_tr?: string;
+  type_en?: string;
 }
 
 interface ChangedFields {
-  private_note?: boolean;
+  public_note?: boolean;
   location?: boolean;
   type?: boolean;
+}
+
+function detectLanguage(text: string): 'ar' | 'tr' | 'en' {
+  // Arabic unicode block detection
+  if (/[\u0600-\u06FF]/.test(text)) return 'ar';
+  // Turkish special characters
+  if (/[çğıİöşüÇĞİÖŞÜ]/.test(text)) return 'tr';
+  return 'en';
 }
 
 export class CollectionItemTranslationService {
@@ -21,9 +34,9 @@ export class CollectionItemTranslationService {
    */
   static detectChangedFields(oldItem: any, newItem: any): ChangedFields {
     const changed: ChangedFields = {};
-    
-    if (oldItem.private_note !== newItem.private_note) {
-      changed.private_note = true;
+
+    if (oldItem.public_note !== newItem.public_note) {
+      changed.public_note = true;
     }
     if (oldItem.location !== newItem.location) {
       changed.location = true;
@@ -31,7 +44,7 @@ export class CollectionItemTranslationService {
     if (oldItem.type !== newItem.type) {
       changed.type = true;
     }
-    
+
     return changed;
   }
 
@@ -46,39 +59,50 @@ export class CollectionItemTranslationService {
     try {
       const translationData: CollectionItemTranslationData = {};
 
-      // List of fields to translate with their target languages
-      const fieldsToTranslate = [
-        { field: 'private_note', changed: changedFields.private_note },
+      // Fields eligible for translation
+      const fieldsToTranslate: Array<{ field: 'public_note' | 'location' | 'type'; changed?: boolean }> = [
+        { field: 'public_note', changed: changedFields.public_note },
         { field: 'location', changed: changedFields.location },
         { field: 'type', changed: changedFields.type }
       ];
 
-      // Translate each changed field
+      console.log('🌐 [CollectionItemTranslation] Changed fields:', changedFields);
+
       for (const { field, changed } of fieldsToTranslate) {
-        if (!changed || !newItemData[field] || typeof newItemData[field] !== 'string' || !newItemData[field].trim()) {
+        const value = newItemData[field];
+        if (!changed || !value || typeof value !== 'string' || !value.trim()) {
           continue;
         }
 
-        try {
-          // Translate to Arabic and Turkish
-          const [arTranslation, trTranslation] = await Promise.all([
-            translationService.translateText(newItemData[field], 'ar'),
-            translationService.translateText(newItemData[field], 'tr')
-          ]);
+        const srcLang = detectLanguage(value);
+        console.log(`🌐 [CollectionItemTranslation] Processing field "${field}". srcLang=${srcLang}, value=`, value);
 
-          if (arTranslation) {
-            translationData[`${field}_ar` as keyof CollectionItemTranslationData] = arTranslation;
+        // Always save the original in the detected language column
+        (translationData as any)[`${field}_${srcLang}`] = value;
+
+        // Translate to the other two languages
+        const targetLanguages = ['en', 'ar', 'tr'].filter(lang => lang !== srcLang);
+        
+        for (const targetLang of targetLanguages) {
+          try {
+            console.log(`🌐 [CollectionItemTranslation] Translating "${field}" from ${srcLang} to ${targetLang}`);
+            const translation = await translationService.translateText(value, targetLang as 'en' | 'ar' | 'tr');
+            
+            if (translation && translation.trim()) {
+              (translationData as any)[`${field}_${targetLang}`] = translation;
+              console.log(`✅ Translation successful: ${srcLang}->${targetLang}:`, translation);
+            } else {
+              console.warn(`⚠️ Empty translation result for ${field} from ${srcLang} to ${targetLang}`);
+            }
+          } catch (error) {
+            console.error(`❌ Failed translating ${field} from ${srcLang} to ${targetLang}:`, error);
           }
-          if (trTranslation) {
-            translationData[`${field}_tr` as keyof CollectionItemTranslationData] = trTranslation;
-          }
-        } catch (error) {
-          console.warn(`⚠️ Failed to translate ${field}:`, error);
         }
       }
 
       // Update the collection item with translations if any were generated
       if (Object.keys(translationData).length > 0) {
+        console.log('🌐 [CollectionItemTranslation] Applying translations:', translationData);
         const { error } = await supabase
           .from('collection_items')
           .update(translationData)
@@ -90,6 +114,8 @@ export class CollectionItemTranslationService {
         }
 
         console.log(`✅ Successfully translated collection item ${itemId}`);
+      } else {
+        console.log('🌐 [CollectionItemTranslation] No translations to apply.');
       }
 
       return true;
@@ -139,10 +165,13 @@ export class CollectionItemTranslationService {
     newItemData: any
   ): Promise<void> {
     const changedFields = this.detectChangedFields(oldItemData, newItemData);
-    
+
     // Only proceed if there are changed translatable fields
-    if (changedFields.private_note || changedFields.location || changedFields.type) {
+    if (changedFields.public_note || changedFields.location || changedFields.type) {
+      console.log('🌐 [CollectionItemTranslation] Translating changed fields for item:', itemId);
       await this.translateChangedFields(itemId, newItemData, changedFields);
+    } else {
+      console.log('🌐 [CollectionItemTranslation] No translatable field changes detected.');
     }
   }
 }

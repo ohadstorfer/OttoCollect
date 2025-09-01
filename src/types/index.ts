@@ -201,11 +201,14 @@ export interface CollectionItem {
   // Translation fields
   public_note_ar?: string;
   public_note_tr?: string;
+  public_note_en?: string;
   location_ar?: string;
   location_tr?: string;
+  location_en?: string;
   type_ar?: string;
   type_tr?: string;
-
+  type_en?: string;
+  
   // Alias properties for compatibility with frontend code
   userId: string;
   banknoteId?: string;

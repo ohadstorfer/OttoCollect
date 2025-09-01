@@ -104,9 +104,12 @@ export const fetchUserCollection = async (userId: string): Promise<CollectionIte
         *,
         public_note_ar,
         public_note_tr,
+        public_note_en,
         location_ar,
         location_tr,
+        location_en,
         type_ar,
+        type_en,
         type_tr,
         enhanced_banknotes_with_translations(*),
         unlisted_banknotes(*)
@@ -185,9 +188,12 @@ export const fetchUserCollection = async (userId: string): Promise<CollectionIte
           // Add translation fields
           public_note_ar: item.public_note_ar,
           public_note_tr: item.public_note_tr,
+          public_note_en: item.public_note_en,
           location_ar: item.location_ar,
           location_tr: item.location_tr,
+          location_en: item.location_en,
           type_ar: item.type_ar,
+          type_en: item.type_en,
           type_tr: item.type_tr
         } as CollectionItem);
       }
@@ -230,10 +236,13 @@ export const fetchUserCollectionByCountry = async (userId: string, countryId: st
         *,
         public_note_ar,
         public_note_tr,
+        public_note_en,
         location_ar,
         location_tr,
+        location_en,
         type_ar,
         type_tr,
+        type_en,
         enhanced_banknotes_with_translations!inner(*),
         unlisted_banknotes(*)
       `)

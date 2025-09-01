@@ -168,8 +168,11 @@ export interface CollectionItem {
   // Translation fields
   public_note_ar?: string | null;
   public_note_tr?: string | null;
+  public_note_en?: string | null;
   location_ar?: string | null;
   location_tr?: string | null;
+  location_en?: string | null;
   type_ar?: string | null;
+  type_en?: string | null;
   type_tr?: string | null;
 }
