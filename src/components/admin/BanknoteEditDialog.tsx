@@ -245,6 +245,30 @@ const BanknoteEditDialog = ({
           ...prev,
           ...processedData
         }));
+
+        // Sync initial snapshot with fully loaded data to avoid false positives
+        setInitialFormData(prev => ({
+          ...prev,
+          country: processedData.country ?? prev.country ?? '',
+          face_value: processedData.face_value ?? prev.face_value ?? '',
+          islamic_year: processedData.islamic_year ?? prev.islamic_year ?? '',
+          signatures_front: Array.isArray(processedData.signatures_front)
+            ? processedData.signatures_front
+            : (Array.isArray(prev.signatures_front) ? prev.signatures_front : []),
+          signatures_back: Array.isArray(processedData.signatures_back)
+            ? processedData.signatures_back
+            : (Array.isArray(prev.signatures_back) ? prev.signatures_back : []),
+          seal_names: processedData.seal_names ?? prev.seal_names ?? '',
+          sultan_name: processedData.sultan_name ?? prev.sultan_name ?? '',
+          printer: processedData.printer ?? prev.printer ?? '',
+          type: processedData.type ?? prev.type ?? '',
+          category: processedData.category ?? prev.category ?? '',
+          security_element: processedData.security_element ?? prev.security_element ?? '',
+          colors: processedData.colors ?? prev.colors ?? '',
+          banknote_description: processedData.banknote_description ?? prev.banknote_description ?? '',
+          historical_description: processedData.historical_description ?? prev.historical_description ?? '',
+          dimensions: processedData.dimensions ?? prev.dimensions ?? ''
+        }));
       }
     } catch (error) {
       console.error('Error fetching detailed banknote info:', error);
@@ -625,9 +649,13 @@ const BanknoteEditDialog = ({
           const currentValue = finalData[field.formField];
           const initialValue = initialFormData[field.formField];
           
-          // For array fields, convert to string for comparison
-          const currentStr = Array.isArray(currentValue) ? currentValue.join(', ') : (currentValue || '');
-          const initialStr = Array.isArray(initialValue) ? initialValue.join(', ') : (initialValue || '');
+          // For array fields, convert to string for comparison with normalization
+          const toStr = (v: any) => {
+            const s = Array.isArray(v) ? v.join(', ') : (v ?? '');
+            return typeof s === 'string' ? s.trim() : s;
+          };
+          const currentStr = toStr(currentValue);
+          const initialStr = toStr(initialValue);
           
           if (currentStr !== initialStr) {
             console.log(`🔄 [BanknoteEditDialog] Field '${field.formField}' changed:`, {
