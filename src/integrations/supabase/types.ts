@@ -578,13 +578,19 @@ export type Database = {
           is_for_sale: boolean
           is_unlisted_banknote: boolean
           location: string | null
+          location_ar: string | null
+          location_tr: string | null
           obverse_image: string | null
           obverse_image_thumbnail: string | null
           obverse_image_watermarked: string | null
           order_index: number
           prefix: string | null
           private_note: string | null
+          private_note_ar: string | null
+          private_note_tr: string | null
           public_note: string | null
+          public_note_ar: string | null
+          public_note_tr: string | null
           purchase_date: string | null
           purchase_price: number | null
           reverse_image: string | null
@@ -592,6 +598,8 @@ export type Database = {
           reverse_image_watermarked: string | null
           sale_price: number | null
           type: string | null
+          type_ar: string | null
+          type_tr: string | null
           unlisted_banknotes_id: string | null
           updated_at: string
           user_id: string
@@ -608,13 +616,19 @@ export type Database = {
           is_for_sale?: boolean
           is_unlisted_banknote?: boolean
           location?: string | null
+          location_ar?: string | null
+          location_tr?: string | null
           obverse_image?: string | null
           obverse_image_thumbnail?: string | null
           obverse_image_watermarked?: string | null
           order_index?: number
           prefix?: string | null
           private_note?: string | null
+          private_note_ar?: string | null
+          private_note_tr?: string | null
           public_note?: string | null
+          public_note_ar?: string | null
+          public_note_tr?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
           reverse_image?: string | null
@@ -622,6 +636,8 @@ export type Database = {
           reverse_image_watermarked?: string | null
           sale_price?: number | null
           type?: string | null
+          type_ar?: string | null
+          type_tr?: string | null
           unlisted_banknotes_id?: string | null
           updated_at?: string
           user_id: string
@@ -638,13 +654,19 @@ export type Database = {
           is_for_sale?: boolean
           is_unlisted_banknote?: boolean
           location?: string | null
+          location_ar?: string | null
+          location_tr?: string | null
           obverse_image?: string | null
           obverse_image_thumbnail?: string | null
           obverse_image_watermarked?: string | null
           order_index?: number
           prefix?: string | null
           private_note?: string | null
+          private_note_ar?: string | null
+          private_note_tr?: string | null
           public_note?: string | null
+          public_note_ar?: string | null
+          public_note_tr?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
           reverse_image?: string | null
@@ -652,6 +674,8 @@ export type Database = {
           reverse_image_watermarked?: string | null
           sale_price?: number | null
           type?: string | null
+          type_ar?: string | null
+          type_tr?: string | null
           unlisted_banknotes_id?: string | null
           updated_at?: string
           user_id?: string

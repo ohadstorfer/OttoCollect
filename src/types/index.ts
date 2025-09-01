@@ -198,6 +198,16 @@ export interface CollectionItem {
   obverse_image_thumbnail?: string;
   reverse_image_thumbnail?: string;
 
+  // Translation fields
+  public_note_ar?: string;
+  public_note_tr?: string;
+  private_note_ar?: string;
+  private_note_tr?: string;
+  location_ar?: string;
+  location_tr?: string;
+  type_ar?: string;
+  type_tr?: string;
+
   // Alias properties for compatibility with frontend code
   userId: string;
   banknoteId?: string;
