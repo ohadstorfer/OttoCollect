@@ -36,7 +36,7 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
         *,
         collection_items!inner (
           *,
-          detailed_banknotes:banknote_id (*),
+          enhanced_banknotes_with_translations:banknote_id (*),
           unlisted_banknotes:unlisted_banknotes_id (*)
         )
       `)
@@ -77,9 +77,9 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           if (collectionItem.is_unlisted_banknote && collectionItem.unlisted_banknotes) {
             console.log(`Processing unlisted banknote for item ${item.id}`);
             banknote = normalizeBanknoteData(collectionItem.unlisted_banknotes, "unlisted");
-          } else if (!collectionItem.is_unlisted_banknote && collectionItem.detailed_banknotes) {
+          } else if (!collectionItem.is_unlisted_banknote && collectionItem.enhanced_banknotes_with_translations) {
             console.log(`Processing detailed banknote for item ${item.id}`);
-            banknote = normalizeBanknoteData(mapBanknoteFromDatabase(collectionItem.detailed_banknotes), "detailed");
+            banknote = normalizeBanknoteData(mapBanknoteFromDatabase(collectionItem.enhanced_banknotes_with_translations), "detailed");
           }
 
           if (!banknote) {

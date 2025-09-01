@@ -102,7 +102,7 @@ export const fetchUserCollection = async (userId: string): Promise<CollectionIte
       .from('collection_items')
       .select(`
         *,
-        enhanced_detailed_banknotes(*),
+        enhanced_banknotes_with_translations(*),
         unlisted_banknotes(*)
       `)
       .eq('user_id', userId)
@@ -133,7 +133,7 @@ export const fetchUserCollection = async (userId: string): Promise<CollectionIte
         }
       } else {
         // Process detailed banknote
-        const banknoteData = item.enhanced_detailed_banknotes;
+        const banknoteData = item.enhanced_banknotes_with_translations;
         if (banknoteData) {
           banknote = normalizeBanknoteData(mapBanknoteFromDatabase(banknoteData), "detailed");
         }
@@ -215,11 +215,11 @@ export const fetchUserCollectionByCountry = async (userId: string, countryId: st
       .from('collection_items')
       .select(`
         *,
-        enhanced_detailed_banknotes!inner(*),
+        enhanced_banknotes_with_translations!inner(*),
         unlisted_banknotes(*)
       `)
       .eq('user_id', userId)
-      .eq('enhanced_detailed_banknotes.country', countryName);
+      .eq('enhanced_banknotes_with_translations.country', countryName);
 
     if (collectionError) {
       console.error("Error fetching collection items:", collectionError);
@@ -246,7 +246,7 @@ export const fetchUserCollectionByCountry = async (userId: string, countryId: st
     // Process detailed banknotes
     if (collectionItems) {
       for (const item of collectionItems) {
-        const banknoteData = item.enhanced_detailed_banknotes;
+        const banknoteData = item.enhanced_banknotes_with_translations;
         if (banknoteData) {
           const banknote = normalizeBanknoteData(mapBanknoteFromDatabase(banknoteData), "detailed");
           
@@ -418,7 +418,7 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
       .from('collection_items')
       .select(`
         *,
-        enhanced_detailed_banknotes(*),
+        enhanced_banknotes_with_translations(*),
         unlisted_banknotes(*)
       `)
       .eq('id', itemId)
@@ -438,7 +438,7 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
         banknote = normalizeBanknoteData(unlistedData, "unlisted");
       }
     } else {
-      const banknoteData = item.enhanced_detailed_banknotes;
+      const banknoteData = item.enhanced_banknotes_with_translations;
       if (banknoteData) {
         banknote = await mapBanknoteFromDatabase(banknoteData);
       }

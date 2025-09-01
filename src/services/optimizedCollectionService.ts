@@ -20,7 +20,7 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
       .from('collection_items')
       .select(`
         *,
-        enhanced_detailed_banknotes(*),
+        enhanced_banknotes_with_translations(*),
         unlisted_banknotes(*)
       `)
       .eq('user_id', userId)
@@ -72,11 +72,11 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
       supabase
         .from('collection_items')
         .select(`
-          *,
-          enhanced_detailed_banknotes!inner(*)
-        `)
-        .eq('user_id', userId)
-        .eq('enhanced_detailed_banknotes.country', countryName)
+        *,
+        enhanced_banknotes_with_translations!inner(*)
+      `)
+      .eq('user_id', userId)
+      .eq('enhanced_banknotes_with_translations.country', countryName)
         .eq('is_unlisted_banknote', false)
         .order('order_index', { ascending: true }),
       
@@ -325,13 +325,13 @@ function processCollectionItems(rawItems: any[]): CollectionItem[] {
         }
         banknote = normalizeBanknoteData(unlistedData, "unlisted");
       }
-    } else {
-      // Process detailed banknote
-      const banknoteData = item.enhanced_detailed_banknotes;
-      if (banknoteData) {
-        banknote = normalizeBanknoteData(mapBanknoteFromDatabase(banknoteData), "detailed");
+      } else {
+        // Process detailed banknote
+        const banknoteData = item.enhanced_banknotes_with_translations;
+        if (banknoteData) {
+          banknote = normalizeBanknoteData(mapBanknoteFromDatabase(banknoteData), "detailed");
+        }
       }
-    }
 
     if (banknote) {
       enrichedItems.push({
