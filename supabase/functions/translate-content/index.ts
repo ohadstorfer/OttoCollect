@@ -23,6 +23,25 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing required parameters: text and targetLanguage");
     }
 
+    // If source and target languages are the same, just return the original text
+    if (sourceLanguage === targetLanguage) {
+      return new Response(
+        JSON.stringify({ 
+          originalText: text,
+          translatedText: text,
+          targetLanguage,
+          sourceLanguage 
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        }
+      );
+    }
+
     const apiKey = Deno.env.get("GOOGLE_TRANSLATE_API_KEY");
     if (!apiKey) {
       throw new Error("Google Translate API key not configured");
