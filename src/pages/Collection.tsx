@@ -152,7 +152,7 @@ const Collection = () => {
     try {
       await updateCollectionItem(updatedItem.id, updatedItem);
       setEditingItem(null);
-    loadUserCollection();
+      refetch();
       toast({
         title: "Success",
         description: "Collection item updated successfully",
@@ -432,7 +432,7 @@ const Collection = () => {
               onCancel={() => setEditingItem(null)}
               onSaveComplete={() => {
                 setEditingItem(null);
-      loadUserCollection();
+                refetch();
                 toast({
                   title: "Success",
                   description: "Collection item updated successfully",
