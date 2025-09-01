@@ -16,25 +16,6 @@ interface TranslationResponse {
 }
 
 export const translationService = {
-  // Test Edge Function connectivity
-  async testEdgeFunction(): Promise<boolean> {
-    try {
-      console.log('🧪 [TranslationService] Testing Edge Function connectivity...');
-      const { data, error } = await supabase.functions.invoke('translate-content', {
-        body: {
-          text: 'Hello',
-          targetLanguage: 'ar',
-          sourceLanguage: 'en'
-        }
-      });
-      
-      console.log('🧪 [TranslationService] Test response:', { data, error });
-      return !error && data && data.translatedText;
-    } catch (error) {
-      console.error('🧪 [TranslationService] Test failed:', error);
-      return false;
-    }
-  },
   // Detect language of text
   async detectLanguage(text: string): Promise<'ar' | 'tr' | 'en'> {
     if (!text || text.trim() === '') {

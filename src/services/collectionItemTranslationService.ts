@@ -120,7 +120,7 @@ export class CollectionItemTranslationService {
   }
 
   /**
-   * Translate and update unlisted banknote in banknotes_translation table
+   * Translate and update unlisted banknote - save English to unlisted_banknotes, translations to banknotes_translation
    */
   static async translateUnlistedBanknote(
     banknoteId: string,
@@ -128,22 +128,126 @@ export class CollectionItemTranslationService {
     changedFields: string[]
   ): Promise<boolean> {
     try {
+      console.log('🌐 [CollectionItemTranslation] Translating unlisted banknote fields:', { banknoteId, banknoteData, changedFields });
+
       // Only translate if name field was changed
       if (!changedFields.includes('name') || !banknoteData.name) {
+        console.log('🌐 [CollectionItemTranslation] No name field to translate for unlisted banknote');
         return true;
       }
 
-      return await banknoteTranslationService.translateBanknoteFields(
-        banknoteId,
-        true, // is_unlisted
-        'ar',
-        banknoteData
-      ) && await banknoteTranslationService.translateBanknoteFields(
-        banknoteId,
-        true, // is_unlisted
-        'tr',
-        banknoteData
-      );
+      const nameValue = banknoteData.name;
+      if (!nameValue || typeof nameValue !== 'string' || !nameValue.trim()) {
+        console.log('🌐 [CollectionItemTranslation] Name field is empty, skipping translation');
+        return true;
+      }
+
+      // Detect the language of the input
+      const srcLang = await translationService.detectLanguage(nameValue);
+      console.log(`🌐 [CollectionItemTranslation] Processing unlisted banknote name. srcLang=${srcLang}, value=`, nameValue);
+
+      // If the input is English, save it directly to unlisted_banknotes table
+      if (srcLang === 'en') {
+        console.log('🌐 [CollectionItemTranslation] Input is English, saving to unlisted_banknotes table');
+        const { error: updateError } = await supabase
+          .from('unlisted_banknotes')
+          .update({ name: nameValue })
+          .eq('id', banknoteId);
+
+        if (updateError) {
+          console.error('❌ Error updating unlisted banknote name:', updateError);
+          return false;
+        }
+
+        // Translate to Arabic and Turkish and save to banknotes_translation
+        const translationData: Record<string, string> = {};
+        const targetLanguages = ['ar', 'tr'];
+        
+        for (const targetLang of targetLanguages) {
+          try {
+            console.log(`🌐 [CollectionItemTranslation] Translating unlisted banknote name from ${srcLang} to ${targetLang}`);
+            const translation = await translationService.translateText(nameValue, targetLang as 'ar' | 'tr', srcLang);
+            
+            if (translation && translation.trim()) {
+              translationData[`name_${targetLang}`] = translation;
+              console.log(`✅ Unlisted banknote translation successful: ${srcLang}->${targetLang}:`, translation);
+            } else {
+              console.warn(`⚠️ Empty translation result for unlisted banknote name from ${srcLang} to ${targetLang}`);
+            }
+          } catch (error) {
+            console.error(`❌ Failed translating unlisted banknote name from ${srcLang} to ${targetLang}:`, error);
+          }
+        }
+
+        // Update the banknotes_translation table with Arabic and Turkish translations
+        if (Object.keys(translationData).length > 0) {
+          console.log('🌐 [CollectionItemTranslation] Applying unlisted banknote translations:', translationData);
+          const { error } = await supabase
+            .from('banknotes_translation')
+            .upsert({
+              banknote_id: banknoteId,
+              is_unlisted: true,
+              ...translationData
+            }, {
+              onConflict: 'banknote_id,is_unlisted'
+            });
+
+          if (error) {
+            console.error('❌ Error updating unlisted banknote translations:', error);
+            return false;
+          }
+        }
+      } else {
+        // If the input is Arabic or Turkish, save it to banknotes_translation and translate to other languages
+        console.log('🌐 [CollectionItemTranslation] Input is not English, saving to banknotes_translation table');
+        
+        // Prepare translation data for banknotes_translation table
+        const translationData: Record<string, string> = {};
+
+        // Save the original in the detected language column
+        translationData[`name_${srcLang}`] = nameValue;
+
+        // Translate to the other two languages
+        const targetLanguages = ['en', 'ar', 'tr'].filter(lang => lang !== srcLang);
+        
+        for (const targetLang of targetLanguages) {
+          try {
+            console.log(`🌐 [CollectionItemTranslation] Translating unlisted banknote name from ${srcLang} to ${targetLang}`);
+            const translation = await translationService.translateText(nameValue, targetLang as 'en' | 'ar' | 'tr', srcLang);
+            
+            if (translation && translation.trim()) {
+              translationData[`name_${targetLang}`] = translation;
+              console.log(`✅ Unlisted banknote translation successful: ${srcLang}->${targetLang}:`, translation);
+            } else {
+              console.warn(`⚠️ Empty translation result for unlisted banknote name from ${srcLang} to ${targetLang}`);
+            }
+          } catch (error) {
+            console.error(`❌ Failed translating unlisted banknote name from ${srcLang} to ${targetLang}:`, error);
+          }
+        }
+
+        // Update the banknotes_translation table with all translations
+        if (Object.keys(translationData).length > 0) {
+          console.log('🌐 [CollectionItemTranslation] Applying unlisted banknote translations:', translationData);
+          const { error } = await supabase
+            .from('banknotes_translation')
+            .upsert({
+              banknote_id: banknoteId,
+              is_unlisted: true,
+              ...translationData
+            }, {
+              onConflict: 'banknote_id,is_unlisted'
+            });
+
+          if (error) {
+            console.error('❌ Error updating unlisted banknote translations:', error);
+            return false;
+          }
+        }
+      }
+
+      console.log(`✅ Successfully translated unlisted banknote ${banknoteId}`);
+      return true;
     } catch (error) {
       console.error('❌ Unlisted banknote translation failed:', error);
       return false;
@@ -163,12 +267,6 @@ export class CollectionItemTranslationService {
     // Only proceed if there are changed translatable fields
     if (changedFields.public_note || changedFields.location || changedFields.type) {
       console.log('🌐 [CollectionItemTranslation] Translating changed fields for item:', itemId);
-      
-      // Test Edge Function first
-      console.log('🧪 [CollectionItemTranslation] Testing Edge Function before translation...');
-      const testResult = await translationService.testEdgeFunction();
-      console.log('🧪 [CollectionItemTranslation] Edge Function test result:', testResult);
-      
       await this.translateChangedFields(itemId, newItemData, changedFields);
     } else {
       console.log('🌐 [CollectionItemTranslation] No translatable field changes detected.');

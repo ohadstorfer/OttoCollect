@@ -1386,11 +1386,6 @@ export async function updateUnlistedBanknoteWithCollectionItem(
       }
     }
 
-    if (collectionError) {
-      console.error('Error updating collection item:', collectionError);
-      throw collectionError;
-    }
-
     // Fetch and return the updated collection item
     return await fetchCollectionItem(collectionItemId) as CollectionItem;
   } catch (error) {

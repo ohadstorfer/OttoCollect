@@ -55,25 +55,34 @@ export const AddBanknoteToCollectionDialog: React.FC<AddBanknoteToCollectionDial
         type: type || undefined,
       });
 
-      // Handle translation for the new item
-      if (collectionItem) {
-        const newItemData = {
-          private_note: privateNote,
-          location: location,
-          type: type
-        };
-        const changedFields = {
-          private_note: !!privateNote,
-          location: !!location,
-          type: !!type
-        };
+             // Handle translation for the new item
+       if (collectionItem) {
+         console.log('🔍 [AddBanknoteToCollectionDialog] Translation debugging:');
+         console.log('🔍 Collection item created:', collectionItem);
+         
+         const newItemData = {
+           private_note: privateNote,
+           location: location,
+           type: type
+         };
+         const changedFields = {
+           private_note: !!privateNote,
+           location: !!location,
+           type: !!type
+         };
 
-        await collectionItemTranslationService.translateChangedFields(
-          collectionItem.id,
-          newItemData,
-          changedFields
-        );
-      }
+         console.log('🔍 New item data for translation:', newItemData);
+         console.log('🔍 Changed fields:', changedFields);
+
+         // Use the new translation approach that handles all languages
+         console.log('🔍 [AddBanknoteToCollectionDialog] Calling translation service');
+         await collectionItemTranslationService.translateChangedFields(
+           collectionItem.id,
+           newItemData,
+           changedFields
+         );
+         console.log('🔍 [AddBanknoteToCollectionDialog] Translation service call completed');
+       }
 
       toast({
         title: t('success'),
