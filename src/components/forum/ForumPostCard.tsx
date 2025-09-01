@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Calendar, User } from 'lucide-react';
@@ -7,6 +7,8 @@ import UserProfileLink from '@/components/common/UserProfileLink';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from '@/lib/utils';
 import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
+import { TranslationButton } from '@/components/forum/TranslationButton';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Author {
   id: string;
@@ -51,9 +53,22 @@ const renderTextWithLinks = (text: string) => {
 const ForumPostCard = ({ post }: ForumPostCardProps) => {
   const navigate = useNavigate();
   const { formatDate } = useDateLocale();
+  const { direction } = useLanguage();
+  
+  // Translation state
+  const [translatedTitle, setTranslatedTitle] = useState('');
+  const [translatedContent, setTranslatedContent] = useState('');
+  const [showTranslated, setShowTranslated] = useState(false);
 
   const handlePostClick = () => {
     navigate(`/community/forum/${post.id}`);
+  };
+
+  const handleUserProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    // Navigate to user profile manually
+    navigate(`/profile/${post.author.username}`);
   };
 
   return (
@@ -66,19 +81,57 @@ const ForumPostCard = ({ post }: ForumPostCardProps) => {
           {/* Title and Author Section */}
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-base line-clamp-1 group-hover:text-primary transition-colors mb-1">
-              <span>{renderTextWithLinks(post.title)}</span>
+              <span>{renderTextWithLinks(showTranslated && translatedTitle ? translatedTitle : post.title)}</span>
             </h3>
+            
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <UserProfileLink
-                userId={post.author.id}
-                username={post.author.username}
-                avatarUrl={post.author.avatarUrl}
-                size="sm"
-              />
+              <div 
+                onClick={handleUserProfileClick}
+                className="cursor-pointer hover:underline"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                    {post.author.avatarUrl ? (
+                      <img 
+                        src={post.author.avatarUrl} 
+                        alt={post.author.username} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </div>
+                  <span className="text-xs font-medium">{post.author.username}</span>
+                </div>
+              </div>
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 {formatDate(post.created_at, DATE_FORMATS.SHORT)}
               </div>
+            </div>
+
+            {/* Translation Button - New row for better mobile spacing */}
+            <div className={`mt-2 `} onClick={(e) => e.stopPropagation()}>
+              <TranslationButton
+                postId={post.id}
+                postType="forum_posts"
+                currentTitle={showTranslated && translatedTitle ? translatedTitle : post.title}
+                currentContent={showTranslated && translatedContent ? translatedContent : post.content}
+                originalTitle={post.title}
+                originalContent={post.content}
+                isShowingTranslation={showTranslated}
+                onTranslated={(title, content) => {
+                  if (title === post.title && content === post.content) {
+                    // Show original
+                    setShowTranslated(false);
+                  } else {
+                    // Show translation
+                    setTranslatedTitle(title);
+                    setTranslatedContent(content);
+                    setShowTranslated(true);
+                  }
+                }}
+              />
             </div>
           </div>
 
