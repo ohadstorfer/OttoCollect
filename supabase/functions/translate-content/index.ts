@@ -7,7 +7,7 @@ const corsHeaders = {
 
 interface TranslateRequest {
   text: string;
-  targetLanguage: 'ar' | 'tr';
+  targetLanguage: 'ar' | 'tr' | 'en';
   sourceLanguage?: string;
 }
 

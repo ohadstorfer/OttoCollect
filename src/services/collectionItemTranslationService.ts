@@ -20,13 +20,7 @@ interface ChangedFields {
   type?: boolean;
 }
 
-function detectLanguage(text: string): 'ar' | 'tr' | 'en' {
-  // Arabic unicode block detection
-  if (/[\u0600-\u06FF]/.test(text)) return 'ar';
-  // Turkish special characters
-  if (/[çğıİöşüÇĞİÖŞÜ]/.test(text)) return 'tr';
-  return 'en';
-}
+
 
 export class CollectionItemTranslationService {
   /**
@@ -74,7 +68,7 @@ export class CollectionItemTranslationService {
           continue;
         }
 
-        const srcLang = detectLanguage(value);
+        const srcLang = await translationService.detectLanguage(value);
         console.log(`🌐 [CollectionItemTranslation] Processing field "${field}". srcLang=${srcLang}, value=`, value);
 
         // Always save the original in the detected language column

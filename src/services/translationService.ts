@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface TranslationRequest {
   text: string;
-  targetLanguage: 'ar' | 'tr';
+  targetLanguage: 'ar' | 'tr' | 'en';
   sourceLanguage?: string;
 }
 
@@ -16,8 +16,26 @@ interface TranslationResponse {
 }
 
 export const translationService = {
+  // Detect language of text
+  async detectLanguage(text: string): Promise<'ar' | 'tr' | 'en'> {
+    if (!text || text.trim() === '') {
+      return 'en';
+    }
+
+    // Simple language detection based on character patterns
+    const arabicPattern = /[\u0600-\u06FF]/;
+    const turkishPattern = /[çğıöşüÇĞIİÖŞÜ]/;
+    
+    if (arabicPattern.test(text)) {
+      return 'ar';
+    } else if (turkishPattern.test(text)) {
+      return 'tr';
+    } else {
+      return 'en';
+    }
+  },
   // Translate text using Google Translate API
-  async translateText(text: string, targetLanguage: 'ar' | 'tr', sourceLanguage: string = 'en'): Promise<string> {
+  async translateText(text: string, targetLanguage: 'ar' | 'tr' | 'en', sourceLanguage: string = 'en'): Promise<string> {
     if (!text || text.trim() === '') {
       return text;
     }
@@ -49,7 +67,7 @@ export const translationService = {
   },
 
   // Translate multiple texts in batch
-  async translateBatch(texts: string[], targetLanguage: 'ar' | 'tr', sourceLanguage: string = 'en'): Promise<string[]> {
+  async translateBatch(texts: string[], targetLanguage: 'ar' | 'tr' | 'en', sourceLanguage: string = 'en'): Promise<string[]> {
     const promises = texts.map(text => this.translateText(text, targetLanguage, sourceLanguage));
     return Promise.all(promises);
   },
