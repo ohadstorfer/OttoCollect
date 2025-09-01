@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { MessageSquare, Calendar, User } from 'lucide-react';
@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from '@/lib/utils';
 import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
 import { useLanguage } from '@/context/LanguageContext';
-import { useLocalizedContent } from '@/hooks/useLocalizedContent';
+import { BlogTranslationButton } from '@/components/blog/BlogTranslationButton';
 
 interface BlogPostCardProps {
   post: BlogPost;
@@ -17,15 +17,33 @@ interface BlogPostCardProps {
 const BlogPostCard = ({ post }: BlogPostCardProps) => {
   const navigate = useNavigate();
   const { formatDate } = useDateLocale();
-  const { currentLanguage } = useLanguage();
-  const { getLocalizedText } = useLocalizedContent();
-
-  // The title field should already contain the translated text from the service
-  const localizedTitle = post.title;
+  const { currentLanguage, direction } = useLanguage();
+  
+  // Translation state
+  const [translatedTitle, setTranslatedTitle] = useState('');
+  const [translatedContent, setTranslatedContent] = useState('');
+  const [showTranslated, setShowTranslated] = useState(false);
 
   const handlePostClick = () => {
     navigate(`/blog/${post.id}`);
   };
+
+  const handleUserProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    // Navigate to user profile manually
+    if (post.author) {
+      navigate(`/profile/${post.author.username}`);
+    }
+  };
+
+  // Display title (original or translated)
+  const displayTitle = showTranslated && translatedTitle ? translatedTitle : post.title;
+  
+  // Display excerpt/content (original or translated)
+  const displayExcerpt = showTranslated && translatedContent ? 
+    (translatedContent.length > 150 ? translatedContent.substring(0, 150) + '...' : translatedContent) :
+    (post.excerpt || (post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content));
 
   return (
     <Card 
@@ -37,7 +55,7 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
         <div className="relative aspect-video w-full overflow-hidden">
           <img 
             src={post.main_image_url} 
-            alt={post.title} 
+            alt={displayTitle} 
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>
@@ -45,13 +63,38 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
 
       <CardHeader className="p-4 pb-2">
         <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-ottoman-600 transition-colors">
-          <span>{localizedTitle}</span>
+          <span>{displayTitle}</span>
         </h3>
+        
+        {/* Translation Button */}
+        <div className={`mt-2`} onClick={(e) => e.stopPropagation()}>
+          <BlogTranslationButton
+            postId={post.id}
+            currentTitle={displayTitle}
+            currentContent={showTranslated && translatedContent ? translatedContent : post.content}
+            originalTitle={post.title}
+            originalContent={post.content}
+            onTranslated={(title, content) => {
+              if (title === post.title && content === post.content) {
+                // Show original
+                setShowTranslated(false);
+              } else {
+                // Show translation
+                setTranslatedTitle(title);
+                setTranslatedContent(content);
+                setShowTranslated(true);
+              }
+            }}
+            isShowingTranslation={showTranslated}
+            size="sm"
+            variant="ghost"
+          />
+        </div>
       </CardHeader>
 
       <CardContent className="p-4 pt-0 flex-1">
         <p className="text-muted-foreground text-sm line-clamp-3">
-          {post.excerpt || (post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content)}
+          {displayExcerpt}
         </p>
       </CardContent>
 
@@ -60,12 +103,14 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
           {/* Author and Date */}
           <div className="flex items-center gap-2 min-w-0">
             {post.author ? (
-              <UserProfileLink
-                userId={post.author.id}
-                username={post.author.username}
-                avatarUrl={post.author.avatarUrl}
-                size="sm"
-              />
+              <div onClick={handleUserProfileClick} className="cursor-pointer hover:underline">
+                <UserProfileLink
+                  userId={post.author.id}
+                  username={post.author.username}
+                  avatarUrl={post.author.avatarUrl}
+                  size="sm"
+                />
+              </div>
             ) : (
               <div className="flex items-center gap-2 min-w-0">
                 <Avatar className="h-6 w-6 flex-shrink-0">

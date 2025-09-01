@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PenSquare, Search, ArrowLeft } from 'lucide-react';
 import BlogPostCard from '@/components/blog/BlogPostCard';
-import { fetchBlogPostsWithTranslations, checkUserDailyBlogLimit } from '@/services/blogService';
+import { fetchBlogPosts, checkUserDailyBlogLimit } from '@/services/blogService';
 import { BlogPost } from '@/types/blog';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from "@/context/ThemeContext";
@@ -58,7 +58,7 @@ const Blog = () => {
     const loadPosts = async () => {
       setLoading(true);
       try {
-        const fetchedPosts = await fetchBlogPostsWithTranslations(currentLanguage);
+        const fetchedPosts = await fetchBlogPosts();
         // Ensure all posts have the required rank property
         const postsWithAuthorRank = fetchedPosts.map(post => ({
           ...post,
@@ -78,7 +78,7 @@ const Blog = () => {
     };
 
     loadPosts();
-  }, [currentLanguage]);
+  }, []);
 
   useEffect(() => {
     const checkDailyLimit = async () => {
