@@ -586,8 +586,6 @@ export type Database = {
           order_index: number
           prefix: string | null
           private_note: string | null
-          private_note_ar: string | null
-          private_note_tr: string | null
           public_note: string | null
           purchase_date: string | null
           purchase_price: number | null
@@ -622,8 +620,6 @@ export type Database = {
           order_index?: number
           prefix?: string | null
           private_note?: string | null
-          private_note_ar?: string | null
-          private_note_tr?: string | null
           public_note?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
@@ -658,8 +654,6 @@ export type Database = {
           order_index?: number
           prefix?: string | null
           private_note?: string | null
-          private_note_ar?: string | null
-          private_note_tr?: string | null
           public_note?: string | null
           purchase_date?: string | null
           purchase_price?: number | null

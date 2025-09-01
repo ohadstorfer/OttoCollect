@@ -3,8 +3,6 @@ import { translationService } from './translationService';
 import { banknoteTranslationService } from './banknoteTranslationService';
 
 interface CollectionItemTranslationData {
-  private_note_ar?: string;
-  private_note_tr?: string;
   location_ar?: string;
   location_tr?: string;
   type_ar?: string;

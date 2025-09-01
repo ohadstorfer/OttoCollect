@@ -38,8 +38,6 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           *,
           public_note_ar,
           public_note_tr,
-          private_note_ar,
-          private_note_tr,
           location_ar,
           location_tr,
           type_ar,
