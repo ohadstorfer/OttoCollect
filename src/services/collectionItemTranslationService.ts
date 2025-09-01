@@ -80,7 +80,7 @@ export class CollectionItemTranslationService {
         for (const targetLang of targetLanguages) {
           try {
             console.log(`🌐 [CollectionItemTranslation] Translating "${field}" from ${srcLang} to ${targetLang}`);
-            const translation = await translationService.translateText(value, targetLang as 'en' | 'ar' | 'tr');
+            const translation = await translationService.translateText(value, targetLang as 'en' | 'ar' | 'tr', srcLang);
             
             if (translation && translation.trim()) {
               (translationData as any)[`${field}_${targetLang}`] = translation;
@@ -163,6 +163,12 @@ export class CollectionItemTranslationService {
     // Only proceed if there are changed translatable fields
     if (changedFields.public_note || changedFields.location || changedFields.type) {
       console.log('🌐 [CollectionItemTranslation] Translating changed fields for item:', itemId);
+      
+      // Test Edge Function first
+      console.log('🧪 [CollectionItemTranslation] Testing Edge Function before translation...');
+      const testResult = await translationService.testEdgeFunction();
+      console.log('🧪 [CollectionItemTranslation] Edge Function test result:', testResult);
+      
       await this.translateChangedFields(itemId, newItemData, changedFields);
     } else {
       console.log('🌐 [CollectionItemTranslation] No translatable field changes detected.');

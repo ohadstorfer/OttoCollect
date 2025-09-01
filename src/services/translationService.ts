@@ -16,6 +16,25 @@ interface TranslationResponse {
 }
 
 export const translationService = {
+  // Test Edge Function connectivity
+  async testEdgeFunction(): Promise<boolean> {
+    try {
+      console.log('🧪 [TranslationService] Testing Edge Function connectivity...');
+      const { data, error } = await supabase.functions.invoke('translate-content', {
+        body: {
+          text: 'Hello',
+          targetLanguage: 'ar',
+          sourceLanguage: 'en'
+        }
+      });
+      
+      console.log('🧪 [TranslationService] Test response:', { data, error });
+      return !error && data && data.translatedText;
+    } catch (error) {
+      console.error('🧪 [TranslationService] Test failed:', error);
+      return false;
+    }
+  },
   // Detect language of text
   async detectLanguage(text: string): Promise<'ar' | 'tr' | 'en'> {
     if (!text || text.trim() === '') {
@@ -40,7 +59,15 @@ export const translationService = {
       return text;
     }
 
+    console.log(`🔍 [TranslationService] Attempting translation: "${text}" from ${sourceLanguage} to ${targetLanguage}`);
+
     try {
+      console.log(`🔍 [TranslationService] Invoking Edge Function with:`, {
+        text: text.trim(),
+        targetLanguage,
+        sourceLanguage
+      });
+      
       const { data, error } = await supabase.functions.invoke('translate-content', {
         body: {
           text: text.trim(),
@@ -49,19 +76,24 @@ export const translationService = {
         }
       });
 
+      console.log(`🔍 [TranslationService] Edge function response:`, { data, error });
+
       if (error) {
-        console.error('Translation service error:', error);
+        console.error('❌ Translation service error:', error);
         return text; // Return original text on error
       }
 
       if (data.error) {
-        console.error('Translation API error:', data.error);
+        console.error('❌ Translation API error:', data.error);
         return text; // Return original text on error
       }
 
-      return data.translatedText || text;
+      const translatedText = data.translatedText || text;
+      console.log(`✅ [TranslationService] Translation result: "${text}" → "${translatedText}"`);
+      
+      return translatedText;
     } catch (error) {
-      console.error('Translation request failed:', error);
+      console.error('❌ Translation request failed:', error);
       return text; // Return original text on error
     }
   },
