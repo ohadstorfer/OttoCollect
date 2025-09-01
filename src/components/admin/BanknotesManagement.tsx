@@ -580,7 +580,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                 ) : (
                   <>
                     <Download className="mr-2 h-4 w-4" />
-                    Export Excel
+                    Excel
                   </>
                 )}
               </Button>
@@ -591,7 +591,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
                 disabled={!selectedCountryId || allBanknotes.length === 0}
               >
                 <Languages className="mr-2 h-4 w-4" />
-                Translate All
+                Translate
               </Button>
               
               <Button onClick={handleAddNewBanknote}>
