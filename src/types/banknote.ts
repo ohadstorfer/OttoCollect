@@ -166,8 +166,6 @@ export interface CollectionItem {
   type?: string | null;
   prefix?: string | null;
   // Translation fields
-  public_note_ar?: string | null;
-  public_note_tr?: string | null;
   private_note_ar?: string | null;
   private_note_tr?: string | null;
   location_ar?: string | null;

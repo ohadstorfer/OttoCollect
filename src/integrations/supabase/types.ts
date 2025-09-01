@@ -589,8 +589,6 @@ export type Database = {
           private_note_ar: string | null
           private_note_tr: string | null
           public_note: string | null
-          public_note_ar: string | null
-          public_note_tr: string | null
           purchase_date: string | null
           purchase_price: number | null
           reverse_image: string | null
@@ -627,8 +625,6 @@ export type Database = {
           private_note_ar?: string | null
           private_note_tr?: string | null
           public_note?: string | null
-          public_note_ar?: string | null
-          public_note_tr?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
           reverse_image?: string | null
@@ -665,8 +661,6 @@ export type Database = {
           private_note_ar?: string | null
           private_note_tr?: string | null
           public_note?: string | null
-          public_note_ar?: string | null
-          public_note_tr?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
           reverse_image?: string | null

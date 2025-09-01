@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CollectionItem } from '@/types';
 import { updateUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
+import { collectionItemTranslationService } from '@/services/collectionItemTranslationService';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Upload, CalendarIcon } from 'lucide-react';
@@ -455,6 +456,36 @@ export default function EditUnlistedBanknoteDialog({
         signatures_back: signaturesBackUrls,
         dimensions: values.dimensions
       } as UnlistedBanknoteUpdateParams);
+
+      // Handle translation for changed fields
+      const oldItemData = {
+        private_note: collectionItem.privateNote,
+        location: collectionItem.location,
+        type: (collectionItem as any).type,
+        name: (collectionItem.banknote as any)?.name
+      };
+      const newItemData = {
+        private_note: values.privateNote,
+        location: values.location,
+        type: values.type,
+        name: values.name
+      };
+
+      // Handle collection item translation
+      await collectionItemTranslationService.handleCollectionItemUpdate(
+        collectionItem.id,
+        oldItemData,
+        newItemData
+      );
+
+      // Handle unlisted banknote translation if name changed
+      if (oldItemData.name !== newItemData.name) {
+        await collectionItemTranslationService.translateUnlistedBanknote(
+          collectionItem.banknote?.id || '',
+          { name: values.name },
+          ['name']
+        );
+      }
 
       // Update the collection item with watermarked and thumbnail images using the collection service
       if (obverseProcessedImages || reverseProcessedImages) {

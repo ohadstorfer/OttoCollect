@@ -199,8 +199,6 @@ export interface CollectionItem {
   reverse_image_thumbnail?: string;
 
   // Translation fields
-  public_note_ar?: string;
-  public_note_tr?: string;
   private_note_ar?: string;
   private_note_tr?: string;
   location_ar?: string;

@@ -39,6 +39,7 @@ import { useAuth } from '@/context/AuthContext';
 import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
+import { collectionItemTranslationService } from '@/services/collectionItemTranslationService';
 
 // Define props for CollectionItemForm
 export interface CollectionItemFormProps {
@@ -354,8 +355,27 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       };
 
       if (currentItem) {
+        // Detect changed fields for translation
+        const oldItemData = {
+          private_note: currentItem.privateNote,
+          location: currentItem.location,
+          type: (currentItem as any).type
+        };
+        const newItemData = {
+          private_note: updateData.private_note,
+          location: updateData.location,
+          type: updateData.type
+        };
+
         // Update existing item
         await updateCollectionItem(currentItem.id, updateData);
+
+        // Handle translation for changed fields
+        await collectionItemTranslationService.handleCollectionItemUpdate(
+          currentItem.id,
+          oldItemData,
+          newItemData
+        );
 
         // Update images if they were changed
         if (obverseProcessedImages || reverseProcessedImages) {
