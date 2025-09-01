@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import MultiSelect from '@/components/ui/multiselect';
 import { processAndUploadImage } from '@/services/imageProcessingService';
 import { useAuth } from '@/context/AuthContext';
+import { banknoteTranslationService } from '@/services/banknoteTranslationService';
 
 
 interface BanknoteEditDialogProps {
@@ -96,6 +97,9 @@ const BanknoteEditDialog = ({
   const [selectedSignaturesBackIds, setSelectedSignaturesBackIds] = useState<string[]>([]);
   const [selectedSealIds, setSelectedSealIds] = useState<string[]>([]);
   
+  // Store initial form data for comparison to detect changes
+  const [initialFormData, setInitialFormData] = useState<any>({});
+  
   useEffect(() => {
     const sigFront = formData.signatures_front || [];
     const sigBack = formData.signatures_back || [];
@@ -158,6 +162,25 @@ const BanknoteEditDialog = ({
       setSelectedSignaturesFrontIds([]);
       setSelectedSignaturesBackIds([]);
       setSelectedSealIds([]);
+      
+      // Store initial data for change detection
+      setInitialFormData({
+        country: banknote.country,
+        face_value: banknote.denomination,
+        islamic_year: banknote.islamicYear || '',
+        signatures_front: banknote.signaturesFront?.split(', ') || [],
+        signatures_back: banknote.signaturesBack?.split(', ') || [],
+        seal_names: banknote.sealNames || '',
+        sultan_name: banknote.sultanName || '',
+        printer: banknote.printer || '',
+        type: banknote.type || '',
+        category: banknote.category || '',
+        security_element: banknote.securityElement || '',
+        colors: banknote.colors || '',
+        banknote_description: banknote.description || '',
+        historical_description: banknote.historicalDescription || '',
+        dimensions: banknote.dimensions || ''
+      });
     }
   }, [banknote, isNew]);
   
@@ -571,6 +594,100 @@ const BanknoteEditDialog = ({
         // Handle other element pictures
         other_element_pictures: otherElementUrls.length > 0 ? otherElementUrls : (dataToSave.other_element_pictures || [])
       };
+
+      // Auto-translate changed fields for existing banknotes
+      if (!isNew && banknote && Object.keys(initialFormData).length > 0) {
+        console.log('🌐 [BanknoteEditDialog] Checking for translation updates...');
+        
+        // Define translatable fields and their mapping
+        const translatableFields = [
+          { formField: 'country', dbField: 'country' },
+          { formField: 'face_value', dbField: 'face_value' },
+          { formField: 'islamic_year', dbField: 'islamic_year' },
+          { formField: 'seal_names', dbField: 'seal_names' },
+          { formField: 'sultan_name', dbField: 'sultan_name' },
+          { formField: 'printer', dbField: 'printer' },
+          { formField: 'type', dbField: 'type' },
+          { formField: 'category', dbField: 'category' },
+          { formField: 'security_element', dbField: 'security_element' },
+          { formField: 'colors', dbField: 'colors' },
+          { formField: 'banknote_description', dbField: 'banknote_description' },
+          { formField: 'historical_description', dbField: 'historical_description' },
+          { formField: 'dimensions', dbField: 'dimensions' }
+        ];
+
+        // Prepare source data for translation with only changed fields
+        const changedData: any = {};
+        let hasChanges = false;
+
+        // Check each translatable field for changes
+        for (const field of translatableFields) {
+          const currentValue = finalData[field.formField];
+          const initialValue = initialFormData[field.formField];
+          
+          // For array fields, convert to string for comparison
+          const currentStr = Array.isArray(currentValue) ? currentValue.join(', ') : (currentValue || '');
+          const initialStr = Array.isArray(initialValue) ? initialValue.join(', ') : (initialValue || '');
+          
+          if (currentStr !== initialStr) {
+            console.log(`🔄 [BanknoteEditDialog] Field '${field.formField}' changed:`, {
+              from: initialStr,
+              to: currentStr
+            });
+            changedData[field.dbField] = currentStr;
+            hasChanges = true;
+          }
+        }
+
+        // Handle array fields separately for signatures
+        const signaturesFields = [
+          { formField: 'signatures_front', dbField: 'signatures_front' },
+          { formField: 'signatures_back', dbField: 'signatures_back' }
+        ];
+
+        for (const field of signaturesFields) {
+          const currentValue = finalData[field.formField];
+          const initialValue = initialFormData[field.formField];
+          
+          const currentArray = Array.isArray(currentValue) ? currentValue : [];
+          const initialArray = Array.isArray(initialValue) ? initialValue : [];
+          
+          if (JSON.stringify(currentArray) !== JSON.stringify(initialArray)) {
+            console.log(`🔄 [BanknoteEditDialog] Array field '${field.formField}' changed:`, {
+              from: initialArray,
+              to: currentArray
+            });
+            changedData[field.dbField] = currentArray;
+            hasChanges = true;
+          }
+        }
+
+        // Trigger translation for changed fields
+        if (hasChanges) {
+          console.log('🌐 [BanknoteEditDialog] Triggering auto-translation for changed fields:', changedData);
+          
+          try {
+            const translationResult = await banknoteTranslationService.autoTranslateBanknote(
+              banknote.id,
+              false, // is_unlisted
+              changedData
+            );
+            
+            if (translationResult.success) {
+              console.log('✅ [BanknoteEditDialog] Auto-translation completed for languages:', translationResult.languages);
+              toast.success(`Banknote updated and translated to ${translationResult.languages.join(', ')}`);
+            } else {
+              console.warn('⚠️ [BanknoteEditDialog] Auto-translation failed');
+              toast.warning('Banknote updated but translation failed');
+            }
+          } catch (translationError) {
+            console.error('❌ [BanknoteEditDialog] Translation error:', translationError);
+            toast.warning('Banknote updated but translation failed');
+          }
+        } else {
+          console.log('📝 [BanknoteEditDialog] No translatable fields changed');
+        }
+      }
       
       // Debug log the final data being saved
       console.log('Current form data before save:', {
