@@ -294,5 +294,297 @@
     },
     "comingSoon": "Yakında",
     "featureAvailable": "Özellik mevcut - eylem gerekmez"
+  },
+  "terms": {
+    "back": "Geri",
+    "title": "Kullanım Şartları",
+    "translationNote": "Bu çeviri sadece referans içindir. Çakışma durumunda İngilizce versiyon geçerlidir",
+    "sections": {
+      "acceptance": {
+        "title": "Şartların Kabulü",
+        "pointA": {
+          "label": "A.",
+          "content": "Bu web sitesine erişerek ve kullanarak, bu anlaşmanın şartlarını ve hükümlerini kabul eder ve bunlara bağlı kalmayı kabul edersiniz."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "Yukarıdakilere uymayı kabul etmiyorsanız, lütfen bu hizmeti kullanmayın."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "Bu şartlar, hizmete erişen veya kullanan tüm ziyaretçiler, kullanıcılar ve diğer kişiler için geçerlidir."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "Bu şartları herhangi bir zamanda değiştirme hakkını saklı tutarız."
+        }
+      },
+      "website": {
+        "title": "Kullanım Lisansı",
+        "pointA": {
+          "label": "A.",
+          "content": "OttoCollect'in web sitesindeki materyallerin (bilgi veya yazılım) bir kopyasını kişisel, ticari olmayan geçici görüntüleme için geçici olarak indirmeye izin verilir."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "Bu bir lisans verilmesidir, mülkiyet transferi değildir ve bu lisans altında şunları yapamazsınız: materyalleri değiştirmek veya kopyalamak; materyalleri herhangi bir ticari amaç için veya herhangi bir halka açık gösterim için kullanmak; OttoCollect'in web sitesinde bulunan herhangi bir yazılımı tersine mühendislik yapmaya çalışmak."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "Bu lisans, bu kısıtlamalardan herhangi birini ihlal ederseniz otomatik olarak sona erer ve OttoCollect tarafından herhangi bir zamanda sonlandırılabilir."
+        }
+      },
+      "accounts": {
+        "title": "Kullanıcı Hesapları",
+        "pointA": {
+          "label": "A.",
+          "content": "Bizimle bir hesap oluşturduğunuzda, her zaman doğru, eksiksiz ve güncel olan bilgiler sağlamalısınız."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "Hizmete erişmek için kullandığınız şifreyi korumaktan ve şifreniz altındaki herhangi bir faaliyet veya eylemden sorumlusunuz."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "Şifrenizi herhangi bir üçüncü tarafa açıklamamayı ve hesabınız altındaki herhangi bir faaliyet veya eylemden tek sorumluluğu üstlenmeyi kabul edersiniz."
+        }
+      },
+      "generalUse": {
+        "title": "Genel Kullanım",
+        "intro": "Hizmetimizi yalnızca yasal amaçlar için ve bu Şartlara uygun olarak kullanabilirsiniz.",
+        "pointA": {
+          "label": "A.",
+          "content": "Hizmeti, uygulanabilir federal, eyalet, yerel veya uluslararası yasa veya düzenlemeyi ihlal eden herhangi bir şekilde kullanmamayı kabul edersiniz."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "Herhangi bir reklam veya tanıtım materyali, 'junk mail,' 'chain letter,' 'spam,' veya benzeri herhangi bir başka reklam göndermeyi veya gönderilmesini sağlamayı kabul etmezsiniz."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "Şirketi, şirket çalışanını, başka bir kullanıcıyı veya herhangi bir başka kişi veya varlığı taklit etmeyi veya taklit etmeye çalışmayı kabul etmezsiniz."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "Herhangi bir kişinin hizmeti kullanmasını veya zevk almasını kısıtlayan veya engelleyen başka herhangi bir davranışta bulunmamayı kabul edersiniz."
+        },
+        "prohibitedUses": {
+          "sale": "Satış",
+          "advertising": "Reklam",
+          "competing": "Rekabet"
+        },
+        "pointE": {
+          "label": "E.",
+          "content": "Açık yazılı iznimiz olmadan hizmeti herhangi bir ticari amaç için kullanmamayı kabul edersiniz."
+        },
+        "permittedUses": {
+          "swapList": "Takas Listesi",
+          "authorizedUse": "Yetkili Kullanım"
+        },
+        "pointF": {
+          "label": "F.",
+          "content": "Koleksiyonunuzu yönetmek ve diğer koleksiyoncularla bağlantı kurmak gibi kişisel, ticari olmayan amaçlar için hizmeti kullanabilirsiniz."
+        },
+        "pointG": {
+          "label": "G.",
+          "content": "Koleksiyonunuz hakkında bilgi paylaşabilir ve bu şartlarda izin verildiği gibi topluluk tartışmalarına katılabilirsiniz."
+        },
+        "pointH": {
+          "label": "H.",
+          "content": "Pazar yeri özelliklerini pazar yeri politikalarımıza ve yönergelerimize uygun olarak kullanabilirsiniz."
+        }
+      },
+      "yourUseOfContent": {
+        "title": "İçeriğin Kullanımı",
+        "pointA": {
+          "label": "A.",
+          "content": "Hizmet, OttoCollect'e ait veya lisanslı içerik içerir, metin, grafik, görüntü ve yazılım dahil ancak bunlarla sınırlı değildir."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "Herhangi bir içeriği herhangi bir ticari amaç için kopyalayamaz, yeniden üretemez, dağıtamaz, iletemez, yayınlayamaz, gösteremez, satamaz, lisanslayamaz veya başka şekilde sömüremezsiniz."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "Herhangi bir telif hakkı, ticari marka, hizmet markası veya diğer mülkiyet hakları bildirimlerini kaldıramaz, değiştiremez veya gizleyemezsiniz."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "Herhangi bir içeriği, OttoCollect ile bir ilişki öneren bir şekilde kullanamazsınız, açık yazılı iznimiz olmadan."
+        },
+        "pointE": {
+          "label": "E.",
+          "content": "Herhangi bir içeriği bu Şartlarda açıkça izin verilmeyen herhangi bir amaç için kullanamazsınız."
+        },
+        "pointF": {
+          "label": "F.",
+          "content": "Herhangi bir içeriği, uygulanabilir herhangi bir yasa veya düzenlemeyi ihlal eden bir şekilde kullanamazsınız."
+        },
+        "pointG": {
+          "label": "G.",
+          "content": "Herhangi bir içeriği başka bir kişiyi taciz etmek, kötüye kullanmak veya zarar vermek için kullanamazsınız."
+        },
+        "pointH": {
+          "label": "H.",
+          "content": "Herhangi bir içeriği virüs veya başka zararlı kod iletmek için kullanamazsınız."
+        }
+      },
+      "yourUserContributions": {
+        "title": "Kullanıcı Katkılarınız",
+        "pointA": {
+          "label": "A.",
+          "content": "Hizmet, kullanıcıların içerik göndermesine, sunmasına, yayınlamasına, göstermesine veya iletmesine izin veren mesaj panoları, sohbet odaları, kişisel web sayfaları veya profiller, forumlar ve diğer etkileşimli özellikler içerebilir."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "Tüm Kullanıcı Katkıları bu Şartlara ve tüm uygulanabilir yasa ve düzenlemelere uygun olmalıdır."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "Tüm Kullanıcı Katkılarınızın bu Şartlara uygun olduğunu ve uygun olacağını temsil eder ve garanti edersiniz."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "Gönderdiğiniz veya katkıda bulunduğunuz herhangi bir Kullanıcı Katkısından sorumlu olduğunuzu anlar ve kabul edersiniz."
+        },
+        "pointE": {
+          "label": "E.",
+          "content": "Bu tür içerik için tam sorumluluğa sahipsiniz, yasal durumu, güvenilirliği, doğruluğu ve uygunluğu dahil."
+        },
+        "pointF": {
+          "label": "F.",
+          "content": "Sizin veya hizmetin herhangi bir başka kullanıcısının yayınladığı herhangi bir Kullanıcı Katkısının içeriği veya doğruluğu konusunda herhangi bir üçüncü tarafa karşı sorumlu veya yükümlü değiliz."
+        },
+        "pointG": {
+          "label": "G.",
+          "content": "Yasa dışı, zararlı, tehdit edici, saldırgan, taciz edici, iftira niteliğinde veya başka şekilde kabul edilemez olan Kullanıcı Katkıları göndermemeyi kabul edersiniz."
+        },
+        "pointH": {
+          "label": "H.",
+          "content": "Başkalarının fikri mülkiyet haklarını ihlal eden Kullanıcı Katkıları göndermemeyi kabul edersiniz."
+        }
+      },
+      "accountTerminationPolicy": {
+        "title": "Hesap Sonlandırma Politikası",
+        "pointA": {
+          "label": "A.",
+          "content": "Hesabınızı sonlandırabilir veya askıya alabilir ve hizmete erişimi hemen engelleyebiliriz, önceden bildirim veya sorumluluk olmadan, tek takdirimiz altında, herhangi bir nedenle."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "Hesabınızı sonlandırmak istiyorsanız, hizmeti kullanmayı basitçe durdurabilirsiniz."
+        }
+      },
+      "subscriptions": {
+        "title": "Abonelikler",
+        "content": "Hizmetin bazı kısımları abonelik temelinde ücretlendirilir. Seçtiğiniz abonelik planının türüne bağlı olarak, tekrarlayan ve periyodik bir temelde, önceden ücretlendirileceksiniz."
+      },
+      "marketplace": {
+        "title": "Pazar Yeri",
+        "content": "Pazar yeri özelliği, kullanıcıların banknotları satın almasına ve satmasına olanak tanır. Tüm işlemler pazar yeri politikalarımıza ve yönergelerimize tabidir. Pazar yeri aracılığıyla satılan öğelerin kalitesi, orijinalliği veya durumu konusunda sorumlu değiliz."
+      },
+      "api": {
+        "title": "API Kullanımı",
+        "intro": "API'mizi kullanıyorsanız, aşağıdaki şartlara uymalısınız:",
+        "pointA": {
+          "label": "A.",
+          "content": "Açık yazılı iznimiz olmadan API'yi herhangi bir ticari amaç için kullanamazsınız."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "Bizim tarafımızdan belirlenen makul hız limitlerini aşamazsınız."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "API'yi bu şartları ihlal ederek veri kazımak veya toplamak için kullanamazsınız."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "API'yi rekabet eden hizmetler oluşturmak için kullanamazsınız."
+        },
+        "pointE": {
+          "label": "E.",
+          "content": "Fikri mülkiyet haklarımıza saygı göstermeli ve hizmetlerimizi tersine mühendislik yapmamalısınız."
+        },
+        "pointF": {
+          "label": "F.",
+          "content": "API'yi virüs veya başka zararlı kod iletmek için kullanamazsınız."
+        },
+        "pointG": {
+          "label": "G.",
+          "content": "API'yi başka kullanıcıları taciz etmek, kötüye kullanmak veya zarar vermek için kullanamazsınız."
+        },
+        "pointH": {
+          "label": "H.",
+          "content": "API'yi herhangi bir zamanda değiştirme veya durdurma hakkını saklı tutarız."
+        }
+      },
+      "warrantyDisclaimer": {
+        "title": "Garanti Reddi",
+        "content": "Bu hizmetteki bilgiler 'olduğu gibi' temelinde sağlanır. Yasa tarafından izin verilen en geniş ölçüde, bu Şirket açık veya zımni olan tüm temsilleri, garanti, koşulları ve şartları hariç tutar."
+      },
+      "limitationOfLiability": {
+        "title": "Sorumluluk Sınırlaması",
+        "content": "Hiçbir durumda OttoCollect, ne de yöneticileri, çalışanları, ortakları, temsilcileri, tedarikçileri veya bağlı kuruluşları, kâr, veri, kullanım, itibar kaybı veya diğer maddi olmayan kayıplar dahil ancak bunlarla sınırlı olmayan dolaylı, tesadüfi, özel, sonuçsal veya cezai zararlardan sorumlu olmaz.",
+        "acknowledgement": "Yukarıda belirtilen sınırlamaların bu anlaşmanın temel unsurları olduğunu ve site bu sınırlamalar olmadan size sağlanmayacağını kabul edersiniz.",
+        "location": "Bazı yargı bölgeleri belirli garanti dışı bırakılmasına veya tesadüfi veya sonuçsal zararlar için sorumluluğun sınırlandırılmasına veya hariç tutulmasına izin vermez. Buna göre, yukarıda belirtilen sınırlamalardan bazıları size uygulanmayabilir."
+      },
+      "indemnity": {
+        "title": "Tazminat",
+        "content": "OttoCollect ve lisans verenlerini ve çalışanlarını, müteahhitlerini, temsilcilerini, memurlarını ve yöneticilerini, herhangi bir talep, zarar, yükümlülük, kayıp, sorumluluk, maliyet veya borç ve giderlerden savunmayı, tazmin etmeyi ve zararsız tutmayı kabul edersiniz."
+      },
+      "csae": {
+        "title": "Telif Hakkı, Hizmet Markaları ve Diğer Fikri Mülkiyet",
+        "pointA": {
+          "label": "A.",
+          "content": "Hizmet ve orijinal içeriği, özellikleri ve işlevselliği OttoCollect ve lisans verenlerinin mülkiyeti olmaya devam edecek ve kalacaktır.",
+          "list": {
+            "item1": "Hizmet telif hakkı, ticari marka ve diğer yasalar tarafından korunur.",
+            "item2": "Ticari markalarımız ve ticari kıyafetimiz, önceden yazılı iznimiz olmadan herhangi bir ürün veya hizmetle bağlantılı olarak kullanılamaz.",
+            "item3": "Açık yazılı iznimiz olmadan fikri mülkiyetimizden herhangi birini kullanamazsınız."
+          }
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "Kullanıcı Katkılarınızda sahip olduğunuz herhangi bir fikri mülkiyet hakkının mülkiyetini korursunuz."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "Kullanıcı Katkılarınızı göndererek, Kullanıcı Katkılarınızı kullanma, yeniden üretme, değiştirme ve dağıtma için bize münhasır olmayan, telifsiz, devredilebilir, alt lisanslanabilir, dünya çapında bir lisans verirsiniz."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "Kullanıcı Katkılarınız için tüm haklara sahip olduğunuzu veya kontrol ettiğinizi ve yukarıda verilen lisansı verme hakkına sahip olduğunuzu temsil eder ve garanti edersiniz."
+        },
+        "pointE": {
+          "label": "E.",
+          "content": "Kullanıcı Katkılarınızın başkalarının fikri mülkiyet haklarını ihlal etmediğini temsil eder ve garanti edersiniz."
+        },
+        "pointF": {
+          "label": "F.",
+          "content": "Fikri mülkiyet haklarınızın ihlal edildiğine inanıyorsanız, lütfen hemen bizimle iletişime geçin."
+        },
+        "pointG": {
+          "label": "G.",
+          "content": "Başkalarının fikri mülkiyet haklarına saygı duyarız ve kullanıcılarımızdan da aynısını yapmalarını bekleriz."
+        },
+        "pointH": {
+          "label": "H.",
+          "content": "Başkalarının fikri mülkiyet haklarını ihlal ettiğine inandığımız içeriği kaldırma hakkını saklı tutarız."
+        }
+      },
+      "acceptanceOfTerms": {
+        "title": "Şartların Kabulü",
+        "content": "Bu hizmeti kullanarak, bu şartları okuduğunuzu ve bunlara bağlı kalmayı kabul ettiğinizi kabul edersiniz. Bu şartları kabul etmiyorsanız, lütfen hizmeti kullanmayın."
+      },
+      "assignment": {
+        "title": "Devir",
+        "content": "Bu Şartlar altındaki haklarınızı veya yükümlülüklerinizi önceden yazılı iznimiz olmadan devredemez veya transfer edemezsiniz. Bu Şartlar altındaki haklarımızı ve yükümlülüklerimizi herhangi bir zamanda devredebilir veya transfer edebiliriz."
+      },
+      "general": {
+        "title": "Genel",
+        "content": "Bu Şartlar, hizmetin kullanımı konusunda sizin ve OttoCollect arasındaki tam anlaşmayı oluşturur. Bu Şartların herhangi bir hükmü geçersiz veya uygulanamaz olarak kabul edilirse, kalan hükümler geçerli ve uygulanabilir olmaya devam edecektir."
+      }
+    }
   }
 } 

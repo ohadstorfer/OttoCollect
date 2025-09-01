@@ -69,7 +69,7 @@ const PrivacyPolicy: React.FC = () => {
               We collect this data based on your consent to provide services related to creating and maintaining your personal collection, to better our services, resolve problems and bugs faster by analyzing server logs and automatic error reports. We do not use personal data to make automated decisions nor do we transfer it internationally.
             </p>
             <p className="mb-4">
-              We use this information to analyze trends, to administer Colnect, to track users' movements around ottocollect and to gather demographic information about our userbase as a whole.
+              We use this information to analyze trends, to administer OttoCollect, to track users' movements around ottocollect and to gather demographic information about our userbase as a whole.
             </p>
 
             <h3 className="text-xl font-semibold mt-6 mb-3"><span>Cookies</span></h3>
@@ -77,7 +77,7 @@ const PrivacyPolicy: React.FC = () => {
               We set a persistent cookie to make your session last longer, so you don't have to enter your password too often. Persistent cookies also enable us to track and target the interests of our users to enhance the experience on ottocollect.
             </p>
             <p className="mb-4">
-              ottocollect may use aggregate (non-personally identifying) information to track ottocollect development and for other legitimate purposes. This includes, but not limited to, number of active collectors, their collectibles types, their collection sizes, their country of origin and their use of Colnect.
+              ottocollect may use aggregate (non-personally identifying) information to track ottocollect development and for other legitimate purposes. This includes, but not limited to, number of active collectors, their collectibles types, their collection sizes, their country of origin and their use of OttoCollect.
             </p>
 
             <h3 className="text-xl font-semibold mt-6 mb-3"><span>Personal Collection</span></h3>
@@ -100,7 +100,7 @@ const PrivacyPolicy: React.FC = () => {
               We will send you strictly service-related announcements on rare occasions when it is necessary to do so. Generally, you may not opt-out of these communications, which are not promotional in nature. If you do not wish to receive them, you have the option to deactivate or remove your account.
             </p>
             <p className="mb-4">
-              Other email preferences may be set using "My Account" option on the top bar of the site.
+              Other email preferences may be set using "Settings" option on the top bar of the site.
             </p>
 
             <h2 className="text-2xl font-bold mt-8 mb-4"><span>Third Parties</span></h2>
@@ -108,7 +108,7 @@ const PrivacyPolicy: React.FC = () => {
               We DO NOT share personally identifiable information with third parties except for the rare cases described in this document. Do note that personal information you place on your profile or post on our forums may be publicly available.
             </p>
             <p className="mb-4">
-              We reserve the right to disclose your personally identifiable information as required by law and when we believe that disclosure is necessary to protect our rights and/or to comply with a judicial proceeding, court order, or legal process served on Colnect.
+              We reserve the right to disclose your personally identifiable information as required by law and when we believe that disclosure is necessary to protect our rights and/or to comply with a judicial proceeding, court order, or legal process served on OttoCollect.
             </p>
 
             <h3 className="text-xl font-semibold mt-6 mb-3"><span>Advertisers</span>    </h3>
@@ -162,7 +162,7 @@ const PrivacyPolicy: React.FC = () => {
 
             <h3 className="text-xl font-semibold mt-6 mb-3"><span>Account removal</span></h3>
             <p className="mb-4">
-              If you no longer want to use your ottocollect account you can deactivate it. After deactivation your lists will be hidden but your collection will not be deleted and you will be able to get it back in case you change your mind. If you're sure that you want your account completely deleted, please contact our support at <a href="mailto:accounts@ottocollect.com" className="text-primary hover:underline">accounts@ottocollect.com</a>. This action cannot be undone and your collection will be lost forever.
+              If you no longer want to use your ottocollect account you can deactivate it. After deactivation your lists will be hidden but your collection will not be deleted and you will be able to get it back in case you change your mind. If you're sure that you want your account completely deleted, please contact our support at <a href="mailto:info@ottocollect.com" className="text-primary hover:underline">info@ottocollect.com</a>. This action cannot be undone and your collection will be lost forever.
             </p>
 
             <h2 className="text-2xl font-bold mt-8 mb-4"><span>User rights under GDPR</span></h2>
@@ -182,7 +182,7 @@ const PrivacyPolicy: React.FC = () => {
 
             <h2 className="text-2xl font-bold mt-8 mb-4"><span>Data retention</span></h2>
             <p className="mb-4">
-              We retain your personal data for at least as long as your ottocollect account is active. Remember that we may use the data you provided for a prolonged period of time for example to finalize Marketplace transactions or when we detect suspected behavior which would otherwise expose other users to fraud. Following your account deactivation, you may request complete removal of your information by writing <a href="mailto:support@ottocollect.com" className="text-primary hover:underline">support@ottocollect.com</a>
+              We retain your personal data for at least as long as your ottocollect account is active. Remember that we may use the data you provided for a prolonged period of time for example to finalize Marketplace transactions or when we detect suspected behavior which would otherwise expose other users to fraud. Following your account deactivation, you may request complete removal of your information by writing <a href="mailto:info@ottocollect.com" className="text-primary hover:underline">info@ottocollect.com</a>
             </p>
 
             <h2 className="text-2xl font-bold mt-8 mb-4"><span>Changes to this Privacy Statement</span></h2>
@@ -192,7 +192,7 @@ const PrivacyPolicy: React.FC = () => {
 
             <h2 className="text-2xl font-bold mt-8 mb-4"><span>Contact Us</span></h2>
             <p className="mb-4">
-              If you have any questions or suggestions regarding our privacy policy, please contact us at <a href="mailto:support@ottocollect.com" className="text-primary hover:underline">support@ottocollect.com</a>
+              If you have any questions or suggestions regarding our privacy policy, please contact us at <a href="mailto:info@ottocollect.com" className="text-primary hover:underline">info@ottocollect.com</a>
             </p>
           </CardContent>
         </Card>

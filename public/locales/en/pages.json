@@ -294,5 +294,296 @@
     },
     "comingSoon": "Coming Soon",
     "featureAvailable": "Feature available - no action required"
+  },
+  "terms": {
+    "back": "Back",
+    "title": "Terms of Service",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "pointA": {
+          "label": "A.",
+          "content": "By accessing and using this website, you accept and agree to be bound by the terms and provision of this agreement."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "If you do not agree to abide by the above, please do not use this service."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "These terms apply to all visitors, users, and others who access or use the service."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "We reserve the right to modify these terms at any time."
+        }
+      },
+      "website": {
+        "title": "Use License",
+        "pointA": {
+          "label": "A.",
+          "content": "Permission is granted to temporarily download one copy of the materials (information or software) on OttoCollect's website for personal, non-commercial transitory viewing only."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "This is the grant of a license, not a transfer of title, and under this license you may not: modify or copy the materials; use the materials for any commercial purpose or for any public display; attempt to reverse engineer any software contained on OttoCollect's website."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "This license shall automatically terminate if you violate any of these restrictions and may be terminated by OttoCollect at any time."
+        }
+      },
+      "accounts": {
+        "title": "User Accounts",
+        "pointA": {
+          "label": "A.",
+          "content": "When you create an account with us, you must provide information that is accurate, complete, and current at all times."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "You are responsible for safeguarding the password that you use to access the service and for any activities or actions under your password."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "You agree not to disclose your password to any third party and to take sole responsibility for any activities or actions under your account."
+        }
+      },
+      "generalUse": {
+        "title": "General Use",
+        "intro": "You may use our service only for lawful purposes and in accordance with these Terms.",
+        "pointA": {
+          "label": "A.",
+          "content": "You agree not to use the service in any way that violates any applicable federal, state, local, or international law or regulation."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "You agree not to transmit, or procure the sending of, any advertising or promotional material, including any 'junk mail,' 'chain letter,' 'spam,' or any other similar solicitation."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "You agree not to impersonate or attempt to impersonate the Company, a Company employee, another user, or any other person or entity."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "You agree not to engage in any other conduct that restricts or inhibits anyone's use or enjoyment of the service."
+        },
+        "prohibitedUses": {
+          "sale": "Sale",
+          "advertising": "Advertising",
+          "competing": "Competing"
+        },
+        "pointE": {
+          "label": "E.",
+          "content": "You agree not to use the service for any commercial purpose without our express written consent."
+        },
+        "permittedUses": {
+          "swapList": "Swap List",
+          "authorizedUse": "Authorized Use"
+        },
+        "pointF": {
+          "label": "F.",
+          "content": "You may use the service for personal, non-commercial purposes such as managing your collection and connecting with other collectors."
+        },
+        "pointG": {
+          "label": "G.",
+          "content": "You may share information about your collection and participate in community discussions as permitted by these terms."
+        },
+        "pointH": {
+          "label": "H.",
+          "content": "You may use the marketplace features in accordance with our marketplace policies and guidelines."
+        }
+      },
+      "yourUseOfContent": {
+        "title": "Your Use of Content",
+        "pointA": {
+          "label": "A.",
+          "content": "The service contains content owned or licensed by OttoCollect, including but not limited to text, graphics, images, and software."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "You may not copy, reproduce, distribute, transmit, broadcast, display, sell, license, or otherwise exploit any content for any commercial purposes."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "You may not remove, alter, or obscure any copyright, trademark, service mark, or other proprietary rights notices."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "You may not use any content in a manner that suggests an association with OttoCollect without our express written consent."
+        },
+        "pointE": {
+          "label": "E.",
+          "content": "You may not use any content for any purpose not expressly permitted by these Terms."
+        },
+        "pointF": {
+          "label": "F.",
+          "content": "You may not use any content in a way that violates any applicable law or regulation."
+        },
+        "pointG": {
+          "label": "G.",
+          "content": "You may not use any content to harass, abuse, or harm another person."
+        },
+        "pointH": {
+          "label": "H.",
+          "content": "You may not use any content to transmit viruses or other malicious code."
+        }
+      },
+      "yourUserContributions": {
+        "title": "Your User Contributions",
+        "pointA": {
+          "label": "A.",
+          "content": "The service may contain message boards, chat rooms, personal web pages or profiles, forums, and other interactive features that allow users to post, submit, publish, display, or transmit content."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "All User Contributions must comply with these Terms and all applicable laws and regulations."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "You represent and warrant that all of your User Contributions do and will comply with these Terms."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "You understand and acknowledge that you are responsible for any User Contributions you submit or contribute."
+        },
+        "pointE": {
+          "label": "E.",
+          "content": "You have full responsibility for such content, including its legality, reliability, accuracy, and appropriateness."
+        },
+        "pointF": {
+          "label": "F.",
+          "content": "We are not responsible or liable to any third party for the content or accuracy of any User Contributions posted by you or any other user of the service."
+        },
+        "pointG": {
+          "label": "G.",
+          "content": "You agree not to post User Contributions that are unlawful, harmful, threatening, abusive, harassing, defamatory, or otherwise objectionable."
+        },
+        "pointH": {
+          "label": "H.",
+          "content": "You agree not to post User Contributions that infringe on the intellectual property rights of others."
+        }
+      },
+      "accountTerminationPolicy": {
+        "title": "Account Termination Policy",
+        "pointA": {
+          "label": "A.",
+          "content": "We may terminate or suspend your account and bar access to the service immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "If you wish to terminate your account, you may simply discontinue using the service."
+        }
+      },
+      "subscriptions": {
+        "title": "Subscriptions",
+        "content": "Some parts of the service are billed on a subscription basis. You will be billed in advance on a recurring and periodic basis, depending on the type of subscription plan you select when purchasing a subscription."
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "content": "The marketplace feature allows users to buy and sell banknotes. All transactions are subject to our marketplace policies and guidelines. We are not responsible for the quality, authenticity, or condition of items sold through the marketplace."
+      },
+      "api": {
+        "title": "API Usage",
+        "intro": "If you use our API, you must comply with the following terms:",
+        "pointA": {
+          "label": "A.",
+          "content": "You may not use the API for any commercial purpose without our express written consent."
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "You may not exceed reasonable rate limits as determined by us."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "You may not use the API to scrape or collect data in violation of these terms."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "You may not use the API to create competing services."
+        },
+        "pointE": {
+          "label": "E.",
+          "content": "You must respect our intellectual property rights and not reverse engineer our services."
+        },
+        "pointF": {
+          "label": "F.",
+          "content": "You may not use the API to transmit viruses or other malicious code."
+        },
+        "pointG": {
+          "label": "G.",
+          "content": "You may not use the API to harass, abuse, or harm other users."
+        },
+        "pointH": {
+          "label": "H.",
+          "content": "We reserve the right to modify or discontinue the API at any time."
+        }
+      },
+      "warrantyDisclaimer": {
+        "title": "Warranty Disclaimer",
+        "content": "The information on this service is provided on an 'as is' basis. To the fullest extent permitted by law, this Company excludes all representations, warranties, conditions and terms whether express or implied."
+      },
+      "limitationOfLiability": {
+        "title": "Limitation of Liability",
+        "content": "In no event shall OttoCollect, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.",
+        "acknowledgement": "You acknowledge that the limitations set forth above are fundamental elements of this agreement and the site would not be provided to you absent such limitations.",
+        "location": "Some jurisdictions do not allow the exclusion of certain warranties or the limitation or exclusion of liability for incidental or consequential damages. Accordingly, some of the above limitations may not apply to you."
+      },
+      "indemnity": {
+        "title": "Indemnity",
+        "content": "You agree to defend, indemnify and hold harmless OttoCollect and its licensee and licensors, and their employees, contractors, agents, officers and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses."
+      },
+      "csae": {
+        "title": "Copyright, Service Marks, and Other Intellectual Property",
+        "pointA": {
+          "label": "A.",
+          "content": "The service and its original content, features, and functionality are and will remain the exclusive property of OttoCollect and its licensors.",
+          "list": {
+            "item1": "The service is protected by copyright, trademark, and other laws.",
+            "item2": "Our trademarks and trade dress may not be used in connection with any product or service without our prior written consent.",
+            "item3": "You may not use any of our intellectual property without our express written permission."
+          }
+        },
+        "pointB": {
+          "label": "B.",
+          "content": "You retain ownership of any intellectual property rights that you hold in your User Contributions."
+        },
+        "pointC": {
+          "label": "C.",
+          "content": "By posting User Contributions, you grant us a non-exclusive, royalty-free, transferable, sub-licensable, worldwide license to use, reproduce, modify, and distribute your User Contributions."
+        },
+        "pointD": {
+          "label": "D.",
+          "content": "You represent and warrant that you own or control all rights to your User Contributions and have the right to grant the license granted above."
+        },
+        "pointE": {
+          "label": "E.",
+          "content": "You represent and warrant that your User Contributions do not infringe on the intellectual property rights of any third party."
+        },
+        "pointF": {
+          "label": "F.",
+          "content": "If you believe that your intellectual property rights have been violated, please contact us immediately."
+        },
+        "pointG": {
+          "label": "G.",
+          "content": "We respect the intellectual property rights of others and expect our users to do the same."
+        },
+        "pointH": {
+          "label": "H.",
+          "content": "We reserve the right to remove content that we believe violates the intellectual property rights of others."
+        }
+      },
+      "acceptanceOfTerms": {
+        "title": "Acceptance of Terms",
+        "content": "By using this service, you acknowledge that you have read these terms and agree to be bound by them. If you do not agree to these terms, please do not use the service."
+      },
+      "assignment": {
+        "title": "Assignment",
+        "content": "You may not assign or transfer your rights or obligations under these Terms without our prior written consent. We may assign or transfer our rights and obligations under these Terms at any time."
+      },
+      "general": {
+        "title": "General",
+        "content": "These Terms constitute the entire agreement between you and OttoCollect regarding the use of the service. If any provision of these Terms is held to be invalid or unenforceable, the remaining provisions will continue to be valid and enforceable."
+      }
+    }
   }
 } 
