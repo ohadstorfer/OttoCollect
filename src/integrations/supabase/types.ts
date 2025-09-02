@@ -429,6 +429,7 @@ export type Database = {
           created_at: string
           id: string
           is_edited: boolean | null
+          original_language: string | null
           post_id: string
           updated_at: string
         }
@@ -441,6 +442,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_edited?: boolean | null
+          original_language?: string | null
           post_id: string
           updated_at?: string
         }
@@ -453,6 +455,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_edited?: boolean | null
+          original_language?: string | null
           post_id?: string
           updated_at?: string
         }

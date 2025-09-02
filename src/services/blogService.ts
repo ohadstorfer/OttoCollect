@@ -553,6 +553,37 @@ export const addBlogComment = async (
 
     console.log("Added comment:", data.id);
 
+    // Detect and save original language
+    try {
+      const contentLanguage = await translationService.detectLanguage(content);
+      
+      const updateData: any = {
+        original_language: contentLanguage
+      };
+      
+      // Save content to appropriate language field
+      if (contentLanguage !== 'en') {
+        const contentField = `content_${contentLanguage}`;
+        updateData[contentField] = content;
+        console.log(`🌐 [BlogComment] Saving content to ${contentField}`);
+      } else {
+        updateData.content_en = content;
+        console.log(`🌐 [BlogComment] Saving English content to content_en`);
+      }
+      
+      // Update the comment with language data
+      const { error: updateError } = await supabase
+        .from('blog_comments')
+        .update(updateData)
+        .eq('id', data.id);
+        
+      if (updateError) {
+        console.error('Error updating blog comment with language data:', updateError);
+      }
+    } catch (error) {
+      console.error('Error detecting blog comment language:', error);
+    }
+
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')

@@ -744,6 +744,37 @@ export const addForumComment = async (
 
     console.log("Added comment:", data.id);
 
+    // Detect and save original language
+    try {
+      const contentLanguage = await forumTranslationService.detectLanguage(content);
+      
+      const updateData: any = {
+        original_language: contentLanguage
+      };
+      
+      // Save content to appropriate language field
+      if (contentLanguage !== 'en') {
+        const contentField = `content_${contentLanguage}`;
+        updateData[contentField] = content;
+        console.log(`🌐 [ForumComment] Saving content to ${contentField}`);
+      } else {
+        updateData.content_en = content;
+        console.log(`🌐 [ForumComment] Saving English content to content_en`);
+      }
+      
+      // Update the comment with language data
+      const { error: updateError } = await supabase
+        .from('forum_comments')
+        .update(updateData)
+        .eq('id', data.id);
+        
+      if (updateError) {
+        console.error('Error updating forum comment with language data:', updateError);
+      }
+    } catch (error) {
+      console.error('Error detecting forum comment language:', error);
+    }
+
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')

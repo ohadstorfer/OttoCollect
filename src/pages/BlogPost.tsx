@@ -473,6 +473,13 @@ const BlogPostPage = () => {
                 <span> {renderTextWithLinks(displayedTitle)} </span>
               </h6>
               
+              
+              
+              <div className={`whitespace-pre-line mb-4 break-words overflow-wrap-anywhere ${currentLanguage === 'ar' ? 'text-right' : ''}`}>
+                {renderTextWithLinks(displayedContent)}
+              </div>
+              
+
               {/* Translation Button */}
               <div className={`mb-3 ${currentLanguage === 'ar' ? 'text-right' : ''}`}>
                 <BlogTranslationButton
@@ -485,10 +492,7 @@ const BlogPostPage = () => {
                   isShowingTranslation={isShowingTranslation}
                 />
               </div>
-              
-              <div className={`whitespace-pre-line mb-4 break-words overflow-wrap-anywhere ${currentLanguage === 'ar' ? 'text-right' : ''}`}>
-                {renderTextWithLinks(displayedContent)}
-              </div>
+
 
               {post.main_image_url && (
                <div className="mb-3">
