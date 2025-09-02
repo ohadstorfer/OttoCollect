@@ -90,6 +90,7 @@ export const fetchBlogPosts = async (): Promise<BlogPost[]> => {
       
       return {
         id: post.id,
+        original_language: post.original_language,
         title: post.title,
         title_ar: post.title_ar,
         title_tr: post.title_tr,
@@ -173,6 +174,7 @@ export const fetchBlogPostById = async (id: string): Promise<BlogPost | null> =>
       main_image_url: post.main_image_url,
       author_id: post.author_id,
       authorId: post.author_id,
+      original_language: post.original_language,
       created_at: post.created_at,
       updated_at: post.updated_at,
       createdAt: post.created_at,

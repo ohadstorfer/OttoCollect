@@ -66,8 +66,16 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
           <span>{displayTitle}</span>
         </h3>
         
-        {/* Translation Button */}
-        <div className={`mt-2`} onClick={(e) => e.stopPropagation()}>
+       
+      </CardHeader>
+
+      <CardContent className="p-4 pt-0 flex-1">
+        <p className="text-muted-foreground text-sm line-clamp-3">
+          {displayExcerpt}
+        </p>
+
+         {/* Translation Button */}
+         <div className={`mt-2`} onClick={(e) => e.stopPropagation()}>
           <BlogTranslationButton
             postId={post.id}
             currentTitle={displayTitle}
@@ -91,12 +99,7 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
             variant="ghost"
           />
         </div>
-      </CardHeader>
-
-      <CardContent className="p-4 pt-0 flex-1">
-        <p className="text-muted-foreground text-sm line-clamp-3">
-          {displayExcerpt}
-        </p>
+        
       </CardContent>
 
       <CardFooter className="p-4 pt-2 border-t bg-muted/50 mt-auto">

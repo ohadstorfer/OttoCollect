@@ -326,6 +326,7 @@ export const fetchForumAnnouncementById = async (id: string): Promise<ForumPost 
         original_language,
         title_ar, title_tr, title_en,
         content_ar, content_tr, content_en,
+        original_language,
         profiles!forum_announcements_author_id_fkey (
           id,
           username,

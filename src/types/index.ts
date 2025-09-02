@@ -329,10 +329,13 @@ export interface ForumPost {
   title: string;
   title_ar?: string;
   title_tr?: string;
+  title_en?: string;
   content: string;
   content_ar?: string;
   content_tr?: string;
+  content_en?: string;
   author_id: string;
+  original_language?: string;
   image_urls?: string[];
   created_at: string;
   updated_at: string;
@@ -345,6 +348,8 @@ export interface ForumComment {
   content: string;
   content_ar?: string;
   content_tr?: string;
+  content_en?: string;
+  original_language?: string;
   created_at: string;
   updated_at: string;
   is_edited?: boolean;

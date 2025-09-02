@@ -104,7 +104,8 @@ const Forum = () => {
           imageUrls: announcement.image_urls || [],
           created_at: announcement.created_at,
           updated_at: announcement.updated_at,
-          commentCount: 0 // Announcements don't have comments
+          commentCount: 0, // Announcements don't have comments
+          original_language: announcement.original_language,
         })) as ForumPostWithAuthor[];
 
         setAnnouncements(announcementsWithAuthorRank);

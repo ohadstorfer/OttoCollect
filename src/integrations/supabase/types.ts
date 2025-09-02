@@ -1145,6 +1145,7 @@ export type Database = {
           created_at: string
           id: string
           image_urls: string[] | null
+          original_language: string | null
           title: string
           title_ar: string | null
           title_en: string | null
@@ -1160,6 +1161,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_urls?: string[] | null
+          original_language?: string | null
           title: string
           title_ar?: string | null
           title_en?: string | null
@@ -1175,6 +1177,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_urls?: string[] | null
+          original_language?: string | null
           title?: string
           title_ar?: string | null
           title_en?: string | null
