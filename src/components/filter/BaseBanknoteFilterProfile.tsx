@@ -66,6 +66,8 @@ export type BaseBanknoteFilterProps = {
   isOwner?: boolean;
   userId?: string;
   countryName?: string;
+  countryNameAr?: string;
+  countryNameTr?: string;
   profileUser?: {
     id: string;
     username: string;
@@ -104,6 +106,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   isOwner,
   userId,
   countryName,
+  countryNameAr,
+  countryNameTr,
   profileUser,
   onBackToCountries,
   collectionItems,
@@ -121,6 +125,29 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const { t: tFilter } = useTranslation(['filter']);
   const { t: tProfile } = useTranslation(['profile']);
   const { printCollection, isPrinting } = usePrintCollection();
+  const { direction, currentLanguage } = useLanguage();
+  
+  // Function to get the appropriate country name based on current language
+  const getTranslatedCountryName = () => {
+    if (!countryName) return '';
+    
+    switch (currentLanguage) {
+      case 'ar':
+        return countryNameAr || countryName;
+      case 'tr':
+        return countryNameTr || countryName;
+      default:
+        return countryName;
+    }
+  };
+
+  const translatedCountryName = getTranslatedCountryName();
+  
+  // Function to get the translated tab label based on activeTab key
+  const getTranslatedTabLabel = (tabKey: string) => {
+    const tab = tabList.find(tab => tab.key === tabKey);
+    return tab ? tab.label : tabKey;
+  };
   // Separate states for desktop and mobile sheets
   const [isDesktopCategorySheetOpen, setIsDesktopCategorySheetOpen] = useState(false);
   const [isDesktopSortSheetOpen, setIsDesktopSortSheetOpen] = useState(false);
@@ -128,7 +155,6 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   const [isMobileSortSheetOpen, setIsMobileSortSheetOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
-  const { direction } = useLanguage();
 
 
   // Memoize the fallback function to prevent infinite re-renders
@@ -568,10 +594,10 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
               )}
             </div>
 
-            {countryName && activeTab && (
+            {translatedCountryName && activeTab && (
               <div className="flex items-center min-w-0 shrink">
                 <span className="text-muted-foreground px-1 sm:px-3">/</span>
-                <span className="font-medium min-w-0 shrink">{countryName} {activeTab}</span>
+                <span className="font-medium min-w-0 shrink">{translatedCountryName} {getTranslatedTabLabel(activeTab)}</span>
               </div>
             )}
           </div>
@@ -791,7 +817,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
 
  {/* AddUnlistedBanknoteDialog button for owners */}
                 <AddUnlistedBanknoteDialog
-                countryName={countryName || ''}
+                countryName={translatedCountryName || ''}
                 onCreated={onAddUnlistedBanknote}
               />
 
@@ -817,7 +843,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 {/* AddUnlistedBanknoteDialog button for owners */}
                 {isOwner && (
                   <AddUnlistedBanknoteDialog
-                    countryName={countryName || ''}
+                    countryName={translatedCountryName || ''}
                     onCreated={onAddUnlistedBanknote}
                   />
                 )}

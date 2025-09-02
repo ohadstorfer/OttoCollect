@@ -61,6 +61,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 
   const {
     countryId,
+    countryData,
     categoryOrder,
     currencies,
     loading: countryLoading,
@@ -869,6 +870,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       <BanknoteFilterCollection
         countryId={countryId}
         countryName={effectiveCountryName}
+        countryNameAr={countryData?.name_ar}
+        countryNameTr={countryData?.name_tr}
         onFilterChange={handleFilterChange}
         currentFilters={filters}
         isLoading={isLoading}

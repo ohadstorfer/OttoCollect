@@ -44,6 +44,8 @@ export interface BanknoteFilterCollectionProps {
   currencies?: any[];
   categoryOrder?: any[];
   getFlattenedItemsForExport?: (activeTab: string) => CollectionItem[];
+  countryNameAr?: string;
+  countryNameTr?: string;
 }
 
 // Custom comparison function to ensure re-renders when viewMode or groupMode change
@@ -73,6 +75,8 @@ const areEqual = (prevProps: BanknoteFilterCollectionProps, nextProps: BanknoteF
 export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> = memo(({
   countryId,
   countryName,
+  countryNameAr,
+  countryNameTr,
   onFilterChange,
   currentFilters,
   isLoading = false,
@@ -519,6 +523,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         onTabChange={onTabChange}
         isOwner={isOwner}
         countryName={countryName}
+        countryNameAr={countryNameAr}
+        countryNameTr={countryNameTr}
         profileUser={profileUser}
         onBackToCountries={onBackToCountries}
         collectionItems={collectionItems}

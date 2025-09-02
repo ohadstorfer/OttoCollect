@@ -63,7 +63,9 @@
   
   "country": {
     "catalogue": "فهرس",
-    "historicalBanknoteCatalogue": "فهرس الأوراق النقدية التاريخية"
+    "historicalBanknoteCatalogue": "فهرس الأوراق النقدية التاريخية",
+    "mobileTitle": "فهرس {{countryName}}",
+    "desktopTitle": "فهرس الأوراق النقدية التاريخية لـ {{countryName}}"
   },
   
   "loading": {

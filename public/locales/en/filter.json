@@ -65,7 +65,9 @@
   
   "country": {
     "catalogue": "catalogue",
-    "historicalBanknoteCatalogue": "Historical Banknote Catalogue"
+    "historicalBanknoteCatalogue": "Historical Banknote Catalogue",
+    "mobileTitle": "{{countryName}} catalogue",
+    "desktopTitle": "{{countryName}} Historical Banknote Catalogue"
   },
   
   "loading": {

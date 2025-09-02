@@ -7,6 +7,8 @@ import { CollectionItem } from "@/types";
 interface CountryFilterSectionProps {
   countryId: string;
   countryName: string;
+  countryNameAr?: string;
+  countryNameTr?: string;
   filters: DynamicFilterState;
   onFilterChange: (newFilters: Partial<DynamicFilterState>) => void;
   isLoading: boolean;
@@ -57,6 +59,8 @@ const areEqual = (prevProps: CountryFilterSectionProps, nextProps: CountryFilter
 export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   countryId,
   countryName,
+  countryNameAr,
+  countryNameTr,
   filters,
   onFilterChange,
   isLoading,
@@ -85,6 +89,8 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
       <BanknoteFilterCollection
         countryId={countryId}
         countryName={countryName}
+        countryNameAr={countryNameAr}
+        countryNameTr={countryNameTr}
         onFilterChange={handleFilterChange}
         currentFilters={filters}
         isLoading={isLoading}
@@ -106,6 +112,8 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
     <BanknoteFilterCatalog
       countryId={countryId}
       countryName={countryName}
+      countryNameAr={countryNameAr}
+      countryNameTr={countryNameTr}
       onFilterChange={handleFilterChange}
       currentFilters={filters}
       isLoading={isLoading}

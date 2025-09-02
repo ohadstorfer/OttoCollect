@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { fetchCountryByName, fetchCategoriesByCountryId, fetchUserFilterPreferences } from "@/services/countryService";
 import { supabase } from "@/integrations/supabase/client";
-import { CategoryDefinition } from "@/types/filter";
+import { CategoryDefinition, CountryData } from "@/types/filter";
 import { Currency } from "@/types/banknote";
 
 interface UseCountryDataProps {
@@ -15,6 +15,7 @@ interface UseCountryDataProps {
 
 interface UseCountryDataResult {
   countryId: string;
+  countryData: CountryData | null;
   categoryOrder: { name: string; order: number }[];
   currencies: Currency[];
   loading: boolean;
@@ -31,6 +32,7 @@ export const useCountryData = ({
   const { toast } = useToast();
   const { user } = useAuth();
   const [countryId, setCountryId] = useState<string>("");
+  const [countryData, setCountryData] = useState<CountryData | null>(null);
   const [categoryOrder, setCategoryOrder] = useState<{ name: string; order: number }[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -68,6 +70,7 @@ export const useCountryData = ({
 
         console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
+        setCountryData(countryData);
 
         const categories = await fetchCategoriesByCountryId(countryData.id);
         console.log("CountryDetail: Raw categories from database:", categories);
@@ -165,6 +168,7 @@ export const useCountryData = ({
 
   return {
     countryId,
+    countryData,
     categoryOrder,
     currencies,
     loading,

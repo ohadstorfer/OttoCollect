@@ -63,7 +63,9 @@
   
   "country": {
     "catalogue": "katalog",
-    "historicalBanknoteCatalogue": "Tarihi Banknot Kataloğu"
+    "historicalBanknoteCatalogue": "Tarihi Banknot Kataloğu",
+    "mobileTitle": "{{countryName}} kataloğu",
+    "desktopTitle": "{{countryName}} Tarihi Banknot Kataloğu"
   },
   
   "loading": {

@@ -75,6 +75,7 @@ const CountryDetail = () => {
 
   const {
     countryId,
+    countryData,
     categoryOrder,
     currencies,
     loading: countryLoading,
@@ -189,6 +190,8 @@ const CountryDetail = () => {
           <CountryFilterSection
             countryId={countryId}
             countryName={country ? decodeURIComponent(country) : ""}
+            countryNameAr={countryData?.name_ar}
+            countryNameTr={countryData?.name_tr}
             filters={filters}
             onFilterChange={handleFilterChange}
             isLoading={isLoading}

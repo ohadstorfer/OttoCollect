@@ -24,6 +24,8 @@ interface BanknoteFilterCatalogProps {
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
   onPreferencesLoaded?: () => void;
+  countryNameAr?: string;
+  countryNameTr?: string;
 }
 
 // Custom comparison function to ensure re-renders when viewMode or groupMode change
@@ -50,6 +52,8 @@ const areEqual = (prevProps: BanknoteFilterCatalogProps, nextProps: BanknoteFilt
 export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(({
   countryId,
   countryName,
+  countryNameAr,
+  countryNameTr,
   onFilterChange,
   currentFilters,
   isLoading = false,
@@ -482,6 +486,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         groupMode={groupMode}
         onGroupModeChange={handleGroupModeChange}
         countryName={countryName}
+        countryNameAr={countryNameAr}
+        countryNameTr={countryNameTr}
       />
     </div>
   );

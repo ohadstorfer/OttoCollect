@@ -53,6 +53,8 @@ export type BaseBanknoteFilterProps = {
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
   countryName?: string;
+  countryNameAr?: string;
+  countryNameTr?: string;
   countries?: FilterOption[]; // Add countries support for marketplace
 };
 
@@ -71,12 +73,30 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   groupMode = false,
   onGroupModeChange,
   countryName,
+  countryNameAr,
+  countryNameTr,
   countries = []
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { t } = useTranslation(['filter']);
-  const { direction } = useLanguage();
+  const { direction, currentLanguage } = useLanguage();
+  
+  // Function to get the appropriate country name based on current language
+  const getTranslatedCountryName = () => {
+    if (!countryName) return '';
+    
+    switch (currentLanguage) {
+      case 'ar':
+        return countryNameAr || countryName;
+      case 'tr':
+        return countryNameTr || countryName;
+      default:
+        return countryName;
+    }
+  };
+
+  const translatedCountryName = getTranslatedCountryName();
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
     return (key: string, fallback: string) => {
@@ -438,7 +458,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       className
     )}>
       {/* New country header row */}
-      {countryName && (
+      {translatedCountryName && (
   <div className="flex items-center justify-center gap-2 mb-4 px-2 sm:px-4 text-sm sm:text-base">
     <Button
       variant="ghost"
@@ -451,12 +471,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
     {/* Mobile title */}
     <h3 className="text-xl font-semibold border-primary block sm:hidden">
-      <span>{countryName} {tWithFallback('country.catalogue', 'catalogue')}</span>
+      <span>{t('country.mobileTitle', { countryName: translatedCountryName }) || `${translatedCountryName} catalogue`}</span>
     </h3>
 
     {/* Desktop title */}
     <h3 className="text-xl font-semibold border-primary hidden sm:block">
-      <span>{countryName}'s {tWithFallback('country.historicalBanknoteCatalogue', 'Historical Banknote Catalogue')}</span>
+      <span>{t('country.desktopTitle', { countryName: translatedCountryName }) || `${translatedCountryName} Historical Banknote Catalogue`}</span>
     </h3>
   </div>
 )}
