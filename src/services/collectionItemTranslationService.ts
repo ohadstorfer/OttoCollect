@@ -28,7 +28,7 @@ export class CollectionItemTranslationService {
    */
   static detectChangedFields(oldItem: any, newItem: any): ChangedFields {
     const changed: ChangedFields = {};
-
+    
     if (oldItem.public_note !== newItem.public_note) {
       changed.public_note = true;
     }
@@ -38,7 +38,7 @@ export class CollectionItemTranslationService {
     if (oldItem.type !== newItem.type) {
       changed.type = true;
     }
-
+    
     return changed;
   }
 
@@ -87,8 +87,8 @@ export class CollectionItemTranslationService {
               console.log(`✅ Translation successful: ${srcLang}->${targetLang}:`, translation);
             } else {
               console.warn(`⚠️ Empty translation result for ${field} from ${srcLang} to ${targetLang}`);
-            }
-          } catch (error) {
+          }
+        } catch (error) {
             console.error(`❌ Failed translating ${field} from ${srcLang} to ${targetLang}:`, error);
           }
         }
@@ -114,14 +114,14 @@ export class CollectionItemTranslationService {
         });
 
         if (Object.keys(validTranslationData).length > 0) {
-          const { error } = await supabase
-            .from('collection_items')
+        const { error } = await supabase
+          .from('collection_items')
             .update(validTranslationData)
-            .eq('id', itemId);
+          .eq('id', itemId);
 
-          if (error) {
-            console.error('❌ Error updating collection item translations:', error);
-            return false;
+        if (error) {
+          console.error('❌ Error updating collection item translations:', error);
+          return false;
           }
         }
 
@@ -299,7 +299,7 @@ export class CollectionItemTranslationService {
     newItemData: any
   ): Promise<void> {
     const changedFields = this.detectChangedFields(oldItemData, newItemData);
-
+    
     // Only proceed if there are changed translatable fields
     if (changedFields.public_note || changedFields.location || changedFields.type) {
       console.log('🌐 [CollectionItemTranslation] Translating changed fields for item:', itemId);
