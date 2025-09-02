@@ -84,29 +84,48 @@ const Forum = () => {
           .from('forum_announcements')
           .select(`
             *,
+            original_language,
             author:profiles!forum_announcements_author_id_fkey(id, username, avatar_url, rank)
           `)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        const announcementsWithAuthorRank = (announcementsData || []).map(announcement => ({
-          id: announcement.id,
-          title: announcement.title,
-          content: announcement.content,
-          authorId: announcement.author_id,
-          author_id: announcement.author_id,
-          author: {
-            ...announcement.author,
-            avatarUrl: announcement.author.avatar_url, // Fix: map avatar_url to avatarUrl
-            rank: announcement.author.rank || 'Unknown'
-          },
-          imageUrls: announcement.image_urls || [],
-          created_at: announcement.created_at,
-          updated_at: announcement.updated_at,
-          commentCount: 0, // Announcements don't have comments
-          original_language: announcement.original_language,
-        })) as ForumPostWithAuthor[];
+        // Fetch comment counts for each announcement
+        const announcementsWithCommentCounts = await Promise.all(
+          (announcementsData || []).map(async (announcement) => {
+            // Get comment count for this announcement
+            const { count: commentCount } = await supabase
+              .from('forum_announcement_comments')
+              .select('*', { count: 'exact', head: true })
+              .eq('announcement_id', announcement.id);
+
+            return {
+              ...announcement,
+              commentCount: commentCount || 0
+            };
+          })
+        );
+
+        const announcementsWithAuthorRank = announcementsWithCommentCounts.map(announcement => {
+          return {
+            id: announcement.id,
+            title: announcement.title,
+            content: announcement.content,
+            authorId: announcement.author_id,
+            author_id: announcement.author_id,
+            author: {
+              ...announcement.author,
+              avatarUrl: announcement.author.avatar_url, // Fix: map avatar_url to avatarUrl
+              rank: announcement.author.rank || 'Unknown'
+            },
+            imageUrls: announcement.image_urls || [],
+            created_at: announcement.created_at,
+            updated_at: announcement.updated_at,
+            commentCount: announcement.commentCount, // Use fetched comment count
+            original_language: announcement.original_language,
+          };
+        }) as ForumPostWithAuthor[];
 
         setAnnouncements(announcementsWithAuthorRank);
         setFilteredAnnouncements(announcementsWithAuthorRank);

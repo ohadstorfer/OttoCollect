@@ -522,6 +522,7 @@ export type Database = {
           excerpt_tr: string | null
           id: string
           main_image_url: string
+          original_language: string | null
           title: string
           title_ar: string | null
           title_en: string | null
@@ -541,6 +542,7 @@ export type Database = {
           excerpt_tr?: string | null
           id?: string
           main_image_url: string
+          original_language?: string | null
           title: string
           title_ar?: string | null
           title_en?: string | null
@@ -560,6 +562,7 @@ export type Database = {
           excerpt_tr?: string | null
           id?: string
           main_image_url?: string
+          original_language?: string | null
           title?: string
           title_ar?: string | null
           title_en?: string | null
@@ -1085,6 +1088,7 @@ export type Database = {
           created_at: string
           id: string
           is_edited: boolean | null
+          original_language: string | null
           parent_comment_id: string | null
           updated_at: string
         }
@@ -1098,6 +1102,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_edited?: boolean | null
+          original_language?: string | null
           parent_comment_id?: string | null
           updated_at?: string
         }
@@ -1111,6 +1116,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_edited?: boolean | null
+          original_language?: string | null
           parent_comment_id?: string | null
           updated_at?: string
         }
@@ -1207,6 +1213,7 @@ export type Database = {
           created_at: string
           id: string
           is_edited: boolean | null
+          original_language: string | null
           parent_comment_id: string | null
           post_id: string
           updated_at: string
@@ -1220,6 +1227,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_edited?: boolean | null
+          original_language?: string | null
           parent_comment_id?: string | null
           post_id: string
           updated_at?: string
@@ -1233,6 +1241,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_edited?: boolean | null
+          original_language?: string | null
           parent_comment_id?: string | null
           post_id?: string
           updated_at?: string
@@ -1264,6 +1273,7 @@ export type Database = {
           created_at: string
           id: string
           image_urls: string[] | null
+          original_language: string | null
           title: string
           title_ar: string | null
           title_en: string | null
@@ -1279,6 +1289,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_urls?: string[] | null
+          original_language?: string | null
           title: string
           title_ar?: string | null
           title_en?: string | null
@@ -1294,6 +1305,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_urls?: string[] | null
+          original_language?: string | null
           title?: string
           title_ar?: string | null
           title_en?: string | null

@@ -137,6 +137,8 @@ const ForumPostCardAnnouncements = ({ post }: ForumPostCardAnnouncementsProps) =
             
           </div>
 
+          
+
           {/* Comments Count */}
           <div className="flex items-center gap-1 text-sm text-muted-foreground flex-shrink-0">
             <MessageSquare className="h-4 w-4" />

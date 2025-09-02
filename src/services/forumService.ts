@@ -408,6 +408,7 @@ const buildCommentTree = (comments: any[]): ForumComment[] => {
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
       isEdited: comment.is_edited || false,
+      original_language: comment.original_language, // Preserve original_language field
       parent_comment_id: comment.parent_comment_id,
       author: comment.author,
       replies: [] as ForumComment[]
@@ -746,7 +747,8 @@ export const addForumComment = async (
 
     // Detect and save original language
     try {
-      const contentLanguage = await forumTranslationService.detectLanguage(content);
+      const { translationService } = await import('./translationService');
+      const contentLanguage = await translationService.detectLanguage(content);
       
       const updateData: any = {
         original_language: contentLanguage
@@ -771,6 +773,8 @@ export const addForumComment = async (
       if (updateError) {
         console.error('Error updating forum comment with language data:', updateError);
       }
+      
+      console.log(`🌐 [ForumComment] Language detected and saved: ${contentLanguage}`);
     } catch (error) {
       console.error('Error detecting forum comment language:', error);
     }
@@ -800,6 +804,7 @@ export const addForumComment = async (
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       isEdited: data.is_edited || false,
+      original_language: data.original_language, // Include original_language field
       author: authorProfile ? {
         id: authorProfile.id,
         username: authorProfile.username,
@@ -875,6 +880,7 @@ export const updateForumComment = async (
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       isEdited: data.is_edited || false,
+      original_language: data.original_language, // Include original_language field
       author: authorProfile ? {
         id: authorProfile.id,
         username: authorProfile.username,
@@ -996,6 +1002,40 @@ export const addForumAnnouncementComment = async (
 
     console.log("Added announcement comment:", data.id);
 
+    // Detect and save original language
+    try {
+      const { translationService } = await import('./translationService');
+      const contentLanguage = await translationService.detectLanguage(content);
+      
+      const updateData: any = {
+        original_language: contentLanguage
+      };
+      
+      // Save content to appropriate language field
+      if (contentLanguage !== 'en') {
+        const contentField = `content_${contentLanguage}`;
+        updateData[contentField] = content;
+        console.log(`🌐 [ForumAnnouncementComment] Saving content to ${contentField}`);
+      } else {
+        updateData.content_en = content;
+        console.log(`🌐 [ForumAnnouncementComment] Saving English content to content_en`);
+      }
+      
+      // Update the comment with language data
+      const { error: updateError } = await supabase
+        .from('forum_announcement_comments')
+        .update(updateData)
+        .eq('id', data.id);
+        
+      if (updateError) {
+        console.error('Error updating forum announcement comment with language data:', updateError);
+      }
+      
+      console.log(`🌐 [ForumAnnouncementComment] Language detected and saved: ${contentLanguage}`);
+    } catch (error) {
+      console.error('Error detecting forum announcement comment language:', error);
+    }
+
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
@@ -1021,6 +1061,7 @@ export const addForumAnnouncementComment = async (
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       isEdited: data.is_edited || false,
+      original_language: data.original_language, // Include original_language field
       author: authorProfile ? {
         id: authorProfile.id,
         username: authorProfile.username,
@@ -1053,6 +1094,7 @@ export const fetchAnnouncementComments = async (announcementId: string): Promise
         is_edited,
         created_at,
         updated_at,
+        original_language,
         profiles!forum_announcement_comments_author_id_fkey (
           id,
           username,
@@ -1088,6 +1130,7 @@ export const fetchAnnouncementComments = async (announcementId: string): Promise
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
       isEdited: comment.is_edited || false,
+      original_language: comment.original_language, // Include original_language field
       author: comment.profiles ? {
         id: comment.profiles.id,
         username: comment.profiles.username,
@@ -1167,6 +1210,7 @@ export const updateForumAnnouncementComment = async (
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       isEdited: data.is_edited || false,
+      original_language: data.original_language, // Include original_language field
       author: authorProfile ? {
         id: authorProfile.id,
         username: authorProfile.username,
