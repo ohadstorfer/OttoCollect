@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { forumTranslationService } from '@/services/forumTranslationService';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { translationService } from '@/services/translationService';
 
 interface TranslationButtonProps {
   postId: string;
@@ -35,6 +36,43 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation(['forum']);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [shouldShowButton, setShouldShowButton] = useState(true);
+
+  // Check if the current language matches the original language of the post
+  useEffect(() => {
+    const checkOriginalLanguage = async () => {
+      try {
+        // Detect the original language of the title and content
+        const titleLang = await translationService.detectLanguage(originalTitle);
+        const contentLang = await translationService.detectLanguage(originalContent);
+        
+        console.log('🌐 [TranslationButton] Language detection:', {
+          originalTitle: originalTitle.substring(0, 30) + '...',
+          originalContent: originalContent.substring(0, 30) + '...',
+          titleLanguage: titleLang,
+          contentLanguage: contentLang,
+          currentLanguage: currentLanguage,
+          shouldShow: !(titleLang === currentLanguage && contentLang === currentLanguage)
+        });
+        
+        // If both title and content are in the current language, don't show the button
+        if (titleLang === currentLanguage && contentLang === currentLanguage) {
+          setShouldShowButton(false);
+          console.log('🌐 [TranslationButton] Hiding button - same language');
+        } else {
+          setShouldShowButton(true);
+          console.log('🌐 [TranslationButton] Showing button - different language');
+        }
+      } catch (error) {
+        console.error('Error detecting original language:', error);
+        // Fallback: show button if we can't detect language
+        setShouldShowButton(true);
+        console.log('🌐 [TranslationButton] Fallback: showing button due to error');
+      }
+    };
+
+    checkOriginalLanguage();
+  }, [originalTitle, originalContent, currentLanguage]);
 
   const handleToggleTranslation = async () => {
     if (!postId) return;
@@ -45,30 +83,27 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
       return;
     }
 
-    // If not English and not showing translation, translate
-    if (currentLanguage !== 'en') {
-      setIsTranslating(true);
-      try {
-        const targetLanguage = currentLanguage as 'ar' | 'tr';
-        const result = await forumTranslationService.translatePost(
-          postId,
-          postType,
-          targetLanguage,
-          'en' // assuming source is English for now
-        );
+    // Translate to current language if not already showing translation
+    setIsTranslating(true);
+    try {
+      const result = await forumTranslationService.translatePost(
+        postId,
+        postType,
+        currentLanguage as 'ar' | 'tr' | 'en'
+        // No need to specify sourceLanguage - the service will detect it automatically
+      );
 
-        if (result.success && result.translatedTitle && result.translatedContent) {
-          onTranslated(result.translatedTitle, result.translatedContent);
-          toast.success(t('translation.translated_successfully'));
-        } else {
-          toast.error(t('translation.translation_failed'));
-        }
-      } catch (error) {
-        console.error('Translation error:', error);
+      if (result.success && result.translatedTitle && result.translatedContent) {
+        onTranslated(result.translatedTitle, result.translatedContent);
+        toast.success(t('translation.translated_successfully'));
+      } else {
         toast.error(t('translation.translation_failed'));
-      } finally {
-        setIsTranslating(false);
       }
+    } catch (error) {
+      console.error('Translation error:', error);
+      toast.error(t('translation.translation_failed'));
+    } finally {
+      setIsTranslating(false);
     }
   };
 
@@ -88,8 +123,10 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
     }
   };
 
-  // Don't show button for English since it's the default (unless showing translation)
-  if (currentLanguage === 'en' && !isShowingTranslation) {
+  // Don't show button if:
+  // 1. We're not supposed to show it based on language detection, OR
+  // 2. We're not showing translation and the current language matches the original
+  if (!shouldShowButton && !isShowingTranslation) {
     return null;
   }
 

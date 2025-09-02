@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ForumComment } from '@/types/forum';
 import { forumTranslationService } from '@/services/forumTranslationService';
+import { translationService } from '@/services/translationService';
 
 interface CommentWithTranslationProps {
   comment: ForumComment;
@@ -36,20 +37,58 @@ const CommentWithTranslation: React.FC<CommentWithTranslationProps> = ({
   currentLanguage, 
   t 
 }) => {
+  console.log('🌐 [CommentWithTranslation] Component MOUNTED with comment:', {
+    id: comment.id,
+    content: comment.content?.substring(0, 30) + '...',
+    currentLanguage
+  });
+  
   const [translatedContent, setTranslatedContent] = useState<string>('');
   const [showTranslated, setShowTranslated] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [shouldShowButton, setShouldShowButton] = useState(true);
+
+  // Check if the current language matches the original language of the comment
+  useEffect(() => {
+    const checkOriginalLanguage = async () => {
+      try {
+        // Detect the original language of the content
+        const contentLang = await translationService.detectLanguage(comment.content);
+        
+        console.log('🌐 [CommentWithTranslation] Language detection:', {
+          originalContent: comment.content.substring(0, 50) + '...',
+          detectedLanguage: contentLang,
+          currentLanguage: currentLanguage,
+          shouldShow: contentLang !== currentLanguage
+        });
+        
+        // If content is in the current language, don't show the button
+        if (contentLang === currentLanguage) {
+          setShouldShowButton(false);
+          console.log('🌐 [CommentWithTranslation] Hiding button - same language');
+        } else {
+          setShouldShowButton(true);
+          console.log('🌐 [CommentWithTranslation] Showing button - different language');
+        }
+      } catch (error) {
+        console.error('Error detecting original language:', error);
+        // Fallback: show button if we can't detect language
+        setShouldShowButton(true);
+        console.log('🌐 [CommentWithTranslation] Fallback: showing button due to error');
+      }
+    };
+
+    checkOriginalLanguage();
+  }, [comment.content, currentLanguage]);
 
   const handleTranslate = async () => {
-    if (currentLanguage === 'en') return;
-    
     setIsTranslating(true);
     try {
       const result = await forumTranslationService.translateComment(
         comment.id,
         'forum_comments',
-        currentLanguage as 'ar' | 'tr',
-        'en'
+        currentLanguage as 'ar' | 'tr' | 'en'
+        // No need to specify sourceLanguage - the service will detect it automatically
       );
 
       if (result.success && result.translatedContent) {
@@ -94,7 +133,7 @@ const CommentWithTranslation: React.FC<CommentWithTranslationProps> = ({
       </div>
       
       {/* Translation Button */}
-      {currentLanguage !== 'en' && (
+      {shouldShowButton && (
         <div className={`${currentLanguage === 'ar' ? 'text-right' : ''}`}>
           <button
             onClick={toggleTranslation}

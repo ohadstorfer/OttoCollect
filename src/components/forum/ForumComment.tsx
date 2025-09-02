@@ -35,6 +35,14 @@ export default function ForumComment({
   depth = 0,
   maxDepth = 3
 }: ForumCommentProps) {
+  console.log('🌐 [ForumComment] Component received comment:', {
+    id: comment.id,
+    content: comment.content?.substring(0, 50) + '...',
+    author: comment.author?.username,
+    depth,
+    maxDepth
+  });
+  
   const { user } = useAuth();
   const { t } = useTranslation(['forum']);
   const { formatRelativeTime } = useDateLocale();
@@ -206,6 +214,13 @@ export default function ForumComment({
             
             {/* Comment Translation Button */}
             <div className={`${direction === 'rtl' ? 'text-right' : ''}`}>
+              {console.log('🌐 [ForumComment] About to render CommentTranslationButton with:', {
+                commentId: comment.id,
+                commentContent: comment.content?.substring(0, 30) + '...',
+                showTranslatedComment,
+                translatedContent: translatedContent?.substring(0, 30) + '...'
+              })}
+              {console.log('🌐 [ForumComment] Rendering CommentTranslationButton now')}
               <CommentTranslationButton
                 commentId={comment.id}
                 commentType="forum_comments"

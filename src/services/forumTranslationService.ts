@@ -72,10 +72,10 @@ export class ForumTranslationService {
     postId: string,
     postType: 'forum_posts' | 'forum_announcements',
     targetLanguage: 'ar' | 'tr' | 'en',
-    sourceLanguage: string = 'en'
+    sourceLanguage?: string
   ): Promise<{ success: boolean; translatedTitle?: string; translatedContent?: string }> {
     try {
-      console.log('Translating forum post:', { postId, postType, targetLanguage, sourceLanguage });
+      console.log('🌐 [ForumTranslation] Translating forum post:', { postId, postType, targetLanguage, sourceLanguage });
 
       // Fetch the current post data
       const { data: post, error: fetchError } = await supabase
@@ -103,6 +103,7 @@ export class ForumTranslationService {
 
       // If both already exist, return existing translations
       if (titleExists && contentExists) {
+        console.log('🌐 [ForumTranslation] Translations already exist, returning cached versions');
         return {
           success: true,
           translatedTitle: post[titleField],
@@ -116,17 +117,46 @@ export class ForumTranslationService {
       let translatedContent = post[contentField];
 
       if (!titleExists && post.title) {
-        translatedTitle = await translationService.translateText(post.title, targetLanguage, sourceLanguage);
+        // Detect the original language of the title if not provided
+        const detectedTitleLang = sourceLanguage || await translationService.detectLanguage(post.title);
+        console.log(`🌐 [ForumTranslation] Title language detected: ${detectedTitleLang}`);
+        
+        // Save original title to its language field if not already there
+        if (detectedTitleLang !== 'en') {
+          const originalTitleField = this.getTranslationField('title', detectedTitleLang);
+          if (!post[originalTitleField]) {
+            updateData[originalTitleField] = post.title;
+          }
+        }
+
+        // Translate title to target language
+        translatedTitle = await translationService.translateText(post.title, targetLanguage, detectedTitleLang);
         updateData[titleField] = translatedTitle;
+        console.log(`🌐 [ForumTranslation] Title translated from ${detectedTitleLang} to ${targetLanguage}`);
       }
 
       if (!contentExists && post.content) {
-        translatedContent = await translationService.translateText(post.content, targetLanguage, sourceLanguage);
+        // Detect the original language of the content if not provided
+        const detectedContentLang = sourceLanguage || await translationService.detectLanguage(post.content);
+        console.log(`🌐 [ForumTranslation] Content language detected: ${detectedContentLang}`);
+        
+        // Save original content to its language field if not already there
+        if (detectedContentLang !== 'en') {
+          const originalContentField = this.getTranslationField('content', detectedContentLang);
+          if (!post[originalContentField]) {
+            updateData[originalContentField] = post.content;
+          }
+        }
+
+        // Translate content to target language
+        translatedContent = await translationService.translateText(post.content, targetLanguage, detectedContentLang);
         updateData[contentField] = translatedContent;
+        console.log(`🌐 [ForumTranslation] Content translated from ${detectedContentLang} to ${targetLanguage}`);
       }
 
       // Update database with new translations
       if (Object.keys(updateData).length > 0) {
+        console.log('🌐 [ForumTranslation] Updating database with translations:', updateData);
         const { error: updateError } = await supabase
           .from(postType)
           .update(updateData)
@@ -136,6 +166,7 @@ export class ForumTranslationService {
           console.error('Error updating translations:', updateError);
           return { success: false };
         }
+        console.log('🌐 [ForumTranslation] Database updated successfully');
       }
 
       return {
@@ -159,42 +190,50 @@ export class ForumTranslationService {
     postId: string
   ): Promise<void> {
     try {
-      // Simple language detection - in a real app you might use a proper language detection service
-      const hasArabicChars = /[\u0600-\u06FF]/.test(title + content);
-      const hasTurkishChars = /[çğıöşüÇĞIİÖŞÜ]/.test(title + content);
+      console.log('🌐 [ForumTranslation] Detecting and saving original language for:', { postType, postId });
 
-      let detectedLanguage = 'en'; // default to English
-      if (hasArabicChars) {
-        detectedLanguage = 'ar';
-      } else if (hasTurkishChars) {
-        detectedLanguage = 'tr';
-      }
+      // Use the translation service's language detection
+      const titleLang = await translationService.detectLanguage(title);
+      const contentLang = await translationService.detectLanguage(content);
 
-      // If not English, save to the appropriate language field
-      if (detectedLanguage !== 'en') {
-        const titleField = this.getTranslationField('title', detectedLanguage);
-        const contentField = this.getTranslationField('content', detectedLanguage);
+      console.log(`🌐 [ForumTranslation] Detected languages - Title: ${titleLang}, Content: ${contentLang}`);
 
-        const updateData = {
-          [titleField]: title,
-          [contentField]: content
-        };
+      const updateData: any = {};
 
-        await supabase
-          .from(postType)
-          .update(updateData)
-          .eq('id', postId);
+      // Save title to appropriate language field
+      if (titleLang !== 'en') {
+        const titleField = this.getTranslationField('title', titleLang);
+        updateData[titleField] = title;
+        console.log(`🌐 [ForumTranslation] Saving title to ${titleField}`);
       } else {
         // For English, save to the _en fields as well
-        const updateData = {
-          title_en: title,
-          content_en: content
-        };
+        updateData.title_en = title;
+        console.log(`🌐 [ForumTranslation] Saving English title to title_en`);
+      }
 
-        await supabase
+      // Save content to appropriate language field
+      if (contentLang !== 'en') {
+        const contentField = this.getTranslationField('content', contentLang);
+        updateData[contentField] = content;
+        console.log(`🌐 [ForumTranslation] Saving content to ${contentField}`);
+      } else {
+        // For English, save to the _en fields as well
+        updateData.content_en = content;
+        console.log(`🌐 [ForumTranslation] Saving English content to content_en`);
+      }
+
+      // Update the database
+      if (Object.keys(updateData).length > 0) {
+        const { error: updateError } = await supabase
           .from(postType)
           .update(updateData)
           .eq('id', postId);
+
+        if (updateError) {
+          console.error('Error saving original language data:', updateError);
+        } else {
+          console.log('🌐 [ForumTranslation] Original language data saved successfully');
+        }
       }
     } catch (error) {
       console.error('Error detecting and saving original language:', error);
@@ -202,16 +241,38 @@ export class ForumTranslationService {
   }
 
   /**
-   * Translate comment content
+   * Check if a post has translations in all languages
+   */
+  async hasCompleteTranslations(
+    postId: string,
+    postType: 'forum_posts' | 'forum_announcements'
+  ): Promise<boolean> {
+    try {
+      const translations = await this.getAllTranslations(postId, postType);
+      if (!translations) return false;
+
+      // Check if we have title and content in all three languages
+      const hasTitleInAll = !!(translations.title_ar && translations.title_tr && translations.title_en);
+      const hasContentInAll = !!(translations.content_ar && translations.content_tr && translations.content_en);
+
+      return hasTitleInAll && hasContentInAll;
+    } catch (error) {
+      console.error('Error checking complete translations:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Translate comment content with smart language detection
    */
   async translateComment(
     commentId: string,
     commentType: 'forum_comments' | 'forum_announcement_comments',
     targetLanguage: 'ar' | 'tr' | 'en',
-    sourceLanguage: string = 'en'
+    sourceLanguage?: string
   ): Promise<{ success: boolean; translatedContent?: string }> {
     try {
-      console.log('Translating forum comment:', { commentId, commentType, targetLanguage, sourceLanguage });
+      console.log('🌐 [ForumTranslation] Translating comment:', { commentId, commentType, targetLanguage, sourceLanguage });
 
       // Fetch the current comment data
       const { data: comment, error: fetchError } = await supabase
@@ -235,17 +296,39 @@ export class ForumTranslationService {
       const existingTranslation = comment[contentField];
 
       if (existingTranslation) {
+        console.log('🌐 [ForumTranslation] Comment translation already exists, returning cached version');
         return {
           success: true,
           translatedContent: existingTranslation
         };
       }
 
-      // Translate the content
+      // Detect the original language of the content if not provided
+      const detectedContentLang = sourceLanguage || await translationService.detectLanguage(comment.content);
+      console.log(`🌐 [ForumTranslation] Comment content language detected: ${detectedContentLang}`);
+
+      // Save original content to its language field if not already there
+      if (detectedContentLang !== 'en') {
+        const originalContentField = this.getTranslationField('content', detectedContentLang);
+        if (!comment[originalContentField]) {
+          const updateData = {
+            [originalContentField]: comment.content
+          };
+
+          await supabase
+            .from(commentType)
+            .update(updateData)
+            .eq('id', commentId);
+
+          console.log(`🌐 [ForumTranslation] Saved original comment content to ${originalContentField}`);
+        }
+      }
+
+      // Translate the content to target language
       const translatedContent = await translationService.translateText(
         comment.content,
         targetLanguage,
-        sourceLanguage
+        detectedContentLang
       );
 
       // Update database with new translation
@@ -262,6 +345,8 @@ export class ForumTranslationService {
         console.error('Error updating comment translation:', updateError);
         return { success: false };
       }
+
+      console.log(`🌐 [ForumTranslation] Comment translated from ${detectedContentLang} to ${targetLanguage}`);
 
       return {
         success: true,
