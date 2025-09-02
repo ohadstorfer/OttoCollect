@@ -120,6 +120,7 @@ const ForumPostCard = ({ post }: ForumPostCardProps) => {
                 currentContent={showTranslated && translatedContent ? translatedContent : post.content}
                 originalTitle={post.title}
                 originalContent={post.content}
+                originalLanguage={post.original_language}
                 isShowingTranslation={showTranslated}
                 onTranslated={(title, content) => {
                   if (title === post.title && content === post.content) {
