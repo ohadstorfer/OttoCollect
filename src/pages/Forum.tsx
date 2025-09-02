@@ -95,6 +95,7 @@ const Forum = () => {
           title: announcement.title,
           content: announcement.content,
           authorId: announcement.author_id,
+          author_id: announcement.author_id,
           author: {
             ...announcement.author,
             avatarUrl: announcement.author.avatar_url, // Fix: map avatar_url to avatarUrl
