@@ -11,15 +11,80 @@ interface TranslateRequest {
   sourceLanguage?: string;
 }
 
+interface DetectLanguageRequest {
+  text: string;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const url = new URL(req.url);
+    const path = url.pathname;
+    
+    // Handle language detection endpoint
+    if (path.endsWith('/detect')) {
+      const { text }: DetectLanguageRequest = await req.json();
+      
+      console.log(`🔍 [EdgeFunction] Language detection request:`, { text: text?.substring(0, 50) + '...' });
+      
+      if (!text) {
+        throw new Error("Missing required parameter: text");
+      }
+
+      const apiKey = Deno.env.get("GOOGLE_TRANSLATE_API_KEY");
+      if (!apiKey) {
+        console.error("❌ [EdgeFunction] Google Translate API key not configured");
+        throw new Error("Google Translate API key not configured");
+      }
+
+      // Use Google Translate API language detection
+      const response = await fetch(`https://translation.googleapis.com/language/translate/v2/detect?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: text
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error(`❌ [EdgeFunction] Google Translate API language detection error:`, error);
+        throw new Error(`Google Translate API language detection error: ${error}`);
+      }
+
+      const result = await response.json();
+      console.log(`🔍 [EdgeFunction] Language detection result:`, result);
+      
+      const detectedLanguage = result.data.detections[0][0].language;
+      const confidence = result.data.detections[0][0].confidence;
+      
+      console.log(`✅ [EdgeFunction] Detected language: ${detectedLanguage} (confidence: ${confidence})`);
+
+      return new Response(
+        JSON.stringify({ 
+          detectedLanguage,
+          confidence,
+          text: text.substring(0, 100) + '...'
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        }
+      );
+    }
+
+    // Handle translation endpoint (existing logic)
     const { text, targetLanguage, sourceLanguage = 'en' }: TranslateRequest = await req.json();
     
-    console.log(`🔍 [EdgeFunction] Received request:`, { text, targetLanguage, sourceLanguage });
+    console.log(`🔍 [EdgeFunction] Translation request:`, { text: text?.substring(0, 50) + '...', targetLanguage, sourceLanguage });
     
     if (!text || !targetLanguage) {
       throw new Error("Missing required parameters: text and targetLanguage");
@@ -101,18 +166,18 @@ const handler = async (req: Request): Promise<Response> => {
         },
       }
     );
-  } catch (error: any) {
-    console.error("Translation error:", error);
+  } catch (error) {
+    console.error("❌ [EdgeFunction] Error:", error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        success: false 
+        error: error.message || "Unknown error occurred",
+        success: false
       }),
       {
         status: 500,
-        headers: { 
-          "Content-Type": "application/json", 
-          ...corsHeaders 
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
         },
       }
     );

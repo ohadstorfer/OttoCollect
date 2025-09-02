@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BlogComment } from '@/types/blog';
 import { blogTranslationService } from '@/services/blogTranslationService';
+import { translationService } from '@/services/translationService';
 
 interface BlogCommentWithTranslationProps {
   comment: BlogComment;
@@ -8,10 +9,8 @@ interface BlogCommentWithTranslationProps {
   t: (key: string) => string;
 }
 
-// Function to detect and make links clickable
+// Simple function to detect and render links
 const renderTextWithLinks = (text: string) => {
-  if (!text) return text;
-  
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
   
@@ -38,19 +37,57 @@ const BlogCommentWithTranslation: React.FC<BlogCommentWithTranslationProps> = ({
   currentLanguage, 
   t 
 }) => {
+  console.log('🌐 [BlogCommentWithTranslation] Component MOUNTED with comment:', {
+    id: comment.id,
+    content: comment.content?.substring(0, 30) + '...',
+    currentLanguage
+  });
+  
   const [translatedContent, setTranslatedContent] = useState<string>('');
   const [showTranslated, setShowTranslated] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [shouldShowButton, setShouldShowButton] = useState(true);
+
+  // Check if the current language matches the original language of the comment
+  useEffect(() => {
+    const checkOriginalLanguage = async () => {
+      try {
+        // Detect the original language of the content
+        const contentLang = await translationService.detectLanguage(comment.content);
+        
+        console.log('🌐 [BlogCommentWithTranslation] Language detection:', {
+          originalContent: comment.content.substring(0, 50) + '...',
+          detectedLanguage: contentLang,
+          currentLanguage: currentLanguage,
+          shouldShow: contentLang !== currentLanguage
+        });
+        
+        // If content is in the current language, don't show the button
+        if (contentLang === currentLanguage) {
+          setShouldShowButton(false);
+          console.log('🌐 [BlogCommentWithTranslation] Hiding button - same language');
+        } else {
+          setShouldShowButton(true);
+          console.log('🌐 [BlogCommentWithTranslation] Showing button - different language');
+        }
+      } catch (error) {
+        console.error('Error detecting original language:', error);
+        // Fallback: show button if we can't detect language
+        setShouldShowButton(true);
+        console.log('🌐 [BlogCommentWithTranslation] Fallback: showing button due to error');
+      }
+    };
+
+    checkOriginalLanguage();
+  }, [comment.content, currentLanguage]);
 
   const handleTranslate = async () => {
-    if (currentLanguage === 'en') return;
-    
     setIsTranslating(true);
     try {
       const result = await blogTranslationService.translateComment(
         comment.id,
-        currentLanguage as 'ar' | 'tr',
-        'en'
+        currentLanguage as 'ar' | 'tr' | 'en'
+        // No need to specify sourceLanguage - the service will detect it automatically
       );
 
       if (result.success && result.translatedContent) {
@@ -85,26 +122,17 @@ const BlogCommentWithTranslation: React.FC<BlogCommentWithTranslationProps> = ({
         default: return 'Show original';
       }
     }
-    
-    // Use the translateTo key with language interpolation
-    let targetLanguage = 'English';
-    if (currentLanguage === 'ar') {
-      targetLanguage = 'الإنجليزية';
-    } else if (currentLanguage === 'tr') {
-      targetLanguage = 'İngilizce';
-    }
-    
-    return t('translation.translateTo', { language: targetLanguage });
+    return t('translation.translate');
   };
 
   return (
     <div className="space-y-3">
-      <div className={`whitespace-pre-line break-words overflow-wrap-anywhere ${currentLanguage === 'ar' ? 'text-right' : ''}`}>
+      <div className={`text-sm leading-relaxed text-foreground break-words whitespace-pre-wrap overflow-hidden ${currentLanguage === 'ar' ? 'text-right' : ''}`}>
         {renderTextWithLinks(showTranslated && translatedContent ? translatedContent : comment.content)}
       </div>
       
       {/* Translation Button */}
-      {currentLanguage !== 'en' && (
+      {shouldShowButton && (
         <div className={`${currentLanguage === 'ar' ? 'text-right' : ''}`}>
           <button
             onClick={toggleTranslation}

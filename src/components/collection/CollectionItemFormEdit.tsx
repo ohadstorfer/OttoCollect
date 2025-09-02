@@ -385,11 +385,11 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             newSubset[k] = newItemDataFull[k];
           });
 
-          await collectionItemTranslationService.handleCollectionItemUpdate(
-            currentItem.id,
+        await collectionItemTranslationService.handleCollectionItemUpdate(
+          currentItem.id,
             oldSubset,
             newSubset
-          );
+        );
         }
 
         // Update images if they were changed

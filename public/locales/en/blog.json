@@ -142,13 +142,14 @@
     "joinCommunity": "Join our community to share your knowledge and insights about Ottoman Empire banknotes."
   },
   "translation": {
-    "translate": "Translate to {{language}}",
-    "translateTo": "Translate to {{language}}",
+    "translate": "Translate",
+    "translateTo": "Translate to",
     "translateToArabic": "Translate to Arabic",
     "translateToTurkish": "Translate to Turkish",
     "translateToEnglish": "Translate to English",
     "translating": "Translating...",
     "translated_successfully": "Translated successfully",
+    "translation_failed": "Translation failed",
     "show_original": "Show original"
   }
 } 

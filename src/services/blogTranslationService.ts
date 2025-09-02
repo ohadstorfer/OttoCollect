@@ -73,15 +73,15 @@ export class BlogTranslationService {
   }
 
   /**
-   * Translate blog post title, content and excerpt
+   * Translate blog post title and content (matching forum service exactly)
    */
   async translatePost(
     postId: string,
     targetLanguage: 'ar' | 'tr' | 'en',
-    sourceLanguage: string = 'en'
+    sourceLanguage?: string
   ): Promise<{ success: boolean; translatedTitle?: string; translatedContent?: string; translatedExcerpt?: string }> {
     try {
-      console.log('Translating blog post:', { postId, targetLanguage, sourceLanguage });
+      console.log('🌐 [BlogTranslation] Translating blog post:', { postId, targetLanguage, sourceLanguage });
 
       // Fetch the current post data
       const { data: post, error: fetchError } = await supabase
@@ -100,22 +100,21 @@ export class BlogTranslationService {
         return { success: false };
       }
 
-      // Check what needs translation
+      // Check what needs translation (matching forum service logic)
       const titleField = this.getTranslationField('title', targetLanguage);
       const contentField = this.getTranslationField('content', targetLanguage);
-      const excerptField = this.getTranslationField('excerpt', targetLanguage);
 
       const titleExists = !!(post[titleField]);
       const contentExists = !!(post[contentField]);
-      const excerptExists = !!(post[excerptField]);
 
-      // If all already exist, return existing translations
-      if (titleExists && contentExists && excerptExists) {
+      // If both title and content already exist, return existing translations (matching forum logic)
+      if (titleExists && contentExists) {
+        console.log('🌐 [BlogTranslation] Title and content translations already exist, returning cached versions');
         return {
           success: true,
           translatedTitle: post[titleField],
           translatedContent: post[contentField],
-          translatedExcerpt: post[excerptField]
+          translatedExcerpt: post.excerpt // Use original excerpt for now
         };
       }
 
@@ -123,25 +122,48 @@ export class BlogTranslationService {
       const updateData: any = {};
       let translatedTitle = post[titleField];
       let translatedContent = post[contentField];
-      let translatedExcerpt = post[excerptField];
 
       if (!titleExists && post.title) {
-        translatedTitle = await translationService.translateText(post.title, targetLanguage, sourceLanguage);
+        // Detect the original language of the title if not provided
+        const detectedTitleLang = sourceLanguage || await translationService.detectLanguage(post.title);
+        console.log(`🌐 [BlogTranslation] Title language detected: ${detectedTitleLang}`);
+        
+        // Save original title to its language field if not already there
+        if (detectedTitleLang !== 'en') {
+          const originalTitleField = this.getTranslationField('title', detectedTitleLang);
+          if (!post[originalTitleField]) {
+            updateData[originalTitleField] = post.title;
+          }
+        }
+
+        // Translate title to target language
+        translatedTitle = await translationService.translateText(post.title, targetLanguage, detectedTitleLang);
         updateData[titleField] = translatedTitle;
+        console.log(`🌐 [BlogTranslation] Title translated from ${detectedTitleLang} to ${targetLanguage}`);
       }
 
       if (!contentExists && post.content) {
-        translatedContent = await translationService.translateText(post.content, targetLanguage, sourceLanguage);
-        updateData[contentField] = translatedContent;
-      }
+        // Detect the original language of the content if not provided
+        const detectedContentLang = sourceLanguage || await translationService.detectLanguage(post.content);
+        console.log(`🌐 [BlogTranslation] Content language detected: ${detectedContentLang}`);
+        
+        // Save original content to its language field if not already there
+        if (detectedContentLang !== 'en') {
+          const originalContentField = this.getTranslationField('content', detectedContentLang);
+          if (!post[originalContentField]) {
+            updateData[originalContentField] = post.content;
+          }
+        }
 
-      if (!excerptExists && post.excerpt) {
-        translatedExcerpt = await translationService.translateText(post.excerpt, targetLanguage, sourceLanguage);
-        updateData[excerptField] = translatedExcerpt;
+        // Translate content to target language
+        translatedContent = await translationService.translateText(post.content, targetLanguage, detectedContentLang);
+        updateData[contentField] = translatedContent;
+        console.log(`🌐 [BlogTranslation] Content translated from ${detectedContentLang} to ${targetLanguage}`);
       }
 
       // Update database with new translations
       if (Object.keys(updateData).length > 0) {
+        console.log('🌐 [BlogTranslation] Updating database with translations:', updateData);
         const { error: updateError } = await supabase
           .from('blog_posts')
           .update(updateData)
@@ -151,13 +173,14 @@ export class BlogTranslationService {
           console.error('Error updating translations:', updateError);
           return { success: false };
         }
+        console.log('🌐 [BlogTranslation] Database updated successfully');
       }
 
       return {
         success: true,
         translatedTitle,
         translatedContent,
-        translatedExcerpt
+        translatedExcerpt: post.excerpt // Use original excerpt for now
       };
     } catch (error) {
       console.error('Error in translatePost:', error);
@@ -166,15 +189,74 @@ export class BlogTranslationService {
   }
 
   /**
-   * Translate blog comment content
+   * Save original content to appropriate language field when creating posts
+   */
+  async detectAndSaveOriginalLanguage(
+    title: string,
+    content: string,
+    excerpt: string,
+    postId: string
+  ): Promise<void> {
+    try {
+      console.log('🌐 [BlogTranslation] Detecting and saving original language for:', { postId });
+
+      // Use the translation service's language detection
+      const titleLang = await translationService.detectLanguage(title);
+      const contentLang = await translationService.detectLanguage(content);
+      const excerptLang = await translationService.detectLanguage(excerpt);
+
+      console.log(`🌐 [BlogTranslation] Detected languages - Title: ${titleLang}, Content: ${contentLang}, Excerpt: ${excerptLang}`);
+
+      // Prepare update data
+      const updateData: any = {};
+
+      // Save original title to its language field
+      if (titleLang !== 'en') {
+        const titleField = this.getTranslationField('title', titleLang);
+        updateData[titleField] = title;
+      }
+
+      // Save original content to its language field
+      if (contentLang !== 'en') {
+        const contentField = this.getTranslationField('content', contentLang);
+        updateData[contentField] = content;
+      }
+
+      // Save original excerpt to its language field
+      if (excerptLang !== 'en') {
+        const excerptField = this.getTranslationField('excerpt', excerptLang);
+        updateData[excerptField] = excerpt;
+      }
+
+      // Update database if we have data to save
+      if (Object.keys(updateData).length > 0) {
+        console.log('🌐 [BlogTranslation] Saving original language data:', updateData);
+        const { error: updateError } = await supabase
+          .from('blog_posts')
+          .update(updateData)
+          .eq('id', postId);
+
+        if (updateError) {
+          console.error('Error saving original language data:', updateError);
+        } else {
+          console.log('🌐 [BlogTranslation] Original language data saved successfully');
+        }
+      }
+    } catch (error) {
+      console.error('Error in detectAndSaveOriginalLanguage:', error);
+    }
+  }
+
+  /**
+   * Translate blog comment content with smart language detection (matching forum service exactly)
    */
   async translateComment(
     commentId: string,
     targetLanguage: 'ar' | 'tr' | 'en',
-    sourceLanguage: string = 'en'
+    sourceLanguage?: string
   ): Promise<{ success: boolean; translatedContent?: string }> {
     try {
-      console.log('Translating blog comment:', { commentId, targetLanguage, sourceLanguage });
+      console.log('🌐 [BlogTranslation] Translating comment:', { commentId, targetLanguage, sourceLanguage });
 
       // Fetch the current comment data
       const { data: comment, error: fetchError } = await supabase
@@ -198,17 +280,39 @@ export class BlogTranslationService {
       const existingTranslation = comment[contentField];
 
       if (existingTranslation) {
+        console.log('🌐 [BlogTranslation] Comment translation already exists, returning cached version');
         return {
           success: true,
           translatedContent: existingTranslation
         };
       }
 
-      // Translate the content
+      // Detect the original language of the content if not provided
+      const detectedContentLang = sourceLanguage || await translationService.detectLanguage(comment.content);
+      console.log(`🌐 [BlogTranslation] Comment content language detected: ${detectedContentLang}`);
+
+      // Save original content to its language field if not already there
+      if (detectedContentLang !== 'en') {
+        const originalContentField = this.getTranslationField('content', detectedContentLang);
+        if (!comment[originalContentField]) {
+          const updateData = {
+            [originalContentField]: comment.content
+          };
+
+          await supabase
+            .from('blog_comments')
+            .update(updateData)
+            .eq('id', commentId);
+
+          console.log(`🌐 [BlogTranslation] Saved original comment content to ${originalContentField}`);
+        }
+      }
+
+      // Translate the content to target language
       const translatedContent = await translationService.translateText(
         comment.content,
         targetLanguage,
-        sourceLanguage
+        detectedContentLang
       );
 
       // Update database with new translation
@@ -226,6 +330,8 @@ export class BlogTranslationService {
         return { success: false };
       }
 
+      console.log(`🌐 [BlogTranslation] Comment translated from ${detectedContentLang} to ${targetLanguage}`);
+
       return {
         success: true,
         translatedContent
@@ -233,61 +339,6 @@ export class BlogTranslationService {
     } catch (error) {
       console.error('Error in translateComment:', error);
       return { success: false };
-    }
-  }
-
-  /**
-   * Save original content to appropriate language field when creating posts
-   */
-  async detectAndSaveOriginalLanguage(
-    title: string,
-    content: string,
-    excerpt: string,
-    postId: string
-  ): Promise<void> {
-    try {
-      // Simple language detection - in a real app you might use a proper language detection service
-      const hasArabicChars = /[\u0600-\u06FF]/.test(title + content + excerpt);
-      const hasTurkishChars = /[çğıöşüÇĞIİÖŞÜ]/.test(title + content + excerpt);
-
-      let detectedLanguage = 'en'; // default to English
-      if (hasArabicChars) {
-        detectedLanguage = 'ar';
-      } else if (hasTurkishChars) {
-        detectedLanguage = 'tr';
-      }
-
-      // If not English, save to the appropriate language field
-      if (detectedLanguage !== 'en') {
-        const titleField = this.getTranslationField('title', detectedLanguage);
-        const contentField = this.getTranslationField('content', detectedLanguage);
-        const excerptField = this.getTranslationField('excerpt', detectedLanguage);
-
-        const updateData = {
-          [titleField]: title,
-          [contentField]: content,
-          [excerptField]: excerpt
-        };
-
-        await supabase
-          .from('blog_posts')
-          .update(updateData)
-          .eq('id', postId);
-      } else {
-        // For English, save to the _en fields as well
-        const updateData = {
-          title_en: title,
-          content_en: content,
-          excerpt_en: excerpt
-        };
-
-        await supabase
-          .from('blog_posts')
-          .update(updateData)
-          .eq('id', postId);
-      }
-    } catch (error) {
-      console.error('Error detecting and saving original language:', error);
     }
   }
 }

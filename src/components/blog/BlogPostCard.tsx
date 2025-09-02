@@ -7,8 +7,8 @@ import UserProfileLink from '@/components/common/UserProfileLink';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from '@/lib/utils';
 import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
-import { useLanguage } from '@/context/LanguageContext';
 import { BlogTranslationButton } from '@/components/blog/BlogTranslationButton';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface BlogPostCardProps {
   post: BlogPost;

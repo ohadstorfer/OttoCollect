@@ -457,21 +457,21 @@ export default function EditUnlistedBanknoteDialog({
         dimensions: values.dimensions
       } as UnlistedBanknoteUpdateParams);
 
-             // Handle translation for changed fields
+      // Handle translation for changed fields
        const normalizeVal = (v: unknown) => (v ?? '').toString().trim();
 
-       const oldItemData = {
+      const oldItemData = {
          public_note: collectionItem.publicNote,
-         location: collectionItem.location,
-         type: (collectionItem as any).type,
-         name: (collectionItem.banknote as any)?.name
-       };
-       const newItemData = {
+        location: collectionItem.location,
+        type: (collectionItem as any).type,
+        name: (collectionItem.banknote as any)?.name
+      };
+      const newItemData = {
          public_note: values.publicNote,
-         location: values.location,
-         type: values.type,
-         name: values.name
-       };
+        location: values.location,
+        type: values.type,
+        name: values.name
+      };
 
        console.log('🔍 [EditUnlistedBanknoteDialog] Translation debugging:');
        console.log('🔍 Old item data:', oldItemData);
@@ -502,29 +502,29 @@ export default function EditUnlistedBanknoteDialog({
          console.log('🔍 Old collection data for translation:', oldCollectionData);
          console.log('🔍 New collection data for translation:', newCollectionData);
 
-         await collectionItemTranslationService.handleCollectionItemUpdate(
-           collectionItem.id,
+      await collectionItemTranslationService.handleCollectionItemUpdate(
+        collectionItem.id,
            oldCollectionData,
            newCollectionData
-         );
+      );
        } else {
          console.log('🔍 [EditUnlistedBanknoteDialog] No collection item fields changed, skipping translation');
        }
 
-       // Handle unlisted banknote translation if name changed
+      // Handle unlisted banknote translation if name changed
        const nameChanged = normalizeVal(oldItemData.name) !== normalizeVal(newItemData.name);
        console.log('🔍 Name changed for unlisted banknote:', nameChanged);
        
        if (nameChanged) {
          console.log('🔍 [EditUnlistedBanknoteDialog] Calling unlisted banknote translation service');
-         await collectionItemTranslationService.translateUnlistedBanknote(
-           collectionItem.banknote?.id || '',
-           { name: values.name },
-           ['name']
-         );
+        await collectionItemTranslationService.translateUnlistedBanknote(
+          collectionItem.banknote?.id || '',
+          { name: values.name },
+          ['name']
+        );
        } else {
          console.log('🔍 [EditUnlistedBanknoteDialog] Name not changed, skipping unlisted banknote translation');
-       }
+      }
 
       // Update the collection item with watermarked and thumbnail images using the collection service
       if (obverseProcessedImages || reverseProcessedImages) {

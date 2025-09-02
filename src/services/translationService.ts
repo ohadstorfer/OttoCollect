@@ -16,15 +16,66 @@ interface TranslationResponse {
 }
 
 export const translationService = {
-  // Detect language of text
+  // Detect language of text using Google Translate API
   async detectLanguage(text: string): Promise<'ar' | 'tr' | 'en'> {
     if (!text || text.trim() === '') {
       return 'en';
     }
 
+    try {
+      console.log(`🔍 [TranslationService] Detecting language for text: "${text.substring(0, 50)}..."`);
+      
+      // Use the Edge Function's language detection endpoint
+      const { data, error } = await supabase.functions.invoke('translate-content', {
+        body: { text: text.trim() },
+        // Add /detect to the URL to trigger language detection
+        url: '/detect'
+      });
+
+      if (error) {
+        console.error('❌ Language detection error:', error);
+        // Fallback to simple detection if API fails
+        return translationService.fallbackLanguageDetection(text);
+      }
+
+      if (data.error) {
+        console.error('❌ Language detection API error:', data.error);
+        return translationService.fallbackLanguageDetection(text);
+      }
+
+      const detectedLanguage = data.detectedLanguage;
+      const confidence = data.confidence;
+      
+      console.log(`✅ [TranslationService] Language detected: ${detectedLanguage} (confidence: ${confidence})`);
+
+      // Map Google Translate language codes to our supported languages
+      switch (detectedLanguage) {
+        case 'ar':
+          return 'ar';
+        case 'tr':
+          return 'tr';
+        case 'en':
+        default:
+          return 'en';
+      }
+    } catch (error) {
+      console.error('❌ Language detection request failed:', error);
+      // Fallback to simple detection if request fails
+      return translationService.fallbackLanguageDetection(text);
+    }
+  },
+
+  // Fallback language detection using character patterns (for when API fails)
+  fallbackLanguageDetection(text: string): 'ar' | 'tr' | 'en' {
+    console.log('🔄 [TranslationService] Using fallback language detection');
+    
     // Simple language detection based on character patterns
+    // Arabic: Unicode range for Arabic characters
     const arabicPattern = /[\u0600-\u06FF]/;
-    const turkishPattern = /[çğıöşüÇĞIİÖŞÜ]/;
+    
+    // Turkish: Only the specific Turkish characters that don't exist in English
+    // Exclude 'I' and 'i' as they exist in English and can cause false positives
+    const turkishPattern = /[çğıöşüÇĞÖŞÜ]/;
     
     if (arabicPattern.test(text)) {
       return 'ar';
