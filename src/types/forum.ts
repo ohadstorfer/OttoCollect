@@ -3,9 +3,12 @@ export interface ForumPost {
   title: string;
   title_ar?: string;
   title_tr?: string;
+  title_en?: string;
   content: string;
   content_ar?: string;
   content_tr?: string;
+  content_en?: string;
+  original_language?: string;
   author_id: string;
   authorId?: string;
   author?: {
@@ -32,6 +35,7 @@ export interface ForumComment {
   content: string;
   content_ar?: string;
   content_tr?: string;
+  content_en?: string;
   author_id: string;
   original_language?: string;
   author?: {

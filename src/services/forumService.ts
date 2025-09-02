@@ -50,6 +50,9 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
       .from('forum_posts')
       .select(`
         *,
+        original_language,
+        title_ar, title_tr, title_en,
+        content_ar, content_tr, content_en,
         forum_comments:forum_comments(count)
       `)
       .order('created_at', { ascending: false });
@@ -99,6 +102,13 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
         updated_at: post.updated_at,
         createdAt: post.created_at,
         updatedAt: post.updated_at,
+        original_language: post.original_language,
+        title_ar: post.title_ar,
+        title_tr: post.title_tr,
+        title_en: post.title_en,
+        content_ar: post.content_ar,
+        content_tr: post.content_tr,
+        content_en: post.content_en,
         commentCount: post.forum_comments?.[0]?.count || 0,
         author: authorProfile ? {
           id: authorProfile.id,
@@ -160,7 +170,7 @@ export const fetchForumPostById = async (id: string): Promise<ForumPost | null> 
     // Step 1: Fetch the forum post
     const { data: post, error: postError } = await supabase
       .from('forum_posts')
-      .select('*')
+      .select('*, original_language, title_ar, title_tr, title_en, content_ar, content_tr, content_en')
       .eq('id', id)
       .maybeSingle();
 
@@ -174,7 +184,7 @@ export const fetchForumPostById = async (id: string): Promise<ForumPost | null> 
       // Not a regular forum post — try announcements as a fallback
       const { data: announcement, error: annError } = await supabase
         .from('forum_announcements')
-        .select('*')
+        .select('*, original_language, title_ar, title_tr, title_en, content_ar, content_tr, content_en')
         .eq('id', id)
         .maybeSingle();
 
@@ -212,6 +222,13 @@ export const fetchForumPostById = async (id: string): Promise<ForumPost | null> 
         updated_at: announcement.updated_at,
         createdAt: announcement.created_at,
         updatedAt: announcement.updated_at,
+        original_language: announcement.original_language,
+        title_ar: announcement.title_ar,
+        title_tr: announcement.title_tr,
+        title_en: announcement.title_en,
+        content_ar: announcement.content_ar,
+        content_tr: announcement.content_tr,
+        content_en: announcement.content_en,
         author: authorProfile ? {
           id: authorProfile.id,
           username: authorProfile.username,
@@ -256,6 +273,13 @@ export const fetchForumPostById = async (id: string): Promise<ForumPost | null> 
       updated_at: post.updated_at,
       createdAt: post.created_at,
       updatedAt: post.updated_at,
+      original_language: post.original_language,
+      title_ar: post.title_ar,
+      title_tr: post.title_tr,
+      title_en: post.title_en,
+      content_ar: post.content_ar,
+      content_tr: post.content_tr,
+      content_en: post.content_en,
       author: authorProfile ? {
         id: authorProfile.id,
         username: authorProfile.username,
@@ -289,6 +313,9 @@ export const fetchForumAnnouncementById = async (id: string): Promise<ForumPost 
         image_urls,
         created_at,
         updated_at,
+        original_language,
+        title_ar, title_tr, title_en,
+        content_ar, content_tr, content_en,
         profiles!forum_announcements_author_id_fkey (
           id,
           username,
@@ -328,6 +355,13 @@ export const fetchForumAnnouncementById = async (id: string): Promise<ForumPost 
       created_at: announcement.created_at,
       updatedAt: announcement.updated_at,
       updated_at: announcement.updated_at,
+      original_language: announcement.original_language,
+      title_ar: announcement.title_ar,
+      title_tr: announcement.title_tr,
+      title_en: announcement.title_en,
+      content_ar: announcement.content_ar,
+      content_tr: announcement.content_tr,
+      content_en: announcement.content_en,
       commentCount: commentCount || 0,
       author: announcement.profiles ? {
         id: announcement.profiles.id,
