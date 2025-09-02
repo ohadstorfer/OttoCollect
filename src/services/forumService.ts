@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { ForumPost, ForumComment } from '@/types/forum';
+import { forumTranslationService } from './forumTranslationService';
 
 /**
  * Check if user has reached daily forum activity limit
@@ -153,6 +154,15 @@ export const createForumAnnouncement = async (
     }
 
     console.log("Created announcement:", data.id);
+    
+    // Detect and save original language
+    await forumTranslationService.detectAndSaveOriginalLanguage(
+      title,
+      content,
+      'forum_announcements',
+      data.id
+    );
+    
     return data;
   } catch (error) {
     console.error('Error in createForumAnnouncement:', error);
@@ -536,6 +546,14 @@ export const createForumPost = async (
     }
 
     console.log("Created post:", data.id);
+    
+    // Detect and save original language
+    await forumTranslationService.detectAndSaveOriginalLanguage(
+      title,
+      content,
+      'forum_posts',
+      data.id
+    );
 
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase

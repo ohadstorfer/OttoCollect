@@ -3,15 +3,19 @@ export interface BlogPost {
   title: string;
   title_ar?: string;
   title_tr?: string;
+  title_en?: string;
   content: string;
   content_ar?: string;
   content_tr?: string;
+  content_en?: string;
   excerpt: string;
   excerpt_ar?: string;
   excerpt_tr?: string;
+  excerpt_en?: string;
   main_image_url: string;
   author_id: string;
   authorId?: string;
+  original_language?: string;
   author?: {
     id: string;
     username: string;

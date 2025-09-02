@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost, BlogComment } from '@/types/blog';
+import { translationService } from './translationService';
 
 /**
  * Check if user has reached daily blog activity limit
@@ -311,6 +312,55 @@ export const createBlogPost = async (
     }
 
     console.log("Created post:", data.id);
+    
+    // Detect and save original language
+    try {
+      const titleLanguage = await translationService.detectLanguage(title);
+      const contentLanguage = await translationService.detectLanguage(content);
+      
+      // Use content language as primary language
+      const primaryLanguage = contentLanguage;
+      
+      const updateData: any = {
+        original_language: primaryLanguage
+      };
+      
+      // Save title to appropriate language field
+      if (titleLanguage !== 'en') {
+        const titleField = `title_${titleLanguage}`;
+        updateData[titleField] = title;
+      } else {
+        updateData.title_en = title;
+      }
+      
+      // Save content to appropriate language field
+      if (contentLanguage !== 'en') {
+        const contentField = `content_${contentLanguage}`;
+        updateData[contentField] = content;
+      } else {
+        updateData.content_en = content;
+      }
+      
+      // Save excerpt to appropriate language field  
+      if (contentLanguage !== 'en') {
+        const excerptField = `excerpt_${contentLanguage}`;
+        updateData[excerptField] = excerpt;
+      } else {
+        updateData.excerpt_en = excerpt;
+      }
+      
+      // Update the blog post with language data
+      const { error: updateError } = await supabase
+        .from('blog_posts')
+        .update(updateData)
+        .eq('id', data.id);
+        
+      if (updateError) {
+        console.error('Error updating blog post with language data:', updateError);
+      }
+    } catch (error) {
+      console.error('Error detecting blog post language:', error);
+    }
 
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
