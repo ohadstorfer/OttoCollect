@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BlogComment } from '@/types/blog';
 import { blogTranslationService } from '@/services/blogTranslationService';
-import { translationService } from '@/services/translationService';
 
 interface BlogCommentWithTranslationProps {
   comment: BlogComment;
@@ -46,40 +45,25 @@ const BlogCommentWithTranslation: React.FC<BlogCommentWithTranslationProps> = ({
   const [translatedContent, setTranslatedContent] = useState<string>('');
   const [showTranslated, setShowTranslated] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
-  const [shouldShowButton, setShouldShowButton] = useState(true);
+  const [shouldShowButton, setShouldShowButton] = useState(false);
 
   // Check if the current language matches the original language of the comment
   useEffect(() => {
-    const checkOriginalLanguage = async () => {
-      try {
-        // Detect the original language of the content
-        const contentLang = await translationService.detectLanguage(comment.content);
-        
-        console.log('🌐 [BlogCommentWithTranslation] Language detection:', {
-          originalContent: comment.content.substring(0, 50) + '...',
-          detectedLanguage: contentLang,
-          currentLanguage: currentLanguage,
-          shouldShow: contentLang !== currentLanguage
-        });
-        
-        // If content is in the current language, don't show the button
-        if (contentLang === currentLanguage) {
-          setShouldShowButton(false);
-          console.log('🌐 [BlogCommentWithTranslation] Hiding button - same language');
-        } else {
-          setShouldShowButton(true);
-          console.log('🌐 [BlogCommentWithTranslation] Showing button - different language');
-        }
-      } catch (error) {
-        console.error('Error detecting original language:', error);
-        // Fallback: show button if we can't detect language
-        setShouldShowButton(true);
-        console.log('🌐 [BlogCommentWithTranslation] Fallback: showing button due to error');
-      }
-    };
-
-    checkOriginalLanguage();
-  }, [comment.content, currentLanguage]);
+    if (comment.original_language) {
+      // Use the stored original language instead of detecting
+      const shouldShow = comment.original_language !== currentLanguage;
+      setShouldShowButton(shouldShow);
+      console.log('🌐 [BlogCommentWithTranslation] Using stored original language:', {
+        originalLanguage: comment.original_language,
+        currentLanguage,
+        shouldShow
+      });
+    } else {
+      // Fallback: show button if we don't have original language
+      setShouldShowButton(true);
+      console.log('🌐 [BlogCommentWithTranslation] No original language stored, showing button as fallback');
+    }
+  }, [comment.original_language, currentLanguage]);
 
   const handleTranslate = async () => {
     setIsTranslating(true);

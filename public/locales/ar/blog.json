@@ -142,11 +142,12 @@
     "joinCommunity": "انضم إلى مجتمعنا لمشاركة معرفتك ورؤيتك حول أوراق الإمبراطورية العثمانية النقدية."
   },
   "translation": {
-    "translate": "ترجمة",
-    "translateTo": "ترجمة إلى",
-    "translateToArabic": "ترجمة إلى العربية",
-    "translateToTurkish": "ترجمة إلى التركية",
-    "translateToEnglish": "ترجمة إلى الإنجليزية",
+    "detecting": "جاري اكتشاف اللغة",
+    "translate": "ترجم",
+    "translateTo": "ترجم إلى",
+    "translateToArabic": "ترجم إلى العربية",
+    "translateToTurkish": "ترجم إلى التركية",
+    "translateToEnglish": "ترجم إلى الإنجليزية",
     "translating": "جاري الترجمة...",
     "translated_successfully": "تمت الترجمة بنجاح",
     "translation_failed": "فشلت الترجمة",

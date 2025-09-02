@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/context/LanguageContext';
+import { blogTranslationService } from '@/services/blogTranslationService';
 
 export function CreatePostForm() {
   const navigate = useNavigate();
@@ -80,6 +81,14 @@ export function CreatePostForm() {
       const newPost = await createBlogPost(title, content, excerpt, mainImage || '', user.id);
       
       if (newPost) {
+        // Detect and save original language
+        await blogTranslationService.detectAndSaveOriginalLanguage(
+          title,
+          content,
+          excerpt,
+          newPost.id
+        );
+        
         toast({
           title: tWithFallback('notifications.postCreated', 'Success'),
           description: tWithFallback('notifications.postCreated', 'Your blog post has been published successfully.'),

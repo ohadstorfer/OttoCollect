@@ -4,7 +4,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import { forumTranslationService } from '@/services/forumTranslationService';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { translationService } from '@/services/translationService';
 
 interface TranslationButtonProps {
   postId: string;
@@ -13,6 +12,7 @@ interface TranslationButtonProps {
   currentContent: string;
   originalTitle: string;
   originalContent: string;
+  originalLanguage?: string; // New field for the detected language
   onTranslated: (title: string, content: string) => void;
   isShowingTranslation: boolean;
   size?: 'sm' | 'default' | 'lg';
@@ -27,6 +27,7 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
   currentContent,
   originalTitle,
   originalContent,
+  originalLanguage,
   onTranslated,
   isShowingTranslation,
   size = 'sm',
@@ -36,43 +37,25 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation(['forum']);
   const [isTranslating, setIsTranslating] = useState(false);
-  const [shouldShowButton, setShouldShowButton] = useState(true);
+  const [shouldShowButton, setShouldShowButton] = useState(false);
 
   // Check if the current language matches the original language of the post
   useEffect(() => {
-    const checkOriginalLanguage = async () => {
-      try {
-        // Detect the original language of the title and content
-        const titleLang = await translationService.detectLanguage(originalTitle);
-        const contentLang = await translationService.detectLanguage(originalContent);
-        
-        console.log('🌐 [TranslationButton] Language detection:', {
-          originalTitle: originalTitle.substring(0, 30) + '...',
-          originalContent: originalContent.substring(0, 30) + '...',
-          titleLanguage: titleLang,
-          contentLanguage: contentLang,
-          currentLanguage: currentLanguage,
-          shouldShow: !(titleLang === currentLanguage && contentLang === currentLanguage)
-        });
-        
-        // If both title and content are in the current language, don't show the button
-        if (titleLang === currentLanguage && contentLang === currentLanguage) {
-          setShouldShowButton(false);
-          console.log('🌐 [TranslationButton] Hiding button - same language');
-        } else {
-          setShouldShowButton(true);
-          console.log('🌐 [TranslationButton] Showing button - different language');
-        }
-      } catch (error) {
-        console.error('Error detecting original language:', error);
-        // Fallback: show button if we can't detect language
-        setShouldShowButton(true);
-        console.log('🌐 [TranslationButton] Fallback: showing button due to error');
-      }
-    };
-
-    checkOriginalLanguage();
-  }, [originalTitle, originalContent, currentLanguage]);
+    if (originalLanguage) {
+      // Use the stored original language instead of detecting
+      const shouldShow = originalLanguage !== currentLanguage;
+      setShouldShowButton(shouldShow);
+      console.log('🌐 [TranslationButton] Using stored original language:', {
+        originalLanguage,
+        currentLanguage,
+        shouldShow
+      });
+    } else {
+      // Fallback: show button if we don't have original language
+      setShouldShowButton(true);
+      console.log('🌐 [TranslationButton] No original language stored, showing button as fallback');
+    }
+  }, [originalLanguage, currentLanguage]);
 
   const handleToggleTranslation = async () => {
     if (!postId) return;
@@ -124,7 +107,7 @@ export const TranslationButton: React.FC<TranslationButtonProps> = ({
   };
 
   // Don't show button if:
-  // 1. We're not supposed to show it based on language detection, OR
+  // 1. We're not supposed to show it based on original language, OR
   // 2. We're not showing translation and the current language matches the original
   if (!shouldShowButton && !isShowingTranslation) {
     return null;

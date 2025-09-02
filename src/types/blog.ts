@@ -35,6 +35,7 @@ export interface BlogComment {
   content_ar?: string;
   content_tr?: string;
   author_id: string;
+  original_language?: string;
   author?: {
     id: string;
     username: string;

@@ -333,6 +333,7 @@ export const createBlogPost = async (
       main_image_url: data.main_image_url,
       author_id: data.author_id,
       authorId: data.author_id,
+      original_language: data.original_language,
       created_at: data.created_at,
       updated_at: data.updated_at,
       createdAt: data.created_at,

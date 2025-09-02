@@ -207,30 +207,48 @@ export class BlogTranslationService {
 
       console.log(`🌐 [BlogTranslation] Detected languages - Title: ${titleLang}, Content: ${contentLang}, Excerpt: ${excerptLang}`);
 
-      // Prepare update data
       const updateData: any = {};
 
-      // Save original title to its language field
+      // Save title to appropriate language field
       if (titleLang !== 'en') {
         const titleField = this.getTranslationField('title', titleLang);
         updateData[titleField] = title;
+        console.log(`🌐 [BlogTranslation] Saving title to ${titleField}`);
+      } else {
+        // For English, save to the _en fields as well
+        updateData.title_en = title;
+        console.log(`🌐 [BlogTranslation] Saving English title to title_en`);
       }
 
-      // Save original content to its language field
+      // Save content to appropriate language field
       if (contentLang !== 'en') {
         const contentField = this.getTranslationField('content', contentLang);
         updateData[contentField] = content;
+        console.log(`🌐 [BlogTranslation] Saving content to ${contentField}`);
+      } else {
+        // For English, save to the _en fields as well
+        updateData.content_en = content;
+        console.log(`🌐 [BlogTranslation] Saving English content to content_en`);
       }
 
-      // Save original excerpt to its language field
+      // Save excerpt to appropriate language field
       if (excerptLang !== 'en') {
         const excerptField = this.getTranslationField('excerpt', excerptLang);
         updateData[excerptField] = excerpt;
+        console.log(`🌐 [BlogTranslation] Saving excerpt to ${excerptField}`);
+      } else {
+        // For English, save to the _en fields as well
+        updateData.excerpt_en = excerpt;
+        console.log(`🌐 [BlogTranslation] Saving English excerpt to excerpt_en`);
       }
 
-      // Update database if we have data to save
+      // Determine the primary original language (use content language as primary)
+      const primaryLanguage = contentLang;
+      updateData.original_language = primaryLanguage;
+      console.log(`🌐 [BlogTranslation] Saving original_language: ${primaryLanguage}`);
+
+      // Update the database
       if (Object.keys(updateData).length > 0) {
-        console.log('🌐 [BlogTranslation] Saving original language data:', updateData);
         const { error: updateError } = await supabase
           .from('blog_posts')
           .update(updateData)
@@ -243,7 +261,7 @@ export class BlogTranslationService {
         }
       }
     } catch (error) {
-      console.error('Error in detectAndSaveOriginalLanguage:', error);
+      console.error('Error detecting and saving original language:', error);
     }
   }
 

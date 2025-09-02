@@ -20,6 +20,7 @@ interface Author {
 interface ForumPostWithAuthor extends Omit<ForumPost, 'author'> {
   author: Author;
   commentCount?: number;
+  original_language?: string;
 }
 
 interface ForumPostCardProps {

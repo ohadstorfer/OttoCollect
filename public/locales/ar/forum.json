@@ -175,9 +175,10 @@
     "announcementNotFoundDescription": "الإعلان الذي تبحث عنه غير موجود أو تم إزالته."
   },
   "translation": {
+    "detecting": "جاري اكتشاف اللغة",
     "translating": "جاري الترجمة",
-    "translateTo": "ترجمة إلى",
-    "translate": "ترجمة",
+    "translateTo": "ترجم إلى",
+    "translate": "ترجم",
     "showOriginal": "عرض النص الأصلي",
     "translated_successfully": "تمت الترجمة بنجاح",
     "translation_failed": "فشلت الترجمة"

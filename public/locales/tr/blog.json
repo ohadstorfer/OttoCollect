@@ -140,11 +140,12 @@
     "joinCommunity": "Osmanlı İmparatorluğu banknotları hakkındaki bilgi ve görüşlerinizi paylaşmak için topluluğumuza katılın."
   },
   "translation": {
+    "detecting": "Dil tespit ediliyor",
     "translate": "Çevir",
     "translateTo": "Çevir",
-    "translateToArabic": "Arapça diline çevir",
-    "translateToTurkish": "Türkçe diline çevir",
-    "translateToEnglish": "İngilizce diline çevir",
+    "translateToArabic": "Arapçaya çevir",
+    "translateToTurkish": "Türkçeye çevir",
+    "translateToEnglish": "İngilizceye çevir",
     "translating": "Çevriliyor...",
     "translated_successfully": "Başarıyla çevrildi",
     "translation_failed": "Çeviri başarısız",

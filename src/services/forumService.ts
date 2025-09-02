@@ -293,8 +293,7 @@ export const fetchForumAnnouncementById = async (id: string): Promise<ForumPost 
           id,
           username,
           avatar_url,
-          rank,
-          role
+          rank
         )
       `)
       .eq('id', id)
@@ -334,8 +333,7 @@ export const fetchForumAnnouncementById = async (id: string): Promise<ForumPost 
         id: announcement.profiles.id,
         username: announcement.profiles.username,
         avatarUrl: announcement.profiles.avatar_url,
-        rank: announcement.profiles.rank,
-        role: announcement.profiles.role
+        rank: announcement.profiles.rank
       } : null
     };
   } catch (error) {

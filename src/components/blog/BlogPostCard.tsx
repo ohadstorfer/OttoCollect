@@ -74,6 +74,7 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
             currentContent={showTranslated && translatedContent ? translatedContent : post.content}
             originalTitle={post.title}
             originalContent={post.content}
+            originalLanguage={post.original_language}
             onTranslated={(title, content) => {
               if (title === post.title && content === post.content) {
                 // Show original

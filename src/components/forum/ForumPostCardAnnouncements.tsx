@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Calendar, User, Megaphone } from 'lucide-react';
@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
+import { useLanguage } from '@/context/LanguageContext';
+import { TranslationButton } from '@/components/forum/TranslationButton';
 
 interface Author {
   id: string;
@@ -19,6 +21,7 @@ interface Author {
 interface ForumAnnouncementWithAuthor extends Omit<ForumPost, 'author'> {
   author: Author;
   commentCount?: number;
+  original_language?: string;
 }
 
 interface ForumPostCardAnnouncementsProps {
@@ -53,9 +56,22 @@ const ForumPostCardAnnouncements = ({ post }: ForumPostCardAnnouncementsProps) =
   const navigate = useNavigate();
   const { t } = useTranslation(['forum']);
   const { formatDate } = useDateLocale();
+  const { currentLanguage, direction } = useLanguage();
+  
+  // Translation state
+  const [translatedTitle, setTranslatedTitle] = useState('');
+  const [translatedContent, setTranslatedContent] = useState('');
+  const [showTranslated, setShowTranslated] = useState(false);
 
   const handlePostClick = () => {
     navigate(`/community/forum/announcement/${post.id}`);
+  };
+
+  const handleUserProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    // Navigate to user profile manually
+    navigate(`/profile/${post.author.username}`);
   };
 
   return (
@@ -72,20 +88,52 @@ const ForumPostCardAnnouncements = ({ post }: ForumPostCardAnnouncementsProps) =
               <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">{t('announcement')}</span>
             </div>
             <h3 className="font-medium text-base line-clamp-1 group-hover:text-primary transition-colors mb-1">
-              <span>{renderTextWithLinks(post.title)}</span>
+              <span>{renderTextWithLinks(showTranslated && translatedTitle ? translatedTitle : post.title)}</span>
             </h3>
+            
+           
+            
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <UserProfileLink
-                userId={post.author.id}
-                username={post.author.username}
-                avatarUrl={post.author.avatarUrl}
-                size="sm"
-              />
+              <div onClick={handleUserProfileClick} className="cursor-pointer hover:underline">
+                <UserProfileLink
+                  userId={post.author.id}
+                  username={post.author.username}
+                  avatarUrl={post.author.avatarUrl}
+                  size="sm"
+                />
+              </div>
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 {formatDate(post.created_at, DATE_FORMATS.SHORT)}
               </div>
             </div>
+
+             {/* Translation Button */}
+             <div className={`mt-2`} onClick={(e) => e.stopPropagation()}>
+              <TranslationButton
+                postId={post.id}
+                postType="forum_announcements"
+                currentTitle={showTranslated && translatedTitle ? translatedTitle : post.title}
+                currentContent={showTranslated && translatedContent ? translatedContent : post.content}
+                originalTitle={post.title}
+                originalContent={post.content}
+                onTranslated={(title, content) => {
+                  if (title === post.title && content === post.content) {
+                    // Show original
+                    setShowTranslated(false);
+                  } else {
+                    // Show translation
+                    setTranslatedTitle(title);
+                    setTranslatedContent(content);
+                    setShowTranslated(true);
+                  }
+                }}
+                isShowingTranslation={showTranslated}
+                size="sm"
+                variant="ghost"
+              />
+            </div>
+            
           </div>
 
           {/* Comments Count */}
@@ -93,6 +141,8 @@ const ForumPostCardAnnouncements = ({ post }: ForumPostCardAnnouncementsProps) =
             <MessageSquare className="h-4 w-4" />
             <span className="font-medium">{post.commentCount || 0}</span>
           </div>
+
+          
         </div>
       </CardContent>
     </Card>

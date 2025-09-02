@@ -175,6 +175,7 @@
     "announcementNotFoundDescription": "The announcement you're looking for doesn't exist or has been removed."
   },
   "translation": {
+    "detecting": "Detecting language",
     "translating": "Translating",
     "translateTo": "Translate to",
     "translate": "Translate",

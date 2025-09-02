@@ -222,6 +222,11 @@ export class ForumTranslationService {
         console.log(`🌐 [ForumTranslation] Saving English content to content_en`);
       }
 
+      // Determine the primary original language (use content language as primary)
+      const primaryLanguage = contentLang;
+      updateData.original_language = primaryLanguage;
+      console.log(`🌐 [ForumTranslation] Saving original_language: ${primaryLanguage}`);
+
       // Update the database
       if (Object.keys(updateData).length > 0) {
         const { error: updateError } = await supabase
