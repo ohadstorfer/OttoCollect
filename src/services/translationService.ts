@@ -26,10 +26,8 @@ export const translationService = {
       console.log(`🔍 [TranslationService] Detecting language for text: "${text.substring(0, 50)}..."`);
       
       // Use the Edge Function's language detection endpoint
-      const { data, error } = await supabase.functions.invoke('translate-content', {
-        body: { text: text.trim() },
-        // Add /detect to the URL to trigger language detection
-        url: '/detect'
+      const { data, error } = await supabase.functions.invoke('translate-content/detect', {
+        body: { text: text.trim() }
       });
 
       if (error) {
