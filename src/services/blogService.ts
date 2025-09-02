@@ -201,10 +201,10 @@ export const fetchCommentsByPostId = async (postId: string): Promise<BlogComment
   try {
     console.log("Fetching comments for post:", postId);
     
-    // Step 1: Fetch comments for the post
+    // Step 1: Fetch comments for the post with original_language
     const { data: comments, error: commentsError } = await supabase
       .from('blog_comments')
-      .select('*')
+      .select('*, original_language')
       .eq('post_id', postId)
       .order('created_at', { ascending: false });
 
@@ -241,7 +241,7 @@ export const fetchCommentsByPostId = async (postId: string): Promise<BlogComment
       return acc;
     }, {} as Record<string, any>);
 
-    // Step 5: Combine data to create normalized comments
+    // Step 5: Combine data to create normalized comments with original_language
     return comments.map(comment => {
       const authorProfile = profileMap[comment.author_id] || null;
       
@@ -257,6 +257,7 @@ export const fetchCommentsByPostId = async (postId: string): Promise<BlogComment
         createdAt: comment.created_at,
         updatedAt: comment.updated_at,
         isEdited: comment.is_edited || false,
+        original_language: comment.original_language, // Include original_language
         author: authorProfile ? {
           id: authorProfile.id,
           username: authorProfile.username,
@@ -609,6 +610,7 @@ export const addBlogComment = async (
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       isEdited: data.is_edited || false,
+      original_language: data.original_language, // Include original_language
       author: authorProfile ? {
         id: authorProfile.id,
         username: authorProfile.username,
@@ -684,6 +686,7 @@ export const updateBlogComment = async (
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       isEdited: data.is_edited || false,
+      original_language: data.original_language, // Include original_language
       author: authorProfile ? {
         id: authorProfile.id,
         username: authorProfile.username,
