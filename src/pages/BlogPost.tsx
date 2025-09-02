@@ -488,6 +488,7 @@ const BlogPostPage = () => {
                   currentContent={displayedContent}
                   originalTitle={originalTitle}
                   originalContent={originalContent}
+                  originalLanguage={post.original_language}
                   onTranslated={handlePostTranslated}
                   isShowingTranslation={isShowingTranslation}
                 />
