@@ -33,6 +33,8 @@ import { useLanguage } from "@/context/LanguageContext";
 export type FilterOption = {
   id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   count?: number;
   isRequired?: boolean;
   fieldName?: string;
@@ -93,6 +95,56 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
         return countryNameTr || countryName;
       default:
         return countryName;
+    }
+  };
+
+  // Function to get the appropriate category name based on current language
+  const getTranslatedCategoryName = (category: FilterOption) => {
+    if (!category) return '';
+    
+    console.log('🌐 [BaseBanknoteFilter] Translating category:', {
+      category,
+      currentLanguage,
+      name_ar: category.name_ar,
+      name_tr: category.name_tr,
+      name: category.name
+    });
+    
+    switch (currentLanguage) {
+      case 'ar':
+        return category.name_ar || category.name;
+      case 'tr':
+        return category.name_tr || category.name;
+      default:
+        return category.name;
+    }
+  };
+
+  // Function to get the appropriate type name based on current language
+  const getTranslatedTypeName = (type: FilterOption) => {
+    if (!type) return '';
+    
+    switch (currentLanguage) {
+      case 'ar':
+        return type.name_ar || type.name;
+      case 'tr':
+        return type.name_tr || type.name;
+      default:
+        return type.name;
+    }
+  };
+
+  // Function to get the appropriate sort option name based on current language
+  const getTranslatedSortOptionName = (sortOption: FilterOption) => {
+    if (!sortOption) return '';
+    
+    switch (currentLanguage) {
+      case 'ar':
+        return sortOption.name_ar || sortOption.name;
+      case 'tr':
+        return sortOption.name_tr || sortOption.name;
+      default:
+        return sortOption.name;
     }
   };
 
@@ -600,7 +652,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                           onCheckedChange={(checked) => handleCategoryChange(category.id, !!checked)}
                         />
                         <label htmlFor={`category-${category.id}`} className="text-sm flex justify-between w-full">
-                          <span>{withHighlight(category.name, search)}</span>
+                                                     <span>{withHighlight(getTranslatedCategoryName(category), search)}</span>
                           {category.count !== undefined && (
                             <span className="text-muted-foreground">({category.count})</span>
                           )}
@@ -628,7 +680,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                           onCheckedChange={(checked) => handleTypeChange(type.id, !!checked)}
                         />
                         <label htmlFor={`type-${type.id}`} className="text-sm flex justify-between w-full">
-                          <span>{withHighlight(type.name, search)}</span>
+                                                     <span>{withHighlight(getTranslatedTypeName(type), search)}</span>
                           {type.count !== undefined && (
                             <span className="text-muted-foreground">({type.count})</span>
                           )}
@@ -685,7 +737,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                           option.isRequired && "opacity-50"
                         )}
                       >
-                        {option.name} {option.isRequired && `(${tWithFallback('sort.always', 'Always')})`}
+                                                 {getTranslatedSortOptionName(option)} {option.isRequired && `(${tWithFallback('sort.always', 'Always')})`}
                       </label>
                     </div>
                   );

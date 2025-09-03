@@ -126,11 +126,15 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           .map(cat => ({
             id: cat.id,
             name: cat.name,
+            name_ar: cat.name_ar,
+            name_tr: cat.name_tr,
           }));
         
         const mappedTypes = typesData.map(type => ({
           id: type.id,
           name: type.name,
+          name_ar: type.name_ar,
+          name_tr: type.name_tr,
         }));
         
         // Make sure we have all the necessary sort options
@@ -146,6 +150,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           return {
             id: sort.id,
             name: sort.name,
+            name_ar: sort.name_ar,
+            name_tr: sort.name_tr,
             fieldName: sort.field_name,
             isRequired: sort.is_required
           };
@@ -155,6 +161,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           mappedSortOptions.push({
                     id: "facevalue-default",
         name: tWithFallback('sort.faceValue', 'Face Value'),
+        name_ar: tWithFallback('sort.faceValue', 'Face Value'),
+        name_tr: tWithFallback('sort.faceValue', 'Face Value'),
         fieldName: "faceValue",
             isRequired: false
           });
@@ -163,6 +171,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         if (!hasPickOption) {
           mappedSortOptions.push({
                     id: "extpick-default",
+        name_ar: tWithFallback('sort.catalogNumber', 'Catalog Number'),
+        name_tr: tWithFallback('sort.catalogNumber', 'Catalog Number'),
         name: tWithFallback('sort.catalogNumber', 'Catalog Number'),
         fieldName: "extPick",
             isRequired: true
