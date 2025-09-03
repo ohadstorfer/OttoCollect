@@ -46,6 +46,14 @@ export async function updateCategoryDefinition(
     console.log(`Updating category: ID=${categoryId}`);
     console.log(`Old name: "${oldName}" -> New name: "${newName}"`);
 
+    // If name hasn't changed, skip updates entirely (translations handled elsewhere)
+    if (newName.trim() === oldName.trim()) {
+      console.log('No change in English name; skipping banknotes update and definition rename');
+      console.log('=== UPDATE CATEGORY NO-OP ===');
+      return { success: true };
+    }
+
+
     // First check if there are any banknotes with this category
     const { data: existingBanknotes, error: checkError } = await supabase
       .from('detailed_banknotes')

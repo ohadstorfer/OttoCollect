@@ -192,7 +192,9 @@ export async function createCategory(
   countryId: string,
   name: string,
   description: string,
-  displayOrder: number
+  displayOrder: number,
+  name_ar?: string,
+  name_tr?: string
 ): Promise<void> {
   try {
     const { error } = await supabase
@@ -202,6 +204,8 @@ export async function createCategory(
         name,
         description,
         display_order: displayOrder,
+        ...(name_ar ? { name_ar } : {}),
+        ...(name_tr ? { name_tr } : {}),
       });
 
     if (error) {
@@ -221,6 +225,8 @@ export async function updateCategory(
     name?: string;
     description?: string;
     display_order?: number;
+    name_ar?: string | null;
+    name_tr?: string | null;
   }
 ): Promise<void> {
   try {
@@ -268,7 +274,9 @@ export async function createType(
   countryId: string,
   name: string,
   description: string,
-  displayOrder: number
+  displayOrder: number,
+  name_ar?: string,
+  name_tr?: string
 ): Promise<void> {
   try {
     const { error } = await supabase
@@ -278,6 +286,8 @@ export async function createType(
         name,
         description,
         display_order: displayOrder,
+        ...(name_ar ? { name_ar } : {}),
+        ...(name_tr ? { name_tr } : {}),
       });
 
     if (error) {
@@ -297,6 +307,8 @@ export async function updateType(
     name?: string;
     description?: string;
     display_order?: number;
+    name_ar?: string | null;
+    name_tr?: string | null;
   }
 ): Promise<void> {
   try {
@@ -346,7 +358,9 @@ export async function createSortOption(
   fieldName: string,
   isDefault: boolean,
   isRequired: boolean,
-  displayOrder: number
+  displayOrder: number,
+  name_ar?: string,
+  name_tr?: string
 ): Promise<void> {
   try {
     const { error } = await supabase
@@ -358,6 +372,8 @@ export async function createSortOption(
         is_default: isDefault,
         is_required: isRequired,
         display_order: displayOrder,
+        ...(name_ar ? { name_ar } : {}),
+        ...(name_tr ? { name_tr } : {}),
       });
 
     if (error) {
@@ -380,6 +396,8 @@ export async function updateSortOption(
     is_default?: boolean;
     is_required?: boolean;
     display_order?: number;
+    name_ar?: string | null;
+    name_tr?: string | null;
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {

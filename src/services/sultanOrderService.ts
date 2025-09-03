@@ -29,14 +29,18 @@ export const fetchSultanOrdersByCountryId = async (countryId: string): Promise<S
 export const createSultanOrder = async (
   countryId: string, 
   name: string, 
-  displayOrder: number
+  displayOrder: number,
+  name_ar?: string,
+  name_tr?: string
 ): Promise<void> => {
   const { error } = await supabase
     .from('sultan_order')
     .insert({
       country_id: countryId,
       name,
-      display_order: displayOrder
+      display_order: displayOrder,
+      ...(name_ar ? { name_ar } : {}),
+      ...(name_tr ? { name_tr } : {}),
     });
 
   if (error) {
@@ -50,6 +54,8 @@ export const updateSultanOrder = async (
   updates: {
     name?: string;
     display_order?: number;
+    name_ar?: string | null;
+    name_tr?: string | null;
   }
 ): Promise<void> => {
   const { error } = await supabase
