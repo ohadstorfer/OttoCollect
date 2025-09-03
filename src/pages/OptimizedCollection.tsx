@@ -88,6 +88,7 @@ const OptimizedCollection = () => {
     collectionItems: sortedCollectionItems,
     sortFields: currentFilters.sort,
     categoryOrder: [], // Could be fetched from country data
+    sultans: [], // No sultan data available on this page
     groupMode
   });
 
@@ -98,6 +99,7 @@ const OptimizedCollection = () => {
   } = useDynamicFilter({
     items: collectionItems,
     initialFilters: currentFilters,
+    sultans: [], // No sultan data available on this page
     collectionCategories,
     collectionTypes
   });

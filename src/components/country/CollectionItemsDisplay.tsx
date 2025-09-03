@@ -9,7 +9,12 @@ interface CollectionItemsDisplayProps {
   groups: {
     category: string;
     items: CollectionItem[];
-    sultanGroups?: { sultan: string; items: CollectionItem[] }[];
+    sultanGroups?: { 
+      sultan: string; 
+      sultan_ar?: string; 
+      sultan_tr?: string; 
+      items: CollectionItem[] 
+    }[];
   }[];
   showSultanGroups: boolean;
   viewMode: 'grid' | 'list';

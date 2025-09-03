@@ -8,9 +8,9 @@ interface UseDynamicFilterProps<T extends FilterableItem> {
   items: T[];
   initialFilters?: Partial<DynamicFilterState>;
   countryId?: string;
+  sultans?: { name: string; name_ar?: string; name_tr?: string }[];
   categories?: { id: string; name: string; count?: number }[];
-  types?: { id: string; name: string; count?: number }[];
-  sortOptions?: { id: string; name: string; field_name: string; is_required: boolean }[];
+  types?: { id: string; name: string; field_name: string; is_required: boolean }[];
   collectionCategories?: { id: string; name: string; count?: number }[];
   collectionTypes?: { id: string; name: string; count?: number }[];
 }
@@ -19,7 +19,12 @@ interface GroupItem<T> {
   category: string;
   categoryId: string;
   items: T[];
-  sultanGroups?: { sultan: string; items: T[] }[];
+  sultanGroups?: { 
+    sultan: string; 
+    sultan_ar?: string; 
+    sultan_tr?: string; 
+    items: T[] 
+  }[];
 }
 
 interface UseDynamicFilterResult<T> {
@@ -34,6 +39,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
   items,
   initialFilters = {},
   countryId,
+  sultans = [],
   categories = [],
   types = [],
   sortOptions = [],
@@ -278,8 +284,13 @@ export const useDynamicFilter = <T extends FilterableItem>({
         let sultanGroup = groups[category].sultanGroups!.find(g => g.sultan === sultanName);
         
         if (!sultanGroup) {
+          // Find sultan data to get translation fields (case-insensitive matching)
+          const sultanData = sultans.find(s => s.name.toLowerCase() === sultanName.toLowerCase());
+          
           sultanGroup = {
             sultan: sultanName,
+            sultan_ar: sultanData?.name_ar,
+            sultan_tr: sultanData?.name_tr,
             items: []
           };
           groups[category].sultanGroups!.push(sultanGroup);
@@ -300,7 +311,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
           undefined
       }));
     // Removed category sorting to respect database display_order
-  }, [filteredItems]);
+  }, [filteredItems, sultans]);
   
   return {
     filteredItems,

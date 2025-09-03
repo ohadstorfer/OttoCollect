@@ -1573,6 +1573,8 @@ export type Database = {
           display_order: number
           id: string
           name: string
+          name_ar: string
+          name_tr: string
           updated_at: string
         }
         Insert: {
@@ -1581,6 +1583,8 @@ export type Database = {
           display_order?: number
           id?: string
           name: string
+          name_ar?: string
+          name_tr?: string
           updated_at?: string
         }
         Update: {
@@ -1589,6 +1593,8 @@ export type Database = {
           display_order?: number
           id?: string
           name?: string
+          name_ar?: string
+          name_tr?: string
           updated_at?: string
         }
         Relationships: [

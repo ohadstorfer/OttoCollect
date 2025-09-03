@@ -29,7 +29,12 @@ interface CollectionItemsGroupsProps {
     category_ar?: string;
     category_tr?: string;
     items: CollectionItem[];
-    sultanGroups?: { sultan: string; items: CollectionItem[] }[];
+    sultanGroups?: { 
+      sultan: string; 
+      sultan_ar?: string; 
+      sultan_tr?: string; 
+      items: CollectionItem[] 
+    }[];
   }[];
   showSultanGroups: boolean;
   viewMode: 'grid' | 'list';
@@ -52,6 +57,12 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
 }) => {
   const { currentLanguage } = useLanguage();
 
+  // Debug: Log groups data received
+  console.log("🔍 [CollectionItemsGroups] Received groups data:", groups);
+  if (groups && groups.length > 0 && groups[0].sultanGroups) {
+    console.log("🔍 [CollectionItemsGroups] First group sultan groups:", groups[0].sultanGroups);
+  }
+
   // Function to get the appropriate category name based on current language
   const getTranslatedCategoryName = (group: { category: string; category_ar?: string; category_tr?: string }) => {
     if (!group) return '';
@@ -63,6 +74,28 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
         return group.category_tr || group.category;
       default:
         return group.category;
+    }
+  };
+
+  // Function to get the appropriate sultan name based on current language
+  const getTranslatedSultanName = (sultanGroup: { sultan: string; sultan_ar?: string; sultan_tr?: string }) => {
+    if (!sultanGroup) return '';
+    
+    // Debug: Log sultan group data
+    console.log(`🔍 [CollectionItemsGroups] getTranslatedSultanName called for "${sultanGroup.sultan}":`, {
+      sultan: sultanGroup.sultan,
+      sultan_ar: sultanGroup.sultan_ar,
+      sultan_tr: sultanGroup.sultan_tr,
+      currentLanguage
+    });
+    
+    switch (currentLanguage) {
+      case 'ar':
+        return sultanGroup.sultan_ar || sultanGroup.sultan;
+      case 'tr':
+        return sultanGroup.sultan_tr || sultanGroup.sultan;
+      default:
+        return sultanGroup.sultan;
     }
   };
 
@@ -345,7 +378,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                 group.sultanGroups.map((sultanGroup, sultanIndex) => (
                   <div key={`sultan-${sultanGroup.sultan}-${sultanIndex}`} className="space-y-4 w-full">
                     <div className="sticky top-[290px] sm:top-[195px] z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 w-full md:mx-0 px-6 md:px-0">
-                      <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary"><span>{sultanGroup.sultan}</span></h3>
+                      <h3 className="text-lg font-semibold pl-4 border-l-4 border-primary"><span>{getTranslatedSultanName(sultanGroup)}</span></h3>
                     </div>
                     <div className={cn(
                       viewMode === 'grid'

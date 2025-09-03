@@ -250,6 +250,7 @@ const Collection = () => {
   } = useDynamicFilter({
     items: collectionItemsWithBanknote,
     initialFilters: currentFilters,
+    sultans: [], // No sultan data available on this page
     collectionCategories: collectionCategories,
     collectionTypes: collectionTypes
   });

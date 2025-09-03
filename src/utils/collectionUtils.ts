@@ -4,7 +4,12 @@ import { CollectionItem } from "@/types";
 type GroupedCollection = {
   category: string;
   items: CollectionItem[];
-  sultanGroups?: { sultan: string; items: CollectionItem[] }[];
+  sultanGroups?: { 
+    sultan: string; 
+    sultan_ar?: string; 
+    sultan_tr?: string; 
+    items: CollectionItem[] 
+  }[];
 };
 
 /**
@@ -35,10 +40,12 @@ export const groupCollectionItemsByCategory = (
 /**
  * Groups collection items by category (series) and then by sultan
  * @param items Collection items to group
+ * @param sultans Optional sultan data with translation fields
  * @returns Array of grouped items with sultan sub-groups
  */
 export const groupCollectionItemsByCategoryAndSultan = (
-  items: CollectionItem[]
+  items: CollectionItem[],
+  sultans?: { name: string; name_ar?: string; name_tr?: string }[]
 ): GroupedCollection[] => {
   const grouped = groupCollectionItemsByCategory(items);
   
@@ -57,7 +64,17 @@ export const groupCollectionItemsByCategoryAndSultan = (
     
     // Convert sultan map to array and sort
     const sultanGroups = Array.from(sultanMap.entries())
-      .map(([sultan, items]) => ({ sultan, items }))
+      .map(([sultan, items]) => {
+        // Find sultan data to get translation fields (case-insensitive matching)
+        const sultanData = sultans?.find(s => s.name.toLowerCase() === sultan.toLowerCase());
+        
+        return { 
+          sultan, 
+          sultan_ar: sultanData?.name_ar,
+          sultan_tr: sultanData?.name_tr,
+          items 
+        };
+      })
       .sort((a, b) => a.sultan.localeCompare(b.sultan));
     
     return {

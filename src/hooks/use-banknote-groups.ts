@@ -14,6 +14,7 @@ export const useBanknoteGroups = (
   banknotes: DetailedBanknote[],
   sortFields: string[],
   categoryOrder: CategoryOrder[],
+  sultans: { name: string; name_ar?: string; name_tr?: string }[],
   countryId?: string,
   sultanOrderMap?: Map<string, number>
 ) => {
@@ -80,7 +81,17 @@ export const useBanknoteGroups = (
 
 
       group.sultanGroups = Array.from(sultanMap.entries())
-        .map(([sultan, items]) => ({ sultan, items }))
+        .map(([sultan, items]) => {
+          // Find sultan data to get translation fields (case-insensitive matching)
+          const sultanData = sultans.find(s => s.name.toLowerCase() === sultan.toLowerCase());
+          
+          return { 
+            sultan, 
+            sultan_ar: sultanData?.name_ar,
+            sultan_tr: sultanData?.name_tr,
+            items 
+          };
+        })
         .sort((a, b) => {
 
           // Use database-driven order if available, fallback to default order
@@ -105,5 +116,5 @@ export const useBanknoteGroups = (
   }
   
     return sortedGroups;
-  }, [banknotes, sortFields, categoryOrder, sultanOrderMap]);
+  }, [banknotes, sortFields, categoryOrder, sultans, sultanOrderMap]);
 };

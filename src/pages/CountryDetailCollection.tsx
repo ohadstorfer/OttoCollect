@@ -63,6 +63,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     countryId,
     countryData,
     categoryOrder,
+    sultans,
     currencies,
     loading: countryLoading,
     groupMode,
@@ -366,6 +367,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     sortedCollectionItems, 
     collectionSortFields, 
     categoryOrder,
+    sultans,
     countryId,
     sultanOrderMap
   );
@@ -389,6 +391,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     // Process sultan groups if they exist, also using collectionItemId
     const sultanGroups = group.sultanGroups?.map(sultanGroup => ({
       sultan: sultanGroup.sultan,
+      sultan_ar: sultanGroup.sultan_ar,
+      sultan_tr: sultanGroup.sultan_tr,
       items: sultanGroup.items.map(banknote => {
         const collectionItem = filteredCollectionItemsRegular.find(item => item.id === (banknote as any).collectionItemId);
         if (!collectionItem) {
@@ -456,6 +460,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     sortedSaleItems,
     saleSortFields,
     categoryOrder,
+    sultans,
     countryId,
     sultanOrderMap
   );
@@ -471,6 +476,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     
     const sultanGroups = group.sultanGroups?.map(sultanGroup => ({
       sultan: sultanGroup.sultan,
+      sultan_ar: sultanGroup.sultan_ar,
+      sultan_tr: sultanGroup.sultan_tr,
       items: sultanGroup.items.map(banknote => {
         const collectionItem = filteredCollectionItemsForSale.find(item => item.id === (banknote as any).collectionItemId);
         if (!collectionItem) {
@@ -647,6 +654,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     sortedMissingItems,
     missingSortFields,
     categoryOrder,
+    sultans,
     countryId,
     sultanOrderMap
   );
@@ -772,6 +780,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     sortedWishlistItems,
     wishlistSortFields,
     categoryOrder,
+    sultans,
     countryId,
     sultanOrderMap
   );

@@ -7,6 +7,7 @@ import { fetchCountryByName, fetchCategoriesByCountryId, fetchUserFilterPreferen
 import { supabase } from "@/integrations/supabase/client";
 import { CategoryDefinition, CountryData } from "@/types/filter";
 import { Currency } from "@/types/banknote";
+import { fetchSultanOrdersByCountryId, SultanOrder } from "@/services/sultanOrderService";
 
 interface UseCountryDataProps {
   countryName: string;
@@ -16,7 +17,8 @@ interface UseCountryDataProps {
 interface UseCountryDataResult {
   countryId: string;
   countryData: CountryData | null;
-  categoryOrder: { name: string; order: number }[];
+  categoryOrder: { name: string; name_ar?: string; name_tr?: string; order: number }[];
+  sultans: SultanOrder[];
   currencies: Currency[];
   loading: boolean;
   groupMode: boolean;
@@ -33,7 +35,8 @@ export const useCountryData = ({
   const { user } = useAuth();
   const [countryId, setCountryId] = useState<string>("");
   const [countryData, setCountryData] = useState<CountryData | null>(null);
-  const [categoryOrder, setCategoryOrder] = useState<{ name: string; order: number }[]>([]);
+  const [categoryOrder, setCategoryOrder] = useState<{ name: string; name_ar?: string; name_tr?: string; order: number }[]>([]);
+  const [sultans, setSultans] = useState<SultanOrder[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [groupMode, setGroupMode] = useState<boolean>(false);
@@ -83,6 +86,16 @@ export const useCountryData = ({
         }));
         console.log("CountryDetail: Mapped category order:", orderMap);
         setCategoryOrder(orderMap);
+
+        // Fetch sultans with translation fields
+        const sultans = await fetchSultanOrdersByCountryId(countryData.id);
+        console.log("CountryDetail: Raw sultans from database:", sultans);
+        console.log("CountryDetail: First sultan translation fields:", sultans[0] ? {
+          name: sultans[0].name,
+          name_ar: sultans[0].name_ar,
+          name_tr: sultans[0].name_tr
+        } : 'No sultans');
+        setSultans(sultans);
 
         const { data: currencyRows, error: currencyError } = await supabase
           .from("currencies")
@@ -172,6 +185,7 @@ export const useCountryData = ({
     countryId,
     countryData,
     categoryOrder,
+    sultans,
     currencies,
     loading,
     groupMode,

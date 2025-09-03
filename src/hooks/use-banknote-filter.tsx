@@ -12,7 +12,12 @@ interface UseBanknoteFilterProps<T> {
 interface GroupItem<T> {
   category: string;
   items: T[];
-  sultanGroups?: { sultan: string; items: T[] }[];
+  sultanGroups?: { 
+    sultan: string; 
+    sultan_ar?: string; 
+    sultan_tr?: string; 
+    items: T[] 
+  }[];
 }
 
 interface UseBanknoteFilterResult<T> {

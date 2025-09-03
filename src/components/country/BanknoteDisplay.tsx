@@ -8,7 +8,12 @@ interface BanknoteDisplayProps {
   groups: {
     category: string;
     items: DetailedBanknote[];
-    sultanGroups?: { sultan: string; items: DetailedBanknote[] }[];
+    sultanGroups?: { 
+      sultan: string; 
+      sultan_ar?: string; 
+      sultan_tr?: string; 
+      items: DetailedBanknote[] 
+    }[];
   }[];
   showSultanGroups: boolean;
   viewMode: 'grid' | 'list';

@@ -77,6 +77,7 @@ const CountryDetail = () => {
     countryId,
     countryData,
     categoryOrder,
+    sultans,
     currencies,
     loading: countryLoading,
     groupMode,
@@ -145,6 +146,7 @@ const CountryDetail = () => {
     banknotes: sortedBanknotes,
     sortFields: filters.sort,
     categoryOrder,
+    sultans,
     countryId,
     sultanOrderMap
   });

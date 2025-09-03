@@ -4,13 +4,19 @@ import { CollectionItem } from '@/types';
 export interface CollectionGroupedData {
   category: string;
   items: CollectionItem[];
-  sultanGroups?: { sultan: string; items: CollectionItem[] }[];
+  sultanGroups?: { 
+    sultan: string; 
+    sultan_ar?: string; 
+    sultan_tr?: string; 
+    items: CollectionItem[] 
+  }[];
 }
 
 interface CollectionGroupingOptions {
   collectionItems: CollectionItem[];
   sortFields: string[];
   categoryOrder: string[];
+  sultans: { name: string; name_ar?: string; name_tr?: string }[];
   groupMode?: boolean;
 }
 
@@ -18,6 +24,7 @@ export const useOptimizedCollectionGroups = ({
   collectionItems, 
   sortFields, 
   categoryOrder,
+  sultans,
   groupMode = false
 }: CollectionGroupingOptions): CollectionGroupedData[] => {
   
@@ -67,7 +74,17 @@ export const useOptimizedCollectionGroups = ({
 
         // Convert sultan map to array and sort alphabetically
         const sultanGroups = Array.from(sultanMap.entries())
-          .map(([sultan, sultanItems]) => ({ sultan, items: sultanItems }))
+          .map(([sultan, sultanItems]) => {
+            // Find sultan data to get translation fields (case-insensitive matching)
+            const sultanData = sultans.find(s => s.name.toLowerCase() === sultan.toLowerCase());
+            
+            return { 
+              sultan, 
+              sultan_ar: sultanData?.name_ar,
+              sultan_tr: sultanData?.name_tr,
+              items: sultanItems 
+            };
+          })
           .sort((a, b) => a.sultan.localeCompare(b.sultan));
 
         groupData.sultanGroups = sultanGroups;
@@ -93,5 +110,5 @@ export const useOptimizedCollectionGroups = ({
     console.log(`[OptimizedCollectionGroups] Grouped into ${grouped.length} categories in ${(endTime - startTime).toFixed(2)}ms`);
     
     return grouped;
-  }, [collectionItems, sortFields, categoryOrder, groupMode]);
+  }, [collectionItems, sortFields, categoryOrder, sultans, groupMode]);
 };

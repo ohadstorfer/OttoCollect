@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { DetailedBanknote } from '@/types';
 import { getMixedBanknoteItems, getMixedBanknoteItemsBySultan, MixedBanknoteItem } from '@/utils/banknoteGrouping';
+import { fetchSultanOrdersByCountryId } from '@/services/sultanOrderService';
 
 interface CategoryDefinition {
   name: string;
@@ -14,7 +15,12 @@ export interface BanknoteGroupedData {
   categoryId: string;
   items: DetailedBanknote[];
   mixedItems?: MixedBanknoteItem[];
-  sultanGroups?: { sultan: string; items: DetailedBanknote[] }[];
+  sultanGroups?: { 
+    sultan: string; 
+    sultan_ar?: string; 
+    sultan_tr?: string; 
+    items: DetailedBanknote[] 
+  }[];
 }
 
 interface BanknoteGroup extends BanknoteGroupedData {}
@@ -23,6 +29,7 @@ interface GroupingOptions {
   banknotes: DetailedBanknote[];
   sortFields: string[];
   categoryOrder: CategoryDefinition[];
+  sultans: { name: string; name_ar?: string; name_tr?: string }[];
   countryId?: string;
   sultanOrderMap?: Map<string, number>;
 }
@@ -32,6 +39,7 @@ export const useOptimizedBanknoteGroups = ({
   banknotes, 
   sortFields, 
   categoryOrder,
+  sultans,
   countryId,
   sultanOrderMap
 }: GroupingOptions): BanknoteGroupedData[] => {
@@ -54,7 +62,13 @@ export const useOptimizedBanknoteGroups = ({
   return useMemo(() => {
     const showSultanGroups = sortFields.includes('sultan');
     
-
+    // Debug: Log sultans data received
+    console.log("🔍 [useOptimizedBanknoteGroups] Received sultans data:", sultans);
+    console.log("🔍 [useOptimizedBanknoteGroups] First sultan translation fields:", sultans[0] ? {
+      name: sultans[0].name,
+      name_ar: sultans[0].name_ar,
+      name_tr: sultans[0].name_tr
+    } : 'No sultans');
     
     if (!banknotes.length) {
       return [];
@@ -95,12 +109,29 @@ export const useOptimizedBanknoteGroups = ({
         const sultanGroups = getMixedBanknoteItemsBySultan(group.items, sultanOrderMap);
         return {
           ...group,
-          sultanGroups: sultanGroups.map(sultanGroup => ({
-            sultan: sultanGroup.sultan,
-            items: sultanGroup.items.flatMap(item => 
-              item.type === 'single' ? [item.banknote] : item.group.items
-            )
-          }))
+          sultanGroups: sultanGroups.map(sultanGroup => {
+            // Find sultan data to get translation fields (case-insensitive matching)
+            const sultanData = sultans.find(s => s.name.toLowerCase() === sultanGroup.sultan.toLowerCase());
+            
+            const result = {
+              sultan: sultanGroup.sultan,
+              sultan_ar: sultanData?.name_ar,
+              sultan_tr: sultanData?.name_tr,
+              items: sultanGroup.items.flatMap(item => 
+                item.type === 'single' ? [item.banknote] : item.group.items
+              )
+            };
+            
+            // Debug: Log sultan group creation
+            console.log(`🔍 [useOptimizedBanknoteGroups] Created sultan group for "${sultanGroup.sultan}":`, {
+              sultan: result.sultan,
+              sultan_ar: result.sultan_ar,
+              sultan_tr: result.sultan_tr,
+              foundData: !!sultanData
+            });
+            
+            return result;
+          })
         };
       } else {
         // Generate mixed items without sultan grouping
@@ -133,5 +164,5 @@ export const useOptimizedBanknoteGroups = ({
     
 
     return sortedGroups;
-  }, [banknotes, sortFields, categoryOrderMap, sultanOrderMap]);
+  }, [banknotes, sortFields, categoryOrder, sultans, categoryOrderMap, sultanOrderMap]);
 };

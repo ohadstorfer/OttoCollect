@@ -23,6 +23,12 @@ export const fetchSultanOrdersByCountryId = async (countryId: string): Promise<S
     throw error;
   }
 
+  // Debug: Log the actual fields returned
+  if (data && data.length > 0) {
+    console.log('🔍 [SultanOrderService Debug] First sultan object keys:', Object.keys(data[0]));
+    console.log('🔍 [SultanOrderService Debug] First sultan object:', data[0]);
+  }
+
   return data || [];
 };
 
