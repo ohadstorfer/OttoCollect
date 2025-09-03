@@ -7,10 +7,13 @@ import { cn } from '@/lib/utils';
 import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
 import { BanknoteGroupData, getMixedBanknoteItems, getMixedBanknoteItemsBySultan, MixedBanknoteItem } from '@/utils/banknoteGrouping';
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface BanknoteGroupsProps {
   groups: {
     category: string;
+    category_ar?: string;
+    category_tr?: string;
     items: DetailedBanknote[];
     sultanGroups?: { sultan: string; items: DetailedBanknote[] }[];
   }[];
@@ -31,12 +34,27 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   groupMode = false,
   userCollection // <-- ADDED
 }) => {
+  const { currentLanguage } = useLanguage();
 
+  // Function to get the appropriate category name based on current language
+  const getTranslatedCategoryName = (group: { category: string; category_ar?: string; category_tr?: string }) => {
+    if (!group) return '';
+    
+    switch (currentLanguage) {
+      case 'ar':
+        return group.category_ar || group.category;
+      case 'tr':
+        return group.category_tr || group.category;
+      default:
+        return group.category;
+    }
+  };
 
   const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
   const [selectedGroup, setSelectedGroup] = useState<BanknoteGroupData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
+  const { direction } = useLanguage();
 
   // Add effect to force re-render when groupMode changes
   useEffect(() => {
@@ -147,9 +165,9 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   return (
     <div ref={containerRef} className="space-y-8 w-full" key={`group-container-${forceUpdate}`}>
       {groups.map((group, groupIndex) => (
-        <div key={`group-${groupIndex}-${forceUpdate}`} className="space-y-4 w-full">
+        <div key={`group-${groupIndex}-${forceUpdate}`} className={cn("space-y-4 w-full", direction === 'rtl' ? 'text-right' : 'text-left')}>
           <div className="sticky top-[200px] sm:top-[150px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:mx-0 px-6 md:px-0">
-            <h2 className="text-xl font-bold"><span>{group.category}</span></h2>
+            <h2 className="text-xl font-bold"><span>{getTranslatedCategoryName(group)}</span></h2>
           </div>
 
           <div className="space-y-6 w-full">

@@ -400,6 +400,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 
     return {
       category: group.category,
+      category_ar: group.category_ar,
+      category_tr: group.category_tr,
       items: collectionItemsInGroup,
       sultanGroups: sultanGroups
     };
@@ -480,6 +482,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 
     return {
       category: group.category,
+      category_ar: group.category_ar,
+      category_tr: group.category_tr,
       items: collectionItemsInGroup,
       sultanGroups: sultanGroups
     };

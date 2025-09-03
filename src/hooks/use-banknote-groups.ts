@@ -5,6 +5,8 @@ import { getSultanOrderMap, getSultanOrder } from "@/services/sultanOrderService
 
 interface CategoryOrder {
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   order: number;
 }
 
@@ -33,8 +35,13 @@ export const useBanknoteGroups = (
       const category = banknote.category || 'Uncategorized';
   
       if (!categoryMap.has(category)) {
+        // Find the category definition to get translation fields
+        const categoryDef = categoryOrder.find(cat => cat.name === category);
+        
         categoryMap.set(category, {
           category,
+          category_ar: categoryDef?.name_ar,
+          category_tr: categoryDef?.name_tr,
           categoryId: '',
           items: []
         });

@@ -4,6 +4,8 @@ import { getMixedBanknoteItems, getMixedBanknoteItemsBySultan, MixedBanknoteItem
 
 interface CategoryDefinition {
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   order: number;
 }
 
@@ -69,8 +71,13 @@ export const useOptimizedBanknoteGroups = ({
 
       
       if (!groupsMap.has(categoryKey)) {
+        // Find the category definition to get translation fields
+        const categoryDef = categoryOrder.find(cat => cat.name.toLowerCase().trim() === categoryKey);
+        
         groupsMap.set(categoryKey, {
           category,
+          category_ar: categoryDef?.name_ar,
+          category_tr: categoryDef?.name_tr,
           categoryId: categoryKey,
           items: [],
           mixedItems: [],

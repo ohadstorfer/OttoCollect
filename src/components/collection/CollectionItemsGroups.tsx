@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
 import { BanknoteGroupData } from '@/utils/banknoteGrouping';
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface CollectionGroupItem {
   type: 'single' | 'group';
@@ -25,6 +26,8 @@ interface CollectionGroupItem {
 interface CollectionItemsGroupsProps {
   groups: {
     category: string;
+    category_ar?: string;
+    category_tr?: string;
     items: CollectionItem[];
     sultanGroups?: { sultan: string; items: CollectionItem[] }[];
   }[];
@@ -47,11 +50,22 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
   onUpdate,
   isOwner
 }) => {
-  
+  const { currentLanguage } = useLanguage();
 
+  // Function to get the appropriate category name based on current language
+  const getTranslatedCategoryName = (group: { category: string; category_ar?: string; category_tr?: string }) => {
+    if (!group) return '';
+    
+    switch (currentLanguage) {
+      case 'ar':
+        return group.category_ar || group.category;
+      case 'tr':
+        return group.category_tr || group.category;
+      default:
+        return group.category;
+    }
+  };
 
-
-  
   const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
   const [selectedGroup, setSelectedGroup] = useState<{
     baseNumber: string;
@@ -59,6 +73,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
     count: number;
   } | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { direction } = useLanguage();
   
   // Wishlist group dialog state
   const [selectedWishlistGroup, setSelectedWishlistGroup] = useState<{
@@ -318,9 +333,9 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
   return (
     <div ref={containerRef} className="space-y-8 w-full">
       {groups.map((group, groupIndex) => (
-        <div key={`group-${groupIndex}`} className="space-y-4 w-full">
+        <div key={`group-${groupIndex}`} className={cn("space-y-4 w-full", direction === 'rtl' ? 'text-right' : 'text-left')}>
           <div className="sticky top-[245px] sm:top-[150px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:mx-0 px-6 md:px-0">
-            <h2 className="text-xl font-bold"><span>{group.category}</span></h2>
+            <h2 className="text-xl font-bold"><span>{getTranslatedCategoryName(group)}</span></h2>
           </div>
 
           <div className="space-y-6 w-full">

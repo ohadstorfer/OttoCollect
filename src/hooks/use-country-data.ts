@@ -77,6 +77,8 @@ export const useCountryData = ({
         
         const orderMap = categories.map((cat: CategoryDefinition) => ({
           name: cat.name,
+          name_ar: cat.name_ar,
+          name_tr: cat.name_tr,
           order: cat.display_order
         }));
         console.log("CountryDetail: Mapped category order:", orderMap);
