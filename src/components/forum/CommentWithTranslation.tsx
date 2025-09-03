@@ -59,9 +59,11 @@ const CommentWithTranslation: React.FC<CommentWithTranslationProps> = ({
         shouldShow
       });
     } else {
-      // Fallback: show button if we don't have original language
-      setShouldShowButton(true);
-      console.log('🌐 [CommentWithTranslation] No original language stored, showing button as fallback');
+      // Fallback: assume English if no original language is stored
+      // Only show button if current language is not English
+      const shouldShow = currentLanguage !== 'en';
+      setShouldShowButton(shouldShow);
+      console.log('🌐 [CommentWithTranslation] No original language stored, assuming English. Showing button:', shouldShow);
     }
   }, [comment.original_language, currentLanguage]);
 
