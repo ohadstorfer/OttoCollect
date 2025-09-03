@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, Edit, Plus, GripVertical } from 'lucide-react';
+import { Trash2, Edit, Plus, GripVertical, Languages } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from "@/hooks/useTranslation";
 import { 
   SultanOrder,
   fetchSultanOrdersByCountryId,
@@ -35,6 +36,7 @@ export function SultansManager({ countryId }: SultansManagerProps) {
     displayOrder: 0
   });
   const { toast } = useToast();
+  const { translate, isTranslating } = useTranslation();
 
   useEffect(() => {
     loadSultans();
@@ -60,7 +62,13 @@ export function SultansManager({ countryId }: SultansManagerProps) {
   const handleAddSultan = async () => {
     try {
       setLoading(true);
-      await createSultanOrder(countryId, formData.name, formData.displayOrder);
+      await createSultanOrder(
+        countryId, 
+        formData.name, 
+        formData.displayOrder,
+        formData.nameAr || undefined,
+        formData.nameTr || undefined
+      );
       await loadSultans();
       setShowAddDialog(false);
       resetForm();
@@ -87,7 +95,9 @@ export function SultansManager({ countryId }: SultansManagerProps) {
       setLoading(true);
       await updateSultanOrder(currentSultan.id, {
         name: formData.name,
-        display_order: formData.displayOrder
+        display_order: formData.displayOrder,
+        name_ar: formData.nameAr || null,
+        name_tr: formData.nameTr || null
       });
       await loadSultans();
       setShowEditDialog(false);
@@ -202,6 +212,41 @@ export function SultansManager({ countryId }: SultansManagerProps) {
     setCurrentSultan(null);
   };
 
+  const handleTranslateAll = async () => {
+    if (!sultans.length) return;
+    
+    setLoading(true);
+    try {
+      for (const sultan of sultans) {
+        if (!sultan.name_ar || !sultan.name_tr) {
+          const nameAr = await translate(sultan.name, 'ar');
+          const nameTr = await translate(sultan.name, 'tr');
+          
+          await updateSultanOrder(sultan.id, {
+            name_ar: nameAr,
+            name_tr: nameTr
+          });
+        }
+      }
+      
+      toast({
+        title: "Success",
+        description: "All sultans translated successfully",
+      });
+      
+      loadSultans();
+    } catch (error) {
+      console.error('Error translating sultans:', error);
+      toast({
+        title: "Error",
+        description: "Failed to translate sultans",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading && sultans.length === 0) {
     return <div className="text-center py-4">Loading sultans...</div>;
   }
@@ -209,11 +254,22 @@ export function SultansManager({ countryId }: SultansManagerProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle> <span>Manage Sultans</span></CardTitle>
-        <Button onClick={openAddDialog} disabled={loading}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Sultan
-        </Button>
+        <CardTitle><span>Manage Sultans</span></CardTitle>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleTranslateAll} 
+            variant="outline" 
+            className="flex items-center space-x-1"
+            disabled={isTranslating || loading || !sultans.length}
+          >
+            <Languages className="h-4 w-4" />
+            <span>{isTranslating ? 'Translating...' : 'Translate All'}</span>
+          </Button>
+          <Button onClick={openAddDialog} disabled={loading}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Sultan
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {sultans.length === 0 ? (

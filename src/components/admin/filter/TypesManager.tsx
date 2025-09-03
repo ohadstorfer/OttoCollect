@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 import { 
   fetchTypesByCountryId,
   createType, 
@@ -26,7 +27,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Edit, Trash2, Plus, MoveUp, MoveDown } from 'lucide-react';
+import { Edit, Trash2, Plus, MoveUp, MoveDown, Languages } from 'lucide-react';
 import { updateTypeDefinition } from '@/services/adminService';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
@@ -45,6 +46,7 @@ interface TypesManagerProps {
 
 const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
   const { toast } = useToast();
+  const { translate, isTranslating } = useTranslation();
   const [types, setTypes] = useState<Type[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -97,7 +99,9 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
         countryId,
         formName.trim(),
         formDescription.trim(),
-        formOrder
+        formOrder,
+        formNameAr.trim() || undefined,
+        formNameTr.trim() || undefined
       );
       
       toast({
@@ -121,15 +125,27 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
   const handleEdit = async (id: string, newName: string, oldName: string) => {
     setLoading(true);
     try {
+      // Update the type definition first (only if name changed)
       const result = await updateTypeDefinition(id, newName, oldName);
       if (!result.success) {
         throw new Error(result.error);
       }
+      
+      // Update translation fields
+      await updateType(id, countryId, {
+        name: formName.trim(),
+        name_ar: formNameAr.trim() || null,
+        name_tr: formNameTr.trim() || null,
+        description: formDescription.trim()
+      });
+      
       toast({
         title: "Success",
         description: "Type updated successfully",
       });
-      // Refresh the types list
+      
+      setShowEditDialog(false);
+      resetForm();
       loadTypes();
     } catch (error) {
       console.error('Error updating type:', error);
@@ -196,6 +212,41 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
     resetForm();
     setFormOrder(types.length);
     setShowAddDialog(true);
+  };
+
+  const handleTranslateAll = async () => {
+    if (!types.length) return;
+    
+    setLoading(true);
+    try {
+      for (const type of types) {
+        if (!type.name_ar || !type.name_tr) {
+          const nameAr = await translate(type.name, 'ar');
+          const nameTr = await translate(type.name, 'tr');
+          
+          await updateType(type.id, countryId, {
+            name_ar: nameAr,
+            name_tr: nameTr
+          });
+        }
+      }
+      
+      toast({
+        title: "Success",
+        description: "All types translated successfully",
+      });
+      
+      loadTypes();
+    } catch (error) {
+      console.error('Error translating types:', error);
+      toast({
+        title: "Error",
+        description: "Failed to translate types",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleMoveUp = async (index: number) => {
@@ -294,10 +345,21 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium"><span>Banknote Types</span></h3>
-        <Button onClick={openAddDialog} className="flex items-center space-x-1">
-          <Plus className="h-4 w-4" />
-          <span>Add Type</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleTranslateAll} 
+            variant="outline" 
+            className="flex items-center space-x-1"
+            disabled={isTranslating || loading || !types.length}
+          >
+            <Languages className="h-4 w-4" />
+            <span>{isTranslating ? 'Translating...' : 'Translate All'}</span>
+          </Button>
+          <Button onClick={openAddDialog} className="flex items-center space-x-1">
+            <Plus className="h-4 w-4" />
+            <span>Add Type</span>
+          </Button>
+        </div>
       </div>
       
       {loading ? (

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Table, 
@@ -20,7 +21,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Plus, Languages } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 interface Currency {
@@ -40,6 +41,7 @@ interface CurrenciesManagerProps {
 
 const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
   const { toast } = useToast();
+  const { translate, isTranslating } = useTranslation();
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -212,6 +214,47 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
     setShowAddDialog(true);
   };
 
+  const handleTranslateAll = async () => {
+    if (!currencies.length) return;
+    
+    setLoading(true);
+    try {
+      for (const currency of currencies) {
+        if (!currency.name_ar || !currency.name_tr) {
+          const nameAr = await translate(currency.name, 'ar');
+          const nameTr = await translate(currency.name, 'tr');
+          
+          const { error } = await supabase
+            .from('currencies')
+            .update({ 
+              name_ar: nameAr,
+              name_tr: nameTr,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', currency.id);
+          
+          if (error) throw error;
+        }
+      }
+      
+      toast({
+        title: "Success",
+        description: "All currencies translated successfully",
+      });
+      
+      loadCurrencies();
+    } catch (error) {
+      console.error('Error translating currencies:', error);
+      toast({
+        title: "Error",
+        description: "Failed to translate currencies",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
 
@@ -262,10 +305,21 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium"><span>Currencies</span></h3>
-        <Button onClick={openAddDialog} className="flex items-center space-x-1">
-          <Plus className="h-4 w-4" />
-          <span>Add Currency</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleTranslateAll} 
+            variant="outline" 
+            className="flex items-center space-x-1"
+            disabled={isTranslating || loading || !currencies.length}
+          >
+            <Languages className="h-4 w-4" />
+            <span>{isTranslating ? 'Translating...' : 'Translate All'}</span>
+          </Button>
+          <Button onClick={openAddDialog} className="flex items-center space-x-1">
+            <Plus className="h-4 w-4" />
+            <span>Add Currency</span>
+          </Button>
+        </div>
       </div>
       
       {loading ? (

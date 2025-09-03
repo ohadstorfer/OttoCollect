@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 import { 
   fetchCategoriesByCountryId,
   createCategory, 
@@ -29,7 +30,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Edit, Trash2, Plus, MoveUp, MoveDown } from 'lucide-react';
+import { Edit, Trash2, Plus, MoveUp, MoveDown, Languages } from 'lucide-react';
 import { updateCategoryDefinition } from '@/services/adminService';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
@@ -48,6 +49,7 @@ interface CategoriesManagerProps {
 
 const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
   const { toast } = useToast();
+  const { translate, isTranslating } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -100,7 +102,9 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
         countryId,
         formName.trim(),
         formDescription.trim(),
-        formOrder
+        formOrder,
+        formNameAr.trim() || undefined,
+        formNameTr.trim() || undefined
       );
       
       toast({
@@ -124,15 +128,27 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
   const handleEdit = async (id: string, newName: string, oldName: string) => {
     setLoading(true);
     try {
+      // Update the category definition first (only if name changed)
       const result = await updateCategoryDefinition(id, newName, oldName);
       if (!result.success) {
         throw new Error(result.error);
       }
+      
+      // Update translation fields
+      await updateCategory(id, countryId, {
+        name: formName.trim(),
+        name_ar: formNameAr.trim() || null,
+        name_tr: formNameTr.trim() || null,
+        description: formDescription.trim()
+      });
+      
       toast({
         title: "Success",
         description: "Category updated successfully",
       });
-      // Refresh the categories list
+      
+      setShowEditDialog(false);
+      resetForm();
       loadCategories();
     } catch (error) {
       console.error('Error updating category:', error);
@@ -199,6 +215,41 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
     resetForm();
     setFormOrder(categories.length);
     setShowAddDialog(true);
+  };
+
+  const handleTranslateAll = async () => {
+    if (!categories.length) return;
+    
+    setLoading(true);
+    try {
+      for (const category of categories) {
+        if (!category.name_ar || !category.name_tr) {
+          const nameAr = await translate(category.name, 'ar');
+          const nameTr = await translate(category.name, 'tr');
+          
+          await updateCategory(category.id, countryId, {
+            name_ar: nameAr,
+            name_tr: nameTr
+          });
+        }
+      }
+      
+      toast({
+        title: "Success",
+        description: "All categories translated successfully",
+      });
+      
+      loadCategories();
+    } catch (error) {
+      console.error('Error translating categories:', error);
+      toast({
+        title: "Error",
+        description: "Failed to translate categories",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleMoveUp = async (index: number) => {
@@ -297,10 +348,21 @@ const CategoriesManager: React.FC<CategoriesManagerProps> = ({ countryId }) => {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium"><span>Categories</span></h3>
-        <Button onClick={openAddDialog} className="flex items-center space-x-1">
-          <Plus className="h-4 w-4" />
-          <span>Add Category</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleTranslateAll} 
+            variant="outline" 
+            className="flex items-center space-x-1"
+            disabled={isTranslating || loading || !categories.length}
+          >
+            <Languages className="h-4 w-4" />
+            <span>{isTranslating ? 'Translating...' : 'Translate All'}</span>
+          </Button>
+          <Button onClick={openAddDialog} className="flex items-center space-x-1">
+            <Plus className="h-4 w-4" />
+            <span>Add Category</span>
+          </Button>
+        </div>
       </div>
       
       {loading ? (

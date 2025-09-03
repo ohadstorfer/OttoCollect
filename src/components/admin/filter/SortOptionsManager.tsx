@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 import { 
   fetchSortOptionsByCountryId,
   createSortOption, 
@@ -27,7 +28,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Edit, Trash2, Plus, MoveUp, MoveDown } from 'lucide-react';
+import { Edit, Trash2, Plus, MoveUp, MoveDown, Languages } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 interface SortOption {
@@ -48,6 +49,7 @@ interface SortOptionsManagerProps {
 
 const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) => {
   const { toast } = useToast();
+  const { translate, isTranslating } = useTranslation();
   const [sortOptions, setSortOptions] = useState<SortOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -105,7 +107,9 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
         formFieldName.trim(),
         formIsDefault,
         formIsRequired,
-        formOrder
+        formOrder,
+        formNameAr.trim() || undefined,
+        formNameTr.trim() || undefined
       );
       
       toast({
@@ -146,7 +150,9 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
           description: formDescription.trim(),
           is_default: formIsDefault,
           is_required: formIsRequired,
-          display_order: formOrder
+          display_order: formOrder,
+          name_ar: formNameAr.trim() || null,
+          name_tr: formNameTr.trim() || null
         }
       );
 
@@ -233,6 +239,47 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
     setShowAddDialog(true);
   };
 
+  const handleTranslateAll = async () => {
+    if (!sortOptions.length) return;
+    
+    setLoading(true);
+    try {
+      for (const option of sortOptions) {
+        if (!option.name_ar || !option.name_tr) {
+          const nameAr = await translate(option.name, 'ar');
+          const nameTr = await translate(option.name, 'tr');
+          
+          await updateSortOption(option.id, countryId, {
+            name: option.name,
+            field_name: option.field_name,
+            description: option.description || '',
+            is_default: option.is_default,
+            is_required: option.is_required,
+            display_order: option.display_order,
+            name_ar: nameAr,
+            name_tr: nameTr
+          });
+        }
+      }
+      
+      toast({
+        title: "Success",
+        description: "All sort options translated successfully",
+      });
+      
+      loadSortOptions();
+    } catch (error) {
+      console.error('Error translating sort options:', error);
+      toast({
+        title: "Error",
+        description: "Failed to translate sort options",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
 
@@ -289,10 +336,21 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium"><span>Sort Options</span></h3>
-        <Button onClick={openAddDialog} className="flex items-center space-x-1">
-          <Plus className="h-4 w-4" />
-          <span>Add Sort Option</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleTranslateAll} 
+            variant="outline" 
+            className="flex items-center space-x-1"
+            disabled={isTranslating || loading || !sortOptions.length}
+          >
+            <Languages className="h-4 w-4" />
+            <span>{isTranslating ? 'Translating...' : 'Translate All'}</span>
+          </Button>
+          <Button onClick={openAddDialog} className="flex items-center space-x-1">
+            <Plus className="h-4 w-4" />
+            <span>Add Sort Option</span>
+          </Button>
+        </div>
       </div>
       
       {loading ? (
