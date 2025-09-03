@@ -26,6 +26,8 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 interface Currency {
   id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   country_id: string;
   display_order: number;
   created_at: string;
@@ -47,6 +49,8 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
   
   // Form states
   const [formName, setFormName] = useState('');
+  const [formNameAr, setFormNameAr] = useState('');
+  const [formNameTr, setFormNameTr] = useState('');
   const [formOrder, setFormOrder] = useState(0);
   
   useEffect(() => {
@@ -93,6 +97,8 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
         .from('currencies')
         .insert({
           name: formName.trim(),
+          name_ar: formNameAr.trim() || null,
+          name_tr: formNameTr.trim() || null,
           country_id: countryId,
           display_order: formOrder
         });
@@ -125,6 +131,8 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
         .from('currencies')
         .update({ 
           name: formName.trim(),
+          name_ar: formNameAr.trim() || null,
+          name_tr: formNameTr.trim() || null,
           updated_at: new Date().toISOString()
         })
         .eq('id', selectedCurrency.id);
@@ -179,6 +187,8 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
   const openEditDialog = (currency: Currency) => {
     setSelectedCurrency(currency);
     setFormName(currency.name);
+    setFormNameAr(currency.name_ar || '');
+    setFormNameTr(currency.name_tr || '');
     setFormOrder(currency.display_order);
     setShowEditDialog(true);
   };
@@ -190,6 +200,8 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
   
   const resetForm = () => {
     setFormName('');
+    setFormNameAr('');
+    setFormNameTr('');
     setFormOrder(currencies.length);
     setSelectedCurrency(null);
   };
@@ -338,12 +350,30 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Name (English)</Label>
               <Input
                 id="name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Enter currency name"
+                placeholder="Enter currency name in English"
+              />
+            </div>
+            <div>
+              <Label htmlFor="name-ar">Name (Arabic)</Label>
+              <Input
+                id="name-ar"
+                value={formNameAr}
+                onChange={(e) => setFormNameAr(e.target.value)}
+                placeholder="Enter currency name in Arabic"
+              />
+            </div>
+            <div>
+              <Label htmlFor="name-tr">Name (Turkish)</Label>
+              <Input
+                id="name-tr"
+                value={formNameTr}
+                onChange={(e) => setFormNameTr(e.target.value)}
+                placeholder="Enter currency name in Turkish"
               />
             </div>
             <div>
@@ -372,12 +402,30 @@ const CurrenciesManager: React.FC<CurrenciesManagerProps> = ({ countryId }) => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="edit-name">Name</Label>
+              <Label htmlFor="edit-name">Name (English)</Label>
               <Input
                 id="edit-name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Enter currency name"
+                placeholder="Enter currency name in English"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-name-ar">Name (Arabic)</Label>
+              <Input
+                id="edit-name-ar"
+                value={formNameAr}
+                onChange={(e) => setFormNameAr(e.target.value)}
+                placeholder="Enter currency name in Arabic"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-name-tr">Name (Turkish)</Label>
+              <Input
+                id="edit-name-tr"
+                value={formNameTr}
+                onChange={(e) => setFormNameTr(e.target.value)}
+                placeholder="Enter currency name in Turkish"
               />
             </div>
           </div>

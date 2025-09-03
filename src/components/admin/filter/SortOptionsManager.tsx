@@ -33,6 +33,8 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 interface SortOption {
   id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   field_name: string;
   description?: string;
   is_default: boolean;
@@ -55,6 +57,8 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
   
   // Form states
   const [formName, setFormName] = useState('');
+  const [formNameAr, setFormNameAr] = useState('');
+  const [formNameTr, setFormNameTr] = useState('');
   const [formFieldName, setFormFieldName] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formIsDefault, setFormIsDefault] = useState(false);
@@ -196,6 +200,8 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
   const openEditDialog = (sortOption: SortOption) => {
     setSelectedSortOption(sortOption);
     setFormName(sortOption.name);
+    setFormNameAr(sortOption.name_ar || '');
+    setFormNameTr(sortOption.name_tr || '');
     setFormFieldName(sortOption.field_name);
     setFormDescription(sortOption.description || '');
     setFormIsDefault(sortOption.is_default);
@@ -211,6 +217,8 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
   
   const resetForm = () => {
     setFormName('');
+    setFormNameAr('');
+    setFormNameTr('');
     setFormFieldName('');
     setFormDescription('');
     setFormIsDefault(false);
@@ -380,12 +388,30 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Name (English)</Label>
               <Input
                 id="name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Enter sort option name"
+                placeholder="Enter sort option name in English"
+              />
+            </div>
+            <div>
+              <Label htmlFor="name-ar">Name (Arabic)</Label>
+              <Input
+                id="name-ar"
+                value={formNameAr}
+                onChange={(e) => setFormNameAr(e.target.value)}
+                placeholder="Enter sort option name in Arabic"
+              />
+            </div>
+            <div>
+              <Label htmlFor="name-tr">Name (Turkish)</Label>
+              <Input
+                id="name-tr"
+                value={formNameTr}
+                onChange={(e) => setFormNameTr(e.target.value)}
+                placeholder="Enter sort option name in Turkish"
               />
             </div>
             <div>
@@ -448,12 +474,30 @@ const SortOptionsManager: React.FC<SortOptionsManagerProps> = ({ countryId }) =>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="edit-name">Name</Label>
+              <Label htmlFor="edit-name">Name (English)</Label>
               <Input
                 id="edit-name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Enter sort option name"
+                placeholder="Enter sort option name in English"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-name-ar">Name (Arabic)</Label>
+              <Input
+                id="edit-name-ar"
+                value={formNameAr}
+                onChange={(e) => setFormNameAr(e.target.value)}
+                placeholder="Enter sort option name in Arabic"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-name-tr">Name (Turkish)</Label>
+              <Input
+                id="edit-name-tr"
+                value={formNameTr}
+                onChange={(e) => setFormNameTr(e.target.value)}
+                placeholder="Enter sort option name in Turkish"
               />
             </div>
             <div>

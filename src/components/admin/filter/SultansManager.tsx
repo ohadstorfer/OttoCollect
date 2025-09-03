@@ -30,6 +30,8 @@ export function SultansManager({ countryId }: SultansManagerProps) {
   const [currentSultan, setCurrentSultan] = useState<SultanOrder | null>(null);
   const [formData, setFormData] = useState({
     name: '',
+    nameAr: '',
+    nameTr: '',
     displayOrder: 0
   });
   const { toast } = useToast();
@@ -178,6 +180,8 @@ export function SultansManager({ countryId }: SultansManagerProps) {
     setCurrentSultan(sultan);
     setFormData({
       name: sultan.name,
+      nameAr: sultan.name_ar || '',
+      nameTr: sultan.name_tr || '',
       displayOrder: sultan.display_order
     });
     setShowEditDialog(true);
@@ -191,6 +195,8 @@ export function SultansManager({ countryId }: SultansManagerProps) {
   const resetForm = () => {
     setFormData({
       name: '',
+      nameAr: '',
+      nameTr: '',
       displayOrder: 0
     });
     setCurrentSultan(null);
@@ -285,12 +291,30 @@ export function SultansManager({ countryId }: SultansManagerProps) {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="sultanName">Sultan Name</Label>
+                <Label htmlFor="sultanName">Sultan Name (English)</Label>
                 <Input
                   id="sultanName"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter sultan name"
+                  placeholder="Enter sultan name in English"
+                />
+              </div>
+              <div>
+                <Label htmlFor="sultanNameAr">Sultan Name (Arabic)</Label>
+                <Input
+                  id="sultanNameAr"
+                  value={formData.nameAr}
+                  onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
+                  placeholder="Enter sultan name in Arabic"
+                />
+              </div>
+              <div>
+                <Label htmlFor="sultanNameTr">Sultan Name (Turkish)</Label>
+                <Input
+                  id="sultanNameTr"
+                  value={formData.nameTr}
+                  onChange={(e) => setFormData({ ...formData, nameTr: e.target.value })}
+                  placeholder="Enter sultan name in Turkish"
                 />
               </div>
               <div>
@@ -323,12 +347,30 @@ export function SultansManager({ countryId }: SultansManagerProps) {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="editSultanName">Sultan Name</Label>
+                <Label htmlFor="editSultanName">Sultan Name (English)</Label>
                 <Input
                   id="editSultanName"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter sultan name"
+                  placeholder="Enter sultan name in English"
+                />
+              </div>
+              <div>
+                <Label htmlFor="editSultanNameAr">Sultan Name (Arabic)</Label>
+                <Input
+                  id="editSultanNameAr"
+                  value={formData.nameAr}
+                  onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
+                  placeholder="Enter sultan name in Arabic"
+                />
+              </div>
+              <div>
+                <Label htmlFor="editSultanNameTr">Sultan Name (Turkish)</Label>
+                <Input
+                  id="editSultanNameTr"
+                  value={formData.nameTr}
+                  onChange={(e) => setFormData({ ...formData, nameTr: e.target.value })}
+                  placeholder="Enter sultan name in Turkish"
                 />
               </div>
               <div>

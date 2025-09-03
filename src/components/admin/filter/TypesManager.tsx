@@ -33,6 +33,8 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 interface Type {
   id: string;
   name: string;
+  name_ar?: string;
+  name_tr?: string;
   description?: string;
   display_order: number;
 }
@@ -52,6 +54,8 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
   
   // Form states
   const [formName, setFormName] = useState('');
+  const [formNameAr, setFormNameAr] = useState('');
+  const [formNameTr, setFormNameTr] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formOrder, setFormOrder] = useState(0);
   
@@ -167,6 +171,8 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
   const openEditDialog = (type: Type) => {
     setSelectedType(type);
     setFormName(type.name);
+    setFormNameAr(type.name_ar || '');
+    setFormNameTr(type.name_tr || '');
     setFormDescription(type.description || '');
     setFormOrder(type.display_order);
     setShowEditDialog(true);
@@ -179,6 +185,8 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
   
   const resetForm = () => {
     setFormName('');
+    setFormNameAr('');
+    setFormNameTr('');
     setFormDescription('');
     setFormOrder(types.length);
     setSelectedType(null);
@@ -376,12 +384,30 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Name (English)</Label>
               <Input
                 id="name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Enter type name"
+                placeholder="Enter type name in English"
+              />
+            </div>
+            <div>
+              <Label htmlFor="name-ar">Name (Arabic)</Label>
+              <Input
+                id="name-ar"
+                value={formNameAr}
+                onChange={(e) => setFormNameAr(e.target.value)}
+                placeholder="Enter type name in Arabic"
+              />
+            </div>
+            <div>
+              <Label htmlFor="name-tr">Name (Turkish)</Label>
+              <Input
+                id="name-tr"
+                value={formNameTr}
+                onChange={(e) => setFormNameTr(e.target.value)}
+                placeholder="Enter type name in Turkish"
               />
             </div>
             <div>
@@ -419,12 +445,30 @@ const TypesManager: React.FC<TypesManagerProps> = ({ countryId }) => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="edit-name">Name</Label>
+              <Label htmlFor="edit-name">Name (English)</Label>
               <Input
                 id="edit-name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Enter type name"
+                placeholder="Enter type name in English"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-name-ar">Name (Arabic)</Label>
+              <Input
+                id="edit-name-ar"
+                value={formNameAr}
+                onChange={(e) => setFormNameAr(e.target.value)}
+                placeholder="Enter type name in Arabic"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-name-tr">Name (Turkish)</Label>
+              <Input
+                id="edit-name-tr"
+                value={formNameTr}
+                onChange={(e) => setFormNameTr(e.target.value)}
+                placeholder="Enter type name in Turkish"
               />
             </div>
             <div>
