@@ -52,13 +52,32 @@ const BanknoteDetailCard = ({
   const navigate = useNavigate();
 
   // Helper function to get localized banknote field
-  const getLocalizedField = (field: string, translatedField?: string): string => {
-    const result = currentLanguage === 'en' || !translatedField 
-      ? field || '' 
-      : getLocalizedText(field, translatedField, currentLanguage);
-  
+  const getLocalizedField = (field: string, fieldType: 'sultan_name' | 'signatures_front' | 'signatures_back' | 'seal_names' | 'security_element' | 'face_value'): string => {
+
+
+    if (currentLanguage === 'en' || !field) {
+      return field || '';
+    }
+
+    const banknoteAny = banknote as any;
+    let languageSpecificField: string | string[] | undefined;
     
-    return result;
+    if (currentLanguage === 'ar') {
+      // Get the Arabic translation field
+      languageSpecificField = banknoteAny[`${fieldType}_ar`];
+    } else if (currentLanguage === 'tr') {
+      // Get the Turkish translation field
+      languageSpecificField = banknoteAny[`${fieldType}_tr`];
+    }
+
+    // Handle array fields (like signatures)
+    if (Array.isArray(languageSpecificField)) {
+      const result = languageSpecificField.join(' | ');
+      return result;
+    }
+
+    const finalTranslatedField = languageSpecificField || field;
+    return finalTranslatedField;
   };
 
   // Helper to get translation fields based on language
@@ -81,7 +100,8 @@ const BanknoteDetailCard = ({
 
   // Helper function for translations with fallback
   const tWithFallback = (key: string, fallback: string) => {
-    const translation = t(key);
+    // Use catalog namespace for banknote-related translations
+    const translation = t(key, { ns: 'catalog' });
     return translation === key ? fallback : translation;
   };
 
@@ -413,7 +433,7 @@ const BanknoteDetailCard = ({
               <div className="flex justify-between items-start w-full">
                 <div className="min-w-0 flex-1 pr-2">
                   <div className="font-small text-sm truncate">
-                    {getLocalizedField(banknote.denomination, (banknote as any).face_value_translated)}
+                    {getLocalizedField(banknote.denomination, 'face_value')}
                   </div>
                   <div className="text-sm text-muted-foreground truncate">
                     {banknote.year}
@@ -508,7 +528,7 @@ const BanknoteDetailCard = ({
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
               <h4 className="font-bold">
-                <span>{getLocalizedField(banknote.denomination, (banknote as any).face_value_translated)}</span>
+                <span>{getLocalizedField(banknote.denomination, 'face_value')}</span>
               </h4>
               <div className="flex gap-0.1">
                 <Button
@@ -592,25 +612,25 @@ const BanknoteDetailCard = ({
           <div className={`p-3 bg-background border-t ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
             {banknote?.sultanName && (
               <p className="text-xs text-muted-foreground">
-                {banknote.authorityName || tWithFallback('authority', 'Authority')}: {getLocalizedField(banknote.sultanName, (banknote as any).sultan_name_translated)}
+                {banknote.authorityName || tWithFallback('authority', 'Authority')}: {getLocalizedField(banknote.sultanName, 'sultan_name')}
               </p>
             )}
             {(banknote.signaturesFront || banknote.signaturesBack) && (
               <p className="text-xs text-muted-foreground">
-                {tWithFallback('signatures', 'Signatures')}: {getLocalizedField(banknote.signaturesFront, (banknote as any).signatures_front_translated)}
+                {tWithFallback('signatures', 'Signatures')}: {getLocalizedField(banknote.signaturesFront, 'signatures_front')}
                 {banknote.signaturesFront && banknote.signaturesBack && ", "}
-                {getLocalizedField(banknote.signaturesBack, (banknote as any).signatures_back_translated)} 
+                {getLocalizedField(banknote.signaturesBack, 'signatures_back')} 
               </p>
             )}
 
             {banknote.sealNames && (
               <p className="text-xs text-muted-foreground">
-                {tWithFallback('seals', 'Seals')}: {getLocalizedField(banknote.sealNames, (banknote as any).seal_names_translated)}
+                {tWithFallback('seals', 'Seals')}: {getLocalizedField(banknote.sealNames, 'seal_names')}
               </p>
             )}
             {banknote.securityElement && (
               <p className="text-xs text-muted-foreground">
-                {getLocalizedField(banknote.securityElement, (banknote as any).security_element_translated)}
+                {getLocalizedField(banknote.securityElement, 'security_element')}
               </p>
             )}
           </div>

@@ -332,9 +332,9 @@ export default function CollectionItemUnlisted() {
                         disabled={isSubmittingImages || hasPendingSuggestion}
                       >
                         <ImagePlus className="h-4 w-4" />
-                                                 {hasPendingSuggestion
+                        {hasPendingSuggestion
                            ? t('imageSuggestionPending')
-                           : isSubmittingImages
+                          : isSubmittingImages
                              ? t('submitting')
                              : t('suggestImagesToCatalog')}
                       </Button>
@@ -377,13 +377,13 @@ export default function CollectionItemUnlisted() {
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle><span>
-                                                                     {collectionItem?.hide_images 
+                                  {collectionItem?.hide_images 
                                      ? t('makeImagesPublic') 
                                      : t('makeImagesPrivate')}
                                 </span>
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                                                     {collectionItem?.hide_images
+                                  {collectionItem?.hide_images
                                      ? t('makeImagesPublicConfirmation')
                                      : t('makeImagesPrivateConfirmation')}
                                 </AlertDialogDescription>
@@ -394,9 +394,9 @@ export default function CollectionItemUnlisted() {
                                   onClick={handleToggleImageVisibility}
                                   disabled={isTogglingVisibility}
                                 >
-                                                                     {isTogglingVisibility 
+                                  {isTogglingVisibility 
                                      ? t('updating') 
-                                     : collectionItem?.hide_images
+                                    : collectionItem?.hide_images
                                        ? t('makePublic')
                                        : t('makePrivate')}
                                 </AlertDialogAction>
@@ -424,12 +424,12 @@ export default function CollectionItemUnlisted() {
                                       </Button>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
-                                                                             <AlertDialogHeader>
+                                      <AlertDialogHeader>
                                          <AlertDialogTitle>{t('deleteImage')}</AlertDialogTitle>
-                                         <AlertDialogDescription>
+                                        <AlertDialogDescription>
                                            {t('deleteImageConfirmation')}
-                                         </AlertDialogDescription>
-                                       </AlertDialogHeader>
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
                                       <AlertDialogFooter>
                                         <AlertDialogCancel disabled={isDeletingImage}>{t('cancel')}</AlertDialogCancel>
                                         <AlertDialogAction
@@ -479,12 +479,12 @@ export default function CollectionItemUnlisted() {
                                     </Button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
-                                                                         <AlertDialogHeader>
+                                    <AlertDialogHeader>
                                        <AlertDialogTitle><span>{t('deleteImage')}</span></AlertDialogTitle>
-                                       <AlertDialogDescription>
+                                      <AlertDialogDescription>
                                          {t('deleteImageConfirmation')}
-                                       </AlertDialogDescription>
-                                     </AlertDialogHeader>
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel disabled={isDeletingImage}>{t('cancel')}</AlertDialogCancel>
                                       <AlertDialogAction
@@ -564,7 +564,7 @@ export default function CollectionItemUnlisted() {
                   )}
                 </div>
                 <CardDescription className={direction === 'rtl' ? 'text-right' : 'text-left'}>
-                                     {isOwner
+                  {isOwner
                      ? t('detailsAboutPersonalCopy')
                      : t('informationAboutCollectorsCopy')}
                 </CardDescription>

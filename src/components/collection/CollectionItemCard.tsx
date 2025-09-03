@@ -23,6 +23,7 @@ import { formatPrice } from '@/utils/formatters';
 import { Badge } from '../ui/badge';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Define conditional props for the component
 export interface CollectionItemCardProps {
@@ -40,7 +41,8 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   isOwner = false,
   viewMode = 'grid',
 }) => {
-  const { t } = useTranslation(['collection']);
+  const { t } = useTranslation(['collection', 'catalog']);
+  const { direction, currentLanguage } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
