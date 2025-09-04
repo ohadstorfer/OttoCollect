@@ -497,5 +497,14 @@
   "detailsAboutPersonalCopy": "Details about your personal copy of this banknote",
   "back": "Back",
   "deleteCollectionItem": "Delete Collection Item",
-  "deleteCollectionItemConfirmation": "Are you sure you want to delete this item from your collection? This action cannot be undone."
+  "deleteCollectionItemConfirmation": "Are you sure you want to delete this item from your collection? This action cannot be undone.",
+  "translation": {
+    "detecting": "Detecting language",
+    "translating": "Translating",
+    "translateTo": "Translate to",
+    "translate": "Translate",
+    "showOriginal": "Show original",
+    "translated_successfully": "Content translated successfully",
+    "translation_failed": "Translation failed"
+  }
 }

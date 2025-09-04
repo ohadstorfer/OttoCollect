@@ -104,6 +104,7 @@ export const fetchUserCollection = async (userId: string): Promise<CollectionIte
       .from('collection_items')
       .select(`
         *,
+        public_note_original_language,
         public_note_ar,
         public_note_tr,
         public_note_en,
@@ -188,6 +189,7 @@ export const fetchUserCollection = async (userId: string): Promise<CollectionIte
           type: item.type,
           prefix: item.prefix,
           // Add translation fields
+          public_note_original_language: item.public_note_original_language,
           public_note_ar: item.public_note_ar,
           public_note_tr: item.public_note_tr,
           public_note_en: item.public_note_en,
@@ -236,6 +238,7 @@ export const fetchUserCollectionByCountry = async (userId: string, countryId: st
       .from('collection_items')
       .select(`
         *,
+        public_note_original_language,
         public_note_ar,
         public_note_tr,
         public_note_en,

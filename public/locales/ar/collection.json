@@ -518,5 +518,14 @@
   "detailsAboutPersonalCopy": "تفاصيل حول النسخة الشخصية من هذه الأوراق النقدية",
   "back": "رجوع",
   "deleteCollectionItem": "حذف عنصر المجموعة",
-  "deleteCollectionItemConfirmation": "هل أنت متأكد من أنك تريد حذف هذا العنصر من مجموعتك؟ لا يمكن التراجع عن هذا الإجراء."
+  "deleteCollectionItemConfirmation": "هل أنت متأكد من أنك تريد حذف هذا العنصر من مجموعتك؟ لا يمكن التراجع عن هذا الإجراء.",
+  "translation": {
+    "detecting": "جاري اكتشاف اللغة",
+    "translating": "جاري الترجمة",
+    "translateTo": "ترجمة إلى",
+    "translate": "ترجمة",
+    "showOriginal": "عرض النص الأصلي",
+    "translated_successfully": "تم ترجمة المحتوى بنجاح",
+    "translation_failed": "فشلت الترجمة"
+  }
 } 

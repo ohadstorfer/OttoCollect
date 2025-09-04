@@ -266,5 +266,14 @@
     "personalImage": "Kişisel {{number}}",
     "itemAddedToMarketplaceSuccess": "Öğe Pazara Başarıyla Eklendi!",
     "itemAddedToMarketplaceDescription": "Öğeniz artık pazarda satışa sunuluyor."
+  },
+  "translation": {
+    "detecting": "Dil tespit ediliyor",
+    "translating": "Çevriliyor",
+    "translateTo": "Çevir",
+    "translate": "Çevir",
+    "showOriginal": "Orijinali göster",
+    "translated_successfully": "İçerik başarıyla çevrildi",
+    "translation_failed": "Çeviri başarısız"
   }
 }

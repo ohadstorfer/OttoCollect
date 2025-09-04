@@ -205,8 +205,29 @@ export class CollectionItemTranslationService {
       updateData.public_note_original_language = publicNoteLang;
       console.log(`🌐 [CollectionItemTranslation] Saving public_note_original_language: ${publicNoteLang}`);
 
-      // Update the database
+      // Translate to the other two languages
+      const targetLanguages = ['en', 'ar', 'tr'].filter(lang => lang !== publicNoteLang);
+      
+      for (const targetLang of targetLanguages) {
+        try {
+          console.log(`🌐 [CollectionItemTranslation] Translating public note from ${publicNoteLang} to ${targetLang}`);
+          const translation = await translationService.translateText(publicNote, targetLang as 'en' | 'ar' | 'tr', publicNoteLang);
+          
+          if (translation && translation.trim()) {
+            const targetField = this.getTranslationField('public_note', targetLang);
+            updateData[targetField] = translation;
+            console.log(`✅ Translation successful: ${publicNoteLang}->${targetLang}:`, translation);
+          } else {
+            console.warn(`⚠️ Empty translation result for public note from ${publicNoteLang} to ${targetLang}`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed translating public note from ${publicNoteLang} to ${targetLang}:`, error);
+        }
+      }
+
+      // Update the database with all translations
       if (Object.keys(updateData).length > 0) {
+        console.log('🌐 [CollectionItemTranslation] Updating database with translations:', updateData);
         const { error: updateError } = await supabase
           .from('collection_items')
           .update(updateData)
@@ -215,7 +236,7 @@ export class CollectionItemTranslationService {
         if (updateError) {
           console.error('Error saving original language data:', updateError);
         } else {
-          console.log('🌐 [CollectionItemTranslation] Original language data saved successfully');
+          console.log('🌐 [CollectionItemTranslation] Original language data and translations saved successfully');
         }
       }
     } catch (error) {

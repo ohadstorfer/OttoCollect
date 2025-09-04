@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/context/LanguageContext';
+import { CollectionItemTranslationButton } from '@/components/collection/CollectionItemTranslationButton';
 
 interface BanknoteCollectionDetailProps {
   isOwner: boolean;
@@ -27,6 +28,10 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { direction, currentLanguage } = useLanguage();
+  
+  // Translation state for public note
+  const [translatedPublicNote, setTranslatedPublicNote] = useState('');
+  const [showTranslatedPublicNote, setShowTranslatedPublicNote] = useState(false);
 
   // Helper function to get localized authority name
   const getLocalizedAuthorityName = (banknote: any): string => {
@@ -206,9 +211,32 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
               </div>
             )}
             {collectionItem.publicNote && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('notes')}</span>
-                <span className="text-base">{collectionItem.publicNote}</span>
+              <div className="flex items-start gap-x-2 border-b border-gray-100 py-1">
+                <span className="text-sm font-medium text-muted-foreground w-32 flex-shrink-0">{t('notes')}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-base block">
+                    {showTranslatedPublicNote && translatedPublicNote ? translatedPublicNote : collectionItem.publicNote}
+                  </span>
+                  <div className="mt-1">
+                    <CollectionItemTranslationButton
+                      itemId={collectionItem.id}
+                      currentPublicNote={showTranslatedPublicNote && translatedPublicNote ? translatedPublicNote : collectionItem.publicNote}
+                      originalPublicNote={collectionItem.publicNote}
+                      originalLanguage={(collectionItem as any).public_note_original_language}
+                      isShowingTranslation={showTranslatedPublicNote}
+                      onTranslated={(publicNote) => {
+                        if (publicNote === collectionItem.publicNote) {
+                          // Show original
+                          setShowTranslatedPublicNote(false);
+                        } else {
+                          // Show translation
+                          setTranslatedPublicNote(publicNote);
+                          setShowTranslatedPublicNote(true);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             )}
             {collectionItem.isForSale && (
