@@ -264,6 +264,16 @@ export const fetchUserCollectionByCountry = async (userId: string, countryId: st
       .from('collection_items')
       .select(`
         *,
+        public_note_original_language,
+        public_note_ar,
+        public_note_tr,
+        public_note_en,
+        location_ar,
+        location_tr,
+        location_en,
+        type_ar,
+        type_tr,
+        type_en,
         unlisted_banknotes!inner(*)
       `)
       .eq('user_id', userId)
@@ -453,6 +463,8 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
         *,
         public_note_ar,
         public_note_tr,
+        public_note_en,
+        public_note_original_language,
         location_ar,
         location_tr,
         type_ar,
@@ -469,6 +481,15 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
     }
 
     console.log('[fetchCollectionItem] Collection item data:', item);
+    console.log('[fetchCollectionItem] Translation fields check:', {
+      id: item.id,
+      public_note: item.public_note,
+      public_note_original_language: item.public_note_original_language,
+      public_note_ar: item.public_note_ar,
+      public_note_tr: item.public_note_tr,
+      public_note_en: item.public_note_en,
+      allPublicNoteFields: Object.keys(item).filter(key => key.includes('public_note'))
+    });
 
     let banknote;
     if (item.is_unlisted_banknote) {
@@ -500,6 +521,10 @@ export async function fetchCollectionItem(itemId: string): Promise<CollectionIte
       salePrice: item.sale_price,
       isForSale: item.is_for_sale,
       publicNote: item.public_note,
+      public_note_original_language: item.public_note_original_language,
+      public_note_ar: item.public_note_ar,
+      public_note_tr: item.public_note_tr,
+      public_note_en: item.public_note_en,
       privateNote: item.private_note,
       purchasePrice: item.purchase_price,
       purchaseDate: item.purchase_date,

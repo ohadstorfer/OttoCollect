@@ -204,6 +204,7 @@ export interface CollectionItem {
   public_note_ar?: string;
   public_note_tr?: string;
   public_note_en?: string;
+  public_note_original_language?: string;
   location_ar?: string;
   location_tr?: string;
   location_en?: string;

@@ -173,6 +173,7 @@ export interface CollectionItem {
   public_note_ar?: string | null;
   public_note_tr?: string | null;
   public_note_en?: string | null;
+  public_note_original_language?: string | null;
   location_ar?: string | null;
   location_tr?: string | null;
   location_en?: string | null;

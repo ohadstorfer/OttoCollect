@@ -16,6 +16,9 @@ import { BanknoteImage } from '@/components/banknote/BanknoteImage';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/context/LanguageContext';
 import { CollectionItemTranslationButton } from '@/components/collection/CollectionItemTranslationButton';
+import { translationService } from '@/services/translationService';
+import { toast } from 'sonner';
+import { Loader2, Languages } from 'lucide-react';
 
 interface BanknoteCollectionDetailProps {
   isOwner: boolean;
@@ -33,8 +36,18 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
   const [translatedPublicNote, setTranslatedPublicNote] = useState('');
   const [showTranslatedPublicNote, setShowTranslatedPublicNote] = useState(false);
 
+  // Translation state for banknote fields
+  const [translatedFields, setTranslatedFields] = useState<Record<string, string>>({});
+  const [showTranslatedFields, setShowTranslatedFields] = useState(false);
+  const [isTranslatingFields, setIsTranslatingFields] = useState(false);
+
   // Helper function to get localized authority name
   const getLocalizedAuthorityName = (banknote: any): string => {
+    // Don't call this function if there's no authority data at all
+    if (!banknote.authorityName && !banknote.authorityName_ar && !banknote.authorityName_tr) {
+      return '';
+    }
+
     console.log("🔍 [BanknoteCollectionDetaiUnlisted] getLocalizedAuthorityName called:", {
       currentLanguage,
       authorityName: banknote.authorityName,
@@ -80,13 +93,71 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
     return finalTranslatedField;
   };
 
+  // Function to translate all banknote fields
+  const translateBanknoteFields = async () => {
+    if (!collectionItem?.banknote) return;
+
+    setIsTranslatingFields(true);
+    const fieldsToTranslate = [
+      { key: 'denomination', value: collectionItem.banknote.denomination },
+      { key: 'country', value: collectionItem.banknote.country },
+      { key: 'category', value: collectionItem.banknote.category },
+      { key: 'sultanName', value: collectionItem.banknote.sultanName },
+      { key: 'description', value: collectionItem.banknote.description },
+      { key: 'historicalDescription', value: collectionItem.banknote.historicalDescription },
+      { key: 'securityElement', value: collectionItem.banknote.securityElement },
+      { key: 'colors', value: collectionItem.banknote.colors },
+      { key: 'dimensions', value: collectionItem.banknote.dimensions },
+      { key: 'printer', value: collectionItem.banknote.printer },
+      { key: 'sealNames', value: collectionItem.banknote.sealNames },
+      { key: 'signaturesFront', value: collectionItem.banknote.signaturesFront },
+      { key: 'signaturesBack', value: collectionItem.banknote.signaturesBack },
+    ].filter(field => field.value && field.value.trim());
+
+    try {
+      const translations: Record<string, string> = {};
+      
+      for (const field of fieldsToTranslate) {
+        try {
+          const translation = await translationService.translateText(
+            field.value,
+            currentLanguage as 'en' | 'ar' | 'tr'
+          );
+          if (translation) {
+            translations[field.key] = translation;
+          }
+        } catch (error) {
+          console.error(`Failed to translate ${field.key}:`, error);
+          translations[field.key] = field.value; // Fallback to original
+        }
+      }
+
+      setTranslatedFields(translations);
+      setShowTranslatedFields(true);
+      toast.success(t('translation.translated_successfully'));
+    } catch (error) {
+      console.error('Translation failed:', error);
+      toast.error(t('translation.translation_failed'));
+    } finally {
+      setIsTranslatingFields(false);
+    }
+  };
+
+  // Function to get field value (translated or original)
+  const getFieldValue = (fieldKey: string, originalValue: string) => {
+    if (showTranslatedFields && translatedFields[fieldKey]) {
+      return translatedFields[fieldKey];
+    }
+    return originalValue;
+  };
+
 
   // Determine which ID to use
   const itemId = id || banknoteId;
 
   // Fetch collection item data
   const { data: collectionItem, isLoading, refetch } = useQuery({
-    queryKey: ["collectionItem", itemId],
+    queryKey: ["collectionItem", itemId, "with-translations"],
     queryFn: () => fetchCollectionItem(itemId || ""),
     enabled: !!itemId,
   });
@@ -124,7 +195,29 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
       {/* Banknote Details Section */}
       <div className="space-y-6">
         <div className={direction === 'rtl' ? 'text-right' : 'text-left'}>
-          <h3 className="text-lg font-medium mb-4"> <span> {t('details.publicDetails')} </span> </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium"> <span> {t('details.publicDetails')} </span> </h3>
+            {!isOwner && (
+              <button
+                onClick={showTranslatedFields ? () => setShowTranslatedFields(false) : translateBanknoteFields}
+                disabled={isTranslatingFields}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-md transition-colors disabled:opacity-50"
+
+              >
+                {isTranslatingFields ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {t('translation.translating')}...
+                  </>
+                ) : (
+                  <>
+                    <Languages className="h-4 w-4" />
+                    {showTranslatedFields ? t('translation.showOriginal') : t('translation.translate')}
+                  </>
+                )}
+              </button>
+            )}
+          </div>
           <div className="space-y-2">
             {collectionItem.banknote?.extendedPickNumber && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
@@ -147,19 +240,19 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
             {collectionItem.banknote?.denomination && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('details.denomination')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.denomination, 'denomination')}</span>
+                <span className="text-base">{getFieldValue('denomination', getLocalizedField(collectionItem.banknote.denomination, 'denomination'))}</span>
               </div>
             )}
             {collectionItem.banknote?.country && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('details.country')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.country, 'country')}</span>
+                <span className="text-base">{getFieldValue('country', getLocalizedField(collectionItem.banknote.country, 'country'))}</span>
               </div>
             )}
             {collectionItem.banknote?.category && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('category')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.category, 'category')}</span>
+                <span className="text-base">{getFieldValue('category', getLocalizedField(collectionItem.banknote.category, 'category'))}</span>
               </div>
             )}
             {collectionItem.banknote?.sultanName && (
@@ -167,7 +260,7 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
                 <span className="text-sm font-medium text-muted-foreground w-32">
                   {getLocalizedAuthorityName(collectionItem.banknote)}
                 </span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.sultanName, 'sultan_name')}</span>
+                <span className="text-base">{getFieldValue('sultanName', getLocalizedField(collectionItem.banknote.sultanName, 'sultan_name'))}</span>
               </div>
             )}
             {!collectionItem.type && collectionItem.banknote?.type && (
@@ -186,7 +279,7 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
             {isUnlisted && collectionItem.banknote?.description && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('description')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'banknote_description')}</span>
+                <span className="text-base">{getFieldValue('description', getLocalizedField(collectionItem.banknote.description, 'banknote_description'))}</span>
               </div>
             )}
           </div>
@@ -283,31 +376,31 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
           {collectionItem.banknote?.historicalDescription && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('historicalDescription')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.historicalDescription, 'historical_description')}</span>
+              <span className="text-base">{getFieldValue('historicalDescription', getLocalizedField(collectionItem.banknote.historicalDescription, 'historical_description'))}</span>
             </div>
           )}
           {collectionItem.banknote?.securityElement && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('securityElement')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.securityElement, 'security_element')}</span>
+              <span className="text-base">{getFieldValue('securityElement', getLocalizedField(collectionItem.banknote.securityElement, 'security_element'))}</span>
             </div>
           )}
           {collectionItem.banknote?.colors && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('colors')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.colors, 'colors')}</span>
+              <span className="text-base">{getFieldValue('colors', getLocalizedField(collectionItem.banknote.colors, 'colors'))}</span>
             </div>
           )}
           {collectionItem.banknote?.dimensions && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('dimensions')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.dimensions, 'dimensions')}</span>
+              <span className="text-base">{getFieldValue('dimensions', getLocalizedField(collectionItem.banknote.dimensions, 'dimensions'))}</span>
             </div>
           )}
           {collectionItem.banknote?.printer && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('printer')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.printer, 'printer')}</span>
+              <span className="text-base">{getFieldValue('printer', getLocalizedField(collectionItem.banknote.printer, 'printer'))}</span>
             </div>
           )}
           {collectionItem.banknote?.rarity && (
@@ -321,20 +414,20 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
               collectionItem.banknote.sealPictureUrls.length === 0) && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('sealNames')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.sealNames, 'seal_names')}</span>
+                <span className="text-base">{getFieldValue('sealNames', getLocalizedField(collectionItem.banknote.sealNames, 'seal_names'))}</span>
               </div>
             )}
           {collectionItem.banknote?.signaturesFront && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('frontSignatures')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.signaturesFront, 'signatures_front')}</span>
+              <span className="text-base">{getFieldValue('signaturesFront', getLocalizedField(collectionItem.banknote.signaturesFront, 'signatures_front'))}</span>
             </div>
           )}
 
           {collectionItem.banknote?.signaturesBack && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('backSignatures')}</span>
-              <span className="text-base ">{getLocalizedField(collectionItem.banknote.signaturesBack, 'signatures_back')}</span>
+              <span className="text-base ">{getFieldValue('signaturesBack', getLocalizedField(collectionItem.banknote.signaturesBack, 'signatures_back'))}</span>
             </div>
           )}
 

@@ -842,7 +842,7 @@ export default function EditUnlistedBanknoteDialog({
                         </FormItem>
                       )}
                     />
-                    <FormField
+                    {/* <FormField
                       control={form.control}
                       name="typeId"
                       render={({ field }) => (
@@ -866,7 +866,7 @@ export default function EditUnlistedBanknoteDialog({
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
+                    /> */}
                     <FormField
                       control={form.control}
                       name="prefix"

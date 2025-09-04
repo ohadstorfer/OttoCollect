@@ -23,6 +23,7 @@ export async function fetchUserCollection(userId: string): Promise<CollectionIte
         public_note_ar,
         public_note_tr,
         public_note_en,
+        public_note_original_language,
         location_ar,
         location_tr,
         location_en,
@@ -85,6 +86,7 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
         public_note_ar,
         public_note_tr,
         public_note_en,
+        public_note_original_language,
         location_ar,
         location_tr,
         location_en,
@@ -103,6 +105,16 @@ export async function fetchUserCollectionByCountry(userId: string, countryId: st
         .from('collection_items')
         .select(`
           *,
+          public_note_ar,
+          public_note_tr,
+          public_note_en,
+          public_note_original_language,
+          location_ar,
+          location_tr,
+          location_en,
+          type_ar,
+          type_en,
+          type_tr,
           unlisted_banknotes!inner(*)
         `)
         .eq('user_id', userId)
@@ -392,6 +404,7 @@ function processCollectionItems(rawItems: any[]): CollectionItem[] {
         public_note_ar: item.public_note_ar,
         public_note_tr: item.public_note_tr,
         public_note_en: item.public_note_en,
+        public_note_original_language: item.public_note_original_language,
         location_ar: item.location_ar,
         location_tr: item.location_tr,
         location_en: item.location_en,

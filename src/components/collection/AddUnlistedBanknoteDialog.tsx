@@ -92,14 +92,14 @@ const createFormSchema = (t: any) => z.object({
   // images stored only in collection_items
   front_image_file: z.any().optional(),
   reverse_image_file: z.any().optional(),
-  
+
   // Add dimensions field
   dimensions: z.string().optional(),
-  
+
   // Single image fields
   tughra_picture: z.string().optional(),
   watermark_picture: z.string().optional(),
-  
+
   // Multiple image fields
   other_element_files: z.array(z.custom<ImageFile>()).optional(),
   seal_files: z.array(z.custom<ImageFile>()).optional(),
@@ -120,16 +120,16 @@ const createFormSchema = (t: any) => z.object({
 const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   countryName, onCreated
 }) => {
-    const { t, i18n } = useTranslation(['collection']);
+  const { t, i18n } = useTranslation(['collection']);
 
-    // Don't render until i18n is initialized
-    if (!i18n.isInitialized) {
-      return null;
-    }
+  // Don't render until i18n is initialized
+  if (!i18n.isInitialized) {
+    return null;
+  }
 
-    // Create form schema with translations
-    const formSchema = createFormSchema(t);
-  
+  // Create form schema with translations
+  const formSchema = createFormSchema(t);
+
   // Fallback function for translations
   const tWithFallback = (key: string, fallback: string) => {
     if (!i18n.isInitialized) {
@@ -161,7 +161,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const obverseInputRef = useRef<HTMLInputElement>(null);
   const reverseInputRef = useRef<HTMLInputElement>(null);
-  
+
   // State for additional image uploads
   const [tughraImageUrl, setTughraImageUrl] = useState<string>('');
   const [watermarkImageUrl, setWatermarkImageUrl] = useState<string>('');
@@ -316,7 +316,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
 
       // Build the update data
       const face_value = `${values.faceValueInt} ${currencies.find(c => c.id === values.faceValueCurrency)?.name || ''}`;
-      
+
       // Handle grading vs condition
       let condition = undefined;
       let grade = undefined;
@@ -336,7 +336,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       }
 
 
-      
+
       const result = await createUnlistedBanknoteWithCollectionItem({
         userId: user.id,
         country: countryName,
@@ -401,9 +401,9 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
 
         // Check if item was just added to marketplace for sale
         const wasJustAddedToMarketplace = values.isForSale;
-        
+
         toast({
-          title: wasJustAddedToMarketplace 
+          title: wasJustAddedToMarketplace
             ? t('itemAddedToMarketplaceSuccess', 'Item added to marketplace successfully!')
             : "Success",
           description: wasJustAddedToMarketplace
@@ -501,16 +501,16 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       <DialogTrigger asChild>
         {/* <Button variant="ghost" title="Add a new unlisted banknote"> */}
         <Button
-                    variant="outline"
-                    size="icon"
-                    title="Create a new Unlisted Banknote"
-                  >
+          variant="outline"
+          size="icon"
+          title="Create a new Unlisted Banknote"
+        >
           <BookmarkPlus style={{ width: "1.1rem", height: "1.1rem" }} />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="mt-4">
-                      <DialogTitle><span>{tWithFallback('addUnlistedBanknote', 'Add Unlisted Banknote')}</span></DialogTitle>
+          <DialogTitle><span>{tWithFallback('addUnlistedBanknote', 'Add Unlisted Banknote')}</span></DialogTitle>
         </DialogHeader>
         <Card>
           <CardContent className="pt-6">
@@ -587,72 +587,72 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                     />
                   ) : (
                     <div className="space-y-4 mb-8">
-                                              <FormField
-                          control={form.control}
-                          name="gradeBy"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t('gradingBy')}</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  maxLength={8}
-                                  placeholder={t('gradingByPlaceholder')}
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                {t('gradingByDescription')}
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                                              <FormField
-                          control={form.control}
-                          name="gradeNumber"
-                          render={({ field: { onChange, ...field } }) => (
-                            <FormItem>
-                              <FormLabel>{t('grade')}</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="text"
-                                  {...field}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === '' || (/^\d+$/.test(val) && parseInt(val) >= 1 && parseInt(val) <= 70)) {
-                                      onChange(val);
-                                    }
-                                  }}
-                                  className="w-full"
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                {t('gradeDescription')}
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                                              <FormField
-                          control={form.control}
-                          name="gradeLetters"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t('gradeLetters')}</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  maxLength={3}
-                                  placeholder={t('gradeLettersPlaceholder')}
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                {t('gradeLettersDescription')}
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name="gradeBy"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('gradingBy')}</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                maxLength={8}
+                                placeholder={t('gradingByPlaceholder')}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              {t('gradingByDescription')}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="gradeNumber"
+                        render={({ field: { onChange, ...field } }) => (
+                          <FormItem>
+                            <FormLabel>{t('grade')}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="text"
+                                {...field}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (val === '' || (/^\d+$/.test(val) && parseInt(val) >= 1 && parseInt(val) <= 70)) {
+                                    onChange(val);
+                                  }
+                                }}
+                                className="w-full"
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              {t('gradeDescription')}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="gradeLetters"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('gradeLetters')}</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                maxLength={3}
+                                placeholder={t('gradeLettersPlaceholder')}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              {t('gradeLettersDescription')}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   )}
                   {/* Face Value, Currency, Name Row */}
@@ -697,7 +697,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                         </FormItem>
                       )}
                     />
-                                      <FormField
+                    <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
@@ -716,7 +716,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                   </div>
                   {/* Category and Type Row */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-7">
-                                      <FormField
+                    <FormField
                       control={form.control}
                       name="categoryId"
                       render={({ field }) => (
@@ -744,7 +744,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                         </FormItem>
                       )}
                     />
-                                      <FormField
+                    {/* <FormField
                       control={form.control}
                       name="typeId"
                       render={({ field }) => (
@@ -768,8 +768,8 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
-                </div>
+                    /> */}
+                  </div>
                 </div>
 
                 {/* Public Note */}
@@ -1097,7 +1097,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                 {/* Extra Fields Section */}
                 <Collapsible>
                   <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg border border-muted bg-background px-4 py-3 text-sm font-medium transition-all hover:bg-muted/50">
-                                          <span>{t('extraFields')}</span>
+                    <span>{t('extraFields')}</span>
                     <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
                   </CollapsibleTrigger>
                   <CollapsibleContent>
@@ -1340,12 +1340,12 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                             'To be collected',
                             'Other'
                           ].includes(field.value)) && (
-                            <Input
-                              {...field}
-                              placeholder={tWithFallback('enterCustomStatus', 'Enter custom status')}
-                              className="mt-2"
-                            />
-                          )}
+                              <Input
+                                {...field}
+                                placeholder={tWithFallback('enterCustomStatus', 'Enter custom status')}
+                                className="mt-2"
+                              />
+                            )}
                         </div>
                       </FormControl>
                       <FormDescription>
@@ -1369,7 +1369,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                       <div className={`space-y-0.5 ${i18n.dir() === 'rtl' ? 'text-right' : ''}`}>
                         <FormLabel className="text-base">{tWithFallback('forSale', 'For Sale')}</FormLabel>
                         <FormDescription>
-                          {isLimitedRank 
+                          {isLimitedRank
                             ? tWithFallback('yourRankIsNotSufficientToListItems', 'Your rank is not sufficient to list items for sale. Upgrade your rank to unlock this feature.')
                             : tWithFallback('makeThisBanknoteAvailableForSale', 'Make this banknote available for sale in the marketplace')}
                         </FormDescription>
@@ -1424,9 +1424,9 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? (
-                                                      <>{t('item.saving')}</>
+                      <>{t('item.saving')}</>
                     ) : (
-                                              t('item.addBanknote')
+                      t('item.addBanknote')
                     )}
                   </Button>
                 </DialogFooter>
@@ -1443,7 +1443,7 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
               alt="Banknote detail"
               className="w-full h-auto rounded"
             />
-      </DialogContent>
+          </DialogContent>
         </Dialog>
       )}
       {cropDialogOpen && selectedImageToCrop && (
