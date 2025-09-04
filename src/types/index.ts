@@ -279,14 +279,34 @@ export interface DetailedBanknote {
   // Legacy compatibility properties
   signaturePictureUrls?: string[];
   
-  // New authority_name field
+  // Authority name field with translations
   authorityName?: string;
+  authorityName_ar?: string;
+  authorityName_tr?: string;
 
   // New watermarked and thumbnail image fields
   frontPictureWatermarked?: string;
   backPictureWatermarked?: string;
   frontPictureThumbnail?: string;
   backPictureThumbnail?: string;
+  
+  // Translation fields - these preserve the translated content from enhanced_banknotes_with_translations view
+  face_value?: string;
+  face_value_translated?: string;
+  face_value_ar?: string;
+  face_value_tr?: string;
+  sultan_name_translated?: string;
+  sultan_name_ar?: string;
+  sultan_name_tr?: string;
+  signatures_front_translated?: string[];
+  signatures_front_ar?: string[];
+  signatures_front_tr?: string[];
+  signatures_back_translated?: string[];
+  signatures_back_ar?: string[];
+  signatures_back_tr?: string[];
+  seal_names_translated?: string;
+  seal_names_ar?: string;
+  seal_names_tr?: string;
 }
 
 export interface WishlistItem {

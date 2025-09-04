@@ -277,8 +277,6 @@ export type Database = {
       }
       banknotes_translation: {
         Row: {
-          authority_name_ar: string | null
-          authority_name_tr: string | null
           banknote_description_ar: string | null
           banknote_description_tr: string | null
           banknote_id: string
@@ -320,8 +318,6 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          authority_name_ar?: string | null
-          authority_name_tr?: string | null
           banknote_description_ar?: string | null
           banknote_description_tr?: string | null
           banknote_id: string
@@ -363,8 +359,6 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          authority_name_ar?: string | null
-          authority_name_tr?: string | null
           banknote_description_ar?: string | null
           banknote_description_tr?: string | null
           banknote_id?: string
@@ -2594,7 +2588,6 @@ export type Database = {
           seal_names_ar: string | null
           seal_names_tr: string | null
           seal_names_translated: string | null
-          seal_picture_urls: string[] | null
           seal_pictures: string[] | null
           security_element: string | null
           security_element_ar: string | null
@@ -2606,18 +2599,15 @@ export type Database = {
           signatures_back_ar: string[] | null
           signatures_back_tr: string[] | null
           signatures_back_translated: string[] | null
-          signatures_back_urls: string[] | null
           signatures_front: string[] | null
           signatures_front_ar: string[] | null
           signatures_front_tr: string[] | null
           signatures_front_translated: string[] | null
-          signatures_front_urls: string[] | null
           sultan_name: string | null
           sultan_name_ar: string | null
           sultan_name_tr: string | null
           sultan_name_translated: string | null
           tughra_picture: string | null
-          tughra_picture_url: string | null
           turk_catalog_number: string | null
           type: string | null
           type_ar: string | null
@@ -2625,7 +2615,6 @@ export type Database = {
           type_translated: string | null
           updated_at: string | null
           watermark_picture: string | null
-          watermark_picture_url: string | null
         }
         Relationships: []
       }

@@ -35,7 +35,7 @@ export type BanknoteFilterProps = {
   currentFilters?: Partial<DynamicFilterState>;
 };
 
-const normalizeType = (type: string): string => {
+const normalizeType = (type: string, tWithFallback: (key: string, fallback: string) => string): string => {
   if (!type) return "";
   
   const lowerType = type.toLowerCase();
@@ -137,7 +137,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
 
   const caseInsensitiveIncludes = (array: string[], value: string): boolean => {
     if (value.includes('type') || value.includes('type.id')) {
-      return array.some(item => normalizeType(item) === normalizeType(value));
+      return array.some(item => normalizeType(item, tWithFallback) === normalizeType(value, tWithFallback));
     }
     return array.some(item => item.toLowerCase() === value.toLowerCase());
   };
@@ -192,7 +192,7 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
           console.log("BanknoteFilter: Cannot remove last type, doing nothing");
           return;
         }
-        newTypes = selectedTypes.filter(t => normalizeType(t) !== normalizeType(type));
+        newTypes = selectedTypes.filter(t => normalizeType(t, tWithFallback) !== normalizeType(type, tWithFallback));
       }
     }
     
