@@ -33,12 +33,7 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
       ? field || '' 
       : getLocalizedText(field, translatedField, currentLanguage);
     
-    console.log(`🌐 [BanknoteCatalogDetailMinimized] getLocalizedField:`, {
-      field,
-      translatedField,
-      currentLanguage,
-      result
-    });
+
     
     return result;
   };

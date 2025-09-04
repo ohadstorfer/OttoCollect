@@ -2615,6 +2615,11 @@ export type Database = {
           type_translated: string | null
           updated_at: string | null
           watermark_picture: string | null
+          signatures_front_urls: string[] | null
+          signatures_back_urls: string[] | null
+          seal_picture_urls: string[] | null
+          watermark_picture_url: string | null
+          tughra_picture_url: string | null
         }
         Relationships: []
       }
@@ -2695,23 +2700,23 @@ export type Database = {
           printer?: string | null
           rarity?: string | null
           seal_names?: string | null
-          seal_picture_urls?: never
+          seal_picture_urls?: string[] | null
           seal_pictures?: string[] | null
           security_element?: string | null
           serial_numbering?: string | null
           signature_pictures?: string[] | null
           signatures_back?: string[] | null
-          signatures_back_urls?: never
+          signatures_back_urls?: string[] | null
           signatures_front?: string[] | null
-          signatures_front_urls?: never
+          signatures_front_urls?: string[] | null
           sultan_name?: string | null
           tughra_picture?: string | null
-          tughra_picture_url?: never
+          tughra_picture_url?: string | null
           turk_catalog_number?: string | null
           type?: string | null
           updated_at?: string | null
           watermark_picture?: string | null
-          watermark_picture_url?: never
+          watermark_picture_url?: string | null
         }
         Update: {
           authority_name?: never
@@ -2742,23 +2747,23 @@ export type Database = {
           printer?: string | null
           rarity?: string | null
           seal_names?: string | null
-          seal_picture_urls?: never
+          seal_picture_urls?: string[] | null
           seal_pictures?: string[] | null
           security_element?: string | null
           serial_numbering?: string | null
           signature_pictures?: string[] | null
           signatures_back?: string[] | null
-          signatures_back_urls?: never
+          signatures_back_urls?: string[] | null
           signatures_front?: string[] | null
-          signatures_front_urls?: never
+          signatures_front_urls?: string[] | null
           sultan_name?: string | null
           tughra_picture?: string | null
-          tughra_picture_url?: never
+          tughra_picture_url?: string | null
           turk_catalog_number?: string | null
           type?: string | null
           updated_at?: string | null
           watermark_picture?: string | null
-          watermark_picture_url?: never
+          watermark_picture_url?: string | null
         }
         Relationships: []
       }
