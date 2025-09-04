@@ -94,13 +94,6 @@ const BanknoteDetailCard = ({
   // Helper function to get localized authority name
   const getLocalizedAuthorityName = (): string => {
     const banknoteAny = banknote as any;
-    console.log("getLocalizedAuthorityName", {
-      currentLanguage,
-      authorityName: banknote.authorityName,
-      authorityName_ar: banknoteAny.authorityName_ar,
-      authorityName_tr: banknoteAny.authorityName_tr,
-      allFields: Object.keys(banknoteAny).filter(key => key.includes('authority') || key.includes('Authority'))
-    });
     
     if (currentLanguage === 'ar' && banknoteAny.authorityName_ar) {
       return banknoteAny.authorityName_ar;

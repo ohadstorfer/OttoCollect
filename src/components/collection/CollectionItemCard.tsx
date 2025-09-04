@@ -43,6 +43,22 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
 }) => {
   const { t } = useTranslation(['collection', 'catalog']);
   const { direction, currentLanguage } = useLanguage();
+
+  // Debug log to see what data is available
+  console.log("🔍 [CollectionItemCard] Component rendered:", {
+    currentLanguage,
+    banknoteId: item.banknote?.id,
+    banknoteKeys: Object.keys(item.banknote || {}),
+    authorityName: item.banknote?.authorityName,
+    authorityName_ar: (item.banknote as any)?.authorityName_ar,
+    authorityName_tr: (item.banknote as any)?.authorityName_tr,
+    sultanName: item.banknote?.sultanName,
+    sultan_name_ar: (item.banknote as any)?.sultan_name_ar,
+    sultan_name_tr: (item.banknote as any)?.sultan_name_tr,
+    signaturesFront: item.banknote?.signaturesFront,
+    signatures_front_ar: (item.banknote as any)?.signatures_front_ar,
+    signatures_front_tr: (item.banknote as any)?.signatures_front_tr
+  });
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -58,6 +74,13 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   // Helper function to get localized authority name
   const getLocalizedAuthorityName = (): string => {
     const banknoteAny = item.banknote as any;
+    console.log("🔍 [CollectionItemCard] getLocalizedAuthorityName called:", {
+      currentLanguage,
+      authorityName: item.banknote.authorityName,
+      authorityName_ar: banknoteAny.authorityName_ar,
+      authorityName_tr: banknoteAny.authorityName_tr,
+      allFields: Object.keys(banknoteAny).filter(key => key.includes('authority') || key.includes('Authority'))
+    });
     
     if (currentLanguage === 'ar' && banknoteAny.authorityName_ar) {
       return banknoteAny.authorityName_ar;
@@ -66,6 +89,46 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     }
     
     return item.banknote.authorityName || tWithFallback('authority', 'Authority');
+  };
+
+  // Helper function to get localized banknote field (similar to BanknoteDetailCard)
+  const getLocalizedField = (field: string, fieldType: 'sultan_name' | 'signatures_front' | 'signatures_back' | 'seal_names' | 'security_element' | 'face_value'): string => {
+    console.log("🔍 [CollectionItemCard] getLocalizedField called:", {
+      field,
+      fieldType,
+      currentLanguage,
+      banknoteKeys: Object.keys(item.banknote)
+    });
+
+    if (currentLanguage === 'en' || !field) {
+      return field || '';
+    }
+
+    const banknoteAny = item.banknote as any;
+    let languageSpecificField: string | string[] | undefined;
+    
+    if (currentLanguage === 'ar') {
+      languageSpecificField = banknoteAny[`${fieldType}_ar`];
+    } else if (currentLanguage === 'tr') {
+      languageSpecificField = banknoteAny[`${fieldType}_tr`];
+    }
+
+    console.log("🔍 [CollectionItemCard] Language specific field lookup:", {
+      fieldType,
+      currentLanguage,
+      languageSpecificField,
+      availableFields: Object.keys(banknoteAny).filter(key => key.includes(fieldType))
+    });
+
+    if (Array.isArray(languageSpecificField)) {
+      const result = languageSpecificField.join(' | ');
+      console.log("🔍 [CollectionItemCard] Array field result:", result);
+      return result;
+    }
+
+    const finalTranslatedField = languageSpecificField || field;
+    console.log("🔍 [CollectionItemCard] Final translated field:", finalTranslatedField);
+    return finalTranslatedField;
   };
 
   // Use thumbnail if available, otherwise fall back to original image
@@ -373,25 +436,25 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         <div className="p-3 bg-background border-t">
             {item.banknote.sultanName && (
               <p className="text-xs text-muted-foreground">
-                {getLocalizedAuthorityName()}: {item.banknote.sultanName}
+                {getLocalizedAuthorityName()}: {getLocalizedField(item.banknote.sultanName, 'sultan_name')}
               </p>
             )}
             {(item.banknote.signaturesFront || item.banknote.signaturesBack) && (
               <p className="text-xs text-muted-foreground">
                 {tWithFallback('signatures', 'Signatures')}: 
-                {item.banknote.signaturesFront}
+                {getLocalizedField(item.banknote.signaturesFront, 'signatures_front')}
                 {item.banknote.signaturesFront && item.banknote.signaturesBack && ", "}
-                {item.banknote.signaturesBack}
+                {getLocalizedField(item.banknote.signaturesBack, 'signatures_back')}
               </p>
             )}
             {item.banknote.sealNames && (
               <p className="text-xs text-muted-foreground">
-                {tWithFallback('seals', 'Seals')}: {item.banknote.sealNames}
+                {tWithFallback('seals', 'Seals')}: {getLocalizedField(item.banknote.sealNames, 'seal_names')}
               </p>
             )}
             {item.banknote.securityElement && (
               <p className="text-xs text-muted-foreground">
-                {item.banknote.securityElement}
+                {getLocalizedField(item.banknote.securityElement, 'security_element')}
               </p>
             )}
             {item?.isForSale && (

@@ -170,10 +170,10 @@ export async function fetchFilteredUserCollection(
       .from('collection_items')
       .select(`
         *,
-        enhanced_detailed_banknotes!inner(*)
+        enhanced_banknotes_with_translations!inner(*)
       `)
       .eq('user_id', userId)
-      .eq('enhanced_detailed_banknotes.country', countryName)
+      .eq('enhanced_banknotes_with_translations.country', countryName)
       .eq('is_unlisted_banknote', false);
 
     let unlistedQuery = supabase
@@ -191,10 +191,10 @@ export async function fetchFilteredUserCollection(
       const searchTerm = `%${filters.search.toLowerCase()}%`;
       
       detailedQuery = detailedQuery.or(`
-        enhanced_detailed_banknotes.denomination.ilike.${searchTerm},
-        enhanced_detailed_banknotes.extended_pick_number.ilike.${searchTerm},
-        enhanced_detailed_banknotes.series.ilike.${searchTerm},
-        enhanced_detailed_banknotes.type.ilike.${searchTerm}
+        enhanced_banknotes_with_translations.denomination.ilike.${searchTerm},
+        enhanced_banknotes_with_translations.extended_pick_number.ilike.${searchTerm},
+        enhanced_banknotes_with_translations.series.ilike.${searchTerm},
+        enhanced_banknotes_with_translations.type.ilike.${searchTerm}
       `);
       
       unlistedQuery = unlistedQuery.or(`

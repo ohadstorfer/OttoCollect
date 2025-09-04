@@ -31,6 +31,8 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
 
   // Helper function to get localized authority name
   const getLocalizedAuthorityName = (banknote: any): string => {
+
+
     if (currentLanguage === 'ar' && banknote.authorityName_ar) {
       return banknote.authorityName_ar;
     } else if (currentLanguage === 'tr' && banknote.authorityName_tr) {
@@ -38,6 +40,34 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
     }
     
     return banknote.authorityName || t('details.authority');
+  };
+
+  // Helper function to get localized banknote field (similar to BanknoteDetailCard)
+  const getLocalizedField = (field: string, fieldType: any): string => {
+    
+
+    if (currentLanguage === 'en' || !field) {
+      return field || '';
+    }
+
+    const banknoteAny = collectionItem?.banknote as any;
+    let languageSpecificField: string | string[] | undefined;
+    
+    if (currentLanguage === 'ar') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_ar`];
+    } else if (currentLanguage === 'tr') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_tr`];
+    }
+
+    
+
+    if (Array.isArray(languageSpecificField)) {
+      const result = languageSpecificField.join(' | ');
+      return result;
+    }
+
+    const finalTranslatedField = languageSpecificField || field;
+    return finalTranslatedField;
   };
 
   // Determine which ID to use
@@ -62,7 +92,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         tughraUrl: collectionItem.banknote?.tughraUrl
       });
     }
-  }, [collectionItem]);
+  }, [collectionItem, currentLanguage]);
 
   if (isLoading || !collectionItem) {
     return (
@@ -106,19 +136,19 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             {collectionItem.banknote?.denomination && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('details.denomination')}</span>
-                <span className="text-base">{collectionItem.banknote.denomination}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.denomination, 'denomination')}</span>
               </div>
             )}
             {collectionItem.banknote?.country && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('details.country')}</span>
-                <span className="text-base">{collectionItem.banknote.country}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.country, 'country')}</span>
               </div>
             )}
             {collectionItem.banknote?.category && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('details.category')}</span>
-                <span className="text-base">{collectionItem.banknote.category}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.category, 'category')}</span>
               </div>
             )}
             {collectionItem.banknote?.sultanName && (
@@ -126,13 +156,13 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                 <span className="text-sm font-medium text-muted-foreground w-32">
                   {getLocalizedAuthorityName(collectionItem.banknote)}
                 </span>
-                <span className="text-base">{collectionItem.banknote.sultanName}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.sultanName, 'sultan_name')}</span>
               </div>
             )}
             {!collectionItem.type && collectionItem.banknote?.type && ( 
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('details.type')}</span>
-                <span className="text-base">{collectionItem.banknote.type}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.type, 'type')}</span>
               </div>
             )}
             {collectionItem.banknote?.serialNumbering && (
@@ -145,7 +175,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             {isUnlisted && collectionItem.banknote?.description && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('details.description')}</span>
-                <span className="text-base">{collectionItem.banknote.description}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'description')}</span>
               </div>
             )}
           </div>
@@ -201,55 +231,55 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           {collectionItem.banknote?.islamicYear && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.islamicYear')}</span>
-              <span className="text-base">{collectionItem.banknote.islamicYear}</span>
+              <span className="text-base">{getLocalizedField(collectionItem.banknote.islamicYear, 'islamic_year')}</span>
             </div>
           )}
           {collectionItem.banknote?.gregorianYear && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.gregorianYear')}</span>
-              <span className="text-base">{collectionItem.banknote.gregorianYear}</span>
+              <span className="text-base">{getLocalizedField(collectionItem.banknote.gregorianYear, 'gregorian_year')}</span>
             </div>
           )}
           {collectionItem.banknote?.description && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.banknoteDescription')}</span>
-              <span className="text-base">{collectionItem.banknote.description}</span>
+              <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'description')}</span>
             </div>
           )}
           {collectionItem.banknote?.historicalDescription && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.historicalDescription')}</span>
-              <span className="text-base">{collectionItem.banknote.historicalDescription}</span>
+              <span className="text-base">{getLocalizedField(collectionItem.banknote.historicalDescription, 'historical_description')}</span>
             </div>
           )}
           {collectionItem.banknote?.securityElement && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.securityElement')}</span>
-              <span className="text-base">{collectionItem.banknote.securityElement}</span>
+              <span className="text-base">{getLocalizedField(collectionItem.banknote.securityElement, 'security_element')}</span>
             </div>
           )}
           {collectionItem.banknote?.colors && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.colors')}</span>
-              <span className="text-base">{collectionItem.banknote.colors}</span>
+              <span className="text-base">{getLocalizedField(collectionItem.banknote.colors, 'colors')}</span>
             </div>
           )}
           {collectionItem.banknote?.dimensions && (
         <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
           <span className="text-sm font-medium text-muted-foreground w-32">{t('details.dimensions')}</span>
-          <span className="text-base">{collectionItem.banknote.dimensions}</span>
+          <span className="text-base">{getLocalizedField(collectionItem.banknote.dimensions, 'dimensions')}</span>
         </div>
       )}
           {collectionItem.banknote?.printer && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.printer')}</span>
-              <span className="text-base">{collectionItem.banknote.printer}</span>
+              <span className="text-base">{getLocalizedField(collectionItem.banknote.printer, 'printer')}</span>
             </div>
           )}
           {collectionItem.banknote?.rarity && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.rarity')}</span>
-              <span className="text-base">{collectionItem.banknote.rarity}</span>
+              <span className="text-base">{getLocalizedField(collectionItem.banknote.rarity, 'rarity')}</span>
             </div>
           )}
           {collectionItem.banknote?.sealNames &&
@@ -257,20 +287,20 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               collectionItem.banknote.sealPictureUrls.length === 0) && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('details.sealNames')}</span>
-                <span className="text-base">{collectionItem.banknote.sealNames}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.sealNames, 'seal_names')}</span>
               </div>
             )}
           {collectionItem.banknote?.signaturesFront && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.frontSignatures')}</span>
-              <span className="text-base">{collectionItem.banknote.signaturesFront}</span>
+              <span className="text-base">{getLocalizedField(collectionItem.banknote.signaturesFront, 'signatures_front')}</span>
             </div>
           )}
 
           {collectionItem.banknote?.signaturesBack && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.backSignatures')}</span>
-              <span className="text-base">{collectionItem.banknote.signaturesBack}</span>
+              <span className="text-base">{getLocalizedField(collectionItem.banknote.signaturesBack, 'signatures_back')}</span>
             </div>
           )}
 
