@@ -35,6 +35,7 @@ import { BookmarkPlus, CalendarIcon, Upload, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from "@/services/collectionService";
 import { addToMarketplace } from '@/services/marketplaceService';
+import { collectionItemTranslationService } from '@/services/collectionItemTranslationService';
 import { useCountryCurrencies } from "@/hooks/useCountryCurrencies";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
@@ -375,6 +376,15 @@ const AddUnlistedBanknoteDialog: React.FC<AddUnlistedBanknoteDialogProps> = ({
       });
 
       if (result) {
+        // Handle public note translation with language detection
+        if (values.publicNote && values.publicNote.trim()) {
+          console.log('🔍 [AddUnlistedBanknoteDialog] Handling public note translation with language detection');
+          await collectionItemTranslationService.detectAndSaveOriginalLanguage(
+            values.publicNote,
+            result.id
+          );
+        }
+
         // Update the collection item with watermarked and thumbnail images
         if (obverseProcessedImages || reverseProcessedImages) {
           await updateCollectionItemImages(

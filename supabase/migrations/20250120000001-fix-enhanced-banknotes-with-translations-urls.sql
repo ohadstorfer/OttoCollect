@@ -1,10 +1,5 @@
--- Fix enhanced_banknotes_with_translations view to include missing URL resolution fields
--- Drop the existing view first
-DROP VIEW IF EXISTS public.enhanced_banknotes_with_translations;
-
--- Recreate the view with all fields including URL resolution fields
-CREATE VIEW public.enhanced_banknotes_with_translations AS
-SELECT
+CREATE OR REPLACE view public.enhanced_banknotes_with_translations as
+select
   db.id,
   db.extended_pick_number,
   db.pick_number,
@@ -45,13 +40,7 @@ SELECT
   db.authority_name,
   db.authority_name_ar,
   db.authority_name_tr,
-  -- ADD MISSING URL RESOLUTION FIELDS
-  db.signatures_front_urls,
-  db.signatures_back_urls,
-  db.seal_picture_urls,
-  db.watermark_picture_url,
-  db.tughra_picture_url,
-  -- Translation fields
+
   COALESCE(bt.country_ar, db.country) as country_ar,
   COALESCE(bt.country_tr, db.country) as country_tr,
   COALESCE(bt.face_value_ar, db.face_value) as face_value_ar,
@@ -94,7 +83,6 @@ SELECT
   ) as historical_description_tr,
   COALESCE(bt.dimensions_ar, db.dimensions) as dimensions_ar,
   COALESCE(bt.dimensions_tr, db.dimensions) as dimensions_tr,
-  -- Translated fields (keep existing logic)
   case
     when current_setting('app.language'::text, true) = 'ar'::text then COALESCE(bt.country_ar, db.country)
     when current_setting('app.language'::text, true) = 'tr'::text then COALESCE(bt.country_tr, db.country)
@@ -181,11 +169,15 @@ SELECT
     when current_setting('app.language'::text, true) = 'ar'::text then COALESCE(bt.dimensions_ar, db.dimensions)
     when current_setting('app.language'::text, true) = 'tr'::text then COALESCE(bt.dimensions_tr, db.dimensions)
     else db.dimensions
-  end as dimensions_translated
-FROM
-  enhanced_detailed_banknotes db
-  LEFT JOIN banknotes_translation bt ON db.id = bt.banknote_id
-  AND bt.is_unlisted = false;
+  end as dimensions_translated,
 
--- Enable RLS on the updated view
-ALTER VIEW public.enhanced_banknotes_with_translations SET (security_invoker = true);
+  db.signatures_front_urls   AS raw_signatures_front_urls,
+  db.signatures_back_urls    AS raw_signatures_back_urls,
+  db.seal_picture_urls       AS raw_seal_picture_urls,
+  db.watermark_picture_url   AS raw_watermark_picture_url,
+  db.tughra_picture_url      AS raw_tughra_picture_url
+  
+from
+  enhanced_detailed_banknotes db
+  left join banknotes_translation bt on db.id = bt.banknote_id
+  and bt.is_unlisted = false;

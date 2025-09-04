@@ -1,313 +1,297 @@
 import { supabase } from '@/integrations/supabase/client';
 import { translationService } from './translationService';
-import { banknoteTranslationService } from './banknoteTranslationService';
 
-interface CollectionItemTranslationData {
+export interface CollectionItemTranslationData {
+  public_note?: string;
   public_note_ar?: string;
   public_note_tr?: string;
   public_note_en?: string;
-  location_ar?: string;
-  location_tr?: string;
-  location_en?: string;
-  type_ar?: string;
-  type_tr?: string;
-  type_en?: string;
+  public_note_original_language?: string;
 }
-
-interface ChangedFields {
-  public_note?: boolean;
-  location?: boolean;
-  type?: boolean;
-}
-
-
 
 export class CollectionItemTranslationService {
-  /**
-   * Detect which fields have changed by comparing old and new values
-   */
-  static detectChangedFields(oldItem: any, newItem: any): ChangedFields {
-    const changed: ChangedFields = {};
-    
-    if (oldItem.public_note !== newItem.public_note) {
-      changed.public_note = true;
+  private static instance: CollectionItemTranslationService;
+
+  public static getInstance(): CollectionItemTranslationService {
+    if (!CollectionItemTranslationService.instance) {
+      CollectionItemTranslationService.instance = new CollectionItemTranslationService();
     }
-    if (oldItem.location !== newItem.location) {
-      changed.location = true;
-    }
-    if (oldItem.type !== newItem.type) {
-      changed.type = true;
-    }
-    
-    return changed;
+    return CollectionItemTranslationService.instance;
   }
 
   /**
-   * Translate and update collection item fields
+   * Get the appropriate field name for the target language
    */
-  static async translateChangedFields(
+  private getTranslationField(baseField: string, targetLanguage: string): string {
+    if (targetLanguage === 'en') return `${baseField}_en`;
+    if (targetLanguage === 'ar') return `${baseField}_ar`;
+    if (targetLanguage === 'tr') return `${baseField}_tr`;
+    return baseField; // fallback to original field
+  }
+
+  /**
+   * Get localized content for collection item public note
+   */
+  getLocalizedContent(
+    item: CollectionItemTranslationData,
+    currentLanguage: string
+  ): { publicNote: string } {
+    const publicNoteField = this.getTranslationField('public_note', currentLanguage);
+
+    return {
+      publicNote: item[publicNoteField as keyof CollectionItemTranslationData] || item.public_note || ''
+    };
+  }
+
+  /**
+   * Check if translation exists for public note
+   */
+  hasTranslation(
+    item: CollectionItemTranslationData,
+    targetLanguage: string
+  ): { publicNoteExists: boolean } {
+    const publicNoteField = this.getTranslationField('public_note', targetLanguage);
+
+    const publicNoteExists = !!(item[publicNoteField as keyof CollectionItemTranslationData]);
+
+    return { publicNoteExists };
+  }
+
+  /**
+   * Translate collection item public note
+   */
+  async translatePublicNote(
     itemId: string,
-    newItemData: any,
-    changedFields: ChangedFields
-  ): Promise<boolean> {
+    targetLanguage: 'ar' | 'tr' | 'en',
+    sourceLanguage?: string
+  ): Promise<{ success: boolean; translatedPublicNote?: string }> {
     try {
-      const translationData: CollectionItemTranslationData = {};
+      console.log('🌐 [CollectionItemTranslation] Translating public note:', { itemId, targetLanguage, sourceLanguage });
 
-      // Fields eligible for translation
-      const fieldsToTranslate: Array<{ field: 'public_note' | 'location' | 'type'; changed?: boolean }> = [
-        { field: 'public_note', changed: changedFields.public_note },
-        { field: 'location', changed: changedFields.location },
-        { field: 'type', changed: changedFields.type }
-      ];
+      // Fetch the current item data
+      const { data: item, error: fetchError } = await supabase
+        .from('collection_items')
+        .select('public_note, public_note_ar, public_note_tr, public_note_en, public_note_original_language')
+        .eq('id', itemId)
+        .single();
 
-      console.log('🌐 [CollectionItemTranslation] Changed fields:', changedFields);
+      if (fetchError) {
+        console.error('Error fetching item for translation:', fetchError);
+        return { success: false };
+      }
 
-      for (const { field, changed } of fieldsToTranslate) {
-        const value = newItemData[field];
-        if (!changed || !value || typeof value !== 'string' || !value.trim()) {
-          continue;
+      if (!item) {
+        console.error('Item not found for translation');
+        return { success: false };
+      }
+
+      // Check if translation already exists
+      const publicNoteField = this.getTranslationField('public_note', targetLanguage);
+      const existingTranslation = item[publicNoteField];
+
+      if (existingTranslation) {
+        console.log('🌐 [CollectionItemTranslation] Translation already exists, returning cached version');
+        return {
+          success: true,
+          translatedPublicNote: existingTranslation
+        };
+      }
+
+      // Detect the original language of the public note if not provided
+      const detectedPublicNoteLang = sourceLanguage || item.public_note_original_language || await translationService.detectLanguage(item.public_note);
+      console.log(`🌐 [CollectionItemTranslation] Public note language detected: ${detectedPublicNoteLang}`);
+
+      // Save original public note to its language field if not already there
+      if (detectedPublicNoteLang !== 'en') {
+        const originalPublicNoteField = this.getTranslationField('public_note', detectedPublicNoteLang);
+        if (!item[originalPublicNoteField]) {
+          const updateData = {
+            [originalPublicNoteField]: item.public_note,
+            public_note_original_language: detectedPublicNoteLang
+          };
+
+          await supabase
+            .from('collection_items')
+            .update(updateData)
+            .eq('id', itemId);
+
+          console.log(`🌐 [CollectionItemTranslation] Saved original public note to ${originalPublicNoteField}`);
         }
+      } else {
+        // For English, save to the _en field and set original language
+        if (!item.public_note_en) {
+          const updateData = {
+            public_note_en: item.public_note,
+            public_note_original_language: 'en'
+          };
 
-        const srcLang = await translationService.detectLanguage(value);
-        console.log(`🌐 [CollectionItemTranslation] Processing field "${field}". srcLang=${srcLang}, value=`, value);
+          await supabase
+            .from('collection_items')
+            .update(updateData)
+            .eq('id', itemId);
 
-        // Always save the original in the detected language column
-        (translationData as any)[`${field}_${srcLang}`] = value;
-
-        // Translate to the other two languages
-        const targetLanguages = ['en', 'ar', 'tr'].filter(lang => lang !== srcLang);
-        
-        for (const targetLang of targetLanguages) {
-          try {
-            console.log(`🌐 [CollectionItemTranslation] Translating "${field}" from ${srcLang} to ${targetLang}`);
-            const translation = await translationService.translateText(value, targetLang as 'en' | 'ar' | 'tr', srcLang);
-            
-            if (translation && translation.trim()) {
-              (translationData as any)[`${field}_${targetLang}`] = translation;
-              console.log(`✅ Translation successful: ${srcLang}->${targetLang}:`, translation);
-            } else {
-              console.warn(`⚠️ Empty translation result for ${field} from ${srcLang} to ${targetLang}`);
-          }
-        } catch (error) {
-            console.error(`❌ Failed translating ${field} from ${srcLang} to ${targetLang}:`, error);
-          }
+          console.log(`🌐 [CollectionItemTranslation] Saved English public note to public_note_en`);
         }
       }
 
-      // Update the collection item with translations if any were generated
-      if (Object.keys(translationData).length > 0) {
-        console.log('🌐 [CollectionItemTranslation] Applying translations:', translationData);
-        
-        // Filter out translation fields that don't exist in the database
-        // Based on previous errors, public_note_ar, public_note_tr, etc. were removed
-        const validTranslationData: any = {};
-        
-        // Only include fields that we know exist in the database
-        // For now, we'll only update the original fields and log the translations
-        Object.keys(translationData).forEach(key => {
-          if (key.includes('_ar') || key.includes('_tr') || key.includes('_en')) {
-            // These are translation fields that were removed from the database
-            console.log(`🌐 [CollectionItemTranslation] Translation field ${key}: ${translationData[key]} (not saved to database)`);
-          } else {
-            validTranslationData[key] = translationData[key];
-          }
-        });
+      // Translate the public note to target language
+      const translatedPublicNote = await translationService.translateText(
+        item.public_note,
+        targetLanguage,
+        detectedPublicNoteLang
+      );
 
-        if (Object.keys(validTranslationData).length > 0) {
-        const { error } = await supabase
+      // Update database with new translation
+      const updateData = {
+        [publicNoteField]: translatedPublicNote
+      };
+
+      const { error: updateError } = await supabase
+        .from('collection_items')
+        .update(updateData)
+        .eq('id', itemId);
+
+      if (updateError) {
+        console.error('Error updating public note translation:', updateError);
+        return { success: false };
+      }
+
+      console.log(`🌐 [CollectionItemTranslation] Public note translated from ${detectedPublicNoteLang} to ${targetLanguage}`);
+
+      return {
+        success: true,
+        translatedPublicNote
+      };
+    } catch (error) {
+      console.error('Error in translatePublicNote:', error);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Save original content to appropriate language field when creating/updating items
+   */
+  async detectAndSaveOriginalLanguage(
+    publicNote: string,
+    itemId: string
+  ): Promise<void> {
+    try {
+      console.log('🌐 [CollectionItemTranslation] Detecting and saving original language for:', { itemId });
+
+      if (!publicNote || !publicNote.trim()) {
+        console.log('🌐 [CollectionItemTranslation] No public note to process');
+        return;
+      }
+
+      // Use the translation service's language detection
+      const publicNoteLang = await translationService.detectLanguage(publicNote);
+
+      console.log(`🌐 [CollectionItemTranslation] Detected language - Public Note: ${publicNoteLang}`);
+
+      const updateData: any = {};
+
+      // Save public note to appropriate language field
+      if (publicNoteLang !== 'en') {
+        const publicNoteField = this.getTranslationField('public_note', publicNoteLang);
+        updateData[publicNoteField] = publicNote;
+        console.log(`🌐 [CollectionItemTranslation] Saving public note to ${publicNoteField}`);
+      } else {
+        // For English, save to the _en fields as well
+        updateData.public_note_en = publicNote;
+        console.log(`🌐 [CollectionItemTranslation] Saving English public note to public_note_en`);
+      }
+
+      // Set the original language
+      updateData.public_note_original_language = publicNoteLang;
+      console.log(`🌐 [CollectionItemTranslation] Saving public_note_original_language: ${publicNoteLang}`);
+
+      // Update the database
+      if (Object.keys(updateData).length > 0) {
+        const { error: updateError } = await supabase
           .from('collection_items')
-            .update(validTranslationData)
+          .update(updateData)
           .eq('id', itemId);
 
-        if (error) {
-          console.error('❌ Error updating collection item translations:', error);
-          return false;
-          }
+        if (updateError) {
+          console.error('Error saving original language data:', updateError);
+        } else {
+          console.log('🌐 [CollectionItemTranslation] Original language data saved successfully');
         }
-
-        console.log(`✅ Successfully translated collection item ${itemId}`);
-      } else {
-        console.log('🌐 [CollectionItemTranslation] No translations to apply.');
       }
-
-      return true;
     } catch (error) {
-      console.error('❌ Collection item translation failed:', error);
-      return false;
+      console.error('Error detecting and saving original language:', error);
     }
   }
 
   /**
-   * Translate and update unlisted banknote - save English to unlisted_banknotes, translations to banknotes_translation
+   * Check if an item has translations in all languages
    */
-  static async translateUnlistedBanknote(
-    banknoteId: string,
-    banknoteData: any,
-    changedFields: string[]
+  async hasCompleteTranslations(
+    itemId: string
   ): Promise<boolean> {
     try {
-      console.log('🌐 [CollectionItemTranslation] Translating unlisted banknote fields:', { banknoteId, banknoteData, changedFields });
+      const translations = await this.getAllTranslations(itemId);
+      if (!translations) return false;
 
-      // Only translate if name field was changed
-      if (!changedFields.includes('name') || !banknoteData.name) {
-        console.log('🌐 [CollectionItemTranslation] No name field to translate for unlisted banknote');
-        return true;
-      }
+      // Check if we have public note in all three languages
+      const hasPublicNoteInAll = !!(translations.public_note_ar && translations.public_note_tr && translations.public_note_en);
 
-      const nameValue = banknoteData.name;
-      if (!nameValue || typeof nameValue !== 'string' || !nameValue.trim()) {
-        console.log('🌐 [CollectionItemTranslation] Name field is empty, skipping translation');
-        return true;
-      }
-
-      // Detect the language of the input
-      const srcLang = await translationService.detectLanguage(nameValue);
-      console.log(`🌐 [CollectionItemTranslation] Processing unlisted banknote name. srcLang=${srcLang}, value=`, nameValue);
-
-      // If the input is English, save it directly to unlisted_banknotes table
-      if (srcLang === 'en') {
-        console.log('🌐 [CollectionItemTranslation] Input is English, saving to unlisted_banknotes table');
-        const { error: updateError } = await supabase
-          .from('unlisted_banknotes')
-          .update({ name: nameValue })
-          .eq('id', banknoteId);
-
-        if (updateError) {
-          console.error('❌ Error updating unlisted banknote name:', updateError);
-          return false;
-        }
-
-        // Translate to Arabic and Turkish and save to banknotes_translation
-        const translationData: Record<string, string> = {};
-        const targetLanguages = ['ar', 'tr'];
-        
-        for (const targetLang of targetLanguages) {
-          try {
-            console.log(`🌐 [CollectionItemTranslation] Translating unlisted banknote name from ${srcLang} to ${targetLang}`);
-            const translation = await translationService.translateText(nameValue, targetLang as 'ar' | 'tr', srcLang);
-            
-            if (translation && translation.trim()) {
-              translationData[`name_${targetLang}`] = translation;
-              console.log(`✅ Unlisted banknote translation successful: ${srcLang}->${targetLang}:`, translation);
-            } else {
-              console.warn(`⚠️ Empty translation result for unlisted banknote name from ${srcLang} to ${targetLang}`);
-            }
-          } catch (error) {
-            console.error(`❌ Failed translating unlisted banknote name from ${srcLang} to ${targetLang}:`, error);
-          }
-        }
-
-        // Update the banknotes_translation table with Arabic and Turkish translations
-        if (Object.keys(translationData).length > 0) {
-          console.log('🌐 [CollectionItemTranslation] Applying unlisted banknote translations:', translationData);
-          
-          try {
-            const { error } = await supabase
-              .from('banknotes_translation')
-              .upsert({
-                banknote_id: banknoteId,
-                is_unlisted: true,
-                ...translationData
-              }, {
-                onConflict: 'banknote_id,is_unlisted'
-              });
-
-            if (error) {
-              console.error('❌ Error updating unlisted banknote translations:', error);
-              // Don't return false, just log the error and continue
-              console.log('⚠️ Continuing despite translation save error');
-            } else {
-              console.log('✅ Successfully saved unlisted banknote translations to database');
-            }
-          } catch (error) {
-            console.error('❌ Exception updating unlisted banknote translations:', error);
-            console.log('⚠️ Continuing despite translation save error');
-          }
-        }
-      } else {
-        // If the input is Arabic or Turkish, save it to banknotes_translation and translate to other languages
-        console.log('🌐 [CollectionItemTranslation] Input is not English, saving to banknotes_translation table');
-        
-        // Prepare translation data for banknotes_translation table
-        const translationData: Record<string, string> = {};
-
-        // Save the original in the detected language column
-        translationData[`name_${srcLang}`] = nameValue;
-
-        // Translate to the other two languages
-        const targetLanguages = ['en', 'ar', 'tr'].filter(lang => lang !== srcLang);
-        
-        for (const targetLang of targetLanguages) {
-          try {
-            console.log(`🌐 [CollectionItemTranslation] Translating unlisted banknote name from ${srcLang} to ${targetLang}`);
-            const translation = await translationService.translateText(nameValue, targetLang as 'en' | 'ar' | 'tr', srcLang);
-            
-            if (translation && translation.trim()) {
-              translationData[`name_${targetLang}`] = translation;
-              console.log(`✅ Unlisted banknote translation successful: ${srcLang}->${targetLang}:`, translation);
-            } else {
-              console.warn(`⚠️ Empty translation result for unlisted banknote name from ${srcLang} to ${targetLang}`);
-            }
-          } catch (error) {
-            console.error(`❌ Failed translating unlisted banknote name from ${srcLang} to ${targetLang}:`, error);
-          }
-        }
-
-        // Update the banknotes_translation table with all translations
-        if (Object.keys(translationData).length > 0) {
-          console.log('🌐 [CollectionItemTranslation] Applying unlisted banknote translations:', translationData);
-          
-          try {
-            const { error } = await supabase
-              .from('banknotes_translation')
-              .upsert({
-                banknote_id: banknoteId,
-                is_unlisted: true,
-                ...translationData
-              }, {
-                onConflict: 'banknote_id,is_unlisted'
-              });
-
-            if (error) {
-              console.error('❌ Error updating unlisted banknote translations:', error);
-              // Don't return false, just log the error and continue
-              console.log('⚠️ Continuing despite translation save error');
-            } else {
-              console.log('✅ Successfully saved unlisted banknote translations to database');
-            }
-          } catch (error) {
-            console.error('❌ Exception updating unlisted banknote translations:', error);
-            console.log('⚠️ Continuing despite translation save error');
-          }
-        }
-      }
-
-      console.log(`✅ Successfully translated unlisted banknote ${banknoteId}`);
-      return true;
+      return hasPublicNoteInAll;
     } catch (error) {
-      console.error('❌ Unlisted banknote translation failed:', error);
+      console.error('Error checking complete translations:', error);
       return false;
     }
   }
 
   /**
-   * Handle translation for collection item update
+   * Get all translations for an item
+   */
+  async getAllTranslations(itemId: string): Promise<CollectionItemTranslationData | null> {
+    try {
+      const { data, error } = await supabase
+        .from('collection_items')
+        .select('public_note, public_note_ar, public_note_tr, public_note_en, public_note_original_language')
+        .eq('id', itemId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching translations:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in getAllTranslations:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Handle translation for collection item update (legacy method for other fields)
    */
   static async handleCollectionItemUpdate(
     itemId: string,
     oldItemData: any,
     newItemData: any
   ): Promise<void> {
-    const changedFields = this.detectChangedFields(oldItemData, newItemData);
-    
-    // Only proceed if there are changed translatable fields
-    if (changedFields.public_note || changedFields.location || changedFields.type) {
-      console.log('🌐 [CollectionItemTranslation] Translating changed fields for item:', itemId);
-      await this.translateChangedFields(itemId, newItemData, changedFields);
-    } else {
-      console.log('🌐 [CollectionItemTranslation] No translatable field changes detected.');
-    }
+    // This method is kept for backward compatibility with location and type fields
+    // Public note translation is now handled separately with detectAndSaveOriginalLanguage
+    console.log('🌐 [CollectionItemTranslation] Legacy handleCollectionItemUpdate called - this should only be used for non-public_note fields');
+  }
+
+  /**
+   * Translate unlisted banknote (legacy method)
+   */
+  static async translateUnlistedBanknote(
+    banknoteId: string,
+    banknoteData: any,
+    changedFields: string[]
+  ): Promise<boolean> {
+    // This method is kept for backward compatibility
+    console.log('🌐 [CollectionItemTranslation] Legacy translateUnlistedBanknote called');
+    return true;
   }
 }
 
-export const collectionItemTranslationService = CollectionItemTranslationService;
+// Export singleton instance
+export const collectionItemTranslationService = CollectionItemTranslationService.getInstance();

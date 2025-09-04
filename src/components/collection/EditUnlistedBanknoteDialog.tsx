@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CollectionItem } from '@/types';
 import { updateUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
-import { collectionItemTranslationService } from '@/services/collectionItemTranslationService';
+import { collectionItemTranslationService, CollectionItemTranslationService } from '@/services/collectionItemTranslationService';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Upload, CalendarIcon } from 'lucide-react';
@@ -489,24 +489,39 @@ export default function EditUnlistedBanknoteDialog({
        // Handle collection item translation only for changed fields
        if (collectionItemChangedFields.public_note || collectionItemChangedFields.location || collectionItemChangedFields.type) {
          console.log('🔍 [EditUnlistedBanknoteDialog] Calling collection item translation service');
-         const oldCollectionData: Record<string, string | null | undefined> = {};
-         const newCollectionData: Record<string, string | null | undefined> = {};
          
-         ['public_note', 'location', 'type'].forEach(field => {
-           if (collectionItemChangedFields[field as keyof typeof collectionItemChangedFields]) {
+         // Handle public note translation separately with language detection
+         if (collectionItemChangedFields.public_note && newItemData.public_note) {
+           console.log('🔍 [EditUnlistedBanknoteDialog] Handling public note translation with language detection');
+           await collectionItemTranslationService.detectAndSaveOriginalLanguage(
+             newItemData.public_note,
+             collectionItem.id
+           );
+         }
+
+         // Handle other fields (location, type) with the existing service
+         const otherChangedFields = ['location', 'type'].filter(field => 
+           collectionItemChangedFields[field as keyof typeof collectionItemChangedFields]
+         );
+         
+         if (otherChangedFields.length > 0) {
+           const oldCollectionData: Record<string, string | null | undefined> = {};
+           const newCollectionData: Record<string, string | null | undefined> = {};
+           
+           otherChangedFields.forEach(field => {
              oldCollectionData[field] = oldItemData[field as keyof typeof oldItemData];
              newCollectionData[field] = newItemData[field as keyof typeof newItemData];
-           }
-         });
+           });
 
-         console.log('🔍 Old collection data for translation:', oldCollectionData);
-         console.log('🔍 New collection data for translation:', newCollectionData);
+           console.log('🔍 Old collection data for translation:', oldCollectionData);
+           console.log('🔍 New collection data for translation:', newCollectionData);
 
-      await collectionItemTranslationService.handleCollectionItemUpdate(
-        collectionItem.id,
-           oldCollectionData,
-           newCollectionData
-      );
+           await CollectionItemTranslationService.handleCollectionItemUpdate(
+             collectionItem.id,
+             oldCollectionData,
+             newCollectionData
+           );
+         }
        } else {
          console.log('🔍 [EditUnlistedBanknoteDialog] No collection item fields changed, skipping translation');
        }
@@ -517,7 +532,7 @@ export default function EditUnlistedBanknoteDialog({
        
        if (nameChanged) {
          console.log('🔍 [EditUnlistedBanknoteDialog] Calling unlisted banknote translation service');
-        await collectionItemTranslationService.translateUnlistedBanknote(
+        await CollectionItemTranslationService.translateUnlistedBanknote(
           collectionItem.banknote?.id || '',
           { name: values.name },
           ['name']

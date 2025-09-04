@@ -39,7 +39,7 @@ import { useAuth } from '@/context/AuthContext';
 import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
-import { collectionItemTranslationService } from '@/services/collectionItemTranslationService';
+import { collectionItemTranslationService, CollectionItemTranslationService } from '@/services/collectionItemTranslationService';
 
 // Define props for CollectionItemForm
 export interface CollectionItemFormProps {
@@ -385,11 +385,30 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             newSubset[k] = newItemDataFull[k];
           });
 
-        await collectionItemTranslationService.handleCollectionItemUpdate(
-          currentItem.id,
-            oldSubset,
-            newSubset
-        );
+          // Handle public note translation separately with language detection
+          if (changedKeys.includes('public_note') && newItemDataFull.public_note) {
+            await collectionItemTranslationService.detectAndSaveOriginalLanguage(
+              newItemDataFull.public_note,
+              currentItem.id
+            );
+          }
+
+          // Handle other fields with the existing service
+          const otherChangedKeys = changedKeys.filter(k => k !== 'public_note');
+          if (otherChangedKeys.length > 0) {
+            const otherOldSubset: Record<string, string | null | undefined> = {};
+            const otherNewSubset: Record<string, string | null | undefined> = {};
+            otherChangedKeys.forEach((k) => {
+              otherOldSubset[k] = oldItemDataFull[k];
+              otherNewSubset[k] = newItemDataFull[k];
+            });
+
+            await CollectionItemTranslationService.handleCollectionItemUpdate(
+              currentItem.id,
+              otherOldSubset,
+              otherNewSubset
+            );
+          }
         }
 
         // Update images if they were changed
