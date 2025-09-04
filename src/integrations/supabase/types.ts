@@ -585,6 +585,7 @@ export type Database = {
           is_unlisted_banknote: boolean
           location: string | null
           location_ar: string | null
+          location_en: string | null
           location_tr: string | null
           obverse_image: string | null
           obverse_image_thumbnail: string | null
@@ -593,6 +594,9 @@ export type Database = {
           prefix: string | null
           private_note: string | null
           public_note: string | null
+          public_note_ar: string | null
+          public_note_en: string | null
+          public_note_tr: string | null
           purchase_date: string | null
           purchase_price: number | null
           reverse_image: string | null
@@ -601,6 +605,7 @@ export type Database = {
           sale_price: number | null
           type: string | null
           type_ar: string | null
+          type_en: string | null
           type_tr: string | null
           unlisted_banknotes_id: string | null
           updated_at: string
@@ -619,6 +624,7 @@ export type Database = {
           is_unlisted_banknote?: boolean
           location?: string | null
           location_ar?: string | null
+          location_en?: string | null
           location_tr?: string | null
           obverse_image?: string | null
           obverse_image_thumbnail?: string | null
@@ -627,6 +633,9 @@ export type Database = {
           prefix?: string | null
           private_note?: string | null
           public_note?: string | null
+          public_note_ar?: string | null
+          public_note_en?: string | null
+          public_note_tr?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
           reverse_image?: string | null
@@ -635,6 +644,7 @@ export type Database = {
           sale_price?: number | null
           type?: string | null
           type_ar?: string | null
+          type_en?: string | null
           type_tr?: string | null
           unlisted_banknotes_id?: string | null
           updated_at?: string
@@ -653,6 +663,7 @@ export type Database = {
           is_unlisted_banknote?: boolean
           location?: string | null
           location_ar?: string | null
+          location_en?: string | null
           location_tr?: string | null
           obverse_image?: string | null
           obverse_image_thumbnail?: string | null
@@ -661,6 +672,9 @@ export type Database = {
           prefix?: string | null
           private_note?: string | null
           public_note?: string | null
+          public_note_ar?: string | null
+          public_note_en?: string | null
+          public_note_tr?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
           reverse_image?: string | null
@@ -669,6 +683,7 @@ export type Database = {
           sale_price?: number | null
           type?: string | null
           type_ar?: string | null
+          type_en?: string | null
           type_tr?: string | null
           unlisted_banknotes_id?: string | null
           updated_at?: string
@@ -3171,6 +3186,14 @@ export type Database = {
       translate_badges: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      translate_content: {
+        Args: {
+          source_language?: string
+          target_language: string
+          text: string
+        }
+        Returns: Json
       }
       update_badge_translations: {
         Args: Record<PropertyKey, never>
