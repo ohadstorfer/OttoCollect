@@ -120,6 +120,8 @@ export interface Banknote {
   watermarkUrl?: string;
   tughraUrl?: string;
   authorityName?: string;
+  authorityName_ar?: string;
+  authorityName_tr?: string;
   description?: string;
   obverseDescription?: string;
   reverseDescription?: string;

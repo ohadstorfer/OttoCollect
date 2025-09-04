@@ -2012,6 +2012,8 @@ export type Database = {
       enhanced_detailed_banknotes: {
         Row: {
           authority_name: string | null
+          authority_name_ar: string | null
+          authority_name_tr: string | null
           back_picture: string | null
           back_picture_thumbnail: string | null
           back_picture_watermarked: string | null

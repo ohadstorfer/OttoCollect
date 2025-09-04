@@ -319,6 +319,8 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     tughra_picture_url,
     other_element_pictures,
     authority_name,
+    authority_name_ar,
+    authority_name_tr,
     front_picture_watermarked,
     back_picture_watermarked,
     front_picture_thumbnail,
@@ -451,6 +453,8 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     
     // Authority name
     authorityName: authority_name || null,
+    authorityName_ar: authority_name_ar || null,
+    authorityName_tr: authority_name_tr || null,
     
     // Watermarked and thumbnail images
     frontPictureWatermarked: front_picture_watermarked || null,

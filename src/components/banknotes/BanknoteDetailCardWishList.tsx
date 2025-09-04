@@ -17,6 +17,8 @@ import { deleteWishlistItem } from "@/services/wishlistService";
 import { useTutorial } from "@/context/TutorialContext";
 import { useAuth } from "@/context/AuthContext";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { useLanguage } from "@/context/LanguageContext";
+import { useTranslation } from 'react-i18next';
 
 interface BanknoteDetailCardProps {
   banknote: any;
@@ -51,6 +53,19 @@ const BanknoteDetailCardWishList = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const { triggerEditBanknoteGuide } = useTutorial();
+  const { currentLanguage } = useLanguage();
+  const { t } = useTranslation(['catalog']);
+
+  // Helper function to get localized authority name
+  const getLocalizedAuthorityName = (): string => {
+    if (currentLanguage === 'ar' && banknote.authorityName_ar) {
+      return banknote.authorityName_ar;
+    } else if (currentLanguage === 'tr' && banknote.authorityName_tr) {
+      return banknote.authorityName_tr;
+    }
+    
+    return banknote.authorityName || t('authority', 'Authority');
+  };
 
   // Toast window state: track shown toast's ID to programmatically dismiss it
   const toastIdRef = useRef<string | null>(null);
@@ -431,7 +446,7 @@ const BanknoteDetailCardWishList = ({
               </div>
               <div className="text-xs text-muted-foreground mt-1">
                 {banknote.sultanName && (
-                  <span>{banknote.authorityName || "Authority"}: {banknote.sultanName}</span>
+                  <span>{getLocalizedAuthorityName()}: {banknote.sultanName}</span>
                 )}
                 {banknote.sealNames && <span className="ml-2">Seals: {banknote.sealNames}</span>}
               </div>
@@ -532,7 +547,7 @@ const BanknoteDetailCardWishList = ({
           <div className="p-3 bg-background border-t">
             {banknote?.sultanName && (
               <p className="text-xs text-muted-foreground">
-                {banknote.authorityName || "Authority"}: {banknote.sultanName}
+                {getLocalizedAuthorityName()}: {banknote.sultanName}
               </p>
             )}
             {(banknote.signatures_front || banknote.signatures_back) && (

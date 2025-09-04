@@ -80,6 +80,8 @@ export interface EnhancedBanknote {
   
   // New authority_name field
   authority_name?: string;
+  authority_name_ar?: string;
+  authority_name_tr?: string;
 }
 
 export interface DetailedBanknote {
@@ -93,6 +95,8 @@ export interface DetailedBanknote {
   type?: string;
   sultanName?: string;
   authorityName?: string;
+  authorityName_ar?: string;
+  authorityName_tr?: string;
   gregorianYear?: string;
   islamicYear?: string;
   description?: string;

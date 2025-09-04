@@ -26,7 +26,18 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
   const { banknoteId } = useBanknoteContext();
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const { direction } = useLanguage();
+  const { direction, currentLanguage } = useLanguage();
+
+  // Helper function to get localized authority name
+  const getLocalizedAuthorityName = (banknote: any): string => {
+    if (currentLanguage === 'ar' && banknote.authorityName_ar) {
+      return banknote.authorityName_ar;
+    } else if (currentLanguage === 'tr' && banknote.authorityName_tr) {
+      return banknote.authorityName_tr;
+    }
+    
+    return banknote.authorityName || t('authority');
+  };
 
 
   // Determine which ID to use
@@ -113,7 +124,7 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
             {collectionItem.banknote?.sultanName && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">
-                  {collectionItem.banknote.authorityName || t('authority')}
+                  {getLocalizedAuthorityName(collectionItem.banknote)}
                 </span>
                 <span className="text-base">{collectionItem.banknote.sultanName}</span>
               </div>

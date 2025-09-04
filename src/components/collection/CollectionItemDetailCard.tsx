@@ -6,6 +6,8 @@ import { Check, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem } from "@/types";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/context/LanguageContext";
+import { useTranslation } from 'react-i18next';
 
 interface CollectionItemCardProps {
   banknote: DetailedBanknote;
@@ -15,6 +17,21 @@ interface CollectionItemCardProps {
 const CollectionItemDetailCard = ({ banknote, collectionItem }: CollectionItemCardProps) => {
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
+  const { currentLanguage } = useLanguage();
+  const { t } = useTranslation(['catalog']);
+
+  // Helper function to get localized authority name
+  const getLocalizedAuthorityName = (): string => {
+    const banknoteAny = banknote as any;
+    
+    if (currentLanguage === 'ar' && banknoteAny.authorityName_ar) {
+      return banknoteAny.authorityName_ar;
+    } else if (currentLanguage === 'tr' && banknoteAny.authorityName_tr) {
+      return banknoteAny.authorityName_tr;
+    }
+    
+    return banknote.authorityName || t('authority', 'Authority');
+  };
 
   const displayImage =
     collectionItem?.obverseImage ||
@@ -77,7 +94,7 @@ const CollectionItemDetailCard = ({ banknote, collectionItem }: CollectionItemCa
             )}
             {banknote.sultanName && (
               <p className="text-sm text-muted-foreground">
-                {banknote.authorityName || "Authority"}: {banknote.sultanName}
+                {getLocalizedAuthorityName()}: {banknote.sultanName}
               </p>
             )}
             {banknote.sealNames && (

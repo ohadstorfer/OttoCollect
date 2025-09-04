@@ -277,6 +277,8 @@ export type Database = {
       }
       banknotes_translation: {
         Row: {
+          authority_name_ar: string | null
+          authority_name_tr: string | null
           banknote_description_ar: string | null
           banknote_description_tr: string | null
           banknote_id: string
@@ -318,6 +320,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          authority_name_ar?: string | null
+          authority_name_tr?: string | null
           banknote_description_ar?: string | null
           banknote_description_tr?: string | null
           banknote_id: string
@@ -359,6 +363,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          authority_name_ar?: string | null
+          authority_name_tr?: string | null
           banknote_description_ar?: string | null
           banknote_description_tr?: string | null
           banknote_id?: string
@@ -2516,6 +2522,8 @@ export type Database = {
       enhanced_banknotes_with_translations: {
         Row: {
           authority_name: string | null
+          authority_name_ar: string | null
+          authority_name_tr: string | null
           back_picture: string | null
           back_picture_thumbnail: string | null
           back_picture_watermarked: string | null
@@ -2609,6 +2617,8 @@ export type Database = {
       enhanced_detailed_banknotes: {
         Row: {
           authority_name: string | null
+          authority_name_ar: string | null
+          authority_name_tr: string | null
           back_picture: string | null
           back_picture_thumbnail: string | null
           back_picture_watermarked: string | null
@@ -2654,6 +2664,8 @@ export type Database = {
         }
         Insert: {
           authority_name?: never
+          authority_name_ar?: never
+          authority_name_tr?: never
           back_picture?: string | null
           back_picture_thumbnail?: string | null
           back_picture_watermarked?: string | null
@@ -2699,6 +2711,8 @@ export type Database = {
         }
         Update: {
           authority_name?: never
+          authority_name_ar?: never
+          authority_name_tr?: never
           back_picture?: string | null
           back_picture_thumbnail?: string | null
           back_picture_watermarked?: string | null

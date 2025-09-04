@@ -55,6 +55,19 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     return translation === key ? fallback : translation;
   };
 
+  // Helper function to get localized authority name
+  const getLocalizedAuthorityName = (): string => {
+    const banknoteAny = item.banknote as any;
+    
+    if (currentLanguage === 'ar' && banknoteAny.authorityName_ar) {
+      return banknoteAny.authorityName_ar;
+    } else if (currentLanguage === 'tr' && banknoteAny.authorityName_tr) {
+      return banknoteAny.authorityName_tr;
+    }
+    
+    return item.banknote.authorityName || tWithFallback('authority', 'Authority');
+  };
+
   // Use thumbnail if available, otherwise fall back to original image
   const displayImage = item?.obverse_image_thumbnail || item?.obverseImage;
 
@@ -360,7 +373,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         <div className="p-3 bg-background border-t">
             {item.banknote.sultanName && (
               <p className="text-xs text-muted-foreground">
-                {item.banknote.authorityName || tWithFallback('authority', 'Authority')}: {item.banknote.sultanName}
+                {getLocalizedAuthorityName()}: {item.banknote.sultanName}
               </p>
             )}
             {(item.banknote.signaturesFront || item.banknote.signaturesBack) && (

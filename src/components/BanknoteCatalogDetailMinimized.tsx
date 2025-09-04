@@ -14,6 +14,19 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
   const { t } = useTranslation(['catalog']);
   const { direction, currentLanguage } = useLanguage();
 
+  // Helper function to get localized authority name
+  const getLocalizedAuthorityName = (): string => {
+    const banknoteAny = banknote as any;
+    
+    if (currentLanguage === 'ar' && banknoteAny.authorityName_ar) {
+      return banknoteAny.authorityName_ar;
+    } else if (currentLanguage === 'tr' && banknoteAny.authorityName_tr) {
+      return banknoteAny.authorityName_tr;
+    }
+    
+    return banknote.authorityName || t('details.sultanName');
+  };
+
   // Helper function to get localized banknote field
   const getLocalizedField = (field: string, translatedField?: string): string => {
     const result = currentLanguage === 'en' || !translatedField 
@@ -121,7 +134,7 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
       )}
       {banknote?.sultanName && (
         <div className={`flex items-center gap-x-2 border-b border-gray-100 py-1 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-           <span className={`text-sm font-medium text-muted-foreground w-32 ${direction === 'rtl' ? 'text-right' : ''}`}>{banknote.authorityName || t('details.sultanName')}</span>
+           <span className={`text-sm font-medium text-muted-foreground w-32 ${direction === 'rtl' ? 'text-right' : ''}`}>{getLocalizedAuthorityName()}</span>
           <span className={`text-base ${direction === 'rtl' ? 'text-right' : ''}`}>
             {getLocalizedField(banknote.sultanName, getTranslatedField('sultanName'))}
           </span>
