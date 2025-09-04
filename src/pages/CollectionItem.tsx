@@ -47,6 +47,7 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 
 export default function CollectionItem() {
   const { t } = useTranslation(['collection']);
+  const { currentLanguage } = useLanguage();
   
   // All hooks first!
   const [imageOrientations, setImageOrientations] = useState<Record<number, 'vertical' | 'horizontal'>>({});
@@ -412,6 +413,24 @@ export default function CollectionItem() {
       img.src = imageUrl;
     });
   };
+
+  // Translation helper functions
+  const getLocalizedField = (field: string, fieldType: 'face_value' | 'country'): string => {
+    if (currentLanguage === 'en' || !field) {
+      return field || '';
+    }
+
+    const banknoteAny = collectionItem?.banknote as any;
+    let languageSpecificField: string | undefined;
+    
+    if (currentLanguage === 'ar') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_ar`];
+    } else if (currentLanguage === 'tr') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_tr`];
+    }
+
+    return languageSpecificField || field;
+  };
   
 
   // Render
@@ -434,7 +453,7 @@ export default function CollectionItem() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <h1 className="text-3xl font-bold leading-tight">
-                    <span> {collectionItem.banknote?.denomination} </span>
+                    <span> {getLocalizedField(collectionItem.banknote?.denomination || '', 'face_value')} </span>
                   </h1>
 
                   <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
@@ -447,7 +466,7 @@ export default function CollectionItem() {
                 </div>
 
                 <p className="text-xl text-muted-foreground">
-                  {collectionItem.banknote?.country}
+                  {getLocalizedField(collectionItem.banknote?.country || '', 'country')}
                   {collectionItem.banknote?.country && collectionItem.banknote?.year && ", "}
                   {collectionItem.banknote?.year}
                 </p>

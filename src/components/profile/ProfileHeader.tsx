@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { FollowStats } from "./FollowStats";
 import { useTheme } from "@/context/ThemeContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ProfileHeaderProps {
   profile: User;
@@ -27,6 +28,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick, s
   const { t } = useTranslation(['profile']);
   const isOwnProfile = user && profile && user.id === profile.id;
   const userRank = (profile?.rank || "Newbie");
+  const { direction } = useLanguage();
   
   // Use auth user's avatar URL for own profile to ensure it's always up to date
   const avatarUrl = isOwnProfile ? user?.avatarUrl : profile?.avatarUrl;
@@ -170,7 +172,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick, s
               </div>
 
               <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'}`}>
-                <div className="flex flex-col gap-2">
+                <div className={`flex flex-col gap-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                   <span className="inline-flex items-center gap-2">
                     {profile.about && <span>{profile.about}</span>}
                     {/* Edit Profile Button */}

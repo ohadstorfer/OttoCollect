@@ -49,6 +49,7 @@ export default function CollectionItemUnlisted() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation(['collection']);
+  const { currentLanguage } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSubmittingImages, setIsSubmittingImages] = useState(false);
@@ -279,6 +280,24 @@ export default function CollectionItemUnlisted() {
 
   const displayImages = [collectionItem.obverseImage, collectionItem.reverseImage].filter(Boolean) as string[];
 
+  // Translation helper functions
+  const getLocalizedField = (field: string, fieldType: 'face_value' | 'country'): string => {
+    if (currentLanguage === 'en' || !field) {
+      return field || '';
+    }
+
+    const banknoteAny = collectionItem?.banknote as any;
+    let languageSpecificField: string | undefined;
+    
+    if (currentLanguage === 'ar') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_ar`];
+    } else if (currentLanguage === 'tr') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_tr`];
+    }
+
+    return languageSpecificField || field;
+  };
+
   return (
     <div className="page-container">
       <div className="flex flex-col space-y-6">
@@ -296,7 +315,7 @@ export default function CollectionItemUnlisted() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <h1 className="text-3xl font-bold leading-tight">
-                    <span> {collectionItem.banknote.denomination} </span>
+                    <span> {getLocalizedField(collectionItem.banknote.denomination || '', 'face_value')} </span>
                   </h1>
 
                   <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
@@ -309,7 +328,7 @@ export default function CollectionItemUnlisted() {
                 </div>
 
                 <p className="text-xl text-muted-foreground">
-                  {collectionItem.banknote.country}
+                  {getLocalizedField(collectionItem.banknote.country || '', 'country')}
                   {collectionItem.banknote.country && collectionItem.banknote.year && ", "}
                   {collectionItem.banknote.year}
                 </p>
