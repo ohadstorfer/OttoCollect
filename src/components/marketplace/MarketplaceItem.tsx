@@ -27,12 +27,13 @@ interface MarketplaceItemProps {
 }
 
 const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
+  console.log('🔍 [MarketplaceItem] Component rendering with item:', item);
   
   const [isHovering, setIsHovering] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { direction } = useLanguage();
+  const { direction, currentLanguage } = useLanguage();
   const { t } = useTranslation(['marketplace']);
   
   // Memoize the fallback function to prevent infinite re-renders
@@ -42,6 +43,24 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
       return translation === key ? fallback : translation;
     };
   }, [t]);
+
+  // Helper function to get localized field values
+  const getLocalizedField = (field: string, fieldType: 'face_value' | 'country'): string => {
+    if (currentLanguage === 'en' || !field) {
+      return field || '';
+    }
+
+    const banknoteAny = banknote as any;
+    let languageSpecificField: string | undefined;
+    
+    if (currentLanguage === 'ar') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_ar`];
+    } else if (currentLanguage === 'tr') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_tr`];
+    }
+
+    return languageSpecificField || field;
+  };
   
   const { collectionItem, seller, status } = item;
   
@@ -58,6 +77,17 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
  
   
   const { banknote, condition, salePrice, publicNote } = collectionItem;
+  
+  // Debug logging to check translation fields
+  console.log('🔍 [MarketplaceItem] Banknote data:', {
+    denomination: banknote.denomination,
+    country: banknote.country,
+    face_value_ar: (banknote as any).face_value_ar,
+    face_value_tr: (banknote as any).face_value_tr,
+    country_ar: (banknote as any).country_ar,
+    country_tr: (banknote as any).country_tr,
+    currentLanguage
+  });
   
   const handleViewDetails = () => {
     if (!user) {
@@ -110,7 +140,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           <div className = "w-full h-full object-cover">
             <img
               src={displayImage}
-              alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
+              alt={`${getLocalizedField(banknote.country, 'country')} ${getLocalizedField(banknote.denomination, 'face_value')} (${banknote.year})`}
               className={cn(
                 "w-full h-full object-cover transition-transform duration-500",
                 isHovering ? "scale-105" : "scale-100"
@@ -133,7 +163,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
 
             <div className="flex items-center gap-1">
               <h3 className="text-lg font-serif font-semibold text-parchment-500">
-                <span> {banknote.denomination} </span>
+                <span> {getLocalizedField(banknote.denomination, 'face_value')} </span>
                 </h3>
                 {banknote.extendedPickNumber && (
                     <span className="text-m font-bold text-black-400">
@@ -143,7 +173,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
                   </div>
 
                   <p className="text-sm text-ottoman-300">
-                    {banknote.country}
+                    {getLocalizedField(banknote.country, 'country')}
                     {banknote.country && banknote.year && ', '}
                     {banknote.year}
                   </p>

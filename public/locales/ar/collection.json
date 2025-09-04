@@ -519,6 +519,13 @@
   "back": "رجوع",
   "deleteCollectionItem": "حذف عنصر المجموعة",
   "deleteCollectionItemConfirmation": "هل أنت متأكد من أنك تريد حذف هذا العنصر من مجموعتك؟ لا يمكن التراجع عن هذا الإجراء.",
+  "sultanName": "اسم السلطان",
+  "dimensionsPlaceholder": "مثال: 156 × 67 ملم",
+  "dimensionsDescription": "أدخل أبعاد الورقة النقدية بالمليمترات",
+  "collectionCopy": "نسخة المجموعة",
+  "informationAboutCollectorsCopy": "معلومات عن نسخة هذا الجامع من الورقة النقدية",
+  "deleteImage": "حذف الصورة",
+  "deleteImageConfirmation": "هل أنت متأكد من أنك تريد حذف هذه الصورة؟ لا يمكن التراجع عن هذا الإجراء.",
   "translation": {
     "detecting": "جاري اكتشاف اللغة",
     "translating": "جاري الترجمة",

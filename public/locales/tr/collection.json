@@ -267,6 +267,13 @@
     "itemAddedToMarketplaceSuccess": "Öğe Pazara Başarıyla Eklendi!",
     "itemAddedToMarketplaceDescription": "Öğeniz artık pazarda satışa sunuluyor."
   },
+  "sultanName": "Sultan Adı",
+  "dimensionsPlaceholder": "örn. 156 x 67 mm",
+  "dimensionsDescription": "Banknot boyutlarını milimetre cinsinden girin",
+  "collectionCopy": "Koleksiyon Kopyası",
+  "informationAboutCollectorsCopy": "Bu koleksiyoncunun banknot kopyası hakkında bilgi",
+  "deleteImage": "Resmi Sil",
+  "deleteImageConfirmation": "Bu resmi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
   "translation": {
     "detecting": "Dil tespit ediliyor",
     "translating": "Çevriliyor",

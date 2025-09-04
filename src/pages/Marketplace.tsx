@@ -289,6 +289,7 @@ const Marketplace = () => {
           style={{ animationDelay: `${index * 100}ms` }}
         >
           <MarketplaceItem item={item} />
+          {console.log('🔍 [Marketplace] Rendering MarketplaceItem for item:', item.id)}
         </div>
       ))}
     </div>

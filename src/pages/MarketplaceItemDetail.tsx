@@ -32,7 +32,7 @@ const MarketplaceItemDetail = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { direction } = useLanguage();
+  const { direction, currentLanguage } = useLanguage();
   const { t } = useTranslation(['marketplace']);
 
   // Memoize the fallback function to prevent infinite re-renders
@@ -120,6 +120,30 @@ const MarketplaceItemDetail = () => {
 
     fetchItem();
   }, [id, toast]);
+
+
+
+
+  // Helper function to get localized field values
+  const getLocalizedField = (field: string, fieldType: 'face_value' | 'country'): string => {
+    if (currentLanguage === 'en' || !field) {
+      return field || '';
+    }
+
+    const banknoteAny = banknote as any;
+    let languageSpecificField: string | undefined;
+    
+    if (currentLanguage === 'ar') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_ar`];
+    } else if (currentLanguage === 'tr') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_tr`];
+    }
+
+    return languageSpecificField || field;
+  };
+
+
+  
 
   console.log('Current item state:', item);
   console.log('Loading state:', loading);
@@ -295,7 +319,7 @@ const MarketplaceItemDetail = () => {
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
                   <h2 className={`text-2xl font-serif font-bold text-parchment-500 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-                    <span> {banknote.denomination} </span>
+                    <span> {getLocalizedField(banknote.denomination, 'face_value')} </span>
                   </h2>
                   {banknote.extendedPickNumber && (
                     <span className="text-xl font-bold text-black-400">
@@ -313,7 +337,7 @@ const MarketplaceItemDetail = () => {
 
                 <div className=" items-center gap-2 ">
                   <p className="text-lg text-ottoman-300">
-                    {banknote.country}
+                    {getLocalizedField(banknote.country, 'country')}
                     {banknote.country && banknote.year ? ', ' : ''}
                     {banknote.year}
                   </p>
