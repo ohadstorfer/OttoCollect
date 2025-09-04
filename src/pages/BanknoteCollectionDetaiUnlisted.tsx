@@ -181,7 +181,7 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
             {isUnlisted && collectionItem.banknote?.description && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('description')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'description')}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'banknote_description')}</span>
               </div>
             )}
           </div>
@@ -246,12 +246,12 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
               <span className="text-base">{getLocalizedField(collectionItem.banknote.gregorianYear, 'gregorian_year')}</span>
             </div>
           )}
-          {collectionItem.banknote?.description && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('banknoteDescription')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'description')}</span>
-            </div>
-          )}
+                      {collectionItem.banknote?.description && (
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('banknoteDescription')}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'banknote_description')}</span>
+              </div>
+            )}
           {collectionItem.banknote?.historicalDescription && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('historicalDescription')}</span>

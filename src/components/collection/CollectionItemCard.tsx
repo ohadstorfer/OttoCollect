@@ -43,27 +43,12 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
 }) => {
   const { t } = useTranslation(['collection', 'catalog']);
   const { direction, currentLanguage } = useLanguage();
-
-  // Debug log to see what data is available
-  console.log("🔍 [CollectionItemCard] Component rendered:", {
-    currentLanguage,
-    banknoteId: item.banknote?.id,
-    banknoteKeys: Object.keys(item.banknote || {}),
-    authorityName: item.banknote?.authorityName,
-    authorityName_ar: (item.banknote as any)?.authorityName_ar,
-    authorityName_tr: (item.banknote as any)?.authorityName_tr,
-    sultanName: item.banknote?.sultanName,
-    sultan_name_ar: (item.banknote as any)?.sultan_name_ar,
-    sultan_name_tr: (item.banknote as any)?.sultan_name_tr,
-    signaturesFront: item.banknote?.signaturesFront,
-    signatures_front_ar: (item.banknote as any)?.signatures_front_ar,
-    signatures_front_tr: (item.banknote as any)?.signatures_front_tr
-  });
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  
 
   // Helper function for translations with fallback
   const tWithFallback = (key: string, fallback: string) => {
@@ -74,13 +59,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   // Helper function to get localized authority name
   const getLocalizedAuthorityName = (): string => {
     const banknoteAny = item.banknote as any;
-    console.log("🔍 [CollectionItemCard] getLocalizedAuthorityName called:", {
-      currentLanguage,
-      authorityName: item.banknote.authorityName,
-      authorityName_ar: banknoteAny.authorityName_ar,
-      authorityName_tr: banknoteAny.authorityName_tr,
-      allFields: Object.keys(banknoteAny).filter(key => key.includes('authority') || key.includes('Authority'))
-    });
+    
     
     if (currentLanguage === 'ar' && banknoteAny.authorityName_ar) {
       return banknoteAny.authorityName_ar;
@@ -92,13 +71,8 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
   };
 
   // Helper function to get localized banknote field (similar to BanknoteDetailCard)
-  const getLocalizedField = (field: string, fieldType: 'sultan_name' | 'signatures_front' | 'signatures_back' | 'seal_names' | 'security_element' | 'face_value'): string => {
-    console.log("🔍 [CollectionItemCard] getLocalizedField called:", {
-      field,
-      fieldType,
-      currentLanguage,
-      banknoteKeys: Object.keys(item.banknote)
-    });
+  const getLocalizedField = (field: string, fieldType: any): string => {
+    
 
     if (currentLanguage === 'en' || !field) {
       return field || '';
@@ -113,21 +87,15 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
       languageSpecificField = banknoteAny[`${fieldType}_tr`];
     }
 
-    console.log("🔍 [CollectionItemCard] Language specific field lookup:", {
-      fieldType,
-      currentLanguage,
-      languageSpecificField,
-      availableFields: Object.keys(banknoteAny).filter(key => key.includes(fieldType))
-    });
+    
 
     if (Array.isArray(languageSpecificField)) {
       const result = languageSpecificField.join(' | ');
-      console.log("🔍 [CollectionItemCard] Array field result:", result);
       return result;
     }
 
+
     const finalTranslatedField = languageSpecificField || field;
-    console.log("🔍 [CollectionItemCard] Final translated field:", finalTranslatedField);
     return finalTranslatedField;
   };
 
@@ -303,7 +271,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             <div className="flex justify-between items-start w-full">
               <div className="min-w-0 flex-1 pr-2 overflow-hidden">
                 <div className="font-small text-sm truncate">
-                  {item?.banknote?.denomination || tWithFallback('unknownDenomination', 'Unknown Denomination')}
+                {getLocalizedField(item.banknote.denomination, 'face_value') || tWithFallback('unknownDenomination', 'Unknown Denomination')}
                 </div>
                 <div className="text-sm text-muted-foreground truncate">
                   {item?.banknote?.year || tWithFallback('unknownYear', 'Unknown Year')}
@@ -374,7 +342,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         <div className="relative">
           <div className="pt-2 pr-1 pl-1 pb-4 border-b sm:pr-3 sm:pl-3">
             <div className="flex justify-between items-start">
-              <h4 className="font-bold"><span>{item.banknote.denomination}</span></h4>
+              <h4 className="font-bold"><span>{ getLocalizedField(item.banknote.denomination, 'face_value')}</span></h4>
               {item?.condition && !item?.grade && (
                 <span title={tWithFallback('condition', 'Condition')} className={`px-2 py-0.5 rounded-full text-xs ${conditionColors[item.condition as BanknoteCondition] || 'bg-gray-100'}`}>
                   {item.condition}

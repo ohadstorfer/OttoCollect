@@ -91,6 +91,8 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
         watermarkUrl: collectionItem.banknote?.watermarkUrl,
         tughraUrl: collectionItem.banknote?.tughraUrl
       });
+      console.log("banknote: ", collectionItem.banknote);
+      
     }
   }, [collectionItem, currentLanguage]);
 
@@ -175,7 +177,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             {isUnlisted && collectionItem.banknote?.description && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
                 <span className="text-sm font-medium text-muted-foreground w-32">{t('details.description')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'description')}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'banknote_description')}</span>
               </div>
             )}
           </div>
@@ -240,12 +242,12 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               <span className="text-base">{getLocalizedField(collectionItem.banknote.gregorianYear, 'gregorian_year')}</span>
             </div>
           )}
-          {collectionItem.banknote?.description && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.banknoteDescription')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'description')}</span>
-            </div>
-          )}
+                      {collectionItem.banknote?.description && (
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
+                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.banknoteDescription')}</span>
+                <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'banknote_description')}</span>
+              </div>
+            )}
           {collectionItem.banknote?.historicalDescription && (
             <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
               <span className="text-sm font-medium text-muted-foreground w-32">{t('details.historicalDescription')}</span>
