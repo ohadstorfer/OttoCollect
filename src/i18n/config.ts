@@ -53,6 +53,9 @@ i18n
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
+      // Don't auto-detect on initialization - let LanguageContext handle it
+      lookupLocalStorage: 'i18nextLng',
+      lookupSessionStorage: 'i18nextLng',
     },
                     ns: ['common', 'navigation', 'auth', 'catalog', 'collection', 'marketplace', 'forum', 'profile', 'pages', 'guide', 'filter', 'blog', 'notification', 'badges', 'settings', 'contactUs', 'messaging', 'shared', 'admin'],
     preload: ['en', 'tr', 'ar'],

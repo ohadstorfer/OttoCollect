@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES } from '@/i18n/config';
 import { useAuth } from './AuthContext';
@@ -20,13 +20,32 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const direction = LANGUAGES[currentLanguage]?.dir || 'ltr';
   const font = LANGUAGES[currentLanguage]?.font || LANGUAGES.en.font;
 
+  // Track if we've already applied user language to avoid loops
+  const [userLanguageApplied, setUserLanguageApplied] = useState(false);
+
   // Initialize language from user profile when user logs in
   useEffect(() => {
-    if (user?.selected_language && user.selected_language !== currentLanguage) {
-      console.log('🌐 [LanguageContext] Setting language from user profile:', user.selected_language);
-      i18n.changeLanguage(user.selected_language);
+    if (user?.selected_language && !userLanguageApplied) {
+      console.log('🌐 [LanguageContext] User logged in with language preference:', user.selected_language);
+      console.log('🌐 [LanguageContext] Current i18n language:', currentLanguage);
+      
+      // Always set the language from user profile when user logs in
+      // This ensures user preference takes priority over localStorage/navigator
+      if (user.selected_language !== currentLanguage) {
+        console.log('🌐 [LanguageContext] Setting language from user profile:', user.selected_language);
+        i18n.changeLanguage(user.selected_language).then(() => {
+          setUserLanguageApplied(true);
+        });
+      } else {
+        console.log('🌐 [LanguageContext] Language already matches user preference');
+        setUserLanguageApplied(true);
+      }
+    } else if (user === null) {
+      // User logged out, reset the flag and let i18next use its default detection
+      console.log('🌐 [LanguageContext] User logged out, using default language detection');
+      setUserLanguageApplied(false);
     }
-  }, [user?.selected_language, currentLanguage, i18n]);
+  }, [user?.selected_language, user, currentLanguage, i18n, userLanguageApplied]);
 
   useEffect(() => {
     // Set direction on html element
@@ -55,6 +74,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         console.error('❌ [LanguageContext] Failed to update user profile:', error);
       }
     }
+    
+    // Reset the flag since user manually changed language
+    setUserLanguageApplied(true);
   };
 
   return (
