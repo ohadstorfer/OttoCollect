@@ -10,8 +10,8 @@ import { translateAndSaveRole } from "@/services/profileService";
 type AuthContextType = {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   getUserRankFromPoints: (points: number, role: UserRole) => UserRank;
   updateUserState: (updates: Partial<User>) => void;
@@ -200,7 +200,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setLoading(true);
     setBlockedNotice(null);
     try {
@@ -211,45 +211,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error("Login error:", error);
+        let errorMessage = "";
+        
         // Handle specific Supabase auth errors
         if (error.message?.includes('Invalid login credentials')) {
-          toast.error("Invalid email or password. Please check your credentials and try again.");
+          errorMessage = "Invalid email or password. Please check your credentials and try again.";
         } else if (error.message?.includes('Email not confirmed')) {
-          toast.error("Please verify your email address before logging in. Check your inbox for the verification link.");
+          errorMessage = "Please verify your email address before logging in. Check your inbox for the verification link.";
         } else if (error.message?.includes('Too many requests')) {
-          toast.error("Too many login attempts. Please wait a few minutes before trying again.");
+          errorMessage = "Too many login attempts. Please wait a few minutes before trying again.";
         } else if (error.message?.includes('User not found')) {
-          toast.error("No account found with this email address. Please check your email or register for a new account.");
+          errorMessage = "No account found with this email address. Please check your email or register for a new account.";
         } else {
-          toast.error(`Login failed: ${error.message}`);
+          errorMessage = `Login failed: ${error.message}`;
         }
-        throw error;
+        
+        toast.error(errorMessage);
+        return { success: false, error: errorMessage };
       } else {
         console.log("Login successful for:", email);
         toast.success("Login successful!");
+        return { success: true };
       }
     } catch (error: any) {
       console.error("Login catch block:", error);
-      // Only show generic error if we haven't already shown a specific one
-      if (!error.message?.includes('Invalid login credentials') && 
-          !error.message?.includes('Email not confirmed') &&
-          !error.message?.includes('Too many requests') &&
-          !error.message?.includes('User not found')) {
-        toast.error("An unexpected error occurred during login. Please try again.");
-      }
+      const errorMessage = "An unexpected error occurred during login. Please try again.";
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (username: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setLoading(true);
     
     // Network connectivity check
     if (!navigator.onLine) {
-      toast.error("No internet connection. Please check your network and try again.");
+      const errorMessage = "No internet connection. Please check your network and try again.";
+      toast.error(errorMessage);
       setLoading(false);
-      return;
+      return { success: false, error: errorMessage };
     }
     
     try {
@@ -266,41 +268,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error("Registration error:", error);
+        let errorMessage = "";
+        
         // Handle specific Supabase auth errors with detailed messages
         if (error.message?.includes('User already registered') || error.message?.includes('already been registered')) {
-          toast.error("An account with this email already exists. Please try logging in instead or use a different email address.");
+          errorMessage = "An account with this email already exists. Please try logging in instead or use a different email address.";
         } else if (error.message?.includes('Password should be at least') || error.message?.includes('password')) {
-          toast.error("Password must be at least 6 characters long and contain a mix of letters and numbers for security.");
+          errorMessage = "Password must be at least 6 characters long and contain a mix of letters and numbers for security.";
         } else if (error.message?.includes('Invalid email') || error.message?.includes('email')) {
-          toast.error("Please enter a valid email address (e.g., example@domain.com).");
+          errorMessage = "Please enter a valid email address (e.g., example@domain.com).";
         } else if (error.message?.includes('Signup is disabled')) {
-          toast.error("Registration is currently disabled. Please contact support at support@ottocollect.com for assistance.");
+          errorMessage = "Registration is currently disabled. Please contact support at support@ottocollect.com for assistance.";
         } else if (error.message?.includes('Email rate limit exceeded') || error.message?.includes('rate limit')) {
-          toast.error("Too many registration attempts from this email. Please wait 5 minutes before trying again.");
+          errorMessage = "Too many registration attempts from this email. Please wait 5 minutes before trying again.";
         } else if (error.message?.includes('fetch')) {
-          toast.error("Network error. Please check your internet connection and try again.");
+          errorMessage = "Network error. Please check your internet connection and try again.";
         } else if (error.message?.includes('timeout')) {
-          toast.error("Request timed out. Please try again in a moment.");
+          errorMessage = "Request timed out. Please try again in a moment.";
         } else if (error.message?.includes('CORS')) {
-          toast.error("Configuration error. Please contact support if this persists.");
+          errorMessage = "Configuration error. Please contact support if this persists.";
         } else {
-          toast.error(`Registration failed: ${error.message}. Please contact support if this continues.`);
+          errorMessage = `Registration failed: ${error.message}. Please contact support if this continues.`;
         }
-        throw error;
+        
+        toast.error(errorMessage);
+        return { success: false, error: errorMessage };
       } else {
         console.log("Registration successful for:", email);
         toast.success("Registration successful! Please check your email for verification.");
+        return { success: true };
       }
     } catch (error: any) {
       console.error("Registration catch block:", error);
-      // Only show generic error if we haven't already shown a specific one
-      if (!error.message?.includes('User already registered') && 
-          !error.message?.includes('Password should be at least') &&
-          !error.message?.includes('Invalid email') &&
-          !error.message?.includes('Signup is disabled') &&
-          !error.message?.includes('Email rate limit exceeded')) {
-        toast.error("An unexpected error occurred during registration. Please try again.");
-      }
+      const errorMessage = "An unexpected error occurred during registration. Please try again.";
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
@@ -311,7 +313,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await supabase.auth.signOut();
       toast.info("Logged out successfully");
     } catch (error) {
-      toast.error("Logout failed");
+      console.error("Logout error:", error);
+      toast.error("Logout failed. Please try refreshing the page.");
     }
   };
 

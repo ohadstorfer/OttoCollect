@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import AuthForm from '../components/auth/AuthForm';
 import { AuthRequiredDialog } from '../components/auth/AuthRequiredDialog';
 import { useAuth } from '@/context/AuthContext';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
 
 const Auth: React.FC = () => {
@@ -13,10 +13,11 @@ const Auth: React.FC = () => {
   const [searchParams] = useSearchParams();
   const mode = searchParams.get('mode') || 'login';
   const showRequiredDialog = searchParams.get('required') === 'true';
+  const navigate = useNavigate();
 
   // If user is already logged in, redirect to home
   if (user && !showRequiredDialog) {
-    window.location.href = '/';
+    navigate(-1);
     return null;
   }
 

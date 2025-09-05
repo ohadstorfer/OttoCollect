@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 
 const AuthForm = () => {
   const { t } = useTranslation(['pages']);
-  const { login, register, blockedNotice } = useAuth();
+  const { login, register, blockedNotice, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
@@ -32,6 +32,7 @@ const AuthForm = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   // Register form state
   const [registerUsername, setRegisterUsername] = useState("");
@@ -40,6 +41,7 @@ const AuthForm = () => {
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
   const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerError, setRegisterError] = useState<string | null>(null);
   const [passwordsMatch, setPasswordsMatch] = useState(true);
   const [emailsMatch, setEmailsMatch] = useState(true);
 
@@ -58,29 +60,53 @@ const AuthForm = () => {
     e.preventDefault();
     setLoginLoading(true);
     setBlockedError(null);
+    setLoginError(null);
+    
     try {
       console.log('Starting login process...');
       
       const isBlocked = await checkBlockedEmail(loginEmail);
       if (isBlocked) {
         console.log('Email is blocked');
+        const errorMsg = t('auth.errors.accountBlocked.description');
+        setLoginError(errorMsg);
         toast({
           variant: "destructive",
           title: t('auth.errors.accountBlocked.title'),
-          description: t('auth.errors.accountBlocked.description'),
+          description: errorMsg,
         });
-        setLoginLoading(false);
         return;
       }
 
       console.log('Attempting to login with Supabase...');
-      await login(loginEmail, loginPassword);
+      const result = await login(loginEmail, loginPassword);
       
-      console.log('Login successful, navigating to home...');
-      navigate("/");
+      if (result.success) {
+        console.log('Login successful, navigating to previous page...');
+        // Clear form and errors on success
+        setLoginEmail("");
+        setLoginPassword("");
+        setLoginError(null);
+        // Small delay to let the success toast show
+        setTimeout(() => {
+          navigate(-1);
+        }, 500);
+      } else {
+        console.log('Login failed:', result.error);
+        // Set local error state for visual feedback
+        setLoginError(result.error || "Login failed");
+        // Clear password field for security
+        setLoginPassword("");
+      }
     } catch (error: any) {
-      console.error("Login error details:", error);
-      // Error handling is now done in AuthContext
+      console.error("Unexpected login error:", error);
+      const errorMsg = "An unexpected error occurred. Please try again.";
+      setLoginError(errorMsg);
+      toast({
+        variant: "destructive",
+        title: "Login Error",
+        description: errorMsg,
+      });
     } finally {
       setLoginLoading(false);
     }
@@ -89,6 +115,7 @@ const AuthForm = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setBlockedError(null);
+    setRegisterError(null);
     
     // Comprehensive frontend validation
     if (!registerUsername.trim()) {
@@ -184,7 +211,9 @@ const AuthForm = () => {
       });
       return;
     }
+    
     setRegisterLoading(true);
+    
     try {
       console.log('Starting registration process...');
       
@@ -196,18 +225,45 @@ const AuthForm = () => {
           title: t('auth.errors.emailBlocked.title'),
           description: t('auth.errors.emailBlocked.description'),
         });
-        setRegisterLoading(false);
         return;
       }
 
       console.log('Attempting to register with Supabase...');
-      await register(registerUsername, registerEmail, registerPassword);
+      const result = await register(registerUsername, registerEmail, registerPassword);
       
-      console.log('Registration successful, navigating to home...');
-      navigate("/");
+      if (result.success) {
+        console.log('Registration successful, navigating to previous page...');
+        // Clear form and errors on success
+        setRegisterUsername("");
+        setRegisterEmail("");
+        setRegisterConfirmEmail("");
+        setRegisterPassword("");
+        setRegisterConfirmPassword("");
+        setEmailsMatch(true);
+        setPasswordsMatch(true);
+        setRegisterError(null);
+        // Small delay to let the success toast show
+        setTimeout(() => {
+          navigate(-1);
+        }, 1000); // Longer delay for registration to let user see success message
+      } else {
+        console.log('Registration failed:', result.error);
+        // Set local error state for visual feedback
+        setRegisterError(result.error || "Registration failed");
+        // Clear password fields for security
+        setRegisterPassword("");
+        setRegisterConfirmPassword("");
+        setPasswordsMatch(true);
+      }
     } catch (error: any) {
-      console.error("Register error details:", error);
-      // Error handling is now done in AuthContext
+      console.error("Unexpected registration error:", error);
+      const errorMsg = "An unexpected error occurred. Please try again.";
+      setRegisterError(errorMsg);
+      toast({
+        variant: "destructive",
+        title: "Registration Error",
+        description: errorMsg,
+      });
     } finally {
       setRegisterLoading(false);
     }
@@ -301,8 +357,10 @@ const AuthForm = () => {
                 <p className="text-ottoman-200 text-sm">
                   {t('auth.login.subtitle')}
                 </p>
-                {blockedError && (
-                  <div className="text-red-600 text-sm mt-2">{blockedError}</div>
+                {(blockedError || loginError) && (
+                  <div className="text-red-600 text-sm mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                    {blockedError || loginError}
+                  </div>
                 )}
               </div>
 
@@ -318,7 +376,12 @@ const AuthForm = () => {
                     required
                     className="ottoman-input"
                     value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
+                    onChange={(e) => {
+                      setLoginEmail(e.target.value);
+                      // Clear errors when user starts typing
+                      if (loginError) setLoginError(null);
+                      if (blockedError) setBlockedError(null);
+                    }}
                   />
                 </div>
 
@@ -346,7 +409,12 @@ const AuthForm = () => {
                       required
                       className="ottoman-input pr-10"
                       value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
+                      onChange={(e) => {
+                        setLoginPassword(e.target.value);
+                        // Clear errors when user starts typing
+                        if (loginError) setLoginError(null);
+                        if (blockedError) setBlockedError(null);
+                      }}
                     />
                     <button
                       type="button"
@@ -365,9 +433,9 @@ const AuthForm = () => {
                 <Button
                   type="submit"
                   className="ottoman-button w-full"
-                  disabled={loginLoading}
+                  disabled={authLoading || loginLoading}
                 >
-                  {loginLoading ? (
+                  {(authLoading || loginLoading) ? (
                     <span className="animate-pulse">{t('auth.login.loggingIn')}</span>
                   ) : (
                     <>
@@ -419,8 +487,10 @@ const AuthForm = () => {
                 <p className="text-ottoman-200 text-sm">
                   {t('auth.register.subtitle')}
                 </p>
-                {blockedError && (
-                  <div className="text-red-600 text-sm mt-2">{blockedError}</div>
+                {(blockedError || registerError) && (
+                  <div className="text-red-600 text-sm mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                    {blockedError || registerError}
+                  </div>
                 )}
               </div>
 
@@ -438,7 +508,12 @@ const AuthForm = () => {
                     required
                     className="ottoman-input"
                     value={registerUsername}
-                    onChange={(e) => setRegisterUsername(e.target.value)}
+                    onChange={(e) => {
+                      setRegisterUsername(e.target.value);
+                      // Clear errors when user starts typing
+                      if (registerError) setRegisterError(null);
+                      if (blockedError) setBlockedError(null);
+                    }}
                   />
                 </div>
 
@@ -463,6 +538,9 @@ const AuthForm = () => {
                     onChange={(e) => {
                       setRegisterEmail(e.target.value);
                       setEmailsMatch(e.target.value === registerConfirmEmail);
+                      // Clear errors when user starts typing
+                      if (registerError) setRegisterError(null);
+                      if (blockedError) setBlockedError(null);
                     }}
                   />
                 </div>
@@ -488,6 +566,9 @@ const AuthForm = () => {
                     onChange={(e) => {
                       setRegisterConfirmEmail(e.target.value);
                       setEmailsMatch(registerEmail === e.target.value);
+                      // Clear errors when user starts typing
+                      if (registerError) setRegisterError(null);
+                      if (blockedError) setBlockedError(null);
                     }}
                   />
                   {!emailsMatch && registerConfirmEmail && (
@@ -517,6 +598,9 @@ const AuthForm = () => {
                         setPasswordsMatch(
                           e.target.value === registerConfirmPassword
                         );
+                        // Clear errors when user starts typing
+                        if (registerError) setRegisterError(null);
+                        if (blockedError) setBlockedError(null);
                       }}
                     />
                     <button
@@ -554,6 +638,9 @@ const AuthForm = () => {
                     onChange={(e) => {
                       setRegisterConfirmPassword(e.target.value);
                       setPasswordsMatch(registerPassword === e.target.value);
+                      // Clear errors when user starts typing
+                      if (registerError) setRegisterError(null);
+                      if (blockedError) setBlockedError(null);
                     }}
                   />
                   {!passwordsMatch && registerConfirmPassword && (
@@ -596,9 +683,9 @@ const AuthForm = () => {
                 <Button
                   type="submit"
                   className="ottoman-button w-full"
-                  disabled={registerLoading || !passwordsMatch || !emailsMatch}
+                  disabled={authLoading || registerLoading || !passwordsMatch || !emailsMatch}
                 >
-                  {registerLoading ? (
+                  {(authLoading || registerLoading) ? (
                     <span className="animate-pulse">{t('auth.register.creatingAccount')}</span>
                   ) : (
                     <>
@@ -646,7 +733,7 @@ const AuthForm = () => {
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('auth.passwordReset.title')}</DialogTitle>
+            <DialogTitle><span>{t('auth.passwordReset.title')}</span></DialogTitle>
           </DialogHeader>
           <form onSubmit={handlePasswordReset} className="space-y-4 mt-2">
             <div className="space-y-1">
