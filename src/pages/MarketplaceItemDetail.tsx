@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getMarketplaceItemById } from "@/services/marketplaceService";
+import { getMarketplaceItemById, removeFromMarketplace } from "@/services/marketplaceService";
 import { MarketplaceItem, UserRank } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -29,6 +29,7 @@ const MarketplaceItemDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageOrientations, setImageOrientations] = useState<Record<number, 'vertical' | 'horizontal'>>({});
+  const [isRemoving, setIsRemoving] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -132,7 +133,7 @@ const MarketplaceItemDetail = () => {
 
     const banknoteAny = banknote as any;
     let languageSpecificField: string | undefined;
-    
+
     if (currentLanguage === 'ar') {
       languageSpecificField = banknoteAny?.[`${fieldType}_ar`];
     } else if (currentLanguage === 'tr') {
@@ -143,7 +144,7 @@ const MarketplaceItemDetail = () => {
   };
 
 
-  
+
 
   console.log('Current item state:', item);
   console.log('Loading state:', loading);
@@ -204,6 +205,34 @@ const MarketplaceItemDetail = () => {
       return;
     }
     navigate(`/messaging/${seller.id}`);
+  };
+
+  const handleRemoveFromMarketplace = async () => {
+    if (!item || !user) return;
+
+    setIsRemoving(true);
+    try {
+      const success = await removeFromMarketplace(item.collectionItem.id, item.id);
+      if (success) {
+        toast({
+          title: tWithFallback('actions.removedFromMarketplace', 'Removed from Marketplace'),
+          description: tWithFallback('actions.itemRemovedFromMarketplaceDescription', 'Your item has been removed from the marketplace and is no longer for sale.'),
+        });
+        // Navigate back to collection or marketplace
+        navigate('/marketplace');
+      } else {
+        throw new Error('Failed to remove item from marketplace');
+      }
+    } catch (error) {
+      console.error('Error removing item from marketplace:', error);
+      toast({
+        title: tWithFallback('status.error', 'Error'),
+        description: tWithFallback('actions.failedToRemoveFromMarketplace', 'Failed to remove item from marketplace. Please try again.'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRemoving(false);
+    }
   };
 
   return (
@@ -378,9 +407,13 @@ const MarketplaceItemDetail = () => {
             {/* Seller information */}
             <Card>
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  {/* Seller info */}
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8 text-ottoman-400 cursor-pointer" onClick={() => navigate(`/profile/${seller.id}`)} >
+                    <Avatar
+                      className="h-8 w-8 text-ottoman-400 cursor-pointer"
+                      onClick={() => navigate(`/profile/${seller.id}`)}
+                    >
                       <AvatarImage src={seller.avatarUrl} />
                       <AvatarFallback>
                         {seller.username.charAt(0)}
@@ -392,17 +425,43 @@ const MarketplaceItemDetail = () => {
                         to={`/profile/${seller.id}`}
                         className="text-ottoman-500 hover:text-ottoman-600"
                       >
-                        {seller.username} <Badge variant="user" rank={sellerRank as UserRank} role={seller.role} />
+                        {seller.username}{" "}
+                        <Badge variant="user" rank={sellerRank as UserRank} role={seller.role} />
                       </Link>
                     </div>
-
                   </div>
 
+                  {/* Buttons */}
                   {user && user.id !== seller.id && (
                     <div>
                       <Button variant="outline" size="sm" onClick={handleMessageClick}>
                         <MessageSquare className="h-4 w-4 mr-2" />
-                        {tWithFallback('actions.message', 'Message')}
+                        {tWithFallback("actions.message", "Message")}
+                      </Button>
+                    </div>
+                  )}
+
+                  {user && user.id === seller.id && (
+                    <div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRemoveFromMarketplace}
+                        disabled={isRemoving}
+                      >
+                        {isRemoving ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                            {tWithFallback("actions.removing", "Removing...")}
+                          </>
+                        ) : (
+                          <>
+                            {tWithFallback(
+                              "actions.removeFromMarketplace",
+                              "Remove from Marketplace"
+                            )}
+                          </>
+                        )}
                       </Button>
                     </div>
                   )}

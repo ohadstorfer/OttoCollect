@@ -262,11 +262,11 @@ export async function removeFromMarketplace(
   marketplaceItemId?: string
 ): Promise<boolean> {
   try {
-    // If marketplaceItemId is provided, use it directly
+    // If marketplaceItemId is provided, use it directly to delete the row
     if (marketplaceItemId) {
       const { error } = await supabase
         .from('marketplace_items')
-        .update({ status: 'Removed' })
+        .delete()
         .eq('id', marketplaceItemId);
         
       if (error) {
@@ -274,7 +274,7 @@ export async function removeFromMarketplace(
         throw error;
       }
     } else {
-      // Otherwise, look up the marketplace item by collection_item_id
+      // Otherwise, look up the marketplace item by collection_item_id and delete it
       const { data: marketplaceItem, error: findError } = await supabase
         .from('marketplace_items')
         .select('id')
@@ -289,7 +289,7 @@ export async function removeFromMarketplace(
       if (marketplaceItem) {
         const { error } = await supabase
           .from('marketplace_items')
-          .update({ status: 'Removed' })
+          .delete()
           .eq('id', marketplaceItem.id);
           
         if (error) {
@@ -299,16 +299,21 @@ export async function removeFromMarketplace(
       }
     }
     
-    // Update the collection item to mark as not for sale
+    // Update the collection item to mark as not for sale and reset sale_price to 0.00
     const { error: updateError } = await supabase
       .from('collection_items')
-      .update({ is_for_sale: false })
+      .update({ 
+        is_for_sale: false,
+        sale_price: 0.00
+      })
       .eq('id', collectionItemId);
       
     if (updateError) {
       console.error("Error updating collection item from marketplace:", updateError);
+      throw updateError;
     }
     
+    console.log(`Successfully removed item ${collectionItemId} from marketplace and reset collection item fields`);
     return true;
   } catch (error) {
     console.error("Error in removeFromMarketplace:", error);
@@ -511,5 +516,153 @@ export async function synchronizeMarketplaceWithCollection() {
   } catch (error) {
     console.error("Error in synchronizeMarketplaceWithCollection:", error);
     return false;
+  }
+}
+
+export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<MarketplaceItem[]> {
+  try {
+    console.log(`Fetching ${limit} newest marketplace items from Supabase`);
+    
+    // Fetch marketplace items with status 'Available', ordered by created_at DESC (newest first)
+    const { data: marketplaceItems, error } = await supabase
+      .from('marketplace_items')
+      .select(`
+        *,
+        collection_items!inner (
+          *,
+          public_note_ar,
+          public_note_tr,
+          public_note_en,
+          public_note_original_language,
+          location_ar,
+          location_tr,
+          location_en,
+          type_ar,
+          type_en,
+          type_tr,
+          enhanced_banknotes_with_translations:banknote_id (*),
+          unlisted_banknotes:unlisted_banknotes_id (*)
+        )
+      `)
+      .eq('status', 'Available')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+      
+    if (error) {
+      console.error("Error fetching newest marketplace items:", error);
+      throw error;
+    }
+    
+    console.log(`Found ${marketplaceItems?.length || 0} newest marketplace items`);
+    
+    if (!marketplaceItems || marketplaceItems.length === 0) {
+      console.log("No newest marketplace items found");
+      return [];
+    }
+    
+    // Process the marketplace items using the same logic as fetchMarketplaceItems
+    const enrichedItems = await Promise.all(
+      marketplaceItems.map(async (item) => {
+        try {
+          console.log(`Processing newest marketplace item ${item.id}`);
+          
+          const collectionItem = item.collection_items;
+          if (!collectionItem) {
+            console.log(`Collection item not found: ${item.collection_item_id}`);
+            return null;
+          }
+          
+          // Verify that the collection item is actually for sale
+          if (!collectionItem.is_for_sale) {
+            console.log(`Collection item ${item.collection_item_id} is no longer marked for sale, skipping`);
+            return null;
+          }
+
+          // Get banknote data based on whether it's an unlisted banknote or not
+          let banknote;
+          if (collectionItem.is_unlisted_banknote && collectionItem.unlisted_banknotes) {
+            console.log(`Processing unlisted banknote for newest item ${item.id}`);
+            banknote = normalizeBanknoteData(collectionItem.unlisted_banknotes, "unlisted");
+          } else if (!collectionItem.is_unlisted_banknote && collectionItem.enhanced_banknotes_with_translations) {
+            console.log(`Processing detailed banknote for newest item ${item.id}`);
+            banknote = normalizeBanknoteData(mapBanknoteFromDatabase(collectionItem.enhanced_banknotes_with_translations), "detailed");
+          }
+
+          if (!banknote) {
+            console.log(`No banknote data found for collection item ${item.collection_item_id}`);
+            return null;
+          }
+          
+          // Get basic seller info
+          console.log(`Fetching seller info for user ${item.seller_id}`);
+          const { data: sellerData, error: sellerError } = await supabase
+            .from('profiles')
+            .select('id, username, rank, role, avatar_url')
+            .eq('id', item.seller_id)
+            .single();
+          
+          if (sellerError) {
+            console.log(`Error fetching seller data: ${sellerError.message}`);
+          }
+          
+          // Fallback seller data if we can't find the profile
+          const sellerInfo = sellerData || {
+            id: item.seller_id,
+            username: "Unknown User",
+            rank: "Newbie" as UserRank,
+            avatar_url: null
+          };
+          
+          // Convert seller data to User type
+          const seller = adaptSellerToUserType(sellerInfo);
+          
+          console.log(`Successfully processed newest marketplace item ${item.id}`);
+          
+          return {
+            id: item.id,
+            collectionItemId: item.collection_item_id,
+            collectionItem: {
+              id: collectionItem.id,
+              userId: collectionItem.user_id,
+              banknoteId: collectionItem.banknote_id,
+              banknote,
+              condition: collectionItem.condition as BanknoteCondition,
+              grade_by: collectionItem.grade_by,
+              grade: collectionItem.grade,
+              grade_condition_description: collectionItem.grade_condition_description,
+              salePrice: collectionItem.sale_price,
+              isForSale: collectionItem.is_for_sale,
+              publicNote: collectionItem.public_note,
+              public_note_original_language: collectionItem.public_note_original_language,
+              privateNote: collectionItem.private_note,
+              purchasePrice: collectionItem.purchase_price,
+              purchaseDate: collectionItem.purchase_date,
+              location: collectionItem.location,
+              obverseImage: collectionItem.obverse_image,
+              reverseImage: collectionItem.reverse_image,
+              orderIndex: collectionItem.order_index,
+              createdAt: collectionItem.created_at,
+              updatedAt: collectionItem.updated_at,
+              is_unlisted_banknote: collectionItem.is_unlisted_banknote
+            },
+            sellerId: item.seller_id,
+            seller,
+            status: item.status,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at
+          } as MarketplaceItem;
+        } catch (error) {
+          console.error(`Error processing newest marketplace item ${item.id}:`, error);
+          return null;
+        }
+      })
+    );
+    
+    const validItems = enrichedItems.filter(item => item !== null) as MarketplaceItem[];
+    console.log(`Processed ${validItems.length} valid newest marketplace items`);
+    return validItems;
+  } catch (error) {
+    console.error("Error in fetchNewestMarketplaceItems:", error);
+    return [];
   }
 }

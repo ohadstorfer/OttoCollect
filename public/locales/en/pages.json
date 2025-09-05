@@ -585,5 +585,21 @@
         "content": "These Terms constitute the entire agreement between you and OttoCollect regarding the use of the service. If any provision of these Terms is held to be invalid or unenforceable, the remaining provisions will continue to be valid and enforceable."
       }
     }
+  },
+  "members": {
+    "allUsers": "All Users",
+    "connectWithCollectors": "Connect with fellow collectors from around the world and discover their collections",
+    "search": "Search",
+    "searchByUsernameOrCountry": "Search by username or country",
+    "sortBy": "Sort by",
+    "newestMembers": "Newest Members",
+    "oldestMembers": "Oldest Members", 
+    "aZ": "A-Z",
+    "zA": "Z-A",
+    "byPoints": "By Points",
+    "memberSince": "Member since ",
+    "viewProfile": "View Profile",
+    "noMembersFound": "No members found",
+    "tryAdjustingSearchCriteria": "Try adjusting your search criteria"
   }
 } 

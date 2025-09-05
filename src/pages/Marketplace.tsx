@@ -224,7 +224,7 @@ const Marketplace = () => {
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>{tWithFallback('status.error', 'Error loading marketplace items')}</AlertTitle>
+        <AlertTitle><span>{tWithFallback('status.error', 'Error loading marketplace items')}</span></AlertTitle>
         <AlertDescription>
           {error}
           <Button

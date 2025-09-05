@@ -40,7 +40,12 @@
     "removeFromWishlist": "إزالة من قائمة الأماني",
     "back": "رجوع",
     "backToMarketplace": "العودة إلى السوق",
-    "message": "رسالة"
+    "message": "رسالة",
+    "removeFromMarketplace": "إزالة من السوق",
+    "removing": "جاري الإزالة...",
+    "removedFromMarketplace": "تم الإزالة من السوق",
+    "itemRemovedFromMarketplaceDescription": "تم إزالة العنصر الخاص بك من السوق ولم يعد معروضاً للبيع.",
+    "failedToRemoveFromMarketplace": "فشل في إزالة العنصر من السوق. يرجى المحاولة مرة أخرى."
   },
 
   "item": {

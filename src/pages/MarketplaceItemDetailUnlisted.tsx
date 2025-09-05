@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getMarketplaceItemById } from "@/services/marketplaceService";
+import { getMarketplaceItemById, removeFromMarketplace } from "@/services/marketplaceService";
 import { MarketplaceItem, UserRank } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -27,6 +27,7 @@ const MarketplaceItemDetailUnlisted = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -80,6 +81,34 @@ const MarketplaceItemDetailUnlisted = () => {
 
     fetchItem();
   }, [id, toast]);
+
+  const handleRemoveFromMarketplace = async () => {
+    if (!item || !user) return;
+    
+    setIsRemoving(true);
+    try {
+      const success = await removeFromMarketplace(item.collectionItem.id, item.id);
+      if (success) {
+        toast({
+          title: tWithFallback('actions.removedFromMarketplace', 'Removed from Marketplace'),
+          description: tWithFallback('actions.itemRemovedFromMarketplaceDescription', 'Your item has been removed from the marketplace and is no longer for sale.'),
+        });
+        // Navigate back to collection or marketplace
+        navigate('/marketplace');
+      } else {
+        throw new Error('Failed to remove item from marketplace');
+      }
+    } catch (error) {
+      console.error('Error removing item from marketplace:', error);
+      toast({
+        title: tWithFallback('status.error', 'Error'),
+        description: tWithFallback('actions.failedToRemoveFromMarketplace', 'Failed to remove item from marketplace. Please try again.'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRemoving(false);
+    }
+  };
 
   console.log('Current item state:', item);
   console.log('Loading state:', loading);
@@ -199,6 +228,29 @@ const MarketplaceItemDetailUnlisted = () => {
                       itemId={collectionItem.id}
                       itemName={`${banknote.denomination} (${banknote.year})`}
                     />
+                  </div>
+                )}
+                
+                {user && user.id === seller.id && (
+                  <div>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={handleRemoveFromMarketplace}
+                      disabled={isRemoving}
+                    >
+                      {isRemoving ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                          {tWithFallback('actions.removing', 'Removing...')}
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="h-4 w-4 mr-2" />
+                          {tWithFallback('actions.removeFromMarketplace', 'Remove from Marketplace')}
+                        </>
+                      )}
+                    </Button>
                   </div>
                 )}
               </div>

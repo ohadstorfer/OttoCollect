@@ -586,5 +586,21 @@
         "content": "Bu Şartlar, hizmetin kullanımı konusunda sizin ve OttoCollect arasındaki tam anlaşmayı oluşturur. Bu Şartların herhangi bir hükmü geçersiz veya uygulanamaz olarak kabul edilirse, kalan hükümler geçerli ve uygulanabilir olmaya devam edecektir."
       }
     }
+  },
+  "members": {
+    "allUsers": "Tüm Kullanıcılar",
+    "connectWithCollectors": "Dünya çapındaki koleksiyoncularla bağlantı kurun ve koleksiyonlarını keşfedin",
+    "search": "Ara",
+    "searchByUsernameOrCountry": "Kullanıcı adı veya ülke ile ara",
+    "sortBy": "Sırala",
+    "newestMembers": "En Yeni Üyeler",
+    "oldestMembers": "En Eski Üyeler",
+    "aZ": "A-Z",
+    "zA": "Z-A",
+    "byPoints": "Puanlara Göre",
+    "memberSince": "Üyelik tarihi ",
+    "viewProfile": "Profili Görüntüle",
+    "noMembersFound": "Üye bulunamadı",
+    "tryAdjustingSearchCriteria": "Arama kriterlerinizi ayarlamayı deneyin"
   }
 } 

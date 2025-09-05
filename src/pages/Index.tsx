@@ -8,7 +8,7 @@ import { Search, Database, BookOpen, Users, DollarSign, ArrowLeft, ArrowRight } 
 import LatestForumPosts from "@/components/home/LatestForumPosts";
 import MarketplaceHighlights from "@/components/home/MarketplaceHighlights";
 import { fetchForumPosts } from "@/services/forumService";
-import { fetchMarketplaceItems } from "@/services/marketplaceService";
+import { fetchNewestMarketplaceItems } from "@/services/marketplaceService";
 import { ForumPost } from '@/types/forum';
 import { MarketplaceItem } from '@/types';
 import { useTheme } from "@/context/ThemeContext";
@@ -156,10 +156,11 @@ const Index = () => {
     const loadMarketplaceItems = async () => {
       setLoadingMarketplace(true);
       try {
-        const items = await fetchMarketplaceItems();
-        setMarketplaceItems(items.slice(0, 4));
+        // Fetch the 6 newest marketplace items for highlights
+        const items = await fetchNewestMarketplaceItems(6);
+        setMarketplaceItems(items);
       } catch (error) {
-        console.error("Failed to fetch marketplace items:", error);
+        console.error("Failed to fetch newest marketplace items:", error);
       } finally {
         setLoadingMarketplace(false);
       }

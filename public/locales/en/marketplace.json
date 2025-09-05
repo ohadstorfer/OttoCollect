@@ -40,7 +40,12 @@
     "removeFromWishlist": "Remove from Wishlist",
     "back": "Back",
     "backToMarketplace": "Back to Marketplace",
-    "message": "Message"
+    "message": "Message",
+    "removeFromMarketplace": "Remove from Marketplace",
+    "removing": "Removing...",
+    "removedFromMarketplace": "Removed from Marketplace",
+    "itemRemovedFromMarketplaceDescription": "Your item has been removed from the marketplace and is no longer for sale.",
+    "failedToRemoveFromMarketplace": "Failed to remove item from marketplace. Please try again."
   },
 
   "item": {

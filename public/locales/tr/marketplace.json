@@ -39,7 +39,13 @@
     "addToWishlist": "İstek Listesine Ekle",
     "removeFromWishlist": "İstek Listesinden Kaldır",
     "back": "Geri",
-    "backToMarketplace": "Pazara Geri Dön"
+    "backToMarketplace": "Pazara Geri Dön",
+    "message": "Mesaj",
+    "removeFromMarketplace": "Pazardan Kaldır",
+    "removing": "Kaldırılıyor...",
+    "removedFromMarketplace": "Pazardan Kaldırıldı",
+    "itemRemovedFromMarketplaceDescription": "Öğeniz pazardan kaldırıldı ve artık satışta değil.",
+    "failedToRemoveFromMarketplace": "Öğe pazardan kaldırılamadı. Lütfen tekrar deneyin."
   },
 
   "item": {

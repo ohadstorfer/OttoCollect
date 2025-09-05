@@ -92,22 +92,22 @@ export default function Members() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title"> <span>{t('allUsers')}</span></h1>
+      <h1 className="page-title"> <span>{t('members.allUsers')}</span></h1>
       
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <p className="text-muted-foreground mb-6">
-            {t('connectWithCollectors')}
+            {t('members.connectWithCollectors')}
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-card border rounded-lg p-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{t('search')}</span>
+                <span className="font-medium">{t('members.search')}</span>
               </div>
               <Input
-                placeholder={t('searchByUsernameOrCountry')}
+                placeholder={t('members.searchByUsernameOrCountry')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
@@ -117,21 +117,21 @@ export default function Members() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{t('sortBy')}</span>
+                <span className="font-medium">{t('members.sortBy')}</span>
               </div>
               <Select
                 value={sortBy}
                 onValueChange={setSortBy}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t('sortBy')} />
+                  <SelectValue placeholder={t('members.sortBy')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">{t('newestMembers')}</SelectItem>
-                  <SelectItem value="oldest">{t('oldestMembers')}</SelectItem>
-                  <SelectItem value="a-z">{t('aZ')}</SelectItem>
-                  <SelectItem value="z-a">{t('zA')}</SelectItem>
-                  <SelectItem value="rank">{t('byPoints')}</SelectItem>
+                  <SelectItem value="newest">{t('members.newestMembers')}</SelectItem>
+                  <SelectItem value="oldest">{t('members.oldestMembers')}</SelectItem>
+                  <SelectItem value="a-z">{t('members.aZ')}</SelectItem>
+                  <SelectItem value="z-a">{t('members.zA')}</SelectItem>
+                  <SelectItem value="rank">{t('members.byPoints')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -144,8 +144,8 @@ export default function Members() {
           </div>
         ) : filteredMembers.length === 0 ? (
           <div className="text-center py-8">
-            <h3 className="text-xl font-medium mb-4"><span>{t('noMembersFound')}</span></h3>
-            <p className="text-muted-foreground">{t('tryAdjustingSearchCriteria')}</p>
+            <h3 className="text-xl font-medium mb-4"><span>{t('members.noMembersFound')}</span></h3>
+            <p className="text-muted-foreground">{t('members.tryAdjustingSearchCriteria')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -181,9 +181,9 @@ export default function Members() {
                   
                   <div className="border-t p-3 bg-muted/20 flex justify-between">
                     <span className="text-sm text-muted-foreground">
-                      {t('memberSince')}{new Date(member.createdAt).toLocaleDateString()}
+                      {t('members.memberSince')}{new Date(member.createdAt).toLocaleDateString()}
                     </span>
-                    <Button variant="ghost" size="sm" className="h-auto py-0 px-2">{t('viewProfile')}</Button>
+                    <Button variant="ghost" size="sm" className="h-auto py-0 px-2">{t('members.viewProfile')}</Button>
                   </div>
                 </CardContent>
               </Card>
