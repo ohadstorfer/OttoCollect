@@ -41,14 +41,11 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
   filters, // Destructure filters prop
   hasAnyItems, // Destructure hasAnyItems prop
 }) => {
-  // Debug logging for props
-  console.log('CollectionItemsDisplay: Received props:', { viewMode, groupMode, activeTab, groupsCount: groups.length, hasAnyItems });
   
   // Function to update collection items after changes
   const handleUpdate = async () => {
     // In a real implementation, we would call a function from props
     // that refreshes the collection data
-    console.log("Collection update requested");
     return Promise.resolve();
   };
 

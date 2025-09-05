@@ -34,9 +34,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
   initialFilters = {},
   sultanOrderMap,
 }: UseBanknoteFilterProps<T>): UseBanknoteFilterResult<T> => {
-  console.log("### useBanknoteFilter INITIALIZED ###");
-  console.log(`Input items count: ${items?.length || 0}`);
-  console.log("Initial filters:", initialFilters);
+
 
   const [filters, setFilters] = useState<DynamicFilterState>({
     search: initialFilters.search || "",
@@ -45,12 +43,7 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     sort: initialFilters.sort !== undefined ? initialFilters.sort : ["extPick"],
   });
 
-  console.log("Initial state after setup:", {
-    search: filters.search,
-    selectedCategories: filters.categories,
-    selectedTypes: filters.types,
-    selectedSort: filters.sort,
-  });
+
 
   // Extract banknote from item safely
   const getBanknote = useCallback((item: T | undefined | null): Banknote | undefined => {
@@ -85,17 +78,11 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
 
   // Filter items based on criteria
   const filteredItems = useMemo(() => {
-    console.log("### FILTERING ITEMS ###");
     
     // Ensure items array exists
     const validItems = items || [];
     
-    console.log("Current filters:", {
-      search: filters.search,
-      categories: filters.categories,
-      types: filters.types,
-      sort: filters.sort
-    });
+
     
     // When no filters are selected, show all items
     const noCategories = !filters.categories || filters.categories.length === 0;
@@ -106,7 +93,6 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     
     // If no filtering criteria at all, use all items but still apply sorting
     if (noCategories && noTypes && noCountries && !filters.search) {
-      console.log("No filtering criteria, using all items but will apply sorting");
       filtered = validItems;
     } else {
       // Apply filtering criteria
@@ -176,15 +162,12 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
 
       const result = matchesSearch && matchesCategory && matchesType && matchesCountry;
       
-      if (banknote.catalogId) {
-        console.log(`Item ${banknote.catalogId} - Search: ${matchesSearch}, Category: ${matchesCategory}, Type: ${matchesType}, NormalizedType: ${normalizedItemType}`);
-      }
+     
       
       return result;
       });
     }
     
-    console.log(`Filtering complete: ${filtered.length} items matched out of ${validItems.length}`);
     
     // Sort the filtered items
     const sorted = [...filtered].sort((a, b) => {
@@ -278,15 +261,12 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       return 0;
     });
     
-    console.log(`Sorting complete: ${sorted.length} items`);
     return sorted;
   }, [items, filters, getBanknote, normalizeType]);
 
   // Group items by category and optionally by sultan within category
   const groupedItems = useMemo(() => {
-    console.log("### GROUPING ITEMS ###");
     const sortBySultan = filters.sort?.includes("sultan") || false;
-    console.log(`Grouping by sultan: ${sortBySultan}`);
     
     const groups: GroupItem<T>[] = [];
     
@@ -309,7 +289,6 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       categoryMap.get(category)?.push(item);
     });
     
-    console.log(`Found ${categoryMap.size} categories in filtered items`);
     
     // Add all categories in database order (no sorting to respect display_order)
     // This ensures consistent category ordering across all users regardless of their filter preferences
@@ -318,7 +297,6 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       .forEach(([category, categoryItems]) => {
         if (!categoryItems || categoryItems.length === 0) return;
           
-        console.log(`Processing category: ${category} with ${categoryItems.length} items`);
         
         const group: GroupItem<T> = { 
           category, 
@@ -343,33 +321,24 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
           const sultanGroups = Array.from(sultanMap.entries())
             .map(([sultan, items]) => ({ sultan, items }))
             .sort((a, b) => {
-              console.log(`\n🔄 [useBanknoteFilter Debug] Comparing sultans in category "${category}":`);
-              console.log(`  Sultan A: "${a.sultan}" (${a.items.length} items)`);
-              console.log(`  Sultan B: "${b.sultan}" (${b.items.length} items)`);
+              
               
               // Use database-driven order if available, fallback to alphabetical
               if (sultanOrderMap) {
                 const orderA = sultanOrderMap.get(a.sultan) ?? Number.MAX_SAFE_INTEGER;
                 const orderB = sultanOrderMap.get(b.sultan) ?? Number.MAX_SAFE_INTEGER;
                 
-                console.log(`  📋 Database Order:`);
-                console.log(`    "${a.sultan}" -> Order: ${orderA} (exists in DB: ${sultanOrderMap.has(a.sultan)})`);
-                console.log(`    "${b.sultan}" -> Order: ${orderB} (exists in DB: ${sultanOrderMap.has(b.sultan)})`);
-                console.log(`    Comparison result: ${orderA - orderB}`);
+           
                 
                 return orderA - orderB;
               }
               
               // Fallback to alphabetical sorting
               const alphaResult = a.sultan.localeCompare(b.sultan);
-              console.log(`  📋 Alphabetical fallback: ${alphaResult}`);
               return alphaResult;
             });
           
-          console.log(`Category ${category} has ${sultanGroups.length} sultans`);
-          sultanGroups.forEach(sg => {
-            console.log(`  - Sultan ${sg.sultan}: ${sg.items.length} items`);
-          });
+          
           
           group.sultanGroups = sultanGroups;
         }
@@ -377,14 +346,12 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
         groups.push(group);
       });
     
-    console.log(`Grouping complete: ${groups.length} groups created`);
-    console.log(`Categories displayed in database order (display_order) for consistent user experience`);
+    
     return groups;
   }, [filteredItems, filters.sort, getBanknote]);
 
   // Calculate available categories and their counts
   const availableCategories = useMemo(() => {
-    console.log("### CALCULATING AVAILABLE CATEGORIES ###");
     const categories = new Map<string, { name: string; count: number }>();
     
     // Ensure items array exists
@@ -413,17 +380,13 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
     const result = Array.from(categories.entries())
       .map(([id, { name, count }]) => ({ id, name, count }));
     
-    console.log(`Found ${result.length} available categories`);
-    result.forEach(cat => {
-      console.log(`  - ${cat.name}: ${cat.count} items`);
-    });
+    
     
     return result;
   }, [items, getBanknote]);
 
   // Calculate available types and their counts
   const availableTypes = useMemo(() => {
-    console.log("### CALCULATING AVAILABLE TYPES ###");
     const types = new Map<string, { name: string; count: number }>();
     
     // Define the default types
@@ -482,19 +445,14 @@ export const useBanknoteFilter = <T extends { banknote?: Banknote } | Banknote>(
       .filter(type => type.count > 0 || defaultTypes.some(dt => 
         normalizeType(dt) === type.id));
     
-    console.log(`Found ${result.length} available types`);
-    result.forEach(type => {
-      console.log(`  - ${type.name}: ${type.count} items`);
-    });
+ 
     
     return result;
   }, [items, getBanknote, normalizeType]);
 
   // Handle filter changes - memoize to prevent unnecessary re-renders
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    console.log("### FILTER CHANGED ###");
-    console.log("Old filters:", filters);
-    console.log("New filters:", newFilters);
+
     
     // Detect if there's a real change to avoid unnecessary state updates
     let hasChanged = false;

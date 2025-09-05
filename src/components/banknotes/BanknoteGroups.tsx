@@ -41,11 +41,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
 }) => {
   const { currentLanguage } = useLanguage();
 
-  // Debug: Log groups data received
-  console.log("🔍 [BanknoteGroups] Received groups data:", groups);
-  if (groups && groups.length > 0 && groups[0].sultanGroups) {
-    console.log("🔍 [BanknoteGroups] First group sultan groups:", groups[0].sultanGroups);
-  }
+
 
   // Function to get the appropriate category name based on current language
   const getTranslatedCategoryName = (group: { category: string; category_ar?: string; category_tr?: string }) => {
@@ -65,13 +61,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   const getTranslatedSultanName = (sultanGroup: { sultan: string; sultan_ar?: string; sultan_tr?: string }) => {
     if (!sultanGroup) return '';
     
-    // Debug: Log sultan group data
-    console.log(`🔍 [BanknoteGroups] getTranslatedSultanName called for "${sultanGroup.sultan}":`, {
-      sultan: sultanGroup.sultan,
-      sultan_ar: sultanGroup.sultan_ar,
-      sultan_tr: sultanGroup.sultan_tr,
-      currentLanguage
-    });
+
     
     switch (currentLanguage) {
       case 'ar':
@@ -91,13 +81,11 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
 
   // Add effect to force re-render when groupMode changes
   useEffect(() => {
-    console.log("[BanknoteGroups] groupMode changed to:", groupMode);
     setForceUpdate(prev => prev + 1);
   }, [groupMode]);
 
   useEffect(() => {
     const handleGroupModeChange = (event: CustomEvent) => {
-      console.log("[BanknoteGroups] Received groupModeChange event:", event.detail.mode);
       setForceUpdate(prev => prev + 1);
     };
 
@@ -123,7 +111,6 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
       
       // Safety check for groups
       if (!groups || groups.length === 0) {
-        console.log("No groups available to restore dialog");
         return;
       }
       
@@ -224,11 +211,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                         (() => {
                           const mixedItems = getMixedBanknoteItems(sultanGroup.items);
 
-                          mixedItems.forEach((item, idx) => {
-                            if (item.type === "single") {
-                              console.log("[BanknoteGroups] Passing single banknote to BanknoteDetailCard: id:", item.banknote.id, "userCollection length:", userCollection?.length);
-                            }
-                          });
+                         
 
                           return mixedItems.map((item, index) => {
                             if (item.type === 'single') {
@@ -295,11 +278,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
                 {groupMode ? (
                   (() => {
                     const mixedItems = getMixedBanknoteItems(group.items);
-                    mixedItems.forEach((item, idx) => {
-                      if (item.type === "single") {
-                        console.log("[BanknoteGroups] Passing non-sultan single banknote to BanknoteDetailCard: id:", item.banknote.id, "userCollection length:", userCollection?.length);
-                      }
-                    });
+                    
                     return mixedItems.map((item, index) => {
                       if (item.type === 'single') {
                         return (

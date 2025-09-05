@@ -56,12 +56,10 @@ export const useCountryData = ({
       try {
         // Make sure we're using the decoded country name
         const decodedCountryName = decodeURIComponent(countryName);
-        console.log("CountryDetail: Loading country data for", decodedCountryName);
 
         const countryData = await fetchCountryByName(decodedCountryName);
 
         if (!countryData) {
-          console.error("CountryDetail: Country not found:", decodedCountryName);
           toast({
             title: "Error",
             description: `Country "${decodedCountryName}" not found.`,
@@ -71,12 +69,10 @@ export const useCountryData = ({
           return;
         }
 
-        console.log("CountryDetail: Country data loaded", countryData);
         setCountryId(countryData.id);
         setCountryData(countryData);
 
         const categories = await fetchCategoriesByCountryId(countryData.id);
-        console.log("CountryDetail: Raw categories from database:", categories);
         
         const orderMap = categories.map((cat: CategoryDefinition) => ({
           name: cat.name,
@@ -84,17 +80,11 @@ export const useCountryData = ({
           name_tr: cat.name_tr,
           order: cat.display_order
         }));
-        console.log("CountryDetail: Mapped category order:", orderMap);
         setCategoryOrder(orderMap);
 
         // Fetch sultans with translation fields
         const sultans = await fetchSultanOrdersByCountryId(countryData.id);
-        console.log("CountryDetail: Raw sultans from database:", sultans);
-        console.log("CountryDetail: First sultan translation fields:", sultans[0] ? {
-          name: sultans[0].name,
-          name_ar: sultans[0].name_ar,
-          name_tr: sultans[0].name_tr
-        } : 'No sultans');
+        
         setSultans(sultans);
 
         const { data: currencyRows, error: currencyError } = await supabase
@@ -108,7 +98,6 @@ export const useCountryData = ({
           setCurrencies([]);
         } else if (currencyRows) {
           setCurrencies(currencyRows as Currency[]);
-          console.log("Loaded currencies:", currencyRows);
         }
 
         // Try to load group mode from user preferences - but only if we haven't loaded it already
@@ -116,7 +105,6 @@ export const useCountryData = ({
           try {
             const preferences = await fetchUserFilterPreferences(user.id, countryData.id);
             if (preferences && typeof preferences.group_mode === 'boolean') {
-              console.log("CountryDetail: Loaded group mode from preferences:", preferences.group_mode);
               setGroupMode(preferences.group_mode);
               hasLoadedPreferences.current = true;
             }
@@ -129,7 +117,6 @@ export const useCountryData = ({
             const savedMode = sessionStorage.getItem(`groupMode-${countryData.id}`);
             if (savedMode !== null) {
               const parsedMode = JSON.parse(savedMode);
-              console.log("CountryDetail: Loaded group mode from session storage:", parsedMode);
               setGroupMode(parsedMode);
               hasLoadedPreferences.current = true;
             }
@@ -154,19 +141,14 @@ export const useCountryData = ({
     loadCountryData();
   }, [countryName, navigate, toast, user]); // Removed onGroupModeChange from dependencies
 
-  // Debug: Track when groupMode actually changes
-  useEffect(() => {
-    console.log("useCountryData: groupMode state changed to:", groupMode);
-  }, [groupMode]);
+  
 
   const handleGroupModeChange = useCallback((mode: boolean) => {
-    console.log("useCountryData: handleGroupModeChange called with mode:", mode, "current groupMode:", groupMode);
     
     // Update state immediately with flushSync
     flushSync(() => {
       setGroupMode(mode);
     });
-    console.log("useCountryData: setGroupMode called with flushSync:", mode);
     
     // Store in session storage as a fallback for non-logged in users
     if (!user) {

@@ -174,7 +174,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       // Small delay to ensure all content is rendered
       const timer = setTimeout(() => {
         setIsFullyLoaded(true);
-        console.log('[CountryDetailCollection] Component fully loaded');
       }, 100);
       
       return () => clearTimeout(timer);
@@ -230,14 +229,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           (item.banknote.type && item.banknote.type.toLowerCase().includes(searchLower));
         
         if (!matches) {
-          console.log("[CollectionItems] Item filtered out by search:", {
-            id: item.id,
-            denomination: item.banknote.denomination,
-            sultanName: item.banknote.sultanName,
-            extendedPickNumber: item.banknote.extendedPickNumber,
-            category: item.banknote.category,
-            type: item.banknote.type
-          });
+          
           return false;
         }
       }
@@ -252,12 +244,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           const categoryMatch = filters.categories.includes(itemCategoryId);
           
           if (!categoryMatch) {
-            console.log("[CollectionItems] Category mismatch:", {
-              itemId: item.id,
-              itemCategory: item.banknote.category,
-              itemCategoryId,
-              selectedCategories: filters.categories
-            });
+            
             return false;
           }
         }
@@ -309,11 +296,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     return filteredCollectionItems.filter(item => item.isForSale !== true);
   }, [filteredCollectionItems]);
 
-  console.log("[CollectionItems] After separating sale items:", {
-    total: filteredCollectionItems.length,
-    forSale: filteredCollectionItemsForSale.length,
-    regular: filteredCollectionItemsRegular.length
-  });
 
   // Map collection items to a format compatible with the sorting hook
   const collectionItemsForSorting = filteredCollectionItemsRegular.map(item => ({
@@ -357,11 +339,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     };
   }).filter(Boolean) as any[]; // Filter out any null values
 
-  console.log("[CollectionItems] After sorting transformation:", {
-    sortedItems: sortedCollectionItems.length,
-    transformedItems: sortedCollectionItemsWithData.length,
-    originalRegular: filteredCollectionItemsRegular.length
-  });
+  
 
   const groupedItems = useBanknoteGroups(
     sortedCollectionItems, 
@@ -372,10 +350,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     sultanOrderMap
   );
 
-  console.log("[CollectionItems] After grouping:", {
-    groupedItems: groupedItems.length,
-    totalItemsInGroups: groupedItems.reduce((sum, group) => sum + group.items.length, 0)
-  });
+  
 
   // Convert grouped banknotes to grouped collection items
   const groupedCollectionItems = groupedItems.map(group => {
@@ -411,11 +386,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     };
   });
 
-  console.log("[CollectionItems] Final grouped collection items:", {
-    totalGroups: groupedCollectionItems.length,
-    totalItems: groupedCollectionItems.reduce((sum, group) => sum + group.items.length, 0),
-    itemsPerGroup: groupedCollectionItems.map(group => ({ category: group.category, count: group.items.length }))
-  });
+ 
 
   // Sort and group sale items
   const saleItemsForSorting = filteredCollectionItemsForSale.map(item => ({
@@ -506,30 +477,16 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   }, []);
 
   const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
-    console.log('CountryDetailCollection: handleViewModeChange called with mode:', mode);
     setViewMode(mode);
-    console.log('CountryDetailCollection: viewMode state updated to:', mode);
   }, []);
 
   const isLoading = countryLoading || collectionDataLoading;
 
   const handlePreferencesLoaded = useCallback(() => {
-    console.log('[CountryDetailCollection] Preferences loaded, setting preferencesLoaded to true');
     setPreferencesLoaded(true);
   }, []);
 
-  // Debug logging for loading states
-  console.log('[CountryDetailCollection] Loading states:', {
-    countryLoading,
-    collectionDataLoading,
-    preferencesLoaded,
-    isLoading,
-    filters: {
-      categories: filters.categories.length,
-      types: filters.types.length,
-      sort: filters.sort.length
-    }
-  });
+  
 
   // Determine the return path - if we're in profile view, it should return to profile
   const returnPath = userId ? `/profile/${user?.username}` : '/collection';

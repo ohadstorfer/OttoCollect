@@ -24,7 +24,11 @@
     "faceValue": "القيمة الاسمية",
     "newestFirst": "الأحدث أولاً",
     "always": "دائماً",
-    "country": "البلد"
+    "country": "البلد",
+    "priceHighToLow": "السعر: من الأعلى إلى الأقل",
+    "priceLowToHigh": "السعر: من الأقل إلى الأعلى",
+    "newest": "الأحدث المدرج",
+    "oldest": "الأقدم المدرج"
   },
   
   "filters": {

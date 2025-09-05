@@ -27,7 +27,6 @@ interface MarketplaceItemProps {
 }
 
 const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
-  console.log('🔍 [MarketplaceItem] Component rendering with item:', item);
   
   const [isHovering, setIsHovering] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -78,16 +77,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   
   const { banknote, condition, salePrice, publicNote } = collectionItem;
   
-  // Debug logging to check translation fields
-  console.log('🔍 [MarketplaceItem] Banknote data:', {
-    denomination: banknote.denomination,
-    country: banknote.country,
-    face_value_ar: (banknote as any).face_value_ar,
-    face_value_tr: (banknote as any).face_value_tr,
-    country_ar: (banknote as any).country_ar,
-    country_tr: (banknote as any).country_tr,
-    currentLanguage
-  });
+ 
   
   const handleViewDetails = () => {
     if (!user) {

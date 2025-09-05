@@ -19,7 +19,6 @@ import { FilterOption } from "@/components/filter/BaseBanknoteFilter";
 import SEOHead from "@/components/seo/SEOHead";
 import { SEO_CONFIG } from "@/config/seoConfig";
 import { useTranslation } from "react-i18next";
-import i18n from "@/i18n/config";
 
 const SULTAN_DISPLAY_ORDER: Record<string, number> = {
   AbdulMecid: 1,
@@ -31,7 +30,6 @@ const SULTAN_DISPLAY_ORDER: Record<string, number> = {
 };
 
 const Marketplace = () => {
-  console.log("### Marketplace RENDERING ###");
 
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -51,57 +49,25 @@ const Marketplace = () => {
   const tWithFallback = useMemo(() => {
     return (key: string, fallback: string) => {
       const translation = t(key);
-      console.log(`Translation for ${key}:`, translation);
       return translation === key ? fallback : translation;
     };
   }, [t]);
 
-  // Force reload marketplace translations when component mounts
-  useEffect(() => {
-    const reloadTranslations = async () => {
-      try {
-        // Explicitly load the marketplace namespace
-        await i18nInstance.loadNamespaces(['marketplace']);
-        await i18n.reloadResources(['marketplace']);
-        console.log('Marketplace translations reloaded');
-        
-        // Debug: Check if translations are loaded
-        console.log('Translation debug:', {
-          currentLanguage: i18n.language,
-          hasMarketplaceNamespace: i18n.hasResourceBundle(i18n.language, 'marketplace'),
-          marketplaceTitle: t('title'),
-          marketplaceSubtitle: t('subtitle'),
-          namespaces: i18n.reportNamespaces.getUsedNamespaces(),
-          loadedNamespaces: i18n.reportNamespaces.getUsedNamespaces(),
-          store: i18n.store
-        });
-      } catch (error) {
-        console.error('Failed to reload marketplace translations:', error);
-      }
-    };
-    
-    reloadTranslations();
-  }, [t, i18nInstance]);
+  // Remove unnecessary translation reloading - handled by i18next automatically
 
   const loadMarketplaceItems = useCallback(async (showToast = false) => {
-    console.log('Starting loadMarketplaceItems function');
     setLoading(true);
     setError(null);
     try {
-      console.log("Starting to fetch marketplace items");
 
       if (user?.role === 'Admin') {
-        console.log('User is admin, synchronizing marketplace with collection');
         await synchronizeMarketplaceWithCollection();
       }
 
-      console.log('Calling fetchMarketplaceItems');
       const items = await fetchMarketplaceItems();
-      console.log("Fetched marketplace items:", items.length);
-      console.log("Sample marketplace item:", items.length > 0 ? items[0] : "No items");
+
 
       if (items.length === 0) {
-        console.log("No marketplace items found");
         if (showToast) {
           toast({
             title: tWithFallback('status.noItems', 'No Items Found'),
@@ -143,7 +109,6 @@ const Marketplace = () => {
       setAvailableTypes(Array.from(typeMap.values()));
       setAvailableCountries(Array.from(countryMap.values()));
 
-      console.log('Setting marketplace items in state');
       setMarketplaceItems(items);
 
     } catch (err) {
@@ -155,14 +120,13 @@ const Marketplace = () => {
         variant: "destructive"
       });
     } finally {
-      console.log('Finishing loadMarketplaceItems, setting loading to false');
       setLoading(false);
       setIsRefreshing(false);
     }
   }, [toast, user?.role, t]);
 
   useEffect(() => {
-    console.log('Initial useEffect for loadMarketplaceItems running');
+   
     loadMarketplaceItems();
   }, [loadMarketplaceItems]);
 
@@ -188,24 +152,14 @@ const Marketplace = () => {
     }
   });
 
-  // Log the current state to debug items filtering
-  useEffect(() => {
-    console.log("Current marketplace state:", {
-      itemsCount: marketplaceItems.length,
-      filteredItemsCount: filteredItems.length,
-      currentFilters: filters,
-      groupedItemsCount: groupedItems.length
-    });
-  }, [marketplaceItems, filteredItems, filters, groupedItems]);
+  
 
   const handleRefresh = () => {
-    console.log('Manual refresh triggered');
     setIsRefreshing(true);
     loadMarketplaceItems(true);
   };
 
   const handleFilterChange = useCallback((newFilters: any) => {
-    console.log("Filter changed in Marketplace:", newFilters);
     setFilters(newFilters);
   }, [setFilters]);
 
@@ -289,7 +243,6 @@ const Marketplace = () => {
           style={{ animationDelay: `${index * 100}ms` }}
         >
           <MarketplaceItem item={item} />
-          {console.log('🔍 [Marketplace] Rendering MarketplaceItem for item:', item.id)}
         </div>
       ))}
     </div>

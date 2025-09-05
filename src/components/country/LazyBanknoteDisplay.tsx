@@ -77,17 +77,13 @@ const LazyBanknoteDisplay: React.FC<LazyBanknoteDisplayProps> = ({
           
           // If we don't have enough content height and there are more groups to load
           if (documentHeight < requiredHeight && hasMore && visibleItems.length < groups.length) {
-            if (countryId === 'cecd8325-a13c-430f-994c-12e82663b7fb') {
-              console.log(`[LazyBanknoteDisplay] Need more content for scroll restoration. Current height: ${documentHeight}, Required: ${requiredHeight}, Loading more...`);
-            }
+            
             
             // Load more content to reach the target scroll position
             const groupsToLoad = Math.ceil((requiredHeight - documentHeight) / 200); // Estimate 200px per group
             const loadCount = Math.min(groupsToLoad, groups.length - visibleItems.length);
             
-            if (countryId === 'cecd8325-a13c-430f-994c-12e82663b7fb') {
-              console.log(`[LazyBanknoteDisplay] Loading ${loadCount} more groups for scroll restoration`);
-            }
+            
             
             // Load more groups multiple times if needed - ultra-fast loading
             const loadMoreGroups = (remaining: number) => {
@@ -117,9 +113,7 @@ const LazyBanknoteDisplay: React.FC<LazyBanknoteDisplayProps> = ({
         // Check if we have enough content height (at least 2x window height)
         if (documentHeight >= windowHeight * 2) {
           contentFullyLoaded.current = true;
-          if (countryId === 'cecd8325-a13c-430f-994c-12e82663b7fb') {
-            console.log(`[LazyBanknoteDisplay] Content fully loaded for Jordan, height: ${documentHeight}, groups: ${groups.length}`);
-          }
+          
         } else {
           // If not enough height, check again in ultra-fast intervals
           setTimeout(checkContentHeight, 50); // Ultra-fast 50ms intervals
@@ -144,7 +138,6 @@ const LazyBanknoteDisplay: React.FC<LazyBanknoteDisplayProps> = ({
           const isRecent = Date.now() - parsedData.timestamp < 5 * 60 * 1000;
           
           if (isRecent) {
-            console.log(`[LazyBanknoteDisplay] Preserving pagination for ${countryId} due to recent scroll position`);
             paginationResetAttempted.current = true;
             return;
           }
@@ -153,8 +146,7 @@ const LazyBanknoteDisplay: React.FC<LazyBanknoteDisplayProps> = ({
         }
       }
       
-      // Reset pagination only if no recent scroll position or if it's stale
-      console.log(`[LazyBanknoteDisplay] Resetting pagination for ${countryId}`);
+      
       resetPagination();
       paginationResetAttempted.current = true;
     }
@@ -168,23 +160,7 @@ const LazyBanknoteDisplay: React.FC<LazyBanknoteDisplayProps> = ({
     scrollRestorationInProgress.current = false;
   }, [countryId]);
 
-  // Debug function for Jordan specifically
-  const debugScrollRestoration = () => {
-    if (countryId === 'cecd8325-a13c-430f-994c-12e82663b7fb') {
-      
-      
-      const savedScrollData = sessionStorage.getItem(`scroll-${countryId}`);
-      if (savedScrollData) {
-        try {
-          const parsedData = JSON.parse(savedScrollData);
-        } catch (error) {
-          console.error(`- Error parsing saved scroll data:`, error);
-        }
-      } else {
-        console.log(`- No saved scroll data found`);
-      }
-    }
-  };
+  
 
   // Use infinite scroll
   useInfiniteScroll(loadMore, hasMore, isLoadingMore || isLoading);

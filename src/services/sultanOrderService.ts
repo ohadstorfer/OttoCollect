@@ -23,11 +23,7 @@ export const fetchSultanOrdersByCountryId = async (countryId: string): Promise<S
     throw error;
   }
 
-  // Debug: Log the actual fields returned
-  if (data && data.length > 0) {
-    console.log('🔍 [SultanOrderService Debug] First sultan object keys:', Object.keys(data[0]));
-    console.log('🔍 [SultanOrderService Debug] First sultan object:', data[0]);
-  }
+
 
   return data || [];
 };
@@ -91,17 +87,14 @@ export const deleteSultanOrder = async (id: string): Promise<void> => {
 };
 
 export const getSultanOrderMap = async (countryId: string): Promise<Map<string, number>> => {
-  console.log(`\n🗄️ [SultanOrderService Debug] Fetching sultan order for country ID: ${countryId}`);
   
   const sultans = await fetchSultanOrdersByCountryId(countryId);
-  console.log(`📋 [SultanOrderService Debug] Raw sultan data from database:`, sultans);
   
   const orderMap = new Map<string, number>();
   
   sultans.forEach(sultan => {
     // Store with original case for exact matches
     orderMap.set(sultan.name, sultan.display_order);
-    console.log(`  📝 [SultanOrderService Debug] Added to map: "${sultan.name}" -> ${sultan.display_order}`);
     
     // Also store with common case variations for flexible matching
     const variations = [
@@ -113,13 +106,11 @@ export const getSultanOrderMap = async (countryId: string): Promise<Map<string, 
     variations.forEach(variation => {
       if (variation !== sultan.name && !orderMap.has(variation)) {
         orderMap.set(variation, sultan.display_order);
-        console.log(`  📝 [SultanOrderService Debug] Added variation: "${variation}" -> ${sultan.display_order}`);
       }
     });
   });
   
-  console.log(`✅ [SultanOrderService Debug] Final sultan order map with variations:`, 
-    Array.from(orderMap.entries()).map(([name, order]) => `"${name}": ${order}`));
+  
   
   return orderMap;
 };
@@ -134,7 +125,6 @@ export const getSultanOrder = (sultanName: string, sultanOrderMap: Map<string, n
   // Try case-insensitive match
   for (const [dbName, order] of sultanOrderMap.entries()) {
     if (dbName.toLowerCase() === sultanName.toLowerCase()) {
-      console.log(`🔄 [SultanOrderService Debug] Case-insensitive match: "${sultanName}" -> "${dbName}" (order: ${order})`);
       return order;
     }
   }

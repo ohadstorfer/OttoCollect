@@ -4,8 +4,6 @@ import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useEffect } from "react";
-import i18n from "@/i18n/config";
 
 export const Footer = () => {
   const { theme } = useTheme();
@@ -18,20 +16,7 @@ export const Footer = () => {
   // Check if current language is Arabic for RTL alignment
   const isArabic = i18nInstance.language === 'ar';
   
-  // Force reload translations when language changes
-  useEffect(() => {
-    const reloadTranslations = async () => {
-      try {
-        await i18n.reloadResources();
-        console.log('Footer translations reloaded');
-      } catch (error) {
-        console.error('Failed to reload footer translations:', error);
-      }
-    };
-    
-    // Reload translations when language changes
-    reloadTranslations();
-  }, [i18n.language]);
+  // Remove unnecessary translation reloading - i18next handles this automatically
   
   return (
     <footer className={`${theme === 'light' ? 'bg-ottoman-950' : 'bg-dark-950'} animate-fade-in ${isMarginTopRequired ? 'mt-20' : ''}`}>

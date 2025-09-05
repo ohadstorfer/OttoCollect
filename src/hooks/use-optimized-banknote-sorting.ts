@@ -199,11 +199,7 @@ export const useOptimizedBanknoteSorting = ({
           
           
           case 'faceValue': {
-            console.log('🎯 Optimized Sorting: Processing faceValue sort', { 
-              a: a.denomination, 
-              b: b.denomination,
-              currencies: currencies.length 
-            });
+            
             
             const getCurrencyInfo = (note: DetailedBanknote) => {
               const denomination = note.denomination?.toLowerCase() || '';
@@ -218,12 +214,7 @@ export const useOptimizedBanknoteSorting = ({
             const aValue = parseNumericValue(a.denomination || '');
             const bValue = parseNumericValue(b.denomination || '');
 
-            console.log('🎯 Optimized Sorting: Currency info', { 
-              currencyA: currencyA?.name, 
-              currencyB: currencyB?.name,
-              aValue, 
-              bValue 
-            });
+
 
             if (currencyA && currencyB) {
               comparison = currencyA.display_order - currencyB.display_order;
@@ -238,7 +229,6 @@ export const useOptimizedBanknoteSorting = ({
               comparison = aValue - bValue;
             }
             
-            console.log('🎯 Optimized Sorting: Final comparison', { comparison });
             break;
           }
           

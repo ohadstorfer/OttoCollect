@@ -62,13 +62,7 @@ export const useOptimizedBanknoteGroups = ({
   return useMemo(() => {
     const showSultanGroups = sortFields.includes('sultan');
     
-    // Debug: Log sultans data received
-    console.log("🔍 [useOptimizedBanknoteGroups] Received sultans data:", sultans);
-    console.log("🔍 [useOptimizedBanknoteGroups] First sultan translation fields:", sultans[0] ? {
-      name: sultans[0].name,
-      name_ar: sultans[0].name_ar,
-      name_tr: sultans[0].name_tr
-    } : 'No sultans');
+   
     
     if (!banknotes.length) {
       return [];
@@ -122,13 +116,7 @@ export const useOptimizedBanknoteGroups = ({
               )
             };
             
-            // Debug: Log sultan group creation
-            console.log(`🔍 [useOptimizedBanknoteGroups] Created sultan group for "${sultanGroup.sultan}":`, {
-              sultan: result.sultan,
-              sultan_ar: result.sultan_ar,
-              sultan_tr: result.sultan_tr,
-              foundData: !!sultanData
-            });
+
             
             return result;
           })

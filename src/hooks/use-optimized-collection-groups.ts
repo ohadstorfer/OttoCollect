@@ -33,7 +33,6 @@ export const useOptimizedCollectionGroups = ({
       return [];
     }
 
-    console.log(`[OptimizedCollectionGroups] Grouping ${collectionItems.length} items with groupMode: ${groupMode}`);
     const startTime = performance.now();
 
     // Create category map for O(1) lookups
@@ -107,7 +106,6 @@ export const useOptimizedCollectionGroups = ({
     });
 
     const endTime = performance.now();
-    console.log(`[OptimizedCollectionGroups] Grouped into ${grouped.length} categories in ${(endTime - startTime).toFixed(2)}ms`);
     
     return grouped;
   }, [collectionItems, sortFields, categoryOrder, sultans, groupMode]);

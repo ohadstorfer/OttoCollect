@@ -52,12 +52,7 @@ export interface BanknoteFilterCollectionProps {
 const areEqual = (prevProps: BanknoteFilterCollectionProps, nextProps: BanknoteFilterCollectionProps) => {
   // Always re-render if viewMode or groupMode change
   if (prevProps.viewMode !== nextProps.viewMode || prevProps.groupMode !== nextProps.groupMode) {
-    console.log('BanknoteFilterCollection: Re-rendering due to viewMode or groupMode change', {
-      prevViewMode: prevProps.viewMode,
-      nextViewMode: nextProps.viewMode,
-      prevGroupMode: prevProps.groupMode,
-      nextGroupMode: nextProps.groupMode
-    });
+    
     return false;
   }
   
@@ -123,16 +118,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   const isFetchingFilter = useRef(false);
   const lastCountryId = useRef("");
 
-  console.log("BanknoteFilterCollection: Rendering with", { 
-    countryId, 
-    currentFilters,
-    isLoading, 
-    loading,
-    categories: categories.length,
-    types: types.length,
-    sortOptions: sortOptions.length,
-    groupMode
-  });
+
 
   useEffect(() => {
     // Skip if no countryId or if we're already fetching
@@ -140,12 +126,10 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     
     // Skip if we already loaded options for this country
     if (lastCountryId.current === countryId && initialLoadComplete.current) {
-      console.log("BanknoteFilterCollection: Already loaded options for this country, skipping");
       return;
     }
     
     const loadFilterOptionsAndPreferences = async () => {
-      console.log("BanknoteFilterCollection: Loading filter options for country:", countryId);
       setLoading(true);
       isFetchingFilter.current = true;
       
@@ -222,7 +206,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         if (authUser) {
           try {
             userPreferences = await fetchUserFilterPreferences(authUser.id, countryId);
-            console.log("BanknoteFilterCollection: User preferences loaded", userPreferences);
             
             // Set group mode if it's defined in preferences, but only during initial load
             // and only notify the parent if the value is different from current groupMode
@@ -245,7 +228,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
                 onViewModeChange && 
                 !initialLoadComplete.current) {
               
-              console.log("BanknoteFilterCollection: Loading view mode from preferences:", userPreferences.view_mode);
               
               // Set a flag to ignore the next view mode change to prevent infinite loops
               ignoreNextViewModeChange.current = true;
@@ -260,10 +242,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
           // For non-logged-in users, try to load from session storage
           try {
             const savedViewMode = sessionStorage.getItem(`viewMode-${countryId}`);
-            console.log("BanknoteFilterCollection: Checking session storage for view mode:", savedViewMode);
             if (savedViewMode && onViewModeChange && !initialLoadComplete.current) {
               const parsedViewMode = JSON.parse(savedViewMode) as 'grid' | 'list';
-              console.log("BanknoteFilterCollection: Loaded view mode from session storage:", parsedViewMode);
               
               ignoreNextViewModeChange.current = true;
               setViewMode(parsedViewMode);
@@ -374,7 +354,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
 
     // Save user preferences automatically with each change
     if (authUser?.id) {
-      console.log("BanknoteFilterCollection: Auto-saving filter preferences");
       const sortOptionIds = newFilters.sort
         ? newFilters.sort
             .map(fieldName => {
@@ -410,7 +389,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     // If we're set to ignore the next change and still in initial load, skip this call
     if (ignoreNextViewModeChange.current && !initialLoadComplete.current) {
       ignoreNextViewModeChange.current = false;
-      console.log("BanknoteFilterCollection: Ignoring view mode change during initial load to prevent loop");
       return;
     }
     
@@ -419,7 +397,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       ignoreNextViewModeChange.current = false;
     }
     
-    console.log("BanknoteFilterCollection: handleViewModeChange called with mode:", mode, "current viewMode:", viewMode);
     
     setViewMode(mode);
     if (onViewModeChange) {
@@ -428,7 +405,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     
     // Save view mode preference
     if (authUser && countryId) {
-      console.log("BanknoteFilterCollection: Saving view mode preference:", mode);
       
       // Get current sort option IDs
       const sortOptionIds = currentFilters.sort
@@ -461,7 +437,6 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
     // If we're set to ignore the next change and still in initial load, skip this call
     if (ignoreNextGroupModeChange.current && !initialLoadComplete.current) {
       ignoreNextGroupModeChange.current = false;
-      console.log("BanknoteFilterCollection: Ignoring group mode change during initial load to prevent loop");
       return;
     }
     
@@ -470,11 +445,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
       ignoreNextGroupModeChange.current = false;
     }
     
-    console.log("BanknoteFilterCollection: handleGroupModeChange called with mode:", mode, "current groupMode:", groupMode);
     
     // Save group mode preference if user is logged in
     if (authUser?.id) {
-      console.log("BanknoteFilterCollection: Saving group mode preference:", mode);
       
       // Get current sort option IDs
       const sortOptionIds = currentFilters.sort

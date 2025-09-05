@@ -57,11 +57,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
 }) => {
   const { currentLanguage } = useLanguage();
 
-  // Debug: Log groups data received
-  console.log("🔍 [CollectionItemsGroups] Received groups data:", groups);
-  if (groups && groups.length > 0 && groups[0].sultanGroups) {
-    console.log("🔍 [CollectionItemsGroups] First group sultan groups:", groups[0].sultanGroups);
-  }
+
 
   // Function to get the appropriate category name based on current language
   const getTranslatedCategoryName = (group: { category: string; category_ar?: string; category_tr?: string }) => {
@@ -81,13 +77,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
   const getTranslatedSultanName = (sultanGroup: { sultan: string; sultan_ar?: string; sultan_tr?: string }) => {
     if (!sultanGroup) return '';
     
-    // Debug: Log sultan group data
-    console.log(`🔍 [CollectionItemsGroups] getTranslatedSultanName called for "${sultanGroup.sultan}":`, {
-      sultan: sultanGroup.sultan,
-      sultan_ar: sultanGroup.sultan_ar,
-      sultan_tr: sultanGroup.sultan_tr,
-      currentLanguage
-    });
+    
     
     switch (currentLanguage) {
       case 'ar':
@@ -136,7 +126,6 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
       
       // Safety check for groups
       if (!groups || groups.length === 0) {
-        console.log("No groups available to restore dialog");
         return;
       }
       
@@ -210,7 +199,6 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
 
   // Wishlist group handlers
   const handleWishlistGroupClick = (group: { baseNumber: string; items: any[]; count: number }) => {
-    console.log("[WishlistGroup] Group clicked:", group);
     setSelectedWishlistGroup(group);
     setWishlistDialogOpen(true);
   };

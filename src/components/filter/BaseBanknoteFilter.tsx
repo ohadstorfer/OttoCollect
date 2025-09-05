@@ -101,14 +101,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   // Function to get the appropriate category name based on current language
   const getTranslatedCategoryName = (category: FilterOption) => {
     if (!category) return '';
-    
-    console.log('🌐 [BaseBanknoteFilter] Translating category:', {
-      category,
-      currentLanguage,
-      name_ar: category.name_ar,
-      name_tr: category.name_tr,
-      name: category.name
-    });
+
     
     switch (currentLanguage) {
       case 'ar':
@@ -175,17 +168,14 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   // Sync local state with props
   useEffect(() => {
     setLocalViewMode(viewMode);
-    console.log("BaseBanknoteFilter: viewMode prop changed to:", viewMode);
   }, [viewMode]);
 
   useEffect(() => {
     setLocalGroupMode(groupMode);
-    console.log("BaseBanknoteFilter: groupMode prop changed to:", groupMode);
   }, [groupMode]);
 
   useEffect(() => {
     if (isLocalChange.current) {
-      console.log("BaseBanknoteFilter: Skipping sync due to local changes being applied");
       return;
     }
     
@@ -206,11 +196,9 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     }) : null;
     
     if (prevFiltersStr === currentFilterStr) {
-      console.log("BaseBanknoteFilter: Skipping sync, no changes detected");
       return;
     }
 
-    console.log("BaseBanknoteFilter: Syncing local state with currentFilters", currentFilters);
     prevFiltersRef.current = { ...currentFilters };
     
     setSearch(currentFilters.search || "");
@@ -221,7 +209,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   }, [currentFilters]);
 
   const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
-    console.log("BaseBanknoteFilter: Local filter change:", changes);
     
     isLocalChange.current = true;
     
@@ -245,7 +232,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
     // Automatically save preferences after each change
     if (onSaveFilters) {
-      console.log("BaseBanknoteFilter: Auto-saving filter preferences");
       onSaveFilters();
     }
     
@@ -256,14 +242,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
-      console.log("BaseBanknoteFilter: Debounced search with value:", value);
       handleFilterChange({ search: value });
     }, 100), // Reduced debounce time
     [handleFilterChange] // Changed dependency to handleFilterChange
   );
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
-    console.log("BaseBanknoteFilter: Category change:", { categoryId, checked });
     
     let newCategories: string[];
     
@@ -271,7 +255,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       // If "All Categories" is clicked and not all are currently selected, select all
       // If all are already selected, do nothing (don't clear all)
       if (allCategoriesSelected) {
-        console.log("BaseBanknoteFilter: All categories already selected, doing nothing");
         return;
       } else {
         newCategories = categories.map(c => c.id);
@@ -283,19 +266,16 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       } else {
         // Removing a category - prevent removing the last one
         if (selectedCategories.length <= 1) {
-          console.log("BaseBanknoteFilter: Cannot remove last category, doing nothing");
           return;
         }
         newCategories = selectedCategories.filter(id => id !== categoryId);
       }
     }
     
-    console.log("BaseBanknoteFilter: New categories:", newCategories);
     handleFilterChange({ categories: newCategories });
   };
 
   const handleTypeChange = (typeId: string, checked: boolean) => {
-    console.log("BaseBanknoteFilter: Type change:", { typeId, checked });
     
     let newTypes: string[];
     
@@ -303,7 +283,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       // If "All Types" is clicked and not all are currently selected, select all
       // If all are already selected, do nothing (don't clear all)
       if (allTypesSelected) {
-        console.log("BaseBanknoteFilter: All types already selected, doing nothing");
         return;
       } else {
         newTypes = types.map(t => t.id);
@@ -315,19 +294,16 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       } else {
         // Removing a type - prevent removing the last one
         if (selectedTypes.length <= 1) {
-          console.log("BaseBanknoteFilter: Cannot remove last type, doing nothing");
           return;
         }
         newTypes = selectedTypes.filter(id => id !== typeId);
       }
     }
     
-    console.log("BaseBanknoteFilter: New types:", newTypes);
     handleFilterChange({ types: newTypes });
   };
 
   const handleCountryChange = (countryId: string, checked: boolean) => {
-    console.log("BaseBanknoteFilter: Country change:", { countryId, checked });
     
     const allCountriesSelected = countries.length > 0 && 
       countries.every(country => selectedCountries.includes(country.id));
@@ -338,7 +314,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       // If "All Countries" is clicked and not all are currently selected, select all
       // If all are already selected, do nothing (don't clear all)
       if (allCountriesSelected) {
-        console.log("BaseBanknoteFilter: All countries already selected, doing nothing");
         return;
       } else {
         newCountries = countries.map(c => c.id);
@@ -350,19 +325,16 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       } else {
         // Removing a country - prevent removing the last one
         if (selectedCountries.length <= 1) {
-          console.log("BaseBanknoteFilter: Cannot remove last country, doing nothing");
           return;
         }
         newCountries = selectedCountries.filter(id => id !== countryId);
       }
     }
     
-    console.log("BaseBanknoteFilter: New countries:", newCountries);
     handleFilterChange({ countries: newCountries });
   };
 
   const handleSortChange = (sortId: string, checked: boolean) => {
-    console.log("BaseBanknoteFilter: Sort change:", { sortId, checked });
     
     const sortOption = sortOptions.find(option => option.id === sortId);
     if (!sortOption || !sortOption.fieldName) return;
@@ -414,13 +386,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       }
     });
     
-    console.log("BaseBanknoteFilter: New sort:", newSort);
     handleFilterChange({ sort: newSort });
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    console.log("BaseBanknoteFilter: Search input change:", value);
     
     // Update local state immediately
     setSearch(value);
@@ -440,7 +410,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const toggleViewMode = () => {
     if (onViewModeChange) {
       const newMode = localViewMode === 'grid' ? 'list' : 'grid';
-      console.log('BaseBanknoteFilter: Toggling view mode from', localViewMode, 'to', newMode);
       
       // Force immediate local state update
       setLocalViewMode(newMode);
@@ -458,7 +427,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const toggleGroupMode = () => {
     if (onGroupModeChange) {
       const newGroupMode = !localGroupMode;
-      console.log('BaseBanknoteFilter: Toggling group mode from', localGroupMode, 'to', newGroupMode);
       
       // Force immediate local state update
       setLocalGroupMode(newGroupMode);
@@ -474,7 +442,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   };
 
   const applyFilters = () => {
-    console.log("BaseBanknoteFilter: Applying all filters explicitly");
     handleFilterChange({
       search,
       categories: selectedCategories,
@@ -487,7 +454,6 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     applyFilters();
     
     if (onSaveFilters) {
-      console.log("BaseBanknoteFilter: Calling onSaveFilters");
       onSaveFilters();
     }
     

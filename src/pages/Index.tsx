@@ -20,7 +20,6 @@ import SEOHead from "@/components/seo/SEOHead";
 import { SEO_CONFIG } from "@/config/seoConfig";
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from "@/context/LanguageContext";
-import i18n from '@/i18n/config';
 
 const Index = () => {
   const { user } = useAuth();
@@ -31,20 +30,7 @@ const Index = () => {
   
 
   
-  // Force reload translations if needed
-  useEffect(() => {
-    const reloadTranslations = async () => {
-      try {
-        await i18n.reloadResources();
-        console.log('Translations reloaded');
-      } catch (error) {
-        console.error('Failed to reload translations:', error);
-      }
-    };
-    
-    // Reload translations when language changes
-    reloadTranslations();
-  }, [i18n.language]);
+  // Remove unnecessary translation reloading - handled by i18next automatically
   
   // Fallback function for translations
   const tWithFallback = (key: string, fallback: string) => {

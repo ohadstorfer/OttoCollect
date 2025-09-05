@@ -27,7 +27,6 @@ const adaptSellerToUserType = (seller: {
 
 export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
   try {
-    console.log("Fetching marketplace items from Supabase");
     
     // Fetch marketplace items with status 'Available'
     const { data: marketplaceItems, error } = await supabase
@@ -57,10 +56,8 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
       throw error;
     }
     
-    console.log(`Found ${marketplaceItems?.length || 0} marketplace items`);
     
     if (!marketplaceItems || marketplaceItems.length === 0) {
-      console.log("No marketplace items found");
       return [];
     }
     
@@ -68,37 +65,30 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
     const enrichedItems = await Promise.all(
       marketplaceItems.map(async (item) => {
         try {
-          console.log(`Processing marketplace item ${item.id}`);
           
           const collectionItem = item.collection_items;
           if (!collectionItem) {
-            console.log(`Collection item not found: ${item.collection_item_id}`);
             return null;
           }
           
           // Verify that the collection item is actually for sale
           if (!collectionItem.is_for_sale) {
-            console.log(`Collection item ${item.collection_item_id} is no longer marked for sale, skipping`);
             return null;
           }
 
           // Get banknote data based on whether it's an unlisted banknote or not
           let banknote;
           if (collectionItem.is_unlisted_banknote && collectionItem.unlisted_banknotes) {
-            console.log(`Processing unlisted banknote for item ${item.id}`);
             banknote = normalizeBanknoteData(collectionItem.unlisted_banknotes, "unlisted");
           } else if (!collectionItem.is_unlisted_banknote && collectionItem.enhanced_banknotes_with_translations) {
-            console.log(`Processing detailed banknote for item ${item.id}`);
             banknote = normalizeBanknoteData(mapBanknoteFromDatabase(collectionItem.enhanced_banknotes_with_translations), "detailed");
           }
 
           if (!banknote) {
-            console.log(`No banknote data found for collection item ${item.collection_item_id}`);
             return null;
           }
           
           // Get basic seller info
-          console.log(`Fetching seller info for user ${item.seller_id}`);
           const { data: sellerData, error: sellerError } = await supabase
             .from('profiles')
             .select('id, username, rank, role, avatar_url')
@@ -120,7 +110,6 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           // Convert seller data to User type
           const seller = adaptSellerToUserType(sellerInfo);
           
-          console.log(`Successfully processed marketplace item ${item.id}`);
           
           return {
             id: item.id,
@@ -163,7 +152,6 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
     );
     
     const validItems = enrichedItems.filter(item => item !== null) as MarketplaceItem[];
-    console.log(`Processed ${validItems.length} valid marketplace items`);
     return validItems;
   } catch (error) {
     console.error("Error in fetchMarketplaceItems:", error);
@@ -249,7 +237,6 @@ export async function addToMarketplace(
       throw error;
     }
     
-    console.log(`Successfully added item ${collectionItemId} to marketplace`);
     return true;
   } catch (error) {
     console.error("Error in addToMarketplace:", error);
@@ -313,7 +300,6 @@ export async function removeFromMarketplace(
       throw updateError;
     }
     
-    console.log(`Successfully removed item ${collectionItemId} from marketplace and reset collection item fields`);
     return true;
   } catch (error) {
     console.error("Error in removeFromMarketplace:", error);
@@ -323,7 +309,6 @@ export async function removeFromMarketplace(
 
 export async function getMarketplaceItemById(id: string): Promise<MarketplaceItem | null> {
   try {
-    console.log(`Fetching marketplace item with ID: ${id}`);
     
     // Get the marketplace item by ID
     const { data, error } = await supabase
@@ -338,12 +323,10 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
     }
     
     if (!data) {
-      console.log(`No marketplace item found with ID: ${id}`);
       return null;
     }
     
     // Get collection item details
-    console.log(`Fetching collection item: ${data.collection_item_id}`);
     const collectionItem = await fetchCollectionItem(data.collection_item_id);
     if (!collectionItem) {
       console.log(`Collection item not found: ${data.collection_item_id}`);
@@ -351,7 +334,6 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
     }
     
     // Get seller info
-    console.log(`Fetching seller info: ${data.seller_id}`);
     const { data: sellerData, error: sellerError } = await supabase
       .from('profiles')
       .select('id, username, rank, avatar_url')
@@ -373,7 +355,6 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
     // Convert seller data to User type
     const seller = adaptSellerToUserType(sellerInfo);
     
-    console.log(`Successfully fetched and processed marketplace item ${id}`);
     
     return {
       id: data.id,
@@ -456,7 +437,6 @@ export async function getMarketplaceItemForCollectionItem(
 
 export async function synchronizeMarketplaceWithCollection() {
   try {
-    console.log("Starting marketplace synchronization");
     
     // 1. Get all collection items marked for sale
     const { data: forSaleItems, error: collectionError } = await supabase
@@ -469,7 +449,6 @@ export async function synchronizeMarketplaceWithCollection() {
       throw collectionError;
     }
     
-    console.log(`Found ${forSaleItems?.length || 0} collection items marked for sale`);
     
     // 2. Get all marketplace items
     const { data: marketplaceItems, error: marketplaceError } = await supabase
@@ -491,7 +470,6 @@ export async function synchronizeMarketplaceWithCollection() {
     let addedCount = 0;
     for (const item of forSaleItems || []) {
       if (!marketplaceMap.has(item.id)) {
-        console.log(`Adding item ${item.id} to marketplace`);
         // This item is marked for sale but not in marketplace - add it
         const { error } = await supabase
           .from('marketplace_items')
@@ -511,7 +489,6 @@ export async function synchronizeMarketplaceWithCollection() {
       }
     }
     
-    console.log(`Added ${addedCount} new items to marketplace`);
     return true;
   } catch (error) {
     console.error("Error in synchronizeMarketplaceWithCollection:", error);
@@ -521,7 +498,6 @@ export async function synchronizeMarketplaceWithCollection() {
 
 export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<MarketplaceItem[]> {
   try {
-    console.log(`Fetching ${limit} newest marketplace items from Supabase`);
     
     // Fetch marketplace items with status 'Available', ordered by created_at DESC (newest first)
     const { data: marketplaceItems, error } = await supabase
@@ -553,7 +529,6 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
       throw error;
     }
     
-    console.log(`Found ${marketplaceItems?.length || 0} newest marketplace items`);
     
     if (!marketplaceItems || marketplaceItems.length === 0) {
       console.log("No newest marketplace items found");
@@ -564,7 +539,6 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
     const enrichedItems = await Promise.all(
       marketplaceItems.map(async (item) => {
         try {
-          console.log(`Processing newest marketplace item ${item.id}`);
           
           const collectionItem = item.collection_items;
           if (!collectionItem) {
@@ -581,10 +555,8 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
           // Get banknote data based on whether it's an unlisted banknote or not
           let banknote;
           if (collectionItem.is_unlisted_banknote && collectionItem.unlisted_banknotes) {
-            console.log(`Processing unlisted banknote for newest item ${item.id}`);
             banknote = normalizeBanknoteData(collectionItem.unlisted_banknotes, "unlisted");
           } else if (!collectionItem.is_unlisted_banknote && collectionItem.enhanced_banknotes_with_translations) {
-            console.log(`Processing detailed banknote for newest item ${item.id}`);
             banknote = normalizeBanknoteData(mapBanknoteFromDatabase(collectionItem.enhanced_banknotes_with_translations), "detailed");
           }
 
@@ -594,7 +566,6 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
           }
           
           // Get basic seller info
-          console.log(`Fetching seller info for user ${item.seller_id}`);
           const { data: sellerData, error: sellerError } = await supabase
             .from('profiles')
             .select('id, username, rank, role, avatar_url')
@@ -616,7 +587,6 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
           // Convert seller data to User type
           const seller = adaptSellerToUserType(sellerInfo);
           
-          console.log(`Successfully processed newest marketplace item ${item.id}`);
           
           return {
             id: item.id,
@@ -659,7 +629,6 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
     );
     
     const validItems = enrichedItems.filter(item => item !== null) as MarketplaceItem[];
-    console.log(`Processed ${validItems.length} valid newest marketplace items`);
     return validItems;
   } catch (error) {
     console.error("Error in fetchNewestMarketplaceItems:", error);

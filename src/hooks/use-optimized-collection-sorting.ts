@@ -158,7 +158,6 @@ export const useOptimizedCollectionSorting = ({
       return 0;
     });
 
-    console.log(`[OptimizedCollectionSorting] Sorted ${sortedItems.length} items by [${sortFields.join(', ')}]`);
     return sortedItems;
   }, [collectionItems, sortFields, parseExtendedPickNumber, parseNumericValue]);
 };

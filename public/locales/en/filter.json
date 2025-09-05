@@ -24,7 +24,11 @@
     "faceValue": "Face Value",
     "newestFirst": "Newest First",
     "always": "Always",
-    "country": "Country"
+    "country": "Country",
+    "priceHighToLow": "Price: High to Low",
+    "priceLowToHigh": "Price: Low to High",
+    "newest": "Newest Listed",
+    "oldest": "Oldest Listed"
   },
   
   "filters": {

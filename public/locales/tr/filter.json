@@ -24,7 +24,11 @@
     "faceValue": "Yüz Değeri",
     "newestFirst": "En Yeni Önce",
     "always": "Her Zaman",
-    "country": "Ülke"
+    "country": "Ülke",
+    "priceHighToLow": "Fiyat: Yüksekten Düşüğe",
+    "priceLowToHigh": "Fiyat: Düşükten Yükseğe",
+    "newest": "En Yeni Listelenen",
+    "oldest": "En Eski Listelenen"
   },
   
   "filters": {

@@ -39,14 +39,12 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
 
   // Effect to force re-render when viewMode or groupMode changes
   useEffect(() => {
-    console.log("[BanknoteDisplay] viewMode or groupMode changed:", { viewMode, groupMode });
     setForceUpdate(prev => prev + 1);
   }, [viewMode, groupMode]);
 
   // Effect to listen for mode change events
   useEffect(() => {
     const handleModeChange = (event: CustomEvent) => {
-      console.log("[BanknoteDisplay] Received mode change event:", event.detail);
       setForceUpdate(prev => prev + 1);
     };
 
@@ -59,14 +57,7 @@ export const BanknoteDisplay: React.FC<BanknoteDisplayProps> = ({
     };
   }, []);
 
-  // Debug logging for props
-  console.log("[BanknoteDisplay] Rendering with props:", { 
-    viewMode, 
-    groupMode, 
-    groupsCount: groups.length,
-    forceUpdate 
-  });
-  console.log("[BanknoteDisplay] Received userCollection, count:", userCollection?.length);
+ 
 
   // Check if user is currently searching
   const isSearching = filters?.search && filters.search.trim() !== "";
