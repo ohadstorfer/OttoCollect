@@ -33,10 +33,10 @@ coverage
 *.tar.gz
 Dockerfile
 Dockerfile.node
-start.sh
 deploy.sh
 deploy.bat
 cloudbuild.yaml
 DEPLOYMENT_GUIDE.md
 DEPLOYMENT_FIXES.md
 PORT_FIX_GUIDE.md
+FINAL_DEPLOYMENT_FIXES.md

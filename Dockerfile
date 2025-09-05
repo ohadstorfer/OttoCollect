@@ -1,5 +1,5 @@
 # Use Node.js 18 Alpine as base image
-FROM node:18-alpine AS builder
+FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
@@ -19,24 +19,14 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Use nginx to serve the static files
-FROM nginx:alpine
+# Copy server file
+COPY server.js ./
 
-# Install bash for the startup script
-RUN apk add --no-cache bash
+# Remove devDependencies to reduce image size
+RUN npm prune --production
 
-# Copy built files from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Copy startup script
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-# Expose port 8080 (Cloud Run default)
+# Expose port (Cloud Run will set PORT environment variable)
 EXPOSE 8080
 
-# Start nginx with dynamic port configuration
-CMD ["/start.sh"]
+# Start the server
+CMD ["node", "server.js"]
