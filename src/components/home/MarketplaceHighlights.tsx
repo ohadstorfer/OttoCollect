@@ -7,6 +7,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { MarketplaceItem } from '@/types';
 import { cn } from '@/lib/utils';
 import { useDateLocale } from '@/lib/dateUtils';
+import { useTranslation } from 'react-i18next';
 
 
 interface MarketplaceHighlightsProps {
@@ -19,8 +20,28 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const { formatRelativeTime } = useDateLocale();
-  const { direction } = useLanguage();
-  
+  const { direction, currentLanguage } = useLanguage();
+  const { t } = useTranslation(['marketplace']);
+
+
+
+  // Helper function to get localized field values
+  const getLocalizedField = (field: string, fieldType: 'face_value' | 'country'): string => {
+    if (currentLanguage === 'en' || !field) {
+      return field || '';
+    }
+
+    const banknoteAny = banknote as any;
+    let languageSpecificField: string | undefined;
+
+    if (currentLanguage === 'ar') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_ar`];
+    } else if (currentLanguage === 'tr') {
+      languageSpecificField = banknoteAny?.[`${fieldType}_tr`];
+    }
+
+    return languageSpecificField || field;
+  };
 
 
   const formatTimeAgo = (dateString: string) => {
@@ -48,13 +69,13 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
       </div>
     );
   }
-  
+
   if (!items || items.length === 0) {
     console.log('No marketplace items available for highlights');
     return (
       <div className="text-center py-12">
         <p className="text-ottoman-300">No marketplace items available.</p>
-        <Button 
+        <Button
           onClick={() => navigate('/marketplace/new')}
           className="mt-4"
         >
@@ -63,7 +84,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
       </div>
     );
   }
-  
+
   const handleItemClick = (itemId: string) => {
     console.log('Marketplace highlight item clicked:', itemId);
     navigate(`/marketplace/${itemId}`);
@@ -73,8 +94,8 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
   const GridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {items.slice(0, 2).map((item, index) => (
-        <div 
-          key={item.id} 
+        <div
+          key={item.id}
           className={cn(
             "glass-card p-5 cursor-pointer hover:shadow-lg transition-all border border-ottoman-800/50",
             index % 2 === 0 ? "fade-right" : "fade-left"
@@ -85,14 +106,14 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
             {/* Item Image */}
             <div className="w-24 h-24 rounded-md overflow-hidden border border-ottoman-800/50 flex-shrink-0">
               {item.collectionItem.obverseImage ? (
-                <img 
-                  src={item.collectionItem.obverseImage} 
+                <img
+                  src={item.collectionItem.obverseImage}
                   alt={`${item.collectionItem.banknote.country} ${item.collectionItem.banknote.denomination}`}
                   className="w-full h-full object-cover"
                 />
               ) : (item.collectionItem.banknote.imageUrls && item.collectionItem.banknote.imageUrls.length > 0) ? (
-                <img 
-                  src={item.collectionItem.banknote.imageUrls[0]} 
+                <img
+                  src={item.collectionItem.banknote.imageUrls[0]}
                   alt={`${item.collectionItem.banknote.country} ${item.collectionItem.banknote.denomination}`}
                   className="w-full h-full object-cover"
                 />
@@ -102,42 +123,51 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
                 </div>
               )}
             </div>
-            
+
             <div className="flex-1">
               {/* Item Title */}
-              <div className="flex justify-between">
+              <div className={`flex justify-between ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                 <h3 className="font-serif font-semibold text-lg text-parchment-400">
                   <span>{item.collectionItem.banknote.denomination} ({item.collectionItem.banknote.year})</span>
                 </h3>
-                <span className="text-ottoman-100 font-semibold bg-ottoman-600/50 px-2 py-0.5 rounded text-sm">
+                <span className="flex items-center text-ottoman-100 font-semibold bg-ottoman-600/50 px-2 py-0.5 rounded text-sm">
                   ${item.collectionItem.salePrice}
                 </span>
               </div>
-              
+
               {/* Item Country */}
               <p className="text-sm text-ottoman-300 mb-2">
                 {item.collectionItem.banknote.country}
               </p>
-              
+
               {/* Additional Info */}
               <div className="flex items-center text-xs text-ottoman-300 gap-3">
-                <div className="flex items-center">
-                  <Tag className="h-3 w-3 mr-1" />
-                  {item.collectionItem.condition}
-                </div>
-                                 <div className="flex items-center">
-                   <Calendar className="h-3 w-3 mr-1" />
-                   {formatTimeAgo(item.createdAt)}
-                 </div>
+                {item.collectionItem.condition && (
+                  <div className="flex items-center">
+                    <Tag className="h-3 w-3 mr-1" />
+                    {item.collectionItem.condition}
+                  </div>
+                )}
+
+                {item.createdAt && (
+                  <div className="flex items-center">
+                    <Calendar
+                      className={`h-3 w-3 ${item.collectionItem.condition ? "mr-1" : ""
+                        }`}
+                    />
+                    {formatTimeAgo(item.createdAt)}
+                  </div>
+                )}
               </div>
-              
+
+
               {/* Description or note if available */}
-              {item.collectionItem.publicNote && (
+              {/* {item.collectionItem.publicNote && (
                 <p className="mt-2 text-sm text-ottoman-200 line-clamp-2">
                   {item.collectionItem.publicNote}
                 </p>
-              )}
-              
+              )} */}
+
               {/* Seller info */}
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-xs text-ottoman-400">Seller:</span>
@@ -149,14 +179,14 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
       ))}
     </div>
   );
-  
+
   // For mobile - custom carousel view
   const CarouselView = () => {
     const currentItem = items[currentIndex];
-    
+
     return (
       <div className="md:hidden w-full">
-        <div 
+        <div
           className="glass-card p-5 cursor-pointer hover:shadow-lg transition-all border border-ottoman-800/50 h-full"
           onClick={() => handleItemClick(currentItem.id)}
         >
@@ -164,14 +194,14 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
             {/* Item Image */}
             <div className="w-full aspect-[3/2] rounded-md overflow-hidden border border-ottoman-800/50">
               {currentItem.collectionItem.obverseImage ? (
-                <img 
-                  src={currentItem.collectionItem.obverseImage} 
+                <img
+                  src={currentItem.collectionItem.obverseImage}
                   alt={`${currentItem.collectionItem.banknote.country} ${currentItem.collectionItem.banknote.denomination}`}
                   className="w-full h-full object-cover"
                 />
               ) : (currentItem.collectionItem.banknote.imageUrls && currentItem.collectionItem.banknote.imageUrls.length > 0) ? (
-                <img 
-                  src={currentItem.collectionItem.banknote.imageUrls[0]} 
+                <img
+                  src={currentItem.collectionItem.banknote.imageUrls[0]}
                   alt={`${currentItem.collectionItem.banknote.country} ${currentItem.collectionItem.banknote.denomination}`}
                   className="w-full h-full object-cover"
                 />
@@ -181,7 +211,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
                 </div>
               )}
             </div>
-            
+
             <div className={`${direction === "rtl" ? "text-right" : "text-left"}`}>
               {/* Item Title */}
               <div className={`flex justify-between ${direction === "rtl" ? "flex-row-reverse" : "flex-row"}`}>
@@ -192,18 +222,18 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
                   ${currentItem.collectionItem.salePrice}
                 </span>
               </div>
-              
-             
-              
+
+
+
               {/* Additional Info */}
               <div className="flex items-center text-xs text-ottoman-300 gap-3">
 
-                 {/* Item Country */}
-                 <div className="flex items-center">
-              <p className={`text-sm text-ottoman-300 mb-2 ${direction === "rtl" ? "text-right" : "text-left"}`}>
-                {currentItem.collectionItem.banknote.country}
-              </p>
-              </div>
+                {/* Item Country */}
+                <div className="flex items-center">
+                  <p className={`text-sm text-ottoman-300 mb-2 ${direction === "rtl" ? "text-right" : "text-left"}`}>
+                    {currentItem.collectionItem.banknote.country}
+                  </p>
+                </div>
 
                 <div className="flex items-center">
                   <Tag className="h-3 w-3 mr-1" />
@@ -214,7 +244,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
                   {formatTimeAgo(currentItem.createdAt)}
                 </div>
               </div>
-              
+
               {/* Seller info */}
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-xs text-ottoman-400">Seller:</span>
@@ -223,7 +253,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
             </div>
           </div>
         </div>
-        
+
         {/* Navigation Controls */}
         <div className="flex justify-center items-center gap-4 mt-4">
           <Button
@@ -234,21 +264,21 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          
+
           <div className="flex gap-1">
             {items.map((_, index) => (
               <div
                 key={index}
                 className={cn(
                   "w-2 h-2 rounded-full transition-colors",
-                  index === currentIndex 
-                    ? "bg-ottoman-400" 
+                  index === currentIndex
+                    ? "bg-ottoman-400"
                     : "bg-ottoman-600"
                 )}
               />
             ))}
           </div>
-          
+
           <Button
             variant="outline"
             size="icon"
@@ -275,7 +305,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
           }
         }
       `}</style>
-      
+
       {/* Responsive layout - grid for desktop, carousel for mobile */}
       <div className="hidden md:block">
         <GridView />
