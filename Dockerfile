@@ -7,8 +7,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
+
+# Update browserslist database to avoid warnings
+RUN npx update-browserslist-db@latest
 
 # Copy source code
 COPY . .
