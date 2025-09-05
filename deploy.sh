@@ -63,9 +63,9 @@ gcloud services enable cloudbuild.googleapis.com
 gcloud services enable run.googleapis.com
 gcloud services enable containerregistry.googleapis.com
 
-# Build and push the image
+# Build and push the image using Node.js server (more reliable for Cloud Run)
 echo -e "${YELLOW}🏗️  Building and pushing Docker image...${NC}"
-gcloud builds submit --tag $IMAGE_NAME
+gcloud builds submit --tag $IMAGE_NAME --file Dockerfile.node
 
 # Deploy to Cloud Run
 echo -e "${YELLOW}🚀 Deploying to Cloud Run...${NC}"

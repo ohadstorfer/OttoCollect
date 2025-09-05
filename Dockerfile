@@ -22,14 +22,21 @@ RUN npm run build
 # Use nginx to serve the static files
 FROM nginx:alpine
 
+# Install bash for the startup script
+RUN apk add --no-cache bash
+
 # Copy built files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
+# Copy startup script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 # Expose port 8080 (Cloud Run default)
 EXPOSE 8080
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start nginx with dynamic port configuration
+CMD ["/start.sh"]

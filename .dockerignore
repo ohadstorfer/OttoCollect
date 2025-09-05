@@ -31,3 +31,12 @@ coverage
 *.log
 *.tgz
 *.tar.gz
+Dockerfile
+Dockerfile.node
+nginx.conf
+start.sh
+deploy.sh
+deploy.bat
+cloudbuild.yaml
+DEPLOYMENT_GUIDE.md
+DEPLOYMENT_FIXES.md
