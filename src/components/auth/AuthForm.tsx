@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import { useTranslation } from 'react-i18next';
+import { EmailConfirmationDialog } from "./EmailConfirmationDialog";
 
 const AuthForm = () => {
   const { t } = useTranslation(['pages']);
@@ -27,6 +28,8 @@ const AuthForm = () => {
   const [resetLoading, setResetLoading] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [emailConfirmationOpen, setEmailConfirmationOpen] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -232,7 +235,11 @@ const AuthForm = () => {
       const result = await register(registerUsername, registerEmail, registerPassword);
       
       if (result.success) {
-        console.log('Registration successful, navigating to previous page...');
+        console.log('Registration successful, showing email confirmation dialog...');
+        // Store the registered email and show confirmation dialog
+        setRegisteredEmail(registerEmail);
+        setEmailConfirmationOpen(true);
+        
         // Clear form and errors on success
         setRegisterUsername("");
         setRegisterEmail("");
@@ -242,10 +249,6 @@ const AuthForm = () => {
         setEmailsMatch(true);
         setPasswordsMatch(true);
         setRegisterError(null);
-        // Small delay to let the success toast show
-        setTimeout(() => {
-          navigate(-1);
-        }, 1000); // Longer delay for registration to let user see success message
       } else {
         console.log('Registration failed:', result.error);
         // Set local error state for visual feedback
@@ -1255,6 +1258,17 @@ const AuthForm = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Email Confirmation Dialog */}
+      <EmailConfirmationDialog
+        isOpen={emailConfirmationOpen}
+        onClose={() => setEmailConfirmationOpen(false)}
+        email={registeredEmail}
+        onBackToLogin={() => {
+          setEmailConfirmationOpen(false);
+          setActiveTab("login");
+        }}
+      />
     </div>
   );
 };

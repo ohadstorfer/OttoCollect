@@ -12,6 +12,7 @@ type AuthContextType = {
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  resendConfirmationEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   getUserRankFromPoints: (points: number, role: UserRole) => UserRank;
   updateUserState: (updates: Partial<User>) => void;
@@ -308,6 +309,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resendConfirmationEmail = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        }
+      });
+
+      if (error) {
+        console.error("Resend confirmation error:", error);
+        let errorMessage = "";
+        
+        if (error.message?.includes('Email rate limit exceeded') || error.message?.includes('rate limit')) {
+          errorMessage = "Too many resend attempts. Please wait before trying again.";
+        } else if (error.message?.includes('User already confirmed')) {
+          errorMessage = "This email has already been confirmed. Please try logging in.";
+        } else if (error.message?.includes('Invalid email')) {
+          errorMessage = "Please enter a valid email address.";
+        } else {
+          errorMessage = `Failed to resend confirmation email: ${error.message}`;
+        }
+        
+        return { success: false, error: errorMessage };
+      } else {
+        console.log("Confirmation email resent successfully to:", email);
+        return { success: true };
+      }
+    } catch (error: any) {
+      console.error("Resend confirmation catch block:", error);
+      const errorMessage = "An unexpected error occurred while resending the confirmation email.";
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -323,6 +360,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     login,
     register,
+    resendConfirmationEmail,
     logout,
     getUserRankFromPoints,
     updateUserState,

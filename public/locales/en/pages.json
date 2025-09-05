@@ -47,6 +47,39 @@
       "errorTitle": "Password Reset Failed",
       "errorDescription": "Failed to send password reset email."
     },
+    "emailConfirmation": {
+      "title": "Check Your Email",
+      "message": "We've sent you a confirmation link!",
+      "emailSent": "A confirmation email has been sent to {{email}}",
+      "checkSpam": "Don't see it? Check your spam folder.",
+      "instructions": {
+        "title": "Next Steps:",
+        "step1": "Check your email inbox for a message from OttoCollect",
+        "step2": "Click the confirmation link in the email",
+        "step3": "Return here and log in to access your account"
+      },
+      "resendButton": "Resend Confirmation Email",
+      "resendAgain": "Resend Again ({{count}}/3)",
+      "resending": "Resending...",
+      "backToLogin": "Back to Login",
+      "helpText": "Having trouble? Contact support at info@ottocollect.com",
+      "resendSuccess": {
+        "title": "Email Sent",
+        "description": "Confirmation email has been resent successfully!"
+      },
+      "resendError": {
+        "title": "Failed to Resend",
+        "description": "Unable to resend confirmation email. Please try again later."
+      },
+      "resendLimit": {
+        "title": "Resend Limit Reached",
+        "description": "You've reached the maximum number of resend attempts. Please wait before trying again."
+      },
+      "resendTooSoon": {
+        "title": "Please Wait",
+        "description": "Please wait 30 seconds before requesting another confirmation email."
+      }
+    },
     "errors": {
       "accountBlocked": {
         "title": "Account Blocked",

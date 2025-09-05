@@ -47,6 +47,39 @@
       "errorTitle": "Şifre Sıfırlama Başarısız",
       "errorDescription": "Şifre sıfırlama e-postası gönderilemedi."
     },
+    "emailConfirmation": {
+      "title": "E-postanızı Kontrol Edin",
+      "message": "Size bir onay bağlantısı gönderdik!",
+      "emailSent": "{{email}} adresine bir onay e-postası gönderildi",
+      "checkSpam": "Görmüyor musunuz? Spam klasörünüzü kontrol edin.",
+      "instructions": {
+        "title": "Sonraki Adımlar:",
+        "step1": "OttoCollect'ten bir mesaj için e-posta gelen kutunuzu kontrol edin",
+        "step2": "E-postadaki onay bağlantısına tıklayın",
+        "step3": "Buraya geri dönün ve hesabınıza erişmek için giriş yapın"
+      },
+      "resendButton": "Onay E-postasını Yeniden Gönder",
+      "resendAgain": "Tekrar Gönder ({{count}}/3)",
+      "resending": "Yeniden gönderiliyor...",
+      "backToLogin": "Girişe Dön",
+      "helpText": "Sorun mu yaşıyorsunuz? info@ottocollect.com adresinden destekle iletişime geçin",
+      "resendSuccess": {
+        "title": "E-posta Gönderildi",
+        "description": "Onay e-postası başarıyla yeniden gönderildi!"
+      },
+      "resendError": {
+        "title": "Yeniden Gönderme Başarısız",
+        "description": "Onay e-postası yeniden gönderilemedi. Lütfen daha sonra tekrar deneyin."
+      },
+      "resendLimit": {
+        "title": "Yeniden Gönderme Limiti Aşıldı",
+        "description": "Maksimum yeniden gönderme deneme sayısına ulaştınız. Tekrar denemeden önce lütfen bekleyin."
+      },
+      "resendTooSoon": {
+        "title": "Lütfen Bekleyin",
+        "description": "Başka bir onay e-postası talep etmeden önce lütfen 30 saniye bekleyin."
+      }
+    },
     "errors": {
       "accountBlocked": {
         "title": "Hesap Engellendi",

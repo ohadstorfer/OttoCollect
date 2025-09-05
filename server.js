@@ -9,20 +9,36 @@ const app = express();
 // Get port from environment variable (Cloud Run sets this)
 const PORT = process.env.PORT || 8080;
 
+// Add logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
 // Serve static files from the dist directory
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Health check endpoint (must be before the catch-all route)
 app.get('/health', (req, res) => {
+  console.log('Health check requested');
   res.status(200).send('healthy');
 });
 
 // Handle client-side routing - send all requests to index.html
 app.get('*', (req, res) => {
+  console.log(`Serving index.html for route: ${req.path}`);
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).send('Internal Server Error');
 });
 
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Static files served from: ${path.join(__dirname, 'dist')}`);
 });
