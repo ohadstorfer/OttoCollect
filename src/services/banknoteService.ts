@@ -567,7 +567,7 @@ export async function getBanknoteCollectors(banknoteId: string): Promise<Banknot
     // Fetch profiles for these users
     const { data: profilesData, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank, role, created_at')
+      .select('id, username, avatar_url, rank, role, created_at, selected_language')
       .in('id', userIds);
 
     if (profilesError) throw profilesError;

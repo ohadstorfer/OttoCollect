@@ -71,7 +71,7 @@ export const fetchForumPosts = async (): Promise<ForumPost[]> => {
     // Step 3: Fetch author profiles
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .in('id', authorIds);
 
     if (profilesError) {
@@ -210,7 +210,7 @@ export const fetchForumPostById = async (id: string): Promise<ForumPost | null> 
       // Author profile
       const { data: authorProfile, error: authorError } = await supabase
         .from('profiles')
-        .select('id, username, avatar_url, rank')
+        .select('id, username, avatar_url, rank, selected_language')
         .eq('id', announcement.author_id)
         .single();
       if (authorError) {
@@ -255,7 +255,7 @@ export const fetchForumPostById = async (id: string): Promise<ForumPost | null> 
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', post.author_id)
       .single();
 
@@ -472,7 +472,7 @@ export const fetchCommentsByPostId = async (postId: string): Promise<ForumCommen
     // Step 3: Fetch author profiles
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .in('id', authorIds);
 
     if (profilesError) {
@@ -560,7 +560,7 @@ export const createForumPost = async (
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', authorId)
       .single();
 
@@ -639,7 +639,7 @@ export const updateForumPost = async (
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', data.author_id)
       .single();
 
@@ -782,7 +782,7 @@ export const addForumComment = async (
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', user.id)
       .single();
 
@@ -858,7 +858,7 @@ export const updateForumComment = async (
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', data.author_id)
       .single();
 
@@ -1039,7 +1039,7 @@ export const addForumAnnouncementComment = async (
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', user.id)
       .single();
 
@@ -1188,7 +1188,7 @@ export const updateForumAnnouncementComment = async (
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', data.author_id)
       .single();
 

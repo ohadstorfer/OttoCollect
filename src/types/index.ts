@@ -74,6 +74,7 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  selected_language?: string;
   avatarUrl?: string;
   about?: string;
   about_ar?: string;

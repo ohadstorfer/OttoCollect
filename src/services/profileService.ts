@@ -177,6 +177,7 @@ export async function getUserProfile(userIdOrUsername: string, currentLanguage?:
       points: data.points,
       createdAt: data.created_at,
       avatarUrl: data.avatar_url,
+      selected_language: data.selected_language,
       ...(data.country && { country: data.country }),
       ...(localizedAbout && { about: localizedAbout }),
       ...(data.about_ar && { about_ar: data.about_ar }),
@@ -200,6 +201,7 @@ export async function updateUserProfile(
   updates: { 
     about?: string | null; 
     username?: string;
+    selected_language?: string;
     facebook_url?: string | null;
     instagram_url?: string | null;
     twitter_url?: string | null;

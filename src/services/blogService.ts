@@ -68,7 +68,7 @@ export const fetchBlogPosts = async (): Promise<BlogPost[]> => {
     // Step 3: Fetch author profiles
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .in('id', authorIds);
 
     if (profilesError) {
@@ -150,7 +150,7 @@ export const fetchBlogPostById = async (id: string): Promise<BlogPost | null> =>
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', post.author_id)
       .single();
 
@@ -225,7 +225,7 @@ export const fetchCommentsByPostId = async (postId: string): Promise<BlogComment
     // Step 3: Fetch author profiles
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .in('id', authorIds);
 
     if (profilesError) {
@@ -368,7 +368,7 @@ export const createBlogPost = async (
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', authorId)
       .single();
 
@@ -450,7 +450,7 @@ export const updateBlogPost = async (
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', data.author_id)
       .single();
 
@@ -588,7 +588,7 @@ export const addBlogComment = async (
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', user.id)
       .single();
 
@@ -664,7 +664,7 @@ export const updateBlogComment = async (
     // Step 2: Fetch the author profile
     const { data: authorProfile, error: authorError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .eq('id', data.author_id)
       .single();
 
@@ -759,7 +759,7 @@ export const fetchBlogPostsWithTranslations = async (currentLanguage: string = '
     // Step 3: Fetch author profiles
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, rank')
+      .select('id, username, avatar_url, rank, selected_language')
       .in('id', authorIds);
 
     if (profilesError) {

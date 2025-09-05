@@ -91,7 +91,7 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           // Get basic seller info
           const { data: sellerData, error: sellerError } = await supabase
             .from('profiles')
-            .select('id, username, rank, role, avatar_url')
+            .select('id, username, rank, role, avatar_url, selected_language')
             .eq('id', item.seller_id)
             .single();
           
@@ -336,7 +336,7 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
     // Get seller info
     const { data: sellerData, error: sellerError } = await supabase
       .from('profiles')
-      .select('id, username, rank, avatar_url')
+      .select('id, username, rank, avatar_url, selected_language')
       .eq('id', data.seller_id)
       .single();
       
@@ -401,7 +401,7 @@ export async function getMarketplaceItemForCollectionItem(
     // Get seller info
     const { data: sellerData, error: sellerError } = await supabase
       .from('profiles')
-      .select('id, username, rank, avatar_url')
+      .select('id, username, rank, avatar_url, selected_language')
       .eq('id', data.seller_id)
       .single();
       
@@ -568,7 +568,7 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
           // Get basic seller info
           const { data: sellerData, error: sellerError } = await supabase
             .from('profiles')
-            .select('id, username, rank, role, avatar_url')
+            .select('id, username, rank, role, avatar_url, selected_language')
             .eq('id', item.seller_id)
             .single();
           

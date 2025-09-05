@@ -147,6 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             points: data.points,
             createdAt: data.created_at,
             avatarUrl: data.avatar_url || '/placeholder.svg',
+            selected_language: data.selected_language || 'en',
             ...(data.country && { country: data.country }),
             ...(data.about && { about: data.about }),
             facebook_url: data.facebook_url,
@@ -256,13 +257,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     try {
+      // Get current language from localStorage or default to 'en'
+      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            username
+            username,
+            selected_language: currentLanguage
           }
         }
       });

@@ -37,7 +37,7 @@ export default function useMessages(): UseMessagesReturn {
     try {
       const { data: userData, error } = await supabase
         .from('profiles')
-        .select('id, username, avatar_url, rank')
+        .select('id, username, avatar_url, rank, selected_language')
         .eq('id', userId)
         .single();
 
@@ -108,7 +108,7 @@ export default function useMessages(): UseMessagesReturn {
       }
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
-        .select('id, username, avatar_url, rank')
+        .select('id, username, avatar_url, rank, selected_language')
         .in('id', userIds);
       
       if (usersError) {
