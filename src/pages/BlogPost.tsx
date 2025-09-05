@@ -659,7 +659,7 @@ const BlogPostPage = () => {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>{tWithFallback('comments.deleteComment', 'Delete Comment')}</AlertDialogTitle>
+                                    <AlertDialogTitle><span>{tWithFallback('comments.deleteComment', 'Delete Comment')}</span></AlertDialogTitle>
                                     <AlertDialogDescription>
                                       {tWithFallback('comments.confirmDeleteComment', 'Are you sure you want to delete this comment? This action cannot be undone.')}
                                     </AlertDialogDescription>

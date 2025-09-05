@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ForumPost as ForumPostType, ForumComment } from "@/types/forum";
 import { useAuth } from "@/context/AuthContext";
-import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment, checkUserDailyForumLimit, fetchCommentsByPostId } from "@/services/forumService";
+import { addForumComment, fetchForumPostById, deleteForumPost, updateForumComment, checkUserDailyForumLimit, fetchCommentsByPostId, deleteForumComment } from "@/services/forumService";
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ForumCommentComponent from "@/components/forum/ForumComment";
@@ -74,13 +74,14 @@ const renderComment = (
     editingCommentId: string | null;
     editedContent: string;
     isSubmitting: boolean;
+    deletingCommentId: string | null;
     startReplying: (comment: ForumComment) => void;
     cancelReplying: () => void;
     handleReplyToComment: (commentId: string) => void;
     startEditing: (comment: ForumComment) => void;
     cancelEditing: () => void;
     handleEditComment: (commentId: string, content: string) => void;
-    onDeleteComment: (commentId: string) => void;
+    onDeleteComment: (commentId: string) => Promise<void>;
     handleOnProfileClick: (userId: string | undefined) => void;
     renderTextWithLinks: (text: string) => React.ReactNode;
     updateReplyContent: (content: string) => void;
@@ -233,19 +234,20 @@ const renderComment = (
                           </AlertDialogTrigger>
                           <AlertDialogContent className={props.currentLanguage === 'ar' ? 'text-right' : ''}>
                             <AlertDialogHeader>
-                              <AlertDialogTitle className={props.currentLanguage === 'ar' ? 'text-right' : ''}>{props.t('actions.deleteComment')}</AlertDialogTitle>
+                              <AlertDialogTitle className={props.currentLanguage === 'ar' ? 'text-right' : ''}> <span>{props.t('actions.deleteComment')}</span></AlertDialogTitle>
                               <AlertDialogDescription className={props.currentLanguage === 'ar' ? 'text-right' : ''}>
                                 {props.t('actions.deleteCommentConfirm')}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel className={props.currentLanguage === 'ar' ? 'text-right' : ''}>{props.t('post.cancel')}</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => props.onDeleteComment(comment.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                {props.t('actions.delete')}
-                              </AlertDialogAction>
+                                                                                      <AlertDialogAction
+                              onClick={async () => await props.onDeleteComment(comment.id)}
+                              disabled={props.deletingCommentId === comment.id}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              {props.deletingCommentId === comment.id ? props.t('status.deleting') || 'Deleting...' : props.t('actions.delete')}
+                            </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
@@ -295,6 +297,7 @@ const ForumPostPage = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isBlockingUser, setIsBlockingUser] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const { direction } = useLanguage();
   
   // Translation state
@@ -425,26 +428,44 @@ const ForumPostPage = () => {
     }
   };
 
-  const onDeleteComment = (commentId: string) => {
-    // Remove the comment from the nested structure properly
-    const removeCommentFromTree = (comments: ForumComment[]): ForumComment[] => {
-      return comments
-        .filter(comment => comment.id !== commentId)
-        .map(comment => {
-          if (comment.replies && comment.replies.length > 0) {
-            return {
-              ...comment,
-              replies: removeCommentFromTree(comment.replies)
-            };
-          }
-          return comment;
-        });
-    };
+  const onDeleteComment = async (commentId: string) => {
+    setDeletingCommentId(commentId);
+    try {
+      // First, delete from the database
+      const success = await deleteForumComment(commentId);
+      
+      if (!success) {
+        toast.error(t('notifications.failedToDeleteComment') || "Failed to delete comment");
+        return;
+      }
 
-    setComments(prevComments => removeCommentFromTree(prevComments));
-    
-    if (post) {
-      setPost({ ...post, commentCount: (post.commentCount || 1) - 1 });
+      // Only remove from local state if database deletion was successful
+      const removeCommentFromTree = (comments: ForumComment[]): ForumComment[] => {
+        return comments
+          .filter(comment => comment.id !== commentId)
+          .map(comment => {
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: removeCommentFromTree(comment.replies)
+              };
+            }
+            return comment;
+          });
+      };
+
+      setComments(prevComments => removeCommentFromTree(prevComments));
+      
+      if (post) {
+        setPost({ ...post, commentCount: (post.commentCount || 1) - 1 });
+      }
+      
+      toast.success(t('notifications.commentDeleted') || "Comment deleted successfully");
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      toast.error(t('notifications.failedToDeleteComment') || "Failed to delete comment");
+    } finally {
+      setDeletingCommentId(null);
     }
   };
 
@@ -913,6 +934,7 @@ const ForumPostPage = () => {
                   editingCommentId,
                   editedContent,
                   isSubmitting,
+                  deletingCommentId,
                   startReplying,
                   cancelReplying,
                   handleReplyToComment,
