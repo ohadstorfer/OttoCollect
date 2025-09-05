@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { BlogPost as BlogPostType, BlogComment } from "@/types/blog";
 import { useAuth } from "@/context/AuthContext";
-import { addBlogComment, fetchBlogPostById, deleteBlogPost, updateBlogComment, checkUserDailyBlogLimit } from "@/services/blogService";
+import { addBlogComment, fetchBlogPostById, deleteBlogPost, updateBlogComment, checkUserDailyBlogLimit, deleteBlogComment } from "@/services/blogService";
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ImageGallery from "@/components/forum/ImageGallery";
@@ -71,6 +71,7 @@ const BlogPostPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState('');
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
@@ -210,12 +211,32 @@ const BlogPostPage = () => {
     );
   };
 
-  const onDeleteComment = (commentId: string) => {
-    setComments((prevComments) =>
-      prevComments.filter((comment) => comment.id !== commentId)
-    );
-    if (post) {
-      setPost({ ...post, commentCount: (post.commentCount || 1) - 1 });
+  const onDeleteComment = async (commentId: string) => {
+    setDeletingCommentId(commentId);
+    try {
+      // First, delete from the database
+      const success = await deleteBlogComment(commentId);
+      
+      if (!success) {
+        toast.error(t('notifications.failedToDeleteComment') || "Failed to delete comment");
+        return;
+      }
+
+      // Only remove from local state if database deletion was successful
+      setComments((prevComments) =>
+        prevComments.filter((comment) => comment.id !== commentId)
+      );
+      
+      if (post) {
+        setPost({ ...post, commentCount: (post.commentCount || 1) - 1 });
+      }
+      
+      toast.success(t('notifications.commentDeleted') || "Comment deleted successfully");
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      toast.error(t('notifications.failedToDeleteComment') || "Failed to delete comment");
+    } finally {
+      setDeletingCommentId(null);
     }
   };
 
@@ -667,10 +688,11 @@ const BlogPostPage = () => {
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>{tWithFallback('actions.cancel', 'Cancel')}</AlertDialogCancel>
                                     <AlertDialogAction
-                                      onClick={() => onDeleteComment(comment.id)}
+                                      onClick={async () => await onDeleteComment(comment.id)}
+                                      disabled={deletingCommentId === comment.id}
                                       className="bg-red-600 hover:bg-red-700"
                                     >
-                                      {tWithFallback('moderation.delete', 'Delete')}
+                                      {deletingCommentId === comment.id ? t('status.deleting') || 'Deleting...' : tWithFallback('moderation.delete', 'Delete')}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
