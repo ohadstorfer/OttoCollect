@@ -1734,6 +1734,7 @@ export type Database = {
           role_ar: string | null
           role_id: string | null
           role_tr: string | null
+          selected_language: string
           twitter_url: string | null
           updated_at: string
           username: string
@@ -1761,6 +1762,7 @@ export type Database = {
           role_ar?: string | null
           role_id?: string | null
           role_tr?: string | null
+          selected_language?: string
           twitter_url?: string | null
           updated_at?: string
           username: string
@@ -1788,6 +1790,7 @@ export type Database = {
           role_ar?: string | null
           role_id?: string | null
           role_tr?: string | null
+          selected_language?: string
           twitter_url?: string | null
           updated_at?: string
           username?: string
@@ -3075,6 +3078,7 @@ export type Database = {
           role_ar: string | null
           role_id: string | null
           role_tr: string | null
+          selected_language: string
           twitter_url: string | null
           updated_at: string
           username: string
