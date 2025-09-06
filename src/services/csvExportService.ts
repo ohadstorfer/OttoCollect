@@ -464,11 +464,16 @@ export async function generateAdminExcel(options: AdminExportOptions): Promise<A
   // Preferred ordering for readability
   const preferredOrder = [
     'country', 'extended_pick_number', 'pick_number', 'turk_catalog_number',
-    'face_value', 'islamic_year', 'gregorian_year', 'sultan_name', 'type', 'category',
-    'rarity', 'security_element', 'colors', 'serial_numbering', 'printer', 'dimensions',
-    'banknote_description', 'historical_description', 'signatures_front', 'signatures_back',
-    'seal_names', 'watermark', 'front_picture', 'back_picture', 'tughra_picture', 'watermark_picture',
-    'seal_pictures', 'signature_pictures', 'other_element_pictures', 'id'
+    'face_value', 'islamic_year', 'gregorian_year',
+    'signatures_front', 'signatures_back', 'signature_pictures',
+    'seal_names', 'seal_pictures',
+    'watermark_picture', 'other_element_pictures',
+    'front_picture', 'back_picture',
+    'sultan_name', 'tughra_picture', 'printer',
+    'type', 'category', 'rarity', 'security_element',
+    'colors', 'serial_numbering',
+    'banknote_description', 'historical_description',
+    'dimensions'
   ];
 
   const remainingKeys = Array.from(allKeysSet).filter(k => !preferredOrder.includes(k)).sort();
