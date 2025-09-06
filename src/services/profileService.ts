@@ -329,20 +329,19 @@ export async function deleteUserById(userId: string): Promise<boolean> {
     }
 
     // 2. Call edge function to delete the Supabase Auth user
-    // eslint-disable-next-line no-undef
-    const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseEdgeUrl = '/functions/v1/delete-auth-user';
-
-    const res = await fetch(supabaseEdgeUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, serviceKey }),
+    // Use supabase.functions.invoke with proper authentication
+    const { data, error: functionError } = await supabase.functions.invoke('delete-auth-user', {
+      body: { userId }
     });
 
-    if (!res.ok) {
-      const txt = await res.text();
-      console.error("Failed to delete Auth user:", txt);
+    if (functionError) {
+      console.error("Failed to delete Auth user:", functionError);
       console.error('Deleted profile row, but failed to delete authentication user.');
+      return false;
+    }
+
+    if (!data?.success) {
+      console.error("Edge function returned unsuccessful response:", data);
       return false;
     }
 
