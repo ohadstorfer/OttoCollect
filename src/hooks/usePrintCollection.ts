@@ -471,7 +471,6 @@ export const usePrintCollection = () => {
                 otherImages.push(`
                   <div class="image-container" style="height: ${imageHeight};">
                     <img src="${watermarkImage}" alt="Watermark" />
-                    <div class="image-label">Watermark picture</div>
                   </div>
                 `);
             }
@@ -480,7 +479,6 @@ export const usePrintCollection = () => {
                 otherImages.push(`
                   <div class="image-container" style="height: ${imageHeight};">
                     <img src="${tugraImage}" alt="Tugra" />
-                    <div class="image-label">Togra picture</div>
                   </div>
                 `);
             }
