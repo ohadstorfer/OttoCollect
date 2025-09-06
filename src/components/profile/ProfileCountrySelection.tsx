@@ -15,6 +15,7 @@ interface ProfileCountrySelectionProps {
   userId: string;
   isOwnProfile: boolean;
   selectedCountry: string | null; // country ID
+  selectedCountryName: string | null; // country name
   showCountryDetail: boolean;
   profileId: string;
   onCountrySelect: (countryId: string, countryName: string) => void;
@@ -32,6 +33,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
   userId,
   isOwnProfile,
   selectedCountry,
+  selectedCountryName,
   showCountryDetail,
   profileId,
   onCountrySelect,
@@ -41,7 +43,7 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
 }) => {
   const { t } = useTranslation(['profile']);
   // State for country name (after lookup, if necessary)
-  const [countryName, setCountryName] = useState<string | null>(null);
+  const [countryName, setCountryName] = useState<string | null>(selectedCountryName);
   const [isLoading, setIsLoading] = useState(false);
 
   // Scroll position management for smooth loading
@@ -52,9 +54,15 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
     }
   }, [isLoading]);
 
-  // When selectedCountry changes, fetch the country name for display
+  // Handle country name updates - prioritize selectedCountryName prop
   useEffect(() => {
-    if (selectedCountry && showCountryDetail) {
+    if (selectedCountryName) {
+      // Use the passed country name immediately
+      setCountryName(selectedCountryName);
+      setIsLoading(false);
+    } else if (selectedCountry && showCountryDetail) {
+      // Fallback: fetch country name if not provided
+      setCountryName(null);
       setIsLoading(true);
       fetchCountryById(selectedCountry).then(countryData => {
         if (countryData) {
@@ -68,49 +76,46 @@ const ProfileCountrySelection: React.FC<ProfileCountrySelectionProps> = ({
       setCountryName(null);
       setIsLoading(false);
     }
-  }, [selectedCountry, showCountryDetail]);
+  }, [selectedCountry, selectedCountryName, showCountryDetail]);
 
-  // Updated handler to match CountrySelection's expected type
-  const handleCountrySelect = (country: string) => {
-    // First fetch the country by name to get its ID
-    fetchCountryByName(country).then(countryData => {
-      if (countryData) {
-        onCountrySelect(countryData.id, countryData.name);
-      }
-    });
+  // Handler for country selection with ID and name (no API call needed)
+  const handleCountrySelectWithId = (countryId: string, countryName: string) => {
+    // Call the parent handler immediately with both ID and name
+    onCountrySelect(countryId, countryName);
   };
 
-  // Show loading state if we're supposed to show country detail but don't have the country name yet
-  if (showCountryDetail && selectedCountry && !countryName && isLoading) {
+  // Show country collection immediately when selected, with loading state inside
+  if (showCountryDetail && selectedCountry) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600"></div>
+      <div>
+        {isLoading || !countryName ? (
+          // Show loading state within the country collection view
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ottoman-600 mb-4"></div>
+            <p className="text-muted-foreground">Loading collection...</p>
+          </div>
+        ) : (
+          // Show the actual country collection
+          <CountryDetailCollection 
+            userId={userId} 
+            countryName={countryName}
+            profileView={true}
+            onBackToCountries={onBackToCountries}
+            profileData={profile}
+          />
+        )}
       </div>
     );
   }
 
-  // Don't render anything if we're supposed to show country detail but don't have the required data
-  if (showCountryDetail && (!selectedCountry || !countryName)) {
-    return null;
-  }
-
-  return showCountryDetail && selectedCountry && countryName ? (
-    <div >
-      <CountryDetailCollection 
-        userId={userId} 
-        countryName={countryName}
-        profileView={true}
-        onBackToCountries={onBackToCountries}
-        profileData={profile}
-      />
-    </div>
-  ) : (
+  // Show country selection when no country is selected
+  return (
     <CountrySelection 
       showHeader={false}
       customTitle={`${isOwnProfile ? t('countrySelection.myCollection') : t('countrySelection.userCollection', { username: userId })}`}
       customDescription={t('countrySelection.browseCollectionByCountry')}
       userId={userId}
-      onCountrySelect={handleCountrySelect}
+      onCountrySelectWithId={handleCountrySelectWithId}
     />
   );
 };

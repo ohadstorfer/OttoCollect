@@ -22,6 +22,7 @@ const Profile: React.FC = () => {
   const { currentLanguage } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedCountry, setSelectedCountry] = React.useState<string | null>(null);
+  const [selectedCountryName, setSelectedCountryName] = React.useState<string | null>(null);
   const [showCountryDetail, setShowCountryDetail] = React.useState(false);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
   const [isLoadingCountry, setIsLoadingCountry] = React.useState(false);
@@ -58,21 +59,6 @@ const Profile: React.FC = () => {
     return authUser.id === profile.id;
   }, [authUser, profile]);
   
-  // Add debug logging to help troubleshoot
-  React.useEffect(() => {
-    console.log('Profile component state:', {
-      routeUsername,
-      routeCountry,
-      'authUser?.id': authUser?.id,
-      'profile?.id': profile?.id,
-      'profile?.avatarUrl': profile?.avatarUrl,
-      'authUser?.avatarUrl': authUser?.avatarUrl,
-      isOwnProfile,
-      selectedCountry,
-      showCountryDetail,
-      isLoadingCountry
-    });
-  }, [routeUsername, routeCountry, authUser, profile, isOwnProfile, selectedCountry, showCountryDetail, isLoadingCountry]);
 
   // Handle country selection from URL parameter
   React.useEffect(() => {
@@ -117,10 +103,12 @@ const Profile: React.FC = () => {
 
   // Handlers for country selection and back navigation
   const handleCountrySelect = (countryId: string, countryName: string) => {
+    // Update all state immediately for instant UI response
     setSelectedCountry(countryId);
+    setSelectedCountryName(countryName);
     setShowCountryDetail(true);
     
-    // Update URL to include the country
+    // Update URL to include the country (non-blocking)
     const encodedCountryName = encodeURIComponent(countryName);
     navigate(`/profile/${username}/${encodedCountryName}`, { replace: true });
   };
@@ -128,6 +116,7 @@ const Profile: React.FC = () => {
   const handleBackToCountries = () => {
     setShowCountryDetail(false);
     setSelectedCountry(null);
+    setSelectedCountryName(null);
     
     // Update URL to remove the country parameter
     navigate(`/profile/${username}`, { replace: true });
@@ -145,7 +134,7 @@ const Profile: React.FC = () => {
     await queryClient.invalidateQueries({ queryKey: ['profile'] });
   };
 
-  if (profileLoading || (routeCountry && isLoadingCountry)) {
+  if (profileLoading) {
     return (
       <div className="page-container max-w-5xl mx-auto py-10 mb-20">
         <div className="flex justify-center py-12">
@@ -208,6 +197,7 @@ const Profile: React.FC = () => {
             userId={profile.id}
             isOwnProfile={isOwnProfile}
             selectedCountry={selectedCountry}
+            selectedCountryName={selectedCountryName}
             showCountryDetail={showCountryDetail}
             onCountrySelect={handleCountrySelect}
             onBackToCountries={handleBackToCountries}

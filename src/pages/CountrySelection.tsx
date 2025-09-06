@@ -19,6 +19,7 @@ interface CountrySelectionProps {
   customDescription?: string;
   userId?: string;
   onCountrySelect?: (country: string) => void;
+  onCountrySelectWithId?: (countryId: string, countryName: string) => void;
 }
 
 const CountrySelection: React.FC<CountrySelectionProps> = ({
@@ -26,7 +27,8 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
   customTitle,
   customDescription,
   userId,
-  onCountrySelect
+  onCountrySelect,
+  onCountrySelectWithId
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -85,6 +87,17 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
       onCountrySelect(country);
     } else {
       navigate(`/collectionNew/${country}`);
+    }
+  };
+
+  const handleCountrySelectWithId = (countryId: string, countryName: string) => {
+    // Set the active tab to "collection" when navigating to a country collection
+    sessionStorage.setItem('countryDetailActiveTab', 'collection');
+    
+    if (onCountrySelectWithId) {
+      onCountrySelectWithId(countryId, countryName);
+    } else {
+      navigate(`/collectionNew/${countryName}`);
     }
   };
 
@@ -206,7 +219,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                 <Card
                   key={country.id}
                   className="h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-dark-600 bg-white border-ottoman-200 dark:border-ottoman-800/50 cursor-pointer"
-                  onClick={() => handleCountrySelect(country.name)}
+                  onClick={() => onCountrySelectWithId ? handleCountrySelectWithId(country.id, country.name) : handleCountrySelect(country.name)}
                 >
                   <div className="aspect-[4/2] overflow-hidden relative">
                     {country.imageUrl ? (
