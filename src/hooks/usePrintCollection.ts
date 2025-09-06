@@ -463,7 +463,6 @@ export const usePrintCollection = () => {
                 otherImages.push(`
                   <div class="image-container" style="height: ${imageHeight};">
                     <img src="${sig}" alt="Signature ${index + 1}" />
-                    <div class="image-label">Signature ${index === 0 ? 'front' : 'back'}</div>
                   </div>
                 `);
             });

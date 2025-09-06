@@ -596,6 +596,7 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
               userId: collectionItem.user_id,
               banknoteId: collectionItem.banknote_id,
               banknote,
+              
               condition: collectionItem.condition as BanknoteCondition,
               grade_by: collectionItem.grade_by,
               grade: collectionItem.grade,
