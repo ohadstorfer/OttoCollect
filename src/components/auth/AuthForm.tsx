@@ -450,21 +450,29 @@ const AuthForm = () => {
               </form>
 
               {/* Google login button */}
-              {/* <div className="flex items-center justify-center gap-2 my-2">
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="w-full flex items-center justify-center gap-2 mt-2"
-                  onClick={handleGoogleAuth}
-                >
-                  <img
-                    src="https://www.svgrepo.com/show/475656/google-color.svg"
-                    alt="Google"
-                    className="w-5 h-5"
-                  />
-                  Sign in with Google
-                </Button>
-              </div> */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                </div>
+              </div>
+              
+              <Button
+                variant="outline"
+                type="button"
+                className="w-full flex items-center justify-center gap-2"
+                onClick={handleGoogleAuth}
+                disabled={authLoading || loginLoading}
+              >
+                <img
+                  src="https://www.svgrepo.com/show/475656/google-color.svg"
+                  alt="Google"
+                  className="w-5 h-5"
+                />
+                Sign in with Google
+              </Button>
 
               <div className="text-center">
                 <p className="text-sm text-ottoman-400">
@@ -700,21 +708,29 @@ const AuthForm = () => {
               </form>
 
               {/* Google sign-up button */}
-              {/* <div className="flex items-center justify-center gap-2 my-2">
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="w-full flex items-center justify-center gap-2 mt-2"
-                  onClick={handleGoogleAuth}
-                >
-                  <img
-                    src="https://www.svgrepo.com/show/475656/google-color.svg"
-                    alt="Google"
-                    className="w-5 h-5"
-                  />
-                  Sign up with Google
-                </Button>
-              </div> */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                </div>
+              </div>
+              
+              <Button
+                variant="outline"
+                type="button"
+                className="w-full flex items-center justify-center gap-2"
+                onClick={handleGoogleAuth}
+                disabled={authLoading || registerLoading}
+              >
+                <img
+                  src="https://www.svgrepo.com/show/475656/google-color.svg"
+                  alt="Google"
+                  className="w-5 h-5"
+                />
+                Sign up with Google
+              </Button>
 
               <div className="text-center">
                 <p className="text-sm text-ottoman-400">
