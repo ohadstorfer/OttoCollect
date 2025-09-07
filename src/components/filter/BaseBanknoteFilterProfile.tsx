@@ -274,6 +274,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     setLocalGroupMode(groupMode);
   }, [groupMode]);
 
+
   const handleFilterChange = (changes: Partial<DynamicFilterState>) => {
 
     isLocalChange.current = true;
@@ -303,6 +304,18 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       isLocalChange.current = false;
     }, 200);
   };
+
+  // Safety check: ensure filters are never empty on initialization
+  useEffect(() => {
+    if (categories.length > 0 && selectedCategories.length === 0) {
+      setSelectedCategories(categories.map(c => c.id));
+      handleFilterChange({ categories: categories.map(c => c.id) });
+    }
+    if (types.length > 0 && selectedTypes.length === 0) {
+      setSelectedTypes(types.map(t => t.id));
+      handleFilterChange({ types: types.map(t => t.id) });
+    }
+  }, [categories, types, selectedCategories, selectedTypes, handleFilterChange]);
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
@@ -336,6 +349,11 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       }
     }
 
+    // Safety check: ensure we never have empty categories
+    if (newCategories.length === 0 && categories.length > 0) {
+      newCategories = categories.map(c => c.id);
+    }
+
     handleFilterChange({ categories: newCategories });
   };
 
@@ -362,6 +380,11 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
         }
         newTypes = selectedTypes.filter(id => id !== typeId);
       }
+    }
+
+    // Safety check: ensure we never have empty types
+    if (newTypes.length === 0 && types.length > 0) {
+      newTypes = types.map(t => t.id);
     }
 
     handleFilterChange({ types: newTypes });

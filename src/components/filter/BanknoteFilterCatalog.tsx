@@ -258,9 +258,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         } else if (!initialLoadComplete.current && !user) {
           // Only apply defaults if there's no user (not logged in)
           const defaultCategoryIds = mappedCategories.map(cat => cat.id);
-          const defaultTypeIds = mappedTypes
-            .filter(type => type.name.toLowerCase().includes('issued'))
-            .map(t => t.id);
+          // For unauthenticated users, select ALL types by default
+          const defaultTypeIds = mappedTypes.map(t => t.id);
             
           const defaultSort = ['extPick'];
           
@@ -272,9 +271,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         } else if (!initialLoadComplete.current && user && !userPreferences) {
           // User is logged in but has no preferences - apply defaults
           const defaultCategoryIds = mappedCategories.map(cat => cat.id);
-          const defaultTypeIds = mappedTypes
-            .filter(type => type.name.toLowerCase().includes('issued'))
-            .map(t => t.id);
+          // For authenticated users with no preferences, select ALL types by default
+          const defaultTypeIds = mappedTypes.map(t => t.id);
             
           const defaultSort = ['extPick'];
           

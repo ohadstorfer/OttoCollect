@@ -50,8 +50,8 @@ export interface BanknoteFilterCollectionProps {
 
 // Custom comparison function to ensure re-renders when viewMode or groupMode change
 const areEqual = (prevProps: BanknoteFilterCollectionProps, nextProps: BanknoteFilterCollectionProps) => {
-  // Always re-render if viewMode or groupMode change
-  if (prevProps.viewMode !== nextProps.viewMode || prevProps.groupMode !== nextProps.groupMode) {
+  // Always re-render if groupMode change
+  if (prevProps.groupMode !== nextProps.groupMode) {
     
     return false;
   }
@@ -290,9 +290,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         } else if (!initialLoadComplete.current) {
           // Set default filters if no user preferences are found
           const defaultCategoryIds = mappedCategories.map(cat => cat.id);
-          const defaultTypeIds = mappedTypes
-            .filter(type => type.name.toLowerCase().includes('issued'))
-            .map(t => t.id);
+          // Select ALL types by default for both authenticated and unauthenticated users
+          const defaultTypeIds = mappedTypes.map(t => t.id);
             
           // For new users, default to sorting by extPick only since it comes pre-sorted from the DB
           const defaultSort = ['extPick']; // Remove faceValue from default sort

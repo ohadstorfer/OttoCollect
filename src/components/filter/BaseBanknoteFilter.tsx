@@ -174,6 +174,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     setLocalGroupMode(groupMode);
   }, [groupMode]);
 
+
   useEffect(() => {
     if (isLocalChange.current) {
       return;
@@ -240,6 +241,22 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     }, 200);
   };
 
+  // Safety check: ensure filters are never empty on initialization
+  useEffect(() => {
+    if (categories.length > 0 && selectedCategories.length === 0) {
+      setSelectedCategories(categories.map(c => c.id));
+      handleFilterChange({ categories: categories.map(c => c.id) });
+    }
+    if (types.length > 0 && selectedTypes.length === 0) {
+      setSelectedTypes(types.map(t => t.id));
+      handleFilterChange({ types: types.map(t => t.id) });
+    }
+    if (countries.length > 0 && selectedCountries.length === 0) {
+      setSelectedCountries(countries.map(c => c.id));
+      handleFilterChange({ countries: countries.map(c => c.id) });
+    }
+  }, [categories, types, countries, selectedCategories, selectedTypes, selectedCountries, handleFilterChange]);
+
   const debouncedSearch = useCallback(
     debounce((value: string) => {
       handleFilterChange({ search: value });
@@ -272,6 +289,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
       }
     }
     
+    // Safety check: ensure we never have empty categories
+    if (newCategories.length === 0 && categories.length > 0) {
+      newCategories = categories.map(c => c.id);
+    }
+    
     handleFilterChange({ categories: newCategories });
   };
 
@@ -298,6 +320,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
         }
         newTypes = selectedTypes.filter(id => id !== typeId);
       }
+    }
+    
+    // Safety check: ensure we never have empty types
+    if (newTypes.length === 0 && types.length > 0) {
+      newTypes = types.map(t => t.id);
     }
     
     handleFilterChange({ types: newTypes });
@@ -329,6 +356,11 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
         }
         newCountries = selectedCountries.filter(id => id !== countryId);
       }
+    }
+    
+    // Safety check: ensure we never have empty countries
+    if (newCountries.length === 0 && countries.length > 0) {
+      newCountries = countries.map(c => c.id);
     }
     
     handleFilterChange({ countries: newCountries });
