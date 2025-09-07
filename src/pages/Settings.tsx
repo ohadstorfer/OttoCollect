@@ -31,6 +31,11 @@ const Settings: React.FC = () => {
     );
   }
 
+  // Check if user has email/password provider (not just OAuth)
+  const hasPasswordProvider = user?.app_metadata?.providers?.includes('email') || 
+                              user?.user_metadata?.provider === 'email' ||
+                              (!user?.app_metadata?.providers || user?.app_metadata?.providers?.length === 0);
+
   const tabs = [
     {
       id: 'profile' as SettingsTab,
@@ -38,12 +43,13 @@ const Settings: React.FC = () => {
       icon: User,
       description: t('tabs.profile.description')
     },
-    {
+    // Only show password tab for users with email/password authentication
+    ...(hasPasswordProvider ? [{
       id: 'password' as SettingsTab,
       label: t('tabs.password.label'),
       icon: Lock,
       description: t('tabs.password.description')
-    }
+    }] : [])
   ];
 
   return (
