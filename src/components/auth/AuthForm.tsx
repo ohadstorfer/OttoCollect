@@ -16,11 +16,15 @@ import TermsOfService from "@/pages/TermsOfService";
 import { useTranslation } from 'react-i18next';
 import { EmailConfirmationDialog } from "./EmailConfirmationDialog";
 
-const AuthForm = () => {
+interface AuthFormProps {
+  mode?: 'login' | 'register' | 'reset';
+}
+
+const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
   const { t } = useTranslation(['pages']);
   const { login, register, blockedNotice, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("login");
+  const [activeTab, setActiveTab] = useState(initialMode);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [resetOpen, setResetOpen] = useState(false);
@@ -274,10 +278,13 @@ const AuthForm = () => {
 
   const handleGoogleAuth = async () => {
     try {
+      // Get the current URL to redirect back to the same domain
+      const currentOrigin = window.location.origin;
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${currentOrigin}/`,
         },
       });
       if (error) throw error;
