@@ -43,7 +43,7 @@ const useLocalizedAbout = (userId: string, currentLanguage: string) => {
                     userId,
                     currentLanguage as 'ar' | 'tr'
                 );
-                
+
                 if (result.success && result.translatedContent) {
                     setLocalizedAbout(result.translatedContent);
                 }
@@ -75,32 +75,32 @@ const AboutUs: React.FC = () => {
         '64681131-4747-4036-9c32-fe60a560bf78' // Dror
     ];
 
-         // Fetch founder profiles
-     const { data: founders, isLoading: foundersLoading } = useQuery({
-         queryKey: ['founders', founderIds, currentLanguage],
-                   queryFn: async () => {
-              const profiles = await Promise.all(
-                  founderIds.map(id => getUserProfile(id, currentLanguage, true))
-              );
-              return profiles.filter(Boolean);
-          },
-         enabled: founderIds.length > 0,
-     });
+    // Fetch founder profiles
+    const { data: founders, isLoading: foundersLoading } = useQuery({
+        queryKey: ['founders', founderIds, currentLanguage],
+        queryFn: async () => {
+            const profiles = await Promise.all(
+                founderIds.map(id => getUserProfile(id, currentLanguage, true))
+            );
+            return profiles.filter(Boolean);
+        },
+        enabled: founderIds.length > 0,
+    });
 
-         const handleFounderClick = (username: string) => {
-         navigate(`/profile/${username}`);
-     };
+    const handleFounderClick = (username: string) => {
+        navigate(`/profile/${username}`);
+    };
 
-     // Use the localized about hook for each founder
-     const assafLocalizedAbout = useLocalizedAbout(
-         founders?.[0]?.id || '',
-         currentLanguage
-     );
-     
-     const drorLocalizedAbout = useLocalizedAbout(
-         founders?.[1]?.id || '',
-         currentLanguage
-     );
+    // Use the localized about hook for each founder
+    const assafLocalizedAbout = useLocalizedAbout(
+        founders?.[0]?.id || '',
+        currentLanguage
+    );
+
+    const drorLocalizedAbout = useLocalizedAbout(
+        founders?.[1]?.id || '',
+        currentLanguage
+    );
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-ottoman-50 to-ottoman-100 dark:from-dark-900 dark:to-dark-800 -mb-20">
@@ -188,22 +188,22 @@ const AboutUs: React.FC = () => {
                                             </div>
 
                                             <h3 className="text-xl font-bold text-ottoman-900 dark:text-ottoman-100 mb-2">
-                                                <span>{ t('aboutUs.founders.assaf.name')}</span>
+                                                <span>{t('aboutUs.founders.assaf.name')}</span>
                                             </h3>
 
                                             {founders?.[0]?.rank && (
                                                 <Badge variant="user" rank={founders[0].rank} className="mb-3" />
                                             )}
 
-                                                                                         <p className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed">
-                                                 {assafLocalizedAbout.isLoading ? (
-                                                     <span className="text-muted-foreground">Loading...</span>
-                                                 ) : currentLanguage === 'en' ? (
-                                                     founders?.[0]?.about || t('aboutUs.founders.assaf.description')
-                                                 ) : (
-                                                     assafLocalizedAbout.localizedAbout || founders?.[0]?.about || t('aboutUs.founders.assaf.description')
-                                                 )}
-                                             </p>
+                                            <p className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed">
+                                                {assafLocalizedAbout.isLoading ? (
+                                                    <span className="text-muted-foreground">Loading...</span>
+                                                ) : currentLanguage === 'en' ? (
+                                                    founders?.[0]?.about || t('aboutUs.founders.assaf.description')
+                                                ) : (
+                                                    assafLocalizedAbout.localizedAbout || founders?.[0]?.about || t('aboutUs.founders.assaf.description')
+                                                )}
+                                            </p>
 
                                             <Button
                                                 variant="outline"
@@ -239,36 +239,24 @@ const AboutUs: React.FC = () => {
                                             </div>
 
                                             <h3 className="text-xl font-bold text-ottoman-900 dark:text-ottoman-100 mb-2">
-                                                <span>{ t('aboutUs.founders.dror.name')}</span>
+                                                <span>{t('aboutUs.founders.dror.name')}</span>
                                             </h3>
 
                                             {founders?.[1]?.rank && (
                                                 <Badge variant="user" rank={founders[1].rank} className="mb-3" />
                                             )}
 
-                                                                                         <div className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed space-y-3">
-                                                 <p>
-                                                     {drorLocalizedAbout.isLoading ? (
-                                                         <span className="text-muted-foreground">Loading...</span>
-                                                     ) : currentLanguage === 'en' ? (
-                                                         founders?.[1]?.about || (
-                                                             <>
-                                                                 {t('aboutUs.founders.dror.description1')}
-                                                                 <br />
-                                                                 {t('aboutUs.founders.dror.description2')}
-                                                             </>
-                                                         )
-                                                     ) : (
-                                                         drorLocalizedAbout.localizedAbout || founders?.[1]?.about || (
-                                                             <>
-                                                                 {t('aboutUs.founders.dror.description1')}
-                                                                 <br />
-                                                                 {t('aboutUs.founders.dror.description2')}
-                                                             </>
-                                                         )
-                                                     )}
-                                                 </p>
-                                             </div>
+                                            <div className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed space-y-3">
+                                            <p className="text-ottoman-700 dark:text-ottoman-300 mb-4 leading-relaxed">
+                                                {drorLocalizedAbout.isLoading ? (
+                                                    <span className="text-muted-foreground">Loading...</span>
+                                                ) : currentLanguage === 'en' ? (
+                                                    founders?.[1]?.about || t('aboutUs.founders.dror.description')
+                                                ) : (
+                                                    drorLocalizedAbout.localizedAbout || founders?.[1]?.about || t('aboutUs.founders.dror.description')
+                                                )}
+                                            </p>
+                                            </div>
 
                                             <Button
                                                 variant="outline"
