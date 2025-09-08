@@ -32,8 +32,8 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   structuredData
 }) => {
   // Default SEO for Ottoman Empire banknotes
-  const defaultTitle = 'OttoCollect - Authentic Ottoman Empire Banknotes for Collectors';
-  const defaultDescription = 'Discover rare and authentic Ottoman Empire banknotes, Turkish lira paper money, and historical currency from the 1800s. Buy, sell, and trade with collectors worldwide.';
+  const defaultTitle = 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform';
+  const defaultDescription = 'OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors of Ottoman Empire banknotes and those from successor countries since 1840. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.';
   const defaultKeywords = [
     'Ottoman Empire banknotes',
     'Turkish lira paper money',
@@ -157,6 +157,26 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="twitter:description" content={seoData.description} />
       <meta name="twitter:image" content={image} />
       <meta name="twitter:site" content="@ottocollect" />
+      
+      {/* Favicon configuration for Google Search Results */}
+      <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+      <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+      <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+      <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+      <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+      <link rel="icon" type="image/png" sizes="192x192" href="/web-app-manifest-192x192.png" />
+      <link rel="icon" type="image/png" sizes="512x512" href="/web-app-manifest-512x512.png" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+      <link rel="manifest" href="/site.webmanifest" />
+      
+      {/* Microsoft Tiles */}
+      <meta name="msapplication-TileImage" content="/web-app-manifest-192x192.png" />
+      <meta name="msapplication-TileColor" content="#1f2937" />
+      
+      {/* Google-specific favicon meta tags */}
+      <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+      <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+      <meta itemProp="image" content="https://ottocollect.com/web-app-manifest-192x192.png" />
       
       {/* Additional SEO Meta Tags */}
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />

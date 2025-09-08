@@ -1,7 +1,8 @@
 
 -- Create a new storage bucket for banknote images
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('banknote_images', 'banknote_images', true);
+VALUES ('banknote_images', 'banknote_images', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- Create policies to allow users to access banknote images
 CREATE POLICY "Public Access to Banknote Images"
