@@ -33,7 +33,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
 }) => {
   // Default SEO for Ottoman Empire banknotes
   const defaultTitle = 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform';
-  const defaultDescription = 'OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors of Ottoman Empire banknotes and those from successor countries since 1840. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.';
+  const defaultDescription = 'OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.';
   const defaultKeywords = [
     'Ottoman Empire banknotes',
     'Turkish lira paper money',
