@@ -197,7 +197,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
           "name": "OttoCollect",
           "url": "https://ottocollect.com",
           "logo": "https://ottocollect.com/logo.png",
-          "description": "Premier marketplace for Ottoman Empire banknotes and historical currency",
+          "description": "OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform",
           "sameAs": [
             "https://twitter.com/ottocollect",
             "https://facebook.com/ottocollect"
