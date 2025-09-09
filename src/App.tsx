@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { HelmetProvider } from 'react-helmet-async';
+import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
 import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import Index from "@/pages/Index";
@@ -76,6 +77,9 @@ function App() {
   const { i18n } = useTranslation();
   const { theme } = useTheme();
   const { user } = useAuth();
+  
+  // Initialize performance optimizations
+  usePerformanceOptimization();
   const location = useLocation();
   
   // Auto-scroll to top on route changes

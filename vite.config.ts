@@ -23,16 +23,26 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    minify: 'esbuild', // Use esbuild instead of terser for better reliability
+    minify: 'esbuild',
+    target: 'es2015', // Target modern browsers for better performance
+    cssCodeSplit: true, // Split CSS for better caching
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
+          i18n: ['react-i18next', 'i18next'],
+          supabase: ['@supabase/supabase-js'],
         },
+        // Optimize chunk names for better caching
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
+    // Optimize chunk size warnings
+    chunkSizeWarningLimit: 1000,
   },
   preview: {
     port: 8080,

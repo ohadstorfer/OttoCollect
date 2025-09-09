@@ -12,6 +12,16 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://ottocollect.com" />
     
+    <!-- Preload critical resources for faster loading -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    <link rel="preload" href="/OttoCollectIcon.PNG" as="image" fetchpriority="high" />
+    <link rel="preload" href="/web-app-manifest-192x192.png" as="image" />
+    
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="//cdn.gpteng.co" />
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    
     <!-- Favicon configuration for Google Search Results -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -106,7 +116,7 @@
   <body>
     <div id="root"></div>
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module" defer></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

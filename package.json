@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/optimize-assets.js",
     "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production && node scripts/optimize-assets.js",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "optimize": "node scripts/optimize-assets.js"
   },
   "dependencies": {
     "@google-cloud/translate": "^9.2.0",

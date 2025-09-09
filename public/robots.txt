@@ -17,5 +17,4 @@ Allow: /collection/
 Allow: /blog/
 Allow: /community/
 
-# Crawl delay (optional)
-Crawl-delay: 1
+
