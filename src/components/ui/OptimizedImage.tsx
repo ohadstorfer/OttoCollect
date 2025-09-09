@@ -70,7 +70,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           style={{ width, height }}
         >
           <div className="text-center">
-            <div className="text-sm">Image failed to load</div>
+            <div className="text-sm font-semibold">OttoCollect</div>
           </div>
         </div>
       )}

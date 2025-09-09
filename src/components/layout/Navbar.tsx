@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Menu, X, Search, User, LogIn, ShoppingCart, BookOpen, MessageCircle, Sun, Moon, Shield } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 import { MessageButton } from "@/components/messages/MessageButton";
 import { useTheme } from "@/context/ThemeContext";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
@@ -58,10 +59,14 @@ const Navbar = () => {
           {/* Logo and site name */}
           <Link to="/" className="flex items-center gap-2 group" onClick={closeMenu}>
             <div className="flex items-center gap-2">
-              <img 
-                src="/favicon.PNG" 
+              <OptimizedImage 
+                src="/OttoCollectIcon.PNG" 
                 alt="OttoCollect Logo" 
                 className="w-14 h-14 object-contain"
+                priority={true}
+                lazy={false}
+                width={56}
+                height={56}
               />
               <h1 className={`text-xl font-serif ${theme === 'light' ? 'text-ottoman-800' : 'text-ottoman-100'} font-semibold tracking-tight`}>
                 <span className="text-gradient">OttoCollect</span> 

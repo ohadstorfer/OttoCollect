@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Search, Database, BookOpen, Users, DollarSign, ArrowLeft, ArrowRight } from "lucide-react";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 import LatestForumPosts from "@/components/home/LatestForumPosts";
 import MarketplaceHighlights from "@/components/home/MarketplaceHighlights";
 import { fetchForumPosts } from "@/services/forumService";
@@ -217,10 +218,14 @@ const Index = () => {
                 OttoCollect
               </span>
             </h1>
-            <img
-              src="/favicon.PNG"
+            <OptimizedImage
+              src="/OttoCollectIcon.PNG"
               alt="OttoCollect Logo"
-              className="w-[200px] h-[200px] object-contain animate-floating "
+              className="w-[200px] h-[200px] object-contain animate-floating"
+              priority={true}
+              lazy={false}
+              width={200}
+              height={200}
             />
 
           </div>

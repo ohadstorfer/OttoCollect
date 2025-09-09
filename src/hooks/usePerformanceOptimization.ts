@@ -5,6 +5,7 @@ export const usePerformanceOptimization = () => {
     // Preload critical images
     const preloadImages = [
       '/OttoCollectIcon.PNG',
+      '/favicon.PNG',
       '/web-app-manifest-192x192.png',
       '/apple-touch-icon.png'
     ];
