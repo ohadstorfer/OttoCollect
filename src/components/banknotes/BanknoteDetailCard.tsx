@@ -369,7 +369,8 @@ const BanknoteDetailCard = ({
       return (
         <img
           src={displayImage}
-          alt={`${banknote.country} ${banknote.denomination} (${banknote.year})`}
+          alt={` ${banknote.denomination} banknote from ${banknote.country}, issued in ${banknote.year} with Pick number ${banknote.pickNumber}`}
+
           className="object-contain w-full h-auto max-h-60"
         />
       );
@@ -408,7 +409,8 @@ const BanknoteDetailCard = ({
                 {displayImage && displayImage !== '/placeholder.svg' ? (
                   <img
                     src={displayImage}
-                    alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Front`}
+                    alt={` ${banknote.denomination} banknote from ${banknote.country}, issued in ${banknote.year} with Pick number ${banknote.pickNumber}`}
+
                     className="w-full h-full object-contain"
                   />
                 ) : (
@@ -427,7 +429,8 @@ const BanknoteDetailCard = ({
                 {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
                   <img
                     src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
-                    alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) - Back`}
+                    alt={` ${banknote.denomination} banknote from ${banknote.country}, issued in ${banknote.year} with Pick number ${banknote.pickNumber}`}
+
                     className="w-full h-full object-contain"
                   />
                 ) : (

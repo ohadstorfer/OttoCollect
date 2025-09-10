@@ -685,7 +685,8 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                               <div className="absolute inset-0 overflow-hidden border">
                                 <img
                                   src={url}
-                                  alt={`Banknote Image ${index + 1}`}
+                                  alt={` ${banknote.denomination} banknote from ${banknote.country}, issued in ${banknote.year} with Pick number ${banknote.pickNumber}`}
+                                  // alt={`Banknote Image ${index + 1}`}
                                   className="w-full h-full object-cover"
                                 />
                               </div>

@@ -126,7 +126,7 @@ const Catalog = () => {
                   {country.imageUrl ? (
                     <img
                       src={country.imageUrl}
-                      alt={country.name}
+                      alt={"Banknotes catalogue from " + country.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (

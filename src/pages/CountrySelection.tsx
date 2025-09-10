@@ -225,7 +225,7 @@ const CountrySelection: React.FC<CountrySelectionProps> = ({
                     {country.imageUrl ? (
                       <img
                         src={country.imageUrl}
-                        alt={country.name}
+                        alt={"Banknotes collection from " + country.name}
                         className="w-full h-full object-cover"
                       />
                     ) : (

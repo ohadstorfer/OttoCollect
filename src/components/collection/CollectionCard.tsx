@@ -65,7 +65,8 @@ const CollectionCard = ({ item, className, onEdit, onToggleSale }: CollectionCar
         >
           <LazyImage
             src={getDisplayImage()}
-            alt={`${banknote.country} ${banknote.denomination} (${banknote.year}) ${showReverse ? 'Reverse' : 'Obverse'}`}
+            alt={` ${banknote.denomination} banknote from ${banknote.country}, issued in ${banknote.year} with Pick number ${banknote.pickNumber}`}
+
             className={cn(
               "w-full h-full object-cover transition-transform duration-500",
               isHovering ? "scale-110" : "scale-100"

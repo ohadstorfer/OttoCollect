@@ -151,7 +151,7 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick, s
               {avatarUrl && !['/placeholder.svg', '/placeholder-brown.svg'].includes(avatarUrl) ? (
                 <AvatarImage 
                   src={avatarUrl} 
-                  alt={profile.username}
+                  alt={`Profile picture of ${profile.username}`}
                 />
               ) : (
                 <AvatarFallback 

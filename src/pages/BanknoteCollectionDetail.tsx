@@ -214,12 +214,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                     {showTranslatedPublicNote && translatedPublicNote ? translatedPublicNote : collectionItem.publicNote}
                   </span>
                   <div className="mt-1">
-                    {console.log('🔍 [BanknoteCollectionDetail] Translation button data:', {
-                      collectionItemId: collectionItem.id,
-                      publicNote: collectionItem.publicNote,
-                      originalLanguage: (collectionItem as any).public_note_original_language,
-                      allTranslationFields: Object.keys(collectionItem).filter(key => key.includes('public_note'))
-                    })}
+                   
                     <CollectionItemTranslationButton
                       itemId={collectionItem.id}
                       currentPublicNote={showTranslatedPublicNote && translatedPublicNote ? translatedPublicNote : collectionItem.publicNote}
