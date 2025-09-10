@@ -17,6 +17,18 @@
     <link rel="preload" href="/OttoCollectIcon.PNG" as="image" fetchpriority="high" />
     <link rel="preload" href="/web-app-manifest-192x192.png" as="image" />
     <link rel="preload" href="/favicon.PNG" as="image" />
+    <!-- Optimize Google Fonts loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Critical CSS inlining -->
+    <style>
+      /* Critical CSS for above-the-fold content */
+      body { font-family: Inter, system-ui, sans-serif; }
+      .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
     
     <!-- DNS prefetch for external resources -->
     <link rel="dns-prefetch" href="//cdn.gpteng.co" />
