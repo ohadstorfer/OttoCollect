@@ -31,7 +31,8 @@ const Profile: React.FC = () => {
   // Check if we should show badges dialog from URL parameter
   const showBadges = searchParams.get('showBadges') === 'true';
 
-  const username = routeUsername || authUser?.username;
+  // Properly decode the username parameter to handle special characters
+  const username = routeUsername ? decodeURIComponent(routeUsername) : authUser?.username;
 
   // Scroll position management for smooth loading
   React.useEffect(() => {
@@ -110,7 +111,8 @@ const Profile: React.FC = () => {
     
     // Update URL to include the country (non-blocking)
     const encodedCountryName = encodeURIComponent(countryName);
-    navigate(`/profile/${username}/${encodedCountryName}`, { replace: true });
+    const encodedUsername = encodeURIComponent(username || '');
+    navigate(`/profile/${encodedUsername}/${encodedCountryName}`, { replace: true });
   };
 
   const handleBackToCountries = () => {
@@ -119,7 +121,8 @@ const Profile: React.FC = () => {
     setSelectedCountryName(null);
     
     // Update URL to remove the country parameter
-    navigate(`/profile/${username}`, { replace: true });
+    const encodedUsername = encodeURIComponent(username || '');
+    navigate(`/profile/${encodedUsername}`, { replace: true });
   };
 
   // Handle save completion for profile edit

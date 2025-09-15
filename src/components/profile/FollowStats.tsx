@@ -40,7 +40,7 @@ const UserProfileWrapper = ({
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     onNavigate();
-    navigate(`/profile/${username}`);
+    navigate(`/profile/${encodeURIComponent(username)}`);
   };
 
   return (

@@ -33,7 +33,7 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
     e.preventDefault();
     // Navigate to user profile manually
     if (post.author) {
-      navigate(`/profile/${post.author.username}`);
+      navigate(`/profile/${encodeURIComponent(post.author.username)}`);
     }
   };
 

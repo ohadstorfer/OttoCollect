@@ -87,7 +87,7 @@ export default function Members() {
   }, [members, searchQuery, sortBy]);
 
   const handleUserClick = (username: string) => {
-    navigate(`/profile/${username}`);
+    navigate(`/profile/${encodeURIComponent(username)}`);
   };
 
   return (
