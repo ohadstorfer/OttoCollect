@@ -112,7 +112,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onOpenChange })
             <Button
               variant="ghost"
               className="w-full justify-start"
-              onClick={() => handleNavigation('/community/forum')}
+              onClick={() => handleNavigation('/forum')}
             >
               <MessageSquare className="mr-2 h-4 w-4" />
               {tWithFallback('sidebar.forum', 'Forum')}

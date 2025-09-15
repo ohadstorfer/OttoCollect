@@ -28,7 +28,7 @@ export default function CreateForumPost() {
     <div className="container py-8">
       <Button 
         variant="ghost" 
-        onClick={() => navigate('/community/forum')}
+        onClick={() => navigate('/forum')}
         className="mb-6"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />

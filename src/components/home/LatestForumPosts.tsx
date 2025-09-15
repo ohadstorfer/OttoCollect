@@ -27,7 +27,7 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
       <div className="text-center py-12">
         <p className="text-ottoman-300">No forum posts available.</p>
         <Button 
-          onClick={() => navigate('/community/forum/new')}
+          onClick={() => navigate('/create-forum-post')}
           className="mt-4"
         >
           Create the first post
@@ -37,7 +37,7 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
   }
   
   const handlePostClick = (postId: string) => {
-    navigate(`/community/forum/${postId}`);
+    navigate(`/forum-post/${postId}`);
   };
   
   // Function to safely format dates

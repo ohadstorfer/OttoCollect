@@ -62,7 +62,7 @@ const ForumPostCard = ({ post }: ForumPostCardProps) => {
   const [showTranslated, setShowTranslated] = useState(false);
 
   const handlePostClick = () => {
-    navigate(`/community/forum/${post.id}`);
+    navigate(`/forum-post/${post.id}`);
   };
 
   const handleUserProfileClick = (e: React.MouseEvent) => {

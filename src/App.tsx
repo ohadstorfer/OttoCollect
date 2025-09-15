@@ -1,4 +1,3 @@
-
 import { Routes, Route, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -63,6 +62,7 @@ import { TutorialTriggers } from '@/components/tutorial/TutorialTriggers';
 import { TutorialDebug } from '@/components/tutorial/TutorialDebug';
 import { statisticsService } from '@/services/statisticsService';
 import TestCleanup from "./pages/TestCleanup";
+import SEOChecker from "@/components/seo/SEOChecker";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,23 +85,10 @@ function App() {
   // Auto-scroll to top on route changes
   useScrollToTop();
 
+  // Track page views for analytics
   useEffect(() => {
-    // Force a re-render when language changes
-    const handleLanguageChanged = () => {
-      document.documentElement.lang = i18n.language;
-    };
-
-    i18n.on('languageChanged', handleLanguageChanged);
-    return () => {
-      i18n.off('languageChanged', handleLanguageChanged);
-    };
-  }, [i18n]);
-
-  // Track guest sessions for non-authenticated users with page view tracking
-  useEffect(() => {
-    if (!user) {
-      statisticsService.trackGuestSession();
-    }
+    // Analytics tracking can be added here when needed
+    // Currently using statisticsService for other metrics
   }, [user, location.pathname]); // Track on route changes for better page view counting
 
   return (
@@ -132,29 +119,29 @@ function App() {
                       <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
                       <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
                       <Route path="/marketplace" element={<Marketplace />} />
-                      <Route path="/marketplace/:id" element={<MarketplaceItemDetail />} />
-                      <Route path="/marketplace-unlisted/:id" element={<MarketplaceItemDetailUnlisted />} />
-                      <Route path="/community" element={<Community />} />
-                      <Route path="/community/forum" element={<Forum />} />
-                      <Route path="/community/forum/post/:id" element={<ForumPost />} />
-                      <Route path="/community/forum/:id" element={<ForumPost />} />
-                      <Route path="/community/forum/new" element={<CreateForumPost />} />
-                      <Route path="/community/forum/announcement/new" element={<CreateForumAnnouncement />} />
-                      <Route path="/community/forum/announcement/:id" element={<ForumPostAnnouncements />} />
+                      <Route path="/marketplace-item/:id" element={<MarketplaceItemDetail />} />
+                      <Route path="/marketplace-item-unlisted/:id" element={<MarketplaceItemDetailUnlisted />} />
+                      <Route path="/forum" element={<Forum />} />
+                      <Route path="/forum-post/:id" element={<ForumPost />} />
+                      <Route path="/create-forum-post" element={<CreateForumPost />} />
+                      <Route path="/create-forum-announcement" element={<CreateForumAnnouncement />} />
+                      <Route path="/forum-announcements" element={<ForumPostAnnouncements />} />
                       <Route path="/messaging" element={<Messaging />} />
                       <Route path="/messaging/:userId" element={<Messaging />} />
-                      <Route path="/contact-us" element={<ContactUs />} />
                       <Route path="/members" element={<Members />} />
-                      <Route path="/settings" element={<Settings />} />
                       <Route path="/admin" element={<Admin />} />
+                      <Route path="/community" element={<Community />} />
+                      <Route path="/settings" element={<Settings />} />
                       <Route path="/delete-processed-images" element={<DeleteProcessedImages />} />
-                      <Route path="/reset-password" element={<ResetPassword />} />
-                      <Route path="/about-us" element={<AboutUs />} />
+                      <Route path="/about" element={<AboutUs />} />
                       <Route path="/blog" element={<Blog />} />
-                      <Route path="/blog/:id" element={<BlogPost />} />
-                      <Route path="/blog/new" element={<CreateBlogPost />} />
+                      <Route path="/blog-post/:id" element={<BlogPost />} />
+                      <Route path="/create-blog-post" element={<CreateBlogPost />} />
+                      <Route path="/contact" element={<ContactUs />} />
                       <Route path="/privacy" element={<PrivacyPolicy />} />
+                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                       <Route path="/cookie-policy" element={<CookiePolicy />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
                       <Route path="/terms" element={<TermsOfService />} />
                       <Route path="/terms-of-service" element={<TermsOfService />} />
                       <Route path="/guide" element={<Guide />} />
@@ -167,6 +154,7 @@ function App() {
                   <Toaster />
                   <TutorialPopup />
                   <TutorialTriggers />
+                  <SEOChecker />
                   {/* <TutorialDebug /> */}
                 </PageBackground>
               </div>

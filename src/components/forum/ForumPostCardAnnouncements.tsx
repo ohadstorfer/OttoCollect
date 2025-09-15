@@ -64,7 +64,7 @@ const ForumPostCardAnnouncements = ({ post }: ForumPostCardAnnouncementsProps) =
   const [showTranslated, setShowTranslated] = useState(false);
 
   const handlePostClick = () => {
-    navigate(`/community/forum/announcement/${post.id}`);
+    navigate(`/forum-announcements`);
   };
 
   const handleUserProfileClick = (e: React.MouseEvent) => {

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { LogIn, ShoppingBag, UserPlus } from "lucide-react";
+import { safeNavigate } from '@/utils/safeNavigation';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -53,7 +54,7 @@ export const AuthRequiredDialog = ({
 
   const handleAuthNavigate = () => {
     onOpenChange(false);
-    navigate('/auth');
+    safeNavigate(navigate, '/auth');
   };
 
   return (

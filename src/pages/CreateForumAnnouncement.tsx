@@ -36,7 +36,7 @@ export default function CreateForumAnnouncement() {
           <p className="mb-6 text-muted-foreground">
             {t('auth.onlySuperAdmins')}
           </p>
-          <Button onClick={() => navigate('/community/forum')}>{t('navigation.backToForum')}</Button>
+          <Button onClick={() => navigate('/forum')}>{t('navigation.backToForum')}</Button>
         </div>
       </div>
     );
@@ -46,7 +46,7 @@ export default function CreateForumAnnouncement() {
     <div className="container py-8">
       <Button 
         variant="ghost" 
-        onClick={() => navigate('/community/forum')}
+        onClick={() => navigate('/forum')}
         className="mb-6"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />

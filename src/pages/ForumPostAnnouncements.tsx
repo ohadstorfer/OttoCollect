@@ -471,7 +471,7 @@ const ForumPostAnnouncementsPage = () => {
 
       if (success) {
         toast.success("Announcement deleted successfully");
-        navigate('/community/forum');
+        navigate('/forum');
       } else {
         toast.error("Failed to delete announcement");
       }

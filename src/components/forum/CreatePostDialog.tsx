@@ -104,7 +104,7 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
         if (onPostCreated) {
           onPostCreated(newPost.id);
         } else {
-          navigate(`/community/forum/${newPost.id}`);
+          navigate(`/forum-post/${newPost.id}`);
         }
       } else {
         toast({

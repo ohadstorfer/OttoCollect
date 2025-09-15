@@ -76,7 +76,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
       <div className="text-center py-12">
         <p className="text-ottoman-300">No marketplace items available.</p>
         <Button
-          onClick={() => navigate('/marketplace/new')}
+          onClick={() => navigate('/marketplace')}
           className="mt-4"
         >
           List an item for sale
@@ -87,7 +87,7 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
 
   const handleItemClick = (itemId: string) => {
     console.log('Marketplace highlight item clicked:', itemId);
-    navigate(`/marketplace/${itemId}`);
+    navigate(`/marketplace-item/${itemId}`);
   };
 
   // For larger screens - grid view

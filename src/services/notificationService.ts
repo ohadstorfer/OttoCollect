@@ -130,9 +130,9 @@ export const notificationService = {
       case 'collection_activity':
         return `/profile/${notification.reference_data?.active_username}`;
       case 'forum_post':
-        return `/community/forum/post/${notification.reference_id}`;
+        return `/forum-post/${notification.reference_id}`;
       case 'blog_post':
-        return `/blog/${notification.reference_id}`;
+        return `/blog-post/${notification.reference_id}`;
       case 'badge_earned':
       case 'badge_achievement':
         // For badge notifications, navigate to user profile with badges parameter

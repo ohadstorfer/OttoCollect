@@ -7,7 +7,7 @@ interface SEOHeadProps {
   keywords?: string[];
   image?: string;
   url?: string;
-  type?: 'website' | 'article' | 'product';
+  type?: 'website' | 'article' | 'product' | 'collection' | 'profile';
   banknoteData?: {
     id?: string;
     country?: string;
@@ -19,21 +19,25 @@ interface SEOHeadProps {
     currency?: string;
   };
   structuredData?: object;
+  noindex?: boolean;
+  canonical?: string;
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
   title,
   description,
   keywords = [],
-  image = '/images/ottoman-empire.jpg',
+  image = '/OttoCollectIcon.PNG',
   url,
   type = 'website',
   banknoteData,
-  structuredData
+  structuredData,
+  noindex = false,
+  canonical
 }) => {
   // Default SEO for Ottoman Empire banknotes
   const defaultTitle = 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform';
-  const defaultDescription = 'OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.';
+  const defaultDescription = 'OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Palestine, Egypt, Lebanon, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.';
   const defaultKeywords = [
     'Ottoman Empire banknotes',
     'Turkish lira paper money',
@@ -134,19 +138,20 @@ const SEOHead: React.FC<SEOHeadProps> = ({
     <Helmet>
       {/* Basic Meta Tags */}
       <title>{seoData.title}</title>
-      <meta name="description" content={seoData.description} />
+      <meta name="description" content={seoData.description} data-react-helmet="true" />
       <meta name="keywords" content={seoData.keywords.join(', ')} />
-      <meta name="robots" content="index, follow" />
+      <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"} />
       <meta name="author" content="OttoCollect" />
       
       {/* Canonical URL */}
-      {url && <link rel="canonical" href={url} />}
+      {canonical && <link rel="canonical" href={canonical} />}
+      {url && !canonical && <link rel="canonical" href={url} />}
       
       {/* Open Graph Meta Tags */}
       <meta property="og:title" content={seoData.title} />
       <meta property="og:description" content={seoData.description} />
       <meta property="og:type" content={type} />
-      <meta property="og:image" content={image} />
+      <meta property="og:image" content={image.startsWith('http') ? image : `https://ottocollect.com${image}`} />
       <meta property="og:url" content={url || window.location.href} />
       <meta property="og:site_name" content="OttoCollect" />
       <meta property="og:locale" content="en_US" />
@@ -155,7 +160,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={seoData.title} />
       <meta name="twitter:description" content={seoData.description} />
-      <meta name="twitter:image" content={image} />
+      <meta name="twitter:image" content={image.startsWith('http') ? image : `https://ottocollect.com${image}`} />
       <meta name="twitter:site" content="@ottocollect" />
       
       {/* Favicon configuration for Google Search Results */}
@@ -181,6 +186,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       {/* Additional SEO Meta Tags */}
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta name="theme-color" content="#1f2937" />
+      <meta name="mobile-web-app-capable" content="yes" />
       
       {/* Structured Data */}
       {finalStructuredData && (
@@ -196,8 +202,8 @@ const SEOHead: React.FC<SEOHeadProps> = ({
           "@type": "Organization",
           "name": "OttoCollect",
           "url": "https://ottocollect.com",
-          "logo": "https://ottocollect.com/logo.png",
-          "description": "OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform",
+          "logo": "https://ottocollect.com/OttoCollectIcon.PNG",
+          "description": "Premier marketplace for Ottoman Empire banknotes and historical currency",
           "sameAs": [
             "https://twitter.com/ottocollect",
             "https://facebook.com/ottocollect"
@@ -205,7 +211,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
           "contactPoint": {
             "@type": "ContactPoint",
             "contactType": "customer service",
-            "email": "support@ottocollect.com"
+            "email": "info@ottocollect.com"
           }
         })}
       </script>
@@ -249,4 +255,4 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   );
 };
 
-export default SEOHead; 
+export default SEOHead;

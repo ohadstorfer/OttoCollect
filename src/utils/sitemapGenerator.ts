@@ -78,7 +78,7 @@ export const getDefaultSitemapConfig = (): SitemapConfig => {
         priority: 0.7
       },
       {
-        url: '/community/forum',
+        url: '/forum',
         lastmod: currentDate,
         changefreq: 'daily',
         priority: 0.7
@@ -96,13 +96,13 @@ export const getDefaultSitemapConfig = (): SitemapConfig => {
         priority: 0.6
       },
       {
-        url: '/about-us',
+        url: '/about',
         lastmod: currentDate,
         changefreq: 'monthly',
         priority: 0.5
       },
       {
-        url: '/contact-us',
+        url: '/contact',
         lastmod: currentDate,
         changefreq: 'monthly',
         priority: 0.5
@@ -158,7 +158,7 @@ export const generateBlogSitemap = (blogPosts: any[]): SitemapUrl[] => {
   const currentDate = new Date().toISOString().split('T')[0];
   
   return blogPosts.map(post => ({
-    url: `/blog/${post.id}`,
+    url: `/blog-post/${post.id}`,
     lastmod: post.updatedAt ? new Date(post.updatedAt).toISOString().split('T')[0] : currentDate,
     changefreq: 'monthly',
     priority: 0.6

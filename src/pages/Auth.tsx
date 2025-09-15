@@ -5,6 +5,7 @@ import { AuthRequiredDialog } from '../components/auth/AuthRequiredDialog';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
+import { safeNavigate, safeNavigateBack } from '@/utils/safeNavigation';
 
 const Auth: React.FC = () => {
   const { t } = useTranslation(['pages']);
@@ -17,7 +18,7 @@ const Auth: React.FC = () => {
 
   // If user is already logged in, redirect to home
   if (user && !showRequiredDialog) {
-    navigate(-1);
+    safeNavigateBack(navigate, "/");
     return null;
   }
 

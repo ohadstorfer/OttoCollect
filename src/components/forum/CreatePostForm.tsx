@@ -80,7 +80,7 @@ export function CreatePostForm() {
           title: "Success",
           description: "Your post has been published successfully.",
         });
-        navigate(`/community/forum/${newPost.id}`);
+        navigate(`/forum-post/${newPost.id}`);
       } else {
         toast({
           variant: "destructive",
@@ -156,7 +156,7 @@ export function CreatePostForm() {
           <Button 
             type="button" 
             variant="outline" 
-            onClick={() => navigate('/community/forum')}
+            onClick={() => navigate('/forum')}
             disabled={isSubmitting}
           >
             Cancel

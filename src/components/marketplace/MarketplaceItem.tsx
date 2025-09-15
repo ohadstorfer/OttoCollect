@@ -85,7 +85,8 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
       return;
     }
     
-    navigate(`/marketplace/${item.id}`);
+    navigate(`/marketplace-item/${item.id}`);
+
   };
   
   const handleAuthNavigate = () => {

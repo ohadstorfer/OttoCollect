@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform</title>
-    <meta name="description" content="OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide." />
+    <!-- Meta description will be set dynamically by React Helmet -->
     <meta name="keywords" content="Ottoman Empire banknotes, banknote collection platform, Ottoman currency catalog, historical banknotes 1840, Turkish lira paper money, numismatic collection management, Ottoman Empire collectors, banknote trading platform, historical currency database, Ottoman successor countries banknotes" />
     <meta name="author" content="OttoCollect" />
     <meta name="robots" content="index, follow" />
@@ -17,6 +17,7 @@
     <link rel="preload" href="/OttoCollectIcon.PNG" as="image" fetchpriority="high" />
     <link rel="preload" href="/web-app-manifest-192x192.png" as="image" />
     <link rel="preload" href="/favicon.PNG" as="image" />
+    
     <!-- Optimize Google Fonts loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,7 +36,7 @@
     <link rel="dns-prefetch" href="//fonts.googleapis.com" />
     <link rel="dns-prefetch" href="//fonts.gstatic.com" />
     
-    <!-- Favicon configuration for Google Search Results -->
+    <!-- Enhanced Favicon configuration for Google Search Results -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -51,13 +52,12 @@
     <meta name="msapplication-TileColor" content="#1f2937" />
     
     <!-- Google-specific favicon meta tags -->
-    <meta name="google-site-verification" content="" />
-    <meta itemprop="image" content="https://ottocollect.com/web-app-manifest-192x192.png" />
+    <meta name="google-site-verification" content="BnGrrSV1EJtCIwRVyB5oEJYxQGb20STMghjTZdeudgQ" />
+    <meta itemProp="image" content="https://ottocollect.com/web-app-manifest-192x192.png" />
     
     <!-- Additional Google Search Console meta tags -->
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-    <meta name="google-site-verification" content="BnGrrSV1EJtCIwRVyB5oEJYxQGb20STMghjTZdeudgQ" />
   
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="OttoCollect - Ottoman Empire Banknote Collection Platform" />
@@ -82,11 +82,12 @@
     <!-- Additional SEO Meta Tags -->
     <meta name="theme-color" content="#1f2937" />
     <meta name="msapplication-TileColor" content="#1f2937" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="OttoCollect" />
     
-    <!-- Structured Data -->
+    <!-- Enhanced Structured Data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -105,7 +106,11 @@
         "@type": "ContactPoint",
         "contactType": "customer service",
         "email": "info@ottocollect.com",
-        "availableLanguage": "English"
+        "availableLanguage": ["English", "Arabic", "Turkish"]
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "Global"
       }
     }
     </script>
@@ -121,6 +126,27 @@
         "@type": "SearchAction",
         "target": "https://ottocollect.com/search?q={search_term_string}",
         "query-input": "required name=search_term_string"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "OttoCollect",
+        "logo": "https://ottocollect.com/OttoCollectIcon.PNG"
+      }
+    }
+    </script>
+    
+    <!-- Additional structured data for better indexing -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "Ottoman Empire Banknotes Collection",
+      "description": "Browse and discover authentic Ottoman Empire banknotes and historical currency from 1840 onwards",
+      "url": "https://ottocollect.com/catalog",
+      "mainEntity": {
+        "@type": "ItemList",
+        "name": "Ottoman Empire Banknotes",
+        "description": "Comprehensive collection of Ottoman Empire banknotes and successor country currencies"
       }
     }
     </script>

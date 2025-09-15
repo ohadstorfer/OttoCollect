@@ -400,7 +400,7 @@ const Index = () => {
               </p>
             </div>
             <div className="mt-4 md:mt-0 reveal fade-left">
-              <Link to="/community/forum">
+              <Link to="/forum">
                 <Button variant="outline" className={`${theme === 'light'
                   ? 'border-ottoman-400 text-ottoman-800 hover:bg-ottoman-200/50'
                   : 'border-ottoman-700 text-ottoman-100 hover:bg-ottoman-800/50'}`}>

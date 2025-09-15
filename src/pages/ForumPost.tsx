@@ -485,7 +485,7 @@ const ForumPostPage = () => {
 
       if (success) {
         toast.success("Post deleted successfully");
-        navigate('/community/forum');
+        navigate('/forum');
       } else {
         toast.error(t('notifications.failedToDeletePost'));
       }

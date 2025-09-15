@@ -93,7 +93,7 @@ export function CreatePostForm() {
           title: tWithFallback('notifications.postCreated', 'Success'),
           description: tWithFallback('notifications.postCreated', 'Your blog post has been published successfully.'),
         });
-        navigate(`/blog/${newPost.id}`);
+        navigate(`/blog-post/${newPost.id}`);
       } else {
         toast({
           variant: "destructive",

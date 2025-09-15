@@ -15,6 +15,8 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import { useTranslation } from 'react-i18next';
 import { EmailConfirmationDialog } from "./EmailConfirmationDialog";
+import { getAuthRedirectUrl, logRedirectInfo, getDeploymentEnvironment } from '@/utils/authRedirect';
+import { safeNavigate, safeNavigateBack, getSafeFallbackPath } from '@/utils/safeNavigation';
 
 interface AuthFormProps {
   mode?: 'login' | 'register' | 'reset';
@@ -56,7 +58,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
     const { data, error } = await supabase
       .from('blocked_emails')
       .select('email')
-      .eq('email', email.toLowerCase())
+      .eq('email', email.toLowerCase() as string)
       .maybeSingle();
     return !!data;
   };
@@ -89,14 +91,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
       const result = await login(loginEmail, loginPassword);
       
       if (result.success) {
-        console.log('Login successful, navigating to previous page...');
+        console.log('Login successful, navigating to home page...');
         // Clear form and errors on success
         setLoginEmail("");
         setLoginPassword("");
         setLoginError(null);
         // Small delay to let the success toast show
         setTimeout(() => {
-          navigate(-1);
+          safeNavigateBack(navigate, '/');
         }, 500);
       } else {
         console.log('Login failed:', result.error);
@@ -278,21 +280,39 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
 
   const handleGoogleAuth = async () => {
     try {
-      // Get the current URL to redirect back to the same domain
-      const currentOrigin = window.location.origin;
+      // Get the redirect URL and log debug information
+      const redirectUrl = getAuthRedirectUrl();
+      const environment = getDeploymentEnvironment();
+      
+      logRedirectInfo('Google Auth');
+      
+      console.log('🔐 Google Auth Environment:', {
+        environment,
+        redirectUrl,
+        expectedBehavior: environment === 'localhost' ? 'Should redirect to localhost' : 
+                         environment === 'preview' ? 'Should redirect to preview domain' : 
+                         'Should redirect to production domain'
+      });
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${currentOrigin}/`,
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
+      
       if (error) throw error;
+      
       toast({
         title: t('auth.errors.redirectingToGoogle.title'),
         description: t('auth.errors.redirectingToGoogle.description'),
       });
     } catch (err: any) {
+      console.error('❌ Google Auth Error:', err);
       toast({
         variant: "destructive",
         title: t('auth.errors.googleSignInError.title'),
@@ -306,7 +326,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
     setResetLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password?`
+        redirectTo: `${getAuthRedirectUrl()}/reset-password?`
       });
 
       if (error) {
@@ -345,7 +365,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
         <Tabs
           defaultValue="login"
           value={activeTab}
-          onValueChange={setActiveTab}
+          onValueChange={(value) => setActiveTab(value as 'login' | 'register' | 'reset')}
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2 mb-6">

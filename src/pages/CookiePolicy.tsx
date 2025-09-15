@@ -94,7 +94,7 @@ export default function CookiePolicy() {
           <h2 className="text-xl font-semibold text-foreground mb-3"> <span> Contact Us </span> </h2>
           <p>
             If you have any questions about our use of cookies, please contact us through our{' '}
-            <a href="/contact-us" className="text-primary hover:underline">
+            <a href="/contact" className="text-primary hover:underline">
               contact page
             </a>
             .

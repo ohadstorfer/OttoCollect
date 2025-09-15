@@ -103,7 +103,7 @@ const AboutUs: React.FC = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-ottoman-50 to-ottoman-100 dark:from-dark-900 dark:to-dark-800 -mb-20">
+        <div className="min-h-screen bg-gradient-to-br from-ottoman-50 to-ottoman-100 dark:from-dark-900 dark:to-dark-800">
             <SEOHead
                 title={SEO_CONFIG.pages.aboutUs.title}
                 description={SEO_CONFIG.pages.aboutUs.description}

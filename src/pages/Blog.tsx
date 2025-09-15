@@ -113,7 +113,7 @@ const Blog = () => {
   };
 
   const handleCreatePost = () => {
-    navigate('/blog/new');
+    navigate('/create-blog-post');
   };
 
   const handleBack = () => {

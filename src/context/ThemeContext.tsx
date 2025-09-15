@@ -17,7 +17,6 @@ const lightModeTheme = {
   '/collection': '#F3FAF4', // Mint Cream
   '/profile': '#FFF1F3',  // Blush Pink
   '/forum': '#F8F4FF',    // Lavender Mist
-  '/community/forum': '#F8F4FF', // Lavender Mist
   '/messages': '#F0F9FF', // Powder Blue
   '/catalog': '#F3FAF4', // Mint Cream
   '/members': '#FFF1F3',  // Blush Pink

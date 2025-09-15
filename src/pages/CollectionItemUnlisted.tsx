@@ -473,7 +473,8 @@ export default function CollectionItemUnlisted() {
                                 <div className="w-full overflow-hidden border">
                                   <img
                                     src={url}
-                                    alt={`Banknote Image ${index + 1}`}
+                                    alt={` ${collectionItem.banknote?.denomination} banknote from ${collectionItem.banknote?.country}, issued in ${collectionItem.banknote?.year}`}
+
                                     className="w-full h-auto object-contain"
                                   />
                                 </div>
@@ -528,7 +529,7 @@ export default function CollectionItemUnlisted() {
                               <div className="w-full overflow-hidden border">
                                 <img
                                   src={url}
-                                  alt={`Banknote Image ${index + 1}`}
+                                  alt={` ${collectionItem.banknote?.denomination} banknote from ${collectionItem.banknote?.country}, issued in ${collectionItem.banknote?.year}`}
                                   className="w-full h-auto object-contain"
                                 />
                               </div>

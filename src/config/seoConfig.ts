@@ -132,8 +132,8 @@ export const SEO_CONFIG = {
   // Page-specific SEO configurations
   pages: {
     home: {
-      title: 'OttoCollect - Premier Ottoman Empire Banknotes & Historical Currency Marketplace',
-      description: 'Discover authentic Ottoman Empire banknotes, rare Turkish lira paper money, and historical currency from the 1800s. Join thousands of collectors buying, selling, and trading vintage Turkish banknotes worldwide.',
+      title: 'OttoCollect - Ottoman Empire Banknotes for Collectors',
+      description: 'Discover authentic Ottoman Empire banknotes, rare Turkish lira paper money, and historical currency from the 1800s. Buy, sell, and trade worldwide.',
       keywords: [
         'authentic Ottoman Empire banknotes for collectors',
         'buy rare Ottoman currency from 1800s',
@@ -145,8 +145,8 @@ export const SEO_CONFIG = {
     },
 
     catalog: {
-      title: 'Ottoman Empire Banknote Catalog - Complete Historical Currency Collection',
-      description: 'Browse our comprehensive catalog of Ottoman Empire banknotes, Turkish Republic currency, and historical paper money. Find rare collectible banknotes from Turkey, Palestine, Syria, and more.',
+      title: 'Ottoman Empire Banknote Catalog - Historical Currency',
+      description: 'Browse our comprehensive catalog of Ottoman Empire banknotes, Turkish Republic currency, and historical paper money. Find rare collectible banknotes from Turkey, Palestine, Syria.',
       keywords: [
         'Ottoman Empire banknote catalog',
         'complete Turkish currency collection',
@@ -157,8 +157,8 @@ export const SEO_CONFIG = {
     },
 
     marketplace: {
-      title: 'Buy & Sell Ottoman Empire Banknotes - Historical Currency Marketplace',
-      description: 'Buy and sell authentic Ottoman Empire banknotes, rare Turkish currency, and historical paper money. Secure marketplace for serious collectors and numismatic enthusiasts.',
+      title: 'Buy & Sell Ottoman Empire Banknotes - Marketplace',
+      description: 'Buy and sell authentic Ottoman Empire banknotes, rare Turkish currency, and historical paper money. Secure marketplace for serious collectors.',
       keywords: [
         'buy Ottoman Empire banknotes online',
         'sell rare Turkish currency',
@@ -169,8 +169,8 @@ export const SEO_CONFIG = {
     },
 
     collection: {
-      title: 'Manage Your Ottoman Banknote Collection - Personal Currency Portfolio',
-      description: 'Organize and track your Ottoman Empire banknote collection. Catalog your rare Turkish currency, monitor values, and showcase your historical paper money portfolio.',
+      title: 'Manage Your Ottoman Banknote Collection',
+      description: 'Organize and track your Ottoman Empire banknote collection. Catalog your rare Turkish currency, monitor values, and showcase your historical paper money.',
       keywords: [
         'personal Ottoman banknote collection',
         'Turkish currency collection management',
@@ -181,8 +181,8 @@ export const SEO_CONFIG = {
     },
 
     forum: {
-      title: 'Ottoman Banknote Collectors Forum - Numismatic Community',
-      description: 'Join the OttoCollect community of Ottoman Empire banknote collectors. Discuss rare Turkish currency, share authentication tips, and connect with fellow numismatic enthusiasts.',
+      title: 'Ottoman Banknote Collectors Forum',
+      description: 'Join the OttoCollect community of Ottoman Empire banknote collectors. Discuss rare Turkish currency, share authentication tips, and connect with enthusiasts.',
       keywords: [
         'Ottoman banknote collectors forum',
         'Turkish currency discussion',
@@ -193,8 +193,8 @@ export const SEO_CONFIG = {
     },
 
     blog: {
-      title: 'Ottoman Banknote Blog - Numismatic Education & History',
-      description: 'Expert articles on Ottoman Empire banknotes, Turkish currency history, authentication guides, and numismatic education. Learn about rare paper money and historical currency.',
+      title: 'Ottoman Banknote Blog - Education & History',
+      description: 'Expert articles on Ottoman Empire banknotes, Turkish currency history, authentication guides, and numismatic education. Learn about rare paper money.',
       keywords: [
         'Ottoman banknote blog',
         'Turkish currency history',
@@ -205,8 +205,8 @@ export const SEO_CONFIG = {
     },
 
     community: {
-      title: 'OttoCollect Community - Connect with Ottoman Banknote Collectors',
-      description: 'Join the OttoCollect community of Ottoman Empire banknote collectors. Connect with fellow enthusiasts, share knowledge, and grow your collection through community engagement.',
+      title: 'OttoCollect Community - Connect with Collectors',
+      description: 'Join the OttoCollect community of Ottoman Empire banknote collectors. Connect with fellow enthusiasts, share knowledge, and grow your collection.',
       keywords: [
         'Ottoman banknote collectors community',
         'numismatic community',
@@ -217,8 +217,8 @@ export const SEO_CONFIG = {
     },
 
     aboutUs: {
-      title: 'About OttoCollect - Ottoman Empire Banknote Collectors Platform',
-      description: 'Learn about OttoCollect, the premier platform for Ottoman Empire banknote collectors. Discover our mission to preserve numismatic history and connect collectors worldwide.',
+      title: 'About OttoCollect - Ottoman Banknote Platform',
+      description: 'Learn about OttoCollect, the premier platform for Ottoman Empire banknote collectors. Discover our mission to preserve numismatic history and connect collectors.',
       keywords: [
         'about OttoCollect',
         'Ottoman banknote platform',
@@ -228,8 +228,8 @@ export const SEO_CONFIG = {
       ]
     },
     contactUs: {
-      title: 'Contact OttoCollect - Ottoman Empire Banknote Collectors Platform',
-      description: 'Contact OttoCollect, the premier platform for Ottoman Empire banknote collectors. Discover our mission to preserve numismatic history and connect collectors worldwide.',
+      title: 'Contact OttoCollect - Ottoman Banknote Platform',
+      description: 'Contact OttoCollect, the premier platform for Ottoman Empire banknote collectors. Get support, ask questions, and connect with our team.',
       keywords: [
         'contact OttoCollect',
         'Ottoman banknote platform',
@@ -292,7 +292,7 @@ export const SEO_CONFIG = {
 // Blog post ideas targeting long-tail keywords
 export const BLOG_POST_IDEAS = [
   {
-    title: "How to Authenticate 1908 Ottoman Banknotes: Complete Guide for Collectors",
+    title: "How to Authenticate 1908 Ottoman Banknotes: Guide",
     keywords: [
       "authenticate 1908 Ottoman banknotes",
       "Ottoman banknote authentication guide",
@@ -303,7 +303,7 @@ export const BLOG_POST_IDEAS = [
     description: "Learn expert techniques to authenticate 1908 Ottoman Empire banknotes. Discover security features, watermark identification, and professional grading methods for serious collectors."
   },
   {
-    title: "Top 5 Most Valuable Ottoman Empire Currencies: 2024 Collector's Guide",
+    title: "Top 5 Most Valuable Ottoman Empire Currencies: 2024",
     keywords: [
       "most valuable Ottoman Empire currencies",
       "expensive Turkish banknotes",
@@ -314,7 +314,7 @@ export const BLOG_POST_IDEAS = [
     description: "Discover the top 5 most valuable Ottoman Empire banknotes in 2024. Expert analysis of rare Turkish currency values, market trends, and investment opportunities."
   },
   {
-    title: "Complete Guide to Ottoman Empire Banknote Watermarks: Identification & History",
+    title: "Ottoman Empire Banknote Watermarks: Identification Guide",
     keywords: [
       "Ottoman banknote watermarks",
       "Turkish currency watermark guide",
@@ -325,7 +325,7 @@ export const BLOG_POST_IDEAS = [
     description: "Master the identification of Ottoman Empire banknote watermarks. Comprehensive guide to Turkish currency security features and historical watermark development."
   },
   {
-    title: "Rare 1876 Ottoman Banknotes: Historical Significance & Collector Value",
+    title: "Rare 1876 Ottoman Banknotes: Historical Value",
     keywords: [
       "1876 Ottoman banknotes",
       "rare Turkish currency 1876",
@@ -336,7 +336,7 @@ export const BLOG_POST_IDEAS = [
     description: "Explore the historical significance and collector value of rare 1876 Ottoman Empire banknotes. Expert analysis of this pivotal year in Turkish currency history."
   },
   {
-    title: "Ottoman Empire vs Turkish Republic Banknotes: Key Differences for Collectors",
+    title: "Ottoman vs Turkish Republic Banknotes: Key Differences",
     keywords: [
       "Ottoman Empire vs Turkish Republic banknotes",
       "Turkish currency differences",
@@ -347,7 +347,7 @@ export const BLOG_POST_IDEAS = [
     description: "Compare Ottoman Empire and Turkish Republic banknotes. Learn key differences in design, security features, and historical context for informed collecting."
   },
   {
-    title: "How to Grade Ottoman Banknotes: Professional Numismatic Standards",
+    title: "How to Grade Ottoman Banknotes: Professional Standards",
     keywords: [
       "grade Ottoman banknotes",
       "Turkish currency grading",
@@ -358,7 +358,7 @@ export const BLOG_POST_IDEAS = [
     description: "Master the art of grading Ottoman Empire banknotes using professional numismatic standards. Essential guide for serious collectors and investors."
   },
   {
-    title: "Palestine Mandate Banknotes: Rare Ottoman Legacy Currency",
+    title: "Palestine Mandate Banknotes: Ottoman Legacy Currency",
     keywords: [
       "Palestine Mandate banknotes",
       "Ottoman Palestine currency",
@@ -369,7 +369,7 @@ export const BLOG_POST_IDEAS = [
     description: "Discover the fascinating history of Palestine Mandate banknotes and their connection to Ottoman Empire currency. Rare collectible insights for numismatic enthusiasts."
   },
   {
-    title: "Investment Guide: Ottoman Banknotes as Alternative Assets",
+    title: "Ottoman Banknotes as Alternative Investment Assets",
     keywords: [
       "Ottoman banknotes investment",
       "Turkish currency investment",
@@ -380,7 +380,7 @@ export const BLOG_POST_IDEAS = [
     description: "Learn how Ottoman Empire banknotes can serve as alternative investments. Expert analysis of market trends, risk factors, and portfolio diversification strategies."
   },
   {
-    title: "Preservation Techniques for Ottoman Banknotes: Long-term Storage Solutions",
+    title: "Preservation Techniques for Ottoman Banknotes: Storage",
     keywords: [
       "preserve Ottoman banknotes",
       "Turkish currency preservation",
@@ -391,7 +391,7 @@ export const BLOG_POST_IDEAS = [
     description: "Essential preservation techniques for Ottoman Empire banknotes. Professional storage solutions and conservation methods for long-term collection maintenance."
   },
   {
-    title: "Forgery Detection: How to Spot Fake Ottoman Banknotes",
+    title: "How to Spot Fake Ottoman Banknotes: Forgery Detection",
     keywords: [
       "fake Ottoman banknotes",
       "Turkish currency forgery detection",

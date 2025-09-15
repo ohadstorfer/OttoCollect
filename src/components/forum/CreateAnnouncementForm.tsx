@@ -79,7 +79,7 @@ export function CreateAnnouncementForm() {
           title: "Success",
           description: "Your announcement has been published successfully.",
         });
-        navigate(`/community/forum/announcement/${newAnnouncement.id}`);
+        navigate(`/forum-announcements`);
       } else {
         toast({
           variant: "destructive",
@@ -155,7 +155,7 @@ export function CreateAnnouncementForm() {
           <Button 
             type="button" 
             variant="outline" 
-            onClick={() => navigate('/community/forum')}
+            onClick={() => navigate('/forum')}
             disabled={isSubmitting}
           >
             Cancel

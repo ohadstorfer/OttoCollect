@@ -210,9 +210,16 @@ const MarketplaceItemDetail = () => {
   const handleRemoveFromMarketplace = async () => {
     if (!item || !user) return;
 
+    console.log('Starting removeFromMarketplace with:', {
+      collectionItemId: item.collectionItem.id,
+      marketplaceItemId: item.id
+    });
+
     setIsRemoving(true);
     try {
       const success = await removeFromMarketplace(item.collectionItem.id, item.id);
+      console.log('removeFromMarketplace result:', success);
+      
       if (success) {
         toast({
           title: tWithFallback('actions.removedFromMarketplace', 'Removed from Marketplace'),
@@ -277,6 +284,7 @@ const MarketplaceItemDetail = () => {
                                   >
                                     <div className="w-full overflow-hidden border">
                                       <img
+                                      alt={` ${collectionItem.banknote?.denomination} banknote from ${collectionItem.banknote?.country}, issued in ${collectionItem.banknote?.year}`}
                                         src={url}
                                         className="w-full h-auto object-contain"
                                       />
@@ -299,6 +307,7 @@ const MarketplaceItemDetail = () => {
                                 >
                                   <div className="w-full overflow-hidden border">
                                     <img
+                                      alt={` ${collectionItem.banknote?.denomination} banknote from ${collectionItem.banknote?.country}, issued in ${collectionItem.banknote?.year}`}
                                       src={url}
                                       className="w-full h-auto object-contain"
                                     />
@@ -319,6 +328,7 @@ const MarketplaceItemDetail = () => {
                           >
                             <div className="w-full overflow-hidden border">
                               <img
+                                alt={` ${collectionItem.banknote?.denomination} banknote from ${collectionItem.banknote?.country}, issued in ${collectionItem.banknote?.year}`}
                                 src={url}
                                 className="w-full h-auto object-contain"
                               />

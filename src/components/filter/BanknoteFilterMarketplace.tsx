@@ -89,6 +89,26 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
     ]);
   }, [tWithFallback]);
   
+  // Helper function to ensure filters are never empty
+  const ensureFiltersNotEmpty = useCallback((
+    categories: string[],
+    types: string[],
+    availableCategories: FilterOption[],
+    availableTypes: FilterOption[]
+  ) => {
+    // If categories is empty, select all available categories
+    const finalCategories = categories.length === 0 
+      ? availableCategories.map(cat => cat.id)
+      : categories;
+    
+    // If types is empty, select all available types
+    const finalTypes = types.length === 0 
+      ? availableTypes.map(type => type.id)
+      : types;
+    
+    return { finalCategories, finalTypes };
+  }, []);
+
   // Use a memoized function to load user preferences to avoid re-renders
   const loadUserPreferences = useCallback(async (
     mappedCategories: FilterOption[], 
@@ -111,36 +131,44 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
         }
         
         if (userPreferences) {
+          // Ensure categories and types are never empty
+          const { finalCategories, finalTypes } = ensureFiltersNotEmpty(
+            userPreferences.categories || [],
+            userPreferences.types || [],
+            mappedCategories,
+            mappedTypes
+          );
+          
           onFilterChange({
             search: userPreferences.search || "",
-            categories: userPreferences.categories || [],
-            types: userPreferences.types || [],
+            categories: finalCategories,
+            types: finalTypes,
             sort: userPreferences.sort || [],
             countries: userPreferences.countries || []
           });
-                 } else {
-           // When no user preferences exist, select NO filters by default to show all items
-           console.log("No user preferences found, selecting NO filters by default to show all items");
-           
-           onFilterChange({
-             categories: [],
-             types: [],
-             sort: ["newest"],
-             countries: []
-           });
-         }
+        } else {
+          // When no user preferences exist, select ALL filters by default to show all items
+          console.log("No user preferences found, selecting ALL filters by default to show all items");
+          
+          onFilterChange({
+            categories: mappedCategories.map(cat => cat.id),
+            types: mappedTypes.map(type => type.id),
+            sort: ["newest"],
+            countries: []
+          });
+        }
       }
-         } catch (err) {
-       console.error("Error handling user preferences:", err);
-       // Use empty defaults on error to show all items
-       onFilterChange({
-         categories: [],
-         types: [],
-         sort: ["newest"],
-         countries: []
-       });
-     }
-  }, [user, onFilterChange]);
+    } catch (err) {
+      console.error("Error handling user preferences:", err);
+      // Use all filters on error to show all items
+      onFilterChange({
+        categories: mappedCategories.map(cat => cat.id),
+        types: mappedTypes.map(type => type.id),
+        sort: ["newest"],
+        countries: []
+      });
+    }
+  }, [user, onFilterChange, ensureFiltersNotEmpty]);
 
   // Handle external category/type/country updates
   useEffect(() => {
@@ -286,23 +314,42 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
     // For marketplace, don't force extPick - let users sort by price/date without catalog number interference
     
+    // Get the current filter values
+    const currentCategories = newFilters.categories || currentFilters.categories || [];
+    const currentTypes = newFilters.types || currentFilters.types || [];
+    
+    // Ensure categories and types are never empty
+    const { finalCategories, finalTypes } = ensureFiltersNotEmpty(
+      currentCategories,
+      currentTypes,
+      categories,
+      types
+    );
+    
+    // Create the final filter object with ensured non-empty arrays
+    const finalFilters = {
+      ...newFilters,
+      categories: finalCategories,
+      types: finalTypes
+    };
+    
     // Save user preferences to localStorage instead of database
     if (user?.id) {
       console.log("Auto-saving marketplace filter preferences to localStorage");
       localStorage.setItem(
         `${MARKETPLACE_PREFERENCES_KEY}-${user.id}`, 
         JSON.stringify({
-          search: newFilters.search || currentFilters.search,
-          categories: newFilters.categories || currentFilters.categories,
-          types: newFilters.types || currentFilters.types,
-          sort: newFilters.sort || currentFilters.sort,
-          countries: newFilters.countries || currentFilters.countries
+          search: finalFilters.search || currentFilters.search,
+          categories: finalFilters.categories,
+          types: finalFilters.types,
+          sort: finalFilters.sort || currentFilters.sort,
+          countries: finalFilters.countries || currentFilters.countries
         })
       );
     }
     
-    onFilterChange(newFilters);
-  }, [onFilterChange, currentFilters, user]);
+    onFilterChange(finalFilters);
+  }, [onFilterChange, currentFilters, user, ensureFiltersNotEmpty, categories, types]);
 
 
 

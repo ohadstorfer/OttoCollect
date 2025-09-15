@@ -9,6 +9,8 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /_next/
 Disallow: /static/
+Disallow: /test-cleanup
+Disallow: /delete-processed-images
 
 # Allow important pages
 Allow: /catalog/
@@ -16,5 +18,13 @@ Allow: /marketplace/
 Allow: /collection/
 Allow: /blog/
 Allow: /community/
+Allow: /forum/
+Allow: /guide/
+Allow: /about/
+Allow: /contact/
 
+# Crawl delay (optional)
+Crawl-delay: 1
 
+# Additional directives for better indexing
+Host: https://ottocollect.com

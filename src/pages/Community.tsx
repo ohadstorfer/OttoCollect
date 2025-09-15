@@ -34,7 +34,7 @@ export default function Community() {
       title: t('community.features.forum.title'),
       description: t('community.features.forum.description'),
       icon: <Users className="h-8 w-8 text-ottoman-500" />,
-      action: () => navigate('/community/forum'),
+      action: () => navigate('/forum'),
       buttonText: t('community.features.forum.button'),
       comingSoon: false
     },

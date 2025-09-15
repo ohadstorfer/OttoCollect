@@ -249,8 +249,11 @@ export async function removeFromMarketplace(
   marketplaceItemId?: string
 ): Promise<boolean> {
   try {
+    console.log('removeFromMarketplace called with:', { collectionItemId, marketplaceItemId });
+    
     // If marketplaceItemId is provided, use it directly to delete the row
     if (marketplaceItemId) {
+      console.log('Deleting marketplace item with ID:', marketplaceItemId);
       const { error } = await supabase
         .from('marketplace_items')
         .delete()
@@ -260,8 +263,10 @@ export async function removeFromMarketplace(
         console.error("Error removing from marketplace:", error);
         throw error;
       }
+      console.log('Successfully deleted marketplace item');
     } else {
       // Otherwise, look up the marketplace item by collection_item_id and delete it
+      console.log('Looking up marketplace item by collection_item_id:', collectionItemId);
       const { data: marketplaceItem, error: findError } = await supabase
         .from('marketplace_items')
         .select('id')
@@ -274,6 +279,7 @@ export async function removeFromMarketplace(
       }
       
       if (marketplaceItem) {
+        console.log('Found marketplace item, deleting:', marketplaceItem.id);
         const { error } = await supabase
           .from('marketplace_items')
           .delete()
@@ -283,10 +289,12 @@ export async function removeFromMarketplace(
           console.error("Error removing from marketplace:", error);
           throw error;
         }
+        console.log('Successfully deleted marketplace item');
       }
     }
     
     // Update the collection item to mark as not for sale and reset sale_price to 0.00
+    console.log('Updating collection item:', collectionItemId, 'to is_for_sale: false, sale_price: 0.00');
     const { error: updateError } = await supabase
       .from('collection_items')
       .update({ 
@@ -300,6 +308,7 @@ export async function removeFromMarketplace(
       throw updateError;
     }
     
+    console.log('Successfully updated collection item');
     return true;
   } catch (error) {
     console.error("Error in removeFromMarketplace:", error);

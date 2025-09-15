@@ -656,6 +656,7 @@ export default function CollectionItem() {
                                     >
                                       <div className="w-full overflow-hidden border">
                                         <img
+                                         alt={`Obverse of a ${collectionItem.banknote?.denomination} banknote from ${collectionItem.banknote?.country}, issued in ${collectionItem.banknote?.year}`}
                                           src={url}
                                           className="w-full h-auto object-contain"
                                         />
@@ -714,6 +715,7 @@ export default function CollectionItem() {
                           >
                             <div className="w-full overflow-hidden border">
                               <img
+                              alt={` ${collectionItem.banknote?.denomination} banknote from ${collectionItem.banknote?.country}, issued in ${collectionItem.banknote?.year}`}
                                 src={url}
                                 className="w-full h-auto object-contain"
                               />
@@ -770,6 +772,7 @@ export default function CollectionItem() {
                             >
                               <div className="w-full  overflow-hidden border">
                                 <img
+                                alt={` ${collectionItem.banknote?.denomination} banknote from ${collectionItem.banknote?.country}, issued in ${collectionItem.banknote?.year}`}
                                   src={url}
                                   className="w-full h-auto object-contain"
                                 />

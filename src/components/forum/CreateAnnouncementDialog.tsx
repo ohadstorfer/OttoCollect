@@ -110,7 +110,7 @@ export function CreateAnnouncementDialog({ open, onOpenChange, onAnnouncementCre
         if (onAnnouncementCreated) {
           onAnnouncementCreated(newAnnouncement.id);
         } else {
-          navigate(`/community/forum/announcement/${newAnnouncement.id}`);
+          navigate(`/forum-announcements`);
         }
       } else {
         toast({

@@ -25,7 +25,7 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
   const [showTranslated, setShowTranslated] = useState(false);
 
   const handlePostClick = () => {
-    navigate(`/blog/${post.id}`);
+    navigate(`/blog-post/${post.id}`);
   };
 
   const handleUserProfileClick = (e: React.MouseEvent) => {
