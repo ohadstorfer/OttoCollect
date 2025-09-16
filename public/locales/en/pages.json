@@ -634,5 +634,10 @@
     "viewProfile": "View Profile",
     "noMembersFound": "No members found",
     "tryAdjustingSearchCriteria": "Try adjusting your search criteria"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "returnHome": "Return Home"
   }
 } 

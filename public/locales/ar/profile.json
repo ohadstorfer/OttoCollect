@@ -98,7 +98,10 @@
   "errors": {
     "profileNotFound": "الملف الشخصي غير موجود",
     "profileNotFoundDescription": "الملف الشخصي الذي تبحث عنه غير موجود.",
-    "goHome": "الذهاب للرئيسية"
+    "profileNotFoundSignup": "انضم إلى OttoCollect لإدارة مجموعتك!",
+    "profileNotFoundSignupDescription": "سجل الآن وانضم إلى مجتمعنا لإدارة مجموعة أوراق النقد العثمانية، وتتبع عناصرك، والتواصل مع هواة الجمع من جميع أنحاء العالم.",
+    "goHome": "الذهاب للرئيسية",
+    "signUpNow": "سجل الآن"
   },
   "auth": {
     "authenticationRequired": "مطلوب تسجيل الدخول",

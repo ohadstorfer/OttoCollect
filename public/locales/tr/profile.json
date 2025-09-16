@@ -98,7 +98,10 @@
   "errors": {
     "profileNotFound": "Profil Bulunamadı",
     "profileNotFoundDescription": "Aradığınız profil mevcut değil.",
-    "goHome": "Ana Sayfaya Git"
+    "profileNotFoundSignup": "OttoCollect'e katılın ve koleksiyonunuzu yönetin!",
+    "profileNotFoundSignupDescription": "Kaydolun ve topluluğumuza katılarak Osmanlı İmparatorluğu banknot koleksiyonunuzu yönetmeye, eşyalarınızı takip etmeye ve dünya çapındaki koleksiyoncularla bağlantı kurmaya başlayın.",
+    "goHome": "Ana Sayfaya Git",
+    "signUpNow": "Şimdi Kaydol"
   },
   "auth": {
     "authenticationRequired": "Kimlik Doğrulama Gerekli",

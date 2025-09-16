@@ -635,5 +635,10 @@
     "viewProfile": "Profili Görüntüle",
     "noMembersFound": "Üye bulunamadı",
     "tryAdjustingSearchCriteria": "Arama kriterlerinizi ayarlamayı deneyin"
+  },
+  "notFound": {
+    "title": "Sayfa Bulunamadı",
+    "description": "Aradığınız sayfa mevcut değil veya taşınmış.",
+    "returnHome": "Ana Sayfaya Dön"
   }
 } 

@@ -152,14 +152,37 @@ const Profile: React.FC = () => {
   }
 
   if (profileError || !profile) {
+    // Check if user is not logged in and trying to access a profile
+    const isLoggedOutUser = !authUser;
+    const isProfileNotFound = profileError || !profile;
+    
     return (
       <div className="page-container max-w-5xl mx-auto py-10">
         <div className="ottoman-card p-8 text-center">
-          <h2 className="text-2xl font-serif mb-4"><span>{t('errors.profileNotFound')}</span></h2>
-          <p className="mb-6 text-muted-foreground">
-            {t('errors.profileNotFoundDescription')}
-          </p>
-          <Button onClick={() => navigate('/')}>{t('errors.goHome')}</Button>
+          {isLoggedOutUser && isProfileNotFound ? (
+            <>
+              <h2 className="text-2xl font-serif mb-4"><span>{t('errors.profileNotFoundSignup')}</span></h2>
+              <p className="mb-6 text-muted-foreground">
+                {t('errors.profileNotFoundSignupDescription')}
+              </p>
+              <div className="flex justify-center gap-4">
+                <Button onClick={() => navigate('/auth?mode=register')} className="ottoman-button">
+                  {t('errors.signUpNow')}
+                </Button>
+                <Button onClick={() => navigate('/')} variant="outline">
+                  {t('errors.goHome')}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-serif mb-4"><span>{t('errors.profileNotFound')}</span></h2>
+              <p className="mb-6 text-muted-foreground">
+                {t('errors.profileNotFoundDescription')}
+              </p>
+              <Button onClick={() => navigate('/')}>{t('errors.goHome')}</Button>
+            </>
+          )}
         </div>
       </div>
     );

@@ -98,7 +98,10 @@
   "errors": {
     "profileNotFound": "Profile Not Found",
     "profileNotFoundDescription": "The profile you are looking for does not exist.",
-    "goHome": "Go Home"
+    "profileNotFoundSignup": "Join OttoCollect to manage your collection!",
+    "profileNotFoundSignupDescription": "Sign up and join our community to start managing your Ottoman Empire banknote collection, track your items, and connect with fellow collectors worldwide.",
+    "goHome": "Go Home",
+    "signUpNow": "Sign Up Now"
   },
   "auth": {
     "authenticationRequired": "Authentication Required",

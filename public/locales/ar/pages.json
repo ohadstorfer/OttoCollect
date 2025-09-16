@@ -635,5 +635,10 @@
     "viewProfile": "عرض الملف الشخصي",
     "noMembersFound": "لم يتم العثور على أعضاء",
     "tryAdjustingSearchCriteria": "جرب تعديل معايير البحث"
+  },
+  "notFound": {
+    "title": "الصفحة غير موجودة",
+    "description": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
+    "returnHome": "العودة للصفحة الرئيسية"
   }
 } 
