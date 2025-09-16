@@ -88,7 +88,7 @@ const AboutUs: React.FC = () => {
     });
 
     const handleFounderClick = (username: string) => {
-        navigate(`/profile/${username}`);
+        navigate(`/profile/${encodeURIComponent(username)}`);
     };
 
     // Use the localized about hook for each founder

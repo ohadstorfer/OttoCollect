@@ -71,7 +71,7 @@ const ForumPostCardAnnouncements = ({ post }: ForumPostCardAnnouncementsProps) =
     e.stopPropagation();
     e.preventDefault();
     // Navigate to user profile manually
-    navigate(`/profile/${post.author.username}`);
+    navigate(`/profile/${encodeURIComponent(post.author.username)}`);
   };
 
   return (
