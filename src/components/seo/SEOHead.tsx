@@ -95,7 +95,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       "name": `${denomination} ${country} Banknote ${year}`,
       "description": seoData.description,
       "image": image,
-      "url": url || window.location.href,
+      "url": url || (typeof window !== 'undefined' ? window.location.href : ''),
       "brand": {
         "@type": "Brand",
         "name": country
@@ -143,16 +143,14 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"} />
       <meta name="author" content="OttoCollect" />
       
-      {/* Canonical URL */}
-      {canonical && <link rel="canonical" href={canonical} />}
-      {url && !canonical && <link rel="canonical" href={url} />}
+      {/* Canonical URL - handled by Canonical component */}
       
       {/* Open Graph Meta Tags */}
       <meta property="og:title" content={seoData.title} />
       <meta property="og:description" content={seoData.description} />
       <meta property="og:type" content={type} />
       <meta property="og:image" content={image.startsWith('http') ? image : `https://ottocollect.com${image}`} />
-      <meta property="og:url" content={url || window.location.href} />
+      <meta property="og:url" content={url || (typeof window !== 'undefined' ? window.location.href : '')} />
       <meta property="og:site_name" content="OttoCollect" />
       <meta property="og:locale" content="en_US" />
       
@@ -245,7 +243,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
                 "@type": "ListItem",
                 "position": 4,
                 "name": `${banknoteData.denomination} ${banknoteData.year}`,
-                "item": url || window.location.href
+                "item": url || (typeof window !== 'undefined' ? window.location.href : '')
               }
             ]
           })}

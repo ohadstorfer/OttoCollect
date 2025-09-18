@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { prerender } from "vite-plugin-prerender";
+import prerenderRoutes from "./prerender-routes.json";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -13,6 +15,27 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' &&
     componentTagger(),
+    // Pre-rendering for static generation
+    mode === 'production' && prerender({
+      routes: prerenderRoutes,
+      postProcess(renderedRoute) {
+        // Ensure canonical URLs are properly set in the generated HTML
+        const { html } = renderedRoute;
+        const url = new URL(renderedRoute.route, 'https://ottocollect.com');
+        const canonicalUrl = url.href;
+        
+        // Inject canonical URL into the HTML
+        const updatedHtml = html.replace(
+          /<head[^>]*>/,
+          `$&<link rel="canonical" href="${canonicalUrl}" />`
+        );
+        
+        return {
+          ...renderedRoute,
+          html: updatedHtml
+        };
+      }
+    }),
   ].filter(Boolean),
   resolve: {
     alias: {

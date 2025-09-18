@@ -75,6 +75,7 @@ export default function Community() {
         title={SEO_CONFIG.pages.community.title}
         description={SEO_CONFIG.pages.community.description}
         keywords={SEO_CONFIG.pages.community.keywords}
+        type="website"
       />
       <h1 className="page-title"><span>{t('community.title')}</span></h1>
       

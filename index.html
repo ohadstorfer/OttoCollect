@@ -9,14 +9,10 @@
     <meta name="author" content="OttoCollect" />
     <meta name="robots" content="index, follow" />
     
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://ottocollect.com" />
+    <!-- Canonical URL - handled by Canonical component -->
     
     <!-- Preload critical resources for faster loading -->
-    <link rel="preload" href="/src/main.tsx" as="script" />
     <link rel="preload" href="/OttoCollectIcon.PNG" as="image" fetchpriority="high" />
-    <link rel="preload" href="/web-app-manifest-192x192.png" as="image" />
-    <link rel="preload" href="/favicon.PNG" as="image" />
     
     <!-- Optimize Google Fonts loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,15 +32,23 @@
     <link rel="dns-prefetch" href="//fonts.googleapis.com" />
     <link rel="dns-prefetch" href="//fonts.gstatic.com" />
     
-    <!-- Enhanced Favicon configuration for Google Search Results -->
+    <!-- Google Search Results Favicon Configuration -->
+    <!-- Primary favicon for Google Search - must be square and at least 48x48px -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/web-app-manifest-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/web-app-manifest-512x512.png" />
+    
+    <!-- Standard favicon sizes for browsers -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/web-app-manifest-192x192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/web-app-manifest-512x512.png" />
+    
+    <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon.png" />
+    
+    <!-- Web App Manifest -->
     <link rel="manifest" href="/site.webmanifest" />
     
     <!-- Microsoft Tiles -->

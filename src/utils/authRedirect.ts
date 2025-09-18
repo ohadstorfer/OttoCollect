@@ -71,3 +71,4 @@ export const getSafeRedirectUrl = (preferredPath: string = '/'): string => {
   return `${currentOrigin}/`;
 };
 
+

@@ -403,6 +403,49 @@ export const BLOG_POST_IDEAS = [
   }
 ];
 
+// Canonical URL generation utilities
+export const generateCanonicalURL = (path: string, baseUrl: string = 'https://ottocollect.com'): string => {
+  // Remove trailing slash and add it back to ensure consistency
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const canonicalPath = cleanPath === '/' ? '' : cleanPath;
+  return `${baseUrl}${canonicalPath}`;
+};
+
+export const getPageCanonicalURL = (pageType: string, params?: Record<string, string>): string => {
+  const baseUrl = 'https://ottocollect.com';
+  
+  switch (pageType) {
+    case 'home':
+      return `${baseUrl}/`;
+    case 'catalog':
+      return `${baseUrl}/catalog`;
+    case 'catalog-country':
+      return `${baseUrl}/catalog/${encodeURIComponent(params?.country || '')}`;
+    case 'marketplace':
+      return `${baseUrl}/marketplace`;
+    case 'collection':
+      return `${baseUrl}/collection`;
+    case 'forum':
+      return `${baseUrl}/forum`;
+    case 'blog':
+      return `${baseUrl}/blog`;
+    case 'blog-post':
+      return `${baseUrl}/blog/${params?.id || ''}`;
+    case 'community':
+      return `${baseUrl}/community`;
+    case 'about':
+      return `${baseUrl}/about`;
+    case 'contact':
+      return `${baseUrl}/contact`;
+    case 'banknote-detail':
+      return `${baseUrl}/banknote-details/${params?.id || ''}`;
+    case 'profile':
+      return `${baseUrl}/profile/${params?.userId || ''}`;
+    default:
+      return `${baseUrl}${params?.path || ''}`;
+  }
+};
+
 // SEO utility functions
 export const generateBanknoteSEO = (banknote: any) => {
   const { country, denomination, year, extendedPickNumber, condition, price, currency } = banknote;
@@ -419,7 +462,8 @@ export const generateBanknoteSEO = (banknote: any) => {
       'historical Turkish currency',
       'rare paper money',
       'collector banknote'
-    ]
+    ],
+    canonical: getPageCanonicalURL('banknote-detail', { id: banknote.id })
   };
 };
 
@@ -435,6 +479,7 @@ export const generateCountrySEO = (country: string) => {
       `rare ${country} currency`,
       'Ottoman Empire banknotes',
       'collectible currency'
-    ]
+    ],
+    canonical: getPageCanonicalURL('catalog-country', { country })
   };
 }; 

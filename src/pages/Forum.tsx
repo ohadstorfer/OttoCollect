@@ -15,6 +15,7 @@ import ForumPostCardAnnouncements from '@/components/forum/ForumPostCardAnnounce
 import { CreatePostDialog } from '@/components/forum/CreatePostDialog';
 import { CreateAnnouncementDialog } from '@/components/forum/CreateAnnouncementDialog';
 import SEOHead from '@/components/seo/SEOHead';
+import Canonical from '@/components/seo/Canonical';
 import { SEO_CONFIG } from '@/config/seoConfig';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/context/LanguageContext';
@@ -225,10 +226,12 @@ const Forum = () => {
 
   return (
     <div>
+      <Canonical />
       <SEOHead
         title={SEO_CONFIG.pages.forum.title}
         description={SEO_CONFIG.pages.forum.description}
         keywords={SEO_CONFIG.pages.forum.keywords}
+        type="website"
       />
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">

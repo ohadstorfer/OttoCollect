@@ -273,6 +273,7 @@ const Collection = () => {
         title={SEO_CONFIG.pages.collection.title}
         description={SEO_CONFIG.pages.collection.description}
         keywords={SEO_CONFIG.pages.collection.keywords}
+        type="collection"
       />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         {country ? (

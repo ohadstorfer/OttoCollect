@@ -56,6 +56,7 @@ export default function ContactUs() {
                 title={SEO_CONFIG.pages.contactUs.title}
                 description={SEO_CONFIG.pages.contactUs.description}
                 keywords={SEO_CONFIG.pages.contactUs.keywords}
+                type="website"
             />
     <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">

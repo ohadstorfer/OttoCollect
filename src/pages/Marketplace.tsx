@@ -17,6 +17,7 @@ import { BanknoteFilterMarketplace } from "@/components/filter/BanknoteFilterMar
 import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
 import { FilterOption } from "@/components/filter/BaseBanknoteFilter";
 import SEOHead from "@/components/seo/SEOHead";
+import Canonical from "@/components/seo/Canonical";
 import { SEO_CONFIG } from "@/config/seoConfig";
 import { useTranslation } from "react-i18next";
 
@@ -263,10 +264,12 @@ const Marketplace = () => {
 
   return (
     <div className="min-h-screen animate-fade-in">
+      <Canonical />
       <SEOHead
         title={SEO_CONFIG.pages.marketplace.title}
         description={SEO_CONFIG.pages.marketplace.description}
         keywords={SEO_CONFIG.pages.marketplace.keywords}
+        type="website"
       />
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden`}>
         <div className="absolute inset-0 -z-10">

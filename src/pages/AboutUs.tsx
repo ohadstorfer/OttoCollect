@@ -108,6 +108,7 @@ const AboutUs: React.FC = () => {
                 title={SEO_CONFIG.pages.aboutUs.title}
                 description={SEO_CONFIG.pages.aboutUs.description}
                 keywords={SEO_CONFIG.pages.aboutUs.keywords}
+                type="website"
             />
             <div className="container mx-auto px-4 py-8 max-w-6xl">
 

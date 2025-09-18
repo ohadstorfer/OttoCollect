@@ -10,6 +10,7 @@ import { fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext"; // <-- FIXED HERE
 import BanknoteDetailCard from "@/components/banknotes/BanknoteDetailCard";
 import SEOHead from "@/components/seo/SEOHead";
+import Canonical from "@/components/seo/Canonical";
 import { SEO_CONFIG } from "@/config/seoConfig";
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from "@/context/LanguageContext";
@@ -82,10 +83,12 @@ const Catalog = () => {
 
   return (
     <div className="min-h-screen animate-fade-in">
+      <Canonical />
       <SEOHead
         title={SEO_CONFIG.pages.catalog.title}
         description={SEO_CONFIG.pages.catalog.description}
         keywords={SEO_CONFIG.pages.catalog.keywords}
+        type="website"
       />
       <section className="bg-dark-600 dark:bg-dark-600 bg-ottoman-100 py-12 mb-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">

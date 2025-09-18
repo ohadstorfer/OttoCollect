@@ -18,6 +18,7 @@ import { CountryData } from "@/types/filter";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "@/components/ui/alert-dialog";
 import SEOHead from "@/components/seo/SEOHead";
+import Canonical from "@/components/seo/Canonical";
 import { SEO_CONFIG } from "@/config/seoConfig";
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from "@/context/LanguageContext";
@@ -198,10 +199,12 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen ${bgColor}`}>
+      <Canonical />
       <SEOHead
         title={SEO_CONFIG.pages.home.title}
         description={SEO_CONFIG.pages.home.description}
         keywords={SEO_CONFIG.pages.home.keywords}
+        type="website"
       />
       <section className="relative py-16 px-4 overflow-hidden text-center">
         <div className="absolute inset-0 -z-10">
