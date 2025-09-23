@@ -87,6 +87,7 @@ export type BaseBanknoteFilterProps = {
   currencies?: any[];
   categoryOrder?: any[];
   getFlattenedItemsForExport?: (activeTab: string) => CollectionItem[];
+  preferencesLoaded?: boolean;
 };
 
 export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
@@ -120,7 +121,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   onPrint,
   currencies = [],
   categoryOrder = [],
-  getFlattenedItemsForExport
+  getFlattenedItemsForExport,
+  preferencesLoaded = false
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -306,16 +308,37 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   };
 
   // Safety check: ensure filters are never empty on initialization
+  // Only run this when preferences have been loaded AND applied, and there are still no filters selected
   useEffect(() => {
-    if (categories.length > 0 && selectedCategories.length === 0) {
+    // Skip if preferences haven't been loaded yet
+    if (!preferencesLoaded) return;
+    
+    // Skip if we don't have categories/types yet
+    if (categories.length === 0 || types.length === 0) return;
+    
+    // Skip if there's a search term (indicates user is actively filtering)
+    if (search && search.trim().length > 0) return;
+    
+    // Skip if we already have some categories/types selected
+    if (selectedCategories.length > 0 || selectedTypes.length > 0) return;
+    
+    // Skip if currentFilters is empty (preferences haven't been applied yet)
+    if (!currentFilters.categories || currentFilters.categories.length === 0) return;
+    if (!currentFilters.types || currentFilters.types.length === 0) return;
+    
+    // Skip if user has preferences (currentFilters has filters)
+    if (currentFilters.categories.length > 0 || currentFilters.types.length > 0) return;
+    
+    // Only apply safety check if we truly have no filters selected after preferences are loaded
+    if (selectedCategories.length === 0) {
       setSelectedCategories(categories.map(c => c.id));
       handleFilterChange({ categories: categories.map(c => c.id) });
     }
-    if (types.length > 0 && selectedTypes.length === 0) {
+    if (selectedTypes.length === 0) {
       setSelectedTypes(types.map(t => t.id));
       handleFilterChange({ types: types.map(t => t.id) });
     }
-  }, [categories, types, selectedCategories, selectedTypes, handleFilterChange]);
+  }, [preferencesLoaded, categories, types, selectedCategories, selectedTypes, search, handleFilterChange, currentFilters]);
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {

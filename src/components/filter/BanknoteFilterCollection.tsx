@@ -46,6 +46,7 @@ export interface BanknoteFilterCollectionProps {
   getFlattenedItemsForExport?: (activeTab: string) => CollectionItem[];
   countryNameAr?: string;
   countryNameTr?: string;
+  preferencesLoaded?: boolean;
 }
 
 // Custom comparison function to ensure re-renders when viewMode or groupMode change
@@ -92,7 +93,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   sortedWishlistItems,
   currencies = [],
   categoryOrder = [],
-  getFlattenedItemsForExport
+  getFlattenedItemsForExport,
+  preferencesLoaded: externalPreferencesLoaded = false
 }) => {
   const { toast } = useToast();
   const { user: authUser } = useAuth();
@@ -110,6 +112,11 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   const [sortOptions, setSortOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [internalPreferencesLoaded, setInternalPreferencesLoaded] = useState(false);
+  
+  // Use external preferencesLoaded if provided, otherwise use internal one
+  const preferencesLoaded = externalPreferencesLoaded || internalPreferencesLoaded;
+  
   
   // Add refs to track states and prevent render loops
   const initialLoadComplete = useRef(false);
@@ -287,6 +294,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
           if (onPreferencesLoaded) {
             onPreferencesLoaded();
           }
+          
+          // Mark preferences as loaded
+          setInternalPreferencesLoaded(true);
         } else if (!initialLoadComplete.current) {
           // Set default filters if no user preferences are found
           const defaultCategoryIds = mappedCategories.map(cat => cat.id);
@@ -306,6 +316,9 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
           if (onPreferencesLoaded) {
             onPreferencesLoaded();
           }
+          
+          // Mark preferences as loaded
+          setInternalPreferencesLoaded(true);
         }
         
         // Mark as complete to prevent repeated loads and clear ignore flags
@@ -517,6 +530,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         currencies={currencies}
         categoryOrder={categoryOrder}
         getFlattenedItemsForExport={getFlattenedItemsForExport}
+        preferencesLoaded={preferencesLoaded}
       />
     </div>
   );

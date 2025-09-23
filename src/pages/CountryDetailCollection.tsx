@@ -857,6 +857,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         collectionItems={collectionItems}
         sortedCollectionItems={sortedCollectionItemsWithData}
         sortedSaleItems={sortedSaleItemsWithData}
+        preferencesLoaded={preferencesLoaded}
         sortedMissingItems={sortedMissingItems}
         sortedWishlistItems={sortedWishlistItems}
         getFlattenedItemsForExport={getRenderedItemsForExport}

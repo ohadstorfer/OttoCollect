@@ -229,3 +229,4 @@ The `SEOChecker` component automatically validates:
 Your site is now fully optimized for Google indexing and should display the favicon correctly in search results!
 
 
+
