@@ -7,11 +7,28 @@
     <lastmod>2025-09-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+   
+
+    <!-- Favicon for search result icons -->
     <image:image>
+      <image:loc>https://ottocollect.com/favicon-96x96.png</image:loc>
+      <image:title>OttoCollect icon</image:title>
+      <image:caption>OttoCollect website icon</image:caption>
+    </image:image>
+    <!-- Apple touch icon for mobile search results -->
+    <image:image>
+      <image:loc>https://ottocollect.com/apple-touch-icon.png</image:loc>
+      <image:title>OttoCollect Mobile Icon</image:title>
+      <image:caption>OttoCollect mobile app icon</image:caption>
+    </image:image>
+
+    <!-- Main site logo for search results -->
+     <image:image>
       <image:loc>https://ottocollect.com/OttoCollectIcon.PNG</image:loc>
       <image:title>OttoCollect - Ottoman Empire Banknote Collection Platform</image:title>
       <image:caption>OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840.</image:caption>
     </image:image>
+    
   </url>
   
   <!-- Main Pages -->

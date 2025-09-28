@@ -16,7 +16,7 @@ import TermsOfService from "@/pages/TermsOfService";
 import { useTranslation } from 'react-i18next';
 import { EmailConfirmationDialog } from "./EmailConfirmationDialog";
 import { getAuthRedirectUrl, logRedirectInfo, getDeploymentEnvironment } from '@/utils/authRedirect';
-import { safeNavigate, safeNavigateBack, getSafeFallbackPath } from '@/utils/safeNavigation';
+import { safeNavigate, safeNavigateBack, getSafeFallbackPath, chromeSafeAuthRedirect } from '@/utils/safeNavigation';
 
 interface AuthFormProps {
   mode?: 'login' | 'register' | 'reset';
@@ -84,8 +84,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
           title: t('auth.errors.accountBlocked.title'),
           description: errorMsg,
         });
-        return;
-      }
+      return;
+    }
 
       console.log('Attempting to login with Supabase...');
       const result = await login(loginEmail, loginPassword);
@@ -98,7 +98,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
         setLoginError(null);
         // Small delay to let the success toast show
         setTimeout(() => {
-          safeNavigateBack(navigate, '/');
+          // Use Chrome-specific redirect protection to prevent external redirects
+          chromeSafeAuthRedirect(navigate, '/');
         }, 500);
       } else {
         console.log('Login failed:', result.error);
@@ -135,7 +136,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
       });
       return;
     }
-    
+
     if (registerUsername.length < 3) {
       toast({
         variant: "destructive",
@@ -144,7 +145,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
       });
       return;
     }
-    
+
     if (!registerEmail.trim()) {
       toast({
         variant: "destructive",
@@ -153,7 +154,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
       });
       return;
     }
-    
+
     if (!registerConfirmEmail.trim()) {
       toast({
         variant: "destructive",
@@ -162,7 +163,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
       });
       return;
     }
-    
+
     if (registerEmail !== registerConfirmEmail) {
       setEmailsMatch(false);
       toast({
@@ -172,7 +173,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
       });
       return;
     }
-    
+
     if (!registerPassword) {
       toast({
         variant: "destructive",
@@ -199,7 +200,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
       });
       return;
     }
-    
+
     if (registerPassword !== registerConfirmPassword) {
       setPasswordsMatch(false);
       toast({
@@ -353,20 +354,20 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
     }
   };
 
-  return (
+    return (
     <div className="w-full max-w-md mx-auto animate-fade-in">
       <Card className="ottoman-card shadow-lg">
         {/* Show blocked notice if user is blocked */}
         {blockedNotice && (
           <div className="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded mb-4 text-center animate-fade-in">
             <span>{blockedNotice}</span>
-          </div>
+            </div>
         )}
         <Tabs
           defaultValue="login"
           value={activeTab}
           onValueChange={(value) => setActiveTab(value as 'login' | 'register' | 'reset')}
-          className="w-full"
+                className="w-full" 
         >
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="login" className="font-medium">
@@ -390,20 +391,20 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                 {(blockedError || loginError) && (
                   <div className="text-red-600 text-sm mt-2 p-2 bg-red-50 border border-red-200 rounded">
                     {blockedError || loginError}
-                  </div>
+              </div>
                 )}
               </div>
 
               <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
+              <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-ottoman-200">
                     {t('auth.login.email')}
                   </label>
-                  <Input
-                    id="email"
-                    type="email"
+                <Input
+                  id="email"
+                  type="email"
                     placeholder={t('auth.login.emailPlaceholder')}
-                    required
+                  required
                     className="ottoman-input"
                     value={loginEmail}
                     onChange={(e) => {
@@ -412,10 +413,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                       if (loginError) setLoginError(null);
                       if (blockedError) setBlockedError(null);
                     }}
-                  />
-                </div>
+                />
+              </div>
 
-                <div className="space-y-2">
+              <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <label
                       htmlFor="password"
@@ -431,12 +432,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                       {t('auth.login.forgotPassword')}
                     </button>
                   </div>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
                       placeholder={t('auth.login.passwordPlaceholder')}
-                      required
+                    required
                       className="ottoman-input pr-10"
                       value={loginPassword}
                       onChange={(e) => {
@@ -447,21 +448,21 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                       }}
                     />
                     <button
-                      type="button"
+                    type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-ottoman-400 hover:text-ottoman-300"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                     </button>
-                  </div>
                 </div>
+              </div>
 
-                <Button
-                  type="submit"
+              <Button 
+                type="submit" 
                   className="ottoman-button w-full"
                   disabled={authLoading || loginLoading}
                 >
@@ -473,7 +474,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                       {t('auth.login.loginButton')}
                     </>
                   )}
-                </Button>
+              </Button>
               </form>
 
               {/* Google login button */}
@@ -486,7 +487,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                 </div>
               </div>
               
-              <Button
+                <Button 
                 variant="outline"
                 type="button"
                 className="w-full flex items-center justify-center gap-2"
@@ -499,7 +500,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                   className="w-5 h-5"
                 />
                 Sign in with Google
-              </Button>
+                </Button>
 
               <div className="text-center">
                 <p className="text-sm text-ottoman-400">
@@ -514,7 +515,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
               </div>
             </div>
           </TabsContent>
-
+          
           {/* ========== Register Form Tab ========== */}
           <TabsContent value="register">
             <div className="space-y-6">
@@ -533,17 +534,17 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
               </div>
 
               <form onSubmit={handleRegister} className="space-y-4">
-                <div className="space-y-2">
+              <div className="space-y-2">
                   <label
                     htmlFor="username"
                     className="text-sm font-medium text-ottoman-200"
                   >
                     {t('auth.register.username')}
                   </label>
-                  <Input
-                    id="username"
+                <Input
+                  id="username"
                     placeholder={t('auth.register.usernamePlaceholder')}
-                    required
+                  required
                     className="ottoman-input"
                     value={registerUsername}
                     onChange={(e) => {
@@ -552,21 +553,21 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                       if (registerError) setRegisterError(null);
                       if (blockedError) setBlockedError(null);
                     }}
-                  />
-                </div>
+                />
+              </div>
 
-                <div className="space-y-2">
+              <div className="space-y-2">
                   <label
                     htmlFor="register-email"
                     className="text-sm font-medium text-ottoman-200"
                   >
                     {t('auth.register.email')}
                   </label>
-                  <Input
+                <Input
                     id="register-email"
-                    type="email"
+                  type="email"
                     placeholder={t('auth.register.emailPlaceholder')}
-                    required
+                  required
                     className={`ottoman-input ${
                       !emailsMatch && registerConfirmEmail
                         ? "border-red-500"
@@ -580,10 +581,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                       if (registerError) setRegisterError(null);
                       if (blockedError) setBlockedError(null);
                     }}
-                  />
-                </div>
+                />
+              </div>
 
-                <div className="space-y-2">
+              <div className="space-y-2">
                   <label
                     htmlFor="confirm-email"
                     className="text-sm font-medium text-ottoman-200"
@@ -623,12 +624,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                   >
                     {t('auth.register.password')}
                   </label>
-                  <div className="relative">
-                    <Input
+                <div className="relative">
+                  <Input
                       id="register-password"
-                      type={showPassword ? "text" : "password"}
+                    type={showPassword ? "text" : "password"}
                       placeholder={t('auth.register.passwordPlaceholder')}
-                      required
+                    required
                       className="ottoman-input pr-10"
                       value={registerPassword}
                       onChange={(e) => {
@@ -642,20 +643,20 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                       }}
                     />
                     <button
-                      type="button"
+                    type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-ottoman-400 hover:text-ottoman-300"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                     </button>
-                  </div>
                 </div>
+              </div>
 
-                <div className="space-y-2">
+              <div className="space-y-2">
                   <label
                     htmlFor="confirm-password"
                     className="text-sm font-medium text-ottoman-200"
@@ -686,12 +687,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                       {t('auth.register.passwordMismatch')}
                     </p>
                   )}
-                </div>
+              </div>
 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="terms"
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="terms"
                     required
                     className="rounded text-ottoman-500 focus:ring-ottoman-500"
                   />
@@ -701,7 +702,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                   >
                     {t('auth.register.termsAgreement')}{" "}
                     <button
-                      type="button"
+                    type="button"
                       onClick={() => setTermsOpen(true)}
                       className="text-ottoman-400 hover:text-ottoman-300 underline"
                     >
@@ -716,10 +717,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                       {t('auth.register.privacyPolicy')}
                     </button>
                   </label>
-                </div>
+              </div>
 
-                <Button
-                  type="submit"
+              <Button 
+                type="submit" 
                   className="ottoman-button w-full"
                   disabled={authLoading || registerLoading || !passwordsMatch || !emailsMatch}
                 >
@@ -731,24 +732,24 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                       {t('auth.register.registerButton')}
                     </>
                   )}
-                </Button>
-              </form>
+              </Button>
+            </form>
 
               {/* Google sign-up button */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-                </div>
-              </div>
-              
-              <Button
-                variant="outline"
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
                 type="button"
                 className="w-full flex items-center justify-center gap-2"
-                onClick={handleGoogleAuth}
+            onClick={handleGoogleAuth}
                 disabled={authLoading || registerLoading}
               >
                 <img
@@ -757,7 +758,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                   className="w-5 h-5"
                 />
                 Sign up with Google
-              </Button>
+          </Button>
 
               <div className="text-center">
                 <p className="text-sm text-ottoman-400">
@@ -769,11 +770,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode: initialMode = 'login' }) => {
                     {t('auth.register.loginLink')}
                   </button>
                 </p>
-              </div>
+        </div>
             </div>
           </TabsContent>
         </Tabs>
-      </Card>
+    </Card>
 
       {/* Password reset dialog */}
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
