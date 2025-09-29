@@ -27,6 +27,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from "@/context/LanguageContext";
 import { getLocalizedText } from "@/utils/localizationUtils";
+import { Helmet } from 'react-helmet-async';
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -531,8 +532,47 @@ const BanknoteDetailCard = ({
     );
   }
 
+  // Generate structured data for this banknote
+  const banknoteStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "name": `${banknote.denomination} Banknote - ${banknote.country}`,
+    "description": `${banknote.denomination} banknote from ${banknote.country}, issued in ${banknote.year}. Pick number: ${banknote.pickNumber}. ${banknote.authorityName ? `Issued by ${banknote.authorityName}.` : ''}`,
+    "image": displayImage && displayImage !== '/placeholder.svg' ? displayImage : undefined,
+    "dateCreated": banknote.year?.toString(),
+    "creator": {
+      "@type": "Organization",
+      "name": banknote.authorityName || "Ottoman Empire"
+    },
+    "about": {
+      "@type": "Thing",
+      "name": "Ottoman Empire Banknote",
+      "description": "Historical banknote from the Ottoman Empire period"
+    },
+    "keywords": [
+      banknote.denomination,
+      banknote.country,
+      banknote.year?.toString(),
+      banknote.pickNumber,
+      "Ottoman Empire",
+      "banknote",
+      "numismatics",
+      "historical currency"
+    ].filter(Boolean).join(", "),
+    "isPartOf": {
+      "@type": "Collection",
+      "name": `${banknote.country} Banknote Catalog`,
+      "url": `https://ottocollect.com/catalog/${encodeURIComponent(banknote.country || '')}`
+    }
+  };
+
   return (
     <>
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify(banknoteStructuredData)}
+        </script>
+      </Helmet>
       {renderOwnershipToast()}
       <Card
         className="overflow-hidden transition-all hover:shadow-md cursor-pointer hover:scale-[1.01]"

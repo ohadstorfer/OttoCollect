@@ -14,6 +14,7 @@ import { getSultanOrderMap } from "@/services/sultanOrderService";
 import { CollectionItem, fetchUserCollection } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import SEOHead from "@/components/seo/SEOHead";
 
 const CountryDetail = () => {
   const { country } = useParams();
@@ -185,9 +186,69 @@ const CountryDetail = () => {
   
   
 
+  // Generate SEO data for this country catalog page
+  const countryName = countryData?.name || country || '';
+  const encodedCountry = encodeURIComponent(countryName);
+  
+  const seoData = {
+    title: `${countryName} Banknotes | OttoCollect`,
+    description: `Browse ${countryName} banknotes from Ottoman Empire period. Historical banknotes 1840-1948 with detailed info, images, and collector data.`,
+    keywords: [
+      `${countryName} banknotes`,
+      'Ottoman Empire banknotes',
+      'historical banknotes',
+      'banknote catalog',
+      'numismatics',
+      'collector banknotes',
+      countryData?.name_ar || '',
+      countryData?.name_tr || ''
+    ].filter(Boolean),
+    canonical: `https://ottocollect.com/catalog/${encodedCountry}`,
+    image: `https://ottocollect.com/images/${country?.toLowerCase().replace(/\s+/g, '-') || 'ottoman-empire'}.jpg`,
+    type: 'collection' as const,
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": `${countryName} Banknote Catalog`,
+      "description": `Comprehensive catalog of ${countryName} banknotes from the Ottoman Empire period`,
+      "url": `https://ottocollect.com/catalog/${encodedCountry}`,
+      "mainEntity": {
+        "@type": "ItemList",
+        "name": `${countryName} Banknotes`,
+        "description": `Historical banknotes from ${countryName}`,
+        "numberOfItems": banknotes?.length || 0
+      },
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://ottocollect.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Catalog",
+            "item": "https://ottocollect.com/catalog/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": countryName,
+            "item": `https://ottocollect.com/catalog/${encodedCountry}`
+          }
+        ]
+      }
+    }
+  };
+
   return (
-    <WishlistProvider banknoteIds={banknoteIds}>
-      <div className="w-full px-2 sm:px-6 py-8 -mb-10">
+    <>
+      <SEOHead {...seoData} />
+      <WishlistProvider banknoteIds={banknoteIds}>
+        <div className="w-full px-2 sm:px-6 py-8 -mb-10">
         <div className="bg-card border rounded-lg p-1 sm:p-6 mb-6 sm:w-[95%] w-auto mx-auto">
           <CountryFilterSection
             countryId={countryId}
@@ -225,7 +286,8 @@ const CountryDetail = () => {
           )}
         </div>
       </div>
-    </WishlistProvider>
+      </WishlistProvider>
+    </>
   );
 };
 

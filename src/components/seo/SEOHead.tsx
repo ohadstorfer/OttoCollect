@@ -143,7 +143,8 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"} />
       <meta name="author" content="OttoCollect" />
       
-      {/* Canonical URL - handled by Canonical component */}
+      {/* Canonical URL */}
+      {canonical && <link rel="canonical" href={canonical} />}
       
       {/* Open Graph Meta Tags */}
       <meta property="og:title" content={seoData.title} />
