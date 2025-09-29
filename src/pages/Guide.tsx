@@ -6,6 +6,8 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
+import SEOHead from '@/components/seo/SEOHead';
+import { SEO_CONFIG } from '@/config/seoConfig';
 
 const Guide = () => {
   const { t } = useTranslation('guide');
@@ -131,7 +133,24 @@ const Guide = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <>
+      <SEOHead
+        title="OttoCollect Guide - How to Use the Platform | Ottoman Banknote Collection"
+        description="Learn how to use OttoCollect platform for Ottoman Empire banknote collection. Complete guide for adding banknotes, managing collections, and connecting with collectors worldwide."
+        keywords={[
+          'OttoCollect guide',
+          'Ottoman banknote collection guide',
+          'how to collect banknotes',
+          'banknote collection tutorial',
+          'Ottoman Empire numismatics guide',
+          'collector platform tutorial',
+          'banknote catalog guide',
+          'numismatic collection help'
+        ]}
+        type="website"
+        canonical="https://ottocollect.com/guide/"
+      />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-foreground mb-4">
           <span>{t('title')}</span>
@@ -147,6 +166,7 @@ const Guide = () => {
         {renderSection('suggestPicture')}
       </div>
     </div>
+    </>
   );
 };
 

@@ -89,6 +89,37 @@ const Catalog = () => {
         description={SEO_CONFIG.pages.catalog.description}
         keywords={SEO_CONFIG.pages.catalog.keywords}
         type="website"
+        canonical="https://ottocollect.com/catalog/"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "OttoCollect Banknote Catalog",
+          "description": "Comprehensive catalog of Ottoman Empire banknotes and historical currency from successor countries",
+          "url": "https://ottocollect.com/catalog/",
+          "mainEntity": {
+            "@type": "ItemList",
+            "name": "Ottoman Empire Banknote Catalog",
+            "description": "Complete collection of Ottoman Empire banknotes by country",
+            "numberOfItems": countries.length
+          },
+          "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://ottocollect.com/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Catalog",
+                "item": "https://ottocollect.com/catalog/"
+              }
+            ]
+          }
+        }}
       />
       <section className="bg-dark-600 dark:bg-dark-600 bg-ottoman-100 py-12 mb-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">

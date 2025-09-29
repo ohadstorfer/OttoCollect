@@ -57,6 +57,7 @@ export default function ContactUs() {
                 description={SEO_CONFIG.pages.contactUs.description}
                 keywords={SEO_CONFIG.pages.contactUs.keywords}
                 type="website"
+                canonical="https://ottocollect.com/contact/"
             />
     <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">

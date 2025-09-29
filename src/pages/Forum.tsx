@@ -232,6 +232,7 @@ const Forum = () => {
         description={SEO_CONFIG.pages.forum.description}
         keywords={SEO_CONFIG.pages.forum.keywords}
         type="website"
+        canonical="https://ottocollect.com/forum/"
       />
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">

@@ -76,6 +76,7 @@ export default function Community() {
         description={SEO_CONFIG.pages.community.description}
         keywords={SEO_CONFIG.pages.community.keywords}
         type="website"
+        canonical="https://ottocollect.com/community/"
       />
       <h1 className="page-title"><span>{t('community.title')}</span></h1>
       
