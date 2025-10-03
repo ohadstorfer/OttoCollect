@@ -28,8 +28,27 @@ app.get('/health', (req, res) => {
 app.get('/sitemap.xml', async (req, res) => {
   console.log('Sitemap requested, proxying to Supabase function');
   try {
-    const response = await fetch('https://psnzolounfwgvkupepxb.supabase.co/functions/v1/generate-sitemap');
+    const response = await fetch('https://psnzolounfwgvkupepxb.supabase.co/functions/v1/generate-sitemap', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/xml',
+        'Accept': 'application/xml',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzbnpvbG91bmZ3Z3ZrdXBlcHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NTk0NTksImV4cCI6MjA1OTQzNTQ1OX0.iIE3DilRwCum5BZiVa-W3nLCAV2EEwzd2h8XDvNdhF8',
+        'User-Agent': 'OttoCollect-Sitemap-Generator/1.0'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Supabase function returned ${response.status}: ${response.statusText}`);
+    }
+    
     const sitemapContent = await response.text();
+    
+    // Check if the response is actually XML
+    if (!sitemapContent.startsWith('<?xml')) {
+      console.error('Invalid sitemap response:', sitemapContent);
+      throw new Error('Invalid sitemap response from Supabase function');
+    }
     
     res.set({
       'Content-Type': 'application/xml; charset=utf-8',
