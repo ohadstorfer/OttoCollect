@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Dynamic Sitemap (auto-updates from database)
-Sitemap: https://psnzolounfwgvkupepxb.supabase.co/functions/v1/generate-sitemap
+Sitemap: https://ottocollect.com/sitemap.xml
 
 # Disallow admin and private areas
 Disallow: /admin/
@@ -23,8 +23,7 @@ Allow: /guide/
 Allow: /about/
 Allow: /contact/
 
-# Crawl delay (optional)
-Crawl-delay: 1
+
 
 # Additional directives for better indexing
 Host: https://ottocollect.com
