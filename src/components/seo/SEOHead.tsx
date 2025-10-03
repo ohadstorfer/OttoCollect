@@ -57,8 +57,8 @@ const SEOHead: React.FC<SEOHeadProps> = ({
 
     const { country, denomination, year, extendedPickNumber, condition, price, currency } = banknoteData;
     
-    const banknoteTitle = `${denomination} ${country} Banknote ${year} - Authentic Historical Currency | OttoCollect`;
-    const banknoteDescription = `Buy authentic ${denomination} ${country} banknote from ${year} (Pick #${extendedPickNumber}). ${condition ? `${condition} condition.` : ''} ${price ? `Price: ${price} ${currency}.` : ''} Rare historical currency for serious collectors.`;
+    const banknoteTitle = `${denomination} ${country} ${year} | OttoCollect`;
+    const banknoteDescription = `Authentic ${denomination} ${country} banknote from ${year}. Pick number: ${extendedPickNumber}. ${condition ? `${condition} condition.` : ''} ${price ? `Price: ${price} ${currency}.` : ''} Rare historical currency for serious collectors and numismatists.`;
 
     return {
       title: banknoteTitle,
@@ -73,7 +73,8 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         'rare paper money',
         'collector banknote',
         ...defaultKeywords
-      ]
+      ],
+      canonical: url || (typeof window !== 'undefined' ? window.location.href : '')
     };
   };
 
@@ -144,7 +145,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="author" content="OttoCollect" />
       
       {/* Canonical URL */}
-      {canonical && <link rel="canonical" href={canonical} />}
+      {(canonical || (seoData as any).canonical) && <link rel="canonical" href={canonical || (seoData as any).canonical} />}
       
       {/* Open Graph Meta Tags */}
       <meta property="og:title" content={seoData.title} />

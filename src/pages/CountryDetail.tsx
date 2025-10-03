@@ -203,7 +203,7 @@ const CountryDetail = () => {
       countryData?.name_ar || '',
       countryData?.name_tr || ''
     ].filter(Boolean),
-    canonical: `https://ottocollect.com/catalog/${encodedCountry}`,
+    canonical: 'https://ottocollect.com/catalog/',
     image: `https://ottocollect.com/images/${country?.toLowerCase().replace(/\s+/g, '-') || 'ottoman-empire'}.jpg`,
     type: 'collection' as const,
     structuredData: {
@@ -212,6 +212,11 @@ const CountryDetail = () => {
       "name": `${countryName} Banknote Catalog`,
       "description": `Comprehensive catalog of ${countryName} banknotes from the Ottoman Empire period`,
       "url": `https://ottocollect.com/catalog/${encodedCountry}`,
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "OttoCollect Banknote Catalog",
+        "url": "https://ottocollect.com/catalog/"
+      },
       "mainEntity": {
         "@type": "ItemList",
         "name": `${countryName} Banknotes`,

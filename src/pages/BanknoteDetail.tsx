@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
+import SEOHead from '@/components/seo/SEOHead';
 
 interface BanknoteDetailParams {
   id: string;
@@ -94,8 +95,38 @@ const BanknoteDetail: React.FC = () => {
     );
   }
 
+  // Generate SEO data for this banknote detail page
+  const seoData = {
+    title: `${banknote.denomination} ${banknote.country} ${banknote.year} | OttoCollect`,
+    description: `Authentic ${banknote.denomination} ${banknote.country} banknote from ${banknote.year}. Pick number: ${banknote.pickNumber}. ${banknote.authorityName ? `Issued by ${banknote.authorityName}.` : ''} Rare historical currency for serious collectors and numismatists.`,
+    keywords: [
+      `${banknote.denomination} ${banknote.country}`,
+      `${banknote.year} ${banknote.country} banknote`,
+      `Pick ${banknote.pickNumber}`,
+      'Ottoman Empire banknote',
+      'historical currency',
+      'rare banknote',
+      'collector banknote',
+      'numismatics',
+      banknote.authorityName || ''
+    ].filter(Boolean),
+    canonical: `https://ottocollect.com/catalog-banknote/${id}`,
+    image: banknote.imageUrls?.[0] || '/placeholder.svg',
+    type: 'product' as const,
+    banknoteData: {
+      id: banknote.id,
+      country: banknote.country,
+      denomination: banknote.denomination,
+      year: banknote.year?.toString(),
+      extendedPickNumber: banknote.pickNumber,
+      authorityName: banknote.authorityName
+    }
+  };
+
   return (
-    <div className="container max-w-4xl mx-auto py-10">
+    <>
+      <SEOHead {...seoData} />
+      <div className="container max-w-4xl mx-auto py-10">
       <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
@@ -157,6 +188,7 @@ const BanknoteDetail: React.FC = () => {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 };
 

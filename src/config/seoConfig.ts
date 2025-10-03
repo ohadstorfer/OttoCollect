@@ -146,7 +146,7 @@ export const SEO_CONFIG = {
 
     catalog: {
       title: 'Ottoman Empire Banknote Catalog - Historical Currency',
-      description: 'Browse our comprehensive catalog of Ottoman Empire banknotes, Turkish Republic currency, and historical paper money. Find rare collectible banknotes from Turkey, Palestine, Syria.',
+      description: 'Explore these notable Ottoman Empire banknotes and its successor countries/authorities banknotes from our extensive catalogue.',
       keywords: [
         'Ottoman Empire banknote catalog',
         'complete Turkish currency collection',
@@ -247,7 +247,7 @@ export const SEO_CONFIG = {
       "@type": "Organization",
       "name": "OttoCollect",
       "url": "https://ottocollect.com",
-      "logo": "https://ottocollect.com/logo.png",
+      "logo": "https://ottocollect.com/favicon-96x96.png",
       "description": "Premier marketplace for Ottoman Empire banknotes and historical currency",
       "foundingDate": "2024",
       "sameAs": [
@@ -268,7 +268,7 @@ export const SEO_CONFIG = {
       "@type": "WebSite",
       "name": "OttoCollect",
       "url": "https://ottocollect.com",
-      "description": "Premier marketplace for Ottoman Empire banknotes and historical currency",
+      "description": "OttoCollect is a comprehensive catalog and collection management platform dedicated to collectors of banknotes from the Ottoman Empire and from countries or authorities that were formerly under Ottoman rule, dating back to 1840.",
       "potentialAction": {
         "@type": "SearchAction",
         "target": "https://ottocollect.com/search?q={search_term_string}",
@@ -452,7 +452,7 @@ export const generateBanknoteSEO = (banknote: any) => {
   
   return {
     title: `${denomination} ${country} Banknote ${year} - Authentic Historical Currency | OttoCollect`,
-    description: `Buy authentic ${denomination} ${country} banknote from ${year} (Pick #${extendedPickNumber}). ${condition ? `${condition} condition.` : ''} ${price ? `Price: ${price} ${currency}.` : ''} Rare historical currency for serious collectors.`,
+    description: `${denomination} ${country} banknote from ${year} (Pick #${extendedPickNumber}). ${condition ? `${condition} condition.` : ''} ${price ? `Price: ${price} ${currency}.` : ''} Rare historical currency for serious collectors.`,
     keywords: [
       `${country} banknote`,
       `${denomination} ${country}`,

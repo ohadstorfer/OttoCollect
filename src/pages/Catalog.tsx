@@ -102,6 +102,11 @@ const Catalog = () => {
             "description": "Complete collection of Ottoman Empire banknotes by country",
             "numberOfItems": countries.length
           },
+          "hasPart": countries.map(country => ({
+            "@type": "CollectionPage",
+            "name": `${country.name} Banknote Catalog`,
+            "url": `https://ottocollect.com/catalog/${encodeURIComponent(country.name)}`
+          })),
           "breadcrumb": {
             "@type": "BreadcrumbList",
             "itemListElement": [
