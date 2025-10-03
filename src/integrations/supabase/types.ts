@@ -3276,6 +3276,10 @@ export type Database = {
         Args: { country_uuid: string; user_uuid: string }
         Returns: boolean
       }
+      is_country_admin_for_profile: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_following: {
         Args: { follower_user_id: string; following_user_id: string }
         Returns: boolean
@@ -3346,6 +3350,10 @@ export type Database = {
           target_language: string
           text: string
         }
+        Returns: Json
+      }
+      trigger_sitemap_generation: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       update_badge_translations: {
