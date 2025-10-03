@@ -1,8 +1,8 @@
 User-agent: *
 Allow: /
 
-# Sitemaps
-Sitemap: https://ottocollect.com/sitemap.xml
+# Dynamic Sitemap (auto-updates from database)
+Sitemap: https://psnzolounfwgvkupepxb.supabase.co/functions/v1/generate-sitemap
 
 # Disallow admin and private areas
 Disallow: /admin/
