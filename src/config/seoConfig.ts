@@ -467,6 +467,7 @@ export const generateBanknoteSEO = (banknote: any) => {
   };
 };
 
+
 export const generateCountrySEO = (country: string) => {
   return {
     title: `${country} Banknotes - Historical Currency Collection | OttoCollect`,
