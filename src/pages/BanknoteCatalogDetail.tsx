@@ -505,18 +505,110 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     <div className="page-container ">
       {renderOwnershipToast()}
       <SEOHead
+        title={`${banknote?.denomination} ${banknote?.country} ${banknote?.gregorianYear || banknote?.year} | OttoCollect`}
+        description={`Authentic ${banknote?.denomination} ${banknote?.country} banknote from ${banknote?.gregorianYear || banknote?.year}. Pick number: ${banknote?.extendedPickNumber}. ${banknote?.authorityName ? `Issued by ${banknote?.authorityName}.` : ''} ${banknote?.description ? `${banknote?.description.substring(0, 100)}...` : ''} Rare historical currency for serious collectors and numismatists.`}
+        keywords={[
+          `${banknote?.denomination} ${banknote?.country}`,
+          `${banknote?.gregorianYear || banknote?.year} ${banknote?.country} banknote`,
+          `Pick ${banknote?.extendedPickNumber}`,
+          'Ottoman Empire banknote',
+          'historical currency',
+          'rare banknote',
+          'collector banknote',
+          'numismatics',
+          banknote?.authorityName || '',
+          banknote?.series || '',
+          banknote?.category || '',
+          banknote?.type || '',
+          banknote?.printer || '',
+          banknote?.watermark || ''
+        ].filter(Boolean)}
+        canonical={`https://ottocollect.com/catalog-banknote/${banknote?.id}`}
+        image={banknote?.imageUrls?.[0] || '/placeholder.svg'}
+        type="product"
         banknoteData={{
           id: banknote?.id,
           country: banknote?.country,
           denomination: banknote?.denomination,
           year: banknote?.gregorianYear || banknote?.year,
-          extendedPickNumber: banknote?.extendedPickNumber
-      
+          extendedPickNumber: banknote?.extendedPickNumber,
+          ...(banknote?.authorityName && { authorityName: banknote.authorityName }),
+          ...(banknote?.series && { series: banknote.series }),
+          ...(banknote?.category && { category: banknote.category }),
+          ...(banknote?.type && { type: banknote.type }),
+          ...(banknote?.printer && { printer: banknote.printer }),
+          ...(banknote?.watermark && { watermark: banknote.watermark }),
+          ...(banknote?.description && { description: banknote.description })
+        } as any}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": `${banknote?.denomination} ${banknote?.country} Banknote ${banknote?.gregorianYear || banknote?.year}`,
+          "description": banknote?.description || `Authentic ${banknote?.denomination} ${banknote?.country} banknote from ${banknote?.gregorianYear || banknote?.year}`,
+          "image": banknote?.imageUrls?.map((url, index) => ({
+            "@type": "ImageObject",
+            "url": url,
+            "name": `${banknote?.denomination} ${banknote?.country} ${index === 0 ? 'Front' : 'Back'}`,
+            "description": `${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year}`,
+            "caption": `${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`
+          })) || [],
+          "url": `https://ottocollect.com/catalog-banknote/${banknote?.id}`,
+          "brand": {
+            "@type": "Brand",
+            "name": banknote?.country
+          },
+          "category": "Collectible Currency",
+          "additionalProperty": [
+            {
+              "@type": "PropertyValue",
+              "name": "Year",
+              "value": banknote?.gregorianYear || banknote?.year?.toString()
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Pick Number",
+              "value": banknote?.extendedPickNumber
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Country",
+              "value": banknote?.country
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Series",
+              "value": banknote?.series || "N/A"
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Category",
+              "value": banknote?.category || "N/A"
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Type",
+              "value": banknote?.type || "N/A"
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Printer",
+              "value": banknote?.printer || "N/A"
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Watermark",
+              "value": banknote?.watermark || "N/A"
+            }
+          ],
+          "isPartOf": {
+            "@type": "Collection",
+            "name": `${banknote?.country} Banknote Catalog`,
+            "url": `https://ottocollect.com/catalog/${encodeURIComponent(banknote?.country || '')}`
+          }
         }}
-        type="product"
-        url={`${window.location.origin}/banknote-details/${banknote?.id}`}
+        url={`https://ottocollect.com/catalog-banknote/${banknote?.id}`}
       />
-      <div className="flex flex-col space-y-6">
+      <div className="flex flex-col space-y-6" itemScope itemType="https://schema.org/Product">
         <div className="space-y-1 page-container max-w-5xl">
           <div className="flex justify-between items-center">
             <div className="flex items-baseline  gap-2">
@@ -536,13 +628,14 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
 
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold flex items-center gap-2">
+            <h1 className="text-3xl font-bold flex items-center gap-2" itemProp="name">
               <span> {banknote.denomination} </span>
             </h1>
                   <Star className="h-5 w-5 fill-gold-400 text-gold-400" />
             {banknote.extendedPickNumber && (
-              <p className="text-xl leading-tight">
-                {banknote.extendedPickNumber}
+              <p className="text-xl leading-tight" itemProp="additionalProperty" itemScope itemType="https://schema.org/PropertyValue">
+                <meta itemProp="name" content="Pick Number" />
+                <span itemProp="value">{banknote.extendedPickNumber}</span>
               </p>
             )}
           </div>
@@ -553,18 +646,29 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   className={`text-xl text-muted-foreground ${
     direction === "rtl" ? "text-right" : ""
   }`}
+  itemProp="description"
 >
   {direction === "rtl" ? (
     <>
-      {banknote?.country}
+      <span itemProp="brand" itemScope itemType="https://schema.org/Brand">
+        <span itemProp="name">{banknote?.country}</span>
+      </span>
       {banknote?.country && banknote?.year && ", "}
-      {banknote?.year}
+      <span itemProp="additionalProperty" itemScope itemType="https://schema.org/PropertyValue">
+        <meta itemProp="name" content="Year" />
+        <span itemProp="value">{banknote?.year}</span>
+      </span>
     </>
   ) : (
     <>
-      {banknote?.country}
+      <span itemProp="brand" itemScope itemType="https://schema.org/Brand">
+        <span itemProp="name">{banknote?.country}</span>
+      </span>
       {banknote?.country && banknote?.year && ", "}
-      {banknote?.year}
+      <span itemProp="additionalProperty" itemScope itemType="https://schema.org/PropertyValue">
+        <meta itemProp="name" content="Year" />
+        <span itemProp="value">{banknote?.year}</span>
+      </span>
     </>
   )}
 </p>
@@ -577,7 +681,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <div className="lg:col-span-3 space-y-4">
-            <Card>
+            <Card itemScope itemType="https://schema.org/ImageGallery">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
                   <Image className="h-5 w-5 mr-2" />
@@ -602,13 +706,18 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                                     key={index}
                                     className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                                     onClick={() => openImageViewer(url)}
+                                    itemProp="image" itemScope itemType="https://schema.org/ImageObject"
                                   >
                                     <div className="w-full overflow-hidden border">
                                       <img
                                         src={url}
-                                        alt={`Banknote Image ${index + 1}`}
+                                        alt={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber} - ${banknote?.authorityName ? `Issued by ${banknote?.authorityName}` : 'Ottoman Empire currency'}`}
                                         className="w-full h-auto object-contain"
                                       />
+                                      <meta itemProp="url" content={url} />
+                                      <meta itemProp="name" content={`${banknote?.denomination} ${banknote?.country} Banknote ${index === 0 ? 'Front' : 'Back'}`} />
+                                      <meta itemProp="description" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber}`} />
+                                      <meta itemProp="caption" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`} />
                                     </div>
                                   </div>
                                 ))}
@@ -624,13 +733,18 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                                   key={index}
                                   className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                                   onClick={() => openImageViewer(url)}
+                                  itemProp="image" itemScope itemType="https://schema.org/ImageObject"
                                 >
                                   <div className="w-full overflow-hidden border">
                                     <img
                                       src={url}
-                                      alt={`Banknote Image ${index + 1}`}
+                                      alt={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber} - ${banknote?.authorityName ? `Issued by ${banknote?.authorityName}` : 'Ottoman Empire currency'}`}
                                       className="w-full h-auto object-contain"
                                     />
+                                    <meta itemProp="url" content={url} />
+                                    <meta itemProp="name" content={`${banknote?.denomination} ${banknote?.country} Banknote ${index === 0 ? 'Front' : 'Back'}`} />
+                                    <meta itemProp="description" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber}`} />
+                                    <meta itemProp="caption" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`} />
                                   </div>
                                 </div>
                               ))}
@@ -644,13 +758,18 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                         key={index}
                         className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => openImageViewer(url)}
+                        itemProp="image" itemScope itemType="https://schema.org/ImageObject"
                       >
                         <div className="w-full overflow-hidden border">
                           <img
                             src={url}
-                            alt={`Banknote Image ${index + 1}`}
+                            alt={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber} - ${banknote?.authorityName ? `Issued by ${banknote?.authorityName}` : 'Ottoman Empire currency'}`}
                                 className="w-full h-auto object-contain"
                           />
+                          <meta itemProp="url" content={url} />
+                          <meta itemProp="name" content={`${banknote?.denomination} ${banknote?.country} Banknote ${index === 0 ? 'Front' : 'Back'}`} />
+                          <meta itemProp="description" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber}`} />
+                          <meta itemProp="caption" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`} />
                         </div>
                       </div>
                     ))
@@ -681,14 +800,18 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                               key={index}
                               className="relative aspect-[3/2] cursor-pointer hover:opacity-90 transition-opacity"
                               onClick={() => openImageViewer(url)}
+                              itemProp="image" itemScope itemType="https://schema.org/ImageObject"
                             >
                               <div className="absolute inset-0 overflow-hidden border">
                                 <img
                                   src={url}
-                                  alt={` ${banknote.denomination} banknote from ${banknote.country}, issued in ${banknote.year} with Pick number ${banknote.pickNumber}`}
-
+                                  alt={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber} - ${banknote?.authorityName ? `Issued by ${banknote?.authorityName}` : 'Ottoman Empire currency'}`}
                                   className="w-full h-full object-cover"
                                 />
+                                <meta itemProp="url" content={url} />
+                                <meta itemProp="name" content={`${banknote?.denomination} ${banknote?.country} Banknote ${index === 0 ? 'Front' : 'Back'}`} />
+                                <meta itemProp="description" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber}`} />
+                                <meta itemProp="caption" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`} />
                               </div>
                             </div>
                           ))}
