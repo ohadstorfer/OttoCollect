@@ -95,10 +95,10 @@ const BanknoteDetail: React.FC = () => {
     );
   }
 
-  // Generate SEO data for this banknote detail page
+  // Generate comprehensive SEO data for this banknote detail page
   const seoData = {
     title: `${banknote.denomination} ${banknote.country} ${banknote.year} | OttoCollect`,
-    description: `Authentic ${banknote.denomination} ${banknote.country} banknote from ${banknote.year}. Pick number: ${banknote.pickNumber}. ${banknote.authorityName ? `Issued by ${banknote.authorityName}.` : ''} Rare historical currency for serious collectors and numismatists.`,
+    description: `Authentic ${banknote.denomination} ${banknote.country} banknote from ${banknote.year}. Pick number: ${banknote.pickNumber}. ${banknote.authorityName ? `Issued by ${banknote.authorityName}.` : ''} ${banknote.description ? `${banknote.description.substring(0, 100)}...` : ''} Rare historical currency for serious collectors and numismatists.`,
     keywords: [
       `${banknote.denomination} ${banknote.country}`,
       `${banknote.year} ${banknote.country} banknote`,
@@ -108,7 +108,12 @@ const BanknoteDetail: React.FC = () => {
       'rare banknote',
       'collector banknote',
       'numismatics',
-      banknote.authorityName || ''
+      banknote.authorityName || '',
+      banknote.series || '',
+      banknote.category || '',
+      banknote.type || '',
+      banknote.printer || '',
+      banknote.watermark || ''
     ].filter(Boolean),
     canonical: `https://ottocollect.com/catalog-banknote/${id}`,
     image: banknote.imageUrls?.[0] || '/placeholder.svg',
@@ -119,7 +124,80 @@ const BanknoteDetail: React.FC = () => {
       denomination: banknote.denomination,
       year: banknote.year?.toString(),
       extendedPickNumber: banknote.pickNumber,
-      authorityName: banknote.authorityName
+      authorityName: banknote.authorityName,
+      series: banknote.series,
+      category: banknote.category,
+      type: banknote.type,
+      printer: banknote.printer,
+      watermark: banknote.watermark,
+      description: banknote.description
+    },
+    // Enhanced structured data for better Google indexing
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": `${banknote.denomination} ${banknote.country} Banknote ${banknote.year}`,
+      "description": banknote.description || `Authentic ${banknote.denomination} ${banknote.country} banknote from ${banknote.year}`,
+      "image": banknote.imageUrls?.map((url, index) => ({
+        "@type": "ImageObject",
+        "url": url,
+        "name": `${banknote.denomination} ${banknote.country} ${index === 0 ? 'Front' : 'Back'}`,
+        "description": `${banknote.denomination} ${banknote.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote.year}`,
+        "caption": `${banknote.denomination} ${banknote.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`
+      })) || [],
+      "url": `https://ottocollect.com/catalog-banknote/${id}`,
+      "brand": {
+        "@type": "Brand",
+        "name": banknote.country
+      },
+      "category": "Collectible Currency",
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Year",
+          "value": banknote.year?.toString()
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Pick Number",
+          "value": banknote.pickNumber
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Country",
+          "value": banknote.country
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Series",
+          "value": banknote.series || "N/A"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Category",
+          "value": banknote.category || "N/A"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Type",
+          "value": banknote.type || "N/A"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Printer",
+          "value": banknote.printer || "N/A"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Watermark",
+          "value": banknote.watermark || "N/A"
+        }
+      ],
+      "isPartOf": {
+        "@type": "Collection",
+        "name": `${banknote.country} Banknote Catalog`,
+        "url": `https://ottocollect.com/catalog/${encodeURIComponent(banknote.country || '')}`
+      }
     }
   };
 
@@ -132,50 +210,58 @@ const BanknoteDetail: React.FC = () => {
         Back
       </Button>
 
-      <Card className="w-full">
+      <Card className="w-full" itemScope itemType="https://schema.org/Product">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">{banknote.denomination} {banknote.country}</CardTitle>
-          <CardDescription>{banknote.year} - {banknote.pickNumber}</CardDescription>
+          <CardTitle className="text-2xl font-bold" itemProp="name">{banknote.denomination} {banknote.country}</CardTitle>
+          <CardDescription itemProp="description">{banknote.year} - {banknote.pickNumber}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="aspect-[3/2] relative overflow-hidden rounded-md border">
+            <div className="aspect-[3/2] relative overflow-hidden rounded-md border" itemProp="image" itemScope itemType="https://schema.org/ImageObject">
               <BanknoteImage
                 imageUrl={banknote.imageUrls?.[0] || null}
-                alt={`Front of ${banknote.denomination}`}
+                alt={`${banknote.denomination} ${banknote.country} banknote front side from ${banknote.year} - Pick ${banknote.pickNumber} - ${banknote.authorityName ? `Issued by ${banknote.authorityName}` : 'Ottoman Empire currency'}`}
                 className="object-cover"
               />
+              <meta itemProp="url" content={banknote.imageUrls?.[0] || ''} />
+              <meta itemProp="name" content={`${banknote.denomination} ${banknote.country} Banknote Front`} />
+              <meta itemProp="description" content={`${banknote.denomination} ${banknote.country} banknote front side from ${banknote.year} - Pick ${banknote.pickNumber}`} />
+              <meta itemProp="caption" content={`${banknote.denomination} ${banknote.country} banknote obverse design`} />
             </div>
-            <div className="aspect-[3/2] relative overflow-hidden rounded-md border">
+            <div className="aspect-[3/2] relative overflow-hidden rounded-md border" itemProp="image" itemScope itemType="https://schema.org/ImageObject">
               <BanknoteImage
                 imageUrl={banknote.imageUrls?.[1] || null}
-                alt={`Back of ${banknote.denomination}`}
+                alt={`${banknote.denomination} ${banknote.country} banknote back side from ${banknote.year} - Pick ${banknote.pickNumber} - ${banknote.authorityName ? `Issued by ${banknote.authorityName}` : 'Ottoman Empire currency'}`}
                 className="object-cover"
               />
+              <meta itemProp="url" content={banknote.imageUrls?.[1] || ''} />
+              <meta itemProp="name" content={`${banknote.denomination} ${banknote.country} Banknote Back`} />
+              <meta itemProp="description" content={`${banknote.denomination} ${banknote.country} banknote back side from ${banknote.year} - Pick ${banknote.pickNumber}`} />
+              <meta itemProp="caption" content={`${banknote.denomination} ${banknote.country} banknote reverse design`} />
             </div>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-4" itemScope itemType="https://schema.org/Product">
             <h3 className="text-xl font-semibold">Details</h3>
             <Separator className="my-2" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <strong>Series:</strong> {banknote.series || 'N/A'}
+              <div itemProp="additionalProperty" itemScope itemType="https://schema.org/PropertyValue">
+                <strong>Series:</strong> <span itemProp="value">{banknote.series || 'N/A'}</span>
               </div>
-              <div>
-                <strong>Category:</strong> {banknote.category || 'N/A'}
+              <div itemProp="additionalProperty" itemScope itemType="https://schema.org/PropertyValue">
+                <strong>Category:</strong> <span itemProp="value">{banknote.category || 'N/A'}</span>
               </div>
-              <div>
-                <strong>Type:</strong> {banknote.type || 'N/A'}
+              <div itemProp="additionalProperty" itemScope itemType="https://schema.org/PropertyValue">
+                <strong>Type:</strong> <span itemProp="value">{banknote.type || 'N/A'}</span>
               </div>
-              <div>
-                <strong>Printer:</strong> {banknote.printer || 'N/A'}
+              <div itemProp="additionalProperty" itemScope itemType="https://schema.org/PropertyValue">
+                <strong>Printer:</strong> <span itemProp="value">{banknote.printer || 'N/A'}</span>
               </div>
-              <div>
-                <strong>Signatures:</strong> {banknote.signatures?.join(', ') || 'N/A'}
+              <div itemProp="additionalProperty" itemScope itemType="https://schema.org/PropertyValue">
+                <strong>Signatures:</strong> <span itemProp="value">{(banknote as any).signatures?.join(', ') || 'N/A'}</span>
               </div>
-              <div>
-                <strong>Watermark:</strong> {banknote.watermark || 'N/A'}
+              <div itemProp="additionalProperty" itemScope itemType="https://schema.org/PropertyValue">
+                <strong>Watermark:</strong> <span itemProp="value">{banknote.watermark || 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -183,7 +269,7 @@ const BanknoteDetail: React.FC = () => {
           <div className="mt-4">
             <h3 className="text-xl font-semibold">Description</h3>
             <Separator className="my-2" />
-            <p>{banknote.description || 'No description available.'}</p>
+            <p itemProp="description">{banknote.description || 'No description available.'}</p>
           </div>
         </CardContent>
       </Card>
