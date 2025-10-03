@@ -24,6 +24,24 @@ app.get('/health', (req, res) => {
   res.status(200).send('healthy');
 });
 
+// Proxy sitemap.xml to dynamic Supabase sitemap
+app.get('/sitemap.xml', async (req, res) => {
+  console.log('Sitemap requested, proxying to Supabase function');
+  try {
+    const response = await fetch('https://psnzolounfwgvkupepxb.supabase.co/functions/v1/generate-sitemap');
+    const sitemapContent = await response.text();
+    
+    res.set({
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600' // Cache for 1 hour
+    });
+    res.send(sitemapContent);
+  } catch (error) {
+    console.error('Error fetching sitemap:', error);
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
 // Handle client-side routing - send all requests to index.html
 app.get('*', (req, res) => {
   console.log(`Serving index.html for route: ${req.path}`);
