@@ -524,7 +524,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
           banknote?.watermark || ''
         ].filter(Boolean)}
         canonical={`https://ottocollect.com/catalog-banknote/${banknote?.id}`}
-        image={banknote?.imageUrls?.[0] || '/placeholder.svg'}
+        image={banknote?.frontPictureWatermarked || banknote?.frontPictureThumbnail || '/OttoCollectIcon.PNG'}
         type="product"
         banknoteData={{
           id: banknote?.id,
