@@ -18,8 +18,6 @@ Deno.serve(async (req) => {
 
     const baseUrl = 'https://ottocollect.com';
     const currentDate = new Date().toISOString().split('T')[0];
-    
-    console.log('Starting sitemap generation...');
 
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -110,17 +108,13 @@ Deno.serve(async (req) => {
   </url>
 `;
 
-    // Fetch countries dynamically with error handling
-    console.log('Fetching countries...');
-    const { data: countries, error: countriesError } = await supabase
+    // Fetch countries dynamically
+    const { data: countries } = await supabase
       .from('countries')
       .select('name, updated_at')
       .order('display_order');
 
-    if (countriesError) {
-      console.error('Error fetching countries:', countriesError);
-    } else if (countries) {
-      console.log(`Found ${countries.length} countries`);
+    if (countries) {
       sitemap += '\n  <!-- Country-specific catalog pages -->\n';
       countries.forEach(country => {
         const encodedCountry = encodeURIComponent(country.name);
@@ -138,16 +132,12 @@ Deno.serve(async (req) => {
     }
 
     // Fetch blog posts dynamically
-    console.log('Fetching blog posts...');
-    const { data: blogPosts, error: blogError } = await supabase
+    const { data: blogPosts } = await supabase
       .from('blog_posts')
       .select('id, updated_at')
       .order('created_at', { ascending: false });
 
-    if (blogError) {
-      console.error('Error fetching blog posts:', blogError);
-    } else if (blogPosts) {
-      console.log(`Found ${blogPosts.length} blog posts`);
+    if (blogPosts) {
       sitemap += '\n  <!-- Blog posts -->\n';
       blogPosts.forEach(post => {
         const lastmod = post.updated_at 
@@ -164,16 +154,12 @@ Deno.serve(async (req) => {
     }
 
     // Fetch forum posts dynamically
-    console.log('Fetching forum posts...');
-    const { data: forumPosts, error: forumError } = await supabase
+    const { data: forumPosts } = await supabase
       .from('forum_posts')
       .select('id, updated_at')
       .order('created_at', { ascending: false });
 
-    if (forumError) {
-      console.error('Error fetching forum posts:', forumError);
-    } else if (forumPosts) {
-      console.log(`Found ${forumPosts.length} forum posts`);
+    if (forumPosts) {
       sitemap += '\n  <!-- Forum posts -->\n';
       forumPosts.forEach(post => {
         const lastmod = post.updated_at 
@@ -190,17 +176,13 @@ Deno.serve(async (req) => {
     }
 
     // Fetch banknotes dynamically
-    console.log('Fetching banknotes...');
-    const { data: banknotes, error: banknotesError } = await supabase
+    const { data: banknotes } = await supabase
       .from('detailed_banknotes')
       .select('id, updated_at')
       .eq('is_approved', true)
       .order('extended_pick_number');
 
-    if (banknotesError) {
-      console.error('Error fetching banknotes:', banknotesError);
-    } else if (banknotes) {
-      console.log(`Found ${banknotes.length} banknotes`);
+    if (banknotes) {
       sitemap += '\n  <!-- Banknote detail pages -->\n';
       banknotes.forEach(banknote => {
         const lastmod = banknote.updated_at 
@@ -217,18 +199,14 @@ Deno.serve(async (req) => {
     }
 
     // Fetch marketplace items (listed)
-    console.log('Fetching marketplace items...');
-    const { data: marketplaceItems, error: marketplaceError } = await supabase
+    const { data: marketplaceItems } = await supabase
       .from('collection_items')
       .select('id, updated_at')
       .eq('is_for_sale', true)
       .eq('is_unlisted_banknote', false)
       .order('created_at', { ascending: false });
 
-    if (marketplaceError) {
-      console.error('Error fetching marketplace items:', marketplaceError);
-    } else if (marketplaceItems) {
-      console.log(`Found ${marketplaceItems.length} marketplace items`);
+    if (marketplaceItems) {
       sitemap += '\n  <!-- Marketplace listed items -->\n';
       marketplaceItems.forEach(item => {
         const lastmod = item.updated_at 
@@ -245,18 +223,14 @@ Deno.serve(async (req) => {
     }
 
     // Fetch marketplace items (unlisted)
-    console.log('Fetching unlisted items...');
-    const { data: unlistedItems, error: unlistedError } = await supabase
+    const { data: unlistedItems } = await supabase
       .from('collection_items')
       .select('id, updated_at')
       .eq('is_for_sale', true)
       .eq('is_unlisted_banknote', true)
       .order('created_at', { ascending: false });
 
-    if (unlistedError) {
-      console.error('Error fetching unlisted items:', unlistedError);
-    } else if (unlistedItems) {
-      console.log(`Found ${unlistedItems.length} unlisted items`);
+    if (unlistedItems) {
       sitemap += '\n  <!-- Marketplace unlisted items -->\n';
       unlistedItems.forEach(item => {
         const lastmod = item.updated_at 
@@ -274,7 +248,6 @@ Deno.serve(async (req) => {
 
     sitemap += '</urlset>';
 
-    console.log('Sitemap generation completed successfully');
     return new Response(sitemap, {
       headers: corsHeaders,
     });

@@ -24,14 +24,9 @@ app.get('/health', (req, res) => {
   res.status(200).send('healthy');
 });
 
-// Proxy sitemap.xml to dynamic Supabase sitemap with fallback
+// Proxy sitemap.xml to dynamic Supabase sitemap
 app.get('/sitemap.xml', async (req, res) => {
   console.log('Sitemap requested, proxying to Supabase function');
-  
-  // Set timeout for the request (5 seconds)
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
-  
   try {
     const response = await fetch('https://psnzolounfwgvkupepxb.supabase.co/functions/v1/generate-sitemap', {
       method: 'GET',
@@ -40,11 +35,8 @@ app.get('/sitemap.xml', async (req, res) => {
         'Accept': 'application/xml',
         'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzbnpvbG91bmZ3Z3ZrdXBlcHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NTk0NTksImV4cCI6MjA1OTQzNTQ1OX0.iIE3DilRwCum5BZiVa-W3nLCAV2EEwzd2h8XDvNdhF8'}`,
         'User-Agent': 'OttoCollect-Sitemap-Generator/1.0'
-      },
-      signal: controller.signal
+      }
     });
-    
-    clearTimeout(timeoutId);
     
     if (!response.ok) {
       throw new Error(`Supabase function returned ${response.status}: ${response.statusText}`);
@@ -58,32 +50,14 @@ app.get('/sitemap.xml', async (req, res) => {
       throw new Error('Invalid sitemap response from Supabase function');
     }
     
-    console.log('Dynamic sitemap generated successfully');
     res.set({
       'Content-Type': 'application/xml; charset=utf-8',
       'Cache-Control': 'public, max-age=3600' // Cache for 1 hour
     });
     res.send(sitemapContent);
   } catch (error) {
-    clearTimeout(timeoutId);
-    console.error('Error fetching dynamic sitemap, serving fallback:', error.message);
-    
-    // Serve fallback static sitemap
-    try {
-      const fallbackSitemap = await import('fs').then(fs => 
-        fs.readFileSync(path.join(__dirname, 'public', 'sitemap-fallback.xml'), 'utf8')
-      );
-      
-      res.set({
-        'Content-Type': 'application/xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=300' // Cache fallback for 5 minutes
-      });
-      res.send(fallbackSitemap);
-      console.log('Fallback sitemap served successfully');
-    } catch (fallbackError) {
-      console.error('Error serving fallback sitemap:', fallbackError);
-      res.status(500).send('Error generating sitemap');
-    }
+    console.error('Error fetching sitemap:', error);
+    res.status(500).send('Error generating sitemap');
   }
 });
 
