@@ -18,10 +18,11 @@ Deno.serve(async (req) => {
 
     const baseUrl = 'https://ottocollect.com';
     const currentDate = new Date().toISOString().split('T')[0];
+    
+    console.log('Starting sitemap generation...');
 
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Homepage -->
   <url>
     <loc>${baseUrl}/</loc>
@@ -109,13 +110,17 @@ Deno.serve(async (req) => {
   </url>
 `;
 
-    // Fetch countries dynamically
-    const { data: countries } = await supabase
+    // Fetch countries dynamically with error handling
+    console.log('Fetching countries...');
+    const { data: countries, error: countriesError } = await supabase
       .from('countries')
       .select('name, updated_at')
       .order('display_order');
 
-    if (countries) {
+    if (countriesError) {
+      console.error('Error fetching countries:', countriesError);
+    } else if (countries) {
+      console.log(`Found ${countries.length} countries`);
       sitemap += '\n  <!-- Country-specific catalog pages -->\n';
       countries.forEach(country => {
         const encodedCountry = encodeURIComponent(country.name);
@@ -133,12 +138,16 @@ Deno.serve(async (req) => {
     }
 
     // Fetch blog posts dynamically
-    const { data: blogPosts } = await supabase
+    console.log('Fetching blog posts...');
+    const { data: blogPosts, error: blogError } = await supabase
       .from('blog_posts')
       .select('id, updated_at')
       .order('created_at', { ascending: false });
 
-    if (blogPosts) {
+    if (blogError) {
+      console.error('Error fetching blog posts:', blogError);
+    } else if (blogPosts) {
+      console.log(`Found ${blogPosts.length} blog posts`);
       sitemap += '\n  <!-- Blog posts -->\n';
       blogPosts.forEach(post => {
         const lastmod = post.updated_at 
@@ -155,12 +164,16 @@ Deno.serve(async (req) => {
     }
 
     // Fetch forum posts dynamically
-    const { data: forumPosts } = await supabase
+    console.log('Fetching forum posts...');
+    const { data: forumPosts, error: forumError } = await supabase
       .from('forum_posts')
       .select('id, updated_at')
       .order('created_at', { ascending: false });
 
-    if (forumPosts) {
+    if (forumError) {
+      console.error('Error fetching forum posts:', forumError);
+    } else if (forumPosts) {
+      console.log(`Found ${forumPosts.length} forum posts`);
       sitemap += '\n  <!-- Forum posts -->\n';
       forumPosts.forEach(post => {
         const lastmod = post.updated_at 
@@ -176,99 +189,46 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch banknotes dynamically with watermarked images
+    // Fetch banknotes dynamically
     console.log('Fetching banknotes...');
     const { data: banknotes, error: banknotesError } = await supabase
       .from('detailed_banknotes')
-      .select(`
-        id, 
-        updated_at, 
-        face_value, 
-        country, 
-        gregorian_year, 
-        year, 
-        extended_pick_number,
-        front_picture_watermarked,
-        back_picture_watermarked,
-        image_urls
-      `)
+      .select('id, updated_at')
       .eq('is_approved', true)
       .order('extended_pick_number');
 
     if (banknotesError) {
       console.error('Error fetching banknotes:', banknotesError);
-      sitemap += '\n  <!-- Error fetching banknotes -->\n';
-      sitemap += `  <!-- Error: ${banknotesError.message} -->\n`;
     } else if (banknotes) {
       console.log(`Found ${banknotes.length} banknotes`);
       sitemap += '\n  <!-- Banknote detail pages -->\n';
-      banknotes.forEach((banknote, index) => {
-        console.log(`Processing banknote ${index + 1}/${banknotes.length}: ${banknote.face_value} ${banknote.country}`);
-        
+      banknotes.forEach(banknote => {
         const lastmod = banknote.updated_at 
           ? new Date(banknote.updated_at).toISOString().split('T')[0] 
           : currentDate;
-        
         sitemap += `  <url>
     <loc>${baseUrl}/catalog-banknote/${banknote.id}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>`;
-
-        // Add watermarked images if available
-        if (banknote.front_picture_watermarked) {
-          console.log(`  Adding front watermarked image: ${banknote.front_picture_watermarked}`);
-          sitemap += `
-    <image:image>
-      <image:loc>${banknote.front_picture_watermarked}</image:loc>
-      <image:caption>${banknote.face_value} ${banknote.country} banknote front side from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:caption>
-      <image:title>${banknote.face_value} ${banknote.country} banknote front side from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:title>
-    </image:image>`;
-        }
-
-        if (banknote.back_picture_watermarked) {
-          console.log(`  Adding back watermarked image: ${banknote.back_picture_watermarked}`);
-          sitemap += `
-    <image:image>
-      <image:loc>${banknote.back_picture_watermarked}</image:loc>
-      <image:caption>${banknote.face_value} ${banknote.country} banknote back side from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:caption>
-      <image:title>${banknote.face_value} ${banknote.country} banknote back side from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:title>
-    </image:image>`;
-        }
-
-        // Add regular images if watermarked images are not available
-        if (banknote.image_urls && banknote.image_urls.length > 0) {
-          banknote.image_urls.forEach((imageUrl, imgIndex) => {
-            if (imageUrl && (!banknote.front_picture_watermarked || !banknote.back_picture_watermarked)) {
-              console.log(`  Adding regular image ${imgIndex + 1}: ${imageUrl}`);
-              sitemap += `
-    <image:image>
-      <image:loc>${imageUrl}</image:loc>
-      <image:caption>${banknote.face_value} ${banknote.country} banknote ${imgIndex === 0 ? 'front side' : 'back side'} from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:caption>
-      <image:title>${banknote.face_value} ${banknote.country} banknote ${imgIndex === 0 ? 'front side' : 'back side'} from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:title>
-    </image:image>`;
-            }
-          });
-        }
-
-        sitemap += `
+    <priority>0.7</priority>
   </url>
 `;
       });
-    } else {
-      console.log('No banknotes found');
-      sitemap += '\n  <!-- No banknotes found -->\n';
     }
 
     // Fetch marketplace items (listed)
-    const { data: marketplaceItems } = await supabase
+    console.log('Fetching marketplace items...');
+    const { data: marketplaceItems, error: marketplaceError } = await supabase
       .from('collection_items')
       .select('id, updated_at')
       .eq('is_for_sale', true)
       .eq('is_unlisted_banknote', false)
       .order('created_at', { ascending: false });
 
-    if (marketplaceItems) {
+    if (marketplaceError) {
+      console.error('Error fetching marketplace items:', marketplaceError);
+    } else if (marketplaceItems) {
+      console.log(`Found ${marketplaceItems.length} marketplace items`);
       sitemap += '\n  <!-- Marketplace listed items -->\n';
       marketplaceItems.forEach(item => {
         const lastmod = item.updated_at 
@@ -285,14 +245,18 @@ Deno.serve(async (req) => {
     }
 
     // Fetch marketplace items (unlisted)
-    const { data: unlistedItems } = await supabase
+    console.log('Fetching unlisted items...');
+    const { data: unlistedItems, error: unlistedError } = await supabase
       .from('collection_items')
       .select('id, updated_at')
       .eq('is_for_sale', true)
       .eq('is_unlisted_banknote', true)
       .order('created_at', { ascending: false });
 
-    if (unlistedItems) {
+    if (unlistedError) {
+      console.error('Error fetching unlisted items:', unlistedError);
+    } else if (unlistedItems) {
+      console.log(`Found ${unlistedItems.length} unlisted items`);
       sitemap += '\n  <!-- Marketplace unlisted items -->\n';
       unlistedItems.forEach(item => {
         const lastmod = item.updated_at 
@@ -310,6 +274,7 @@ Deno.serve(async (req) => {
 
     sitemap += '</urlset>';
 
+    console.log('Sitemap generation completed successfully');
     return new Response(sitemap, {
       headers: corsHeaders,
     });

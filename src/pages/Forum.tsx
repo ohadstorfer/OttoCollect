@@ -328,6 +328,23 @@ const Forum = () => {
         
         <h3>Collector Resources</h3>
         <p>Find information about Ottoman banknote values, Turkish currency prices, historical paper money worth, rare Ottoman banknotes for sale, authentic Turkish currency, vintage Ottoman Empire money, collector banknote prices, numismatic investment, and paper money collecting tips.</p>
+        
+        <h3>Ottoman Empire Banknote Community</h3>
+        <p>Join thousands of collectors discussing Ottoman Empire banknotes, Turkish lira paper money, historical currency, rare banknotes, numismatics, authentication, grading, watermarks, security features, market values, investment opportunities, and preservation techniques. Our active community shares knowledge, helps with authentication, and connects collectors worldwide.</p>
+        
+        <h3>Forum Discussion Topics</h3>
+        <ul>
+          <li>Ottoman Empire banknote authentication and verification</li>
+          <li>Turkish lira paper money grading and condition assessment</li>
+          <li>Historical banknote identification and research</li>
+          <li>Watermark verification techniques and security features</li>
+          <li>Counterfeit detection methods and authentication</li>
+          <li>Market value analysis and pricing trends</li>
+          <li>Preservation and storage techniques for paper money</li>
+          <li>Rare Ottoman banknotes and unique finds</li>
+          <li>Successor state currencies and historical context</li>
+          <li>Investment opportunities in numismatic collecting</li>
+        </ul>
       </div>
       
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
