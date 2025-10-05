@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PenSquare, Search, ArrowLeft } from 'lucide-react';
+import { PenSquare, Search, ArrowLeft, Users, MessageSquare, TrendingUp, Award } from 'lucide-react';
 import ForumPostCard from '@/components/forum/ForumPostCard';
 import { fetchForumPosts, checkUserDailyForumLimit } from '@/services/forumService';
 import { ForumPost } from '@/types/forum';
@@ -233,6 +233,35 @@ const Forum = () => {
         keywords={SEO_CONFIG.pages.forum.keywords}
         type="website"
         canonical="https://ottocollect.com/forum/"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "OttoCollect Forum",
+          "description": "Join the OttoCollect community of Ottoman Empire banknote collectors. Discuss rare Turkish currency, share authentication tips, and connect with enthusiasts.",
+          "url": "https://ottocollect.com/forum/",
+          "mainEntity": {
+            "@type": "DiscussionForumPosting",
+            "name": "Ottoman Banknote Collectors Forum",
+            "description": "Community discussion forum for Ottoman Empire banknote collectors"
+          },
+          "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://ottocollect.com/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Forum",
+                "item": "https://ottocollect.com/forum/"
+              }
+            ]
+          }
+        }}
       />
       <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 relative overflow-hidden mb-10`}>
         <div className="absolute inset-0 -z-10">
@@ -254,6 +283,91 @@ const Forum = () => {
         </p>
       </section>
 
+      {/* Static SEO Content - Always visible to crawlers */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <Users className="h-8 w-8 mx-auto mb-4 text-ottoman-600" />
+              <h3 className="text-lg font-semibold mb-2">Active Community</h3>
+              <p className="text-gray-600 dark:text-gray-300">Connect with fellow Ottoman Empire banknote collectors from around the world.</p>
+            </div>
+            <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <MessageSquare className="h-8 w-8 mx-auto mb-4 text-ottoman-600" />
+              <h3 className="text-lg font-semibold mb-2">Expert Discussions</h3>
+              <p className="text-gray-600 dark:text-gray-300">Share knowledge about authentication, grading, and historical context.</p>
+            </div>
+            <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <TrendingUp className="h-8 w-8 mx-auto mb-4 text-ottoman-600" />
+              <h3 className="text-lg font-semibold mb-2">Market Insights</h3>
+              <p className="text-gray-600 dark:text-gray-300">Stay updated on market trends and investment opportunities.</p>
+            </div>
+          </div>
+
+          {/* Forum Topics */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold mb-6 text-center">Popular Discussion Topics</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold mb-3 flex items-center">
+                  <Award className="h-5 w-5 mr-2 text-ottoman-600" />
+                  Authentication & Grading
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  Learn how to authenticate Ottoman Empire banknotes, identify watermarks, and grade condition properly.
+                </p>
+                <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+                  <li>• Watermark identification techniques</li>
+                  <li>• Security feature verification</li>
+                  <li>• Professional grading standards</li>
+                  <li>• Counterfeit detection methods</li>
+                </ul>
+              </div>
+              <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold mb-3 flex items-center">
+                  <Award className="h-5 w-5 mr-2 text-ottoman-600" />
+                  Historical Context
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  Explore the rich history behind Ottoman Empire currency and its successor states.
+                </p>
+                <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+                  <li>• Ottoman Empire monetary history</li>
+                  <li>• Successor state currencies</li>
+                  <li>• Historical banknote designs</li>
+                  <li>• Cultural significance</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Forum Guidelines */}
+          <div className="mb-12 p-6 bg-ottoman-50 dark:bg-gray-800 rounded-lg">
+            <h2 className="text-xl font-bold mb-4">Forum Guidelines</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold mb-2">Posting Guidelines</h3>
+                <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                  <li>• Be respectful and constructive</li>
+                  <li>• Use descriptive titles</li>
+                  <li>• Include relevant images when possible</li>
+                  <li>• Search before posting duplicate topics</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">Content Quality</h3>
+                <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                  <li>• Share authentic information only</li>
+                  <li>• Provide sources when possible</li>
+                  <li>• Help fellow collectors</li>
+                  <li>• Report suspicious content</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="page-container">
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="all" className="mb-10">
@@ -270,7 +384,7 @@ const Forum = () => {
                 <Input
                   type="search"
                   dir={direction === 'rtl' ? 'rtl' : 'ltr'}
-                  placeholder={tWithFallback('search.placeholder', 'Search blog posts...')}
+                  placeholder={tWithFallback('search.placeholder', 'Search forum posts...')}
                   className={`${direction === 'rtl' ? 'pr-8 text-right' : 'pl-8 text-left'} text-sm`}
                   value={searchTerm}
                   onChange={handleSearch}
@@ -354,7 +468,17 @@ const Forum = () => {
                       {searchTerm ? (
                         <p>{tWithFallback('search.noResults', 'No posts or announcements found matching your search.')}</p>
                       ) : (
-                        <p>{tWithFallback('search.noPostsYet', 'No forum posts yet. Be the first to create one!')}</p>
+                        <div className="text-center py-10">
+                          <p className="text-lg font-semibold mb-4">{tWithFallback('search.noPostsYet', 'No forum posts yet. Be the first to create one!')}</p>
+                          <p className="text-gray-600 dark:text-gray-300 mb-6">
+                            Join our community of Ottoman Empire banknote collectors and start the conversation!
+                          </p>
+                          {!user && (
+                            <Button onClick={() => navigate('/auth')} variant="outline">
+                              Sign In to Post
+                            </Button>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}

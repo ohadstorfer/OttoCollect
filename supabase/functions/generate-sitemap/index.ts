@@ -20,7 +20,8 @@ Deno.serve(async (req) => {
     const currentDate = new Date().toISOString().split('T')[0];
 
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <!-- Homepage -->
   <url>
     <loc>${baseUrl}/</loc>
@@ -175,27 +176,88 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch banknotes dynamically
-    const { data: banknotes } = await supabase
+    // Fetch banknotes dynamically with watermarked images
+    console.log('Fetching banknotes...');
+    const { data: banknotes, error: banknotesError } = await supabase
       .from('detailed_banknotes')
-      .select('id, updated_at')
+      .select(`
+        id, 
+        updated_at, 
+        face_value, 
+        country, 
+        gregorian_year, 
+        year, 
+        extended_pick_number,
+        front_picture_watermarked,
+        back_picture_watermarked,
+        image_urls
+      `)
       .eq('is_approved', true)
       .order('extended_pick_number');
 
-    if (banknotes) {
+    if (banknotesError) {
+      console.error('Error fetching banknotes:', banknotesError);
+      sitemap += '\n  <!-- Error fetching banknotes -->\n';
+      sitemap += `  <!-- Error: ${banknotesError.message} -->\n`;
+    } else if (banknotes) {
+      console.log(`Found ${banknotes.length} banknotes`);
       sitemap += '\n  <!-- Banknote detail pages -->\n';
-      banknotes.forEach(banknote => {
+      banknotes.forEach((banknote, index) => {
+        console.log(`Processing banknote ${index + 1}/${banknotes.length}: ${banknote.face_value} ${banknote.country}`);
+        
         const lastmod = banknote.updated_at 
           ? new Date(banknote.updated_at).toISOString().split('T')[0] 
           : currentDate;
+        
         sitemap += `  <url>
     <loc>${baseUrl}/catalog-banknote/${banknote.id}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.7</priority>`;
+
+        // Add watermarked images if available
+        if (banknote.front_picture_watermarked) {
+          console.log(`  Adding front watermarked image: ${banknote.front_picture_watermarked}`);
+          sitemap += `
+    <image:image>
+      <image:loc>${banknote.front_picture_watermarked}</image:loc>
+      <image:caption>${banknote.face_value} ${banknote.country} banknote front side from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:caption>
+      <image:title>${banknote.face_value} ${banknote.country} banknote front side from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:title>
+    </image:image>`;
+        }
+
+        if (banknote.back_picture_watermarked) {
+          console.log(`  Adding back watermarked image: ${banknote.back_picture_watermarked}`);
+          sitemap += `
+    <image:image>
+      <image:loc>${banknote.back_picture_watermarked}</image:loc>
+      <image:caption>${banknote.face_value} ${banknote.country} banknote back side from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:caption>
+      <image:title>${banknote.face_value} ${banknote.country} banknote back side from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:title>
+    </image:image>`;
+        }
+
+        // Add regular images if watermarked images are not available
+        if (banknote.image_urls && banknote.image_urls.length > 0) {
+          banknote.image_urls.forEach((imageUrl, imgIndex) => {
+            if (imageUrl && (!banknote.front_picture_watermarked || !banknote.back_picture_watermarked)) {
+              console.log(`  Adding regular image ${imgIndex + 1}: ${imageUrl}`);
+              sitemap += `
+    <image:image>
+      <image:loc>${imageUrl}</image:loc>
+      <image:caption>${banknote.face_value} ${banknote.country} banknote ${imgIndex === 0 ? 'front side' : 'back side'} from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:caption>
+      <image:title>${banknote.face_value} ${banknote.country} banknote ${imgIndex === 0 ? 'front side' : 'back side'} from ${banknote.gregorian_year || banknote.year} - Pick ${banknote.extended_pick_number}</image:title>
+    </image:image>`;
+            }
+          });
+        }
+
+        sitemap += `
   </url>
 `;
       });
+    } else {
+      console.log('No banknotes found');
+      sitemap += '\n  <!-- No banknotes found -->\n';
     }
 
     // Fetch marketplace items (listed)
