@@ -205,6 +205,8 @@ const Index = () => {
         description={SEO_CONFIG.pages.home.description}
         keywords={SEO_CONFIG.pages.home.keywords}
         type="website"
+        image="/OttoCollectIcon.PNG"
+        url="https://ottocollect.com/"
       />
       <section className="relative py-16 px-4 overflow-hidden text-center">
         <div className="absolute inset-0 -z-10">

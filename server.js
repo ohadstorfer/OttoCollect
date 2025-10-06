@@ -1,10 +1,17 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createClient } from '@supabase/supabase-js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL || 'https://psnzolounfwgvkupepxb.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || 'your-service-role-key'
+);
 
 // Get port from environment variable (Cloud Run sets this)
 const PORT = process.env.PORT || 8080;
@@ -58,6 +65,45 @@ app.get('/sitemap.xml', async (req, res) => {
   } catch (error) {
     console.error('Error fetching sitemap:', error);
     res.status(500).send('Error generating sitemap');
+  }
+});
+
+// Handle banknote detail pages - serve static HTML for crawlers
+app.get('/catalog-banknote/:id', async (req, res) => {
+  const banknoteId = req.params.id;
+  const userAgent = req.get('User-Agent') || '';
+  
+  // Check if this is a crawler/bot
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord/i.test(userAgent);
+  
+  if (isCrawler) {
+    console.log(`Crawler detected for banknote ${banknoteId}, serving static HTML`);
+    try {
+      // Fetch static HTML from Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('static-pages')
+        .download(`catalog-banknote-${banknoteId}.html`);
+      
+      if (error) {
+        console.error(`Error fetching static HTML for ${banknoteId}:`, error);
+        // Fallback to React app
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+        return;
+      }
+      
+      // Convert blob to text
+      const htmlContent = await data.text();
+      res.set('Content-Type', 'text/html');
+      res.send(htmlContent);
+    } catch (error) {
+      console.error(`Error serving static HTML for ${banknoteId}:`, error);
+      // Fallback to React app
+      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    }
+  } else {
+    // Regular users get the React app
+    console.log(`Regular user for banknote ${banknoteId}, serving React app`);
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   }
 });
 
