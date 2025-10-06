@@ -152,12 +152,35 @@ const Admin = () => {
     return <CountryAdminDashboard countryId={countryId} countryName={countryAdminName} />;
   }
 
+  const handleGenerateCatalogPages = async () => {
+    try {
+      toast.loading('Generating catalog pages...');
+      
+      const { data, error } = await supabase.functions.invoke('generate-catalog-pages');
+      
+      if (error) throw error;
+      
+      toast.dismiss();
+      toast.success(`Generated ${data?.generated || 0} catalog pages successfully!`);
+      console.log('Catalog generation result:', data);
+    } catch (error) {
+      toast.dismiss();
+      toast.error('Failed to generate catalog pages: ' + error.message);
+      console.error('Error generating catalog pages:', error);
+    }
+  };
+
   // Full admin dashboard for super admins
   return (
     <div className="page-container mb-20">
       <h1 className="page-title"><span>{t('admin:dashboardTitle')}</span></h1>
       
       <div className="max-w-6xl mx-auto">
+        <div className="mb-6">
+          <Button onClick={handleGenerateCatalogPages} variant="outline">
+            Generate Catalog Pages
+          </Button>
+        </div>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6 w-full">
             
