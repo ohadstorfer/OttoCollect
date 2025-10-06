@@ -10,7 +10,7 @@ function generateCatalogItemHTML(banknote) {
                    'https://ottocollect.com/OttoCollectIcon.PNG';
   
   const title = `${banknote.face_value} ${banknote.country} Banknote ${banknote.gregorian_year || banknote.islamic_year || ''} - OttoCollect`;
-  const description = `Buy authentic ${banknote.face_value} ${banknote.country} banknote from ${banknote.gregorian_year || banknote.islamic_year || 'historic period'} (Pick #${banknote.extended_pick_number}). Rare historical currency for serious collectors.`;
+  const description = `${banknote.face_value} ${banknote.country} banknote from ${banknote.gregorian_year || banknote.islamic_year || 'historic period'} (Pick #${banknote.extended_pick_number}). Rare historical currency for serious collectors.`;
   
   return `<!DOCTYPE html>
 <html lang="en">

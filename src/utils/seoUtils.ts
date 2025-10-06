@@ -117,7 +117,7 @@ export const generatePageSEO = (pageType: string, data?: any): PageSEO => {
       const { country, denomination, year, extendedPickNumber } = data;
       return {
         title: `${denomination} ${country} Banknote ${year} - Authentic Historical Currency | OttoCollect`,
-        description: `Buy authentic ${denomination} ${country} banknote from ${year} (Pick #${extendedPickNumber}). Rare historical currency for serious collectors.`,
+        description: `${denomination} ${country} banknote from ${year} (Pick #${extendedPickNumber}). Rare historical currency for serious collectors.`,
         keywords: [
           `${country} banknote`,
           `${denomination} ${country}`,
