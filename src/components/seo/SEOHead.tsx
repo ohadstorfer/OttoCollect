@@ -152,6 +152,9 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta property="og:description" content={seoData.description} />
       <meta property="og:type" content={type} />
       <meta property="og:image" content={image.startsWith('http') ? image : `https://ottocollect.com${image}`} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={seoData.title} />
       <meta property="og:url" content={url || (typeof window !== 'undefined' ? window.location.href : '')} />
       <meta property="og:site_name" content="OttoCollect" />
       <meta property="og:locale" content="en_US" />
@@ -161,7 +164,9 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="twitter:title" content={seoData.title} />
       <meta name="twitter:description" content={seoData.description} />
       <meta name="twitter:image" content={image.startsWith('http') ? image : `https://ottocollect.com${image}`} />
+      <meta name="twitter:image:alt" content={seoData.title} />
       <meta name="twitter:site" content="@ottocollect" />
+      <meta name="twitter:creator" content="@ottocollect" />
       
       {/* Favicon configuration for Google Search Results */}
       <link rel="icon" type="image/x-icon" href="/favicon-48x48.png" />
