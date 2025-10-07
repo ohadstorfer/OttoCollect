@@ -74,7 +74,7 @@ app.get('/catalog-banknote/:id', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
   
   // Check if this is a crawler/bot
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
   
   if (isCrawler) {
     console.log(`Crawler detected for banknote ${banknoteId}, serving static HTML`);
@@ -110,7 +110,7 @@ app.get('/catalog-banknote/:id', async (req, res) => {
 // Handle forum page - serve static HTML for crawlers
 app.get('/forum', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
   
   if (isCrawler) {
     console.log('Crawler detected for forum, serving static HTML');
@@ -140,7 +140,7 @@ app.get('/forum', async (req, res) => {
 // Handle blog page - serve static HTML for crawlers
 app.get('/blog', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
   
   if (isCrawler) {
     console.log('Crawler detected for blog, serving static HTML');
@@ -171,7 +171,7 @@ app.get('/blog', async (req, res) => {
 app.get('/forum/post/:id', async (req, res) => {
   const postId = req.params.id;
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
   
   if (isCrawler) {
     console.log(`Crawler detected for forum post ${postId}, serving static HTML`);
@@ -202,7 +202,7 @@ app.get('/forum/post/:id', async (req, res) => {
 app.get('/blog/post/:id', async (req, res) => {
   const postId = req.params.id;
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
   
   if (isCrawler) {
     console.log(`Crawler detected for blog post ${postId}, serving static HTML`);
