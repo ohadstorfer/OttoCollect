@@ -205,8 +205,8 @@ const Index = () => {
         description={SEO_CONFIG.pages.home.description}
         keywords={SEO_CONFIG.pages.home.keywords}
         type="website"
-        image="/OttoCollectIcon.PNG"
-        url="https://ottocollect.com/"
+          image="/OttoCollectIconHome.PNG"
+          url="https://ottocollect.com/"
       />
       <section className="relative py-16 px-4 overflow-hidden text-center">
         <div className="absolute inset-0 -z-10">
@@ -224,7 +224,7 @@ const Index = () => {
               </span>
             </h1>
             <OptimizedImage
-              src="/OttoCollectIcon.PNG"
+              src="/OttoCollectIconHome.PNG"
               alt="OttoCollect Logo"
               className="w-[200px] h-[200px] object-contain animate-floating"
               priority={true}

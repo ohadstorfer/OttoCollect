@@ -27,9 +27,10 @@ export const Footer = () => {
             <div className="flex items-center gap-2 h-8 relative">
               <div className="absolute -top-2">
                 <img
-                  src="/favicon.PNG"
+                  src="/favicon-96x96.png"
                   alt="OttoCollect Logo"
                   className="w-14 h-14 object-contain -mt-2"
+                  loading="lazy"
                 />
               </div>
               <div className="w-14"></div> {/* Spacer to reserve logo space */}

@@ -92,6 +92,9 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
                     src={post.author.avatarUrl} 
                     alt={post.author.username || 'User'}
                     className="w-full h-full object-cover"
+                    loading="lazy"
+                    width=" 10"
+                    height="10"
                   />
                 </div>
               ) : (
