@@ -255,12 +255,14 @@ function generateCatalogItemHTML(banknote: any): string {
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/catalog-banknote/${banknote.id}">
   
-  <!-- Redirect to React app after meta tags are read -->
-  <meta http-equiv="refresh" content="0;url=/catalog-banknote/${banknote.id}">
+  <!-- No redirects for crawlers - they should see the static content -->
   <script>
-    // Immediate redirect for users (not crawlers)
-    if (!navigator.userAgent.match(/bot|crawler|spider|crawling/i)) {
-      window.location.replace('/catalog-banknote/${banknote.id}');
+    // Only redirect regular users, not crawlers
+    if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
+      // Small delay to ensure meta tags are processed by social media crawlers
+      setTimeout(() => {
+        window.location.replace('/catalog-banknote/${banknote.id}');
+      }, 100);
     }
   </script>
 </head>
@@ -306,12 +308,14 @@ function generateForumPageHTML(): string {
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/forum">
   
-  <!-- Redirect to React app after meta tags are read -->
-  <meta http-equiv="refresh" content="0;url=/forum">
+  <!-- No redirects for crawlers - they should see the static content -->
   <script>
-    // Immediate redirect for users (not crawlers)
-    if (!navigator.userAgent.match(/bot|crawler|spider|crawling/i)) {
-      window.location.replace('/forum');
+    // Only redirect regular users, not crawlers
+    if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
+      // Small delay to ensure meta tags are processed by social media crawlers
+      setTimeout(() => {
+        window.location.replace('/forum');
+      }, 100);
     }
   </script>
 </head>
@@ -357,12 +361,14 @@ function generateBlogPageHTML(): string {
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/blog">
   
-  <!-- Redirect to React app after meta tags are read -->
-  <meta http-equiv="refresh" content="0;url=/blog">
+  <!-- No redirects for crawlers - they should see the static content -->
   <script>
-    // Immediate redirect for users (not crawlers)
-    if (!navigator.userAgent.match(/bot|crawler|spider|crawling/i)) {
-      window.location.replace('/blog');
+    // Only redirect regular users, not crawlers
+    if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
+      // Small delay to ensure meta tags are processed by social media crawlers
+      setTimeout(() => {
+        window.location.replace('/blog');
+      }, 100);
     }
   </script>
 </head>
@@ -408,12 +414,14 @@ function generateForumPostHTML(post: any): string {
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/forum/post/${post.id}">
   
-  <!-- Redirect to React app after meta tags are read -->
-  <meta http-equiv="refresh" content="0;url=/forum/post/${post.id}">
+  <!-- No redirects for crawlers - they should see the static content -->
   <script>
-    // Immediate redirect for users (not crawlers)
-    if (!navigator.userAgent.match(/bot|crawler|spider|crawling/i)) {
-      window.location.replace('/forum/post/${post.id}');
+    // Only redirect regular users, not crawlers
+    if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
+      // Small delay to ensure meta tags are processed by social media crawlers
+      setTimeout(() => {
+        window.location.replace('/forum/post/${post.id}');
+      }, 100);
     }
   </script>
 </head>
@@ -459,12 +467,14 @@ function generateBlogPostHTML(post: any): string {
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/blog/post/${post.id}">
   
-  <!-- Redirect to React app after meta tags are read -->
-  <meta http-equiv="refresh" content="0;url=/blog/post/${post.id}">
+  <!-- No redirects for crawlers - they should see the static content -->
   <script>
-    // Immediate redirect for users (not crawlers)
-    if (!navigator.userAgent.match(/bot|crawler|spider|crawling/i)) {
-      window.location.replace('/blog/post/${post.id}');
+    // Only redirect regular users, not crawlers
+    if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
+      // Small delay to ensure meta tags are processed by social media crawlers
+      setTimeout(() => {
+        window.location.replace('/blog/post/${post.id}');
+      }, 100);
     }
   </script>
 </head>
