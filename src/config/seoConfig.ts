@@ -3,8 +3,8 @@
 export const SEO_CONFIG = {
   // Default site-wide SEO
   default: {
-    title: 'OttoCollect - Authentic Ottoman Empire Banknotes for Collectors',
-    description: 'Discover rare and authentic Ottoman Empire banknotes, Turkish lira paper money, and historical currency from the 1800s. Buy, sell, and trade with collectors worldwide.',
+    title: 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform',
+    description: 'OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.',
     keywords: [
       'Ottoman Empire banknotes',
       'Turkish lira paper money',
@@ -133,7 +133,7 @@ export const SEO_CONFIG = {
   pages: {
     home: {
       title: 'OttoCollect - Ottoman Empire Banknotes for Collectors',
-      description: 'Discover authentic Ottoman Empire banknotes, rare Turkish lira paper money, and historical currency from the 1800s. Buy, sell, and trade worldwide.',
+      description: 'OttoCollect is a comprehensive catalog and collection management platform dedicated to collectors of banknotes from the Ottoman Empire and from countries or authorities that were formerly under Ottoman rule, dating back to 1840.',
       keywords: [
         'authentic Ottoman Empire banknotes for collectors',
         'buy rare Ottoman currency from 1800s',
