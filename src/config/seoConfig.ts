@@ -132,8 +132,8 @@ export const SEO_CONFIG = {
   // Page-specific SEO configurations
   pages: {
     home: {
-      title: 'OttoCollect - Ottoman Empire Banknotes for Collectors',
-      description: 'OttoCollect is a comprehensive catalog and collection management platform dedicated to collectors of banknotes from the Ottoman Empire and from countries or authorities that were formerly under Ottoman rule, dating back to 1840.',
+      title: 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform',
+      description: 'OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.',
       keywords: [
         'authentic Ottoman Empire banknotes for collectors',
         'buy rare Ottoman currency from 1800s',
@@ -145,8 +145,8 @@ export const SEO_CONFIG = {
     },
 
     catalog: {
-      title: 'Ottoman Empire Banknote Catalog - Historical Currency',
-      description: 'Explore these notable Ottoman Empire banknotes and its successor countries/authorities banknotes from our extensive catalogue.',
+      title: 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform',
+      description: 'OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.',
       keywords: [
         'Ottoman Empire banknote catalog',
         'complete Turkish currency collection',
@@ -157,7 +157,7 @@ export const SEO_CONFIG = {
     },
 
     marketplace: {
-      title: 'Buy & Sell Ottoman Empire Banknotes - Marketplace',
+      title: 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform',
       description: 'Buy and sell authentic Ottoman Empire banknotes, rare Turkish currency, and historical paper money. Secure marketplace for serious collectors.',
       keywords: [
         'buy Ottoman Empire banknotes online',
@@ -169,7 +169,7 @@ export const SEO_CONFIG = {
     },
 
     collection: {
-      title: 'Manage Your Ottoman Banknote Collection',
+      title: 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform',
       description: 'Organize and track your Ottoman Empire banknote collection. Catalog your rare Turkish currency, monitor values, and showcase your historical paper money.',
       keywords: [
         'personal Ottoman banknote collection',
@@ -248,7 +248,7 @@ export const SEO_CONFIG = {
       "name": "OttoCollect",
       "url": "https://ottocollect.com",
       "logo": "https://ottocollect.com/favicon-96x96.png",
-      "description": "Premier marketplace for Ottoman Empire banknotes and historical currency",
+      "description": "OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.",
       "foundingDate": "2024",
       "sameAs": [
         "https://twitter.com/ottocollect",
@@ -268,7 +268,7 @@ export const SEO_CONFIG = {
       "@type": "WebSite",
       "name": "OttoCollect",
       "url": "https://ottocollect.com",
-      "description": "OttoCollect is a comprehensive catalog and collection management platform dedicated to collectors of banknotes from the Ottoman Empire and from countries or authorities that were formerly under Ottoman rule, dating back to 1840.",
+      "description": "OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.",
       "potentialAction": {
         "@type": "SearchAction",
         "target": "https://ottocollect.com/search?q={search_term_string}",
