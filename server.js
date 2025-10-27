@@ -289,6 +289,45 @@ app.get('/about', async (req, res) => {
   }
 });
 
+
+
+
+// Handle catalog page - serve static HTML for crawlers
+app.get('/catalog', async (req, res) => {
+  const userAgent = req.get('User-Agent') || '';
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  
+  if (isCrawler) {
+    console.log('Crawler detected for catalog page, serving static HTML');
+    try {
+      const { data, error } = await supabase.storage
+        .from('static-pages')
+        .download('catalog.html');
+      
+      if (error) {
+        console.error('Error fetching catalog.html:', error);
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+        return;
+      }
+      
+      const htmlContent = await data.text();
+      res.set('Content-Type', 'text/html');
+      res.send(htmlContent);
+    } catch (error) {
+      console.error('Error serving catalog.html:', error);
+      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    }
+  } else {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
+});
+
+// Handle client-side routing - send all requests to index.html
+app.get('*', (req, res) => {
+  console.log(`Serving index.html for route: ${req.path}`);
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 // Handle country catalog pages - serve static HTML for crawlers
 app.get('/catalog/:country', async (req, res) => {
   const country = decodeURIComponent(req.params.country);
@@ -337,4 +376,101 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Static files served from: ${path.join(__dirname, 'dist')}`);
+});
+
+
+
+// Handle contact page - serve static HTML for crawlers
+app.get('/contact', async (req, res) => {
+  const userAgent = req.get('User-Agent') || '';
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  
+  if (isCrawler) {
+    console.log('Crawler detected for contact page, serving static HTML');
+    try {
+      const { data, error } = await supabase.storage
+        .from('static-pages')
+        .download('contact.html');
+      
+      if (error) {
+        console.error('Error fetching contact.html:', error);
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+        return;
+      }
+      
+      const htmlContent = await data.text();
+      res.set('Content-Type', 'text/html');
+      res.send(htmlContent);
+    } catch (error) {
+      console.error('Error serving contact.html:', error);
+      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    }
+  } else {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
+});
+
+
+
+// Handle marketplace page - serve static HTML for crawlers
+app.get('/marketplace', async (req, res) => {
+  const userAgent = req.get('User-Agent') || '';
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  
+  if (isCrawler) {
+    console.log('Crawler detected for marketplace, serving static HTML');
+    try {
+      const { data, error } = await supabase.storage
+        .from('static-pages')
+        .download('marketplace.html');
+      
+      if (error) {
+        console.error('Error fetching marketplace.html:', error);
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+        return;
+      }
+      
+      const htmlContent = await data.text();
+      res.set('Content-Type', 'text/html');
+      res.send(htmlContent);
+    } catch (error) {
+      console.error('Error serving marketplace.html:', error);
+      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    }
+  } else {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
+});
+
+
+
+// Handle marketplace item detail pages - serve static HTML for crawlers
+app.get('/marketplace-item/:id', async (req, res) => {
+  const itemId = req.params.id;
+  const userAgent = req.get('User-Agent') || '';
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  
+  if (isCrawler) {
+    console.log(`Crawler detected for marketplace item ${itemId}, serving static HTML`);
+    try {
+      const { data, error } = await supabase.storage
+        .from('static-pages')
+        .download(`marketplace-item-${itemId}.html`);
+      
+      if (error) {
+        console.error(`Error fetching marketplace-item-${itemId}.html:`, error);
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+        return;
+      }
+      
+      const htmlContent = await data.text();
+      res.set('Content-Type', 'text/html');
+      res.send(htmlContent);
+    } catch (error) {
+      console.error(`Error serving marketplace-item-${itemId}.html:`, error);
+      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    }
+  } else {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
 });

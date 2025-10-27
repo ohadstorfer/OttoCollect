@@ -1,5 +1,5 @@
 // SEO Configuration for OttoCollect - Ottoman Empire Banknotes
-
+ 
 export const SEO_CONFIG = {
   // Default site-wide SEO
   default: {
