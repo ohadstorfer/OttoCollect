@@ -322,11 +322,7 @@ app.get('/catalog', async (req, res) => {
   }
 });
 
-// Handle client-side routing - send all requests to index.html
-app.get('*', (req, res) => {
-  console.log(`Serving index.html for route: ${req.path}`);
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+// (removed earlier catch-all; single catch-all kept at bottom to avoid intercepting dynamic routes)
 
 // Handle country catalog pages - serve static HTML for crawlers
 app.get('/catalog/:country', async (req, res) => {
