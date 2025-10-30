@@ -132,7 +132,7 @@ function App() {
                       <Route path="/admin" element={<Admin />} />
                       <Route path="/community" element={<Community />} />
                       <Route path="/settings" element={<Settings />} />
-                      <Route path="/delete-processed-images" element={<DeleteProcessedImages />} />
+                      {/* <Route path="/delete-processed-images" element={<DeleteProcessedImages />} /> */}
                       <Route path="/about" element={<AboutUs />} />
                       <Route path="/blog" element={<Blog />} />
                       <Route path="/blog-post/:id" element={<BlogPost />} />
