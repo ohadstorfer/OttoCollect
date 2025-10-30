@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -39,10 +39,10 @@ import {
   Image,
   HeartPulse,
   HeartIcon,
-  LogIn,
   Heart,
   Layers,
-  BookCopy
+  BookCopy,
+  Eye
 } from "lucide-react";
 import { userHasBanknoteInCollection } from "@/utils/userBanknoteHelpers";
 import { fetchUserCollection } from "@/services/collectionService";
@@ -54,6 +54,7 @@ import { getInitials } from "@/lib/utils";
 import UserProfileLink from "@/components/common/UserProfileLink";
 import ImagePreview from "@/components/shared/ImagePreview";
 import SEOHead from "@/components/seo/SEOHead";
+import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 
 interface LabelValuePairProps {
   label: string;
@@ -92,6 +93,14 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showCollectorsDialog, setShowCollectorsDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+
+  // Safe translator with fallback to avoid i18n missing key warnings
+  const tWithFallback = useMemo(() => {
+    return (key: string, fallback: string) => {
+      // Provide defaultValue to avoid i18next missingKey warnings across locales
+      return t(key, { defaultValue: fallback }) as string;
+    };
+  }, [t]);
 
   // State for ownership toast for Check button
   const [showOwnershipToast, setShowOwnershipToast] = useState(false);
@@ -249,7 +258,11 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const [adding, setAdding] = useState(false);
   // refactored handleAddToCollection to NOT show the toast here, but only after confirmed add from toast or Add button
   const handleAddToCollection = async () => {
-    if (!banknote || !user) return;
+    if (!banknote) return;
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
     try {
       setAdding(true);
       const { addToCollection } = await import("@/services/collectionService");
@@ -411,26 +424,26 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   }
 
 
-  if (!user) {
-    return (
-      <div className="page-container">
-        <h1 className="page-title"> <span> {t('details.banknoteDetails')} </span> </h1>
+  // if (!user) {
+  //   return (
+  //     <div className="page-container">
+  //       <h1 className="page-title"> <span> {t('details.banknoteDetails')} </span> </h1>
 
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="ottoman-card p-8 flex flex-col items-center">
-            <h2 className="text-2xl font-serif mb-4"><span>{t('details.joinCommunity')}</span></h2>
-            <p className="mb-6 text-muted-foreground">
-              {t('details.signInToView')}
-            </p>
-            <Button onClick={() => navigate('/auth')}>
-              <LogIn className="mr-2 h-4 w-4" />
-              {t('details.signIn')}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  //       <div className="max-w-2xl mx-auto text-center">
+  //         <div className="ottoman-card p-8 flex flex-col items-center">
+  //           <h2 className="text-2xl font-serif mb-4"><span>{t('details.joinCommunity')}</span></h2>
+  //           <p className="mb-6 text-muted-foreground">
+  //             {t('details.signInToView')}
+  //           </p>
+  //           <Button onClick={() => navigate('/auth')}>
+  //             <LogIn className="mr-2 h-4 w-4" />
+  //             {t('details.signIn')}
+  //           </Button>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
 
   const openImageViewer = (imageUrl: string) => {
@@ -901,6 +914,24 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       </div>
 
         {/* Add Collectors Dialog */}
+      <AuthRequiredDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
+        title={tWithFallback('details.joinCommunity', 'Join Our Community')}
+        description={tWithFallback('details.signInToView', 'Get full access to our extensive Ottoman banknote catalog and collection features.')}
+        features={[
+          {
+            icon: <Eye className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
+            title: tWithFallback('details.viewDetailedInformation', 'View Detailed Information'),
+            description: tWithFallback('details.accessCompleteDetails', 'Access complete banknote details, high-resolution images, and historical data')
+          },
+          {
+            icon: <Plus className="h-5 w-5 text-ottoman-600 dark:text-ottoman-300" />,
+            title: tWithFallback('details.buildYourCollection', 'Build Your Collection'),
+            description: tWithFallback('details.createAndManageCollection', 'Create and manage your personal banknote collection')
+          }
+        ]}
+      />
         <Dialog open={showCollectorsDialog} onOpenChange={setShowCollectorsDialog}>
           <DialogContent className="max-w-md max-h-[600px] overflow-hidden flex flex-col">
             <DialogHeader>

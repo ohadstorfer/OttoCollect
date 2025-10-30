@@ -149,11 +149,11 @@ const BanknoteDetailCard = ({
 
 
   const handleCardClick = (e: React.MouseEvent) => {
-    if (!user) {
-      e.stopPropagation();
-      setShowAuthDialog(true);
-      return;
-    }
+    // if (!user) {
+    //   e.stopPropagation();
+    //   setShowAuthDialog(true);
+    //   return;
+    // }
 
     if (countryId) setNavigatingToDetail(banknote.id);
     if (source === 'catalog') {

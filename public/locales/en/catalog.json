@@ -117,7 +117,11 @@
     "sealPictures": "Seal Pictures",
     "watermarkPicture": "Watermark Picture",
     "tughraPicture": "Tughra Picture",
-    "otherPictures": "Other Pictures"
+    "otherPictures": "Other Pictures",
+    "viewDetailedInformation": "View Detailed Information",
+    "accessCompleteDetails": "Access complete banknote details, high-resolution images, and historical data",
+    "buildYourCollection": "Build Your Collection",
+    "createAndManageCollection": "Create and manage your personal banknote collection"
   },
   "banknoteGroup": "Banknote Group",
   "sultan": "Sultan",

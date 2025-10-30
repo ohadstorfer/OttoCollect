@@ -117,7 +117,11 @@
     "sealPictures": "صور الأختام",
     "watermarkPicture": "صورة العلامة المائية",
     "tughraPicture": "صورة الطغراء",
-    "otherPictures": "صور أخرى"
+    "otherPictures": "صور أخرى",
+    "viewDetailedInformation": "عرض المعلومات المفصلة",
+    "accessCompleteDetails": "الوصول إلى تفاصيل الورقة النقدية الكاملة والصور عالية الدقة والبيانات التاريخية",
+    "buildYourCollection": "بناء مجموعتك",
+    "createAndManageCollection": "إنشاء وإدارة مجموعة الأوراق النقدية الشخصية الخاصة بك"
   },
   "banknoteGroup": "مجموعة الأوراق النقدية",
   "sultan": "السلطان",
