@@ -74,7 +74,7 @@ app.get('/catalog-banknote/:id', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
   
   // Check if this is a crawler/bot
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log(`Crawler detected for banknote ${banknoteId}, serving static HTML`);
@@ -110,7 +110,7 @@ app.get('/catalog-banknote/:id', async (req, res) => {
 // Handle forum page - serve static HTML for crawlers
 app.get('/forum', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log('Crawler detected for forum, serving static HTML');
@@ -140,7 +140,7 @@ app.get('/forum', async (req, res) => {
 // Handle blog page - serve static HTML for crawlers
 app.get('/blog', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log('Crawler detected for blog, serving static HTML');
@@ -171,7 +171,7 @@ app.get('/blog', async (req, res) => {
 app.get('/forum/post/:id', async (req, res) => {
   const postId = req.params.id;
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log(`Crawler detected for forum post ${postId}, serving static HTML`);
@@ -202,7 +202,7 @@ app.get('/forum/post/:id', async (req, res) => {
 app.get('/blog/post/:id', async (req, res) => {
   const postId = req.params.id;
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log(`Crawler detected for blog post ${postId}, serving static HTML`);
@@ -232,7 +232,10 @@ app.get('/blog/post/:id', async (req, res) => {
 // Handle homepage - serve static HTML for crawlers
 app.get('/', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  // Enhanced crawler detection including ChatGPTBot explicitly
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
+  
+  console.log(`Homepage request - User-Agent: ${userAgent}, IsCrawler: ${isCrawler}`);
   
   if (isCrawler) {
     console.log('Crawler detected for homepage, serving static HTML');
@@ -243,6 +246,7 @@ app.get('/', async (req, res) => {
       
       if (error) {
         console.error('Error fetching index.html:', error);
+        console.error('Error details:', JSON.stringify(error));
         res.sendFile(path.join(__dirname, 'dist', 'index.html'));
         return;
       }
@@ -262,7 +266,7 @@ app.get('/', async (req, res) => {
 // Handle about page - serve static HTML for crawlers
 app.get('/about', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log('Crawler detected for about page, serving static HTML');
@@ -289,13 +293,40 @@ app.get('/about', async (req, res) => {
   }
 });
 
-
-
+// Handle guide page - serve static HTML for crawlers
+app.get('/guide', async (req, res) => {
+  const userAgent = req.get('User-Agent') || '';
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
+  
+  if (isCrawler) {
+    console.log('Crawler detected for guide page, serving static HTML');
+    try {
+      const { data, error } = await supabase.storage
+        .from('static-pages')
+        .download('guide.html');
+      
+      if (error) {
+        console.error('Error fetching guide.html:', error);
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+        return;
+      }
+      
+      const htmlContent = await data.text();
+      res.set('Content-Type', 'text/html');
+      res.send(htmlContent);
+    } catch (error) {
+      console.error('Error serving guide.html:', error);
+      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    }
+  } else {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
+});
 
 // Handle catalog page - serve static HTML for crawlers
 app.get('/catalog', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log('Crawler detected for catalog page, serving static HTML');
@@ -328,7 +359,7 @@ app.get('/catalog', async (req, res) => {
 app.get('/catalog/:country', async (req, res) => {
   const country = decodeURIComponent(req.params.country);
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log(`Crawler detected for country ${country}, serving static HTML`);
@@ -379,7 +410,7 @@ app.listen(PORT, '0.0.0.0', () => {
 // Handle contact page - serve static HTML for crawlers
 app.get('/contact', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log('Crawler detected for contact page, serving static HTML');
@@ -411,7 +442,7 @@ app.get('/contact', async (req, res) => {
 // Handle marketplace page - serve static HTML for crawlers
 app.get('/marketplace', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log('Crawler detected for marketplace, serving static HTML');
@@ -444,7 +475,7 @@ app.get('/marketplace', async (req, res) => {
 app.get('/marketplace-item/:id', async (req, res) => {
   const itemId = req.params.id;
   const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i.test(userAgent);
+  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
   
   if (isCrawler) {
     console.log(`Crawler detected for marketplace item ${itemId}, serving static HTML`);
