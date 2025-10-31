@@ -22,9 +22,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files from the dist directory
-app.use(express.static(path.join(__dirname, 'dist')));
-
 // Health check endpoint (must be before the catch-all route)
 app.get('/health', (req, res) => {
   console.log('Health check requested');
@@ -229,7 +226,7 @@ app.get('/blog/post/:id', async (req, res) => {
   }
 });
 
-// Handle homepage - serve static HTML for crawlers
+// Handle homepage - serve static HTML for crawlers (MUST be before static middleware and catch-all)
 app.get('/', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
   // Enhanced crawler detection including ChatGPTBot explicitly
@@ -262,6 +259,11 @@ app.get('/', async (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   }
 });
+
+// Serve static files from the dist directory (placed after homepage route to avoid intercepting it)
+app.use(express.static(path.join(__dirname, 'dist'), {
+  index: false // Don't serve index.html automatically - routes handle it
+}));
 
 // Handle about page - serve static HTML for crawlers
 app.get('/about', async (req, res) => {
