@@ -386,27 +386,6 @@ app.get('/catalog/:country', async (req, res) => {
   }
 });
 
-// Handle client-side routing - send all requests to index.html
-app.get('*', (req, res) => {
-  console.log(`Serving index.html for route: ${req.path}`);
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).send('Internal Server Error');
-});
-
-// Start the server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Static files served from: ${path.join(__dirname, 'dist')}`);
-});
-
-
-
 // Handle contact page - serve static HTML for crawlers
 app.get('/contact', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
@@ -436,8 +415,6 @@ app.get('/contact', async (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   }
 });
-
-
 
 // Handle marketplace page - serve static HTML for crawlers
 app.get('/marketplace', async (req, res) => {
@@ -469,8 +446,6 @@ app.get('/marketplace', async (req, res) => {
   }
 });
 
-
-
 // Handle marketplace item detail pages - serve static HTML for crawlers
 app.get('/marketplace-item/:id', async (req, res) => {
   const itemId = req.params.id;
@@ -500,4 +475,23 @@ app.get('/marketplace-item/:id', async (req, res) => {
   } else {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).send('Internal Server Error');
+});
+
+// Handle client-side routing - send all requests to index.html (MUST be last - after all specific routes!)
+app.get('*', (req, res) => {
+  console.log(`Serving index.html for route: ${req.path}`);
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+// Start the server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Static files served from: ${path.join(__dirname, 'dist')}`);
 });
