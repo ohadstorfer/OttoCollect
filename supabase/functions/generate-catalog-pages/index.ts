@@ -22,20 +22,105 @@ serve(async (req)=>{
       throw error;
     }
     console.log(`Found ${banknotes?.length || 0} banknotes to process`);
-    // Fetch forum posts
+    // Fetch forum posts with comment counts
     console.log('Fetching forum posts...');
-    const { data: forumPosts, error: forumError } = await supabase.from('forum_posts').select('*');
+    const { data: forumPostsRaw, error: forumError } = await supabase
+      .from('forum_posts')
+      .select(`
+        *,
+        forum_comments:forum_comments(count)
+      `)
+      .order('created_at', { ascending: false });
+    
     if (forumError) {
       console.error('Error fetching forum posts:', forumError);
     }
-    console.log(`Found ${forumPosts?.length || 0} forum posts to process`);
-    // Fetch blog posts
+    
+    // Fetch author profiles for forum posts
+    let forumAuthorProfiles: any = {};
+    if (forumPostsRaw && forumPostsRaw.length > 0) {
+      const authorIds = Array.from(new Set(forumPostsRaw.map((post: any) => post.author_id).filter(Boolean)));
+      if (authorIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .in('id', authorIds);
+        
+        if (!profilesError && profiles) {
+          profiles.forEach((profile: any) => {
+            forumAuthorProfiles[profile.id] = profile;
+          });
+        }
+      }
+    }
+    
+    // Transform forum posts to include author and commentCount
+    const forumPosts = forumPostsRaw?.map((post: any) => {
+      const authorProfile = forumAuthorProfiles[post.author_id];
+      return {
+        ...post,
+        author: authorProfile ? {
+          id: authorProfile.id,
+          username: authorProfile.username,
+          avatar_url: authorProfile.avatar_url,
+          avatarUrl: authorProfile.avatar_url
+        } : null,
+        commentCount: post.forum_comments?.[0]?.count || 0,
+        comment_count: post.forum_comments?.[0]?.count || 0,
+        reply_count: post.forum_comments?.[0]?.count || 0
+      };
+    }) || [];
+    
+    console.log(`Found ${forumPosts.length} forum posts to process`);
+    // Fetch blog posts with comment counts
     console.log('Fetching blog posts...');
-    const { data: blogPosts, error: blogError } = await supabase.from('blog_posts').select('*');
+    const { data: blogPostsRaw, error: blogError } = await supabase
+      .from('blog_posts')
+      .select(`
+        *,
+        blog_comments:blog_comments(count)
+      `)
+      .order('created_at', { ascending: false });
+    
     if (blogError) {
       console.error('Error fetching blog posts:', blogError);
     }
-    console.log(`Found ${blogPosts?.length || 0} blog posts to process`);
+    
+    // Fetch author profiles
+    let authorProfiles: any = {};
+    if (blogPostsRaw && blogPostsRaw.length > 0) {
+      const authorIds = Array.from(new Set(blogPostsRaw.map((post: any) => post.author_id).filter(Boolean)));
+      if (authorIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .in('id', authorIds);
+        
+        if (!profilesError && profiles) {
+          profiles.forEach((profile: any) => {
+            authorProfiles[profile.id] = profile;
+          });
+        }
+      }
+    }
+    
+    // Transform blog posts to include author and commentCount
+    const blogPosts = blogPostsRaw?.map((post: any) => {
+      const authorProfile = authorProfiles[post.author_id];
+      return {
+        ...post,
+        author: authorProfile ? {
+          id: authorProfile.id,
+          username: authorProfile.username,
+          avatar_url: authorProfile.avatar_url,
+          avatarUrl: authorProfile.avatar_url
+        } : null,
+        commentCount: post.blog_comments?.[0]?.count || 0,
+        comment_count: post.blog_comments?.[0]?.count || 0
+      };
+    }) || [];
+    
+    console.log(`Found ${blogPosts.length} blog posts to process`);
     const generatedPages = [];
     const errors = [];
     // Fetch marketplace items
@@ -320,17 +405,36 @@ serve(async (req)=>{
         });
       }
     }
-    // Fetch announcements
+    // Fetch announcements with author information
     console.log('Fetching forum announcements...');
-    const { data: announcements, error: announcementsError } = await supabase.from('forum_announcements').select(`
-    *,
-    author:profiles!forum_announcements_author_id_fkey(id, username, avatar_url, rank)
-  `).order('created_at', {
+    const { data: announcementsRaw, error: announcementsError } = await supabase.from('forum_announcements').select(`
+      *,
+      author:profiles!forum_announcements_author_id_fkey(id, username, avatar_url, rank),
+      forum_comments:forum_comments(count)
+    `).order('created_at', {
       ascending: false
     }).limit(5);
     if (announcementsError) {
       console.error('Error fetching announcements:', announcementsError);
     }
+    
+    // Transform announcements to ensure consistent author format
+    const announcements = announcementsRaw?.map((announcement: any) => {
+      const authorData = announcement.author || null;
+      return {
+        ...announcement,
+        author: authorData ? {
+          id: authorData.id,
+          username: authorData.username,
+          avatar_url: authorData.avatar_url,
+          avatarUrl: authorData.avatar_url,
+          rank: authorData.rank
+        } : null,
+        commentCount: announcement.forum_comments?.[0]?.count || 0,
+        comment_count: announcement.forum_comments?.[0]?.count || 0
+      };
+    }) || [];
+    
     // Generate HTML for forum page
     try {
       const forumHtml = generateForumPageHTML(forumPosts || [], announcements || []);
@@ -1017,7 +1121,7 @@ function generateCatalogItemHTML(banknote) {
 </body>
 </html>`;
 }
-function generateForumPageHTML(forumPosts, announcements) {
+function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []) {
   const title = 'Ottoman Banknote Collectors Forum';
   const description = 'Join the OttoCollect community of Ottoman Empire banknote collectors. Discuss rare Turkish currency, share authentication tips, and connect with enthusiasts.';
   const imageUrl = 'https://ottocollect.com/web-app-manifest-512x512.png';
@@ -1030,11 +1134,11 @@ function generateForumPageHTML(forumPosts, announcements) {
         </div>
       `;
     }
-    return forumPosts.map((post)=>{
+    return forumPosts.map((post: any)=>{
       const postUrl = `/forum/post/${post.id}`;
-      const authorName = post.author?.username || post.author_name || 'Unknown User';
-      const authorAvatar = post.author?.avatar_url || '';
-      const commentCount = post.commentCount || post.reply_count || 0;
+      const authorName = post.author?.username || post.author?.name || 'Unknown User';
+      const authorAvatar = post.author?.avatar_url || post.author?.avatarUrl || '';
+      const commentCount = post.commentCount || post.comment_count || post.reply_count || 0;
       const createdDate = new Date(post.created_at).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -1093,11 +1197,13 @@ function generateForumPageHTML(forumPosts, announcements) {
     if (!announcements || announcements.length === 0) {
       return '';
     }
-    return announcements.map((announcement)=>{
+    return announcements.map((announcement: any)=>{
       const announcementUrl = `/forum/post/${announcement.id}`;
-      const authorName = announcement.author?.username || 'Admin';
-      const authorAvatar = announcement.author?.avatar_url || '';
-      const commentCount = announcement.commentCount || 0;
+      // Handle both direct foreign key relationship and transformed author object
+      const authorData = announcement.author || (announcement.author_id ? announcement.author_id : null);
+      const authorName = authorData?.username || authorData?.name || 'Admin';
+      const authorAvatar = authorData?.avatar_url || authorData?.avatarUrl || '';
+      const commentCount = announcement.commentCount || announcement.comment_count || 0;
       const createdDate = new Date(announcement.created_at).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -1195,7 +1301,7 @@ function generateForumPageHTML(forumPosts, announcements) {
         "numberOfItems": (forumPosts?.length || 0) + (announcements?.length || 0),
         "itemListElement": [
           // Announcements first
-          ...(announcements && announcements.length > 0 ? announcements.map((announcement, index) => ({
+          ...(announcements && announcements.length > 0 ? announcements.map((announcement: any, index: number) => ({
             "@type": "ListItem",
             "position": index + 1,
             "item": {
@@ -1204,19 +1310,19 @@ function generateForumPageHTML(forumPosts, announcements) {
               "text": announcement.content || announcement.description || 'No content available',
               "author": {
                 "@type": "Person",
-                "name": announcement.author?.username || 'Admin'
+                "name": announcement.author?.username || announcement.author?.name || 'Admin'
               },
               "datePublished": announcement.created_at,
               "url": `https://ottocollect.com/forum/post/${announcement.id}`,
               "interactionStatistic": {
                 "@type": "InteractionCounter",
                 "interactionType": "https://schema.org/ReplyAction",
-                "userInteractionCount": announcement.commentCount || 0
+                "userInteractionCount": announcement.commentCount || announcement.comment_count || 0
               }
             }
           })) : []),
           // Regular forum posts
-          ...(forumPosts && forumPosts.length > 0 ? forumPosts.map((post, index) => ({
+          ...(forumPosts && forumPosts.length > 0 ? forumPosts.map((post: any, index: number) => ({
             "@type": "ListItem",
             "position": (announcements?.length || 0) + index + 1,
             "item": {
@@ -1225,14 +1331,14 @@ function generateForumPageHTML(forumPosts, announcements) {
               "text": post.content || 'No content available',
               "author": {
                 "@type": "Person",
-                "name": post.author?.username || post.author_name || 'Unknown User'
+                "name": post.author?.username || post.author?.name || 'Unknown User'
               },
               "datePublished": post.created_at,
               "url": `https://ottocollect.com/forum/post/${post.id}`,
               "interactionStatistic": {
                 "@type": "InteractionCounter",
                 "interactionType": "https://schema.org/ReplyAction",
-                "userInteractionCount": post.commentCount || post.reply_count || 0
+                "userInteractionCount": post.commentCount || post.comment_count || post.reply_count || 0
               }
             }
           })) : [])
@@ -1650,16 +1756,28 @@ function generateCatalogPageHTML(countries) {
         </div>
       `;
     }
-    return countries.map((country)=>{
+    // Filter to only show countries with banknotes, or show all if display_order exists
+    const countriesToShow = countries.filter(country => {
+      // Show country if it has banknotes OR if it's in the countries table (has display_order)
+      return (country.banknoteCount && country.banknoteCount > 0) || country.display_order !== undefined;
+    }).sort((a, b) => {
+      // Sort by display_order if available, otherwise by name
+      if (a.display_order !== undefined && b.display_order !== undefined) {
+        return (a.display_order || 999) - (b.display_order || 999);
+      }
+      return (a.name || '').localeCompare(b.name || '');
+    });
+    
+    return countriesToShow.map((country)=>{
       const countryUrl = `/catalog/${encodeURIComponent(country.name)}`;
-      const countryImage = country.imageUrl || '';
+      const countryImage = country.imageUrl || country.image_url || '';
       const banknoteCount = country.banknoteCount || 0;
       return `
-        <a href="${countryUrl}" class="country-card-link">
+        <a href="${countryUrl}" class="country-card-link" itemscope itemtype="https://schema.org/CollectionPage">
           <div class="country-card">
             <div class="country-image-container">
               ${countryImage ? `
-                <img src="${countryImage}" alt="Banknotes catalogue from ${country.name}" class="country-image">
+                <img src="${countryImage}" alt="Banknotes catalogue from ${country.name}" class="country-image" itemprop="image">
               ` : `
                 <div class="country-placeholder">
                   <span class="country-placeholder-text">${country.name}</span>
@@ -1667,8 +1785,8 @@ function generateCatalogPageHTML(countries) {
               `}
               <div class="country-overlay">
                 <div class="country-info">
-                  <h3 class="country-name">${country.name}</h3>
-                  <p class="country-count">${banknoteCount} banknote${banknoteCount !== 1 ? 's' : ''}</p>
+                  <h3 class="country-name" itemprop="name">${country.name}</h3>
+                  <p class="country-count" itemprop="numberOfItems">${banknoteCount} banknote${banknoteCount !== 1 ? 's' : ''}</p>
                 </div>
               </div>
             </div>
@@ -1689,12 +1807,23 @@ function generateCatalogPageHTML(countries) {
         "@type": "ItemList",
         "name": "Ottoman Empire Banknote Catalog",
         "description": "Complete collection of Ottoman Empire banknotes by country",
-        "numberOfItems": countries?.length || 0
+        "numberOfItems": countries?.filter(country => (country.banknoteCount && country.banknoteCount > 0) || country.display_order !== undefined).length || 0,
+        "itemListElement": countries?.filter(country => (country.banknoteCount && country.banknoteCount > 0) || country.display_order !== undefined).map((country, index) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": {
+            "@type": "CollectionPage",
+            "name": `${country.name} Banknote Catalog`,
+            "url": `https://ottocollect.com/catalog/${encodeURIComponent(country.name)}`,
+            "numberOfItems": country.banknoteCount || 0
+          }
+        })) || []
       },
-      "hasPart": countries?.map((country)=>({
+      "hasPart": countries?.filter(country => (country.banknoteCount && country.banknoteCount > 0) || country.display_order !== undefined).map((country)=>({
           "@type": "CollectionPage",
           "name": `${country.name} Banknote Catalog`,
-          "url": `https://ottocollect.com/catalog/${encodeURIComponent(country.name)}`
+          "url": `https://ottocollect.com/catalog/${encodeURIComponent(country.name)}`,
+          "numberOfItems": country.banknoteCount || 0
         })) || [],
       "breadcrumb": {
         "@type": "BreadcrumbList",
@@ -1772,7 +1901,7 @@ function generateCatalogPageHTML(countries) {
     }
     
     .hero-section {
-      background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+      background-color: #E5D0C3;
       padding: 48px 0;
       margin-bottom: 16px;
       position: relative;
@@ -1783,8 +1912,8 @@ function generateCatalogPageHTML(countries) {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(139, 69, 19, 0.1) 0%, rgba(160, 82, 45, 0.1) 100%);
-      z-index: -1;
+      background: linear-gradient(135deg, rgba(201, 168, 130, 0.4) 0%, rgba(201, 168, 130, 0.1) 100%);
+      z-index: 1;
     }
     
     .hero-content {
@@ -1796,16 +1925,29 @@ function generateCatalogPageHTML(countries) {
     .hero-title {
       font-size: 2.5rem;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a1a1a;
       margin-bottom: 16px;
       font-family: serif;
     }
     
+    @media (min-width: 768px) {
+      .hero-title {
+        font-size: 3rem;
+      }
+    }
+    
     .hero-subtitle {
-      font-size: 1.125rem;
-      color: #555;
-      max-width: 800px;
-      margin: 0 auto;
+      font-size: 1rem;
+      color: #4a5568;
+      max-width: 896px;
+      margin: 16px auto 0;
+      line-height: 1.6;
+    }
+    
+    @media (min-width: 768px) {
+      .hero-subtitle {
+        font-size: 1.125rem;
+      }
     }
     
     .catalog-container {
@@ -1830,15 +1972,23 @@ function generateCatalogPageHTML(countries) {
     
     .country-card {
       background: white;
-      border: 1px solid #d4af37;
+      border: 1px solid rgba(201, 168, 130, 0.5);
       border-radius: 8px;
       overflow: hidden;
-      transition: box-shadow 0.3s ease;
+      transition: all 0.3s ease;
       height: 100%;
     }
     
+    @media (prefers-color-scheme: dark) {
+      .country-card {
+        background-color: #2c1810;
+        border-color: rgba(86, 58, 39, 0.5);
+      }
+    }
+    
     .country-card:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
     }
     
     .country-image-container {
@@ -1861,14 +2011,20 @@ function generateCatalogPageHTML(countries) {
     .country-placeholder {
       width: 100%;
       height: 100%;
-      background: linear-gradient(135deg, #f8f6f0 0%, #f0ede4 100%);
+      background-color: #E5D0C3;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     
+    @media (prefers-color-scheme: dark) {
+      .country-placeholder {
+        background-color: #E5D0C3;
+      }
+    }
+    
     .country-placeholder-text {
-      color: #8b4513;
+      color: #9C6644;
       font-size: 1.25rem;
       font-weight: 500;
     }
@@ -1890,13 +2046,13 @@ function generateCatalogPageHTML(countries) {
     .country-name {
       font-size: 1.25rem;
       font-weight: bold;
-      color: #e5e5e5;
+      color: #ffffff;
       margin-bottom: 4px;
     }
     
     .country-count {
       font-size: 0.875rem;
-      color: rgba(255,255,255,0.8);
+      color: rgba(255,255,255,0.9);
     }
     
     .loading-spinner {
@@ -2494,10 +2650,84 @@ export function generateGuideHTML() {
 </html>`;
 }
 
-function generateBlogPageHTML(blogPosts = []) {
+function generateBlogPageHTML(blogPosts: any[] = []) {
   const title = 'OttoCollect Blog - Ottoman Empire Banknote News & Insights';
   const description = 'Stay updated with the latest news, insights, and stories about Ottoman Empire banknotes. Expert analysis, market trends, and collector stories from the numismatic community.';
   const imageUrl = 'https://ottocollect.com/web-app-manifest-512x512.png';
+  
+  // Generate blog post cards HTML in masonry grid layout
+  const generateBlogPostCards = () => {
+    if (!blogPosts || blogPosts.length === 0) {
+      return `
+        <div class="no-posts">
+          <p>No blog posts yet. Be the first to create one!</p>
+        </div>
+      `;
+    }
+    return blogPosts.map((post: any) => {
+      const postUrl = `/blog/post/${post.id}`;
+      const authorName = post.author?.username || post.author?.name || 'Anonymous';
+      const authorAvatar = post.author?.avatar_url || post.author?.avatarUrl || '';
+      const commentCount = post.commentCount || post.comment_count || 0;
+      const createdDate = new Date(post.created_at).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      const postTitle = post.title || 'Untitled Post';
+      const postExcerpt = post.excerpt || (post.content ? post.content.substring(0, 150) + '...' : 'Blog post about Ottoman Empire banknotes');
+      const mainImage = post.main_image_url || post.featured_image || post.image_url || '';
+      
+      return `
+        <article class="blog-post-card" itemscope itemtype="https://schema.org/BlogPosting" onclick="window.location.href='${postUrl}'">
+          ${mainImage ? `
+            <div class="post-image-container">
+              <img src="${mainImage}" alt="${postTitle}" class="post-image" itemprop="image">
+            </div>
+          ` : ''}
+          <div class="post-header">
+            <h3 class="post-title" itemprop="headline">${postTitle}</h3>
+          </div>
+          <div class="post-content">
+            <p class="post-excerpt" itemprop="description">${postExcerpt}</p>
+          </div>
+          <div class="post-footer">
+            <div class="post-author" itemprop="author" itemscope itemtype="https://schema.org/Person">
+              <div class="author-avatar">
+                ${authorAvatar ? `
+                  <img src="${authorAvatar}" alt="${authorName}" class="avatar-img">
+                ` : `
+                  <div class="avatar-placeholder"></div>
+                `}
+              </div>
+              <span class="author-name" itemprop="name">${authorName}</span>
+            </div>
+            <div class="post-meta">
+              <time class="post-date" datetime="${post.created_at}" itemprop="datePublished">
+                <svg class="calendar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                ${createdDate}
+              </time>
+              <div class="comment-count" itemprop="interactionStatistic" itemscope itemtype="https://schema.org/InteractionCounter">
+                <meta itemprop="interactionType" content="https://schema.org/CommentAction">
+                <meta itemprop="userInteractionCount" content="${commentCount}">
+                <svg class="comment-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>${commentCount}</span>
+              </div>
+            </div>
+          </div>
+          <a href="${postUrl}" itemprop="url" style="display:none;">${postTitle}</a>
+          <div itemprop="articleBody" style="display:none;">${post.content || post.excerpt || 'No content available'}</div>
+        </article>
+      `;
+    }).join('');
+  };
   
   // Generate structured data for blog posts
   const generateStructuredData = () => {
@@ -2516,14 +2746,14 @@ function generateBlogPageHTML(blogPosts = []) {
           "url": imageUrl
         }
       },
-      "blogPost": blogPosts && blogPosts.length > 0 ? blogPosts.map((post) => ({
+      "blogPost": blogPosts && blogPosts.length > 0 ? blogPosts.map((post: any) => ({
         "@type": "BlogPosting",
         "headline": post.title || 'Untitled Post',
         "description": post.excerpt || (post.content ? post.content.substring(0, 160) + '...' : 'Blog post about Ottoman Empire banknotes'),
         "articleBody": post.content || post.excerpt || 'No content available',
         "author": {
           "@type": "Person",
-          "name": post.author?.username || post.author_name || 'OttoCollect Team'
+          "name": post.author?.username || post.author?.name || 'OttoCollect Team'
         },
         "datePublished": post.created_at,
         "dateModified": post.updated_at || post.created_at,
@@ -2536,7 +2766,7 @@ function generateBlogPageHTML(blogPosts = []) {
         "interactionStatistic": {
           "@type": "InteractionCounter",
           "interactionType": "https://schema.org/CommentAction",
-          "userInteractionCount": post.commentCount || 0
+          "userInteractionCount": post.commentCount || post.comment_count || 0
         }
       })) : [],
       "mainEntity": {
@@ -2544,7 +2774,7 @@ function generateBlogPageHTML(blogPosts = []) {
         "name": "Blog Posts",
         "description": "Latest news, insights, and stories about Ottoman Empire banknotes, numismatic history, collecting tips, and market analysis",
         "numberOfItems": blogPosts?.length || 0,
-        "itemListElement": blogPosts && blogPosts.length > 0 ? blogPosts.map((post, index) => ({
+        "itemListElement": blogPosts && blogPosts.length > 0 ? blogPosts.map((post: any, index: number) => ({
           "@type": "ListItem",
           "position": index + 1,
           "item": {
@@ -2554,7 +2784,7 @@ function generateBlogPageHTML(blogPosts = []) {
             "articleBody": post.content || post.excerpt || 'No content available',
             "author": {
               "@type": "Person",
-              "name": post.author?.username || post.author_name || 'OttoCollect Team'
+              "name": post.author?.username || post.author?.name || 'OttoCollect Team'
             },
             "datePublished": post.created_at,
             "dateModified": post.updated_at || post.created_at,
@@ -2606,21 +2836,381 @@ function generateBlogPageHTML(blogPosts = []) {
     ${JSON.stringify(generateStructuredData(), null, 2)}
   </script>
   
-  <!-- Redirect to React app after meta tags are read -->
+  <!-- CSS matching Blog.tsx layout -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #FBFBFB;
+      color: #3C2415;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    .hero-section {
+      background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+      padding: 48px 0;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(139, 69, 19, 0.1) 0%, rgba(160, 82, 45, 0.1) 100%);
+      z-index: -1;
+    }
+    
+    .hero-content {
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 8px;
+      font-family: serif;
+    }
+    
+    .hero-subtitle {
+      font-size: 1rem;
+      color: #555;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .main-content {
+      padding: 20px 0;
+    }
+    
+    .blog-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    
+    .search-container {
+      position: relative;
+      width: 200px;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 8px 32px 8px 32px;
+      border: 1px solid #D4CFCB;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      background: white;
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: #6B7280;
+    }
+    
+    .action-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: white;
+      color: #3C2415;
+      border: 1px solid #D4CFCB;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .action-button:hover {
+      background: #F5F5F5;
+    }
+    
+    .blog-posts-grid {
+      columns: 1;
+      column-gap: 24px;
+      padding: 0 16px;
+    }
+    
+    @media (min-width: 768px) {
+      .blog-posts-grid {
+        columns: 2;
+      }
+    }
+    
+    @media (min-width: 1024px) {
+      .blog-posts-grid {
+        columns: 3;
+      }
+    }
+    
+    .blog-post-card {
+      break-inside: avoid;
+      margin-bottom: 24px;
+      background: white;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .blog-post-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+    
+    .post-image-container {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #F3F4F6;
+    }
+    
+    .post-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    .blog-post-card:hover .post-image {
+      transform: scale(1.05);
+    }
+    
+    .post-header {
+      padding: 16px 16px 8px;
+    }
+    
+    .post-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #3C2415;
+      line-height: 1.4;
+      margin-bottom: 0;
+    }
+    
+    .post-content {
+      padding: 0 16px;
+      flex: 1;
+    }
+    
+    .post-excerpt {
+      font-size: 0.875rem;
+      color: #6B7280;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .post-footer {
+      padding: 12px 16px;
+      border-top: 1px solid #E5E7EB;
+      background: #F9FAFB;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .post-author {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .author-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #F3F4F6;
+      flex-shrink: 0;
+    }
+    
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .avatar-placeholder {
+      width: 100%;
+      height: 100%;
+      background: #D1D5DB;
+      border-radius: 50%;
+    }
+    
+    .author-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #3C2415;
+    }
+    
+    .post-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .post-date {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: #6B7280;
+    }
+    
+    .calendar-icon {
+      width: 14px;
+      height: 14px;
+    }
+    
+    .comment-count {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: #6B7280;
+    }
+    
+    .comment-icon {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .no-posts {
+      text-align: center;
+      padding: 48px 20px;
+      color: #6B7280;
+    }
+    
+    .redirect-notice {
+      text-align: center;
+      padding: 20px;
+      background: #F8F9FA;
+      border-radius: 8px;
+      margin-top: 32px;
+      color: #6B7280;
+    }
+    
+    .redirect-notice a {
+      color: #8B4513;
+      text-decoration: none;
+    }
+    
+    .redirect-notice a:hover {
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 2rem;
+      }
+      
+      .blog-controls {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .search-container {
+        width: 100%;
+        max-width: 300px;
+      }
+      
+      .post-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      .post-meta {
+        align-self: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">Blog</h1>
+        <p class="hero-subtitle">Discover insights, stories, and knowledge about banknote collecting</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="container">
+      <!-- Blog Controls -->
+      <div class="blog-controls">
+        <div class="search-container">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input type="search" class="search-input" placeholder="Search blog posts...">
+        </div>
+        <a href="/auth" class="action-button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          Post
+        </a>
+      </div>
+
+      <!-- Blog Posts Grid -->
+      <div class="blog-posts-grid">
+        ${generateBlogPostCards()}
+      </div>
+    </div>
+  </div>
+
+  <div class="redirect-notice">
+    <p>If you are not redirected automatically, <a href="/blog">click here to view the interactive version</a>.</p>
+  </div>
+
+  <!-- No redirects for crawlers -->
   <script>
-    // Only redirect regular users, not crawlers
     if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
       setTimeout(() => {
         window.location.replace('/blog');
       }, 100);
     }
   </script>
-</head>
-<body>
-  <h1>${title}</h1>
-  <p>${description}</p>
-  <img src="${imageUrl}" alt="OttoCollect Blog">
-  <p>If you are not redirected automatically, <a href="/blog">click here</a>.</p>
 </body>
 </html>`;
 }
@@ -3210,10 +3800,47 @@ function generateCountryPageHTML(countryData, banknotes) {
               </div>
               <div class="banknote-info">
                 <h3 class="banknote-title" itemprop="name">${banknote.face_value} ${countryName}</h3>
-                <p class="banknote-year">${banknote.gregorian_year || banknote.islamic_year || 'Unknown Year'}</p>
-                <p class="banknote-pick">Pick #${banknote.extended_pick_number || banknote.pick_number || 'Unknown'}</p>
-                ${banknote.sultan_name ? `<p class="banknote-sultan">Sultan: ${banknote.sultan_name}</p>` : ''}
-                ${banknote.printer ? `<p class="banknote-printer">Printer: ${banknote.printer}</p>` : ''}
+                
+                <!-- Core Details -->
+                <div class="banknote-details-list">
+                  ${banknote.extended_pick_number ? `<p class="banknote-detail"><strong>Extended Pick:</strong> ${banknote.extended_pick_number}</p>` : ''}
+                  ${banknote.pick_number ? `<p class="banknote-detail"><strong>Pick Number:</strong> ${banknote.pick_number}</p>` : ''}
+                  ${banknote.turk_catalog_number ? `<p class="banknote-detail"><strong>Turk Catalog:</strong> ${banknote.turk_catalog_number}</p>` : ''}
+                  ${banknote.face_value ? `<p class="banknote-detail"><strong>Face Value:</strong> ${banknote.face_value}</p>` : ''}
+                  ${banknote.country ? `<p class="banknote-detail"><strong>Country:</strong> ${banknote.country}</p>` : ''}
+                  ${banknote.gregorian_year ? `<p class="banknote-detail"><strong>Gregorian Year:</strong> ${banknote.gregorian_year}</p>` : ''}
+                  ${banknote.islamic_year ? `<p class="banknote-detail"><strong>Islamic Year:</strong> ${banknote.islamic_year}</p>` : ''}
+                  ${banknote.sultan_name ? `<p class="banknote-detail"><strong>Sultan:</strong> ${banknote.sultan_name}</p>` : ''}
+                  ${banknote.printer ? `<p class="banknote-detail"><strong>Printer:</strong> ${banknote.printer}</p>` : ''}
+                  ${banknote.type ? `<p class="banknote-detail"><strong>Type:</strong> ${banknote.type}</p>` : ''}
+                  ${banknote.category ? `<p class="banknote-detail"><strong>Category:</strong> ${banknote.category}</p>` : ''}
+                  ${banknote.rarity ? `<p class="banknote-detail"><strong>Rarity:</strong> ${banknote.rarity}</p>` : ''}
+                  ${banknote.security_element ? `<p class="banknote-detail"><strong>Security Element:</strong> ${banknote.security_element}</p>` : ''}
+                  ${banknote.colors ? `<p class="banknote-detail"><strong>Colors:</strong> ${banknote.colors}</p>` : ''}
+                  ${banknote.serial_numbering ? `<p class="banknote-detail"><strong>Serial Numbering:</strong> ${banknote.serial_numbering}</p>` : ''}
+                  ${banknote.dimensions ? `<p class="banknote-detail"><strong>Dimensions:</strong> ${banknote.dimensions}</p>` : ''}
+                  ${banknote.width_mm && banknote.height_mm ? `<p class="banknote-detail"><strong>Size:</strong> ${banknote.width_mm}mm × ${banknote.height_mm}mm</p>` : ''}
+                  ${banknote.signatures_front ? `<p class="banknote-detail"><strong>Front Signatures:</strong> ${banknote.signatures_front}</p>` : ''}
+                  ${banknote.signatures_back ? `<p class="banknote-detail"><strong>Back Signatures:</strong> ${banknote.signatures_back}</p>` : ''}
+                  ${banknote.seal_names ? `<p class="banknote-detail"><strong>Seal Names:</strong> ${banknote.seal_names}</p>` : ''}
+                  ${banknote.material ? `<p class="banknote-detail"><strong>Material:</strong> ${banknote.material}</p>` : ''}
+                  ${banknote.watermark ? `<p class="banknote-detail"><strong>Watermark:</strong> ${banknote.watermark}</p>` : ''}
+                  ${banknote.issuing_authority ? `<p class="banknote-detail"><strong>Issuing Authority:</strong> ${banknote.issuing_authority}</p>` : ''}
+                  ${banknote.designers ? `<p class="banknote-detail"><strong>Designers:</strong> ${banknote.designers}</p>` : ''}
+                  ${banknote.security_features ? `<p class="banknote-detail"><strong>Security Features:</strong> ${banknote.security_features}</p>` : ''}
+                  ${banknote.series ? `<p class="banknote-detail"><strong>Series:</strong> ${banknote.series}</p>` : ''}
+                  ${banknote.grade ? `<p class="banknote-detail"><strong>Grade:</strong> ${banknote.grade}</p>` : ''}
+                  ${banknote.obverse_description ? `<p class="banknote-detail"><strong>Obverse Description:</strong> ${banknote.obverse_description}</p>` : ''}
+                  ${banknote.reverse_description ? `<p class="banknote-detail"><strong>Reverse Description:</strong> ${banknote.reverse_description}</p>` : ''}
+                </div>
+                
+                <!-- Descriptions -->
+                ${banknote.banknote_description ? `<p class="banknote-description" itemprop="description"><strong>Description:</strong> ${banknote.banknote_description}</p>` : ''}
+                ${banknote.historical_description ? `<p class="banknote-historical"><strong>Historical Context:</strong> ${banknote.historical_description}</p>` : ''}
+              </div>
+              <div itemprop="about" itemscope itemtype="https://schema.org/Thing" style="display:none;">
+                <span itemprop="name">${banknote.face_value} ${countryName} banknote</span>
+                ${banknote.country ? `<span itemprop="description">Historical banknote from ${banknote.country}</span>` : ''}
               </div>
             </a>
           </div>
@@ -3667,9 +4294,277 @@ function generateCountryPageHTML(countryData, banknotes) {
   <!-- ✅ Per-note structured data (CreativeWork) -->
   ${generatePerNoteStructuredData()}
 
-  <!-- Styles (unchanged) -->
+  <!-- Styles -->
   <style>
-    /* Your CSS remains identical */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f0;
+      color: #333;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .back-button {
+      font-size: 24px;
+      margin-right: 15px;
+      color: #666;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 5px 10px;
+    }
+    
+    .header h1 {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #222;
+    }
+    
+    .stats {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #8b4513;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    .filter-section {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .filter-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .catalog-intro {
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .catalog-intro h2 {
+      font-size: 1.75rem;
+      margin-bottom: 16px;
+      color: #333;
+    }
+    
+    .catalog-intro p {
+      margin-bottom: 12px;
+      color: #555;
+      line-height: 1.7;
+    }
+    
+    .banknotes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .banknote-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .banknote-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    
+    .banknote-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    
+    .banknote-image-container {
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+      background: #f5f5f0;
+    }
+    
+    .banknote-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    
+    .banknote-info {
+      padding: 16px;
+    }
+    
+    .banknote-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #222;
+    }
+    
+    .banknote-year {
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    
+    .banknote-pick {
+      font-size: 0.9rem;
+      color: #8b4513;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    
+    .banknote-sultan,
+    .banknote-printer {
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 5px;
+    }
+    
+    .banknote-details-list {
+      margin-top: 10px;
+    }
+    
+    .banknote-detail {
+      font-size: 0.85rem;
+      color: #555;
+      margin: 4px 0;
+      line-height: 1.4;
+    }
+    
+    .banknote-detail strong {
+      color: #333;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    
+    .banknote-description,
+    .banknote-historical {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+    
+    .banknote-description strong,
+    .banknote-historical strong {
+      color: #333;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    
+    .banknote-list-detailed {
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .banknote-list-detailed h2 {
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+      color: #333;
+    }
+    
+    .banknote-list-detailed ul {
+      list-style: none;
+    }
+    
+    .banknote-list-detailed li {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+      color: #555;
+      line-height: 1.6;
+    }
+    
+    .banknote-list-detailed li:last-child {
+      border-bottom: none;
+    }
+    
+    .banknote-list-detailed li strong {
+      color: #333;
+      font-weight: 600;
+    }
+    
+    .redirect-notice {
+      text-align: center;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-top: 20px;
+      color: #666;
+    }
+    
+    .redirect-notice a {
+      color: #8b4513;
+      text-decoration: none;
+    }
+    
+    .redirect-notice a:hover {
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) {
+      .banknotes-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
   </style>
 </head>
 <body>
@@ -3693,14 +4588,135 @@ function generateCountryPageHTML(countryData, banknotes) {
       <p>Use the interactive version to access advanced filtering, sorting, and search.</p>
     </div>
 
+    <!-- Comprehensive Banknote Data for AI Crawlers (Plain Text Format) -->
+    <section id="banknote-data-ai" style="background: #f9f9f9; padding: 24px; margin-bottom: 30px; border: 2px solid #ddd; border-radius: 8px;">
+      <h2>Complete ${countryName} Banknote Catalog - All ${banknotes?.length || 0} Banknotes</h2>
+      <p><strong>Total Banknotes:</strong> ${banknotes?.length || 0}</p>
+      <div style="font-family: monospace; font-size: 14px; line-height: 1.8; background: white; padding: 20px; border-radius: 4px; overflow-x: auto;">
+        ${banknotes?.map((banknote, index) => {
+          const details = [];
+          details.push(`Face Value: ${banknote.face_value || 'N/A'}`);
+          details.push(`Country: ${banknote.country || countryName}`);
+          details.push(`Gregorian Year: ${banknote.gregorian_year || 'N/A'}`);
+          details.push(`Islamic Year: ${banknote.islamic_year || 'N/A'}`);
+          details.push(`Extended Pick Number: ${banknote.extended_pick_number || 'N/A'}`);
+          details.push(`Pick Number: ${banknote.pick_number || 'N/A'}`);
+          details.push(`Turk Catalog Number: ${banknote.turk_catalog_number || 'N/A'}`);
+          if (banknote.sultan_name) details.push(`Sultan: ${banknote.sultan_name}`);
+          if (banknote.printer) details.push(`Printer: ${banknote.printer}`);
+          if (banknote.type) details.push(`Type: ${banknote.type}`);
+          if (banknote.category) details.push(`Category: ${banknote.category}`);
+          if (banknote.rarity) details.push(`Rarity: ${banknote.rarity}`);
+          if (banknote.security_element) details.push(`Security Element: ${banknote.security_element}`);
+          if (banknote.colors) details.push(`Colors: ${banknote.colors}`);
+          if (banknote.serial_numbering) details.push(`Serial Numbering: ${banknote.serial_numbering}`);
+          if (banknote.dimensions) details.push(`Dimensions: ${banknote.dimensions}`);
+          if (banknote.width_mm && banknote.height_mm) details.push(`Size: ${banknote.width_mm}mm × ${banknote.height_mm}mm`);
+          if (banknote.signatures_front) details.push(`Front Signatures: ${banknote.signatures_front}`);
+          if (banknote.signatures_back) details.push(`Back Signatures: ${banknote.signatures_back}`);
+          if (banknote.seal_names) details.push(`Seal Names: ${banknote.seal_names}`);
+          if (banknote.material) details.push(`Material: ${banknote.material}`);
+          if (banknote.watermark) details.push(`Watermark: ${banknote.watermark}`);
+          if (banknote.issuing_authority) details.push(`Issuing Authority: ${banknote.issuing_authority}`);
+          if (banknote.designers) details.push(`Designers: ${banknote.designers}`);
+          if (banknote.security_features) details.push(`Security Features: ${banknote.security_features}`);
+          if (banknote.series) details.push(`Series: ${banknote.series}`);
+          if (banknote.grade) details.push(`Grade: ${banknote.grade}`);
+          if (banknote.obverse_description) details.push(`Obverse Description: ${banknote.obverse_description}`);
+          if (banknote.reverse_description) details.push(`Reverse Description: ${banknote.reverse_description}`);
+          if (banknote.banknote_description) details.push(`Description: ${banknote.banknote_description}`);
+          if (banknote.historical_description) details.push(`Historical Context: ${banknote.historical_description}`);
+          details.push(`URL: https://ottocollect.com/catalog-banknote/${banknote.id}`);
+          return `\n\n=== Banknote ${index + 1} of ${banknotes.length} ===\n${details.join('\n')}\n`;
+        }).join('') || 'No banknotes available'}
+      </div>
+    </section>
+
+    <!-- Descriptive content for crawlers -->
+    <div class="catalog-intro">
+      <h2>${countryName} Banknote Collection</h2>
+      <p>This catalog contains ${banknotes?.length || 0} historical banknotes from ${countryName}. Each banknote represents a piece of numismatic history from the Ottoman Empire period and successor countries. Browse through authentic banknotes with detailed information including face values, issuance years, Pick numbers, sultan names, printers, and historical context.</p>
+      <p>The collection includes banknotes from various periods, featuring different denominations, rulers, and printing houses. Each banknote has been cataloged with comprehensive details including dimensions, security features, watermarks, seals, and signatures.</p>
+    </div>
+
     <div class="banknotes-grid">${generateBanknoteCards()}</div>
+
+    <!-- Detailed banknote list for crawlers -->
+    <div class="banknote-list-detailed">
+      <h2>Complete ${countryName} Banknote List</h2>
+      <ul>
+        ${banknotes?.map((banknote) => `
+          <li>
+            <strong>${banknote.face_value} ${countryName}</strong> - 
+            Year: ${banknote.gregorian_year || banknote.islamic_year || 'Unknown'} - 
+            Pick #${banknote.extended_pick_number || banknote.pick_number || 'Unknown'}${banknote.turk_catalog_number ? ` - Turk Catalog: ${banknote.turk_catalog_number}` : ''}${banknote.sultan_name ? ` - Sultan: ${banknote.sultan_name}` : ''}${banknote.printer ? ` - Printer: ${banknote.printer}` : ''}${banknote.type ? ` - Type: ${banknote.type}` : ''}${banknote.category ? ` - Category: ${banknote.category}` : ''}${banknote.rarity ? ` - Rarity: ${banknote.rarity}` : ''}${banknote.security_element ? ` - Security: ${banknote.security_element}` : ''}${banknote.colors ? ` - Colors: ${banknote.colors}` : ''}${banknote.dimensions ? ` - Dimensions: ${banknote.dimensions}` : ''}${banknote.width_mm && banknote.height_mm ? ` - Size: ${banknote.width_mm}mm × ${banknote.height_mm}mm` : ''}${banknote.signatures_front ? ` - Front Signatures: ${banknote.signatures_front}` : ''}${banknote.signatures_back ? ` - Back Signatures: ${banknote.signatures_back}` : ''}${banknote.seal_names ? ` - Seals: ${banknote.seal_names}` : ''}${banknote.material ? ` - Material: ${banknote.material}` : ''}${banknote.watermark ? ` - Watermark: ${banknote.watermark}` : ''}${banknote.issuing_authority ? ` - Issuing Authority: ${banknote.issuing_authority}` : ''}${banknote.designers ? ` - Designers: ${banknote.designers}` : ''}${banknote.security_features ? ` - Security Features: ${banknote.security_features}` : ''}${banknote.series ? ` - Series: ${banknote.series}` : ''}${banknote.grade ? ` - Grade: ${banknote.grade}` : ''}${banknote.banknote_description ? ` - Description: ${banknote.banknote_description.substring(0, 100)}...` : ''}${banknote.historical_description ? ` - Historical: ${banknote.historical_description.substring(0, 80)}...` : ''}
+          </li>
+        `).join('') || '<li>No banknotes available</li>'}
+      </ul>
+    </div>
 
     <div class="redirect-notice">
       <p>If you are not redirected automatically, <a href="/catalog/${encodedCountry}">click here to view the interactive version</a>.</p>
     </div>
   </div>
 
+  <!-- Structured Data: Complete JSON-LD for all banknotes -->
+  <script type="application/ld+json">
+    ${JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Complete ${countryName} Banknote Catalog",
+      "description": "All ${banknotes?.length || 0} banknotes from ${countryName} with complete details",
+      "numberOfItems": banknotes?.length || 0,
+      "itemListElement": banknotes?.map((banknote, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "CreativeWork",
+          "name": `${banknote.face_value} ${countryName} Banknote ${banknote.gregorian_year || banknote.islamic_year || ''}`,
+          "url": `https://ottocollect.com/catalog-banknote/${banknote.id}`,
+          "description": banknote.banknote_description || `Historical ${banknote.face_value} ${countryName} banknote from ${banknote.gregorian_year || banknote.islamic_year || 'historic period'}`,
+          "identifier": [
+            banknote.extended_pick_number && { "@type": "PropertyValue", "name": "Extended Pick Number", "value": banknote.extended_pick_number },
+            banknote.pick_number && { "@type": "PropertyValue", "name": "Pick Number", "value": banknote.pick_number },
+            banknote.turk_catalog_number && { "@type": "PropertyValue", "name": "Turk Catalog Number", "value": banknote.turk_catalog_number }
+          ].filter(Boolean),
+          "additionalProperty": [
+            banknote.face_value && { "@type": "PropertyValue", "name": "Face Value", "value": banknote.face_value },
+            banknote.country && { "@type": "PropertyValue", "name": "Country", "value": banknote.country },
+            banknote.gregorian_year && { "@type": "PropertyValue", "name": "Gregorian Year", "value": banknote.gregorian_year.toString() },
+            banknote.islamic_year && { "@type": "PropertyValue", "name": "Islamic Year", "value": banknote.islamic_year.toString() },
+            banknote.sultan_name && { "@type": "PropertyValue", "name": "Sultan", "value": banknote.sultan_name },
+            banknote.printer && { "@type": "PropertyValue", "name": "Printer", "value": banknote.printer },
+            banknote.type && { "@type": "PropertyValue", "name": "Type", "value": banknote.type },
+            banknote.category && { "@type": "PropertyValue", "name": "Category", "value": banknote.category },
+            banknote.rarity && { "@type": "PropertyValue", "name": "Rarity", "value": banknote.rarity },
+            banknote.security_element && { "@type": "PropertyValue", "name": "Security Element", "value": banknote.security_element },
+            banknote.colors && { "@type": "PropertyValue", "name": "Colors", "value": banknote.colors },
+            banknote.serial_numbering && { "@type": "PropertyValue", "name": "Serial Numbering", "value": banknote.serial_numbering },
+            banknote.dimensions && { "@type": "PropertyValue", "name": "Dimensions", "value": banknote.dimensions },
+            banknote.width_mm && banknote.height_mm && { "@type": "PropertyValue", "name": "Size", "value": `${banknote.width_mm}mm × ${banknote.height_mm}mm` },
+            banknote.signatures_front && { "@type": "PropertyValue", "name": "Front Signatures", "value": banknote.signatures_front },
+            banknote.signatures_back && { "@type": "PropertyValue", "name": "Back Signatures", "value": banknote.signatures_back },
+            banknote.seal_names && { "@type": "PropertyValue", "name": "Seal Names", "value": banknote.seal_names },
+            banknote.material && { "@type": "PropertyValue", "name": "Material", "value": banknote.material },
+            banknote.watermark && { "@type": "PropertyValue", "name": "Watermark", "value": banknote.watermark },
+            banknote.issuing_authority && { "@type": "PropertyValue", "name": "Issuing Authority", "value": banknote.issuing_authority },
+            banknote.designers && { "@type": "PropertyValue", "name": "Designers", "value": banknote.designers },
+            banknote.security_features && { "@type": "PropertyValue", "name": "Security Features", "value": banknote.security_features },
+            banknote.series && { "@type": "PropertyValue", "name": "Series", "value": banknote.series },
+            banknote.grade && { "@type": "PropertyValue", "name": "Grade", "value": banknote.grade },
+            banknote.obverse_description && { "@type": "PropertyValue", "name": "Obverse Description", "value": banknote.obverse_description },
+            banknote.reverse_description && { "@type": "PropertyValue", "name": "Reverse Description", "value": banknote.reverse_description },
+            banknote.historical_description && { "@type": "PropertyValue", "name": "Historical Context", "value": banknote.historical_description }
+          ].filter(Boolean)
+        }
+      })) || []
+    }, null, 2)}
+  </script>
+
   <script>
+    // Only redirect regular users, not crawlers
     if (!navigator.userAgent.match(/bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
       setTimeout(() => {
         window.location.replace('/catalog/${encodedCountry}');

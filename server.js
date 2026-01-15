@@ -366,12 +366,14 @@ app.get('/catalog/:country', async (req, res) => {
   if (isCrawler) {
     console.log(`Crawler detected for country ${country}, serving static HTML`);
     try {
+      // Re-encode to match the filename in storage (which was stored with encodeURIComponent)
+      const fileName = `catalog-${encodeURIComponent(country)}.html`;
       const { data, error } = await supabase.storage
         .from('static-pages')
-        .download(`catalog-${country}.html`);
+        .download(fileName);
       
       if (error) {
-        console.error(`Error fetching catalog-${country}.html:`, error);
+        console.error(`Error fetching ${fileName}:`, error);
         res.sendFile(path.join(__dirname, 'dist', 'index.html'));
         return;
       }
@@ -380,7 +382,7 @@ app.get('/catalog/:country', async (req, res) => {
       res.set('Content-Type', 'text/html');
       res.send(htmlContent);
     } catch (error) {
-      console.error(`Error serving catalog-${country}.html:`, error);
+      console.error(`Error serving ${fileName}:`, error);
       res.sendFile(path.join(__dirname, 'dist', 'index.html'));
     }
   } else {
@@ -475,7 +477,7 @@ app.get('/marketplace-item/:id', async (req, res) => {
       res.sendFile(path.join(__dirname, 'dist', 'index.html'));
     }
   } else {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   }
 });
 

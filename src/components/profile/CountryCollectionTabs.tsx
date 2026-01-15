@@ -72,7 +72,27 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 
   // Calculate missing banknotes (ones in allBanknotes but not in userCollection)
   const missingBanknotes = React.useMemo(() => {
-    if (!allBanknotes || !userCollection) return [];
+    console.log('🔍 [MissingItems] Starting missing banknotes calculation');
+    console.log('🔍 [MissingItems] Country:', countryName, 'CountryId:', countryId);
+    
+    if (!allBanknotes || !userCollection) {
+      console.log('🔍 [MissingItems] Early return - allBanknotes:', !!allBanknotes, 'userCollection:', !!userCollection);
+      return [];
+    }
+    
+    console.log('🔍 [MissingItems] Total allBanknotes:', allBanknotes.length);
+    console.log('🔍 [MissingItems] Total userCollection:', userCollection.length);
+    
+    // Log pick numbers in 40-60 range from allBanknotes
+    const pickNumbers40to60 = allBanknotes
+      .map(b => {
+        const pick = b.extendedPickNumber || (b as any).extended_pick_number || '';
+        const match = pick.match(/^(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+      })
+      .filter((num): num is number => num !== null && num >= 40 && num <= 60);
+    console.log('🔍 [MissingItems] Pick numbers 40-60 in allBanknotes:', pickNumbers40to60.length, 'samples:', pickNumbers40to60.slice(0, 10));
+    
     const userCountryCollection = userCollection.filter(
       item =>
         item.banknote &&
@@ -80,10 +100,30 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
         countryName &&
         item.banknote.country.trim().toLowerCase() === countryName.trim().toLowerCase()
     );
+    console.log('🔍 [MissingItems] User country collection items:', userCountryCollection.length);
+    
     const userBanknoteIds = new Set(userCountryCollection.map(item => String(item.banknoteId)));
+    console.log('🔍 [MissingItems] User banknote IDs count:', userBanknoteIds.size);
+    
     const filtered = allBanknotes.filter(banknote => !userBanknoteIds.has(String(banknote.id)));
+    console.log('🔍 [MissingItems] Missing banknotes count:', filtered.length);
+    
+    // Log pick numbers in 40-60 range from missing banknotes
+    const missingPickNumbers40to60 = filtered
+      .map(b => {
+        const pick = b.extendedPickNumber || (b as any).extended_pick_number || '';
+        const match = pick.match(/^(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+      })
+      .filter((num): num is number => num !== null && num >= 40 && num <= 60);
+    console.log('🔍 [MissingItems] Pick numbers 40-60 in missing banknotes:', missingPickNumbers40to60.length, 'samples:', missingPickNumbers40to60.slice(0, 10));
+    
+    // Log sample pick numbers from missing banknotes
+    const samplePicks = filtered.slice(0, 20).map(b => b.extendedPickNumber || (b as any).extended_pick_number || 'N/A');
+    console.log('🔍 [MissingItems] Sample pick numbers (first 20):', samplePicks);
+    
     return filtered;
-  }, [allBanknotes, userCollection, countryName]);
+  }, [allBanknotes, userCollection, countryName, countryId]);
 
   const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
@@ -163,7 +203,19 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
 
   
   return (
-    <Tabs defaultValue="Collection" className="w-full">
+    <Tabs 
+      defaultValue="Collection" 
+      className="w-full"
+      onValueChange={(value) => {
+        if (value === 'missing') {
+          console.log('🔍 [MissingItems] ========== MISSING TAB CLICKED IN PROFILE ==========');
+          console.log('🔍 [MissingItems] Country:', countryName, 'CountryId:', countryId);
+          console.log('🔍 [MissingItems] Missing banknotes count:', missingBanknotes.length);
+          console.log('🔍 [MissingItems] User collection count:', userCollection?.length || 0);
+          console.log('🔍 [MissingItems] All banknotes count:', allBanknotes?.length || 0);
+        }
+      }}
+    >
       <div className=" pl-2 max-w-5xl mx-auto mt-2">
         <TabsList className="inline-flex ">
           <TabsTrigger value="Collection">{t('countryTabs.collection')}</TabsTrigger>

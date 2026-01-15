@@ -193,6 +193,29 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   // Add hooks for categories and types
   const { categories: categoryDefs, loading: categoriesLoading } = useCountryCategoryDefs(effectiveCountryName);
   const { types: typeDefs, loading: typesLoading } = useCountryTypeDefs(effectiveCountryName);
+  
+  // Log category and type definitions for debugging
+  React.useEffect(() => {
+    if (categoryDefs && categoryDefs.length > 0) {
+      console.log('🔍 [MissingItems] Category definitions loaded:', categoryDefs.map(cat => ({
+        name: cat.name,
+        id: cat.id,
+        isWar1293: cat.name.includes('War 1293') || cat.name.includes('1293')
+      })));
+      const war1293Category = categoryDefs.find(cat => cat.name.includes('War 1293') || cat.name.includes('1293'));
+      if (war1293Category) {
+        console.log('🔍 [MissingItems] Found "War 1293" category definition:', war1293Category);
+      } else {
+        console.log('🔍 [MissingItems] ⚠️ "War 1293" category NOT found in category definitions');
+      }
+    }
+    if (typeDefs && typeDefs.length > 0) {
+      console.log('🔍 [MissingItems] Type definitions loaded:', typeDefs.map(type => ({
+        name: type.name,
+        id: type.id
+      })));
+    }
+  }, [categoryDefs, typeDefs]);
 
   // Use the collection items from the optimized hook
   const finalCollectionItems = collectionItems;
@@ -497,6 +520,18 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   // Use the missing banknotes from the optimized hook
   const finalMissingBanknotes = missingBanknotes;
 
+  console.log('🔍 [MissingItems] CountryDetailCollection - Received missing banknotes:', finalMissingBanknotes.length);
+  
+  // Log pick numbers in 40-60 range
+  const initialPickNumbers40to60 = finalMissingBanknotes
+    .map(b => {
+      const pick = b.extendedPickNumber || (b as any).extended_pick_number || '';
+      const match = pick.match(/^(\d+)/);
+      return match ? parseInt(match[1], 10) : null;
+    })
+    .filter((num): num is number => num !== null && num >= 40 && num <= 60);
+  console.log('🔍 [MissingItems] Initial pick numbers 40-60:', initialPickNumbers40to60.length, 'samples:', initialPickNumbers40to60.slice(0, 10));
+
   // 1. Map missing banknotes to CollectionItem structure
   const missingCollectionItems = finalMissingBanknotes.map(banknote => {
     // Get image URLs from the banknote
@@ -542,8 +577,30 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     return mappedItem;
   });
   
+  console.log('🔍 [MissingItems] After mapping to CollectionItem structure:', missingCollectionItems.length);
+  
+  // Log pick numbers in 40-60 range after mapping
+  const mappedPickNumbers40to60 = missingCollectionItems
+    .map(item => {
+      const pick = item.extendedPickNumber || '';
+      const match = pick.match(/^(\d+)/);
+      return match ? parseInt(match[1], 10) : null;
+    })
+    .filter((num): num is number => num !== null && num >= 40 && num <= 60);
+  console.log('🔍 [MissingItems] Pick numbers 40-60 after mapping:', mappedPickNumbers40to60.length, 'samples:', mappedPickNumbers40to60.slice(0, 10));
+  
   // Filter missingCollectionItems before sorting/grouping
   const filteredMissingCollectionItems = useMemo(() => {
+    console.log('🔍 [MissingItems] Starting filtering process');
+    console.log('🔍 [MissingItems] Input items count:', missingCollectionItems.length);
+    console.log('🔍 [MissingItems] Current filters:', {
+      search: filters.search,
+      categories: filters.categories,
+      types: filters.types,
+      sort: filters.sort
+    });
+    console.log('🔍 [MissingItems] Category defs count:', categoryDefs?.length || 0);
+    console.log('🔍 [MissingItems] Type defs count:', typeDefs?.length || 0);
     // Create a map of category names to IDs
     const categoryNameToId = (categoryDefs || []).reduce((acc, cat) => {
       acc[cat.name] = cat.id;
@@ -555,6 +612,30 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       acc[type.name] = type.id;
       return acc;
     }, {} as Record<string, string>);
+    
+    // Log category mappings for debugging
+    console.log('🔍 [MissingItems] Category name to ID mappings:', Object.keys(categoryNameToId).map(name => ({ name, id: categoryNameToId[name] })));
+    console.log('🔍 [MissingItems] Type name to ID mappings:', Object.keys(typeNameToId).map(name => ({ name, id: typeNameToId[name] })));
+    
+    // Check specifically for 'War 1293 Banknotes' category
+    const war1293CategoryId = categoryNameToId['War 1293 Banknotes  (1876-1877)'];
+    console.log('🔍 [MissingItems] "War 1293 Banknotes  (1876-1877)" category ID:', war1293CategoryId);
+    console.log('🔍 [MissingItems] All category names in mapping:', Object.keys(categoryNameToId));
+    
+    // Count items with 'War 1293 Banknotes' category before filtering
+    const war1293ItemsBefore = missingCollectionItems.filter(item => {
+      const category = item.category || '';
+      return category.includes('War 1293') || category.includes('1293');
+    });
+    console.log('🔍 [MissingItems] Items with "War 1293" category before filtering:', war1293ItemsBefore.length);
+    if (war1293ItemsBefore.length > 0) {
+      console.log('🔍 [MissingItems] Sample "War 1293" items before filtering:', war1293ItemsBefore.slice(0, 5).map(item => ({
+        pick: item.extendedPickNumber || 'N/A',
+        category: item.category || 'N/A',
+        type: item.type || 'N/A',
+        id: item.id
+      })));
+    }
 
     const filtered = missingCollectionItems.filter(item => {
       // Search filter
@@ -575,6 +656,17 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         // Get the category ID for this item's category name
         const itemCategoryId = categoryNameToId[item.category];
         
+        // Log specifically for 'War 1293 Banknotes' category
+        if (item.category && (item.category.includes('War 1293') || item.category.includes('1293'))) {
+          console.log('🔍 [MissingItems] Processing "War 1293" item:', {
+            pick: item.extendedPickNumber || 'N/A',
+            category: item.category,
+            itemCategoryId: itemCategoryId || 'NOT FOUND',
+            filtersCategories: filters.categories,
+            willBeFiltered: !itemCategoryId || !filters.categories.includes(itemCategoryId)
+          });
+        }
+        
         if (!itemCategoryId) return false;
 
         const categoryMatch = filters.categories.includes(itemCategoryId);
@@ -585,28 +677,117 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       // Types filter - only apply if types are selected and we have type mappings
       if (filters.types && filters.types.length > 0 && Object.keys(typeNameToId).length > 0) {
         // Get the type ID for this item's type name
-        const itemTypeId = typeNameToId[item.type];
+        let itemTypeId = typeNameToId[item.type];
         
-        if (!itemTypeId) return false;
-
-        const typeMatch = filters.types.includes(itemTypeId);
+        // Handle singular/plural mismatch for "Issued note" vs "Issued notes"
+        if (!itemTypeId && item.type === 'Issued note') {
+          itemTypeId = typeNameToId['Issued notes'];
+        }
+        if (!itemTypeId && item.type === 'Issued notes') {
+          itemTypeId = typeNameToId['Issued note'];
+        }
         
-        if (!typeMatch) return false;
+        // Log specifically for 'War 1293 Banknotes' category items
+        if (item.category && (item.category.includes('War 1293') || item.category.includes('1293'))) {
+          console.log('🔍 [MissingItems] Processing "War 1293" item type filter:', {
+            pick: item.extendedPickNumber || 'N/A',
+            category: item.category,
+            type: item.type,
+            itemTypeId: itemTypeId || 'NOT FOUND',
+            filtersTypes: filters.types,
+            willBeFiltered: itemTypeId ? !filters.types.includes(itemTypeId) : false
+          });
+        }
+        
+        // If we have a type ID for this item, check if it matches the selected types
+        if (itemTypeId) {
+          const typeMatch = filters.types.includes(itemTypeId);
+          
+          if (!typeMatch) {
+            return false;
+          }
+        }
+        // If no type ID is found for this item, don't filter it out - show all items
+        // This ensures that items with missing or unmapped types are still displayed
       }
 
       return true;
     });
+
+    console.log('🔍 [MissingItems] After filtering - filtered count:', filtered.length);
+    console.log('🔍 [MissingItems] Items filtered out:', missingCollectionItems.length - filtered.length);
+    
+    // Count items with 'War 1293 Banknotes' category after filtering
+    const war1293ItemsAfter = filtered.filter(item => {
+      const category = item.category || '';
+      return category.includes('War 1293') || category.includes('1293');
+    });
+    console.log('🔍 [MissingItems] Items with "War 1293" category after filtering:', war1293ItemsAfter.length);
+    if (war1293ItemsAfter.length !== war1293ItemsBefore.length) {
+      console.log('🔍 [MissingItems] ⚠️ "War 1293" items filtered out:', war1293ItemsBefore.length - war1293ItemsAfter.length);
+    }
+    
+    // Log pick numbers in 40-60 range after filtering
+    const filteredPickNumbers40to60 = filtered
+      .map(item => {
+        const pick = item.extendedPickNumber || '';
+        const match = pick.match(/^(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+      })
+      .filter((num): num is number => num !== null && num >= 40 && num <= 60);
+    console.log('🔍 [MissingItems] Pick numbers 40-60 after filtering:', filteredPickNumbers40to60.length, 'samples:', filteredPickNumbers40to60.slice(0, 10));
+    
+    // Check which items were filtered out in the 40-60 range
+    const filteredOut40to60 = missingCollectionItems
+      .filter(item => {
+        const pick = item.extendedPickNumber || '';
+        const match = pick.match(/^(\d+)/);
+        const num = match ? parseInt(match[1], 10) : null;
+        return num !== null && num >= 40 && num <= 60 && !filtered.includes(item);
+      })
+      .map(item => ({
+        pick: item.extendedPickNumber || 'N/A',
+        category: item.category || 'N/A',
+        type: item.type || 'N/A',
+        id: item.id
+      }));
+    if (filteredOut40to60.length > 0) {
+      console.log('🔍 [MissingItems] ⚠️ Items with pick 40-60 that were filtered out:', filteredOut40to60.length, 'samples:', filteredOut40to60.slice(0, 10));
+      
+      // Check how many of the filtered out 40-60 items are from 'War 1293' category
+      const war1293FilteredOut40to60 = filteredOut40to60.filter(item => 
+        item.category.includes('War 1293') || item.category.includes('1293')
+      );
+      if (war1293FilteredOut40to60.length > 0) {
+        console.log('🔍 [MissingItems] ⚠️⚠️ "War 1293" items with pick 40-60 that were filtered out:', war1293FilteredOut40to60.length, 'items:', war1293FilteredOut40to60);
+      }
+    }
 
     return filtered;
   }, [missingCollectionItems, filters, categoryDefs, typeDefs]);
 
   // 2. Use the same sorting and grouping hooks for missing items - ensure default sort is applied
   const missingSortFields = filters.sort.length > 0 ? filters.sort : ['extPick'];
+  console.log('🔍 [MissingItems] Sort fields:', missingSortFields);
+  
   const sortedMissingItems = useBanknoteSorting({
     banknotes: filteredMissingCollectionItems,
     currencies,
     sortFields: missingSortFields
   });
+  
+  console.log('🔍 [MissingItems] After sorting - sorted count:', sortedMissingItems.length);
+  
+  // Log pick numbers in 40-60 range after sorting
+  const sortedPickNumbers40to60 = sortedMissingItems
+    .map(item => {
+      const pick = item.extendedPickNumber || '';
+      const match = pick.match(/^(\d+)/);
+      return match ? parseInt(match[1], 10) : null;
+    })
+    .filter((num): num is number => num !== null && num >= 40 && num <= 60);
+  console.log('🔍 [MissingItems] Pick numbers 40-60 after sorting:', sortedPickNumbers40to60.length, 'samples:', sortedPickNumbers40to60.slice(0, 10));
+  
   const groupedMissingItems = useBanknoteGroups(
     sortedMissingItems,
     missingSortFields,
@@ -615,6 +796,38 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     countryId,
     sultanOrderMap
   );
+  
+  console.log('🔍 [MissingItems] After grouping - groups count:', groupedMissingItems.length);
+  
+  // Count total items in groups
+  const totalItemsInGroups = groupedMissingItems.reduce((sum, group) => {
+    const groupItems = group.items || [];
+    const sultanItems = group.sultanGroups?.flatMap(sg => sg.items || []) || [];
+    return sum + groupItems.length + sultanItems.length;
+  }, 0);
+  console.log('🔍 [MissingItems] Total items in groups:', totalItemsInGroups);
+  
+  // Log pick numbers in 40-60 range in grouped items
+  const allGroupedItems = groupedMissingItems.flatMap(group => {
+    const groupItems = group.items || [];
+    const sultanItems = group.sultanGroups?.flatMap(sg => sg.items || []) || [];
+    return [...groupItems, ...sultanItems];
+  });
+  const groupedPickNumbers40to60 = allGroupedItems
+    .map(item => {
+      const pick = item.extendedPickNumber || '';
+      const match = pick.match(/^(\d+)/);
+      return match ? parseInt(match[1], 10) : null;
+    })
+    .filter((num): num is number => num !== null && num >= 40 && num <= 60);
+  console.log('🔍 [MissingItems] Pick numbers 40-60 in grouped items:', groupedPickNumbers40to60.length, 'samples:', groupedPickNumbers40to60.slice(0, 10));
+  
+  // Log group structure
+  console.log('🔍 [MissingItems] Group structure:', groupedMissingItems.map(g => ({
+    category: g.category,
+    itemsCount: g.items?.length || 0,
+    sultanGroupsCount: g.sultanGroups?.length || 0
+  })));
 
   // Map wishlist items to collection-like structure (similar to missing items)
   const wishlistCollectionItems = useMemo(() => {
@@ -781,9 +994,12 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       }
         
       case 'missing': {
+        console.log('🔍 [MissingItems] Flattening missing items for display');
+        console.log('🔍 [MissingItems] Groups to flatten:', groupedMissingItems.length);
+        
         const flattenedItems: CollectionItem[] = [];
         
-        groupedMissingItems.forEach(group => {
+        groupedMissingItems.forEach((group, groupIndex) => {
           if (group.sultanGroups && group.sultanGroups.length > 0) {
             group.sultanGroups.forEach(sultanGroup => {
               flattenedItems.push(...sultanGroup.items);
@@ -792,6 +1008,18 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
             flattenedItems.push(...group.items);
           }
         });
+        
+        console.log('🔍 [MissingItems] Flattened items count:', flattenedItems.length);
+        
+        // Log pick numbers in 40-60 range in flattened items
+        const flattenedPickNumbers40to60 = flattenedItems
+          .map(item => {
+            const pick = item.extendedPickNumber || '';
+            const match = pick.match(/^(\d+)/);
+            return match ? parseInt(match[1], 10) : null;
+          })
+          .filter((num): num is number => num !== null && num >= 40 && num <= 60);
+        console.log('🔍 [MissingItems] Pick numbers 40-60 in flattened items:', flattenedPickNumbers40to60.length, 'samples:', flattenedPickNumbers40to60.slice(0, 10));
         
         return flattenedItems;
       }
@@ -827,6 +1055,12 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
 
   // Handler to change tab and persist it
   const handleTabChange = (tab: 'collection' | 'missing' | 'wishlist' | 'sale') => {
+    if (tab === 'missing') {
+      console.log('🔍 [MissingItems] ========== MISSING TAB CLICKED ==========');
+      console.log('🔍 [MissingItems] Country:', effectiveCountryName, 'CountryId:', countryId);
+      console.log('🔍 [MissingItems] Current missingBanknotes count:', missingBanknotes.length);
+      console.log('🔍 [MissingItems] Current groupedMissingItems count:', groupedMissingItems.length);
+    }
     setActiveTab(tab);
     sessionStorage.setItem('countryDetailActiveTab', tab);
   };
@@ -879,18 +1113,30 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         />
       )}
       {activeTab === 'missing' && (
-        <CollectionItemsDisplay
-          groups={groupedMissingItems}
-          showSultanGroups={missingSortFields.includes('sultan')}
-          viewMode={viewMode}
-          countryId={countryId}
-          isLoading={isLoading}
-          groupMode={groupMode}
-          isOwner={isOwner}
-          activeTab={activeTab}
-          countryName={effectiveCountryName}
-          filters={filters}
-        />
+        (() => {
+          console.log('🔍 [MissingItems] Rendering missing items tab');
+          console.log('🔍 [MissingItems] Groups being passed to CollectionItemsDisplay:', groupedMissingItems.length);
+          console.log('🔍 [MissingItems] Total items in all groups:', groupedMissingItems.reduce((sum, g) => {
+            const groupItems = g.items?.length || 0;
+            const sultanItems = g.sultanGroups?.reduce((s, sg) => s + (sg.items?.length || 0), 0) || 0;
+            return sum + groupItems + sultanItems;
+          }, 0));
+          
+          return (
+            <CollectionItemsDisplay
+              groups={groupedMissingItems}
+              showSultanGroups={missingSortFields.includes('sultan')}
+              viewMode={viewMode}
+              countryId={countryId}
+              isLoading={isLoading}
+              groupMode={groupMode}
+              isOwner={isOwner}
+              activeTab={activeTab}
+              countryName={effectiveCountryName}
+              filters={filters}
+            />
+          );
+        })()
       )}
       {activeTab === 'wishlist' && (
         <CollectionItemsDisplay

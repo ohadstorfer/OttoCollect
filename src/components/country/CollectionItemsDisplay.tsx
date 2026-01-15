@@ -42,6 +42,41 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
   hasAnyItems, // Destructure hasAnyItems prop
 }) => {
   
+  // Log when missing items are being displayed
+  if (activeTab === 'missing') {
+    console.log('🔍 [MissingItems] CollectionItemsDisplay - Rendering missing items');
+    console.log('🔍 [MissingItems] Groups received:', groups.length);
+    
+    const totalItems = groups.reduce((sum, group) => {
+      const groupItems = group.items?.length || 0;
+      const sultanItems = group.sultanGroups?.reduce((s, sg) => s + (sg.items?.length || 0), 0) || 0;
+      return sum + groupItems + sultanItems;
+    }, 0);
+    console.log('🔍 [MissingItems] Total items in CollectionItemsDisplay:', totalItems);
+    
+    // Log pick numbers in 40-60 range
+    const allItems = groups.flatMap(group => {
+      const groupItems = group.items || [];
+      const sultanItems = group.sultanGroups?.flatMap(sg => sg.items || []) || [];
+      return [...groupItems, ...sultanItems];
+    });
+    const displayPickNumbers40to60 = allItems
+      .map(item => {
+        const pick = item.extendedPickNumber || '';
+        const match = pick.match(/^(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+      })
+      .filter((num): num is number => num !== null && num >= 40 && num <= 60);
+    console.log('🔍 [MissingItems] Pick numbers 40-60 in CollectionItemsDisplay:', displayPickNumbers40to60.length, 'samples:', displayPickNumbers40to60.slice(0, 10));
+    
+    // Log group details
+    groups.forEach((group, idx) => {
+      const groupItems = group.items?.length || 0;
+      const sultanItems = group.sultanGroups?.reduce((s, sg) => s + (sg.items?.length || 0), 0) || 0;
+      console.log(`🔍 [MissingItems] Group ${idx}: category="${group.category}", items=${groupItems}, sultanGroups=${group.sultanGroups?.length || 0}, sultanItems=${sultanItems}`);
+    });
+  }
+  
   // Function to update collection items after changes
   const handleUpdate = async () => {
     // In a real implementation, we would call a function from props
