@@ -182,105 +182,168 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         setCategories(mappedCategories);
         setTypes(mappedTypes);
         setSortOptions(mappedSortOptions);
-        
-        let userPreferences = null;
-        if (user) {
-          try {
-            userPreferences = await fetchUserFilterPreferences(user.id, countryId);
-            // Set group mode if it's defined in preferences, but only during initial load
-            if (userPreferences && 
-                typeof userPreferences.group_mode === 'boolean' && 
-                onGroupModeChange && 
-                userPreferences.group_mode !== groupMode && 
-                !initialLoadComplete.current) {
-              
-              ignoreNextGroupModeChange.current = true;
-              onGroupModeChange(userPreferences.group_mode);
-            }
 
-            // Set view mode if it's defined in preferences, but only during initial load
-            if (userPreferences && 
-                userPreferences.view_mode && 
-                onViewModeChange && 
-                !initialLoadComplete.current) {
-              
-              // Set a flag to ignore the next view mode change to prevent infinite loops
-              ignoreNextViewModeChange.current = true;
-              
-              setViewMode(userPreferences.view_mode);
-              onViewModeChange(userPreferences.view_mode);
-            }
-          } catch (err) {
-            console.error("Error fetching user preferences:", err);
-          }
-        } else {
-          // For non-logged-in users, try to load from session storage
-          try {
-            const savedViewMode = sessionStorage.getItem(`viewMode-${countryId}`);
-            if (savedViewMode && onViewModeChange && !initialLoadComplete.current) {
-              const parsedViewMode = JSON.parse(savedViewMode) as 'grid' | 'list';
-              
-              ignoreNextViewModeChange.current = true;
-              setViewMode(parsedViewMode);
-              onViewModeChange(parsedViewMode);
-            }
-          } catch (err) {
-            console.error("Error loading view mode from session storage:", err);
-          }
-        }
-        
         // Always ensure extPick is included in the sort options for fallback sorting
         const requiredSortFields = sortOptionsData
           .filter(opt => opt.is_required)
           .map(opt => opt.field_name || '');
-          
+
         if (!requiredSortFields.includes('extPick')) {
           requiredSortFields.push('extPick');
         }
-          
-        if (userPreferences && !initialLoadComplete.current) {
-          const sortFieldNames = userPreferences.selected_sort_options
-            .map(sortId => {
-              const option = sortOptionsData.find(opt => opt.id === sortId);
-              return option ? option.field_name : null;
-            })
-            .filter(Boolean) as string[];
-          
-          const finalSortFields = Array.from(
-            new Set([...sortFieldNames, ...requiredSortFields])
-          );
-          
-          onFilterChange({
-            categories: userPreferences.selected_categories,
-            types: userPreferences.selected_types,
-            sort: finalSortFields,
-          });
-        } else if (!initialLoadComplete.current && !user) {
-          // Only apply defaults if there's no user (not logged in)
-          const defaultCategoryIds = mappedCategories.map(cat => cat.id);
-          // For unauthenticated users, select ALL types by default
-          const defaultTypeIds = mappedTypes.map(t => t.id);
-            
-          const defaultSort = ['extPick'];
-          
-          onFilterChange({
-            categories: defaultCategoryIds,
-            types: defaultTypeIds,
-            sort: defaultSort,
-          });
-        } else if (!initialLoadComplete.current && user && !userPreferences) {
-          // User is logged in but has no preferences - apply defaults
-          const defaultCategoryIds = mappedCategories.map(cat => cat.id);
-          // For authenticated users with no preferences, select ALL types by default
-          const defaultTypeIds = mappedTypes.map(t => t.id);
-            
-          const defaultSort = ['extPick'];
-          
-          onFilterChange({
-            categories: defaultCategoryIds,
-            types: defaultTypeIds,
-            sort: defaultSort,
-          });
+
+        // Valid ID sets for validation
+        const validCategoryIds = new Set(mappedCategories.map(c => c.id));
+        const validTypeIds = new Set(mappedTypes.map(t => t.id));
+        const validSortFieldNames = new Set(mappedSortOptions.map(s => s.fieldName).filter(Boolean));
+
+        // Try to restore from sessionStorage first (fast cache for both auth and unauth users)
+        let restoredFromCache = false;
+        if (!initialLoadComplete.current) {
+          try {
+            const cached = sessionStorage.getItem(`catalog-filters-${countryName}`);
+            if (cached) {
+              const parsed = JSON.parse(cached) as {
+                categories?: string[];
+                types?: string[];
+                sort?: string[];
+                search?: string;
+                viewMode?: 'grid' | 'list';
+                groupMode?: boolean;
+              };
+
+              // Validate cached IDs against current definitions
+              const cachedCategories = (parsed.categories || []).filter(id => validCategoryIds.has(id));
+              const cachedTypes = (parsed.types || []).filter(id => validTypeIds.has(id));
+              const cachedSort = (parsed.sort || []).filter(f => validSortFieldNames.has(f));
+
+              // Only use cache if we have valid categories and types
+              if (cachedCategories.length > 0 && cachedTypes.length > 0) {
+                // Ensure required sort fields are included
+                const finalSortFields = Array.from(
+                  new Set([...cachedSort, ...requiredSortFields])
+                );
+
+                onFilterChange({
+                  categories: cachedCategories,
+                  types: cachedTypes,
+                  sort: finalSortFields,
+                  search: parsed.search || '',
+                });
+
+                // Restore viewMode
+                if (parsed.viewMode && onViewModeChange) {
+                  ignoreNextViewModeChange.current = true;
+                  setViewMode(parsed.viewMode);
+                  onViewModeChange(parsed.viewMode);
+                }
+
+                // Restore groupMode
+                if (typeof parsed.groupMode === 'boolean' && onGroupModeChange && parsed.groupMode !== groupMode) {
+                  ignoreNextGroupModeChange.current = true;
+                  onGroupModeChange(parsed.groupMode);
+                }
+
+                restoredFromCache = true;
+              }
+            }
+          } catch (err) {
+            console.error("Error restoring filters from sessionStorage:", err);
+          }
+        }
+
+        // If not restored from cache, fall back to DB preferences or defaults
+        if (!restoredFromCache) {
+          let userPreferences = null;
+          if (user) {
+            try {
+              userPreferences = await fetchUserFilterPreferences(user.id, countryId);
+              // Set group mode if it's defined in preferences, but only during initial load
+              if (userPreferences &&
+                  typeof userPreferences.group_mode === 'boolean' &&
+                  onGroupModeChange &&
+                  userPreferences.group_mode !== groupMode &&
+                  !initialLoadComplete.current) {
+
+                ignoreNextGroupModeChange.current = true;
+                onGroupModeChange(userPreferences.group_mode);
+              }
+
+              // Set view mode if it's defined in preferences, but only during initial load
+              if (userPreferences &&
+                  userPreferences.view_mode &&
+                  onViewModeChange &&
+                  !initialLoadComplete.current) {
+
+                // Set a flag to ignore the next view mode change to prevent infinite loops
+                ignoreNextViewModeChange.current = true;
+
+                setViewMode(userPreferences.view_mode);
+                onViewModeChange(userPreferences.view_mode);
+              }
+            } catch (err) {
+              console.error("Error fetching user preferences:", err);
+            }
+          } else {
+            // For non-logged-in users, try to load viewMode from session storage
+            try {
+              const savedViewMode = sessionStorage.getItem(`viewMode-${countryId}`);
+              if (savedViewMode && onViewModeChange && !initialLoadComplete.current) {
+                const parsedViewMode = JSON.parse(savedViewMode) as 'grid' | 'list';
+
+                ignoreNextViewModeChange.current = true;
+                setViewMode(parsedViewMode);
+                onViewModeChange(parsedViewMode);
+              }
+            } catch (err) {
+              console.error("Error loading view mode from session storage:", err);
+            }
+          }
+
+          if (userPreferences && !initialLoadComplete.current) {
+            const sortFieldNames = userPreferences.selected_sort_options
+              .map(sortId => {
+                const option = sortOptionsData.find(opt => opt.id === sortId);
+                return option ? option.field_name : null;
+              })
+              .filter(Boolean) as string[];
+
+            const finalSortFields = Array.from(
+              new Set([...sortFieldNames, ...requiredSortFields])
+            );
+
+            onFilterChange({
+              categories: userPreferences.selected_categories,
+              types: userPreferences.selected_types,
+              sort: finalSortFields,
+            });
+          } else if (!initialLoadComplete.current && !user) {
+            // Only apply defaults if there's no user (not logged in)
+            const defaultCategoryIds = mappedCategories.map(cat => cat.id);
+            // For unauthenticated users, select ALL types by default
+            const defaultTypeIds = mappedTypes.map(t => t.id);
+
+            const defaultSort = ['extPick'];
+
+            onFilterChange({
+              categories: defaultCategoryIds,
+              types: defaultTypeIds,
+              sort: defaultSort,
+            });
+          } else if (!initialLoadComplete.current && user && !userPreferences) {
+            // User is logged in but has no preferences - apply defaults
+            const defaultCategoryIds = mappedCategories.map(cat => cat.id);
+            // For authenticated users with no preferences, select ALL types by default
+            const defaultTypeIds = mappedTypes.map(t => t.id);
+
+            const defaultSort = ['extPick'];
+
+            onFilterChange({
+              categories: defaultCategoryIds,
+              types: defaultTypeIds,
+              sort: defaultSort,
+            });
+          }
         }
         
         // Mark as complete to prevent repeated loads and clear ignore flags
@@ -367,8 +430,23 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
     }
     
     onFilterChange(newFilters);
-  }, [onFilterChange, sortOptions, user, countryId, currentFilters, groupMode]);
-  
+
+    // Save to sessionStorage as fast cache for navigation restoration
+    try {
+      const mergedFilters = {
+        categories: newFilters.categories || currentFilters.categories || [],
+        types: newFilters.types || currentFilters.types || [],
+        sort: newFilters.sort || currentFilters.sort || [],
+        search: newFilters.search !== undefined ? newFilters.search : currentFilters.search || '',
+        viewMode,
+        groupMode,
+      };
+      sessionStorage.setItem(`catalog-filters-${countryName}`, JSON.stringify(mergedFilters));
+    } catch (e) {
+      // sessionStorage may be full or unavailable
+    }
+  }, [onFilterChange, sortOptions, user, countryId, countryName, currentFilters, groupMode, viewMode]);
+
   const handleViewModeChange = React.useCallback((mode: 'grid' | 'list') => {
     // If we're set to ignore the next change and still in initial load, skip this call
     if (ignoreNextViewModeChange.current && !initialLoadComplete.current) {
@@ -389,10 +467,24 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
       onViewModeChange(mode);
     }
     
-    // Save view mode preference
+    // Always save to sessionStorage as fast cache (regardless of auth status)
+    try {
+      sessionStorage.setItem(`viewMode-${countryId}`, JSON.stringify(mode));
+      // Also update the full filter cache
+      const cached = sessionStorage.getItem(`catalog-filters-${countryName}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        parsed.viewMode = mode;
+        sessionStorage.setItem(`catalog-filters-${countryName}`, JSON.stringify(parsed));
+      }
+    } catch (e) {
+      // sessionStorage may be full or unavailable
+    }
+
+    // Save view mode preference to DB for authenticated users
     if (user && countryId) {
       console.log("BanknoteFilterCatalog: Saving view mode preference:", mode);
-      
+
       // Get current sort option IDs
       const sortOptionIds = currentFilters.sort
         .map(fieldName => {
@@ -400,7 +492,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           return option ? option.id : null;
         })
         .filter(Boolean) as string[];
-      
+
       saveUserFilterPreferences(user.id, countryId, {
         selected_categories: currentFilters.categories || [],
         selected_types: currentFilters.types || [],
@@ -410,13 +502,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
       }).catch(err => {
         console.error("Error saving view mode preference:", err);
       });
-    } else {
-      // For non-logged-in users, store in session storage
-      try {
-        sessionStorage.setItem(`viewMode-${countryId}`, JSON.stringify(mode));
-      } catch (e) {
-        console.error("Unable to store view mode in session storage:", e);
-      }
     }
   }, [onViewModeChange, user, countryId, currentFilters, groupMode, sortOptions]);
   
@@ -435,10 +520,24 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
     
     console.log("BanknoteFilterCatalog: handleGroupModeChange called with mode:", mode, "current groupMode:", groupMode);
     
-    // Save group mode preference if user is logged in
+    // Always save to sessionStorage as fast cache (regardless of auth status)
+    try {
+      sessionStorage.setItem(`groupMode-${countryId}`, JSON.stringify(mode));
+      // Also update the full filter cache
+      const cached = sessionStorage.getItem(`catalog-filters-${countryName}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        parsed.groupMode = mode;
+        sessionStorage.setItem(`catalog-filters-${countryName}`, JSON.stringify(parsed));
+      }
+    } catch (e) {
+      // sessionStorage may be full or unavailable
+    }
+
+    // Save group mode preference to DB for authenticated users
     if (user?.id) {
       console.log("BanknoteFilterCatalog: Saving group mode preference:", mode);
-      
+
       // Get current sort option IDs
       const sortOptionIds = currentFilters.sort
         .map(fieldName => {
@@ -446,7 +545,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           return option ? option.id : null;
         })
         .filter(Boolean) as string[];
-      
+
       // Save all preferences including group mode
       saveUserFilterPreferences(
         user.id,
@@ -460,13 +559,6 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
       ).catch(error => {
         console.error("Error saving group mode preference:", error);
       });
-    } else {
-      // For non-logged-in users, store in session storage
-      try {
-        sessionStorage.setItem(`groupMode-${countryId}`, JSON.stringify(mode));
-      } catch (e) {
-        console.error("Unable to store group mode in session storage:", e);
-      }
     }
     
     if (onGroupModeChange) {

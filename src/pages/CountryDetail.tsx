@@ -19,12 +19,32 @@ import SEOHead from "@/components/seo/SEOHead";
 const CountryDetail = () => {
   const { country } = useParams();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [filters, setFilters] = useState<DynamicFilterState>({
-    search: "",
-    categories: [],
-    types: [],
-    sort: [],
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    try {
+      const cached = sessionStorage.getItem(`catalog-filters-${country ? decodeURIComponent(country) : ''}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.viewMode) return parsed.viewMode;
+      }
+    } catch {}
+    return 'grid';
+  });
+  const [filters, setFilters] = useState<DynamicFilterState>(() => {
+    try {
+      const cached = sessionStorage.getItem(`catalog-filters-${country ? decodeURIComponent(country) : ''}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.categories?.length > 0 && parsed.types?.length > 0) {
+          return {
+            search: parsed.search || '',
+            categories: parsed.categories,
+            types: parsed.types,
+            sort: parsed.sort || [],
+          };
+        }
+      }
+    } catch {}
+    return { search: "", categories: [], types: [], sort: [] };
   });
 
   // New: user + collection loading
