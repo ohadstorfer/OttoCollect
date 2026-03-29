@@ -14,7 +14,6 @@ import CountryDetailMissingItems from "@/pages/CountryDetailMissingItems";
 import { FilterOption } from "@/components/filter/BaseBanknoteFilterProfile";
 import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
-import BanknoteDetailCardWishList from '@/components/banknotes/BanknoteDetailCardWishList';
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
 import { useCollectionData } from '@/hooks/use-collection-data';
 import { cn } from "@/lib/utils";
@@ -832,7 +831,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   // Map wishlist items to collection-like structure (similar to missing items)
   const wishlistCollectionItems = useMemo(() => {
     return wishlistItems.map(item => {
-      const banknote = item.detailed_banknotes;
+      const banknote = item.enhanced_banknotes_with_translations;
       
       if (!banknote) {
         console.error("[WishlistItems] No banknote data found for item:", item);

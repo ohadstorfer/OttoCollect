@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card';
 import CollectionItemCard from '@/components/collection/CollectionItemCard';
 import { DetailedBanknote } from '@/types';
 import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
-import BanknoteDetailCardWishList from '../banknotes/BanknoteDetailCardWishList';
+import { mapBanknoteFromDatabase } from '@/services/banknoteService';
 import BanknoteDetailCardMissingItems from '../banknotes/BanknoteDetailCardMissingItems';
 import { AddUnlistedBanknoteDialog } from '@/components/collection/AddUnlistedBanknoteDialog';
 import { useAuth } from '@/context/AuthContext';
@@ -151,8 +151,8 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
       );
     }
 
-    // Only show banknotes with a valid detailed_banknotes join
-    const validWishlist = (wishlistItems || []).filter(item => !!item.detailed_banknotes);
+    // Only show banknotes with a valid banknote data join
+    const validWishlist = (wishlistItems || []).filter(item => !!item.enhanced_banknotes_with_translations);
 
     if (!validWishlist.length) {
       return (
@@ -180,12 +180,12 @@ const CountryCollectionTabs: React.FC<CountryCollectionTabsProps> = ({
           : 'space-y-2'
         }>
           {validWishlist.map(item =>
-            <BanknoteDetailCardWishList
+            <BanknoteDetailCard
               key={item.id}
-              banknote={item.detailed_banknotes}
-              wishlistItemId={item.id} // <-- send the wishlist item id
-              onDeleted={refetchCollection} // handy event for parent to act if wish
-              refetchWishlist={wishlistLoading ? undefined : () => { void refetchCollection(); }} // to refresh on delete
+              banknote={mapBanknoteFromDatabase(item.enhanced_banknotes_with_translations)}
+              wishlistItemId={item.id}
+              onDeleted={refetchCollection}
+              refetchWishlist={wishlistLoading ? undefined : () => { void refetchCollection(); }}
               source="catalog"
               viewMode={viewMode}
               countryId={countryId}

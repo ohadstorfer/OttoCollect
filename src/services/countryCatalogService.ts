@@ -7,6 +7,7 @@ export async function fetchCountriesForCatalog(currentLanguage: string = 'en'): 
     const { data, error } = await supabase
       .from('countries')
       .select('id, name, name_ar, name_tr, description, image_url, display_order')
+      .eq('is_visible', true)
       .order('display_order');
     
     if (error) {
@@ -69,6 +70,7 @@ export async function fetchCountriesForCatalog(currentLanguage: string = 'en'): 
       const { data: updatedData, error: updateError } = await supabase
         .from('countries')
         .select('id, name, name_ar, name_tr, description, image_url, display_order')
+        .eq('is_visible', true)
         .order('display_order');
       
       if (updateError) {

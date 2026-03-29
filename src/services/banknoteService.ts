@@ -430,9 +430,9 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     securityElement: security_element,
     dimensions: dimensions,
     
-    // Signature fields with array handling
-    signaturesFront: Array.isArray(signatures_front) ? signatures_front.join(', ') : (signatures_front || ''),
-    signaturesBack: Array.isArray(signatures_back) ? signatures_back.join(', ') : (signatures_back || ''),
+    // Signature fields with array handling - filter out empty/null entries
+    signaturesFront: Array.isArray(signatures_front) ? signatures_front.filter(Boolean).join(', ') : (signatures_front || ''),
+    signaturesBack: Array.isArray(signatures_back) ? signatures_back.filter(Boolean).join(', ') : (signatures_back || ''),
     
     // Other fields
     colors,

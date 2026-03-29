@@ -344,6 +344,7 @@ export interface Country {
   name_tr?: string;
   description?: string;
   image_url?: string;
+  is_visible?: boolean;
   created_at: string;
   updated_at: string;
 }

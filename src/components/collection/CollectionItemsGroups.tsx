@@ -4,7 +4,8 @@ import CollectionItemCard from './CollectionItemCard';
 import CollectionCardUnlisted from './CollectionCardUnlisted';
 import { CollectionItemCardGroup } from './CollectionItemCardGroup';
 import { CollectionItemGroupDialog } from './CollectionItemGroupDialog';
-import BanknoteDetailCardWishList from '@/components/banknotes/BanknoteDetailCardWishList';
+import BanknoteDetailCard from '@/components/banknotes/BanknoteDetailCard';
+import { mapBanknoteFromDatabase } from '@/services/banknoteService';
 import { BanknoteDetailCardGroupWishList } from '@/components/banknotes/BanknoteDetailCardGroupWishList';
 import { BanknoteDetailCardGroupDialogWishList } from '@/components/banknotes/BanknoteDetailCardGroupDialogWishList';
 import { cn } from '@/lib/utils';
@@ -398,8 +399,8 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                                       isOwner={isOwner}
                                     />
                                   ) : (item.collectionItem as any).isWishlist ? (
-                                    <BanknoteDetailCardWishList
-                                      banknote={item.collectionItem.banknote || item.collectionItem}
+                                    <BanknoteDetailCard
+                                      banknote={mapBanknoteFromDatabase(item.collectionItem.banknote || item.collectionItem)}
                                       viewMode={viewMode}
                                       countryId={countryId}
                                       wishlistItemId={(item.collectionItem as any).wishlistItemId}
@@ -456,8 +457,8 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                             )}
                           >
                             {(item as any).isWishlist ? (
-                              <BanknoteDetailCardWishList
-                                banknote={item.banknote || item}
+                              <BanknoteDetailCard
+                                banknote={mapBanknoteFromDatabase(item.banknote || item)}
                                 viewMode={viewMode}
                                 countryId={countryId}
                                 wishlistItemId={(item as any).wishlistItemId}
@@ -523,8 +524,8 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                                 isOwner={isOwner}
                               />
                             ) : (item.collectionItem as any).isWishlist ? (
-                              <BanknoteDetailCardWishList
-                                banknote={item.collectionItem.banknote || item.collectionItem}
+                              <BanknoteDetailCard
+                                banknote={mapBanknoteFromDatabase(item.collectionItem.banknote || item.collectionItem)}
                                 viewMode={viewMode}
                                 countryId={countryId}
                                 wishlistItemId={(item.collectionItem as any).wishlistItemId}
@@ -592,8 +593,8 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
                           isOwner={isOwner}
                         />
                       ) : (item as any).isWishlist ? (
-                        <BanknoteDetailCardWishList
-                          banknote={item.banknote || item}
+                        <BanknoteDetailCard
+                          banknote={mapBanknoteFromDatabase(item.banknote || item)}
                           viewMode={viewMode}
                           countryId={countryId}
                           wishlistItemId={(item as any).wishlistItemId}

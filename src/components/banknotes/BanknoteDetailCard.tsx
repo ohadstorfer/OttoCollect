@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Check, Eye, Heart, BookCopy, Users } from "lucide-react";
+import { Plus, Check, Eye, Heart, BookCopy, Users, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailedBanknote, CollectionItem, UserRank } from "@/types";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTutorial } from "@/context/TutorialContext";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
-import { addToWishlist, deleteWishlistItem, fetchWishlistItem } from "@/services/wishlistService";
+import { addToWishlist, deleteWishlistItem as deleteWishlistItemService, fetchWishlistItem } from "@/services/wishlistService";
 import { getBanknoteCollectors } from "@/services/banknoteService";
 import { useQuery } from "@tanstack/react-query";
 import { getInitials } from "@/lib/utils";
@@ -38,6 +38,10 @@ interface BanknoteDetailCardProps {
   countryId?: string;
   fromGroup?: boolean;
   userCollection?: CollectionItem[];
+  // Wishlist mode props - when set, shows trash button instead of heart
+  wishlistItemId?: string;
+  onDeleted?: () => void;
+  refetchWishlist?: () => void;
 }
 
 const BanknoteDetailCard = ({
@@ -47,6 +51,9 @@ const BanknoteDetailCard = ({
   countryId,
   fromGroup = false,
   userCollection = [],
+  wishlistItemId: wishlistItemIdProp,
+  onDeleted,
+  refetchWishlist,
 }: BanknoteDetailCardProps) => {
   const { t } = useTranslation(['collection', 'catalog']);
   const { currentLanguage } = useLanguage();
@@ -108,9 +115,11 @@ const BanknoteDetailCard = ({
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [isDeletingWishlist, setIsDeletingWishlist] = useState(false);
   const { user } = useAuth();
   const { triggerEditBanknoteGuide } = useTutorial();
   const { direction } = useLanguage();
+  const isWishlistMode = !!wishlistItemIdProp;
 
   // Helper function for translations with fallback
   const tWithFallback = (key: string, fallback: string) => {
@@ -268,7 +277,7 @@ const BanknoteDetailCard = ({
     try {
       if (isInWishlist && wishlistItemId) {
         // Remove from wishlist
-        const success = await deleteWishlistItem(wishlistItemId);
+        const success = await deleteWishlistItemService(wishlistItemId);
         if (success) {
           removeFromWishlistMap(banknote.id);
           toast({
@@ -298,6 +307,29 @@ const BanknoteDetailCard = ({
       toast({
         title: tWithFallback('error', 'Error'),
         description: tWithFallback('failedToUpdateWishlist', 'Failed to update wishlist. Please try again.'),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!wishlistItemIdProp) return;
+    setIsDeletingWishlist(true);
+    const ok = await deleteWishlistItemService(wishlistItemIdProp);
+    setIsDeletingWishlist(false);
+    if (ok) {
+      toast({
+        title: tWithFallback('removedFromWishlist', 'Removed from wishlist'),
+        description: tWithFallback('banknoteRemovedFromWishlist', 'This banknote was removed from your wishlist.'),
+        className: "justify-center items-center w-full",
+      });
+      onDeleted?.();
+      refetchWishlist?.();
+    } else {
+      toast({
+        title: tWithFallback('error', 'Error'),
+        description: tWithFallback('failedToRemoveFromWishlist', 'Could not remove this item from your wishlist.'),
         variant: "destructive",
       });
     }
@@ -458,48 +490,86 @@ const BanknoteDetailCard = ({
                 </div>
                 {source === 'catalog' && (
                   <div className="flex-shrink-0 flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={cn(wishlistButtonClass, "h-7 w-7")}
-                      onClick={handleWishlistClick}
-                      title={isInWishlist ? tWithFallback('removeFromWishlist', 'Remove from wishlist') : tWithFallback('addToWishlist', 'Add to wishlist')}
-                    >
-                      <Heart className={cn("h-3.5 w-3.5", isInWishlist ? "fill-current" : "")} />
-                    </Button>
-                    {shouldShowCheck ? (
-                      <Button
-                        title={tWithFallback('youAlreadyOwnThisBanknote', 'You already own this banknote')}
-                        variant="ghost"
-                        size="icon"
-                        className={cn(checkButtonClass, "flex-shrink-0 h-7 w-7")}
-                        onClick={handleOwnershipCheckButton}
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                      </Button>
+                    {isWishlistMode ? (
+                      <>
+                        <Button
+                          title={tWithFallback('removeFromWishlist', 'Remove from wishlist')}
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 flex-shrink-0"
+                          onClick={handleDeleteWishlist}
+                          disabled={isDeletingWishlist}
+                        >
+                          <Trash className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                        {shouldShowCheck ? (
+                          <Button
+                            title={tWithFallback('youAlreadyOwnThisBanknote', 'You already own this banknote')}
+                            variant="ghost"
+                            size="icon"
+                            className={cn(checkButtonClass, "flex-shrink-0 h-7 w-7")}
+                            onClick={handleOwnershipCheckButton}
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                        ) : (
+                          <Button
+                            title={tWithFallback('addToYourCollection', 'Add to your collection')}
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 flex-shrink-0"
+                            onClick={handleAddButtonClick}
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </>
                     ) : (
-                      <Button
-                        title={tWithFallback('addToYourCollection', 'Add to your collection')}
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 flex-shrink-0"
-                        onClick={handleAddButtonClick}
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                      </Button>
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn(wishlistButtonClass, "h-7 w-7")}
+                          onClick={handleWishlistClick}
+                          title={isInWishlist ? tWithFallback('removeFromWishlist', 'Remove from wishlist') : tWithFallback('addToWishlist', 'Add to wishlist')}
+                        >
+                          <Heart className={cn("h-3.5 w-3.5", isInWishlist ? "fill-current" : "")} />
+                        </Button>
+                        {shouldShowCheck ? (
+                          <Button
+                            title={tWithFallback('youAlreadyOwnThisBanknote', 'You already own this banknote')}
+                            variant="ghost"
+                            size="icon"
+                            className={cn(checkButtonClass, "flex-shrink-0 h-7 w-7")}
+                            onClick={handleOwnershipCheckButton}
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                        ) : (
+                          <Button
+                            title={tWithFallback('addToYourCollection', 'Add to your collection')}
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 flex-shrink-0"
+                            onClick={handleAddButtonClick}
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hidden sm:flex h-7 items-center gap-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowCollectorsDialog(true);
+                          }}
+                          title={tWithFallback('onCollections', `On ${collectorsData?.total_count || 0} Collections`)}
+                        >
+                          <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-3.5 w-3.5" /></span>
+                        </Button>
+                      </>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="hidden sm:flex h-7 items-center gap-0" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowCollectorsDialog(true);
-                      }}
-                      title={tWithFallback('onCollections', `On ${collectorsData?.total_count || 0} Collections`)}
-                    >
-                      <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-3.5 w-3.5" /></span>
-                    </Button>
                   </div>
                 )}
               </div>
@@ -587,48 +657,87 @@ const BanknoteDetailCard = ({
                 <span>{getLocalizedField(banknote.denomination, 'face_value')}</span>
               </h4>
               <div className="flex gap-0.1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hidden sm:flex h-8 items-center px-1.5"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowCollectorsDialog(true);
-                  }}
-                  title={tWithFallback('onCollections', `On ${collectorsData?.total_count || 0} Collections`)}
-                >
-                  <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-4 w-4" /></span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={wishlistButtonClass}
-                  onClick={handleWishlistClick}
-                  title={isInWishlist ? tWithFallback('removeFromWishlist', 'Remove from wishlist') : tWithFallback('addToWishlist', 'Add to wishlist')}
-                >
-                  <Heart className={cn("h-4 w-4", isInWishlist ? "fill-current" : "")} />
-                </Button>
-                {shouldShowCheck ? (
-                  <Button
-                    title={tWithFallback('youAlreadyOwnThisBanknote', 'You already own this banknote')}
-                    variant="secondary"
-                    size="icon"
-                    className={checkButtonClass}
-                    onClick={handleOwnershipCheckButton}
-                    tabIndex={0}
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
+                {isWishlistMode ? (
+                  <>
+                    <Button
+                      title={tWithFallback('removeFromWishlist', 'Remove from wishlist')}
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={handleDeleteWishlist}
+                      disabled={isDeletingWishlist}
+                    >
+                      <Trash className="h-4 w-4 text-destructive" />
+                    </Button>
+                    {shouldShowCheck ? (
+                      <Button
+                        title={tWithFallback('youAlreadyOwnThisBanknote', 'You already own this banknote')}
+                        variant="secondary"
+                        size="icon"
+                        className={checkButtonClass}
+                        onClick={handleOwnershipCheckButton}
+                        tabIndex={0}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        title={tWithFallback('addToYourCollection', 'Add to your collection')}
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={handleAddButtonClick}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </>
                 ) : (
-                  <Button
-                    title={tWithFallback('addToYourCollection', 'Add to your collection')}
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0"
-                    onClick={handleAddButtonClick}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hidden sm:flex h-8 items-center px-1.5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowCollectorsDialog(true);
+                      }}
+                      title={tWithFallback('onCollections', `On ${collectorsData?.total_count || 0} Collections`)}
+                    >
+                      <span className="text-xs font-medium flex items-center gap-0.5">{collectorsData?.total_count || 0}<BookCopy className="h-4 w-4" /></span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={wishlistButtonClass}
+                      onClick={handleWishlistClick}
+                      title={isInWishlist ? tWithFallback('removeFromWishlist', 'Remove from wishlist') : tWithFallback('addToWishlist', 'Add to wishlist')}
+                    >
+                      <Heart className={cn("h-4 w-4", isInWishlist ? "fill-current" : "")} />
+                    </Button>
+                    {shouldShowCheck ? (
+                      <Button
+                        title={tWithFallback('youAlreadyOwnThisBanknote', 'You already own this banknote')}
+                        variant="secondary"
+                        size="icon"
+                        className={checkButtonClass}
+                        onClick={handleOwnershipCheckButton}
+                        tabIndex={0}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        title={tWithFallback('addToYourCollection', 'Add to your collection')}
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={handleAddButtonClick}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -671,13 +780,18 @@ const BanknoteDetailCard = ({
                 {getLocalizedAuthorityName()}: {getLocalizedField(banknote.sultanName, 'sultan_name')}
               </p>
             )}
-            {(banknote.signaturesFront || banknote.signaturesBack) && (
-              <p className="text-xs text-muted-foreground">
-                {tWithFallback('signatures', 'Signatures')}: {getLocalizedField(banknote.signaturesFront, 'signatures_front')}
-                {banknote.signaturesFront && banknote.signaturesBack && ", "}
-                {getLocalizedField(banknote.signaturesBack, 'signatures_back')} 
-              </p>
-            )}
+            {(() => {
+              const front = getLocalizedField(banknote.signaturesFront, 'signatures_front')?.trim();
+              const back = getLocalizedField(banknote.signaturesBack, 'signatures_back')?.trim();
+              if (!front && !back) return null;
+              return (
+                <p className="text-xs text-muted-foreground">
+                  {tWithFallback('signatures', 'Signatures')}: {front}
+                  {front && back && ", "}
+                  {back}
+                </p>
+              );
+            })()}
 
             {banknote.sealNames && (
               <p className="text-xs text-muted-foreground">

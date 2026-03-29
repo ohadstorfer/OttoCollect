@@ -2,18 +2,17 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Fetches wishlist items filtered by user
- * Always includes the full detailed banknote data as "detailed_banknotes"
+ * Joins enhanced_banknotes_with_translations for full banknote data including translations and authority names
  */
 export async function fetchUserWishlist(userId: string): Promise<any[]> {
   try {
     console.log("[fetchUserWishlist] Starting fetch for user:", userId);
 
-    // Updated: Always join full detailed_banknotes object in the response
     const { data, error } = await supabase
       .from('wishlist_items')
       .select(`
         *,
-        detailed_banknotes:banknote_id (*)
+        enhanced_banknotes_with_translations:banknote_id (*)
       `)
       .eq('user_id', userId);
 
@@ -33,18 +32,17 @@ export async function fetchUserWishlist(userId: string): Promise<any[]> {
 
 /**
  * Fetches wishlist items filtered by country
- * Always includes the full detailed banknote data as "detailed_banknotes"
+ * Joins enhanced_banknotes_with_translations for full banknote data including translations and authority names
  */
 export async function fetchUserWishlistByCountry(userId: string, countryName: string): Promise<any[]> {
   try {
     console.log("[fetchUserWishlistByCountry] Starting fetch for:", { userId, countryName });
 
-    // Updated: Always join full detailed_banknotes
     const { data, error } = await supabase
       .from('wishlist_items')
       .select(`
         *,
-        detailed_banknotes:banknote_id (*)
+        enhanced_banknotes_with_translations:banknote_id (*)
       `)
       .eq('user_id', userId);
 
@@ -53,9 +51,9 @@ export async function fetchUserWishlistByCountry(userId: string, countryName: st
       return [];
     }
 
-    // Filter by country using the joined detailed_banknotes for maximum accuracy
+    // Filter by country using the joined banknote data
     const filteredData = (data || []).filter(item =>
-      item.detailed_banknotes && item.detailed_banknotes.country === countryName
+      item.enhanced_banknotes_with_translations && item.enhanced_banknotes_with_translations.country === countryName
     );
 
     console.log(`[fetchUserWishlistByCountry] Found ${filteredData?.length || 0} wishlist items for user ${userId} in country ${countryName}`);

@@ -32,11 +32,13 @@ import { Country } from '@/types/filter';
 import { Edit, Plus, Trash2, Save, X, GripVertical } from 'lucide-react';
 import SimpleCountryImageUpload from './SimpleCountryImageUpload';
 import { ImageIcon } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useTranslation } from 'react-i18next';
 
 interface ExtendedCountry extends Country {
   display_order: number;
+  is_visible: boolean;
 }
 
 const CountryManagement: React.FC = () => {
@@ -417,6 +419,31 @@ const CountryManagement: React.FC = () => {
     }
   };
 
+  const toggleVisibility = async (country: ExtendedCountry) => {
+    try {
+      const newValue = !country.is_visible;
+      const { error } = await supabase
+        .from('countries')
+        .update({ is_visible: newValue })
+        .eq('id', country.id);
+
+      if (error) throw error;
+
+      setCountries(prev =>
+        prev.map(c => c.id === country.id ? { ...c, is_visible: newValue } : c)
+      );
+      toast({
+        title: t('countryManagement.success'),
+        description: newValue
+          ? `${country.name} is now visible in catalog`
+          : `${country.name} is now hidden from catalog`,
+      });
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      toast({ title: t('countryManagement.error'), description: 'Failed to update visibility', variant: "destructive" });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -479,6 +506,7 @@ const CountryManagement: React.FC = () => {
               <TableHead>{t('countryManagement.tableHeaders.order')}</TableHead>
               <TableHead>{t('countryManagement.tableHeaders.name')}</TableHead>
               <TableHead>{t('countryManagement.tableHeaders.image')}</TableHead>
+              <TableHead>Visible</TableHead>
               <TableHead className="text-right">{t('countryManagement.tableHeaders.actions')}</TableHead>
             </TableRow>
           </TableHeader>
@@ -559,6 +587,12 @@ const CountryManagement: React.FC = () => {
                     </div>
                   )}
                 </TableCell>
+                <TableCell>
+                  <Switch
+                    checked={!!country.is_visible}
+                    onCheckedChange={() => toggleVisibility(country)}
+                  />
+                </TableCell>
                 <TableCell className="text-right">
                   {isEditing === country.id ? (
                     <div className="flex justify-end gap-2">
@@ -604,7 +638,7 @@ const CountryManagement: React.FC = () => {
                   {provided.placeholder}
             {countries.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center">
                   No countries found.
                 </TableCell>
               </TableRow>

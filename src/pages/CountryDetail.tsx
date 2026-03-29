@@ -51,8 +51,10 @@ const CountryDetail = () => {
   const { user } = useAuth();
   const [userCollection, setUserCollection] = useState<CollectionItem[]>([]);
   
-  // Add preferences loading state
-  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  // Add preferences loading state - skip waiting if we have cached filters
+  const [preferencesLoaded, setPreferencesLoaded] = useState(() => {
+    return filters.categories.length > 0 && filters.types.length > 0;
+  });
   const [sultanOrderMap, setSultanOrderMap] = useState<Map<string, number>>(new Map());
   
   // Track scroll restoration state

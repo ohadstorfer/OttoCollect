@@ -17,7 +17,16 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 export const useWishlist = () => {
   const context = useContext(WishlistContext);
   if (context === undefined) {
-    throw new Error('useWishlist must be used within a WishlistProvider');
+    // Return safe defaults when used outside WishlistProvider (e.g. profile wishlist tab)
+    return {
+      wishlistMap: new Map(),
+      isWishlistItem: () => false,
+      getWishlistItemId: () => null,
+      refreshWishlistStatus: async () => {},
+      addToWishlistMap: () => {},
+      removeFromWishlistMap: () => {},
+      isLoading: false,
+    } as WishlistContextType;
   }
   return context;
 };
