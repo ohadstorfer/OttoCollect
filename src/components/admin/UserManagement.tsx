@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +11,9 @@ import { Search, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { blockUserByEmail, deleteUserById } from '@/services/profileService';
 import UserProfileDialog from './UserProfileDialog';
+import { Pagination } from '@/components/ui/pagination';
+
+const PAGE_SIZE = 20;
 
 interface UserManagementProps {
   isSuperAdmin: boolean;
@@ -22,6 +25,9 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [userToRemove, setUserToRemove] = useState<User | null>(null);
@@ -34,28 +40,50 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
 
+  // Debounce search input
   useEffect(() => {
-    fetchUsers();
-    fetchRoles();
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  const fetchUsers = async () => {
+  useEffect(() => {
+    fetchUsers(currentPage, debouncedSearch);
+    fetchRoles();
+  }, [currentPage, debouncedSearch]);
+
+  const fetchUsers = async (page: number = 1, search: string = '') => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      // Build query
+      let query = supabase
+        .from('profiles_with_last_login')
         .select(`
           *,
           roles (
             id,
             name
           )
-        `)
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (search) {
+        query = query.or(`username.ilike.%${search}%,email.ilike.%${search}%`);
+      }
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
 
-      const formattedUsers: User[] = data.map(profile => ({
+      setTotalCount(count || 0);
+
+      const formattedUsers: User[] = (data || []).map(profile => ({
         id: profile.id,
         username: profile.username,
         email: profile.email,
@@ -64,13 +92,14 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
         rank: profile.rank as any,
         points: profile.points,
         createdAt: profile.created_at,
+        lastLogin: profile.last_login || undefined,
         avatarUrl: profile.avatar_url,
         country: profile.country,
         about: profile.about,
         blocked: profile.blocked || false,
         is_forum_blocked: profile.is_forum_blocked || false,
       }));
-      
+
       setUsers(formattedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -157,10 +186,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
     return role?.name || user.role || t('userManagement.unknownRole');
   };
 
-  const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const handleRemoveAndBlock = (user: User) => {
     setUserToRemove(user);
@@ -286,7 +312,7 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
             className="pl-8"
           />
         </div>
-        <Button onClick={fetchUsers} variant="outline" disabled={loading}>
+        <Button onClick={() => fetchUsers(currentPage, debouncedSearch)} variant="outline" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -308,11 +334,12 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
               <TableHead>{t('userManagement.table.status')}</TableHead>
               <TableHead>{t('userManagement.table.forum')}</TableHead>
               <TableHead>{t('userManagement.table.createdAt')}</TableHead>
+              <TableHead>Last Login</TableHead>
               <TableHead>{t('userManagement.table.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.map((user) => (
+            {users.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">
                   <Button
@@ -354,6 +381,11 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
                   {new Date(user.createdAt).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
+                  {user.lastLogin
+                    ? new Date(user.lastLogin).toLocaleDateString()
+                    : 'Never'}
+                </TableCell>
+                <TableCell>
                   {isSuperAdmin && (
                     <div className="flex flex-col gap-2">
                       <Select
@@ -379,6 +411,18 @@ const UserManagement = ({ isSuperAdmin }: UserManagementProps) => {
           </TableBody>
         </Table>
       </div>
+
+      <div className="flex items-center justify-between mt-4">
+        <p className="text-sm text-muted-foreground">
+          Showing {Math.min((currentPage - 1) * PAGE_SIZE + 1, totalCount)}–{Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount} users
+        </p>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+
       {showRemoveDialog && userToRemove && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full">

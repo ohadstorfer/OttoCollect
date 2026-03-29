@@ -2012,6 +2012,55 @@ export type Database = {
       }
     }
     Views: {
+      profiles_with_last_login: {
+        Row: {
+          about: string | null
+          avatar_url: string | null
+          blocked: boolean
+          blocked_at: string | null
+          blocked_by: string | null
+          blocked_reason: string | null
+          country: string | null
+          created_at: string
+          email: string
+          facebook_url: string | null
+          id: string
+          instagram_url: string | null
+          is_forum_blocked: boolean | null
+          last_login: string | null
+          linkedin_url: string | null
+          points: number
+          rank: string
+          role: string
+          role_id: string | null
+          twitter_url: string | null
+          updated_at: string
+          username: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_blocked_by_fkey"
+            columns: ["blocked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_blocked_by_fkey"
+            columns: ["blocked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_with_last_login"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enhanced_detailed_banknotes: {
         Row: {
           authority_name: string | null

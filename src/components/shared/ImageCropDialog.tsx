@@ -61,7 +61,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
 
   // Function to handle single rotation step
   const handleSingleRotation = (direction: 'left' | 'right') => {
-    setRotation(prev => direction === 'left' ? prev - 1 : prev + 1);
+    setRotation(prev => Math.round((direction === 'left' ? prev - 0.1 : prev + 0.1) * 10) / 10);
   };
 
   const startRotation = (direction: 'left' | 'right') => {
@@ -368,7 +368,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
                   <RotateCw className="h-4 w-4" />
                 </Button>
                 <span className="text-sm text-muted-foreground ml-2">
-                  {rotation}°
+                  {rotation.toFixed(1)}°
                 </span>
               </div>
 

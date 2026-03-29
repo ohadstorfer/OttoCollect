@@ -37,11 +37,14 @@ const Catalog = () => {
     }
   });
 
+  const isAdmin = user?.originalRole === 'Super Admin' ||
+    (user?.originalRole && user.originalRole !== 'Super Admin' && user.originalRole.includes('Admin'));
+
   useEffect(() => {
     const loadCountries = async () => {
       setLoading(true);
       try {
-        const data = await fetchCountriesForCatalog(currentLanguage);
+        const data = await fetchCountriesForCatalog(currentLanguage, !!isAdmin);
         // Remove alphabetical sorting - keep database order by display_order
         setCountries(data);
       } catch (error) {
@@ -57,7 +60,7 @@ const Catalog = () => {
     };
 
     loadCountries();
-  }, [toast, currentLanguage]);
+  }, [toast, currentLanguage, isAdmin]);
 
   // Fetch user collection once user is signed in
   useEffect(() => {

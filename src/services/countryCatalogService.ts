@@ -2,13 +2,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { CountryData } from "@/types";
 import { databaseTranslationService, createNameTranslationConfig } from "./databaseTranslationService";
 
-export async function fetchCountriesForCatalog(currentLanguage: string = 'en'): Promise<CountryData[]> {
+export async function fetchCountriesForCatalog(currentLanguage: string = 'en', isAdmin: boolean = false): Promise<CountryData[]> {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('countries')
-      .select('id, name, name_ar, name_tr, description, image_url, display_order')
-      .eq('is_visible', true)
-      .order('display_order');
+      .select('id, name, name_ar, name_tr, description, image_url, display_order, is_visible');
+
+    if (!isAdmin) {
+      query = query.eq('is_visible', true);
+    }
+
+    const { data, error } = await query.order('display_order');
     
     if (error) {
       console.error("Error fetching countries for catalog:", error);
@@ -39,6 +43,7 @@ export async function fetchCountriesForCatalog(currentLanguage: string = 'en'): 
       name_tr: country.name_tr || null,
       description: country.description || '',
       imageUrl: country.image_url || null,
+      is_visible: country.is_visible,
       banknoteCount: countMap[country.name] || 0,
       display_order: country.display_order
     }));
@@ -67,11 +72,15 @@ export async function fetchCountriesForCatalog(currentLanguage: string = 'en'): 
       );
 
       // Now fetch the updated data from database to get the new translations
-      const { data: updatedData, error: updateError } = await supabase
+      let updatedQuery = supabase
         .from('countries')
-        .select('id, name, name_ar, name_tr, description, image_url, display_order')
-        .eq('is_visible', true)
-        .order('display_order');
+        .select('id, name, name_ar, name_tr, description, image_url, display_order, is_visible');
+
+      if (!isAdmin) {
+        updatedQuery = updatedQuery.eq('is_visible', true);
+      }
+
+      const { data: updatedData, error: updateError } = await updatedQuery.order('display_order');
       
       if (updateError) {
         console.error("Error fetching updated countries:", updateError);
@@ -87,6 +96,7 @@ export async function fetchCountriesForCatalog(currentLanguage: string = 'en'): 
         name_tr: country.name_tr || null,
         description: country.description || '',
         imageUrl: country.image_url || null,
+        is_visible: country.is_visible,
         banknoteCount: countMap[country.name] || 0,
         display_order: country.display_order
       }));

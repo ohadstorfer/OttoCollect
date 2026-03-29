@@ -89,6 +89,7 @@ export interface User {
   points: number;
   createdAt: string;
   updatedAt?: string;
+  lastLogin?: string;
   blocked?: boolean;
   is_forum_blocked?: boolean;
   facebook_url?: string;
@@ -140,6 +141,7 @@ export interface CountryData {
   name_tr?: string;
   description?: string;
   image_url?: string;
+  is_visible?: boolean;
   created_at: string;
   updated_at?: string;
   imageUrl?: string;
