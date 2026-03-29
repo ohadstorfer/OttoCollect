@@ -363,7 +363,11 @@
     "salePriceRequired": "سعر البيع مطلوب عند تحديد العنصر للبيع",
     "banknoteMustBeSelected": "يجب تحديد العملة",
     "maximum8CharactersAllowed": "الحد الأقصى 8 أحرف مسموح بها",
-    "maximum3CharactersAllowed": "الحد الأقصى 3 أحرف مسموح بها"
+    "maximum3CharactersAllowed": "الحد الأقصى 3 أحرف مسموح بها",
+    "externalListingUrl": "رابط الإعلان الخارجي",
+    "externalListingUrlDescription": "اختياري: أضف رابطًا لهذا العنصر على سوق خارجي معتمد (مثل eBay أو Amazon).",
+    "invalidUrl": "يرجى إدخال رابط صالح (مثل https://www.ebay.com/itm/123)",
+    "urlNotApproved": "يُسمح فقط بالروابط من المواقع المعتمدة (مثل eBay أو Amazon). تواصل مع المسؤول إذا كنت بحاجة إلى اعتماد موقع جديد."
   },
   "details": {
     "publicDetails": "التفاصيل العامة",

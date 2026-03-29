@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBanknoteDetail, getBanknoteCollectors } from "@/services/banknoteService";
@@ -87,6 +87,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const { id: paramsId } = useParams<{ id: string }>();
   const id = propsId || paramsId;
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { t } = useTranslation(['catalog']);
   const { direction } = useLanguage();
@@ -400,7 +401,13 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
             {t('details.couldNotLoadDetails')}
           </p>
           {!propsId && ( // Only show the back button when not in dialog mode
-            <Button onClick={() => navigate(-1)}>{t('details.goBack')}</Button>
+            <Button onClick={() => {
+              if (location.key === "default") {
+                navigate('/catalog');
+              } else {
+                navigate(-1);
+              }
+            }}>{t('details.goBack')}</Button>
           )}
         </div>
       </div>
@@ -626,7 +633,13 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
           <div className="flex justify-between items-center">
             <div className="flex items-baseline  gap-2">
               <Button
-                onClick={() => navigate(-1)}
+                onClick={() => {
+                  if (location.key === "default") {
+                    navigate(`/catalog/${encodeURIComponent(banknote?.country || '')}`);
+                  } else {
+                    navigate(-1);
+                  }
+                }}
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10"

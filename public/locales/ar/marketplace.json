@@ -149,6 +149,8 @@
     "couldNotLoadDetails": "تعذر تحميل تفاصيل عنصر السوق"
   },
 
+  "externalListing": "مُدرج أيضًا على {{domain}}",
+
   "pricing": {
     "currency": "دولار أمريكي",
     "negotiable": "السعر قابل للتفاوض",

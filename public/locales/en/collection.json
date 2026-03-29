@@ -342,7 +342,11 @@
     "salePriceRequired": "Sale price is required when item is marked for sale",
     "banknoteMustBeSelected": "Banknote must be selected",
     "maximum8CharactersAllowed": "Maximum 8 characters allowed",
-    "maximum3CharactersAllowed": "Maximum 3 characters allowed"
+    "maximum3CharactersAllowed": "Maximum 3 characters allowed",
+    "externalListingUrl": "External Listing URL",
+    "externalListingUrlDescription": "Optional: Add a link to this item on an approved external marketplace (e.g. eBay, Amazon).",
+    "invalidUrl": "Please enter a valid URL (e.g. https://www.ebay.com/itm/123)",
+    "urlNotApproved": "Only links from approved websites are allowed (e.g. eBay, Amazon). Contact an admin if you need a new website approved."
   },
   "details": {
     "publicDetails": "Public Details",

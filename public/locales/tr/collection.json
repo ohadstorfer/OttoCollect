@@ -219,7 +219,11 @@
     "salePrice": "Satış Fiyatı",
     "cancel": "İptal",
     "saving": "Kaydediliyor...",
-    "updateItem": "Öğeyi Güncelle"
+    "updateItem": "Öğeyi Güncelle",
+    "externalListingUrl": "Harici İlan Bağlantısı",
+    "externalListingUrlDescription": "İsteğe bağlı: Bu öğe için onaylanmış bir harici pazaryerine bağlantı ekleyin (örn. eBay, Amazon).",
+    "invalidUrl": "Lütfen geçerli bir URL girin (örn. https://www.ebay.com/itm/123)",
+    "urlNotApproved": "Yalnızca onaylanmış web sitelerinden bağlantılara izin verilir (örn. eBay, Amazon). Yeni bir web sitesinin onaylanması için yöneticiyle iletişime geçin."
   },
   "loginRequired": "Giriş gerekli",
   "mustBeLoggedInToAddBanknotes": "Banknot koleksiyonunuza eklemek için giriş yapmalısınız.",

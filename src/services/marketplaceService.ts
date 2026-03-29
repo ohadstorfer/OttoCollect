@@ -363,8 +363,8 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
     
     // Convert seller data to User type
     const seller = adaptSellerToUserType(sellerInfo);
-    
-    
+
+
     return {
       id: data.id,
       collectionItemId: data.collection_item_id,
@@ -372,6 +372,7 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
       sellerId: data.seller_id,
       seller,
       status: data.status,
+      external_listing_url: data.external_listing_url,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     } as MarketplaceItem;
@@ -435,6 +436,7 @@ export async function getMarketplaceItemForCollectionItem(
       sellerId: data.seller_id,
       seller,
       status: data.status,
+      external_listing_url: data.external_listing_url,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     } as MarketplaceItem;

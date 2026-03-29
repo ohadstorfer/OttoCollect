@@ -148,6 +148,8 @@
     "couldNotLoadDetails": "Could not load the marketplace item details"
   },
 
+  "externalListing": "Also listed on {{domain}}",
+
   "pricing": {
     "currency": "USD",
     "negotiable": "Price Negotiable",

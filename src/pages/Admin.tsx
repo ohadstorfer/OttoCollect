@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Shield, Users, Book, Image, Globe, Settings, Stamp, BarChart3 } from 'lucide-react';
+import { Shield, Users, Book, Image, Globe, Settings, Stamp, BarChart3, Link } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import UserManagement from '@/components/admin/UserManagement';
 import BanknotesManagement from '@/components/admin/BanknotesManagement';
@@ -15,6 +15,7 @@ import CountryFilterSettings from '@/components/admin/CountryFilterSettings';
 import CountryAdminDashboard from '@/components/admin/CountryAdminDashboard';
 import StampsManagement from '@/components/admin/StampsManagement';
 import { AdminStatistics } from '@/components/admin/AdminStatistics';
+import ApprovedDomainsManager from '@/components/admin/ApprovedDomainsManager';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -189,6 +190,10 @@ const Admin = () => {
               <BarChart3 className="mr-2 h-4 w-4" />
               {t('admin:tabs.statistics')}
             </TabsTrigger>
+            <TabsTrigger value="urls">
+              <Link className="mr-2 h-4 w-4" />
+              {t('admin:tabs.urls')}
+            </TabsTrigger>
           </TabsList>
 
          
@@ -256,7 +261,18 @@ const Admin = () => {
           <TabsContent value="statistics">
             <AdminStatistics />
           </TabsContent>
-          
+
+          <TabsContent value="urls">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-serif"><span>{t('admin:sections.urlsManagement')}</span></CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ApprovedDomainsManager />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
       </div>
     </div>

@@ -12,14 +12,39 @@
     "stamps": "Stamps",
     "countries": "Countries",
     "filters": "Filters",
-    "statistics": "Statistics"
+    "statistics": "Statistics",
+    "urls": "URLs"
   },
   "sections": {
     "userManagement": "User Management",
     "banknotesManagement": "Banknotes Management",
     "imageSuggestions": "Image Suggestions",
     "stamps": "Stamps",
-    "countryFilterSettings": "Country Filter Settings"
+    "countryFilterSettings": "Country Filter Settings",
+    "urlsManagement": "URLs Management"
+  },
+  "urls": {
+    "description": "Manage which website domains users can link to when listing items for sale on the marketplace.",
+    "addDomain": "Add Domain",
+    "loading": "Loading...",
+    "noDomains": "No approved domains yet. Add domains like \"ebay.com\" or \"amazon.com\" to allow users to link to external listings.",
+    "domain": "Domain",
+    "added": "Added",
+    "actions": "Actions",
+    "addApprovedDomain": "Add Approved Domain",
+    "domainPlaceholder": "e.g. ebay.com",
+    "domainHint": "Enter just the domain name. Protocol and paths will be stripped automatically.",
+    "cancel": "Cancel",
+    "deleteApprovedDomain": "Delete Approved Domain",
+    "deleteConfirmation": "Are you sure you want to remove \"{{domain}}\" from the approved list? Users will no longer be able to add links from this domain.",
+    "delete": "Delete",
+    "domainRequired": "Please enter a valid domain (e.g. ebay.com)",
+    "domainAlreadyExists": "\"{{domain}}\" is already in the approved list",
+    "domainAdded": "\"{{domain}}\" added to approved domains",
+    "domainRemoved": "\"{{domain}}\" removed from approved domains",
+    "failedToAdd": "Failed to add domain",
+    "failedToDelete": "Failed to delete domain",
+    "failedToLoad": "Failed to load approved domains"
   },
   "userManagement": {
     "searchPlaceholder": "Search users...",

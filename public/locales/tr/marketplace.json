@@ -149,6 +149,8 @@
     "couldNotLoadDetails": "Pazar öğesi detayları yüklenemedi"
   },
 
+  "externalListing": "{{domain}} üzerinde de listelendi",
+
   "pricing": {
     "currency": "USD",
     "negotiable": "Fiyat Pazarlık Edilebilir",

@@ -328,6 +328,7 @@ export interface MarketplaceItem {
   collection_item_id: string;
   banknote_id: string;
   status: 'Available' | 'Sold' | 'Reserved';
+  external_listing_url?: string;
   created_at: string;
   updated_at: string;
   // Additional properties returned by the service

@@ -12,14 +12,39 @@
     "stamps": "Pullar",
     "countries": "Ülkeler",
     "filters": "Filtreler",
-    "statistics": "İstatistikler"
+    "statistics": "İstatistikler",
+    "urls": "Bağlantılar"
   },
   "sections": {
     "userManagement": "Kullanıcı Yönetimi",
     "banknotesManagement": "Banknot Yönetimi",
     "imageSuggestions": "Resim Önerileri",
     "stamps": "Pullar",
-    "countryFilterSettings": "Ülke Filtre Ayarları"
+    "countryFilterSettings": "Ülke Filtre Ayarları",
+    "urlsManagement": "Bağlantı Yönetimi"
+  },
+  "urls": {
+    "description": "Pazaryerinde satışa sunulan öğeler için kullanıcıların bağlantı ekleyebileceği web sitesi alan adlarını yönetin.",
+    "addDomain": "Alan Adı Ekle",
+    "loading": "Yükleniyor...",
+    "noDomains": "Henüz onaylanmış alan adı yok. Kullanıcıların harici ilanlara bağlantı eklemesine izin vermek için \"ebay.com\" veya \"amazon.com\" gibi alan adları ekleyin.",
+    "domain": "Alan Adı",
+    "added": "Eklenme Tarihi",
+    "actions": "İşlemler",
+    "addApprovedDomain": "Onaylanmış Alan Adı Ekle",
+    "domainPlaceholder": "örn. ebay.com",
+    "domainHint": "Sadece alan adını girin. Protokol ve yollar otomatik olarak kaldırılacaktır.",
+    "cancel": "İptal",
+    "deleteApprovedDomain": "Onaylanmış Alan Adını Sil",
+    "deleteConfirmation": "\"{{domain}}\" alan adını onaylı listeden kaldırmak istediğinizden emin misiniz? Kullanıcılar artık bu alan adından bağlantı ekleyemeyecek.",
+    "delete": "Sil",
+    "domainRequired": "Lütfen geçerli bir alan adı girin (örn. ebay.com)",
+    "domainAlreadyExists": "\"{{domain}}\" zaten onaylı listede mevcut",
+    "domainAdded": "\"{{domain}}\" onaylı alan adlarına eklendi",
+    "domainRemoved": "\"{{domain}}\" onaylı alan adlarından kaldırıldı",
+    "failedToAdd": "Alan adı eklenemedi",
+    "failedToDelete": "Alan adı silinemedi",
+    "failedToLoad": "Onaylı alan adları yüklenemedi"
   },
   "userManagement": {
     "searchPlaceholder": "Kullanıcılarda ara...",

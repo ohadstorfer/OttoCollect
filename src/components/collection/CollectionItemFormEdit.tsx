@@ -38,6 +38,8 @@ import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
+import { fetchApprovedDomains, isUrlApproved } from '@/services/approvedDomainsService';
+import { supabase } from '@/integrations/supabase/client';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
 import { collectionItemTranslationService, CollectionItemTranslationService } from '@/services/collectionItemTranslationService';
 
@@ -69,7 +71,8 @@ const createFormSchema = (t: (key: string) => string) => z.object({
   publicNote: z.string().optional(),
   privateNote: z.string().optional(),
   isForSale: z.boolean().default(false),
-  salePrice: z.union([z.coerce.number().optional(), z.literal('')])
+  salePrice: z.union([z.coerce.number().optional(), z.literal('')]),
+  externalListingUrl: z.string().optional().default(''),
 }).refine((data) => {
   // If isForSale is true, salePrice must be provided and greater than 0
   if (data.isForSale) {
@@ -150,6 +153,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   );
 
   const isLimitedRank = authUser ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(authUser.rank || '') : false;
+  const [approvedDomains, setApprovedDomains] = useState<string[]>([]);
+  const [externalUrlError, setExternalUrlError] = useState<string>('');
 
   // Create form schema with translations
   const formSchema = createFormSchema(t);
@@ -172,9 +177,31 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       publicNote: currentItem?.publicNote || '',
       privateNote: currentItem?.privateNote || '',
       isForSale: currentItem?.isForSale || false,
-      salePrice: currentItem?.salePrice || ''
+      salePrice: currentItem?.salePrice || '',
+      externalListingUrl: '',
     }
   });
+
+  // Load approved domains and existing external URL
+  useEffect(() => {
+    fetchApprovedDomains().then(domains => {
+      setApprovedDomains(domains.map(d => d.domain));
+    });
+
+    // If editing an existing item that's for sale, load the marketplace item's external URL
+    if (currentItem?.id && currentItem?.isForSale) {
+      supabase
+        .from('marketplace_items')
+        .select('external_listing_url')
+        .eq('collection_item_id', currentItem.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.external_listing_url) {
+            form.setValue('externalListingUrl', data.external_listing_url);
+          }
+        });
+    }
+  }, []);
 
   // Search for banknotes as user types
   useEffect(() => {
@@ -301,6 +328,20 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         variant: "destructive"
       });
       return;
+    }
+
+    // Validate external listing URL against approved domains
+    if (values.isForSale && values.externalListingUrl && values.externalListingUrl.trim()) {
+      try {
+        new URL(values.externalListingUrl); // Validate it's a proper URL
+      } catch {
+        setExternalUrlError(t('item.invalidUrl', 'Please enter a valid URL (e.g. https://www.ebay.com/itm/123)'));
+        return;
+      }
+      if (!isUrlApproved(values.externalListingUrl, approvedDomains)) {
+        setExternalUrlError(t('item.urlNotApproved', 'Only links from approved websites are allowed (e.g. eBay, Amazon). Contact an admin if you need a new website approved.'));
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -435,6 +476,15 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             title: t('item.itemRemovedFromMarketplaceSuccess'),
             description: t('item.itemRemovedFromMarketplaceDescription'),
           });
+        }
+
+        // Update external listing URL on marketplace item if for sale
+        if (values.isForSale) {
+          const urlToSave = values.externalListingUrl?.trim() || null;
+          await supabase
+            .from('marketplace_items')
+            .update({ external_listing_url: urlToSave })
+            .eq('collection_item_id', currentItem.id);
         }
 
         if (onUpdate) onUpdate(currentItem, hasImageChanged);
@@ -1063,6 +1113,36 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                           />
                         </div>
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* External Listing URL - Only show if For Sale is checked */}
+              {form.watch("isForSale") && (
+                <FormField
+                  control={form.control}
+                  name="externalListingUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('item.externalListingUrl', 'External Listing URL')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="https://www.ebay.com/itm/..."
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setExternalUrlError('');
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t('item.externalListingUrlDescription', 'Optional: Add a link to this item on an approved external marketplace (e.g. eBay, Amazon).')}
+                      </FormDescription>
+                      {externalUrlError && (
+                        <p className="text-sm font-medium text-destructive">{externalUrlError}</p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}

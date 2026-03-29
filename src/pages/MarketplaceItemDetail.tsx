@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageSquare, AlertCircle, User, ArrowRight } from "lucide-react";
+import { ArrowLeft, MessageSquare, AlertCircle, User, ArrowRight, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -413,6 +413,28 @@ const MarketplaceItemDetail = () => {
               )} */}
             </CardContent>
 
+
+            {/* External listing link */}
+            {item.external_listing_url && (() => {
+              let domain = '';
+              try {
+                const hostname = new URL(item.external_listing_url).hostname;
+                domain = hostname.startsWith('www.') ? hostname.slice(4) : hostname;
+              } catch { domain = ''; }
+              return (
+                <div className="px-6 pb-4">
+                  <a
+                    href={item.external_listing_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-ottoman-500 hover:text-ottoman-400 underline"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {t('externalListing', { domain })}
+                  </a>
+                </div>
+              );
+            })()}
 
             {/* Seller information */}
             <Card>

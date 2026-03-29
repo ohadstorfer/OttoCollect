@@ -12,14 +12,39 @@
     "stamps": "الطوابع",
     "countries": "البلدان",
     "filters": "المرشحات",
-    "statistics": "الإحصائيات"
+    "statistics": "الإحصائيات",
+    "urls": "الروابط"
   },
   "sections": {
     "userManagement": "إدارة المستخدمين",
     "banknotesManagement": "إدارة الأوراق النقدية",
     "imageSuggestions": "اقتراحات الصور",
     "stamps": "الطوابع",
-    "countryFilterSettings": "إعدادات مرشح البلد"
+    "countryFilterSettings": "إعدادات مرشح البلد",
+    "urlsManagement": "إدارة الروابط"
+  },
+  "urls": {
+    "description": "إدارة نطاقات المواقع التي يمكن للمستخدمين الربط بها عند عرض العناصر للبيع في السوق.",
+    "addDomain": "إضافة نطاق",
+    "loading": "جاري التحميل...",
+    "noDomains": "لا توجد نطاقات معتمدة بعد. أضف نطاقات مثل \"ebay.com\" أو \"amazon.com\" للسماح للمستخدمين بالربط بالإعلانات الخارجية.",
+    "domain": "النطاق",
+    "added": "تاريخ الإضافة",
+    "actions": "الإجراءات",
+    "addApprovedDomain": "إضافة نطاق معتمد",
+    "domainPlaceholder": "مثال: ebay.com",
+    "domainHint": "أدخل اسم النطاق فقط. سيتم إزالة البروتوكول والمسارات تلقائيًا.",
+    "cancel": "إلغاء",
+    "deleteApprovedDomain": "حذف النطاق المعتمد",
+    "deleteConfirmation": "هل أنت متأكد من إزالة \"{{domain}}\" من القائمة المعتمدة؟ لن يتمكن المستخدمون بعد الآن من إضافة روابط من هذا النطاق.",
+    "delete": "حذف",
+    "domainRequired": "يرجى إدخال نطاق صالح (مثال: ebay.com)",
+    "domainAlreadyExists": "\"{{domain}}\" موجود بالفعل في القائمة المعتمدة",
+    "domainAdded": "تمت إضافة \"{{domain}}\" إلى النطاقات المعتمدة",
+    "domainRemoved": "تمت إزالة \"{{domain}}\" من النطاقات المعتمدة",
+    "failedToAdd": "فشل في إضافة النطاق",
+    "failedToDelete": "فشل في حذف النطاق",
+    "failedToLoad": "فشل في تحميل النطاقات المعتمدة"
   },
   "userManagement": {
     "searchPlaceholder": "البحث في المستخدمين...",
